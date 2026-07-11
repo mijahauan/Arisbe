@@ -9,7 +9,17 @@ all three under the mechanical referee · the **§6 meta-learning instruments**
 live source, Wikidata** (`src/wikidata_source.py`) BUILT · §4c–4d frame the whole as a *model
 living with a given reality through the membrane* and locate the drive (**tropism**), the coupling
 (**dianexus**), and the not-yet-legible (**horizon**) in the *methodeutic surround outside the
-calculus* · aim = **discovery** · **Drafted**: 2026-06-30
+calculus* · aim = **discovery** · **Drafted**: 2026-06-30 · **restructured 2026-07-11** (below)
+
+> **How to read this document (restructured 2026-07-11).** It is now three parts. **Part I
+> (§1–§10)** is the design of record — what the automated game *is* and what was built, largely
+> as drafted before any live run. **Part II (§11)** is *what running it has taught* — the
+> principles eleven live runs established, folded back into the design as run-cited findings
+> (before this pass they were scattered across a dozen run appendices). **Part III (§12)** is the
+> **run ledger** — a compact chronological table + a findings index, each run linking to its full
+> `runs/RUN_N_LOG.md` (where the per-run pre-registration and disposal detail lives; this document
+> carries the synthesis, not a second copy). Runs 1–10 are executed and disposed; run 11 (the
+> calibrated precip arm) is built and awaiting the author's launch.
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -112,6 +122,17 @@ one source:
    the only forward move is to introduce a new relation (abduction proper — the `novel_relation`
    doubt-type). Anneal + a boredom-detector (spike the temperature after N no-change rounds)
    *maintain* the drive.
+5. **Content-directed probing — the docket of doubts (BUILT — `query_docket.py`, increment 2a).**
+   The tropism (§4d; runs 2–3) maps *state → probe* ("this entity again"); the docket maps *articulated
+   doubt → probe* ("this missing answer"). The system already names its own missing answers in
+   three places that never reached the membrane — the peel's Kleene **UNKNOWN** transcript
+   (the addressability gap), the Graphist's `attention_brief` thin spots, and materialized
+   consequences awaiting a witness — so `QueryDocket` registers those *wants* (age/attempts,
+   counted never dropped), prioritizes them (Q1 `reaches()` via the same label-reversal as the
+   tropism: fewest-attempts → oldest), and settles the answered ones per segment; the honest
+   residue is `inexpressible` (a want no probe can currently voice — the Q2/Q3 tiers exist to
+   shrink it). It composes with the tropism at the poll boundary. This is the answer to the
+   *content-undirected probing* bottleneck run 5b named by elimination (§11 findings, run 5).
 
 ## 4b · Recurrent real-world membranes (the open frontier)
 
@@ -181,9 +202,23 @@ feeds straight into the §6 meta-learning** (`WikiDisputeFeed.episodes(result)` 
 mechanism — reliable-source resolutions stick where an overturned consensus does not),
 `edit_war_friction` ranks the contested frontier, `unresolved_frontier` names the ◇-contested
 horizon. Demo: `tools/build_wiki_dispute_demo.py`; tests: `tests/test_wiki_dispute_membrane.py`.
-Still ahead: a **live** source behind these feed interfaces (a wiki/forum dispute stream; a
-prediction-market / sports / weather API), and a mechanical source-conflict agent so the
-*raise-only* loop disposes of contested contents without an LLM.
+The mechanical source-conflict agent shipped (`agon_evolution.ContradictionAgent` +
+`model_revision.retract_atom`), so the *raise-only* loop disposes contested contents without an
+LLM. **The first live raise-and-resolve source is now BUILT too** — NWS weather
+(`src/weather_source.py`), run live in runs 7–11 (Part III). Its lesson (Part II, §11.4) is the
+one this design most owes to the runs: *whether a refuted theory can re-generalize into a better
+one depends on whether its recalibration knob **calibrates** or merely **selects**.*
+
+**Why one source is not enough — branch by source class (established, run 5b → run 7, F3⁷).**
+A membrane's *class* determines which dispositions the game can even exercise. Wikidata alone
+ran ~100 % `new_fact` (a curated record of settled values has almost no refutation to offer — the
+inductive/refutational registers stayed idle, and the final M carried **zero laws**); the weather
+resolving membrane, by contrast, made the game *predict and be falsified*, exercising exactly the
+`challenge_to_M` / re-generalize registers Wikidata could not. So a finding read off one source is
+provisional: **branch sources wherever a finding's disposition would differ by source class**
+(the single-source check). This is why the arc deliberately moved Wikidata → weather, and why the
+next planned source is a *third* class (sports outcomes — a discrete resolving membrane) rather
+than more weather.
 
 ## 4c · What the developing model is a model *of* (the biological reading)
 
@@ -322,7 +357,7 @@ is a **proto-tropism**, its irritation pole already built. The eventual directed
 implements the rest: the musement pole, the economy-of-research ordering of reaches, and the
 horizon as a first-class, retained register. Nothing here auto-promotes; *progression, not progress*
 (§7). *(Runs 1–2 converted this commitment into an empirically mandated build — the warm-set
-re-poll design draft is §13.)*
+re-poll tropism, `src/tropism.py`; runs 2–3 in the Part III ledger.)*
 
 **The observable shadow of poise (an instrument, not a target — defined 2026-07-01, BUILT).**
 Poise itself cannot be measured: there is no absolute frame to measure it *in* — that was the
@@ -560,8 +595,13 @@ preprint already does exactly this was not resolved.
   `src/wikidata_source.py` (Wikidata as the first `LiveSource`; `wbgetentities_fetch` the real
   call). The mechanical **source-conflict agent** shipped too: `agon_evolution.ContradictionAgent`
   + `model_revision.retract_atom` dispose a sourced denial of a standing fact without an LLM.
-- **Next.** A live *raise-and-resolve* source (a prediction-market / sports / weather API) once a
-  temporal fragment is added; label lookups for the Wikidata adapter (P/Q ids → names); the
+- **The live raise-and-resolve source is BUILT — NWS weather** (`src/weather_source.py`,
+  `weather_recalibration.py`, `tools/run_live_weather.py`): M forecasts (the peel), the world
+  resolves, and a refuted seeded law is **re-generalized** (run 8) — the register Wikidata's
+  settled record could not exercise. Run live in runs 7–11; the calibrated precip arm (run 11) is
+  built and awaiting launch. See Part II §11.3–11.4 for the principle and Part III for the ledger.
+- **Next.** A *third* source class (sports outcomes — a discrete resolving membrane, to test
+  whether the knob-type law of §11.4 is general or weather-specific); the
   runs-as-corpus/test-suite + self-describing-rulebook harvests (§6 futures). Keep the floor:
   *progression, not progress* (§7); nothing auto-promotes to the attested corpus.
 
@@ -588,7 +628,7 @@ matter for cost either way.
 **The two controls that keep all three axes flat** (both in `LiveRunner`):
 
 1. **Bound \|M\| with disuse-decay** (`LiveRunConfig.ttl`). An **atom** idle for `ttl` *global*
-   rounds is erased (atom-level since 2026-07-03 — the §16 rulebook decision; before that the
+   rounds is erased (atom-level since 2026-07-03 — the rulebook decision, Part II §11.2; before that the
    unit was the relation *name*, which RUN_3 F1″ showed a warm hub name defeats: tropism kept
    the name touched while its atoms accumulated unboundedly). Use = **re-delivery**; erasure by
    `retract_atom`, so name-siblings and standing law cuts survive. Decay is applied by the
@@ -707,7 +747,7 @@ watched run tolerates and an unattended one does not:
    content is untrusted quoted data, never instructions. The mechanical quorum + reduce-to-artifact
    remain the deeper bound; the fences shrink the bias channel.
 
-**The run-1 kit (BUILT 2026-07-02)** — everything §11's binding configuration names, assembled:
+**The run-1 kit (BUILT 2026-07-02)** — everything the run-1 pre-registration names, assembled:
 `wikidata_source.RotatingWikidataSource` (the **rotating frontier**: a Q-id queue consumed
 `chunk_size` per poll, fetched *lazily at poll time* so the runner's pacing actually paces the
 API; `crawl` grows the frontier from entity-valued statement values, bounded by `frontier_cap`
@@ -717,905 +757,153 @@ and `save_state`/`load_state` so a resumed run **continues its crawl**);
 through `WikidataSource`, the determinism canary — used the very day it was built, to reproduce
 a live timing anomaly offline); and the driver `tools/run_live_wikidata.py` (side-store
 checkpoints under `runs/<run>/checkpoints`, `state.json` + `frontier.json` + `--resume`,
-STOP-file, pacing, per-segment console digests, final §6 + poise summary; log findings in
-`runs/RUN_1_LOG.md` against §11). Rehearsed end-to-end against the live API, including a
+STOP-file, pacing, per-segment console digests, final §6 + poise summary; findings logged in
+`runs/RUN_1_LOG.md`). Rehearsed end-to-end against the live API, including a
 stop + `--resume` continuing segments 3–4 with the frontier and decay clock intact.
 
-**A measured pre-run finding (2026-07-02): checkpoint attest cost scales with M's *shape*, not
-just |M|.** The smoke run's second segment took 452 s against 0.8 s of round compute — isolated
-(via the recorded polls replayed offline) to `save_uod_with_chain`'s §3.3 attest: a Wikidata
-entity's M is a **star graph** (one hub individual shared by every atom), and the ELK ligature
-router built its visibility graph with no spatial pruning — O(waypoints² × obstacles) full
-segment/rect tests, ~133 M cross-products for a 25-fact graph. Two responses: (1) an **exact
-quick reject** in `_seg_crosses_rect` (a segment wholly to one side of a rect cannot touch it —
-strict inequalities, so boundary cases still take the full test and results are bit-identical):
-451.8 s → **3.2 s**, verified against the layout-consuming test suites with §3.3 attest live
-everywhere; (2) `per_entity_cap` on the rotating source (bound the hub degree at the membrane;
-drops counted in `statements_dropped`, never silent). The §10 capacity table now carries this
-rider: *plan for M's shape (hub degree), not only its size.*
-
-## 11 · Run 1 — pre-registered expectations (the run as evidence in domain-building about the game)
-
-*(Written 2026-07-02, BEFORE the first live run, so that interpretation is prepared rather than
-post-hoc. The object of study is double: the wiki-world as the membrane delivers it, and — more
-importantly for run 1 — **the game itself**: its rulebook, the disposition taxonomy, the shape of
-the dialog. The run is evidence in our domain-building about the EPG.)*
-
-**The reflexive frame.** Interpreting the run is itself an EPG episode with *us* in the player's
-seat: the priors below are the standing laws of a developing domain model **M-game** (a model *of
-the game-with-this-source*, in the game's own vocabulary — situations, dispositions, mechanisms,
-shapes, poise poles); the instruments (§6, §10) are the mechanical peel; and each finding is
-**disposed, dated, and recorded** using the taxonomy itself at the meta level:
-
-| run outcome | meta-disposition | what it does to M-game |
-|---|---|---|
-| a prior confirmed | `redundancy` / `theorem_registration` | the prior stands; nothing to revise |
-| a surprise inside the frame | `new_fact` / `generalization` | M-game **enlarges** — a new regularity of game-with-source |
-| a prior contradicted | `challenge_to_M` | the prior (or the rulebook piece behind it) is **relinquished** — a design finding |
-| an oddity the run can't settle | entertained, low warrant | stays on the horizon for run 2 |
-
-Some priors below are qualitative orderings and could later be scribed literally as EG laws of an
-actual `DOMAIN_MODEL` UoD (P2's durability ordering is Horn-shaped); the quantitative ranges live
-here and in the run log. Either way the discipline is the same: **no post-hoc rationalization** —
-a result is read against a prior that predates it, and *progression not progress* governs the
-wording of every finding.
-
-**The run-1 configuration this pre-registration binds to** (change it and the priors must be
-re-derived): `RotatingWikidataSource` — a **rotating entity frontier** (fresh Q-ids per poll,
-`crawl` on, `frontier_cap` bounding growth with drops counted; a fixed id list would make every
-poll after the first pure redundancy), labels on through one `LabelCache`, **`per_entity_cap`**
-bounding the hub degree (the checkpoint attest is super-linear in M's star shape — the measured
-§10 finding; capped statements counted in `statements_dropped`); `WikiDisputeFeed`; the
-**mechanical panel + `ContradictionAgent`** (no LLM roles — telemetry is expected trivially zero
-and any nonzero value is a bug); `ttl` set, `segment_cap` 25, `min_interval_s` ≥ 2 s,
-`max_seconds` a few hours, `stop_file` armed, `checkpoint` on to a **runs/ side store, never the
-main corpus**, `state_path` + `frontier.json` set (kill + `--resume` rehearsed); every poll
-**recorded to disk** (`polls.jsonl`) so the whole run replays offline afterward. Driver:
-`tools/run_live_wikidata.py`; findings go to `runs/RUN_1_LOG.md`.
-
-**Priors (P1–P7), each bound to its instrument:**
-
-- **P1 — disposition mix** (digest `dispositions`): ≥ 90% of *revising* rounds are `new_fact`;
-  `retract_fact` present but rare (deprecations/overturns exist in Wikidata but are a small
-  fraction); `challenge_to_M` ≈ 0 (run 1 seeds no laws and ground facts propose none);
-  `generalization` = 0 (the feed's shapes are ground/negation only). *A nontrivial retract rate is
-  a finding about the wiki-world's flux, not an error.*
-- **P2 — mechanism durability ordering** (`mechanism_principles` over `LiveResult.episodes`,
-  decay-aware): stick-rate(reliable_source) ≥ stick-rate(consensus); `unresolved` never durable;
-  `decay_erased` reported, not silently folded in. *A reversal — bare consensus outlasting
-  referenced values — would be a genuine discovery about Wikidata's editorial dynamics OR about
-  our reverts-proxy being too thin to carry the mechanism distinction; the friction map and the
-  raw dispute records arbitrate which.*
-- **P3 — the working set** (digest `m_relations` / `decayed`): |M| pinned at ≈ ttl within 2–3
-  segments and flat thereafter; with run length ≫ ttl, the majority of episodes read
-  `erased_by_decay` (the watched session read 125/150). *|M| hitting `max_m_relations` indicts the
-  ttl-vs-source-revisit-rate tuning — an economy-of-research parameter, and the first empirical
-  input the tropism module will need.*
-- **P4 — resolution principles** (`resolution_principles` / `gaps` / `friction_map`): every
-  populated situation maps with stability 1.0 (the mechanical agents' firing conditions are
-  near-disjoint); **zero thrash, zero gaps, friction ≈ 0**. *Any thrash or recurring gap is a
-  design finding against the rulebook — the priority ordering or a missing disposition — and is
-  the single most valuable kind of result run 1 can produce.*
-- **P5 — the shape of the dialog** (`proposal_shape` over episodes): shapes ∈ {ground, negation}
-  only; `law` and `counterexample` ≈ 0; `unparseable` = 0 (statements are mechanically scribed);
-  `branched` = 0 (the mechanical panel has no branch hook). *Run 1's dialog is expected to be
-  **monological ingestion** — that is the baseline the directed-engagement build will be measured
-  against, so even confirming it is load-bearing.*
-- **P6 — poise** (`poise_from_digests`, comparative across the run's own phases): mostly ● with
-  **rigidity (○) as the likely failure pole late in the run** (a frontier crawl repeats itself;
-  redundancy rounds rise); stumbles rare, absorbed within one segment; ✕ (thrash) ≈ 0. *A wall of
-  ○ from the start means the frontier is mis-designed (feeding only redundancy); any ✕ points back
-  at P4.*
-- **P7 — operational floor** (tripwires + checkpoints): legibility ≈ 0.0 every poll (labels on);
-  telemetry all-zero (no LLM in the loop); every checkpoint §3.3-attests; per-segment elapsed
-  flat; resume from `state_path` works if exercised. *Any violation halts interpretation of
-  P1–P6 until explained — operational failures poison the evidential value of everything
-  downstream.*
-
-**Standing interpretation rules** (from §4c/§7, restated so the run log can cite them): findings
-are about the wiki-world-as-represented and about the game — never the world; read discovery off
-the **trajectory**, never a single M; a rate is meaningless without its volume (stick-rate with
-`decay_erased`, accuracy with abstentions); silence is evidence only where a tripwire watches;
-poise is read, never targeted.
-
-## 12 · Run 2 — the change stream (BUILT; priors AFFIRMED by the author 2026-07-02, pre-run)
-
-Run 1's disposed findings (runs/RUN_1_LOG.md) *prescribed* this build: **F3** — the crawl
-samples the settled surface and carries almost no contestation (1 deprecated / 432 statements);
-**F2** — a relinquishment only bites when its target still stands in the working set. The
-**`recentchanges` adapter** answers both at once: each poll asks which items were *just edited*
-(bots excluded by default) and fetches those — the sample skews to live contestation, and an
-entity edited again is fetched again, so a deprecation arrives while the bare value it overturns
-may still stand in M. *Recency-selection is the revisit.*
-
-**BUILT:** `rc_ids` (the pure payload→ids half, offline-tested) + `recentchanges_fetch` (the
-real call, `rcend`-continuation from the previous poll's newest timestamp) +
-`RecentChangesSource` (a **never-exhausting** `LiveSource` — the runner's stops are the only
-ends; empty polls pace and re-poll; same hub cap / label cache / poll record / legibility
-tripwire as the rotating source; `save_state`/`load_state` persist the continuation point).
-Driver: `tools/run_live_wikidata.py --source recentchanges`. The **headline test** demonstrates
-the F2 fix offline: a bare value admitted from poll 1 is overturned when poll 2 re-delivers the
-same entity carrying the deprecation + a referenced replacement — `mechanism_principles` then
-*actually differentiates* (consensus 0.0/not-durable vs reliable_source 1.0/durable), which run
-1 left vacuous. A bounded live smoke validated the real endpoint (62 rounds; notably
-**reliable_source-heavy** — 49:13 vs the crawl's consensus-heavy 299:127 — actively edited items
-carry references; legibility 0.09, labels lag fresh edits).
-
-**Priors (P1′–P7′) — AFFIRMED by the author 2026-07-02, before execution** (the §11 discipline:
-priors predate the run they read). Affirmed as drafted, including the three flagged judgment
-calls: P2′'s reversal-is-a-discovery commitment, the `!bot` scoping (M-game models the
-wiki-world's *human editorial activity*), and the 0.2 legibility lag threshold. Run shape:
-**supervised sitting**; after run 2 is disposed, this arc **pauses and the alpha-release
-documentation track resumes** (the author's scheduling decision, same date):
-
-- **P1′ dispositions:** `new_fact` still dominant, but `retract_fact` **> 0** over a multi-hour
-  run (the stream revisits; deprecations and reverts are present); challenge/generalization ≈ 0.
-  Redundancy rounds **≫ run 1** (revisits re-deliver standing facts — the mechanism working,
-  not a failure).
-- **P2′ (the run's question):** mechanism durability actually exercised — expect overturns;
-  prior: stick-rate(reliable_source) ≥ stick-rate(consensus), with consensus **< 1.0** once
-  overturns occur. If the ordering *reverses*, that is a genuine discovery (about Wikidata's
-  editorial dynamics or about our rank/reference mapping).
-- **P3′ working set:** |M| ≈ ttl as before; revisited facts stay warm (redundant re-deliveries
-  touch the ledger), so decay concentrates on entities the stream abandons.
-- **P4′ rulebook:** still zero thrash/gaps expected. Watch the new situation run 1 saw once —
-  `true:negation` (a denial whose target is not standing) — it should *consistently* dispose
-  inert; if it sometimes revises, that is a gap (a missing rule).
-- **P5′ dialog shape:** ground + negation only; the negation fraction ≫ run 1; branched = 0.
-- **P6′ poise:** ● dominant. Caveat: heavy-revisit windows depress engagement (many redundancy
-  rounds) and can read as rigidity — interpret the ○ pole against the redundancy count before
-  calling it a stall. Quiet-stream stretches produce *no rounds at all* (not rigidity — absence
-  of play).
-- **P7′ operational floor:** as run 1, plus: legibility may be **small-but-nonzero** on freshly
-  edited entities (labels lag edits — 0.09 observed in the smoke); treat < 0.2 as expected lag,
-  a sustained rise as degradation. Checkpoint wall-clock rider (F1) still applies.
-
-## 13 · Arc re-entry: the tropism module — the warm-set re-poll (drafted + AFFIRMED 2026-07-02)
-
-*Drafted at the close of the alpha-docs track so the re-entry session starts from a design, not a
-blank page. Per the pre-registration discipline (§11–§12): the author affirms or amends this
-section — including the open decisions at the end — before any code is written.*
-
-**AFFIRMED 2026-07-02 — all five decisions as drafted:** (1) policy + `source.inject(ids)`;
-(2) decay-adjacent first; (3) `warm_fraction` 0.5, fixed for run 3; (4) run 3 = crawl + tropism;
-(5) ambiguous labels skip + count. Built the same session: `src/tropism.py`
-(`WarmSetTropism` + `reverse_labels`), the `inject` seam + `known_labels` on
-`RotatingWikidataSource`, `LiveRunner(tropism=…)` consulted at each poll boundary, and the
-driver's `--warm-fraction` knob (0 = the runs-1/2 passive baseline); tests
-`tests/test_tropism.py`. One reading note for P1″: the mechanical panel records a re-delivered
-unchanged value as a **non-revising round** (disposition `None` — every agent abstains), so the
-digest surfaces it as `non_revising`; that count *is* the redundancy fraction P1″ reads.
-
-**RUN 3 EXECUTED & DISPOSED 2026-07-03** — see [`runs/RUN_3_LOG.md`](../runs/RUN_3_LOG.md).
-Headlines: **P1″ CONFIRMED** (`non_revising` = 100/423 = 23.6 % — the fraction runs 1–2
-measured at zero; canary green); **F1″** — decay bounds the *vocabulary* (relation names),
-not the *sheet* (atoms): the tropism pins the held names warm, so atoms accumulate under hot
-names (digest |M|=10 vs a 135-atom five-hub sheet at seg 17; attest wall-clock 3.3 → 1075 s)
-— `challenge_to_M` against §10's capacity units, instrument/rulebook prescriptions queued;
-**F2″** — the P2 event = **revisit × world-motion**: revisit alone is necessary, not
-sufficient (both live deprecations were born-deprecated → target never standing → correctly
-inert, even on the warm re-reach) → **run 4 = stream + tropism** is the named next
-experiment. Poise 17/17 ● at warm_fraction 0.5 (the predicted redundancy ○ did not appear).
-
-**The mandate (empirical, not philosophical).** Runs 1–2 characterized both passive membranes:
-the crawl samples the settled surface, the stream samples the novelty frontier, and **neither
-revisits** (run 2: 53 entities, zero seen twice in ~75 min). P2 — mechanism durability, *the*
-question — was vacuous both times. The instruments' verdict (RUN_2_LOG F2′): *ingestion alone
-cannot test durability; only directed re-engagement can.* What §4d held as a commitment is now a
-mandated build. The first tropism is the humblest one: **re-check what you hold.**
-
-**Placement (the §4d discipline made structural).** Tropism belongs to the **player, not to M and
-not to the source**. So it is a *policy the runner consults at each poll boundary*, not a new
-membrane: a `Tropism` object reads the player's own state and emits the next reaches; the sources
-stay dumb fetchers and gain exactly one seam (accept injected ids). Increment 1 implements only
-the **irritation pole** (`attention_brief` is its proto — §4d); the musement pole and the
-horizon-as-register remain future, named, unbuilt.
-
-**Increment 1 — the design:**
-
-- **`src/tropism.py`** (additive, geometry-free, no protected-core change):
-  `WarmSetTropism.reaches(model_egif, ledger, label_to_id, k) → List[entity_id]` — the entities
-  backing M's **standing** facts, priority **decay-adjacent first** (facts nearest their ttl:
-  re-check *while the target still stands*, before decay erases the evidence-bearer — this is
-  what makes durability testable, and it ties the policy to the irritation pole rather than to
-  truth-tracking).
-- **Recovering the warm set.** M's facts carry *labels* (legibility resolved them at ingestion);
-  the id→label map lives in the run's persisted `LabelCache`. Reverse it (label→id); an
-  unresolved id is already an id; an ambiguous label (two ids, one label) is re-polled on all its
-  ids or skipped — **counted either way, never silent**. No schema change, no new provenance
-  channel: increment 1 rides what the state files already carry (and `--resume` already
-  preserves).
-- **The mix — the economy-of-research knob.** Each poll's chunk = `warm_fraction` from the
-  tropism + the remainder fresh (frontier or stream). All-fresh is runs 1–2; all-warm is a closed
-  loop that never meets a newcomer (the rigidity pole ○). Proposed default: 0.5.
-- **The source seam.** `RotatingWikidataSource` keeps a `_seen` set precisely to *prevent*
-  re-enqueueing — the warm seam must **bypass `_seen`** (that is the whole point: a deliberate
-  re-reach is not a crawl duplicate). Either `inject(ids)` on the source (front-of-queue,
-  seen-exempt) or the driver composes `fetch_ids(warm) + source.fetch()` — decide at build
-  (decision (a) below).
-- **What it must NOT do (the floor, §7).** The re-poll's aim is to **exercise the durability of
-  settled habits**, not to verify M against the world — a re-delivered unchanged value is a
-  `redundancy` round (the habit holding), a deprecation/changed value arrives as a denial that
-  now *meets its standing target* (the P2 event, mechanically disposed by the existing panel and
-  `ContradictionAgent`). No new referee, no disposition change, nothing auto-promotes.
-
-**Run 3 — draft priors (each bound to its instrument; to affirm pre-run):**
-
-- **P1″ the revisit works** (digest `dispositions` / episodes): `redundancy` ≫ 0 — the
-  structural fraction runs 1–2 measured at zero. If redundancy stays ≈ 0 with warm_fraction 0.5,
-  the warm-set recovery is broken (labels not reversing, or ids not reaching the fetch), an
-  implementation finding, not a world finding.
-- **P2″ durability, finally populated** (`mechanism_principles`, decay-aware): retracts > 0 live;
-  consensus stick-rate < 1.0 once overturns occur; reliable_source ≥ consensus expected —
-  **a reversal is a genuine discovery** (about Wikidata's editorial dynamics or our
-  reverts-proxy; the raw dispute records arbitrate). `decay_erased` reported, not folded in.
-- **P3″ the ledger under re-poll** (digest `m_relations`/`decayed`): warm re-polls touch held
-  facts' relations, so decay concentrates on what the tropism *doesn't* choose — |M| still
-  ≈ ttl; a working set pinned by re-poll rather than by arrival order is the intended change.
-- **P4″ true:negation, for free**: denials meeting standing targets consistently retract;
-  denials without a standing target consistently inert. Inconsistency = a rulebook gap (the §6
-  instrument that would catch it: `gaps`).
-- **P5″ attribution** (against F3′): the baseline replicated across two passive sources, so any
-  departure — redundancy fraction, retract rate, a second resolution principle — is attributable
-  to the tropism, not source variance. Run 3 should be **crawl + tropism** for exactly this
-  reason (same source as the run-1 baseline; stream + tropism is run 4's candidate).
-- **P6″ poise, read honestly**: redundancy-heavy windows depress engagement — read ○ against the
-  redundancy count (§12's caveat, now expected as the *normal* case); the warm/fresh mix is the
-  structural guard against the all-warm rigidity loop.
-- **P7″ operational floor**: unchanged from §12, plus the **hub-degree rider**: the warm set by
-  construction concentrates polls on entities M already holds — a star-shaped M is the checkpoint
-  attest's worst case (the 140× fix helps; `per_entity_cap` still applies and its drops are still
-  counted).
-
-**Open decisions for the author (affirm/amend at the re-entry session, before code):**
-
-1. **Seam form** — `Tropism` policy + `source.inject(ids)` (runner stays thin) **vs** the driver
-   composing warm and fresh fetches itself (no source change). Draft recommends the former: the
-   seam is one method, and the policy stays testable offline against recorded state files.
-2. **Warm priority** — decay-adjacent first (draft recommendation, argued above) **vs**
-   oldest-unchecked first **vs** uniform over held entities.
-3. **The knob** — `warm_fraction` default (draft: 0.5) and whether it is fixed or
-   segment-adaptive (draft: fixed for run 3; adaptivity is itself a finding to earn).
-4. **Run 3 source** — crawl + tropism (draft recommendation, P5″) **vs** stream + tropism.
-5. **Ambiguous labels** — re-poll all candidate ids **vs** skip + count (draft: skip + count for
-   run 3; the ambiguity rate is itself worth measuring before spending polls on it).
-
-## 14 · Run 4 — stream + tropism (the F2″ composition; priors AFFIRMED by the author 2026-07-03, pre-run)
-
-**The mandate (RUN_3_LOG F2″).** Run 3 proved the tropism's plumbing (P1″: the redundancy
-fraction went 0 → 23.6 %, warm counters clean) and in the same hour sharpened P2's requirement:
-**the P2 event = revisit × world-motion**. The crawl's settled surface did not move within the
-hour, so the only deprecations delivered were *born-deprecated* — never admitted, target never
-standing, correctly inert even on a warm re-reach. Revisit is necessary, not sufficient. Runs 2
-and 3 proved the two halves separately (the stream samples the world *moving*; the warm set
-*holds the target standing*); run 4 composes them. With it the 2×2 design closes:
-run 1 = crawl·passive, run 2 = stream·passive, run 3 = crawl·tropism, **run 4 = stream·tropism**
-— departures read against both margins (vs run 2: the tropism's effect on the stream; vs run 3:
-the source's effect under tropism).
-
-**The author's dispositions of the run-3 horizon (2026-07-03, this session, pre-run):**
-
-1. **F1″ atom-unit instruments — build now** (affirmed as recommended): `SegmentDigest.m_atoms`
-   (sheet atoms after the segment — the honest unit beside the name-unit `m_relations`) +
-   `LiveRunConfig.max_m_atoms` (the atom-unit safety net; driver `--max-m-atoms`, default 1000)
-   + a live `atoms=` column in the per-segment console line. Instrument-only, no behavior
-   change; run 4's priors bind to it (P3‴).
-2. **F1″ rulebook question — DEFERRED, observe first** (affirmed as recommended): what *one
-   fact's* disuse under a warm name means (per-name atom cap vs atom-level decay) is a real
-   rulebook change; decide it on run-4 evidence with the honest column in view, not before.
-   One variable at a time — run 4 changes the *source*, not the decay semantics.
-3. **F1″ attest-cost residual — optimized now** (affirmed as recommended): the ligature
-   router's visibility-graph build (`elk_layout_engine._route_via_visibility_graph`) gained
-   three exact, deterministic accelerations — a **separation short-circuit** (one endpoint
-   inside an obstacle rect and one out → no path exists; the over-constrained-soft case that
-   used to exhaust the whole graph), a **uniform grid** over obstacles (a segment consults only
-   obstacles sharing a cell; registration inflated one cell, so the same crossings are found),
-   and **lazy A\*** (Euclidean heuristic, consistent → first arrival is a shortest path;
-   visibility edges computed only for expanded nodes). Measured on the F1″ fixture: the
-   run3_seg17 checkpoint (135 atoms, five hubs deg 20–25) load-attests in **3.8 s** where it
-   exceeded **10 minutes** (>160×); run3_seg1 7.4 s → 0.4 s. Correctness: routes remain
-   shortest paths (tie-breaks may differ from the old eager Dijkstra — still deterministic);
-   the correspondence/reader/tension/LaTeX suites pass.
-4. **The spectator surface — stays queued, unaffirmed** (RATE_AND_INTELLIGIBILITY hypotheses +
-   ADAPTIVE_SCOPE_VIEWER §10); run 4 executes first.
-
-**Machinery under test (built 2026-07-03, offline-proven in `tests/test_tropism.py`):**
-`RecentChangesSource` gains the §13 seam — `inject(ids)` (warm re-reaches ride the **front of
-the next poll's chunk**, ahead of whatever the stream delivers; the stream has no `_seen`, so
-the seam only skips already-pending ids; counted, never silent) + `known_labels()` +
-`warm_pending` persisted through `save_state`/`load_state` (a persisted warm re-reach survives
-resume, verbatim — the run-3 lesson). One deliberate semantic: **a quiet stream tick still
-serves the warm set** (warm pending → the poll fetches them even when nothing was edited) — the
-tropism holds its targets standing *while the world is idle*, which is exactly the F2″
-composition. The driver's `--source recentchanges --warm-fraction` refusal is lifted. Offline
-headline (`test_stream_plus_tropism_composition_delivers_the_p2_event`): the stream mentions an
-entity once and moves on; the world then deprecates the admitted value and references a
-replacement; only the tropism's warm re-reach revisits — the denial **meets its standing
-target**, the panel retracts, the referenced value stands.
-
-**Run shape:** supervised sitting, one hour, config matching run 2's stream run except the
-tropism on: `--source recentchanges --runs-dir runs/run4 --max-seconds 3600` (chunk 8,
-warm_fraction 0.5 → k=4, per_entity_cap 25, ttl 30, segment_cap 25, min_interval 5.0,
-max_m 200, max_m_atoms 1000). Findings → `runs/RUN_4_LOG.md` (skeleton pre-registered).
-
-**Priors P1‴–P7‴ (each bound to its instrument; affirmed pre-run):**
-
-- **P1‴ the tropism works on the stream** (digest `non_revising` + `warm_injected` + skip
-  counters): non-revising > 0 (run 2 measured zero) with counters clean (emitted = injected,
-  skips counted). The stream's warm set forms more slowly than the crawl's (facts arrive from
-  whatever was just edited), so the fraction may run below run 3's 23.6 % — the *presence* of
-  the warm-shaped texture is the prior, not its magnitude.
-- **P2‴ THE RUN'S QUESTION — the P2 event, live:** a value admitted from an earlier poll is
-  denied (deprecation / rank change / reliably-sourced replacement) while it **still stands**
-  in M → `retract_fact` > 0 live, and `mechanism_principles` differentiates on live data
-  (consensus stick-rate < 1.0 once overturns occur; reliable_source ≥ consensus, a reversal =
-  a genuine discovery). Honest floor: born-deprecated deliveries stay correctly inert (run-3
-  F2″); the event needs the world to move *between visits within the hour* — the stream skews
-  to actively-edited entities, so motion is plausible, not guaranteed. **A zero is then a rate
-  finding** (the event is rarer than a 1-hour horizon), not a machinery finding — the offline
-  headline already witnesses the mechanism.
-- **P3‴ atoms, the honest unit** (digest `m_atoms` vs `m_relations` — the new F1″ instrument's
-  first live outing): expect atoms ≫ names wherever warm names pin hubs; `max_m_atoms` firing
-  is a *legitimate stop*, not a failure (the net working). Report the atoms-per-warm-name
-  profile — this is the evidence the deferred rulebook decision (per-name cap vs atom-level
-  decay) will be made on.
-- **P4‴ true:negation, both sides now reachable**: denials meeting standing targets
-  consistently retract (the P2‴ event); denials without a standing target consistently inert.
-  Inconsistency on either side = a rulebook gap (`gaps`).
-- **P5‴ attribution (the 2×2 closes)**: vs run 2 (same source, passive) any redundancy/retract
-  departure is tropism-attributable; vs run 3 (same tropism, crawl) any contestation-mix
-  departure (reliable_source-heavy, deprecations present) is source-attributable. Expect run
-  2's mechanism mix (49:13 reliable-source-heavy) to survive the tropism.
-- **P6‴ poise, read honestly**: quiet-stream stretches no longer produce zero rounds when the
-  warm set is non-empty (the quiet tick serves it) — expect *fewer* dead segments than run 2;
-  redundancy waves read against `non_revising` (run 3: ● even at 96 % redundancy at 0.5).
-- **P7‴ operational floor**: legibility < 0.2 (labels lag fresh edits; 0.09 in the run-2
-  smoke); all checkpoints §3.3-attest to the side store; determinism canary green
-  (`polls.jsonl` replay). **The attest-cost rider, re-measured**: with the visibility-graph
-  fix in, checkpoint elapsed should track round compute rather than dominating wall-clock
-  (run 3: attest ≈ 100 % of elapsed, 3.3 → 1075 s; the fixture now loads in 3.8 s) — segment
-  elapsed staying flat-ish while atoms grow is the fix confirmed live; a super-linear tail
-  reappearing is a new finding.
-
-## 15 · The docket of doubts — surprise as a two-faced artifact (DRAFT 2026-07-03, pre-registered; mandate PENDING run-4 disposal)
-
-*Drafted while run 4 executed, per the §13 discipline: the design predates its mandate so the
-re-entry session starts from a page, not a blank. The mandate line is deliberately open — run
-4's findings name the actual bottleneck (revisit rate? world-motion rate? probes undirected by
-content?), and the author affirms or amends this section — including the open decisions at the
-end — before any code is written. If run 4's disposal mandates something else, this section
-waits without prejudice.*
-
-**What increment 1 taught, read forward.** The tropism now on the board (§13) maps *state* to
-*query*: a standing fact → its entity → a re-reach. It is identity-shaped — the probe's content
-is "this entity again," never "this missing answer." Meanwhile the system already *names its own
-missing answers* in three places, none of which currently reaches the membrane: the peel's
-**Kleene UNKNOWN** transcript entries (the atoms the oracle could not decide — the
-addressability gap `m_render` computes as the honest horizon); the Graphist's **`attention_brief`
-thin spots** (relations with ≤1 instance, ungrounded laws, lonely individuals — today they seed
-*proposals*, tested inward against M, never *probes*, sent outward); and any **materialized
-consequence without a witness** (what `model_materialization` can forward-chain from a
-hypothesis but nothing currently tracks as *deduced-awaiting-evidence*). Three articulations of
-doubt; one plumbing gap: no wire from articulated doubt to executable reach.
-
-**The unifying primitive: the docket.** One player-side register of *named wants* — each entry a
-small EG shape (an atom or subgraph) that M neither holds nor denies, carrying:
-
-- **shape** — the relation + argument shape wanted (e.g. `(phase_shift ?f "T")`);
-- **constants** — what is already bound (the handle the membrane can grip);
-- **provenance** — *why it is wanted*: `unknown_in_peel(G)` · `thin_spot(kind)` ·
-  `deduced_from(H)` (the hypothesis whose standing rides on it) · `horizon(garbled-arrival)`;
-- **priority** — the economy of research (below);
-- **age / attempts** — a docket entry that never resolves is *counted, never silently dropped*
-  (the `attest_overview` twin, again).
-
-This **is** §4d's *horizon as a first-class register*, previously named-but-unbuilt — extended
-one notch: it holds not only the not-yet-legible that *arrived* garbled, but the
-not-yet-answered that *inquiry itself generated*. Placement per the §4d/§13 discipline: the
-docket belongs to the **player** (not M — M objectified is driveless marks; not the source —
-sources stay dumb fetchers). A policy consulted at the poll boundary, exactly where
-`WarmSetTropism` sits today; the two compose (warm re-reach is simply the docket's cheapest,
-lowest-articulation stratum).
-
-**The two faces of an entry.** The same artifact works outward and inward — this is the
-section's load-bearing claim, and the reason docket and abduction must not be built as separate
-organs:
-
-- **Outward — the membrane query.** An entry maps to the *highest query vocabulary the source
-  offers*, negotiated per source: **Q1** entity re-reach (`inject(ids)` — exists); **Q2**
-  entity + property fetch (a filtered `wbgetentities` — cheap seam); **Q3** shape query
-  (SPARQL: "all x with P" — the long-deferred SparqlOracle seat, relocated to the *membrane*
-  side where it belongs); **Q4** the open ask (a question posed to a human or LLM source — the
-  reading-desk surface; the first genuinely *bidirectional* membrane). An entry no vocabulary
-  can express stays on the docket, counted — the honest residue.
-- **Inward — the abduction seed.** The same entry handed to the Graphist/Grapheus as the
-  *situation of doubt*: "here is what the world has not answered; propose the hypothesis that
-  would explain or predict it." The hypothesis's materialized consequences enter the docket as
-  `deduced_from(H)` entries → probes → witnesses or refutations → the hypothesis's standing.
-  Abduction generates probes; probes discipline abduction; one ledger carries both directions.
-
-**Entertainment, not assertion (the provisional-consequence machinery).** An abductive
-hypothesis must be *entertained* while its consequences are hunted — never asserted. The
-machinery exists: **branch the DAG** (the Stage-3 `_fork_siblings` mechanics — two chain steps
-sharing a `from_state_id`). H lives on a **proving-ground branch M′**; `materialize_egi` runs
-there; its unwitnessed derived atoms enter the docket tagged `deduced_from(H)`. A witness
-arriving through the membrane strengthens H (its docket entries resolve); a refutation
-relinquishes the branch — and the DAG *keeps* the entertained-and-relinquished hypothesis as
-negative knowledge (§6 mines failed abductions exactly as it mines failed generalizations).
-Admission of H to the main line is a *disposition* like any other — nothing auto-promotes; the
-floor (§7) is untouched. Level Zero already provides the scroll shape for the conditional
-reading (`cut[H cut[consequences]]`) where a branch is too heavy.
-
-**The economy of research (priority, Peirce's own doctrine).** Order the docket by: **cost
-tier** (Q1 < Q2 < Q3 ≪ Q4 — ask cheap questions first); **decay-adjacency** (inherited from
-§13 — re-check while the target still stands); **discrimination value** (prefer probes whose
-answer separates standing hypotheses — a probe that would refute H₁ *or* H₂ whichever way it
-lands beats one that flatters both); **starvation guard** (age raises priority slowly, so the
-expensive articulate asks eventually fire — bounded by budget). Increment discipline: v1 is a
-fixed lexicographic ordering; a *learned* priority is itself a finding to earn (§6 across runs).
-*Later, gated refinement (recorded 2026-07-03):* a **structured-embedding prior** — a
-hyperbolic/Poincaré embedding of the vocabulary (subsumption lattices embed there almost by
-construction; the `kind=ontology` imports are the natural training set) supplying a
-*plausibility ranking* over candidate probes and candidate laws (the `MutationProposer`
-currently recombines blindly). Strictly proposal-side, the same floor as `agon_llm`: the
-embedding may **suggest** an ordering; every candidate that counts is reduced to a calculus
-artifact and re-checked — approximate similarity never substitutes for identity (no "close"
-labels merged, no "near" atom as a witness). Earns its place only after v1's fixed ordering
-has a measured failure.
-
-**The speculative horizon (recorded, fenced, never a target).** The author's hypothesis, worth
-carrying explicitly: the outward face — a mind presenting *its* surprise to the world through
-the membrane — may be how the world generates creativity in itself by means of minds. Peircean
-anchors: objective idealism (matter as effete mind; the universe itself acquiring habits), the
-growth of concrete reasonableness, musement as the pull-pole that seeds abduction. Mechanical
-reading: Q1–Q3 are read-only (the world unchanged by being asked — the hypothesis idles);
-**Q4 is where it becomes empirical** — an asked human/community *articulates what it never had
-occasion to state*, and the common sheet grows on *both* sides of the membrane
-(ground-enlargement as a two-way street; the wiki talk-page question that precipitates an
-editorial resolution which did not exist before the asking). Honesty clauses, standing: this is
-a hypothesis about the system's *role*, not anything the calculus can attest (§3.3 attests
-correspondence, not truth, and certainly not cosmology); docket throughput must never become a
-target (Goodhart — §7); findings remain findings about the game. The musement pole gets its
-first mechanical seat here as the docket's lowest-priority stratum: budget-bounded playful
-entries (the `MutationProposer` generalized from recombining M's relations to recombining
-*questions*) — drawn, not driven, and cheap by construction.
-
-**Increments (each earned, none anticipatory):**
-
-- **2a — the docket, minimum.** `src/query_docket.py` (working name; see decision 5):
-  entries from the peel's UNKNOWN transcript + `attention_brief` thin spots; consumer = the
-  existing `inject(ids)` seam (entries whose constants reverse to entity ids ride Q1; the rest
-  wait, counted). No new source capability, offline-testable end to end, composes with
-  `WarmSetTropism` at the same poll boundary.
-- **2b — the proving ground.** Branch-entertained hypotheses + `deduced_from(H)` entries +
-  witness/refutation resolution + relinquished-branch mining. Closes the author's
-  abduction↔probe loop mechanically (a scripted Grapheus suffices offline; the LLM seat drops
-  in unchanged).
-- **3 — the vocabulary ladder.** Q2 (property-filtered fetch), then Q3 (the SPARQL membrane
-  seam). Each tier pre-registered with its own run before the next is built.
-- **4 — the open ask (horizon).** Q4 the bidirectional membrane + the musement stratum — where
-  the speculative hypothesis above first becomes testable rather than decorative.
-
-**Open decisions for the author (affirm/amend before code):**
-
-1. **Mandate gate** — build 2a only if run 4's disposal names *content-undirected probing* (or
-   UNKNOWN starvation) as the operative bottleneck; otherwise this section waits for the run
-   that does.
-2. **Docket placement** — player-side policy at the poll boundary, composing with (not
-   replacing) `WarmSetTropism` (draft recommendation) **vs** folding the tropism into the
-   docket as its Q1 stratum from day one.
-3. **Admission rule for a witnessed hypothesis** — mechanical threshold (N independent
-   witnesses, zero refutations) **vs** an Agonothetes judgment seat (draft: mechanical for 2b;
-   the judge is an LLM-stage refinement).
-4. **Proving-ground cost** — does M′ checkpoint (§3.3 per segment, real cost) or stay
-   RAM-bounded per hypothesis with only its *outcome* checkpointed (draft: outcome-only; a
-   hypothesis is entertainment, and the F1″ lesson says checkpoint weight is the binding
-   budget)?
-5. **The name** — docket of doubts / horizon register / question ledger (draft: **docket** —
-   it is procedural, ordered, and disposed, which is exactly Peirce's register of the term).
-
-### 15.1 · Gate re-examination on run 5b's disposal (2026-07-05 — assessment recorded, author affirmation PENDING)
-
-The duration probe completed (RUN_5_LOG, run 5b: 14 h, 253 segments, floor held). Read
-against decision 1's gate, the assessment is that **the gate now fires, by elimination**:
-the P2-event program has exhausted the passive levers one per run — run 1 showed the crawl
-never revisits; run 2 added the stream (revisit without direction); runs 3–4 added the
-tropism (identity-shaped re-reach: revisit × world-motion); run 5b added duration with
-persistence genuinely fixed (targets held; the instrument valid) — and observed **zero
-rank transitions in 14 h, all 18 arriving deprecations born-deprecated**. Time, memory,
-persistence, and identity-shaped attention are all in place; what the player still cannot
-do is *ask for the content it is missing* — a rank transition can only be hunted by a
-query articulated in terms of ranks (Q2/Q3 vocabulary), and UNKNOWN/thin-spot doubts never
-reach the membrane at all. That is content-undirected probing as the operative bottleneck,
-named by the run. Compounding it, F2ᵇ (segment cost collapsed the poll rate to 46/14 h)
-makes *undirected* polls expensive enough that directing them is no longer an optimization
-but the difference between sampling the phenomenon and not (mitigation shipped:
-`checkpoint_every`, the cadence ≠ coverage knob).
-
-Recommended dispositions of the five decisions (all as drafted): **(1)** gate FIRES →
-build **2a** next (the docket minimum, Q1-only, offline-testable), with the honest note
-that the P2-specific payoff arrives at increment 3's Q2 (rank-addressable fetch) — the
-tier discipline stands, each with its own run; **(2)** player-side policy composing with
-`WarmSetTropism`; **(3)** mechanical admission for 2b; **(4)** outcome-only checkpointing
-for the proving ground (F2ᵇ re-measured exactly the checkpoint-weight lesson this draft
-anticipated); **(5)** "docket".
-
-**AFFIRMED by the author, 2026-07-05, all five as recommended — with one ordering
-amendment** (from the single-source check the author called for): **the first live
-resolving-membrane source lands between increment 2a and increment 3.** Rationale
-recorded: the constriction of Wikidata-only is small for the operating layer (those
-findings are source-independent) but large for the game's dispositional range — run 5b's
-dispositions were 100% `new_fact`, its final M carries **zero laws** (the inductive
-register idle), the §6 mechanism claims are so far facts about one wiki's editorial
-culture, and the P2 event is world-motion one editorial step removed. A resolving source
-(weather forecast-vs-actual or similar: cheap, deterministic, a natural daily resolution
-clock) delivers a P2-equivalent **daily** — a standing forecast met by an outcome — and
-exercises predict→refute→relinquish live. The check henceforth: *branch sources at the
-point where a finding's disposition would differ by source class*; the docket's asking
-economy and the §6 mechanism claims must never be single-source artifacts.
-**Increment 2a: BUILT 2026-07-05** (`src/query_docket.py` + the `LiveRunner` docket seam
-+ driver `--docket`; offline-tested end to end — see below). 2b and the tiers wait,
-as pre-registered.
-
-## 16 · The rulebook built + run 5, the duration probe (BUILT 2026-07-03; priors P1⁵–P6⁵ AFFIRMED by the author 2026-07-03, pre-launch)
-
-*The §13/§14 discipline again: the machinery half of this section is built and offline-proven;
-the run half was pre-registered and **affirmed as drafted by the author the same day** —
-launch is the overnight sitting.*
-
-### 16.1 · Atom-level decay — the rulebook decision, built (2026-07-03)
-
-**Affirmed by the author 2026-07-03 (RUN_4_LOG horizon), built the same day.** The habit was
-never the name: `(place_of_birth Adam Cambridge)` is the habit; `place_of_birth` is vocabulary.
-What changed, and where:
-
-- **The unit.** `UsageLedger` keys are now **atom keys** (`agon_evolution.atom_key` —
-  relation + argument labels, JSON-serialized so runner state round-trips verbatim). The class
-  stayed key-agnostic; every caller changed what it feeds.
-- **Use = re-delivery** (the affirmed first increment; whether *inference*-use refreshes a
-  habit is a later §6 question). `delivered_atom_keys(proposal)` = the proposal's sheet-level
-  atoms — so a redundant warm re-delivery refreshes exactly its own atoms, and a denial or a
-  law refreshes nothing. Touch now happens on **every** round, revising or not (a non-revising
-  round is precisely the habit holding), and decay (⑤) is evaluated every round rather than
-  only on revising ones.
-- **Erasure = `model_revision.retract_atom`**, made **structural** (`without_element` + prune
-  of newly-orphaned argument vertices): other atoms of the same name — and any standing law
-  cut — survive an erasure untouched (the old text-rebuild silently dropped every cut on the
-  sheet, a latent bug atom-frequency decay would have promoted).
-- **Consequences, as predicted at affirmation:** F1″'s warm-name pinning **dissolves** — the
-  hub fixture that grew one atom per round forever under name-decay now stabilises at ≈ttl
-  atoms with the name still standing (`test_atom_level_decay_dissolves_the_warm_hub_name_pinning`);
-  tropism decay-adjacency is **atom-precise** (`WarmSetTropism.reaches` orders by the *fact*
-  nearest its ttl — two facts of one name now rotate independently; a pre-rulebook name-keyed
-  state file degrades to name-age, never resets). `per_entity_cap` stays as membrane
-  flow-control; the per-name cap was rejected (a representation rule masquerading as a use rule).
-- **Honesty plumbing:** `RoundOutcome.decayed` carries atom keys; `agon_metalearning`'s
-  stickiness is atom-precise (an atom decaying under a surviving name reads *decay*, never
-  durability — `_last_erasures`/`_stickiness` in atom units, `mark_decayed_atoms` beside the
-  name-level `mark_decayed`); the runner drops a carried law only when a relation's *last*
-  atom goes (vocabulary loss, not habit loss).
-
-### 16.2 · Round compute, decomposed and fixed — the F2⁗ engineering riders (correctness-preserving)
-
-RUN_4 F2⁗ named "round compute" (peel re-materialization + whole-graph snapshots) as the new
-super-linear wall. **Profiling the fixture shape found the dominant term was neither**: at
-200 hub-shaped atoms, **88 of 90 seconds** of a 5-round run sat in
-`generate_egif → canonical_signature.compute_canonical_signatures` — called once per round by
-`assert_fact`'s text juxtaposition (and again per state serialization / segment carry-forward).
-The Weisfeiler–Leman refinement built colors as **unshared nested trees** (each round's color
-embeds every neighbour's whole previous color) and its termination check could never fire
-(`(old, inc)` never equals `old`), so it always ran |V|+1 rounds of tree-walking comparisons —
-measured **15.7 s to generate one 200-atom hub-shaped sheet** (58 ms at 50; far worse than
-cubic on symmetric shapes; heterogeneous sheets ~75× cheaper, which is why run 4's live mix
-read ~5 s/round rather than ~18). **Fixed exactly (2026-07-03): hash-cons the colors** — each
-round's colors rank to canonical fixed-width strings (ranks assigned by sorting the
-UUID-independent color *values*, so two parses of one structure still rank identically) and
-the loop stops when the partition stabilises (WL refinement is split-only, so an unchanged
-class count is a fixpoint; the old extra rounds added no discrimination). The canonical
-guarantee is unchanged — `generate(parse(s))` stable across parses — with tie-breaks among
-*truly symmetric* elements possibly differing from the old order (the visibility-graph fix's
-caveat, again). Measured: the 200-atom hub sheet generates in **3.3 ms** (~4800×), near-linear
-to 400 atoms; a 25-round segment at 200 atoms fell from ~450 s (extrapolated from the profile)
-to **2.6 s** — and **1.55 s** with the materializer below. `canonical_signature` is
-unprotected (generator support, not the calculus core); the corpus round-trip +
-correspondence suites are the referee. Also built, the originally-named rider:
-
-- the fixpoint itself is now **semi-naive** (Datalog delta iteration; empty-body rules seeded
-  up front) — exact same closure, never re-deriving the whole model per pass;
-- **`model_materialization.IncrementalMaterializer`** — a cross-round cache keyed on (canonical
-  rules, base atoms): monotone growth (the common round) chases only the truly-new atoms and
-  *extends* the cached facts-EGI instead of rebuilding it edge-by-edge (O(|Δ|·|M|) not O(|M|²));
-  a retraction/decay/rule-change falls back to one full rebuild. Rules are **canonicalized**
-  (generic keys positional) so the same law survives reparse — the identity a text-carried M
-  loses every round. Counters (`rebuilds`/`extensions`/`hits`) are observable; the driver
-  prints them;
-- threaded as `peel(materializer=)` → `run(materializer=)` → one persistent materializer per
-  `LiveRunner` (a decaying segment costs exactly one rebuild).
-
-Exactness is the tested contract: closure equality with `materialize_egi` across growth,
-retraction, recursive rules (transitive closure through old facts), and reparse.
-
-The honestly-named residual: `ProofChain` still snapshots whole graphs per step — with the
-signature fix that cost is now linear-with-small-constants per round, second-order again.
-A delta-snapshotting chain remains a *named, unbuilt* lever if a future run's profile
-re-mandates it.
-
-### 16.3 · Run 5 — the duration probe (overnight, unattended; priors AFFIRMED as drafted, 2026-07-03)
-
-**Mandate (RUN_4 F1⁗):** the P2 event is a rank-*transition* event and its base rate is below
-the one-hour horizon even under revisit × stream. Duration is the cheapest pre-registered
-lever (width and §15 content-direction wait behind it); the §11 design always intended an
-unattended run, and its preconditions — crash/resume, STOP, tripwires, checkpoints, and now
-a round loop that does not choke on its own structural success (F2⁗) — are all proven.
-
-**Run shape (draft):** unattended overnight, ~8 h, stream + tropism, config matching run 4
-except duration: `uv run python tools/run_live_wikidata.py --source recentchanges
---runs-dir runs/run5 --max-seconds 28800` (chunk 8, warm_fraction 0.5 → k=4, per_entity_cap 25,
-ttl 30, segment_cap 25, min_interval 5.0, max_m 200, max_m_atoms 1000). Supervised for the
-first ~15 minutes (the §11 pattern), then left alone; `touch runs/run5/STOP` for a clean halt;
-`--resume` after any crash. Findings → `runs/RUN_5_LOG.md` against these priors.
-
-**Priors (P1⁵–P6⁵, each bound to an instrument; affirmed as drafted):**
-
-- **P1⁵ THE RUN'S QUESTION — the P2 event at duration** (`mechanism_principles` decay-aware +
-  `retract_fact` count): ≥1 rank transition lands on a warm-held standing target in ~8 h →
-  `retract_fact` > 0 live and mechanism durability finally differentiates on live data. **A
-  zero at 8× the horizon is itself a finding** — a measured ceiling on the observable
-  transition rate at chunk 8, which then arbitrates between the width lever and §15 content
-  direction (the gate F1⁗ left unfired).
-- **P2⁵ the sheet is bounded in the honest unit** (digest `m_atoms`, the `atoms=` console
-  column, `max_m_atoms`): under atom-level decay `m_atoms` stabilises (≈ ttl-scaled, not
-  monotone) across the whole night; the net never fires; no warm-name atom pile-up (F1″
-  dissolved at run scale, P3‴'s 25 → 207 growth not reproduced).
-- **P3⁵ round compute stays flat (F2⁗ disposed)** (segment `elapsed_s` + the materializer
-  counters): late-night segment elapsed stays the same order as early segments (no 1.3 → 125 s
-  climb); `extensions ≫ rebuilds`, rebuilds ≈ decaying segments. A super-linear tail
-  reappearing names the ProofChain-snapshot residual as the next wall — a finding, not a
-  failure.
-- **P4⁵ tropism at atom precision** (warm counters + `non_revising` texture): the warm set
-  rotates by atom age (re-reaches vary even while the entity set is stable); counters stay
-  exact (emitted = injected, skips counted); the non-revising fraction persists at duration
-  (the habit texture does not decay into silence overnight).
-- **P5⁵ the unattended operational floor** (the §11 tripwires, first outing with nobody
-  watching): every checkpoint §3.3-attests to the side store; `polls.jsonl` records everything
-  (the canary replays a prefix offline post-run); legibility per poll < 0.2 sustained (cache
-  warming, no silent label degradation); a crash — if one happens — resumes with the decay
-  clock continuing (the state file is per-segment).
-- **P6⁵ poise, read honestly at duration** (`poise_from_digests`): the quiet-hours stream
-  (UTC night) does not produce dead stretches while the warm set is non-empty (the quiet tick
-  serves it); ○ windows correlate with genuine stream lulls, not redundancy waves.
-
-**Stops:** `max_seconds` 28800 · STOP file · `max_m_atoms` 1000 (the net a P2⁵ violation would
-fire) · `max_m` 200. **The §15 gate is re-examined on this run's disposal** (per RUN_4_LOG:
-duration must be tried before content direction can be mandated).
-
-*Launch note (2026-07-03): amended pre-launch with the author — `max_seconds` 50400 (14 h,
-~15:00 → just before 05:00 local, read-on-rising); duration is the lever, every other knob as
-affirmed. Recorded in RUN_5_LOG's header.*
-
-## 17 · Run 6 — the docket live (§15 · 2a's own run; drafted 2026-07-05, launch delegated by the author's "Proceed" same day)
-
-*The tier discipline (§15 increments): each capability gets its own pre-registered run
-before the next is built. Increment 2a (the docket, Q1-only) is BUILT and offline-proven;
-this run puts it against the live stream. Per the affirmed ordering, the run AFTER this
-one is the first live resolving-membrane source — not Q2/Q3. Findings are about the game
-and Wikidata's editorial dynamics as represented, never the world. Progression, not
-progress.*
-
-**Driver:** `caffeinate -i uv run python tools/run_live_wikidata.py --source recentchanges
---runs-dir runs/run6 --max-seconds 50400 --ttl 8 --ttl-unit polls --max-m 800
---max-m-atoms 2500 --checkpoint-every 5 --docket --docket-asks 2` — the run-5b affirmed
-regime plus the two additions this run exists to test: **the docket armed** (chunk 8 =
-~4 warm + ~2 asks + ~2 fresh) and **checkpoint cadence 5** (the F2ᵇ lever (a): recover
-poll rate; digests/episodes/resume-state stay per-segment).
-
-**Priors (drafted with the launch delegation; amendments welcome at disposal):**
-
-| prior | instrument | expected |
-|---|---|---|
-| P1⁶ **the docket changes what the membrane delivers** (the headline) | `docket=` digest (`No/Nr/Na/Nx`) + final counters | asks emitted > 0 and **resolved wants > 0** — some thin spot settles *because its ask was fetched*. A zero-resolutions run is itself a finding: Q1 re-reach of a thin spot's lone entity may simply not carry more of the wanted shape — the first empirical argument about Q1's expressive ceiling. |
-| P2⁶ **`inexpressible` sizes the Q2 tier** | the `x` counter | grows steadily (relation-shaped wants with no constant grip accumulate); its magnitude at disposal = the first measured case for/against building Q2 next after the resolving source. |
-| P3⁶ composition safety | `warm_injected` vs docket `a` + `non_revising` texture | the two strata share the seam without starving each other or the fresh stream; warm texture persists (~run-5b's rhythm). |
-| P4⁶ operational floor + F1ᵇ holds | supervisor/crash counters; ckpt_refused; poll count | zero id-collision crashes (the parser regenerates now); poll rate ≥ ~2× run 5b's 46/14 h under cadence 5; refusals (if any) skipped + quarantined. |
-| P5⁶ sheet bounded (run-5b regime) | `m_atoms` digest | sawtooth ≈ 5b (nets never fire). |
-| P6⁶ the P2 window stays open | dispositions | any rank transition on a warm- or docket-held target → retract; a zero adds a second duration sample to the rate ceiling. |
-
-**Log:** `runs/RUN_6_LOG.md` (skeleton pre-launch; disposal after).
-
-## 18 · Run 7 — the first live resolving-membrane source (weather; drafted 2026-07-06, launch delegated by the author's "Let's proceed" same day)
-
-*The affirmed ordering (§15.1): the first live raise-and-resolve source lands between the
-docket's 2a and its Q2/Q3 tiers, because wiki-only starves the game's dispositional range
-(runs 5b/6: 100% `new_fact`, zero laws, two rate-ceiling samples on the P2 event). Weather
-supplies the missing event class hourly: a standing forecast met by an observation.
-Findings are about the game (and NWS forecasts as represented) — never the world.*
-
-**The membrane:** `src/weather_source.py` → `resolving_membrane.ResolvingFeed` (unchanged)
-→ `LiveRunner`. Two-phase fetch: *raise* (NWS hourly forecasts within a 6 h horizon become
-pending claims + forecast-arrival facts) / *resolve* (observations score matured claims;
-an unresolvable claim drops **counted** after 3 h grace). Claims: temperature **bands**
-(5 °F — the discretization that makes a forecast checkable) and precipitation (PoP ≥ 60%).
-**The theory under test is seeded**: M carries the naive laws *"what is forecast,
-happens"* (`~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ]` and the precip
-twin), so the open-world peel genuinely **bets** (materialized law + forecast atom → TRUE)
-— and a miss arrives in the law-refuting shape the mechanical Challenger relinquishes over.
-Rider built for it: `_refuted_law` generalized from unary to **n-ary** laws
-(`_law_signature` — head-argument projection matched faithfully; swan/wiki behavior
-unchanged, suites green). No tropism, no docket — a clean first exercise of the new
-membrane (composition later).
-
-**Driver:** `caffeinate -i uv run python tools/run_live_weather.py --runs-dir runs/run7
---max-seconds 50400` (5 stations KAUS/KSEA/KBOS/KDEN/KMIA · horizon 6 h · band 5 °F ·
-PoP ≥ 60 · poll every 600 s · ttl 48 polls · checkpoint every segment — M is small ·
-supervisor + skip-and-count armed · pending claims persisted for `--resume` · every
-batch recorded for the offline replay canary).
-
-**Priors (drafted with the launch delegation; amendments welcome at disposal):**
-
-| prior | instrument | expected |
-|---|---|---|
-| P1⁷ **the world exercises the missing registers** (headline) | `PredictionLedger` + dispositions | M bets (predicted `true`, not abstain) on resolution claims; ≥1 hit and ≥1 miss inside the run; the first miss disposes **`challenge_to_M`** — a seeded law relinquished by the world. The finding is the naive theory's measured survival time and net score at death, per claim kind. |
-| P2⁷ honest epistemic change | ledger after a law falls | bets on that kind become **abstentions** (M no longer pretends); the run's second act is abstention, not noise. |
-| P3⁷ two arms, independent fates | per-kind ledger split | LAW_TEMP and LAW_PRECIP fall (or survive) independently — the first live `select_best`-shaped comparison. |
-| P4⁷ floor on a new membrane | supervisor/resume, canary, counters | pending claims survive a resume; recorded batches replay; unresolved drops + fetch errors counted, never silent; \|M\| stays small. |
-| P5⁷ the two-clock texture | digests | claims raised from poll 1; the first bets arrive only after the first hour matures (~6–8 polls) — raise and resolve visibly out of phase. |
-| P6⁷ correspondence floor | checkpoint attests | all segments attest (M is tens of atoms; the F1⁵ coin flip has negligible surface here). |
-
-**Log:** `runs/RUN_7_LOG.md`.
-
-## 19 · Run 8 — predict → refute → **re-generalize** (machinery built 2026-07-07; live launch delegated to the author)
-
-*Run 7's F2⁷: after the world falsified both seeded laws the game fell **silent** — a
-relinquished law was never replaced, so the second act was pure abstention. Run 8 closes the
-loop: after refutation, **re-generalize** — induce a better-calibrated law from the ledger's
-track record and re-seed it, so the arc is predict→refute→**re-generalize**, not
-predict→refute→silence. The discretization (temperature band width, PoP threshold) is the
-falsifiability knob (F2⁷), and the controller turns it.*
-
-**The mechanism (LLM-free, deterministic, additive):**
-- **`src/weather_recalibration.py`** — `recalibrate(ledger, *, band_width, pop_threshold,
-  standing_laws, target, …) → RecalibrationResult`. An **adaptive controller to a reliability
-  target**: for each claim kind (temperature, precipitation) whose law has fallen off
-  `standing_laws` **or** whose recent accuracy is below `target`, it steps the knob toward a
-  less-falsifiable shape — temperature **widens the band** (an observation a few degrees off
-  then lands in the *same* band), precipitation **raises the PoP threshold** (only confident
-  forecasts are claimed) — each capped so it terminates, and marks a *fallen* law for
-  re-seeding. The `ScoreEntry` records only hit/miss (not the numeric delta), so a
-  one-step-per-segment controller-to-target is the honest minimal mechanism; it needs only the
-  counts.
-- **Re-scribing (generic seam, `live_runner`):** an `evaluate()` may return `reseed_laws`; the
-  runner juxtaposes each fallen law cut back onto the carried sheet + registry, so the next
-  segment materializes it and **bets again**. The **temp law string is band-width-agnostic** —
-  re-generalization moves the *claim discretization* (`WeatherSource._width`/`_pop`), not the
-  law text; a `PendingClaim.width` rider resolves each in-flight claim under the width it was
-  raised with, so a mid-run widen never spuriously misses a pending claim.
-- **F1⁷ (fetch resilience), shipped with it:** a bounded retry + exponential backoff around the
-  flaky NWS endpoints (injectable `sleep`, so CI is deterministic/offline) + **per-station**
-  error counts surfaced in the digest — a *dark station* is now visible, not folded into the
-  aggregate.
-
-**Driver:** `tools/run_live_weather.py --regenerate` (+ `--regen-target`, `--band-cap`,
-`--pop-cap`, `--fetch-tries`, `--fetch-backoff`); the per-segment digest gains a re-generalize
-line and per-station error rates. With `--regenerate` **off**, run 7 is reproduced exactly.
-
-**Offline replay finding (honest scope of the canary).** Replaying `runs/run7/items.jsonl`:
-with re-generalization **off** the run-7 trajectory reproduces (4 h / 2 m, net +2, both laws
-fall, 0 standing); **on**, the reseed mechanism fires (26 re-generalizations, both laws return
-to M) — but net *worsens* (−19). This is **not** a design failure: a replay's resolution items
-are **frozen at the band they were recorded under**, so widening the band cannot change a
-pre-recorded claim's hit/miss — the reseeded law keeps betting on frozen claims. **The
-calibration payoff is only measurable live**, where `_raise_claims` re-discretizes *fresh*
-observations under the wider band (the controlled integration test proves that causality on
-scripted data: refute → widen → re-bet → hit). So the replay canary validates *backward-compat
-+ the reseed mechanism*; the calibration benefit is a **live-run hypothesis**.
-
-**Pre-registered priors (run 8):**
-
-| prior | instrument | expected |
-|---|---|---|
-| P1⁸ **re-generalization keeps the game alive** (headline) | dispositions + `reseed` count | after a `challenge_to_M`, the fallen kind's law returns to M within a segment and **bets again** — the second act is prediction, not abstention. |
-| P2⁸ the calibration payoff is live-only | per-kind live hit-rate before/after a widen | a re-generalized kind's **live** hit-rate recovers toward `target` as the band widens / PoP rises — the effect the replay structurally cannot show. |
-| P3⁸ convergence within the caps | band/PoP trajectory | the controller settles (stops stepping) once a kind meets target or hits its cap; no unbounded oscillation. |
-| P4⁸ F1⁷ resilience | per-station error rates | a transiently-flaky endpoint recovers within the retry budget (invisible); a dark station is bounded, counted, and **named** in the digest. |
-| P5⁸ floor unchanged | checkpoints, resume | §3.3 attests; `--resume` carries the recalibrated knobs (band/PoP persisted) + per-station errors; correspondence-not-truth holds (a resolved market is low-warrant). |
-
-**Log:** [`runs/RUN_8_LOG.md`](../runs/RUN_8_LOG.md) — **EXECUTED & DISPOSED 2026-07-08.**
-P1⁸/P2⁸/P4⁸/P5⁸ confirmed (13 re-generalizations; live accuracy 0.70, net +17; 0 fetch_errors;
-resume carried the knobs across 4 crashes); **P3⁸ refined** — the re-generalized law settles into
-a *positive-net limit cycle*, not a fixed point (F2⁸); the precip arm stayed dormant (F3⁸); a
-`retract_subgraph` robustness bug found + fixed (F1⁸). Next: run 9 (forecast-centered bins +
-per-arm instrumentation).
-
-## 20 · Run 9 — forecast-centered bins + per-arm instrumentation (machinery built 2026-07-08; live launch delegated to the author)
-
-*Run 8's F2⁸: at the 20 °F band-cap the re-generalized temperature law settled into a
-**positive-net limit cycle** — ~0.7 reliable, felled once per segment and reseeded — not a
-fixed point, because a **grid-aligned** band makes a forecast near a bin edge fragile: a small
-observation error crosses the boundary and misses even a well-calibrated band. Run 9 asks a
-sharp question: does a **forecast-centered** bin — one centered on the forecast value, so a miss
-needs `|obs − forecast| > band/2`, symmetric and edge-fragility-free — **convert the limit cycle
-to a fixed point**, or do inherently noisy domains always limit-cycle? And F3⁸: the precip arm
-stayed **dormant** all run; per-arm instrumentation must disambiguate a well-calibrated arm from
-one whose claims rarely matured.*
-
-**The mechanism (additive, deterministic, geometry-free):**
-- **`src/weather_source.py` — `band_bounds(temp_f, width, *, center=None) → (lo, label)`.** The
-  discretization gains a **centered** mode: `center=None` keeps the run-7/8 grid (`band_of`
-  wraps it, unchanged); `center=forecast` centers the band on the forecast (`79°F → "77-81"`).
-  Resolution is now **one half-open containment check** against the claim's own raise-time band
-  `[band_lo, band_lo+width)` (a new `PendingClaim.band_lo` field) — **mode-independent**, and
-  behaviour-identical to run 8 on grid claims, so the change is a pure superset. The mode is a
-  `WeatherSource(bin_mode=…)` knob, carried across `save_state`/`resume` beside the recalibrated
-  width/PoP.
-- **Per-arm counters (F3⁸):** `claims_raised_by_kind` / `resolutions_by_kind` on the source, and
-  a `_per_arm` split of the run-level ledger in the driver — the per-segment digest and the
-  final report now print, per arm (temp | precip): `raised · resolved · h/m/a · net`. A *dormant
-  arm* (few resolutions) is now distinguishable from a *well-calibrated* one (many resolutions,
-  all hits). The non-binned precip arm is the clean control for F2⁸'s bin-ceiling hypothesis.
-
-**Driver:** `tools/run_live_weather.py --bin-mode centered` (+ the run-8 `--regenerate` &c.).
-With `--bin-mode grid` (the default) run 8 is reproduced exactly.
-
-**Pre-registered priors (run 9):**
-
-| prior | instrument | expected |
-|---|---|---|
-| P1⁹ **centered bins raise reliability at a given band** (headline) | per-arm temp accuracy vs run 8 at equal band | forecast-centered bins remove grid-edge misses, so temp accuracy at a given width **exceeds** run 8's grid accuracy — the controller needs to widen **less** (a narrower converged band, fewer reseeds). |
-| P2⁹ **fixed point vs limit cycle** | temp reseed count + band trajectory | the sharper discretization **converts F2⁸'s limit cycle toward a fixed point** (reseeds fall sharply, the band converges below the 20 °F cap and *holds*) — **or**, the honest null, a noisy domain still limit-cycles even centered (reliability plateaus < 1 so an occasional counterexample remains), refining F2⁸ into a claim about noise, not binning. |
-| P3⁹ **per-arm instrumentation disambiguates the dormant precip arm** | `claims_raised_by_kind` / `resolutions_by_kind` | the digest resolves F3⁸: either precip **resolved many, all hits** (genuinely well-calibrated at PoP ≥ 60%) or **raised-but-rarely-resolved** (dormant because claims seldom matured/bet), a fact run 8 could not see. |
-| P4⁹ floor + parity unchanged | `--bin-mode grid` replay; §3.3; resume | grid mode reproduces run 8; §3.3 attests; `--resume` carries `bin_mode` + per-arm counters + the recalibrated knobs; correspondence-not-truth holds. |
-
-**Log:** [`runs/RUN_9_LOG.md`](../runs/RUN_9_LOG.md) — **EXECUTED & DISPOSED 2026-07-10** (run
-2026-07-09, 14 h, completed on `max_seconds`). P1⁹/P2⁹/P3⁹/P4⁹ all confirmed: **forecast-centered
-bins convert F2⁸'s limit cycle toward a fixed point** — temp accuracy at the 20 °F band rose to
-0.82 (vs run 8's grid ~0.70) and the settled tail reached 1.00 (24 h / 0 m), disposing F2⁸; the
-per-arm instrumentation showed **precip raised zero claims** (PoP never hit 60 %), disposing F3⁸;
-0 fetch_errors, `bin_mode` carried across resume. One ops gap — the stdout digest was not captured
-(F3⁹), so the exact reseed count is inferred from the miss trajectory; the driver now tees its
-digest to `runs/runN/console.txt`. Next: run 10 (a live precip arm — lower PoP gate / wetter
-stations — to give the non-binned control arm something to contest).
-
-## 21 · Run 10 — the live precip arm (the non-binned control; drafted 2026-07-10)
-
-*Run 9 established that forecast-centered bins convert the temperature limit cycle toward a fixed
-point (F1⁹), reading the F2⁸ limit cycle as largely a **grid edge-fragility artifact** of the
-binning. But that reading has an untested control: the **precipitation** arm is **non-binned** — a
-binary predicate (rain / no-rain) with no bin, hence no edge-fragility. In runs 7–9 it never
-contested (dormant: PoP never reached the 60 % gate — F2⁹). Run 10 activates it and asks the
-control question directly: does a **non-binned** law, refuted by the world, **converge** (or hold),
-or does it **also limit-cycle**? If it converges cleanly, that corroborates F1⁹ (binning drove the
-temp cycle). If it limit-cycles too, weather noise — not binning — is the driver, and F1⁹ is
-tempered to "centering raised the plateau" rather than "removed the cycle."*
-
-**The activation (params, not new machinery — the precip arm already exists):**
-- **Wetter stations** — a Gulf / Southeast July-convection constellation
-  (`weather_source.WET_STATIONS`: KMIA KTPA KMSY KIAH KJAX), where daily afternoon storms give
-  real PoP. Named by ICAO; the driver resolves against `KNOWN_STATIONS` (defaults + wet).
-- **A lower PoP gate** — `--pop-threshold 40` (from 60), so precip claims are actually raised, with
-  room to climb to the 90 % cap.
-- **Centered temp bins kept** (`--bin-mode centered`), so the *binned* arm sits at its established
-  fixed point as an in-run reference beside the *non-binned* precip arm — the clean side-by-side
-  control.
-
-**The precip re-generalization path (verified offline).** A refuted precip law (a PoP-60/70
-forecast met by no rain, in the shape `(forecast_precip …) ~[ (precip …) ]`) is relinquished by
-the Challenger; `weather_recalibration.recalibrate` **raises the PoP gate** (`pop_step` 10, cap
-90 — the precip *falsifiability knob*, analog of the temp band) and re-seeds the law, so the arm
-bets again at a higher confidence gate. Gate 40→50 + reseed confirmed on a scripted refutation.
-
-**Driver:** `caffeinate -i uv run python tools/run_live_weather.py --runs-dir runs/run10
---stations KMIA KTPA KMSY KIAH KJAX --pop-threshold 40 --bin-mode centered --regenerate
---max-seconds 50400`. The digest now tees to `runs/run10/console.txt` (F3⁹ closed), so the exact
-per-arm reseed / `challenge_to_M` count is a first-class artifact this time.
-
-**Pre-registered priors (run 10):**
-
-| prior | instrument | expected |
-|---|---|---|
-| P1¹⁰ **the precip arm activates** | `claims_raised_by_kind` / `resolutions_by_kind` | with the lower gate + wet stations, precip **raises and resolves** claims (> 0) — the F2⁹ dormancy is lifted, so the control arm actually contests. |
-| P2¹⁰ **non-binned: converge or limit-cycle?** (headline) | per-arm net trajectory + `challenge_to_M` count (now captured) | a binary predicate has no bin edge-fragility, so on refutation the precip law re-generalizes by **raising the gate** and then **holds / converges** — it does *not* persistently limit-cycle the way binned temp did before centering. The honest null: precip **also** limit-cycles → weather noise, not binning, drives the cycle, tempering F1⁹. |
-| P3¹⁰ **the PoP gate is the precip falsifiability knob** | gate trajectory (`weather_state.params.pop_threshold`) | refutation steps the gate up toward the 90 % cap (analog of the temp band 5→20); a well-calibrated gate holds without further reseeds. |
-| P4¹⁰ floor + F3⁹ closure | `runs/run10/console.txt`; resume | the digest (per-arm bets, dispositions, reseeds, poise) is captured to a file — the exact reseed count is recoverable this time; 0-fetch resilience; both knobs (band, gate) + `bin_mode` carried across resume; §3.3 attests. |
-
-**Log:** [`runs/RUN_10_LOG.md`](../runs/RUN_10_LOG.md) — **PRE-REGISTERED 2026-07-10; awaiting live
-execution.**
+**Cost scales with M's *shape*, not just |M|** — the operating consequence of Part II §11.1. The
+capacity table above is a size table; a *hub-shaped* M (a Wikidata entity's star graph) makes the
+§3.3 attest and the ligature router super-linear in hub degree, not fact count. The controls: the
+exact quick-reject / hash-cons / incremental-materializer fixes (§11.1, each bit-identical or
+same-closure) and `per_entity_cap` on the rotating source (bound the hub degree at the membrane,
+drops counted). **Plan for M's shape (hub degree), not only its size.**
+
+# Part II — what running it has taught
+
+## 11 · The principles eleven live runs established
+
+*Part I is the design as drafted (mostly 2026-06-30, before any live run). This part folds the
+run-derived learnings back into it as principles — each stated once, run-cited, with the full
+per-run pre-registration and disposal in the Part III ledger and its `runs/RUN_N_LOG.md`. Six
+principles; the seventh is the floor, confirmed at scale. Read this as: the design, corrected and
+sharpened by contact with the world.*
+
+**11.1 · Cost scales with M's *shape*, not its size (runs 1–4).** The round loop and the §3.3
+attest are super-linear in M, but the driver of a blow-up is M's *topology*, not its fact count.
+A Wikidata entity's M is a **star graph** (one hub individual shared by every atom), and three
+shape-sensitive costs surfaced and were fixed **exactly** (never approximated): the ELK ligature
+router's visibility graph (452 s → 3.2 s via an exact bbox quick-reject, bit-identical routes),
+`canonical_signature`'s WL colour refinement (15.7 s → 3.3 ms at a 200-atom hub via hash-consed
+colours + stop-at-partition-stabilization), and the peel's re-materialization each round
+(O(\|M\|²) → O(\|Δ\|·\|M\|) via the semi-naive `IncrementalMaterializer`, same closure). The
+operating rule (Part I §10): **plan for M's hub degree, not only its fact count**; bound the
+degree at the membrane (`per_entity_cap`) and every exactness-preserving fix pays off.
+
+**11.2 · Disuse-decay bounds the *vocabulary*, and the habit is the atom, not the name (run 3,
+F1″ → the atom-level rulebook).** The bound that keeps an unbounded sheet finite is disuse-decay,
+but run 3 showed that decaying *relation names* fails: a warm hub name (kept alive by the tropism)
+lets its atoms pile up unboundedly under it (attest wall-clock climbed 3.3 → 1075 s). The fix
+(the rulebook decision, built 2026-07-03): **decay is atom-level** — the unit of habit is the
+fact `(rel a b)`, not the name; **use = re-delivery** (a redelivered atom is the habit holding);
+erasure is the *structural* `retract_atom` (`without_element` + orphan-vertex prune), so
+name-siblings and standing law-cuts survive an atom's decay. |M| is now bounded in the honest
+unit, and the meta-learning stickiness reads decay-erasure apart from game-erasure (§6) so a
+decay-bounded live run's stick-rates are not working-set noise.
+
+**11.3 · A live run is predict → refute → *re-generalize*, not predict → refute → *silence*
+(run 7 F2⁷ → run 8).** Against a raise-and-resolve membrane M *forecasts* (the peel) and is
+*empirically falsified* where it over-reaches — the world relinquishes the over-general law via
+`challenge_to_M`. Run 7 found the failure mode this exposes: after both seeded weather laws fell,
+the game went **silent** (a relinquished law was never replaced, so the second act was pure
+abstention). The fix (run 8) closes the loop: `weather_recalibration.recalibrate` **induces a
+better-calibrated law from the prediction ledger and re-seeds it** (the runner re-scribes it onto
+M's sheet), so refutation is followed by a *better bet*, not silence. The live calibration payoff
+(a law climbing 0.00 → 0.70 accuracy as its discretization is tuned to fresh observations) is
+something an offline replay structurally cannot show — the resolution items are frozen at their
+recorded discretization — so it is a genuinely *live* finding.
+
+**11.4 · Whether re-generalization *recovers* depends on the *knob type* — a calibration knob
+can, a selectivity knob cannot (run 10, F1¹⁰; run 11 tests it directly).** This is the principle
+the design most owes to the runs. Re-generalization moves a knob; but not all knobs are equal.
+The temperature arm's knob is **band width** — a *calibration* knob: widening the band reaches a
+regime where the observed value usually falls in-band, so the law earns hits (run 10: net +18).
+The precip arm's knob was the **PoP gate** — a *selectivity* knob: raising it makes the arm bet
+*less often*, never *more correctly*, so a structurally-mismatched law cannot recover (run 10:
+net −5, accuracy 0.14, and it ratcheted the gate to the cap and stayed refuted — P2¹⁰'s "third
+outcome," neither converging nor limit-cycling). The general statement: **a refuted theory
+re-generalizes into a better one only if its recalibration knob calibrates (moves it toward being
+right), not merely selects (moves it toward betting less).** Run 11 is the direct test — it gives
+the precip arm a real calibration knob (a two-direction bet around a learned cutpoint, betting the
+*majority* outcome via a dry companion law) and asks whether it now recovers the way temperature
+did; a positive net confirms the principle, a null (rain simply unpredictable at this
+horizon/scoring) falsifies it and marks F1¹⁰ as over-read from a small (N = 9) sample.
+
+**11.5 · A re-generalized law's steady state is a positive-net limit cycle *or* a fixed point,
+set by domain-noise × discretization (run 8 F2⁸, run 9 F1⁹, run 10 F2¹⁰).** A law that keeps
+being felled and re-seeded does not necessarily converge to a fixed point; run 8 found it settles
+into a **positive-net limit cycle** — the knob pins at its cap, the law is refelled ~once per
+segment and reseeded, yet net climbs (a better dynamic steady state than a frozen guess, since it
+keeps earning calibration live). Run 9 showed part of that cycle was an *artifact*: forecast-**centered**
+bins (centring the band on the forecast, not a fixed grid) converted the temperature cycle toward
+a fixed point — so the cycle **decomposes** into a **grid-edge-fragility** component (removed by
+centring) and a **genuine domain-noise** component (which survives it; run 10 saw the centered
+temp arm still limit-cycle on noisier convective stations). The honest reading: centring removes
+the artifactual wobble; a noisy discretized domain retains a positive-net cycle as its true steady
+state — F2⁸ and F1⁹ are each *partly* right.
+
+**11.6 · One source is not enough — branch by source class (run 5b → run 7, F3⁷).** Stated as a
+membrane principle in Part I §4b: a source's *class* fixes which dispositions the game can
+exercise, so a finding read off one source is provisional and sources must be branched wherever a
+finding's disposition would differ by class. Wikidata (settled record) ran ~100 % `new_fact` with
+zero laws; weather (resolving) exercised the refutation/re-generalize registers; the next source
+is deliberately a third class (sports). See §4b for the full statement.
+
+**11.7 · The floor held at scale — correspondence-not-truth, and warrant by mechanism (runs 5b–6,
+the §6 payoff).** Nothing in the run arc dislodged the floor; the runs *confirmed* it operationally.
+A live M is a bounded, rolling, low-warrant, diachronic *stance*, never an oracle — and the
+meta-learning's `mechanism_principles` gave the floor teeth at scale: a reliable-source citation
+produces **durable** knowledge where a contradicted consensus does not (consensus stick-rate 0.0,
+reliable_source 1.0 in the first watched session's overturn scenario). Warrant differs by
+resolution mechanism, and the game *measures* that difference rather than assuming it —
+*progression, not progress*, made observable.
+
+---
+
+# Part III — the run ledger
+
+## 12 · The eleven runs — the evidence trail
+
+*Each run pre-registered a prior and disposed it; the full pre-registration, totals, and
+finding-by-finding disposal live in the linked `runs/RUN_N_LOG.md` (this document carries the
+synthesis in Part II, not a second copy). Runs 1–10 are executed and disposed; run 11 is built and
+awaiting the author's launch. Note the section-vs-run offset in earlier drafts is gone — the runs
+are simply 1–11.*
+
+**The design memos that used to sit among these appendices have moved into the design proper:** the
+docket of doubts (content-directed probing) is now Part I §4 (item 5); the atom-level decay rulebook and
+the round-compute fixes are Part I §10 + Part II §11.1–11.2; the docket-gate re-examination (which
+named *content-undirected probing* as the operative bottleneck by elimination across runs 1–5b)
+is recorded in `runs/RUN_5_LOG.md`. What remains here is the chronological record and the findings
+index.
+
+| # | Membrane / source | The one variable (vs the prior run) | Status | Headline | Log |
+|---|---|---|---|---|---|
+| 1 | Wikidata rotating crawl | first live run — the passive baseline | disposed | F2¹ a relinquishment bites only if its target still stands; F3¹ the crawl samples the *settled surface* (≈1 contested / 432) | [RUN_1](../runs/RUN_1_LOG.md) |
+| 2 | Wikidata `recentchanges` stream | crawl → recency change-stream (revisit-via-recency) | disposed | F2′ ingestion alone can't test durability — only *directed re-engagement* can; stream is reliable-source-heavy | [RUN_2](../runs/RUN_2_LOG.md) |
+| 3 | Wikidata crawl **+ tropism** | add the warm-set re-poll (directed re-engagement) | disposed | **F1″** decay bounds the *vocabulary*, not the sheet (warm names let atoms pile up); F2″ the durability event = **revisit × world-motion** | [RUN_3](../runs/RUN_3_LOG.md) |
+| 4 | Wikidata stream **+ tropism** | compose stream × tropism (the 2×2 closer) | disposed | F1⁴ mandated **atom-level decay**; F2⁴ named **round-compute** as the new super-linear wall | [RUN_4](../runs/RUN_4_LOG.md) |
+| 5 | Wikidata stream + tropism, **14 h unattended** (decay + compute fixes in) | duration (the cheapest lever) | disposed | **P1⁵ null** — 0 rank transitions in 14 h (a measured rate ceiling); 100 % `new_fact`, final M carries **zero laws** | [RUN_5](../runs/RUN_5_LOG.md) |
+| 6 | Wikidata stream + tropism **+ docket** | arm content-directed asks (`query_docket`) | run (launch-delegated) | second rate-ceiling sample; docket resolved-wants + `inexpressible` sizing the Q2 tier | [RUN_6](../runs/RUN_6_LOG.md) |
+| 7 | **NWS weather** resolving membrane | swap membrane *class*: Wikidata → weather (seeded naive laws) | disposed | **F2⁷** predict→refute→**silence** (both laws fell, no replacement); discretization = the falsifiability knob | [RUN_7](../runs/RUN_7_LOG.md) |
+| 8 | NWS weather **+ re-generalization** | add predict→refute→**re-generalize** (`--regenerate`) | disposed | live calibration payoff (net +17, acc 0.70); **F2⁸** positive-net **limit cycle**; F3⁸ precip dormant; F1⁸ ERA-crash fix | [RUN_8](../runs/RUN_8_LOG.md) |
+| 9 | NWS weather, **forecast-centered bins** + per-arm counters | centre the temperature bin on the forecast | disposed | **F1⁹** centred bins convert the cycle → fixed point (F2⁸ was grid-edge-fragility); F2⁹ precip raised **zero** (disposes F3⁸); F3⁹ console tee | [RUN_9](../runs/RUN_9_LOG.md) |
+| 10 | NWS weather, **live precip arm** (wet stations, low gate) | activate the non-binned precip control | disposed | **F1¹⁰** the *knob-type*, not binning, gates recovery (calibration vs selectivity); P2¹⁰ a third outcome; **F2¹⁰** the cycle decomposes | [RUN_10](../runs/RUN_10_LOG.md) |
+| 11 | NWS weather, **calibrated precip arm** | `--precip-mode calibrated` (two-direction cutpoint bet) | **built; awaiting launch** | P2¹¹ (pre-registered) — does a *calibration* knob recover the precip arm the way temperature's did? | [RUN_11](../runs/RUN_11_LOG.md) |
+
+### Findings index — what each established, and where it now lives
+
+| finding | run | what it established | now lives in / disposed by |
+|---|---|---|---|
+| F2¹ · F3¹ | 1 | a relinquishment bites only while its target stands; the crawl samples the settled surface (little contestation) | → mandated the change-stream (run 2) |
+| F2′ | 2 | ingestion ≠ a durability test; only *directed re-engagement* revisits | → mandated the tropism (run 3) |
+| **F1″** | 3 | disuse-decay bounds the **vocabulary**, not the sheet — the atom is the habit, not the name | **Part II §11.2** (the atom-level rulebook) |
+| F2″ | 3 | the durability event = **revisit × world-motion** (revisit necessary, not sufficient) | `RUN_3_LOG.md`; base rate under the 1-h horizon |
+| F1⁴ · F2⁴ | 4 | mandated atom-level decay + named **round-compute** as the wall | **§11.1–11.2**, Part I §10 (exact fixes) |
+| P1⁵ | 5 | a **measured rate ceiling** — 0 rank transitions / 14 h; Wikidata's inductive register idle | → the single-source check → weather (**§11.6**) |
+| **F2⁷** | 7 | predict → refute → **silence** is the failure mode of a raise-and-resolve membrane | **§11.3** (re-generalization is the fix) |
+| **F2⁸** | 8 | a re-generalized law settles into a **positive-net limit cycle** | **§11.5** |
+| F3⁸ · F1⁸ | 8 | precip arm dormant; a `retract_subgraph` ERA-crash found + fixed (structural) | F3⁸ disposed by F2⁹; F1⁸ in `model_revision` |
+| **F1⁹** | 9 | forecast-centred bins convert the cycle → a **fixed point** (F2⁸ was largely a grid artifact) | **§11.5**; disposes F2⁸ (partly) & F3⁸ |
+| **F1¹⁰** | 10 | the **knob-type** (calibration vs selectivity), not binning, gates recovery | **§11.4** |
+| **F2¹⁰** | 10 | the F2⁸ cycle **decomposes** (grid-edge-fragility + genuine domain-noise) | **§11.5**; tempers F1⁹ |
+| P2¹¹ | 11 | *open* — does a calibration knob recover the precip arm? | tests **§11.4**; result → `RUN_11_LOG.md` |

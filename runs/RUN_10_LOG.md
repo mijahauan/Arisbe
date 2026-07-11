@@ -1,7 +1,7 @@
 # Run 10 log — the live precip arm (the non-binned control) — LAUNCHED 2026-07-10
 
-**Pre-registration:** [docs/AUTOMATED_ENDOPOREUTIC_GAME.md §21](../docs/AUTOMATED_ENDOPOREUTIC_GAME.md)
-— the successor to run 9's F1⁹/F2⁹. Run 9 read the temperature limit cycle (F2⁸) as largely a
+**Pre-registration:** [docs/AUTOMATED_ENDOPOREUTIC_GAME.md](../docs/AUTOMATED_ENDOPOREUTIC_GAME.md)
+— Part III §12 (the ledger); the successor to run 9's F1⁹/F2⁹. Run 9 read the temperature limit cycle (F2⁸) as largely a
 **grid edge-fragility artifact** of the binning: forecast-centered bins converted it toward a
 fixed point. The untested control is the **precipitation** arm — **non-binned** (rain / no-rain, no
 bin, no edge-fragility), and dormant through runs 7–9 (PoP never reached the gate — F2⁹). Run 10

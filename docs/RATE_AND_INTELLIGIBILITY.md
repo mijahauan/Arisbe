@@ -8,9 +8,9 @@ tropism). **Companion to** [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SE
 doctrine this extends — its §9 D-rules govern *co-presence*; the R-rules below govern
 *succession*), [`ADAPTIVE_SCOPE_VIEWER.md`](ADAPTIVE_SCOPE_VIEWER.md) (the spatial LOD
 machinery and the attestation style the temporal fog must inherit), and
-[`AUTOMATED_ENDOPOREUTIC_GAME.md`](AUTOMATED_ENDOPOREUTIC_GAME.md) §4d/§13 (poise and the
+[`AUTOMATED_ENDOPOREUTIC_GAME.md`](AUTOMATED_ENDOPOREUTIC_GAME.md) §4d (poise and the
 tropism — the game-side machinery this doc mirrors on the reader's side). Method follows the
-§11/§12/§13 discipline: hypotheses are registered here, bound to instruments that already
+same pre-register-then-dispose discipline (AEG Part III §12): hypotheses are registered here, bound to instruments that already
 exist, before the build that would test them.
 
 ---
