@@ -153,25 +153,45 @@ Verified: `test_mcp_verifier` 21p/1s, correspondence suite green (117p/1s), core
 Nothing existing modified — all additive (2 src modules, 1 test, 3 docs, 1 pyproject extra, doc
 cross-links). **Not yet committed.**
 
-**▶▶▶ NEXT SESSION — finish the 2nd-order prep + cleanup, THEN the author's two crossing
-decisions (nothing forced).** Author's standing direction (2026-07-09): **square away alpha/beta
-before crossing the 2nd-order frontier.** STORM is CLOSED (nothing open — STORM_DOCS_AUDIT §"Nothing
-remains open") and the **alpha/beta UX docket is fully shipped** (U1–U25, `docs/ALPHA_BETA_UX_DOCKET.md`),
-so the pre-frontier work is down to a short list:
-1. **Finish the 2nd-order PREP** (the frontier is mapped + de-risked; not crossed). DONE this
-   session: the de-risking harness `src/second_order_check.py` (law S1–S4, 11 tests, falsifiers
-   bite) + memo 1 `docs/SECOND_ORDER_CORRESPONDENCE_CONTRACT.md` (§-for-§ P1–P5 one order up).
-   **REMAINING prep:** *memo 2* — the increment-2 **core-opening author-decision memo** (overlay-
-   forever beside `egi_core_dau`, like `reference_node`, vs. a native graph-valued node + a
-   sort-reader that recovers S3 off the drawing); and **#11** — give the schema φ-hole its §3.3
-   story (`SCHEMA_HOLE_CORRESPONDENCE.md`; it deliberately stops one step short of the device S1
-   licenses).
-2. **RUN 10 disposal** — the live precip arm (§21/`RUN_10_LOG.md`) finishes a few hours after this
-   session; write it up from `runs/run10/` (console.txt IS captured this time — F3⁹ — so the
-   per-arm reseed / `challenge_to_M` count settles **P2¹⁰ converge-vs-limit-cycle by count, not
-   inference**), commit the artifacts. Early peek: precip ACTIVATED (raised>0, not the run-9
-   dormancy), already re-generalizing (PoP gate 40→50→60 on misses) — leaning honest-null (the
-   non-binned arm *also* re-generalizes) but only 3 resolutions in, far too early.
+**▶▶ THIS SESSION (2026-07-10, later sitting) — 2ND-ORDER PREP COMPLETE + RUN 10 DISPOSED.**
+Both remaining pre-frontier work items closed (all uncommitted, docs-only, no core touched):
+- **2nd-order prep DONE.** *Memo 2* = `docs/SECOND_ORDER_CORE_OPENING.md` — the increment-2
+  core-opening author-decision brief (decision B expanded): the **overlay is a strict prefix of
+  the native node** (so B is deferrable/reversible, exactly like `reference_node` inc-1→2), **the
+  hinge is S3 read-back alone**, B is the **same** core-opening decision as the reference node's
+  deferred use/mention fork; **recommendation — ship overlay-A now, hold native-B for a
+  demonstrated *asserted* second-order claim**. *#11* = `SCHEMA_HOLE_CORRESPONDENCE.md` gained a
+  forward-linking section (the φ-hole is the **predicative** device, one step short of the
+  graph-valued node S1 licenses — the frontier's "ship predicative now" enacted in miniature).
+  Memo 1 §7-B back-links memo 2. Both memos are dev design-of-record (not book chapters, like
+  memo 1). **Only the two author crossing-decisions (A/B) remain — those gate any advance.**
+- **RUN 10 DISPOSED** (`runs/RUN_10_LOG.md`; 14 h / 183 rounds / max_seconds; SHA 0b74912).
+  Totals: 30 h/17 m/27 a net +13 acc 0.638, 13 re-generalizations, **both laws still standing**,
+  0 crashes, 4 fetch_errors absorbed. Per-arm: temp net **+18** (acc→~0.9); precip net **−5**
+  (acc 0.14, N=9). **F1¹⁰ (headline): the recalibration *knob-type*, not binning, governs whether
+  refute→re-generalize recovers** — temp's band-width is a *calibration* knob (widen→actuals fall
+  in-band→hits), precip's PoP gate is a *selectivity/bet-frequency* knob (raising it only bets
+  less, can't fix a structural mismatch), so precip's P2¹⁰ is a **third outcome** (neither
+  converges nor limit-cycles — ratchets the gate to the cap, settles net-negative-but-standing).
+  **F2¹⁰ tempers F1⁹: the F2⁸ cycle *decomposes*** — temp positive-net limit-cycles *even centered*
+  on noisy convective Gulf/SE stations, so the cycle = grid-edge-fragility (removed by centering,
+  run-9's calm stations→fixed point) + genuine domain-noise (survives; run-10→cycle). F3¹⁰ ops
+  closure confirmed (console.txt tee → 13 re-gens legible, not inferred). F4¹⁰ fetch resilience
+  held. **Caveat: precip N=9 — F1¹⁰ is directional (mechanism structural, magnitude under-powered).**
+  Next precip probe idea: give the precip arm a *calibration* knob (PoP bands / lead-time), not
+  just a selectivity gate. **Nothing committed** (author's call at session end).
+
+**▶▶▶ NEXT SESSION — the author's two crossing decisions (nothing forced) + optional cleanup.**
+Author's standing direction (2026-07-09): **square away alpha/beta before crossing the 2nd-order
+frontier.** STORM is CLOSED, the **alpha/beta UX docket is fully shipped** (U1–U25), and (this
+session) **the 2nd-order prep is complete and run 10 is disposed** — so the pre-frontier work is
+done. What remains:
+1. ~~**Finish the 2nd-order PREP**~~ **DONE** (2026-07-10): harness `src/second_order_check.py`
+   (S1–S4, 11 tests) + memo 1 `SECOND_ORDER_CORRESPONDENCE_CONTRACT.md` + memo 2
+   `SECOND_ORDER_CORE_OPENING.md` + #11 `SCHEMA_HOLE_CORRESPONDENCE.md` forward-link. The frontier
+   is **mapped, de-risked, and marked** — only the crossing decisions (item 3) remain.
+2. ~~**RUN 10 disposal**~~ **DONE** (2026-07-10, `RUN_10_LOG.md`) — F1¹⁰/F2¹⁰/F3¹⁰/F4¹⁰ above.
+   A follow-on *calibration-knob precip probe* is the natural next live run if the arc continues.
 3. **THE TWO CROSSING DECISIONS (author's — gate any advance across the frontier):** **A.** which
    comprehension floor (predicative-with-enclosure-escape is the harness default; ramified/other
    swap in); **B.** how much to open the core (A/B laid out in SECOND_ORDER_CORRESPONDENCE_CONTRACT §7).
