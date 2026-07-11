@@ -145,7 +145,10 @@ node — the very device S1 would license).
   `egi_core_dau`, like `reference_node`) vs. a native graph-valued node (a real core
   change + a §3.3 reader that recovers the sort off the drawing — S3 built). The
   harness works either way; B is the boundary between *preparing* the frontier and
-  *crossing* it.
+  *crossing* it. **The full brief for B is [SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md)
+  (memo 2)** — it shows the overlay is a strict prefix of the native node (so B is
+  deferrable and reversible), that the hinge is S3 alone, and that B is the *same*
+  core-opening decision as the reference node's deferred use/mention fork.
 
 Until B is taken, this document is the contract and `second_order_check.py` is its
 witness; the frontier is mapped, de-risked, and marked — not yet crossed.

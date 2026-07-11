@@ -74,6 +74,29 @@ drawing precedent** — Peirce/Roberts/Dau/Sowa denote "any graph G" only in the
 The genuinely *drawable* abbreviation is the **definition node**, which has full
 CG/ISO 24707 lineage — see [docs/DEFINITION_NODE.md](DEFINITION_NODE.md).
 
+## Where this sits on the second-order frontier (the deliberate stop)
+
+The line above — "a real object-level *graph-valued* node would be Sowa's
+Proposition-typed context node — second-order, out of scope" — is exactly the device
+the second-order correspondence contract calls **the node S1 would license**
+([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md) §7;
+[SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md)). The φ-hole is a
+**predicative** placeholder: it holds an argument *position* whose filler is supplied
+at instantiation and then vanishes (`instance-of-schema`), so it never carries a graph
+as a drawn subject and never reaches its own level. That is why it attests §3.3 today
+with **no comprehension floor** — a predicative quote is always well-formed (S1's easy
+half). The graph-valued node would be the *impredicative-capable* device: a line whose
+subject is a whole graph, drawn and read back, which S1 must gate by enclosure (dragon
+9: ◇, not □) and which S3 can only attest if the sort is in the drawing (the crossing,
+[SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md) §4).
+
+So the φ-hole is not an unfinished graph-valued node — it is the **one step short** of
+one, on purpose: it does the placeholder work the schema machinery needs *without*
+opening the core, exactly as the second-order overlay (option A) does the second-order
+work that doesn't require read-back. The schema hole is, in miniature, the frontier's
+"ship the predicative device now; hold the graph-valued node for a demonstrated need"
+recommendation already enacted.
+
 ## Spot, not region — and why that's forced
 
 There is a tempting "region" picture: draw a hole as a labelled box and imagine a
