@@ -1,6 +1,54 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-07, third sitting) — STORM DOCKET FULLY DISPOSED (G6–G9) while run 8 runs.**
+**▶▶ THIS SESSION (2026-07-12) — THE UI TRANSPARENCY CHARTER + THE FULL TRANSPARENCY DOCKET
+(3 tiers, committed cbe74af → 32c1b13 → 59a9dc8).** The author's steer: walk the three modes as
+one learner who could grow to mastery; the finding of the audit (3 explore agents over the UI
+surfaces, the learning scaffolding, and prior audits): every atomic capability exists — what
+interferes is the *layer itself* (inconsistent verbs, bare acronyms, jargon without definitions,
+refusals as raw codes, illegality learned only by refusal). The author sharpened the aim: **the
+UI as a transparent layer** — never confused about where you are, common verbs consistent, help
+≤1–2 clicks. Enacted as:
+- **`docs/UI_TRANSPARENCY_CHARTER.md`** (NEW, step 0) — seven testable principles (P1
+  orientation · P2 one-word-one-way · P3 recognition-never-recall · P4 the-picture-never-lies ·
+  P5 prevent-don't-punish · P6 error language · P7 help ≤1 hover/2 clicks), each = HCI canon
+  (Nielsen/Norman) × Arisbe doctrine, each with an operational test + the audit recipe.
+  Cross-linked from WEB_VIEWER_DESIGN (its behavioral twin) + CLAUDE.md. The standing answer to
+  "how do we zero in": every future UI change names the principles it touches.
+- **Tier 1 (cbe74af):** verb unification (Style/Layout/Search everywhere); the six rule buttons
+  teach themselves (`/rules` RULE_META names+summaries + NEW `js/rule-buttons.js`, both modes,
+  polarity in words); `.mode-orientation` strips per mode + phase-banner consequences in plain
+  words; forward links at success moments (challenge-passed → Organon/Agon; Agon assert card →
+  `/organon?uod=<new-id>` deep link, NEW); Agon suggests the new-UoD id (never invent what the
+  system knows).
+- **Tier 2 (32c1b13):** **glossary-on-hover** — NEW `GET /glossary` parses GLOSSARY.md live +
+  NEW `js/term-help.js` (`[data-term]` → definition card + "more →" book anchor; keyboard
+  accessible), placements seeded across all four pages, GLOSSARY.md gained the missing UI terms;
+  `/styles` filtered to loadable styles with curated display names and the dropdowns now
+  populate from it; the Agon M-picker gained search; NEW `js/error-help.js` maps every known
+  refusal code to plain words + next step + help link (engine message kept beside, unknown codes
+  pass through); legality preview layer 1 (`RuleButtons.annotate` from bundled introspection —
+  ERA/INS/IT+/DC− cheap checks + Agon role territory, conservative).
+- **Tier 3 (59a9dc8):** **`POST /ergasterion/sessions/{id}/rule-check`** — the dry-run mirror of
+  the apply walk (result discarded, zero mutation, always-200 with per-rule worded verdicts;
+  phase reads as reason not refusal) + debounced client merge with the missing-input-vs-illegal
+  discrimination (a not-yet-provided requirement never disables the button that opens its form).
+  Tests: verdicts agree with the real apply; zero mutation; 70 ergasterion+rules green.
+- Also this sitting: `tests/test_ui_consistency_e2e.py` (charter e2e in real Chromium) +
+  `tests/test_glossary_routes.py`. Earlier same session (separate arc): run-11 build
+  (calibrated precip arm, 89084c4) + AEG restructure (182567b) + the settle-editor fixes
+  (e44f283 — nested-cut move + refused-nudge snap-back, protected-core authorized).
+**Also this sitting: RUN 11 EXECUTED & DISPOSED (83deb5a, `runs/RUN_11_LOG.md`)** — the author
+launched it 07-11 20:31; 14 h / 316 rounds / 17 segments all poised / 0 crashes. **F1¹¹: F1¹⁰
+CONFIRMED decisively** — the calibrated precip arm recovered to **net +58 / acc 0.983 over 60
+resolutions** (run 10's gate arm: −5 / 0.14 / N=9); F3¹¹ the cut moved only on evidence and
+settled at 70, not the cap (the digest signature of a calibration knob); the knob-type law is
+twice-evidenced and AEG Part II §11.4 reads confirmed. The weather trilogy (7–11) closes.
+**Next:** the charter's long tail (data-term placements grow; organon `?kind=` facet deep link;
+Agon-side rule-check; e2e needs `uv run playwright install chromium` — the CDN download failed
+on this machine, so the charter e2e skips cleanly until then), then **run 12 = sports** (a
+discrete resolving membrane — is the knob-type law the game's or the weather's?).
+
+**▶▶ PREVIOUS (2026-07-07, third sitting) — STORM DOCKET FULLY DISPOSED (G6–G9) while run 8 runs.**
 While the live run-8 resolving-membrane probe executes in the background, closed the four
 remaining STORM audit gaps (all P1/P2 doc tasks, grounded in real repo facts — no invention):
 - **G6 → `docs/TEACHING_PACK.md`** — the teacher's surface. Pedagogy modeled on Champagne's

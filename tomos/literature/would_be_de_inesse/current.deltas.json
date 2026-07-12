@@ -1,0 +1,509 @@
+[
+  {
+    "op": "move_vertex",
+    "params": {
+      "vertex_id": "v_e4a62a79",
+      "dx": -155.50469970703125,
+      "dy": -1.40093994140625
+    },
+    "target": {
+      "id": "v_e4a62a79",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "move_vertex",
+    "params": {
+      "vertex_id": "v_e4a62a79",
+      "dx": 15.410369873046875,
+      "dy": -0.9339599609375
+    },
+    "target": {
+      "id": "v_e4a62a79",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "move_vertex",
+    "params": {
+      "vertex_id": "v_e4a62a79",
+      "dx": 6.0707550048828125,
+      "dy": 0.0
+    },
+    "target": {
+      "id": "v_e4a62a79",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "move_vertex",
+    "params": {
+      "vertex_id": "v_e4a62a79",
+      "dx": 0.46697998046875,
+      "dy": -22.882080078125
+    },
+    "target": {
+      "id": "v_e4a62a79",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": 55.57073974609375,
+      "dy": 0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": 7.4716796875,
+      "dy": 0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": -0.9339599609375,
+      "dy": -23.8160400390625
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": 11.207550048828125,
+      "dy": -0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": -11.674530029296875,
+      "dy": -0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": 2.33489990234375,
+      "dy": 0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": -2.8018798828125,
+      "dy": 0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": -1.867919921875,
+      "dy": 0.0
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "dx": 3.26885986328125,
+      "dy": -0.46697998046875
+    },
+    "target": {
+      "id": "e_0d0b8531",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "husband",
+      "arity": 2
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 217.99057006835938,
+          "y": 193.728759765625
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 242.27359008789062,
+          "y": 171.78067016601562
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 239.93869018554688,
+          "y": 177.8514404296875
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 240.87261962890625,
+          "y": 177.85140991210938
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 243.20751953125,
+          "y": 160.10614013671875
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reroute_ligature",
+    "params": {
+      "predicate_id": "e_0d0b8531",
+      "vertex_id": "v_32b5278b",
+      "port_index": 0,
+      "interior": [
+        {
+          "x": 242.2735595703125,
+          "y": 160.10614013671875
+        }
+      ]
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_f1ac2cce",
+      "dx": -147.56602478027344,
+      "dy": -59.773590087890625
+    },
+    "target": {
+      "id": "e_f1ac2cce",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "married_woman",
+      "arity": 1
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_f1ac2cce",
+      "dx": 1.4009475708007812,
+      "dy": 33.155670166015625
+    },
+    "target": {
+      "id": "e_f1ac2cce",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "married_woman",
+      "arity": 1
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_f1ac2cce",
+      "dx": 0.9339599609375,
+      "dy": -31.754730224609375
+    },
+    "target": {
+      "id": "e_f1ac2cce",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "married_woman",
+      "arity": 1
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_f1ac2cce",
+      "dx": -11.207542419433594,
+      "dy": -22.882080078125
+    },
+    "target": {
+      "id": "e_f1ac2cce",
+      "kind": "edge",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "relation": "married_woman",
+      "arity": 1
+    }
+  },
+  {
+    "op": "move_predicate",
+    "params": {
+      "predicate_id": "e_b7f2918b",
+      "dx": -10.273590087890625,
+      "dy": 21.48114013671875
+    },
+    "target": {
+      "id": "e_b7f2918b",
+      "kind": "edge",
+      "area": "c_6bcd1a21",
+      "area_polarity": "negative",
+      "area_depth": 1,
+      "relation": "fails_in_business",
+      "arity": 1
+    }
+  },
+  {
+    "op": "move_vertex",
+    "params": {
+      "vertex_id": "v_32b5278b",
+      "dx": -0.46697998046875,
+      "dy": 21.48114013671875
+    },
+    "target": {
+      "id": "v_32b5278b",
+      "kind": "vertex",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0,
+      "label": null
+    }
+  },
+  {
+    "op": "reshape_cut",
+    "params": {
+      "cut_id": "c_6bcd1a21",
+      "bounds": {
+        "min_x": 20.0,
+        "min_y": 33.542457580566406,
+        "max_x": 191.8584747314453,
+        "max_y": 176.0
+      }
+    },
+    "target": {
+      "id": "c_6bcd1a21",
+      "kind": "cut",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0
+    }
+  },
+  {
+    "op": "reshape_cut",
+    "params": {
+      "cut_id": "c_6bcd1a21",
+      "bounds": {
+        "min_x": 25.136795043945312,
+        "min_y": 33.542457580566406,
+        "max_x": 191.8584747314453,
+        "max_y": 175.0660400390625
+      }
+    },
+    "target": {
+      "id": "c_6bcd1a21",
+      "kind": "cut",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0
+    }
+  },
+  {
+    "op": "reshape_cut",
+    "params": {
+      "cut_id": "c_6bcd1a21",
+      "bounds": {
+        "min_x": 24.669815063476562,
+        "min_y": 53.155670166015625,
+        "max_x": 191.8584747314453,
+        "max_y": 175.0660400390625
+      }
+    },
+    "target": {
+      "id": "c_6bcd1a21",
+      "kind": "cut",
+      "area": "sheet_be52e7ee",
+      "area_polarity": "positive",
+      "area_depth": 0
+    }
+  }
+]
