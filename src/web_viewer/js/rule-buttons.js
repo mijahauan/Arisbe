@@ -221,6 +221,61 @@
     return verdicts;
   }
 
+  // ---- layer 2: the dry-run endpoint (charter P5, refined) -----------------
+  // POST /ergasterion/sessions/{id}/rule-check runs the SAME interaction walk
+  // the apply route runs (result discarded), so its verdicts carry the
+  // engine's own reasons — including the checks the cheap layer-1 heuristics
+  // cannot do (IT−'s governing-copy isomorphism). Debounced; stale responses
+  // dropped; the server verdict wins over layer 1.
+  var checkSeq = 0;
+  var checkTimer = null;
+
+  function check(sessionId, parameters, fromStateId, root) {
+    if (!sessionId) return;
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(function () {
+      var seq = ++checkSeq;
+      fetch("/ergasterion/sessions/" + sessionId + "/rule-check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parameters: parameters || {},
+          from_state_id: fromStateId || null,
+        }),
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (body) {
+          if (seq !== checkSeq) return;                 // a newer check superseded this one
+          if (!body || !body.success || !body.data) return;
+          (body.data.verdicts || []).forEach(function (v) {
+            if (v.legal) { setLegality(v.rule, { enabled: true }, root); return; }
+            // A failure at a step whose input simply wasn't PROVIDED yet is a
+            // requirement, not an illegality: the button must stay clickable
+            // (clicking it is how the user reaches that step's form). Only a
+            // provided-and-still-refused input disables.
+            var d = get(v.rule);
+            var step = d && (d.steps || []).filter(function (s) {
+              return s.step_id === v.step_id;
+            })[0];
+            var param = step && step.parameter;
+            var sent = parameters && param ? parameters[param] : null;
+            var provided = Array.isArray(sent)
+              ? sent.length > 0
+              : !!(sent && String(sent).trim());
+            if (param && !provided) {
+              setLegality(v.rule, { enabled: true }, root);
+            } else {
+              setLegality(v.rule, {
+                enabled: false,
+                reason: v.reason || "not applicable here",
+              }, root);
+            }
+          });
+        })
+        .catch(function () { /* the engine stays the arbiter on apply */ });
+    }, 250);
+  }
+
   window.RuleButtons = {
     init: init,
     get: get,
@@ -228,6 +283,7 @@
     summary: function (rule) { var d = get(rule); return d ? d.summary : ""; },
     setLegality: setLegality,
     annotate: annotate,
+    check: check,
     decorate: decorate,
   };
 })();

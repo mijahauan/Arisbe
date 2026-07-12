@@ -54,6 +54,7 @@ from web_api.models.api_models import (
     ChallengeGradeRequest,
     ErgasterionAdjustRequest,
     ErgasterionApplyRequest,
+    ErgasterionRuleCheckRequest,
     ErgasterionClosureRequest,
     ErgasterionComposeRequest,
     ErgasterionDefineFoldRequest,
@@ -114,6 +115,7 @@ from eg_reader import assign_order_labels
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
 from rule_interaction import (
+    RULE_INTERACTIONS,
     StepKind,
     advance_interaction,
     apply_interaction,
@@ -1512,6 +1514,99 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                 "message": str(exc),
                 "type": type(exc).__name__,
             },
+        )
+
+
+@router.post("/sessions/{session_id}/rule-check")
+async def rule_check(session_id: str, request: ErgasterionRuleCheckRequest):
+    """Dry-run legality for rule(s) against the current parameters
+    (UI Transparency Charter P5 — prevent, don't punish).
+
+    Mirrors ``apply_rule``'s interaction walk exactly — ``begin_interaction →
+    advance_interaction (per step) → apply_interaction`` — but **discards the
+    result**: no ``manager.add_step``, no layout, no session mutation.  The
+    same engine that would refuse the apply produces the verdicts, so the
+    buttons' worded reasons can never drift from the calculus.  Always 200
+    with per-rule verdicts; a phase gate reads as every-rule-illegal *with
+    the phase as its reason* (the check itself is never refused).
+    """
+    try:
+        manager = get_ergasterion_session_manager()
+        session = manager.get_session(session_id)
+        if session is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "SESSION_NOT_FOUND",
+                    "message": f"Workshop session '{session_id}' not found.",
+                },
+            )
+
+        rules = request.rules or list(RULE_INTERACTIONS.keys())
+        parameters = request.parameters or {}
+
+        from_state_id = request.from_state_id or session.chain.current_state_id
+        from_egi = session.chain.states.get(from_state_id)
+        if from_egi is None:
+            return ApiResponse(
+                success=False,
+                error={
+                    "code": "STATE_NOT_FOUND",
+                    "message": (
+                        f"Cannot check from state '{from_state_id}': not part "
+                        f"of this session's active branch."
+                    ),
+                },
+            )
+
+        phase = phase_at_state(session, from_state_id)
+        phase_reason = None
+        if phase == "composing":
+            phase_reason = "the graph isn't fixed yet (gate ①) — rules act on a fixed graph"
+        elif phase == "sealed":
+            phase_reason = "this chain is fixed — step back before the fixing to fork"
+
+        verdicts = []
+        for rule in rules:
+            try:
+                interaction = get_interaction(rule)
+            except ValueError as exc:
+                verdicts.append({"rule": rule, "legal": False,
+                                 "reason": str(exc), "step_id": None})
+                continue
+            if phase_reason is not None:
+                verdicts.append({"rule": rule, "legal": False,
+                                 "reason": phase_reason, "step_id": None})
+                continue
+            legal, reason, step_id = True, "", None
+            try:
+                state = begin_interaction(rule, from_egi)
+                for step in interaction.steps():
+                    step_input = _step_input_from_parameters(step.kind, parameters)
+                    step_result = advance_interaction(state, step_input)
+                    if not step_result.valid and not step.optional:
+                        legal, reason, step_id = False, step_result.message, step.step_id
+                        break
+                if legal:
+                    apply_result = apply_interaction(state)
+                    if not apply_result.success:
+                        legal, reason = False, apply_result.message
+                    # apply_result.result_egi is deliberately discarded.
+            except Exception as exc:  # a dry run never 500s per-rule
+                legal, reason = False, str(exc)
+            verdicts.append({"rule": rule, "legal": legal,
+                             "reason": reason, "step_id": step_id})
+
+        return ApiResponse(
+            success=True,
+            data={"phase": phase, "from_state_id": from_state_id,
+                  "verdicts": verdicts},
+        )
+    except Exception as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "RULE_CHECK_ERROR", "message": str(exc),
+                   "type": type(exc).__name__},
         )
 
 

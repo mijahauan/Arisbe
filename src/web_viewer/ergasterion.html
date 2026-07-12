@@ -1083,12 +1083,20 @@
         updateRuleHints();
         // Charter P5 (prevent, don't punish): what is illegal for THIS
         // selection is visibly unavailable, with its reason in words —
-        // conservative cheap checks; the engine stays the arbiter.
+        // instant cheap checks first (annotate), then the engine's own
+        // dry-run verdicts (check — same walk as apply, result discarded)
+        // refine them. The engine stays the arbiter either way.
         if (window.RuleButtons && currentIntrospection) {
           window.RuleButtons.annotate({
             introspection: currentIntrospection,
             selection: { elements: Array.from(selectedSubgraph), area: selectedArea },
           });
+          if (currentSessionId && (selectedSubgraph.size || selectedArea)) {
+            window.RuleButtons.check(currentSessionId, {
+              selected_elements: Array.from(selectedSubgraph),
+              target_area: selectedArea || undefined,
+            }, stateIdForIndex(viewIndex));
+          }
         }
       }
 

@@ -1243,3 +1243,100 @@ def test_save_arrangement_refuses_when_no_adjustment_was_made(client, isolated_t
     r = client.post(f"/ergasterion/sessions/{sid}/save-arrangement").json()
     assert r["success"] is False
     assert r["error"]["code"] == "NO_ARRANGEMENT"
+
+
+# --------------------------------------------------------------------------- #
+# Rule-check — the dry-run legality preview (charter P5)                       #
+# --------------------------------------------------------------------------- #
+
+
+def test_rule_check_reports_all_six_and_never_mutates(client, fresh_session_manager):
+    """The dry run returns a verdict per rule and leaves the session's chain
+    untouched no matter how often it is called — prevent, don't punish."""
+    opened = _open_fixed(client, "empty_sheet")
+    sid = opened["session_id"]
+    before = opened["chain"]["step_count"]
+
+    for _ in range(3):
+        body = client.post(
+            f"/ergasterion/sessions/{sid}/rule-check",
+            json={"parameters": {"selected_elements": []}},
+        ).json()
+        assert body["success"] is True, body.get("error")
+        verdicts = {v["rule"]: v for v in body["data"]["verdicts"]}
+        assert set(verdicts) == {"DC+", "DC-", "ERA", "INS", "IT+", "IT-"}
+        # DC+ with an empty selection is the always-legal move.
+        assert verdicts["DC+"]["legal"] is True
+        # DC- on an empty sheet has no removable pair — illegal WITH a reason.
+        assert verdicts["DC-"]["legal"] is False and verdicts["DC-"]["reason"]
+
+    after = client.get(f"/ergasterion/sessions/{sid}").json()["data"]
+    assert after["chain"]["step_count"] == before  # zero mutation
+
+
+def test_rule_check_verdict_matches_the_apply(client, fresh_session_manager):
+    """The dry run and the real apply agree — same walk, same engine.  A
+    rule the check calls legal applies; one it refuses (with provided
+    inputs) is refused by apply with the same family of reason."""
+    opened = _open_fixed(client, "empty_sheet")
+    sid = opened["session_id"]
+
+    check = client.post(
+        f"/ergasterion/sessions/{sid}/rule-check",
+        json={"parameters": {"selected_elements": []}},
+    ).json()["data"]["verdicts"]
+    v = {x["rule"]: x for x in check}
+
+    # Legal per check → apply succeeds.
+    assert v["DC+"]["legal"] is True
+    applied = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC+", "parameters": {"selected_elements": []}},
+    ).json()
+    assert applied["success"] is True
+
+    # Illegal per check (bogus provided input) → apply refuses too.
+    bad = {"selected_elements": ["nonexistent-cut-id"]}
+    check2 = client.post(
+        f"/ergasterion/sessions/{sid}/rule-check", json={"parameters": bad}
+    ).json()["data"]["verdicts"]
+    v2 = {x["rule"]: x for x in check2}
+    assert v2["DC-"]["legal"] is False
+    applied2 = client.post(
+        f"/ergasterion/sessions/{sid}/apply",
+        json={"rule": "DC-", "parameters": bad},
+    ).json()
+    assert applied2["success"] is False
+
+
+def test_rule_check_reads_phase_as_reason_not_refusal(client, fresh_session_manager):
+    """While composing (before gate ①) the check still answers 200 — every
+    rule illegal with the phase as its worded reason (the check itself is
+    never refused; it exists to explain)."""
+    opened = _open_session(client, "empty_sheet")
+    sid = opened["session_id"]
+    assert opened["phase"] == "composing"
+
+    body = client.post(
+        f"/ergasterion/sessions/{sid}/rule-check", json={"parameters": {}}
+    ).json()
+    assert body["success"] is True
+    assert body["data"]["phase"] == "composing"
+    for v in body["data"]["verdicts"]:
+        assert v["legal"] is False
+        assert "gate" in v["reason"] or "fixed" in v["reason"]
+
+
+def test_rule_check_unknown_session_and_state(client, fresh_session_manager):
+    body = client.post(
+        "/ergasterion/sessions/nope/rule-check", json={"parameters": {}}
+    ).json()
+    assert body["success"] is False and body["error"]["code"] == "SESSION_NOT_FOUND"
+
+    opened = _open_fixed(client, "empty_sheet")
+    sid = opened["session_id"]
+    body = client.post(
+        f"/ergasterion/sessions/{sid}/rule-check",
+        json={"parameters": {}, "from_state_id": "not-a-state"},
+    ).json()
+    assert body["success"] is False and body["error"]["code"] == "STATE_NOT_FOUND"

@@ -81,6 +81,21 @@ class ErgasterionApplyRequest(BaseModel):
     from_state_id: Optional[str] = None
 
 
+class ErgasterionRuleCheckRequest(BaseModel):
+    """Dry-run legality check for rule(s) against the current selection
+    (UI Transparency Charter P5 — prevent, don't punish).
+
+    Same ``parameters``/``from_state_id`` shape as an apply, but nothing is
+    ever applied: the interaction walk runs and its result is discarded, so
+    the buttons can show available/unavailable-with-reason *before* a
+    refusal. ``rules`` omitted → all six.
+    """
+
+    rules: Optional[List[str]] = None
+    parameters: Dict[str, Any] = {}
+    from_state_id: Optional[str] = None
+
+
 class ErgasterionDefineFoldRequest(BaseModel):
     """Author a definition from a selection and fold the selection under it —
     the abstraction move (``definitions.definition_from_selection`` +
