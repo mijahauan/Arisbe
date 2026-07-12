@@ -1,0 +1,57 @@
+run start 2026-07-11 20:31:13 — NWS resolving membrane · stations=['KIAH', 'KJAX', 'KMIA', 'KMSY', 'KTPA'] · horizon=6h · band=5°F (centered) · precip=calibrated (cut=50%) · ttl=48 polls · pacing=600.0s · laws seeded: what-is-forecast-happens · regenerate=on · stop: touch runs/run11/STOP
+  segment: rounds=25 atoms=25 dispositions={'new_fact': 25} claims=60 resolved=0 dropped=0
+    per-arm (run): temp: raised=30 resolved=0 0h/0m/0a net=0 | precip: raised=30 resolved=0 0h/0m/0a net=0
+  segment: rounds=25 atoms=50 dispositions={'new_fact': 25} claims=60 resolved=0 dropped=0
+    per-arm (run): temp: raised=30 resolved=0 0h/0m/0a net=0 | precip: raised=30 resolved=0 0h/0m/0a net=0
+  segment: rounds=10 atoms=60 dispositions={'new_fact': 10} claims=60 resolved=0 dropped=0
+    per-arm (run): temp: raised=30 resolved=0 0h/0m/0a net=0 | precip: raised=30 resolved=0 0h/0m/0a net=0
+  segment: rounds=10 atoms=70 dispositions={'new_fact': 10} claims=70 resolved=0 dropped=0
+    per-arm (run): temp: raised=35 resolved=0 0h/0m/0a net=0 | precip: raised=35 resolved=0 0h/0m/0a net=0
+    re-generalize: band=10°F cut=50% reseed=1 — temp: acc=0.00 standing=False -> widened reseed
+  segment: rounds=20 atoms=89 dispositions={'new_fact': 17, 'challenge_to_M': 1} bets=10 (run: 5h/1m/4a net=4) claims=80 resolved=10 dropped=0
+    per-arm (run): temp: raised=40 resolved=5 0h/1m/4a net=-1 | precip: raised=40 resolved=5 5h/0m/0a net=5
+    re-generalize: band=15°F cut=50% reseed=1 — temp: acc=0.00 standing=False -> widened reseed
+  segment: rounds=20 atoms=109 dispositions={'new_fact': 18, 'challenge_to_M': 1} bets=10 (run: 10h/2m/8a net=8) claims=90 resolved=20 dropped=0
+    per-arm (run): temp: raised=45 resolved=10 0h/2m/8a net=-2 | precip: raised=45 resolved=10 10h/0m/0a net=10
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.00 standing=False -> widened reseed
+  segment: rounds=20 atoms=128 dispositions={'new_fact': 17, 'challenge_to_M': 1} bets=10 (run: 15h/3m/12a net=12) claims=100 resolved=30 dropped=0
+    per-arm (run): temp: raised=50 resolved=15 0h/3m/12a net=-3 | precip: raised=50 resolved=15 15h/0m/0a net=15
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.00 standing=False ->  reseed
+  segment: rounds=20 atoms=147 dispositions={'new_fact': 17, 'challenge_to_M': 1} bets=10 (run: 20h/4m/16a net=16) claims=110 resolved=40 dropped=0
+    per-arm (run): temp: raised=55 resolved=20 0h/4m/16a net=-4 | precip: raised=55 resolved=20 20h/0m/0a net=20
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.00 standing=False ->  reseed
+  segment: rounds=20 atoms=165 dispositions={'new_fact': 16, 'challenge_to_M': 1} bets=10 (run: 25h/5m/20a net=20) claims=120 resolved=50 dropped=0
+    per-arm (run): temp: raised=60 resolved=25 0h/5m/20a net=-5 | precip: raised=60 resolved=25 25h/0m/0a net=25
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.00 standing=False ->  reseed
+  segment: rounds=20 atoms=184 dispositions={'new_fact': 17, 'challenge_to_M': 1} bets=10 (run: 30h/6m/24a net=24) claims=130 resolved=60 dropped=0
+    per-arm (run): temp: raised=65 resolved=30 0h/6m/24a net=-6 | precip: raised=65 resolved=30 30h/0m/0a net=30
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.20 standing=False ->  reseed
+  segment: rounds=20 atoms=204 dispositions={'new_fact': 18, 'challenge_to_M': 1} bets=10 (run: 36h/7m/27a net=29) claims=140 resolved=70 dropped=0
+    per-arm (run): temp: raised=70 resolved=35 1h/7m/27a net=-6 | precip: raised=70 resolved=35 35h/0m/0a net=35
+    re-generalize: band=20°F cut=50% reseed=1 — temp: acc=0.33 standing=False ->  reseed
+  segment: rounds=20 atoms=224 dispositions={'new_fact': 18, 'challenge_to_M': 1} bets=10 (run: 42h/8m/30a net=34) claims=150 resolved=80 dropped=0
+    per-arm (run): temp: raised=75 resolved=40 2h/8m/30a net=-6 | precip: raised=75 resolved=40 40h/0m/0a net=40
+  segment: rounds=20 atoms=244 dispositions={'new_fact': 20} bets=10 (run: 52h/8m/30a net=44) claims=160 resolved=90 dropped=0
+    per-arm (run): temp: raised=80 resolved=45 7h/8m/30a net=-1 | precip: raised=80 resolved=45 45h/0m/0a net=45
+  segment: rounds=20 atoms=214 dispositions={'new_fact': 20} bets=10 (run: 62h/8m/30a net=54) claims=170 resolved=100 dropped=0 ⚠ fetch_errors=1 [KMIA:1]
+    per-arm (run): temp: raised=85 resolved=50 12h/8m/30a net=4 | precip: raised=85 resolved=50 50h/0m/0a net=50
+  segment: rounds=20 atoms=214 dispositions={'new_fact': 20} bets=10 (run: 72h/8m/30a net=64) claims=180 resolved=110 dropped=0 ⚠ fetch_errors=1 [KMIA:1]
+    per-arm (run): temp: raised=90 resolved=55 17h/8m/30a net=9 | precip: raised=90 resolved=55 55h/0m/0a net=55
+    re-generalize: band=20°F cut=60% reseed=1 — precip[cal]: acc_wet=0.00 acc_dry=1.00 cut=60 -> cut-up reseed:wet
+  segment: rounds=20 atoms=212 dispositions={'new_fact': 19, 'challenge_to_M': 1} bets=10 (run: 81h/9m/30a net=72) claims=190 resolved=120 dropped=0 ⚠ fetch_errors=1 [KMIA:1]
+    per-arm (run): temp: raised=95 resolved=60 22h/8m/30a net=14 | precip: raised=95 resolved=60 59h/1m/0a net=58
+    re-generalize: band=20°F cut=70% reseed=0 — precip[cal]: acc_wet=0.00 acc_dry=1.00 cut=70 -> cut-up
+  segment: rounds=6 atoms=196 dispositions={'new_fact': 6} claims=196 resolved=120 dropped=0 ⚠ fetch_errors=8 [KIAH:2 KJAX:2 KMIA:2 KMSY:1 KTPA:1]
+    per-arm (run): temp: raised=98 resolved=60 22h/8m/30a net=14 | precip: raised=98 resolved=60 59h/1m/0a net=58
+
+stopped: max_seconds   total rounds: 316
+ledger (run-level, resolutions only): 81 hits · 9 misses · 30 abstentions · net 72 · accuracy 0.9
+claims: raised=196 resolved=120 dropped_unresolved=0 fetch_errors=18 (per-station: KIAH:4 KJAX:4 KMIA:4 KMSY:3 KTPA:3)
+per-arm (run-level, F3⁸):
+  temp: raised=98 resolved=60 22h/8m/30a net=14
+  precip: raised=98 resolved=60 59h/1m/0a net=58
+re-generalizations: 10
+laws still standing: ~[ (forecast_dry *s *t) ~[ (dry s t) ] ] · ~[ (forecast_temp_band *s *t *b) ~[ (temp_band s t b) ] ] · ~[ (forecast_precip *s *t) ~[ (precip s t) ] ]
+poise per segment: ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ● ●
+
+artifacts: runs/run11/items.jsonl (offline replay) · runs/run11/checkpoints · log dispositions in the run's RUN_N_LOG.md

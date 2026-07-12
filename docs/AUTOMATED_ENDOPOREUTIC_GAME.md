@@ -813,7 +813,7 @@ something an offline replay structurally cannot show — the resolution items ar
 recorded discretization — so it is a genuinely *live* finding.
 
 **11.4 · Whether re-generalization *recovers* depends on the *knob type* — a calibration knob
-can, a selectivity knob cannot (run 10, F1¹⁰; run 11 tests it directly).** This is the principle
+can, a selectivity knob cannot (run 10, F1¹⁰; **confirmed by run 11, F1¹¹**).** This is the principle
 the design most owes to the runs. Re-generalization moves a knob; but not all knobs are equal.
 The temperature arm's knob is **band width** — a *calibration* knob: widening the band reaches a
 regime where the observed value usually falls in-band, so the law earns hits (run 10: net +18).
@@ -822,11 +822,14 @@ The precip arm's knob was the **PoP gate** — a *selectivity* knob: raising it 
 net −5, accuracy 0.14, and it ratcheted the gate to the cap and stayed refuted — P2¹⁰'s "third
 outcome," neither converging nor limit-cycling). The general statement: **a refuted theory
 re-generalizes into a better one only if its recalibration knob calibrates (moves it toward being
-right), not merely selects (moves it toward betting less).** Run 11 is the direct test — it gives
+right), not merely selects (moves it toward betting less).** Run 11 was the direct test — it gave
 the precip arm a real calibration knob (a two-direction bet around a learned cutpoint, betting the
-*majority* outcome via a dry companion law) and asks whether it now recovers the way temperature
-did; a positive net confirms the principle, a null (rain simply unpredictable at this
-horizon/scoring) falsifies it and marks F1¹⁰ as over-read from a small (N = 9) sample.
+*majority* outcome via a dry companion law) — and **confirmed the principle decisively (F1¹¹)**:
+over 60 resolutions (vs run 10's N = 9) the calibrated arm recovered to **net +58 / accuracy
+0.983**, the run's best arm, with the cut moving only on evidence and settling at 70 rather than
+ratcheting to its cap (F3¹¹ — the digest signature that distinguishes the two knob types). The
+law is now twice-evidenced within weather; whether it is a law of the *game* or a fact about
+*weather* is run 12's question (sports — a discrete resolving membrane with no natural width knob).
 
 **11.5 · A re-generalized law's steady state is a positive-net limit cycle *or* a fixed point,
 set by domain-noise × discretization (run 8 F2⁸, run 9 F1⁹, run 10 F2¹⁰).** A law that keeps
@@ -888,7 +891,7 @@ index.
 | 8 | NWS weather **+ re-generalization** | add predict→refute→**re-generalize** (`--regenerate`) | disposed | live calibration payoff (net +17, acc 0.70); **F2⁸** positive-net **limit cycle**; F3⁸ precip dormant; F1⁸ ERA-crash fix | [RUN_8](../runs/RUN_8_LOG.md) |
 | 9 | NWS weather, **forecast-centered bins** + per-arm counters | centre the temperature bin on the forecast | disposed | **F1⁹** centred bins convert the cycle → fixed point (F2⁸ was grid-edge-fragility); F2⁹ precip raised **zero** (disposes F3⁸); F3⁹ console tee | [RUN_9](../runs/RUN_9_LOG.md) |
 | 10 | NWS weather, **live precip arm** (wet stations, low gate) | activate the non-binned precip control | disposed | **F1¹⁰** the *knob-type*, not binning, gates recovery (calibration vs selectivity); P2¹⁰ a third outcome; **F2¹⁰** the cycle decomposes | [RUN_10](../runs/RUN_10_LOG.md) |
-| 11 | NWS weather, **calibrated precip arm** | `--precip-mode calibrated` (two-direction cutpoint bet) | **built; awaiting launch** | P2¹¹ (pre-registered) — does a *calibration* knob recover the precip arm the way temperature's did? | [RUN_11](../runs/RUN_11_LOG.md) |
+| 11 | NWS weather, **calibrated precip arm** | `--precip-mode calibrated` (two-direction cutpoint bet) | disposed | **F1¹¹** F1¹⁰ CONFIRMED — the calibrated arm recovers to **net +58 / acc 0.983** over 60 resolutions (the run-10 gate arm: −5 / 0.14 over 9); **F3¹¹** the cut settles at 70, not the cap (a calibration knob's digest signature vs the gate's ratchet) | [RUN_11](../runs/RUN_11_LOG.md) |
 
 ### Findings index — what each established, and where it now lives
 
@@ -906,4 +909,4 @@ index.
 | **F1⁹** | 9 | forecast-centred bins convert the cycle → a **fixed point** (F2⁸ was largely a grid artifact) | **§11.5**; disposes F2⁸ (partly) & F3⁸ |
 | **F1¹⁰** | 10 | the **knob-type** (calibration vs selectivity), not binning, gates recovery | **§11.4** |
 | **F2¹⁰** | 10 | the F2⁸ cycle **decomposes** (grid-edge-fragility + genuine domain-noise) | **§11.5**; tempers F1⁹ |
-| P2¹¹ | 11 | *open* — does a calibration knob recover the precip arm? | tests **§11.4**; result → `RUN_11_LOG.md` |
+| **F1¹¹** | 11 | a calibration knob DOES recover the precip arm (net +58 / acc 0.983 vs the gate's −5 / 0.14) — the knob-type law twice-evidenced | **§11.4** confirmed; detail `RUN_11_LOG.md`. Next test: run 12 = sports (discrete outcomes — is the law the game's or the weather's?) |
