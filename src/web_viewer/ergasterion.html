@@ -506,7 +506,8 @@
       <div class="panel-header">
         <span class="mode-tag" id="regime-tag">Regime 1 · Draft</span>
         <div class="regime-banner">
-          Forms here are drawn but not yet asserted in the corpus.
+          Workshop — private drafts; nothing here is asserted, and the corpus
+          is reached only through Agon.
         </div>
       </div>
       <div class="panel-body" id="left-body">
@@ -532,7 +533,7 @@
             <input
               type="text"
               id="corpus-filter"
-              placeholder="Filter…"
+              placeholder="Search corpus…"
               style="width: 100%; margin: 6px 0; padding: 5px 7px; background: var(--btn-bg); color: var(--sidebar-text); border: 1px solid var(--bottombar-border); border-radius: 3px; font-size: 12px;"
             />
             <div id="corpus-list">
@@ -559,7 +560,7 @@
             <input type="text" id="base-source-display" readonly />
           </div>
           <div class="field">
-            <label>Draw in style</label>
+            <label title="Redraw the same graph in another idiom — the meaning is unchanged.">Style</label>
             <select id="style-select">
               <option value="">Dau (default)</option>
               <option value="dau-compliant@1.0">Dau — mathematical</option>
@@ -568,7 +569,7 @@
             </select>
           </div>
           <div class="field">
-            <label>Layout engine</label>
+            <label>Layout</label>
             <select id="engine-select">
               <option value="elk">ELK (default)</option>
               <option value="tension">Tension — relation between arguments</option>
@@ -892,6 +893,7 @@
   <script src="js/context-reflex.js"></script>
   <script src="js/freeform-canvas.js"></script>
   <script src="js/settle-adjust.js"></script>
+  <script src="js/rule-buttons.js"></script>
   <script>
     (function () {
       // ---- DOM refs ----
@@ -1114,12 +1116,13 @@
       // the workshop can show *what each rule needs* — the rule-shaped guidance
       // the Spot/Subject grammar calls for (spec §1).
       async function loadRules() {
+        // One fetch, two consumers: RuleButtons decorates the six buttons with
+        // their plain names (charter P3), and the step table keeps feeding the
+        // rule-shaped guidance below.
         try {
-          const res = await fetch('/rules');
-          const body = await res.json();
-          if (body.success) {
-            (body.data || []).forEach((r) => { ruleSteps[r.rule] = r.steps || []; });
-          }
+          await window.RuleButtons.init({
+            onDescriptors: (rules) => rules.forEach((r) => { ruleSteps[r.rule] = r.steps || []; }),
+          });
         } catch (_) { /* guidance is best-effort */ }
       }
 
@@ -1550,9 +1553,9 @@
         : null;
 
       const PHASE_BANNERS = {
-        composing: 'COMPOSING <span class="consequence">— nothing asserted; draw freely</span>',
-        deriving: 'DERIVING <span class="consequence">— graph fixed; change by rule only</span>',
-        sealed: 'FIXED CHAIN <span class="consequence">— read-only; style and replay</span>',
+        composing: 'COMPOSING <span class="consequence">— a draft: draw freely; nothing is asserted and the corpus is untouched</span>',
+        deriving: 'DERIVING <span class="consequence">— graph fixed: it changes only by the six rules; still nothing asserted</span>',
+        sealed: 'FIXED CHAIN <span class="consequence">— read-only: restyle and replay; assert only through Agon</span>',
       };
 
       // The phase that governs the UI. Freeform editing IS editing an unfixed
@@ -2296,7 +2299,13 @@
                  '<div class="field"><label>Destination area id (nested inside source)</label>' +
                  '<input type="text" id="param-target-area" /></div>';
         }
-        ruleParamsEl.innerHTML = html;
+        // A persistent plain-language line: which rule this is and what it does
+        // (charter P3 — the acronym never stands alone).
+        const rbName = window.RuleButtons ? window.RuleButtons.name(rule) : rule;
+        const rbSummary = window.RuleButtons ? window.RuleButtons.summary(rule) : '';
+        const about = '<div class="rule-about" style="font-size:11px; color:var(--ctp-subtext0); margin:4px 0 8px;">' +
+                      '<strong>' + rbName + '</strong>' + (rbSummary ? ' — ' + rbSummary : '') + '</div>';
+        ruleParamsEl.innerHTML = about + html;
         setApplyEnabled();  // only enabled at the tip (read-only when stepped back)
         // Keep the step checklist current as EGIF content is typed.
         const egifEl = document.getElementById('param-egif');
@@ -3017,7 +3026,12 @@
         }
         if (data.matches) {
           challengeResultEl.innerHTML =
-            '<div style="color:var(--ctp-green);">✓ Correct — your drawing denotes the same graph.</div>';
+            '<div style="color:var(--ctp-green);">✓ Correct — your drawing denotes the same graph.</div>' +
+            // Charter P7: guidance a click away at the success moment — the next
+            // rungs are a worked proof (Organon) and a contest (Agon).
+            '<div class="next-links" style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);">Next: ' +
+            '<a href="/organon" style="color:var(--ctp-blue);">see a worked proof in Organon</a> · ' +
+            '<a href="/agon" style="color:var(--ctp-blue);">test a claim in Agon</a></div>';
           return;
         }
         let html = '<div style="color:var(--ctp-maroon);">✗ ' + escapeHtml(data.summary || 'Not the same graph.') + '</div>';

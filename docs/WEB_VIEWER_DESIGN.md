@@ -14,6 +14,13 @@ not re-derive the conventions each session.
 > (see [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)). Every colour and
 > line-style below is interface chrome; polarity is rendered value-only, and
 > hue/texture as a *logical* mark is reserved for Gamma.
+>
+> The *behavioral* twin of this doc is the
+> [UI Transparency Charter](UI_TRANSPARENCY_CHARTER.md) — seven testable
+> principles (orientation, verb consistency, recognition-over-recall, the
+> honest picture, prevent-don't-punish, error language, help distance) that
+> every UI change must pass. This doc governs how surfaces *look*; the charter
+> governs how they *behave toward the user*.
 
 ---
 

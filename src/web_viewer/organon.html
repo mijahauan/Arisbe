@@ -278,6 +278,8 @@
         <p>Tomos · the corpus</p>
         <span class="mode-tag">Read-only</span>
       </div>
+      <div class="mode-orientation">Reading room — browse and re-draw anything;
+        nothing you do here changes the corpus.</div>
 
       <div id="organon-controls">
         <input
@@ -397,7 +399,8 @@
                   title="Collapse everything back to the top-level overview">⊖ Collapse all</button>
           <span id="ov-hint" style="font-size:10px; color:var(--ctp-overlay0);"></span>
         </span>
-        <label for="view-style" style="font-size:11px; color:var(--ctp-subtext0); margin-left:8px;">View style</label>
+        <label for="view-style" style="font-size:11px; color:var(--ctp-subtext0); margin-left:8px;"
+               title="Redraw the same graph in another idiom — the meaning is unchanged.">Style</label>
         <select id="view-style" style="font-size:12px;">
           <option value="">Dau (default)</option>
           <option value="dau-compliant@1.0">Dau — mathematical</option>
@@ -698,6 +701,13 @@
           renderFacets();
           applyFilter();
           setStatus('Loaded ' + allUods.length + ' UoDs from tomos corpus.');
+          // Deep link: /organon?uod=<id> opens that item directly (the pattern
+          // Ergasterion uses for ?open= / ?challenge=). Lets other modes link
+          // straight to a corpus item — e.g. Agon's "View it in Organon →".
+          try {
+            const wanted = new URLSearchParams(location.search).get('uod');
+            if (wanted && allUods.some((u) => u.uod_id === wanted)) openUod(wanted);
+          } catch (_) { /* deep link is best-effort */ }
         } catch (e) {
           setStatus('Network error: ' + e.message, true);
           listEl.innerHTML = '<div class="empty-state">Network error.</div>';

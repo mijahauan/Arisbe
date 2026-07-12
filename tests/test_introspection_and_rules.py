@@ -347,3 +347,20 @@ def test_unknown_rule_refused_cleanly(client):
     resp = client.get("/rules/NOPE").json()
     assert resp["success"] is False
     assert resp["error"]["code"] == "UNKNOWN_RULE"
+
+
+def test_rules_carry_plain_names_and_summaries(client):
+    """Charter P3 (recognition, never recall): every rule descriptor carries a
+    plain-language ``name`` and a one-sentence ``summary`` so the UI's rule
+    buttons never show a bare acronym. Polarity is worded (recto/verso named),
+    never colored."""
+    resp = client.get("/rules").json()
+    assert resp["success"] is True
+    by_rule = {r["rule"]: r for r in resp["data"]}
+    assert set(by_rule) == {"DC+", "DC-", "ERA", "INS", "IT+", "IT-"}
+    for rule, d in by_rule.items():
+        assert d["name"] and d["name"] != rule, f"{rule} lacks a plain name"
+        assert d["summary"], f"{rule} lacks a summary"
+    # The polarity-bearing rules say it in words.
+    assert "recto" in by_rule["ERA"]["summary"]
+    assert "verso" in by_rule["INS"]["summary"]

@@ -84,6 +84,8 @@
       <div class="panel-header">
         <span class="mode-tag">Dialogical</span>
       </div>
+      <div class="mode-orientation">Arena — a contest tests a claim; nothing is
+        recorded unless you, as judge, assert the result.</div>
       <div class="panel-body">
 
         <div id="setup-section">
@@ -236,6 +238,7 @@
   <script src="js/diagram-transition.js"></script>
   <script src="js/diagram-viewer.js"></script>
   <script src="js/context-reflex.js"></script>
+  <script src="js/rule-buttons.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -369,7 +372,10 @@
           +'<div class="field"><label>Target area id (negative)</label><input type="text" id="param-target-area"/></div>'; }
         else if(rule==='IT+'){ html='<div class="field"><label>Source elements</label><input type="text" id="param-selected"/></div>'
           +'<div class="field"><label>Destination area id</label><input type="text" id="param-target-area"/></div>'; }
-        $('rule-params').innerHTML=html; $('btn-move').disabled=false; syncFields();
+        const rbName=window.RuleButtons?window.RuleButtons.name(rule):rule;
+        const rbSummary=window.RuleButtons?window.RuleButtons.summary(rule):'';
+        const about='<div class="rule-about" style="font-size:11px; color:var(--ctp-subtext0); margin:4px 0 8px;"><strong>'+rbName+'</strong>'+(rbSummary?' — '+rbSummary:'')+'</div>';
+        $('rule-params').innerHTML=about+html; $('btn-move').disabled=false; syncFields();
       }
       function readParams(){
         const area=($('param-target-area')||{}).value; const target_area=area?area.trim():undefined;
@@ -409,7 +415,8 @@
             +'<div class="disp-summary">'+esc(dd.summary)+'</div>';
           div.addEventListener('click',()=>{ list.querySelectorAll('.disp-item').forEach(x=>x.classList.remove('selected'));
             div.classList.add('selected'); selectedDisp=dd; $('btn-dispose').disabled=false;
-            $('disp-assert-fields').style.display=dd.asserts?'block':'none'; });
+            $('disp-assert-fields').style.display=dd.asserts?'block':'none';
+            if(dd.asserts) suggestUodId($('disp-uod-id'), $('disp-name')); });
           list.appendChild(div); });
       }
       function showGame(d, preserveView){
@@ -722,6 +729,35 @@
       // corpus standing badge (⚔ withstood / ⛓ derived) beside the new id, with
       // the "correspondence, not truth" non-claim. The same badge the Organon
       // archive will show. `host` is the panel to append the card to.
+      // Charter P3 (recognition, never recall): suggest the new UoD id instead
+      // of asking the user to invent one. Source: the carried ground's name, the
+      // picked model, or the proposal's first relation names; uniqueness against
+      // the corpus listing (advisory — the server stays the arbiter). A field the
+      // user has edited is never clobbered (tracked via dataset.suggested).
+      let corpusIdsCache = null;
+      async function corpusIds(){
+        if(corpusIdsCache) return corpusIdsCache;
+        try{ const b=await (await fetch('/organon/uods')).json();
+          corpusIdsCache=new Set((b.data||[]).map(u=>u.uod_id)); }
+        catch(_){ corpusIdsCache=new Set(); }
+        return corpusIdsCache;
+      }
+      function slugify(t){ return String(t||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40); }
+      async function suggestUodId(idField, nameField){
+        if(!idField) return;
+        if(idField.value && idField.value!==idField.dataset.suggested) return;  // user-typed — keep
+        let source=(currentOrigin&&currentOrigin.name)||selectedModelUod||'';
+        if(!source){ const m=(($('setup-proposal')||{}).value||'').match(/\(([A-Za-z][\w-]*)/g)||[];
+          source=m.slice(0,2).map(x=>x.slice(1)).join('-'); }
+        if(!source) source='contest';
+        const base=slugify(source)||'contest';
+        const ids=await corpusIds();
+        let candidate=base, n=2;
+        while(ids.has(candidate)) candidate=base+'-'+(n++);
+        idField.value=candidate; idField.dataset.suggested=candidate; idField.placeholder=candidate;
+        if(nameField && !nameField.value) nameField.value=source;
+      }
+
       function showAssertConfirm(host, data){
         if(!host || !data || !data.asserted) return;
         const old=host.querySelector('.assert-confirm'); if(old) old.remove();
@@ -731,7 +767,7 @@
           +'<div style="font-size:12px; color:var(--ctp-green); font-weight:600; margin-bottom:6px;">✓ Asserted into the corpus</div>'
           +'<div style="font-size:12px; color:var(--ctp-text); display:flex; align-items:center; gap:8px; flex-wrap:wrap;"><code>'+esc(data.asserted_uod_id||'')+'</code> '+badge+'</div>'
           +(nonClaim ? '<div style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);">— '+esc(nonClaim)+'</div>' : '')
-          +'<div style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);">It appears in the <a href="organon.html" style="color:var(--ctp-blue);">Organon</a> archive carrying this same standing.</div>'
+          +'<div style="margin-top:6px; font-size:11px; color:var(--ctp-overlay0);"><a href="/organon?uod='+encodeURIComponent(data.asserted_uod_id||'')+'" style="color:var(--ctp-blue);">View it in Organon →</a> — it carries this same standing there.</div>'
           +'</div>';
         host.insertAdjacentHTML('beforeend', h);
       }
@@ -847,6 +883,7 @@
             item.style.outline='2px solid var(--ctp-green)';
             selectedContestDisp={ key:item.dataset.key, asserts };
             const f=el.querySelector('#contest-assert-fields'); if(f) f.style.display=asserts?'block':'none';
+            if(asserts) suggestUodId(el.querySelector('#contest-uod-id'), el.querySelector('#contest-disp-name'));
             const b=el.querySelector('#btn-contest-dispose'); if(b) b.disabled=false;
           });
         });
@@ -906,6 +943,7 @@
       $('btn-dispose').addEventListener('click', dispose);
       $('btn-discard').addEventListener('click', discard);
       document.querySelectorAll('button.action[data-rule]').forEach(b=>b.addEventListener('click',()=>renderRuleParams(b.dataset.rule)));
+      if(window.RuleButtons) window.RuleButtons.init();  // second-line names + tooltips (charter P3)
       canvasEl.addEventListener('click', onCanvasClick);
       $('clear-selection').addEventListener('click', clearSel);
 

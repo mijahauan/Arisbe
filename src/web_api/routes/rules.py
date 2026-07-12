@@ -50,6 +50,37 @@ _STEP_PARAMETER: dict = {
     StepKind.PROVIDE_EGIF: "egif_content",
 }
 
+# Plain-language identity of each rule (UI Transparency Charter P3 —
+# recognition, never recall: the acronym expands where it stands).  Polarity
+# always in words (recto/verso named, never colored).  These feed the rule
+# buttons' second-line names and tooltips in Ergasterion and Agon.
+RULE_META: dict = {
+    "DC+": {
+        "name": "Double cut — draw",
+        "summary": "Draw two nested cuts around anything (or around nothing) — the meaning is unchanged.",
+    },
+    "DC-": {
+        "name": "Double cut — remove",
+        "summary": "Remove a nested pair of cuts with nothing between them — the meaning is unchanged.",
+    },
+    "ERA": {
+        "name": "Erase",
+        "summary": "Erase anything from a positive (recto) area — a weaker claim remains.",
+    },
+    "INS": {
+        "name": "Insert",
+        "summary": "Draw anything into a negative (verso) area — a guarded claim gets stronger.",
+    },
+    "IT+": {
+        "name": "Iterate",
+        "summary": "Copy a subgraph into an area nested inside its own.",
+    },
+    "IT-": {
+        "name": "Deiterate",
+        "summary": "Remove a copy that is governed by an identical original.",
+    },
+}
+
 
 def _rule_descriptor(rule_name: str, interaction) -> dict:
     """Serialize one rule's interaction steps for HTTP consumers."""
@@ -64,7 +95,13 @@ def _rule_descriptor(rule_name: str, interaction) -> dict:
                 "parameter": _STEP_PARAMETER.get(step.kind),
             }
         )
-    return {"rule": rule_name, "steps": steps}
+    meta = RULE_META.get(rule_name, {})
+    return {
+        "rule": rule_name,
+        "name": meta.get("name", rule_name),
+        "summary": meta.get("summary", ""),
+        "steps": steps,
+    }
 
 
 @router.get("")

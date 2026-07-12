@@ -327,3 +327,15 @@ html, body {
 }
 
 /* highlight overlays via JS */
+
+/* ===== Mode orientation strip (UI Transparency Charter P1) =====
+   One plain-words line per mode: where you are, what can happen here, what
+   can't. Persistent, visible without hover; tokens only, polarity in words. */
+.mode-orientation {
+  font-size: 11px;
+  color: var(--ctp-subtext0, #a6adc8);
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--bottombar-border, #313244);
+  background: var(--ctp-mantle, #181825);
+  line-height: 1.45;
+}
