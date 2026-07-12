@@ -653,6 +653,33 @@ def test_move_cut_refuses_leaving_parent(engine, style):
         move_cut(egi, dto, inner, span + 100.0, 0.0)
 
 
+def test_move_cut_permits_a_nested_cut_to_slide_within_its_parent(engine, style):
+    """Regression: an inner cut must be movable *within* its enclosing cut.
+
+    The overlap guard (step 3) once flagged the moved cut's own *parent* as a
+    forbidden overlap — but a nested cut always overlaps (is contained by) its
+    ancestors, so every nested cut was frozen in place, refusing even a 1-px
+    nudge. Ancestors are now excluded from the overlap check; a small in-parent
+    move is a legal regime-3 op that still §3.3-attests."""
+    from correspondence_attestation import attest_correspondence
+
+    egi, dto = _egi_dto("~[ ~[ (P *x) ] ]", engine, style)
+    pm = cut_parents(egi)
+    inner = next(cid for cid, parent in pm.items() if parent in {c.id for c in egi.Cut})
+    outer = pm[inner]
+    ib, ob = dto.cut_bounds[inner], dto.cut_bounds[outer]
+    # Nudge by a fraction of the slack between the inner cut and its parent, so
+    # the move stays inside the parent (a legal regime-3 op).
+    slack = min(ib.min_x - ob.min_x, ob.max_x - ib.max_x,
+                ib.min_y - ob.min_y, ob.max_y - ib.max_y)
+    step = max(1.0, slack / 2.0)
+
+    new_dto = move_cut(egi, dto, inner, step, step)   # must NOT raise
+    assert new_dto.cut_bounds[inner].min_x == pytest.approx(ib.min_x + step)
+    assert new_dto.cut_bounds[inner].min_y == pytest.approx(ib.min_y + step)
+    attest_correspondence(egi, new_dto, context="test_nested_cut_move")
+
+
 def test_move_cut_refuses_unknown_cut(engine, style):
     egi, dto = _egi_dto("~[ (P *x) ]", engine, style)
     with pytest.raises(Regime3Violation):

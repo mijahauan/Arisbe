@@ -1413,10 +1413,20 @@ def move_cut(
                 f"hierarchy."
             )
 
-    # 3. No non-descendant cut may overlap the translated bounds.
+    # 3. No *unrelated* cut may overlap the translated bounds. A cut's own
+    #    ancestors are excluded: a nested cut legitimately sits *inside* its
+    #    parent chain (that containment is required, and checked in step 1) —
+    #    flagging the parent as an "overlap" would freeze every nested cut in
+    #    place (it can never leave its parent, so it always overlaps it). Only
+    #    siblings / cousins / their subtrees are genuine collisions.
+    ancestors: Set[ElementID] = set()
+    cur = parent_map.get(cut_id)
+    while cur is not None:
+        ancestors.add(cur)
+        cur = parent_map.get(cur)
     for other_id, other_bounds in dto.cut_bounds.items():
-        if other_id in own_areas:
-            continue  # cut_id itself or a descendant — moves with it
+        if other_id in own_areas or other_id in ancestors:
+            continue  # self / descendant (moves with it) or ancestor (contains it)
         if _bounds_overlap(other_bounds, new_outer):
             raise Regime3Violation(
                 f"move_cut: the moved cut {cut_id} would overlap cut "

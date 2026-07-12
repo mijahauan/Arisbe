@@ -84,9 +84,9 @@ window.SettleAdjust = (function () {
 
   // ---- server round-trip --------------------------------------------------
 
-  async function postAdjust(body) {
+  async function postAdjust(body, restore) {
     const sid = cfg.getSessionId && cfg.getSessionId();
-    if (!sid) return;
+    if (!sid) { if (restore) restore(); return; }
     try {
       const res = await fetch('/ergasterion/sessions/' + sid + '/adjust', {
         method: 'POST',
@@ -102,8 +102,11 @@ window.SettleAdjust = (function () {
             ? 'refused — that nudge breaks picture↔proposition correspondence'
             : (err.message || 'adjust failed');
         cfg.setStatus && cfg.setStatus('Settle: ' + why, 'error');
-        // The server never mutated the drawing; re-render the unchanged state
-        // so any drag preview snaps back.
+        // The server never mutated the drawing: undo the optimistic preview
+        // (the moved element's transform) so the refused nudge snaps back —
+        // otherwise a rejected move lingers on screen as a false picture until
+        // the next legal move forces a full re-render.
+        if (restore) restore();
         refresh();
         return;
       }
@@ -111,6 +114,7 @@ window.SettleAdjust = (function () {
       if (cfg.onResult) cfg.onResult(out.data);  // page re-renders, then refreshes us
     } catch (e) {
       cfg.setStatus && cfg.setStatus('Settle: network error: ' + e.message, 'error');
+      if (restore) restore();
       refresh();
     }
   }
@@ -148,9 +152,14 @@ window.SettleAdjust = (function () {
     if (pz && pz.enablePan) { try { pz.enablePan(); } catch (_) {} }
     const finished = drag;
     drag = null;
-    // A click with no real movement is not a drag — ignore it.
+    // A click with no real movement is not a drag — ignore it (and undo any
+    // tiny sub-threshold preview so nothing lingers).
     const moved = Math.abs((finished.dx || 0)) + Math.abs((finished.dy || 0));
-    if (moved < 1.5 && finished.kind !== 'ligature') { refresh(); return; }
+    if (moved < 1.5 && finished.kind !== 'ligature') {
+      if (finished.restore) finished.restore();
+      refresh();
+      return;
+    }
     finished.commit(e, finished);
   }
 
@@ -160,15 +169,20 @@ window.SettleAdjust = (function () {
     const vid = group.getAttribute('data-element-id');
     if (!vid) return;
     const origTransform = group.getAttribute('transform') || '';
+    const restore = () => {
+      if (origTransform) group.setAttribute('transform', origTransform);
+      else group.removeAttribute('transform');
+    };
     beginDrag({
       kind: 'vertex',
+      restore,
       preview(dx, dy) {
         group.setAttribute('transform', origTransform + ' translate(' + dx + ',' + dy + ')');
       },
       commit(ev, state) {
-        // Server re-render will replace the transform; send the dto-space delta
-        // (offset-invariant, so the rendered delta is the dto delta).
-        postAdjust({ operation: 'move_vertex', vertex_id: vid, dx: state.dx, dy: state.dy });
+        // Server re-render will replace the transform on success; on refusal the
+        // restore snaps the optimistic preview back (see postAdjust).
+        postAdjust({ operation: 'move_vertex', vertex_id: vid, dx: state.dx, dy: state.dy }, restore);
       },
     }, e);
   }
@@ -179,13 +193,18 @@ window.SettleAdjust = (function () {
     const pid = group.getAttribute('data-element-id');
     if (!pid) return;
     const origTransform = group.getAttribute('transform') || '';
+    const restore = () => {
+      if (origTransform) group.setAttribute('transform', origTransform);
+      else group.removeAttribute('transform');
+    };
     beginDrag({
       kind: 'predicate',
+      restore,
       preview(dx, dy) {
         group.setAttribute('transform', origTransform + ' translate(' + dx + ',' + dy + ')');
       },
       commit(ev, state) {
-        postAdjust({ operation: 'move_predicate', predicate_id: pid, dx: state.dx, dy: state.dy });
+        postAdjust({ operation: 'move_predicate', predicate_id: pid, dx: state.dx, dy: state.dy }, restore);
       },
     }, e);
   }
