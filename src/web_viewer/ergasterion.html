@@ -652,8 +652,8 @@
               Palette — click the canvas to place
             </h2>
             <div class="palette-grid">
-              <button class="action" data-tool="add_cut" title="An oval in a region — negation">◯ Cut</button>
-              <button class="action" data-tool="add_line" title="A heavy spot — “something exists”">● Line</button>
+              <button class="action" data-tool="add_cut" data-term="cut" title="An oval in a region — negation">◯ Cut</button>
+              <button class="action" data-tool="add_line" data-term="line-of-identity" title="A heavy spot — “something exists”">● Line</button>
               <button class="action" data-tool="add_relation" title="A named spot with hooks">▭ Relation</button>
               <button class="action" data-tool="add_constant" title="A labelled spot — a name">“a” Constant</button>
               <button class="action" data-tool="attach" title="Wire a relation hook to a line: click the relation, then the line">⟝ Attach</button>
@@ -725,7 +725,7 @@
                 <div id="freeform-validity" style="font-size:10px; margin-top:6px; line-height:1.5;"></div>
               </div>
             </div>
-            <button class="action primary" id="btn-fix-graph">① Fix this graph</button>
+            <button class="action primary" id="btn-fix-graph" data-term="gate-1">① Fix this graph</button>
             <p class="gate-consequence">
               From here the graph is no longer clay — it changes only by the
               six rules. (Recorded; stepping back before it forks fresh clay.)
@@ -799,7 +799,7 @@
             <div id="definitions-list" style="margin-top:8px;"></div>
           </div>
 
-          <button class="action" id="btn-fix-chain" style="margin-top:8px;">② Fix this chain</button>
+          <button class="action" id="btn-fix-chain" style="margin-top:8px;" data-term="gate-2">② Fix this chain</button>
           <p class="gate-consequence">
             The derivation is complete — the line becomes read-only
             (navigate, restyle, dispose). Recorded; forking re-opens it.
@@ -894,6 +894,8 @@
   <script src="js/freeform-canvas.js"></script>
   <script src="js/settle-adjust.js"></script>
   <script src="js/rule-buttons.js"></script>
+  <script src="js/term-help.js"></script>
+  <script src="js/error-help.js"></script>
   <script>
     (function () {
       // ---- DOM refs ----
@@ -1079,6 +1081,15 @@
           selAreaDisplay.innerHTML = selectedArea ? chipHtml(describeArea(selectedArea)) : 'none';
         }
         updateRuleHints();
+        // Charter P5 (prevent, don't punish): what is illegal for THIS
+        // selection is visibly unavailable, with its reason in words —
+        // conservative cheap checks; the engine stays the arbiter.
+        if (window.RuleButtons && currentIntrospection) {
+          window.RuleButtons.annotate({
+            introspection: currentIntrospection,
+            selection: { elements: Array.from(selectedSubgraph), area: selectedArea },
+          });
+        }
       }
 
       // Non-blocking polarity guidance for the chosen rule, from introspection.
@@ -1115,6 +1126,25 @@
       // Fetch the per-rule step descriptors once (mode-independent /rules), so
       // the workshop can show *what each rule needs* — the rule-shaped guidance
       // the Spot/Subject grammar calls for (spec §1).
+      async function loadStyles(selectEl) {
+        // Charter P2: the style choice is served, not hardcoded — one list,
+        // every mode. Hardcoded options remain as the no-JS fallback and are
+        // replaced here without firing a change event.
+        try {
+          const body = await (await fetch('/styles')).json();
+          if (!body.success || !(body.data || []).length) return;
+          const keep = selectEl.value;
+          selectEl.innerHTML = '';
+          body.data.forEach((s) => {
+            const o = document.createElement('option');
+            o.value = s.is_default ? '' : s.name;
+            o.textContent = s.display + (s.is_default ? ' (default)' : '');
+            selectEl.appendChild(o);
+          });
+          selectEl.value = Array.from(selectEl.options).some((o) => o.value === keep) ? keep : '';
+        } catch (_) { /* fallback options stand */ }
+      }
+
       async function loadRules() {
         // One fetch, two consumers: RuleButtons decorates the six buttons with
         // their plain names (charter P3), and the step table keeps feeding the
@@ -2414,17 +2444,24 @@
           const body = await res.json();
           if (!body.success) {
             const msg = (body.error && body.error.message) || 'precondition not met';
-            setStatus(currentRule + ' refused: ' + msg, 'error');
+            // Charter P6: the plain sentence + next step travel with the
+            // engine's own message, never instead of it.
+            setStatus(window.ErrorHelp
+              ? currentRule + ' refused — ' + window.ErrorHelp.render(body.error, msg)
+              : currentRule + ' refused: ' + msg, 'error');
             // U15: surface the refusal *inline* next to the rule checklist where
             // the user just acted — the bottom status bar is transient and easy
             // to miss, and "why did this fail" belongs beside the rule.
             const g = document.getElementById('rule-steps-guidance');
             if (g) {
+              const detail = window.ErrorHelp
+                ? window.ErrorHelp.renderHtml(body.error, msg)
+                : escapeHtml(msg);
               g.insertAdjacentHTML('beforeend',
                 '<div class="rule-refusal" style="margin-top:5px; padding:4px 6px; ' +
                 'border-left:2px solid var(--ctp-maroon); color:var(--ctp-maroon); ' +
                 'background:var(--ctp-base);">✗ ' + escapeHtml(currentRule) +
-                ' refused: ' + escapeHtml(msg) + '</div>');
+                ' refused. ' + detail + '</div>');
             }
             return;
           }
@@ -2456,11 +2493,11 @@
           const body = await res.json();
           if (!body.success) {
             const e = body.error || {};
-            const msg = e.code === 'LOGIC_CHANGED'
-              ? 'The graph changed (a rule was applied) — that is not an arrangement. Send it to Agon to enter the corpus.'
-              : (e.code === 'NO_ARRANGEMENT'
-                  ? 'Nothing to save — tidy the drawing first (move a line, reroute a ligature).'
-                  : ('Could not save arrangement: ' + (e.message || e.code)));
+            // Charter P6: the shared mapper owns the wording (one voice for
+            // every mode); unknown codes fall through unchanged.
+            const msg = window.ErrorHelp
+              ? window.ErrorHelp.render(e, 'Could not save arrangement: ' + (e.message || e.code))
+              : ('Could not save arrangement: ' + (e.message || e.code));
             setStatus(msg, 'error');
             return;
           }
@@ -3145,6 +3182,7 @@
 
       loadCorpus();
       loadRules();
+      loadStyles(document.getElementById('style-select'));
       loadScratchList();
 
       // Hand-off from Organon: ?open=uod:<id> (or empty_sheet) opens that base

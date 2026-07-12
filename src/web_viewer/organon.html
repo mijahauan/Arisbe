@@ -275,7 +275,7 @@
     <aside id="organon-sidebar">
       <div data-mode-nav></div>
       <div id="organon-sidebar-header">
-        <p>Tomos · the corpus</p>
+        <p><span data-term="tomos">Tomos</span> · the corpus</p>
         <span class="mode-tag">Read-only</span>
       </div>
       <div class="mode-orientation">Reading room — browse and re-draw anything;
@@ -333,7 +333,7 @@
       </div>
 
       <header id="organon-detail-header">
-        <h2 id="organon-detail-title">Select a UoD from the archive</h2>
+        <h2 id="organon-detail-title">Select a <span data-term="uod">UoD</span> from the archive</h2>
         <div class="detail-meta" id="organon-detail-meta"></div>
         <div id="organon-detail-extra"></div>
         <div id="organon-export" style="display:none; margin-top:8px; font-size:12px;">
@@ -466,6 +466,8 @@
   <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.1/dist/svg-pan-zoom.min.js"></script>
   <script src="js/mode-nav.js"></script>
   <script src="js/primer.js"></script>
+  <script src="js/term-help.js"></script>
+  <script src="js/error-help.js"></script>
   <script src="js/standing-badge.js"></script>
   <script src="js/linear-form-panel.js"></script>
   <script src="js/diagram-transition.js"></script>
@@ -909,7 +911,7 @@
             'Correspondence, not truth." ' +
             'style="color:var(--ctp-green,#a6e3a1); border:1px solid currentColor; ' +
             'border-radius:10px; padding:1px 7px; font-size:9px; font-weight:600; ' +
-            'letter-spacing:.02em; cursor:help; vertical-align:middle;">§3.3 ✓ attested</span>');
+            'letter-spacing:.02em; cursor:help; vertical-align:middle;" data-term="3.3">§3.3 ✓ attested</span>');
         }
         if (meta.category) {
           parts.push('<span><strong>category:</strong> ' + escapeHtml(meta.category.replace(/_/g, ' ')) + '</span>');
@@ -1447,6 +1449,25 @@
         return new Blob([arr], { type: mime });
       }
 
+      async function loadStyles(selectEl) {
+        // Charter P2: the style choice is served, not hardcoded — one list,
+        // every mode. Hardcoded options remain as the no-JS fallback and are
+        // replaced here without firing a change event.
+        try {
+          const body = await (await fetch('/styles')).json();
+          if (!body.success || !(body.data || []).length) return;
+          const keep = selectEl.value;
+          selectEl.innerHTML = '';
+          body.data.forEach((s) => {
+            const o = document.createElement('option');
+            o.value = s.is_default ? '' : s.name;
+            o.textContent = s.display + (s.is_default ? ' (default)' : '');
+            selectEl.appendChild(o);
+          });
+          selectEl.value = Array.from(selectEl.options).some((o) => o.value === keep) ? keep : '';
+        } catch (_) { /* fallback options stand */ }
+      }
+
       async function loadExportFormats() {
         try {
           const body = await fetch('/export/formats').then((r) => r.json());
@@ -1702,6 +1723,7 @@
         });
       }
       loadExportFormats();
+      loadStyles(document.getElementById('view-style'));
       loadCorpus();
     })();
   </script>

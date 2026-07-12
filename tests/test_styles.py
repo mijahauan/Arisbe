@@ -36,6 +36,24 @@ def test_styles_endpoint_lists_the_three_with_default(client):
     assert defaults == ["dau-compliant@1.0"]
 
 
+def test_styles_endpoint_serves_only_drawable_styles_with_display_names(client):
+    """The dropdowns are fed from this route (charter P2), so it must list
+    only styles that actually load and draw — the schema file and stray
+    fixtures in the styles directory are filtered — each with a human
+    display name, default first."""
+    body = client.get("/styles").json()
+    entries = body["data"]
+    names = [s["name"] for s in entries]
+    for junk in ("style_schema", "default", "dau_default", "dau-classic@1.0"):
+        assert junk not in names, f"unloadable/unnamed entry served: {junk}"
+    assert all(s.get("display") for s in entries)
+    assert entries[0]["is_default"] is True  # default sorts first
+    displays = {s["name"]: s["display"] for s in entries}
+    assert displays["dau-compliant@1.0"] == "Dau — mathematical"
+    assert displays["peirce-authentic@1.0"] == "Peirce — handwritten"
+    assert displays["sowa-compliant@1.0"] == "Sowa — conceptual graph"
+
+
 def test_each_style_renders_and_attests():
     """The same EGI renders in all three styles; each passes §3.3 (no
     CorrespondenceViolation) and the manifests genuinely differ."""

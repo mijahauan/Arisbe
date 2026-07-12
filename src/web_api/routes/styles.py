@@ -26,10 +26,25 @@ from style_loader import list_available_styles, load_default_style, load_style
 router = APIRouter(prefix="/styles")
 
 
+# Curated display names for the shipped styles — what the mode dropdowns show
+# (charter P2: the same choice reads the same everywhere).  An unlisted style
+# falls back to its spec's style_name, so a new style appears automatically.
+_DISPLAY: dict = {
+    "dau-compliant@1.0": "Dau — mathematical",
+    "peirce-authentic@1.0": "Peirce — handwritten",
+    "sowa-compliant@1.0": "Sowa — conceptual graph",
+}
+
+
 @router.get("")
 @router.get("/")
 async def list_styles():
-    """List the available styles with their display name and description."""
+    """List the loadable styles with display names, default first.
+
+    Entries whose spec cannot be loaded or that carry no ``style_name``
+    (schema files, stray fixtures in the styles directory) are skipped —
+    the dropdowns this feeds must never offer a style that cannot draw.
+    """
     try:
         default = None
         try:
@@ -39,16 +54,25 @@ async def list_styles():
 
         items = []
         for name in list_available_styles():
-            entry = {"name": name, "label": name, "description": ""}
             try:
                 spec = load_style(name)
-                entry["label"] = getattr(spec, "style_name", name)
-                raw = getattr(spec, "raw_style_data", {}) or {}
-                entry["description"] = raw.get("description", "") or raw.get("global", {}).get("description", "")
             except Exception:
-                pass
-            entry["is_default"] = (entry["label"] == default)
-            items.append(entry)
+                continue  # unloadable — never offer it
+            label = getattr(spec, "style_name", None)
+            if not label:
+                continue  # a schema/fixture file, not a style
+            raw = getattr(spec, "raw_style_data", {}) or {}
+            description = raw.get("description", "") or raw.get("global", {}).get("description", "")
+            items.append(
+                {
+                    "name": name,
+                    "label": label,
+                    "display": _DISPLAY.get(name, label),
+                    "description": description,
+                    "is_default": label == default,
+                }
+            )
+        items.sort(key=lambda e: (not e["is_default"], e["display"].lower()))
         return ApiResponse(success=True, data=items)
     except Exception as exc:
         return ApiResponse(

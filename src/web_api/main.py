@@ -17,7 +17,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from web_api.routes import agon, diagrams, ergasterion, export, imports, introspect, organon, primer, rules, styles, transformations
+from web_api.routes import agon, diagrams, ergasterion, export, glossary, imports, introspect, organon, primer, rules, styles, transformations
 
 app = FastAPI(title="Arisbe EGI Viewer", version="1.0.0")
 
@@ -38,6 +38,7 @@ app.include_router(primer.router)
 app.include_router(agon.router)
 app.include_router(imports.router)
 app.include_router(styles.router)
+app.include_router(glossary.router)
 app.include_router(export.router)
 
 # Serve the rendered book/help, if it has been built (quarto render docs/book).

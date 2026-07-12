@@ -339,6 +339,44 @@ well-formed but false.
 **Tomos** (Greek "volume") — the on-disk corpus of canonical EG examples (with EGIF/CGIF/CLIF/FOPL
 variants) under `tomos/`; the source of truth and the round-trip test bed.
 
+### Graphist
+**Graphist** — the proposer's role in the Endoporeutic Game: the player who scribes a graph and
+must defend it. In the automated game, the doubt-driven proposer. See
+[ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+
+### Grapheus
+**Grapheus** — the skeptic's role in the Endoporeutic Game: the authority for the model M who
+contests the Graphist's proposal. Arisbe ships an automated Grapheus (minimax over the semantic
+game). See [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
+
+### Horn rule
+**Horn rule** — a law of the shape "if body then head" (`~[ B ~[ H ] ]`, range-restricted) that
+forward-chaining can apply mechanically; the fragment of M that *materialization* turns into
+plain facts so the syllogism works.
+
+### Materialize
+**Materialize** — forward-chain a model's Horn rules to their least fixed point, so a model
+authored as *facts + rules* is testable as plain facts. A model is the facts; rules are a theory.
+
+### Gate ① and gate ②
+**Gate ① / gate ②** — the workshop's two one-way doors: gate ① *fixes the graph* (from clay to a
+fixed meaning that changes only by the six rules); gate ② *fixes the chain* (the derivation is
+complete and becomes read-only). Nothing passes either gate silently.
+
+### Closure
+**Closure (closed subgraph)** — a selection fit to be transformed as a unit: it contains every
+element structurally inseparable from what was picked (a line of identity cannot be cut in half).
+The rules act on closed selections only.
+
+### Iteration and deiteration
+**Iteration / deiteration** — the paired rules IT+ and IT−: iteration copies a subgraph into an
+area nested inside its own; deiteration removes a copy that is governed by an identical original.
+
+### Closed world
+**Closed world** — reading a model as *asserted-complete*: what M does not assert is FALSE. The
+open-world default instead reads a miss as UNKNOWN (an honest abstention). The Agon's
+interpretation register offers both.
+
 ---
 
 ## Terms

@@ -90,12 +90,15 @@
 
         <div id="setup-section">
           <p class="hint">
-            The Graphist proposes G; the Grapheus is the model M. You drive
+            The <span data-term="graphist">Graphist</span> proposes G; the
+            <span data-term="grapheus">Grapheus</span> is the model M. You drive
             both roles (hot-seat). When the contest ends, you — as
-            Agonothetes — choose what the result means.
+            <span data-term="agonothetes">Agonothetes</span> — choose what the result means.
           </p>
           <div class="field">
             <label>Reference model M — choose one</label>
+            <input type="text" id="model-filter" placeholder="Search models…" autocomplete="off"
+                   style="margin-bottom:4px;" />
             <select id="model-picker">
               <option value="">— pick a model, or type facts below —</option>
             </select>
@@ -104,13 +107,13 @@
           <div class="field">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
               <input type="checkbox" id="model-closed" style="width:auto;" />
-              Closed world — asserted-complete (a miss is FALSE, not UNKNOWN)
+              <span data-term="closed-world">Closed world</span> — asserted-complete (a miss is FALSE, not UNKNOWN)
             </label>
           </div>
           <div class="field">
             <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
               <input type="checkbox" id="model-materialize" style="width:auto;" />
-              Use rules — forward-chain M's Horn rules into facts (the syllogism works)
+              Use rules — <span data-term="materialize">forward-chain</span> M's <span data-term="horn-rule">Horn rules</span> into facts (the syllogism works)
             </label>
           </div>
           <div class="field">
@@ -125,7 +128,7 @@
             <div id="nl-feedback" style="display:none; margin-top:6px; font-size:11px; line-height:1.4;"></div>
           </div>
           <div class="field">
-            <label>Proposal G (EGIF) — framed as ~[ M ~[ G ] ]</label>
+            <label>Proposal G (<span data-term="egif">EGIF</span>) — framed as <span data-term="scroll">~[ M ~[ G ] ]</span></label>
             <textarea id="setup-proposal" placeholder="(Mortal *x)"></textarea>
           </div>
           <div class="field">
@@ -239,6 +242,8 @@
   <script src="js/diagram-viewer.js"></script>
   <script src="js/context-reflex.js"></script>
   <script src="js/rule-buttons.js"></script>
+  <script src="js/term-help.js"></script>
+  <script src="js/error-help.js"></script>
   <script>
     (function () {
       const $ = (id) => document.getElementById(id);
@@ -392,7 +397,17 @@
         if(d.is_over){ roleEl.textContent='Contest over — '+(d.winner?d.winner+' wins':'drawn'); $('turn-sub').textContent=d.outcome_reason||''; }
         else { roleEl.textContent=d.current_role+"'s move"; roleEl.classList.add(d.current_role.toLowerCase());
           const terr=d.legal_areas.length+' area(s) in territory';
-          $('turn-sub').textContent=(d.current_role==='Graphist'?'INS · IT+ · DC+ in negative areas':'ERA · IT- · DC- in positive areas')+' · '+terr; }
+          $('turn-sub').textContent=(d.current_role==='Graphist'?'INS · IT+ · DC+ in negative areas':'ERA · IT- · DC- in positive areas')+' · '+terr;
+          // Charter P5: the other role's rules are visibly not yours this turn.
+          if(window.RuleButtons){
+            const graphist=d.current_role==='Graphist';
+            window.RuleButtons.annotate({
+              introspection: currentIntrospection,
+              selection: {},
+              territory: { allowed: graphist?['INS','IT+','DC+']:['ERA','IT-','DC-'],
+                           label: graphist?"the Graphist plays INS · IT+ · DC+":"the Grapheus plays ERA · IT- · DC-" },
+            });
+          } }
       }
       function renderMoves(ep){
         $('move-count').textContent=ep.moves.length;
@@ -435,29 +450,45 @@
       }
 
       // ---- reference models (part 1: choose M) ----
+      // Charter P2: the corpus is searchable here exactly as in Organon —
+      // lowercase-substring over title / id / kind, optgroups preserved.
+      function modelMatches(q, title, id, kind){
+        if(!q) return true;
+        const hay=((title||'')+' '+(id||'')+' '+(kind||'')).toLowerCase();
+        return q.split(/\s+/).every(t=>hay.indexOf(t)>=0);
+      }
+      function renderModelPicker(filterQ){
+        const pick=$('model-picker'); const q=(filterQ||'').trim().toLowerCase();
+        const keep=pick.value;
+        Array.from(pick.querySelectorAll('optgroup')).forEach(g=>g.remove());
+        const ex=(agonModels.examples||[]).filter(e=>modelMatches(q, e.title, e.id, 'example'));
+        if(ex.length){ const og=document.createElement('optgroup'); og.label='Example scenarios';
+          ex.forEach(e=>{ const o=document.createElement('option'); o.value='ex:'+e.id; o.textContent=e.title; og.appendChild(o); }); pick.appendChild(og); }
+        // U14: group corpus models by provenance kind (ontologies first) so an
+        // ontologist finds their T-box among proofs, exemplars, and boards.
+        const corpus=(agonModels.corpus||[]).filter(c=>modelMatches(q, c.title, c.uod_id, c.kind));
+        if(corpus.length){
+          const KIND_LABEL={ontology:'Ontologies (T-box)',domain_model:'Domain models',
+            proof:'Proofs',exemplar:'Exemplars',pattern:'Patterns'};
+          const ORDER=['ontology','domain_model','proof','exemplar','pattern'];
+          const byKind={};
+          corpus.forEach(c=>{ const k=c.kind||'other'; (byKind[k]=byKind[k]||[]).push(c); });
+          const kinds=Object.keys(byKind).sort((a,b)=>{
+            const ia=ORDER.indexOf(a), ib=ORDER.indexOf(b);
+            return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b); });
+          kinds.forEach(k=>{
+            const og=document.createElement('optgroup');
+            og.label=KIND_LABEL[k]||('Corpus — '+k);
+            byKind[k].forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title; og.appendChild(o); });
+            pick.appendChild(og); }); }
+        // Preserve the current selection when it survives the filter.
+        if(keep && Array.from(pick.options).some(o=>o.value===keep)) pick.value=keep;
+      }
       async function loadModels(){
         try{
           const r=await fetch('/agon/models'); const b=await r.json();
           if(!b.success) return; agonModels=b.data||{examples:[],corpus:[]};
-          const pick=$('model-picker');
-          if((agonModels.examples||[]).length){ const og=document.createElement('optgroup'); og.label='Example scenarios';
-            agonModels.examples.forEach(e=>{ const o=document.createElement('option'); o.value='ex:'+e.id; o.textContent=e.title; og.appendChild(o); }); pick.appendChild(og); }
-          // U14: group corpus models by provenance kind (ontologies first) so an
-          // ontologist finds their T-box among proofs, exemplars, and boards.
-          if((agonModels.corpus||[]).length){
-            const KIND_LABEL={ontology:'Ontologies (T-box)',domain_model:'Domain models',
-              proof:'Proofs',exemplar:'Exemplars',pattern:'Patterns'};
-            const ORDER=['ontology','domain_model','proof','exemplar','pattern'];
-            const byKind={};
-            agonModels.corpus.forEach(c=>{ const k=c.kind||'other'; (byKind[k]=byKind[k]||[]).push(c); });
-            const kinds=Object.keys(byKind).sort((a,b)=>{
-              const ia=ORDER.indexOf(a), ib=ORDER.indexOf(b);
-              return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b); });
-            kinds.forEach(k=>{
-              const og=document.createElement('optgroup');
-              og.label=KIND_LABEL[k]||('Corpus — '+k);
-              byKind[k].forEach(c=>{ const o=document.createElement('option'); o.value='uod:'+c.uod_id; o.textContent=c.title; og.appendChild(o); });
-              pick.appendChild(og); }); }
+          renderModelPicker('');
           // Land on a worked example so the arena is runnable on arrival: with
           // empty fields the placeholders read as if pre-filled, and "Does G
           // hold in M?" just reports "enter a proposal G". A clean TRUE scenario
@@ -777,7 +808,7 @@
         if(selectedDisp.asserts){ payload.target_uod_id=($('disp-uod-id').value||'').trim(); payload.name=($('disp-name').value||'').trim(); }
         const b=await post('/agon/games/'+gameId+'/disposition', payload);
         if(!b.success){ const e=b.error||{};
-          setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
+          setStatus(window.ErrorHelp?('Disposition refused — '+window.ErrorHelp.render(e, e.message||'')):((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||'')),'error'); return; }
         setStatus(b.data.message,'success');
         showAssertConfirm($('disposition-section'), b.data);
       }
@@ -925,7 +956,7 @@
           payload.name=(($('contest-disp-name')||{}).value||'').trim(); }
         const b=await post('/agon/contests/'+contestId+'/disposition', payload);
         if(!b.success){ const e=b.error||{};
-          setStatus((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||''),'error'); return; }
+          setStatus(window.ErrorHelp?('Disposition refused — '+window.ErrorHelp.render(e, e.message||'')):((e.code==='CORRESPONDENCE_VIOLATION'?'§3.3 refusal: ':'Disposition failed: ')+(e.message||'')),'error'); return; }
         setStatus(b.data.message, b.data.asserted?'success':null);
         showAssertConfirm($('interpret-result'), b.data);
       }
@@ -944,6 +975,7 @@
       $('btn-discard').addEventListener('click', discard);
       document.querySelectorAll('button.action[data-rule]').forEach(b=>b.addEventListener('click',()=>renderRuleParams(b.dataset.rule)));
       if(window.RuleButtons) window.RuleButtons.init();  // second-line names + tooltips (charter P3)
+      const mf=$('model-filter'); if(mf) mf.addEventListener('input',()=>renderModelPicker(mf.value));
       canvasEl.addEventListener('click', onCanvasClick);
       $('clear-selection').addEventListener('click', clearSel);
 

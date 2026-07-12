@@ -122,12 +122,112 @@
     }
   }
 
+  var RULES = ["DC+", "DC-", "ERA", "INS", "IT+", "IT-"];
+
+  /** Charter P5 (prevent, don't punish) — annotate every rule button from the
+   * introspection the session already bundles, so illegality is visible with
+   * its reason BEFORE the server would have to refuse.
+   *
+   * `opts`: {
+   *   introspection: {elements: {id: {type, area, polarity, depth}},
+   *                   areas: {id: {polarity, depth, parent, is_sheet}}},
+   *   selection: {elements: [ids], area: id|null},   // current picks
+   *   territory: {allowed: [rules], label: string},  // optional (Agon roles)
+   *   root: Element,                                  // optional scope
+   * }
+   *
+   * Conservative by design: a rule is disabled only when the cheap check is
+   * *sure* it cannot apply here; anything uncertain stays enabled and the
+   * engine remains the arbiter (its refusal is the backstop, not the teacher).
+   * Polarity is always named in words (recto/verso), never colored. */
+  function annotate(opts) {
+    var intro = (opts && opts.introspection) || null;
+    var sel = (opts && opts.selection) || {};
+    var selIds = sel.elements || [];
+    var selArea = sel.area || null;
+    var territory = (opts && opts.territory) || null;
+    var root = opts && opts.root;
+    var els = (intro && intro.elements) || {};
+    var areas = (intro && intro.areas) || {};
+
+    function areaOf(id) {
+      // A cut's *interior* is the area named by its own id.
+      return areas[id] || null;
+    }
+    function chainContains(startAreaId, wantedAreaId) {
+      var cur = startAreaId, hops = 0;
+      while (cur != null && hops++ < 200) {
+        if (cur === wantedAreaId) return true;
+        cur = areas[cur] ? areas[cur].parent : null;
+      }
+      return false;
+    }
+    function childrenOf(cutId) {
+      return Object.keys(els).filter(function (id) { return els[id].area === cutId; });
+    }
+
+    var verdicts = {};
+    RULES.forEach(function (r) { verdicts[r] = { enabled: true }; });
+
+    // Role territory (Agon): out-of-role rules are simply not yours this turn.
+    if (territory && territory.allowed) {
+      RULES.forEach(function (r) {
+        if (territory.allowed.indexOf(r) < 0) {
+          verdicts[r] = { enabled: false, reason: territory.label || "not this role's rule" };
+        }
+      });
+    }
+
+    if (intro) {
+      // ERA erases from a positive (recto) area.
+      if (verdicts["ERA"].enabled && selIds.length) {
+        var anyNeg = selIds.some(function (id) {
+          return els[id] && els[id].polarity === "negative";
+        });
+        if (anyNeg) {
+          verdicts["ERA"] = { enabled: false, reason: "needs a recto (positive) selection" };
+        }
+      }
+      // INS inserts into a negative (verso) area.
+      if (verdicts["INS"].enabled && selArea) {
+        var a = areaOf(selArea);
+        if (a && a.polarity === "positive") {
+          verdicts["INS"] = { enabled: false, reason: "needs a verso (negative) target area" };
+        }
+      }
+      // IT+ copies into an area nested inside the source's own area.
+      if (verdicts["IT+"].enabled && selIds.length && selArea) {
+        var srcEl = els[selIds[0]];
+        var srcArea = srcEl ? srcEl.area : null;
+        if (srcArea && !(selArea !== srcArea && chainContains(selArea, srcArea))) {
+          verdicts["IT+"] = { enabled: false, reason: "target must be nested inside the source's area" };
+        }
+      }
+      // DC- removes an empty-between pair: the selected outer cut's area holds
+      // exactly one thing, and that thing is a cut.
+      if (verdicts["DC-"].enabled && selIds.length === 1) {
+        var only = els[selIds[0]];
+        if (only && only.type === "cut") {
+          var kids = childrenOf(selIds[0]);
+          var ok = kids.length === 1 && els[kids[0]] && els[kids[0]].type === "cut";
+          if (!ok) {
+            verdicts["DC-"] = { enabled: false, reason: "select the outer cut of a nothing-between pair" };
+          }
+        }
+      }
+    }
+
+    RULES.forEach(function (r) { setLegality(r, verdicts[r], root); });
+    return verdicts;
+  }
+
   window.RuleButtons = {
     init: init,
     get: get,
     name: function (rule) { var d = get(rule); return d ? d.name : rule; },
     summary: function (rule) { var d = get(rule); return d ? d.summary : ""; },
     setLegality: setLegality,
+    annotate: annotate,
     decorate: decorate,
   };
 })();
