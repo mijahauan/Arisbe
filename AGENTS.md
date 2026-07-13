@@ -35,13 +35,16 @@
 - **Core math subset**: what the commit gate runs (~150 headless tests, < 30 s). **This is the
   one that must always be green** — a failure here is a real correctness problem, never test
   infrastructure.
-- **Two known non-regressions** (don't be alarmed; don't "fix" them blindly):
-  - The `eg_reader` **clockwise trio** (`test_clockwise_*`, `test_round_trip[peirce-style1]`)
-    is a *seed-dependent* flake — its root cause is argument-order recovery from ELK geometry.
-    Pre-existing, documented in `CURRENT_PLAN.md`, and it does not gate the core suite.
-  - The **e2e tests error without Chromium** (`test_primer_e2e`, `test_*_e2e`). Run
-    `uv run playwright install chromium` to enable them; otherwise they are expected to
-    skip/error and are not a code problem.
+- **E2E (browser) tests** — `test_*_e2e.py`, 37 tests in real headless Chromium. They need the
+  browser binary: `uv run playwright install chromium`. **If they error with "Executable
+  doesn't exist", the browser cache was purged (macOS clears `~/Library/Caches` under disk
+  pressure) — just reinstall; it is not a version or code problem.** Do not let them sit
+  erroring: an erroring e2e suite is a *blind spot*, not a pass (two real test bugs hid behind
+  one on 2026-07-13).
+- **One known non-regression** (don't "fix" it blindly): the `eg_reader` **clockwise trio**
+  (`test_clockwise_*`, `test_round_trip[peirce-style1]`) is a *seed-dependent* flake — root
+  cause is argument-order recovery from ELK geometry. Pre-existing, documented in
+  `CURRENT_PLAN.md`, does not gate the core suite.
 
 ### Battle-Tested Import/Export Infrastructure
 **Status**: ✅ PRODUCTION - Comprehensive test coverage across corpus

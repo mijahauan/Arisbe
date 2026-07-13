@@ -126,9 +126,18 @@ def test_orientation_strip_present_per_mode(page, app_url, mode):
 
 @pytest.mark.parametrize("mode", ["ergasterion", "agon"])
 def test_rule_buttons_carry_plain_names(page, app_url, mode):
-    """P3: the acronym never stands alone — each button grows its name."""
+    """P3 (recognition, never recall): the acronym never stands alone — each rule
+    button grows its plain name.
+
+    The buttons are *built* on load but only *shown* when a rule is legal to apply
+    (Ergasterion reveals them in the 'deriving' phase — no rules on an unfixed
+    graph, the Graph↔Argument contract; Agon when a game is running). That gating
+    is P5 (prevent, don't punish) doing its job, so this test asserts on the DOM
+    the buttons carry, not on their visibility in a phase where they'd be illegal.
+    """
     page.goto(app_url + "/" + mode)
-    page.wait_for_selector('button[data-rule="ERA"] .rb-name', timeout=10000)
+    page.wait_for_selector('button[data-rule="ERA"] .rb-name',
+                           state="attached", timeout=10000)
     names = page.eval_on_selector_all(
         "button[data-rule] .rb-name", "els => els.map(e => e.textContent)")
     assert "Erase" in names and "Insert" in names and "Iterate" in names

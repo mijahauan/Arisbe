@@ -211,6 +211,9 @@ def test_plain_english_door_drafts_a_proposal(page, app_url):
     page.goto(app_url + "/agon")
     page.wait_for_function(
         "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    # The door translates *against a model M* — its vocabulary is what guides the
+    # translation — so a model must be chosen first (the page refuses otherwise).
+    page.select_option("#model-picker", "ex:teacher-mammals")
     page.route("**/agon/propose-nl", lambda route: route.fulfill(
         status=200, content_type="application/json",
         body=json.dumps({"success": True, "data": {
@@ -240,6 +243,7 @@ def test_plain_english_door_surfaces_the_vocabulary_miss(page, app_url):
     page.goto(app_url + "/agon")
     page.wait_for_function(
         "document.querySelectorAll('#model-picker option').length > 1", timeout=10000)
+    page.select_option("#model-picker", "ex:teacher-mammals")   # M must be chosen first
     page.route("**/agon/propose-nl", lambda route: route.fulfill(
         status=200, content_type="application/json",
         body=json.dumps({"success": True, "data": {
