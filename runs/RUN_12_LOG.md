@@ -67,6 +67,61 @@ arm C runs home vs win-pct only (still a live `select_best` first, and the home-
 literature check stands); (b) live-run duration/pacing (one game day vs a multi-day paced run
 vs recorded-replay-first).
 
+## Build — DONE 2026-07-12 (offline-first, the house pattern)
+
+Shipped: **`src/sports_source.py`** (the MLB `LiveSource`; injectable fetch, bounded
+retry/backoff, record/replay JSONL, `save_state`/`load_state` carrying pending picks + the
+learned cut) · **`src/sports_recalibration.py`** (the cut controller) ·
+**`tools/run_live_sports.py`** (driver: console tee, side-store checkpoints, supervisor +
+crash/resume, STOP file, per-segment per-arm digest + cut trajectory + `select_best`
+standings, final P4¹² home-win-rate line) · **`tests/test_sports_source.py` +
+`tests/test_sports_recalibration.py`** (32 offline tests — the knob-type causal pair through
+the real `LiveRunner` loop: P1¹² the naive law is refuted and falls silent
+(miss→abstain→abstain→abstain, no recovery path exists); P2¹² the calibrated arm is refuted,
+the cut moves on evidence, the fallen law reseeds through the runner seam, and it **bets again
+and hits**; plus `select_best` ranking, record/replay round-trip, postponement + grace
+counters, state round-trip, controller unit set).
+
+Design decisions (within the pre-registration, for the author to affirm at launch):
+
+- **Per-arm vocabularies in one M** (the temp/precip precedent): arm A `pick_naive`/`win_naive`
+  (`LAW_NAIVE`), arm C rivals `pick_home`/`win_home` + `pick_strong`/`win_strong`, arm B
+  `pick_fav`/`win_fav` + `pick_dog`/`win_dog` around the cut. A miss arrives as
+  `(pick_… g t) ~[ (win_… g t) ] (won g winner)` — body + negated head + observed outcome.
+- **Arm A carries no mechanism at all** — never recalibrated, never reseeded (there is no
+  width; the null is the *absence* of the knob, not a weaker knob).
+- **Arm C's rivals are held** — a fallen `LAW_HOME`/`LAW_STRONG` is reseeded *verbatim*
+  (`HELD_LAWS`), because the selection register's instrument is the ledger (`select_best`
+  over track records), not law standing; holding is not calibration (nothing about the
+  rival's claim moves). Arm A remains the standing instrument.
+- **Cut units**: win-pct differential in integer thousandths (`.556−.481 → 75`); favorite =
+  higher win pct, **tie breaks to the home team**; defaults cut=50, step=25, cap=300, floor
+  0 — settling at 0 (*always the favorite*) is a genuine calibration endpoint in a discrete
+  domain, and the F3¹¹ discriminator is the cut *trajectory* (moves only on evidence,
+  settles), not the endpoint alone.
+- **Regular season only** (`gameType == "R"`): sportId=1 also carries the All-Star slate
+  (verified live 2026-07-12 — gameType "A"); the theories and the P4¹² literature check are
+  regular-season claims.
+- **Not built:** the odds arm (decision (a) — a clean mirror of the `strong` rival once a key
+  exists) and arm D induction-from-blank (optional-if-time, per the pre-registration).
+
+Verified beyond the offline suites: a **live smoke** of the driver against the real API
+(2026-07-12 ~22:30 MDT, scratch dir) — clean start/poll/stop/report, zero fetch errors; the
+empty slate is *real* (the All-Star break: 0 games 07-13, only the ASG 07-14), and the
+schedule/standings payload shapes match the parser exactly (15 finals 07-12 with `isWinner`;
+30 teams in standings). Neighboring suites green (101: resolving/live-runner/weather/agon).
+
+**Launch (the author's):** regular-season play resumes **2026-07-16** (1 game) / **07-17**
+(full 15-game slate). Recommended:
+
+    uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate \
+        --max-seconds 259200
+
+(3 days ≈ 07-17→07-20 covers ~45 games; pacing 1800 s; STOP file honored; `--resume` after a
+kill. Launching earlier just polls quietly through the break.) Decision (a) — odds key — can
+be taken later without disturbing arms A–C; decision (b) is the `--max-seconds` choice.
+Priors P1¹²–P5¹² below stand as pre-registered, unmodified by the build.
+
 ## Priors P1¹²–P5¹² — pre-registered
 
 | prior | instrument | expected |
@@ -81,10 +136,10 @@ vs recorded-replay-first).
 
 | field | value |
 |---|---|
-| date / operator | _(pending build + launch)_ |
-| source · arms | MLB Stats API (statsapi.mlb.com) · A naive-home / B calibrated win-pct cut / C rival theories + select_best / D optional induction |
-| stops | _(pending)_ |
-| code version (git SHA) | _(pending)_ |
+| date / operator | built 2026-07-12 (Claude, this session) · launch _(pending — the author's; play resumes 07-16)_ |
+| source · arms | MLB Stats API (statsapi.mlb.com) · A naive-home / B calibrated win-pct cut / C rival theories + select_best / D optional induction (not built) |
+| stops | _(pending launch — recommended `--max-seconds 259200`, STOP file)_ |
+| code version (git SHA) | the "Run 12 built" commit, 2026-07-12 |
 
 **Totals:** _(pending)_
 

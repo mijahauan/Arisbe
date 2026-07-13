@@ -1,6 +1,24 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-12) — THE UI TRANSPARENCY CHARTER + THE FULL TRANSPARENCY DOCKET
+**▶▶ THIS SESSION (2026-07-12, later sitting) — RUN 12 BUILT (sports, the discrete resolving
+membrane; pre-registered in `runs/RUN_12_LOG.md`, build section added there).** The whole
+offline-first kit shipped: **`src/sports_source.py`** (MLB Stats API `LiveSource` — picks
+raised per scheduled game, finals resolve them, postponements dropped *counted*, record/replay
+JSONL, state carrying pending picks + the learned cut; regular-season `gameType=="R"` only) ·
+**`src/sports_recalibration.py`** (the manufactured knob: a cutpoint on win-pct differential in
+thousandths — favorite ≥ cut, underdog below; cut moves toward the observed 0.5-crossing;
+fallen arm-B laws reseed; arm C rivals *held* verbatim; `LAW_NAIVE` untouchable by design) ·
+**`tools/run_live_sports.py`** (weather-driver clone + per-segment `select_best` standings —
+arm C is the first live theory-selection register — and the final P4¹² home-win-rate vs
+literature line) · **32 offline tests** incl. the knob-type causal pair through the real
+`LiveRunner`: P1¹² naive law refuted→silent (miss, then abstentions only); P2¹² calibrated arm
+refuted→cut moves on evidence→reseeds→**bets again and hits**. Neighboring suites green (101).
+Live smoke against the real API verified payload shapes + a clean start/stop; the empty slate
+was *real* (All-Star break). **Launch is the author's** (play resumes 07-16/17; recommended
+command + the two standing decisions (a) odds key, (b) duration — in RUN_12_LOG). Arm D and
+the odds rival not built (optional/keyed, per pre-registration).
+
+**▶▶ EARLIER THIS DAY (2026-07-12) — THE UI TRANSPARENCY CHARTER + THE FULL TRANSPARENCY DOCKET
 (3 tiers, committed cbe74af → 32c1b13 → 59a9dc8).** The author's steer: walk the three modes as
 one learner who could grow to mastery; the finding of the audit (3 explore agents over the UI
 surfaces, the learning scaffolding, and prior audits): every atomic capability exists — what
@@ -47,7 +65,18 @@ twice-evidenced and AEG Part II §11.4 reads confirmed. The weather trilogy (7�
 Agon-side rule-check; e2e needs `uv run playwright install chromium` — the CDN download failed
 on this machine, so the charter e2e skips cleanly until then), then **run 12 = sports**.
 
-**▶▶▶ NEXT SESSION — BUILD RUN 12 (sports, the discrete resolving membrane; pre-registered in
+**▶▶▶ NEXT SESSION — RUN 12 IS BUILT; LAUNCH + DISPOSE.** The build (above) is committed and
+verified offline + smoke-tested live; regular-season play resumes **2026-07-16/17**. What
+remains: (1) the author affirms priors P1¹²–P5¹² and the build's design decisions (RUN_12_LOG
+build section), takes decisions (a) odds-arm key / (b) duration, and launches
+`uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate --max-seconds 259200`;
+(2) next session watches/disposes findings F1¹²–…, replays `runs/run12/items.jsonl` as the
+determinism canary, and runs the P4¹² literature check (home ≈53–54 %). Parallel, untouched:
+the 2nd-order crossing decisions (A floor / B open-core) remain the author's and gate that
+frontier. Original pre-registration context below.
+
+**▶▶ (superseded by the build — kept for context) BUILD RUN 12 (sports, the discrete resolving
+membrane; pre-registered in
 `runs/RUN_12_LOG.md` + the AEG Part III ledger row).** The weather trilogy closed; run 12 tests
 whether the twice-evidenced **knob-type law** (AEG Part II §11.4) is a law of the *game* or a
 fact about *weather* — sports outcomes are **discrete** (no donated width) and the input is not
