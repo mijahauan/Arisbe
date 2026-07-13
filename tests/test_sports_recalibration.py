@@ -11,7 +11,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from resolving_membrane import PredictionLedger, ResolvingItem
 from sports_recalibration import recalibrate
 from sports_source import (
-    HELD_LAWS, LAW_DOG, LAW_FAV, LAW_HOME, LAW_NAIVE, LAW_STRONG, SEED_LAWS,
+    HELD_LAWS, HELD_LAWS_ODDS, LAW_DOG, LAW_FAV, LAW_HOME, LAW_NAIVE, LAW_ODDS,
+    LAW_STRONG, SEED_LAWS, SEED_LAWS_ODDS,
 )
 
 
@@ -91,6 +92,19 @@ def test_held_rivals_are_reseeded_verbatim():
     rc = recalibrate(led, cut=50, standing_laws=standing)
     assert LAW_HOME in rc.reseed_laws and LAW_STRONG in rc.reseed_laws
     assert rc.changed and any("held rivals" in n for n in rc.notes)
+
+
+def test_the_odds_rival_is_held_when_the_run_carries_it():
+    """With the keyed odds arm running, the driver holds via HELD_LAWS_ODDS — a
+    fallen LAW_ODDS is re-asserted verbatim like the other rivals."""
+    led = _ledger()
+    standing = [l for l in SEED_LAWS_ODDS if l != LAW_ODDS]
+    rc = recalibrate(led, cut=50, standing_laws=standing,
+                     hold_laws=HELD_LAWS_ODDS)
+    assert LAW_ODDS in rc.reseed_laws and rc.changed
+    # …and the default hold set (no odds run) never touches LAW_ODDS.
+    rc2 = recalibrate(led, cut=50, standing_laws=standing)
+    assert LAW_ODDS not in rc2.reseed_laws
 
 
 def test_the_naive_null_is_never_reseeded():

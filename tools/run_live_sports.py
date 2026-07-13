@@ -22,6 +22,7 @@ window; a 14 h run spans only one game day.
 """
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -34,7 +35,8 @@ from agon_evolution import (
 from live_runner import LiveRunConfig, LiveRunner, _sheet_atom_count
 from resolving_membrane import PredictionLedger, ResolvingFeed, select_best
 from sports_recalibration import recalibrate
-from sports_source import SEED_LAWS, SportsSource
+from sports_source import (HELD_LAWS, HELD_LAWS_ODDS, SEED_LAWS, SEED_LAWS_ODDS,
+                           SportsSource)
 from tomos_service import TomosService
 
 
@@ -43,7 +45,8 @@ def _panel():
                         ContradictionAgent()])
 
 
-# The reporting arms; arm B's fav/dog directions fold into "cal".
+# The reporting arms; arm B's fav/dog directions fold into "cal"; "odds" is
+# appended when the keyed rival runs.
 ARMS = ("naive", "home", "strong", "cal")
 
 
@@ -59,16 +62,18 @@ def _arm_of(claim_egif: str):
         return "strong"
     if s.startswith("(win_fav") or s.startswith("(win_dog"):
         return "cal"
+    if s.startswith("(win_odds"):
+        return "odds"
     return None
 
 
-def _per_arm(ledger):
+def _per_arm(ledger, arms):
     """Per-arm hits/misses/abstentions over a ledger's resolution bets."""
-    tally = {a: [0, 0, 0] for a in ARMS}
+    tally = {a: [0, 0, 0] for a in arms}
     idx = {"hit": 0, "miss": 1, "abstain": 2}
     for e in ledger.entries:
         arm = _arm_of(e.claim_egif)
-        if arm is not None and e.result in idx:
+        if arm in tally and e.result in idx:
             tally[arm][idx[e.result]] += 1
     return tally
 
@@ -82,20 +87,20 @@ def _fmt_arm(arm, t, src):
             f"{h}h/{m}m/{a}a net={h - m}")
 
 
-def _arm_ledgers(ledger):
+def _arm_ledgers(ledger, arms):
     """Slice the run ledger into per-theory ledgers — arm C's ``select_best``
     input (each theory's world-scored track record over the same games)."""
-    arms = []
-    for a in ARMS:
+    out = []
+    for a in arms:
         led = PredictionLedger(
             entries=[e for e in ledger.entries if _arm_of(e.claim_egif) == a])
-        arms.append((a, led))
-    return arms
+        out.append((a, led))
+    return out
 
 
-def _standings_lines(ledger):
+def _standings_lines(ledger, arms):
     """The select_best ranking, one line per theory (winner first)."""
-    arms = _arm_ledgers(ledger)
+    arms = _arm_ledgers(ledger, arms)
 
     def key(arm):
         _label, led = arm
@@ -128,6 +133,11 @@ def main(argv=None) -> int:
                     help="max cut (thousandths); the floor is 0 = always-favorite")
     ap.add_argument("--window", type=int, default=30,
                     help="recent-bet window the recalibrator reads")
+    ap.add_argument("--odds-key", default=os.environ.get("ODDS_API_KEY"),
+                    help="The Odds API key (default: the ODDS_API_KEY env var). "
+                         "When present, arm C gains the odds-favorite rival "
+                         "(pick_odds → win_odds, held like the other rivals). "
+                         "The key never appears in logs, state, or recordings.")
     ap.add_argument("--fetch-tries", type=int, default=3,
                     help="bounded retries per MLB fetch")
     ap.add_argument("--fetch-backoff", type=float, default=0.5,
@@ -192,11 +202,15 @@ def main(argv=None) -> int:
     # The run-level track record (feeds are per-segment; this accumulates).
     run_ledger = PredictionLedger()
 
+    odds_on = bool(args.odds_key)
+    arms = ARMS + (("odds",) if odds_on else ())
     src_kwargs = dict(horizon_hours=args.horizon_hours, grace_hours=args.grace_hours,
                       cut=args.cut, fetch_tries=args.fetch_tries,
                       fetch_backoff=args.fetch_backoff,
+                      odds_key=args.odds_key,
                       record_path=str(runs / "items.jsonl"))
-    seed_laws = list(SEED_LAWS)
+    seed_laws = list(SEED_LAWS_ODDS if odds_on else SEED_LAWS)
+    hold_laws = list(HELD_LAWS_ODDS if odds_on else HELD_LAWS)
     regen_count = {"n": 0}
 
     def build(resume: bool):
@@ -228,7 +242,7 @@ def main(argv=None) -> int:
                     run_ledger, cut=source._cut,
                     standing_laws=list(getattr(runner, "_laws", [])),
                     window=args.window, cut_step=args.cut_step,
-                    cut_cap=args.cut_cap)
+                    cut_cap=args.cut_cap, hold_laws=hold_laws)
                 if rc.changed:
                     source._cut = rc.cut
                     reseed = rc.reseed_laws
@@ -243,16 +257,18 @@ def main(argv=None) -> int:
                   f"dispositions={dispositions}{bets}"
                   + (f" picks={source.claims_raised} resolved={source.resolutions}"
                      f" dropped={source.unresolved_dropped}"
-                     f" postponed={source.postponed_dropped} cut={source._cut}")
+                     f" postponed={source.postponed_dropped}"
+                     + (f" odds_skipped={source.odds_skipped}" if odds_on else "")
+                     + f" cut={source._cut}")
                   + (f" ⚠ fetch_errors={source.fetch_errors} [{errs}]"
                      if source.fetch_errors else ""), flush=True)
-            arm_tally = _per_arm(run_ledger)
+            arm_tally = _per_arm(run_ledger, arms)
             print("    per-arm (run): "
-                  + " | ".join(_fmt_arm(a, arm_tally[a], source) for a in ARMS),
+                  + " | ".join(_fmt_arm(a, arm_tally[a], source) for a in arms),
                   flush=True)
             # Arm C: the live theory-selection standings (P3¹²).
             print("    select_best standings: "
-                  + " | ".join(_standings_lines(run_ledger)), flush=True)
+                  + " | ".join(_standings_lines(run_ledger, arms)), flush=True)
             return {"bets": len(seg_bets), "net": run_ledger.net_score,
                     "cut": source._cut, "reseed_laws": reseed}
 
@@ -276,7 +292,8 @@ def main(argv=None) -> int:
           f"(run 12, discrete) · horizon={args.horizon_hours}h · "
           f"grace={args.grace_hours}h · cut={args.cut} "
           f"(step {args.cut_step}, cap {args.cut_cap}) · ttl={args.ttl} polls · "
-          f"pacing={args.min_interval}s · arms: naive-null / home+win-pct rivals / "
+          f"pacing={args.min_interval}s · arms: naive-null / home+win-pct rivals"
+          + (" + odds rival" if odds_on else "") + " / "
           f"calibrated cut · regenerate={'on' if args.regenerate else 'off'} · "
           f"stop: touch {stop_file}", flush=True)
 
@@ -320,17 +337,18 @@ def main(argv=None) -> int:
     print(f"picks: raised={source.claims_raised} resolved={source.resolutions} "
           f"dropped_unresolved={source.unresolved_dropped} "
           f"postponed={source.postponed_dropped} "
-          f"fetch_errors={source.fetch_errors} (per-endpoint: {by_ep})")
-    arm_tally = _per_arm(run_ledger)
+          + (f"odds_skipped={source.odds_skipped} " if odds_on else "")
+          + f"fetch_errors={source.fetch_errors} (per-endpoint: {by_ep})")
+    arm_tally = _per_arm(run_ledger, arms)
     print("per-arm (run-level):")
-    for a in ARMS:
+    for a in arms:
         print("  " + _fmt_arm(a, arm_tally[a], source))
     print("select_best standings (final, P3¹²):")
-    for line in _standings_lines(run_ledger):
+    for line in _standings_lines(run_ledger, arms):
         print("  " + line)
     print(f"final cut: {source._cut} (seeded {args.cut})")
     # P4¹²: the external-literature check — home-win rate vs the documented ≈53–54%.
-    home = _per_arm(run_ledger)["home"]
+    home = _per_arm(run_ledger, arms)["home"]
     decided = home[0] + home[1]
     if decided:
         print(f"home-win rate over decided home-rival bets: "

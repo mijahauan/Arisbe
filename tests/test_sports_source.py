@@ -11,8 +11,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from sports_source import (
-    HELD_LAWS, LAW_DOG, LAW_FAV, LAW_HOME, LAW_NAIVE, LAW_STRONG, SEED_LAWS,
-    SportsSource, favorite_of, pct_of, replay_item_batches,
+    ARM_KINDS, HELD_LAWS, HELD_LAWS_ODDS, LAW_DOG, LAW_FAV, LAW_HOME, LAW_NAIVE,
+    LAW_ODDS, LAW_STRONG, SEED_LAWS, SEED_LAWS_ODDS, SportsSource, favorite_of,
+    pct_of, replay_item_batches,
 )
 
 T0 = datetime(2026, 7, 12, 15, 0, tzinfo=timezone.utc)      # before first pitch
@@ -382,5 +383,137 @@ def test_select_best_ranks_rival_theories_over_the_same_games():
 
 def test_seed_laws_cover_all_arms_and_held_laws_are_the_rivals():
     assert SEED_LAWS == [LAW_NAIVE, LAW_HOME, LAW_STRONG, LAW_FAV, LAW_DOG]
+    assert SEED_LAWS_ODDS == SEED_LAWS + [LAW_ODDS]
     assert HELD_LAWS == [LAW_HOME, LAW_STRONG]
-    assert LAW_NAIVE not in HELD_LAWS                    # the null is never held
+    assert HELD_LAWS_ODDS == [LAW_HOME, LAW_STRONG, LAW_ODDS]
+    assert LAW_NAIVE not in HELD_LAWS_ODDS               # the null is never held
+
+
+# --- the odds rival (arm C, decision (a) taken 2026-07-13) ---------------------
+
+def _odds_event(home_price=1.7, away_price=2.2, home=HOME, away=AWAY,
+                commence=GAME_TIME, books=2):
+    """One Odds API event (the real v4 shape, verified live 2026-07-13):
+    decimal ``h2h`` outcomes per bookmaker; lower price = favorite."""
+    return {"commence_time": commence, "home_team": home, "away_team": away,
+            "bookmakers": [
+                {"key": f"book{i}", "markets": [{"key": "h2h", "outcomes": [
+                    {"name": home, "price": home_price},
+                    {"name": away, "price": away_price}]}]}
+                for i in range(books)]}
+
+
+def _odds_source(clock_time, games, events, **kw):
+    clock = {"now": clock_time}
+    src = SportsSource(fetch_json=_fixture_fetch(games),
+                       odds_fetch=(events if callable(events)
+                                   else (lambda: events)),
+                       clock=lambda: clock["now"], **kw)
+    return src, clock
+
+
+def test_odds_arm_requires_a_key_or_injected_fetch():
+    import pytest
+    with pytest.raises(ValueError):
+        SportsSource(arms=ARM_KINDS, fetch_json=lambda u: {})
+    # …and without the odds arm requested, no key is needed (default arms).
+    src = SportsSource(fetch_json=lambda u: {"dates": []}, clock=lambda: T0)
+    assert "odds" not in src._arms
+
+
+def test_odds_pick_is_the_consensus_favorite():
+    """The odds rival picks the lower-average-decimal-price team — here the
+    market favors the AWAY team while the standings favor HOME, so the odds and
+    strong rivals genuinely disagree (the register select_best exists to rank)."""
+    src, _ = _odds_source(T0, [_game()], [_odds_event(home_price=2.3,
+                                                      away_price=1.6)])
+    claims = {i.claim_egif for i in src.fetch()}
+    assert f'(pick_odds "776001" "{AWAY}")' in claims
+    assert f'(pick_strong "776001" "{HOME}")' in claims   # standings disagree
+    assert src.claims_raised_by_kind["odds"] == 1
+
+
+def test_odds_cross_book_tie_is_skipped_counted():
+    src, _ = _odds_source(T0, [_game()], [_odds_event(home_price=1.9,
+                                                      away_price=1.9)])
+    claims = {i.claim_egif for i in src.fetch()}
+    assert not any("odds" in c for c in claims)
+    assert src.odds_skipped == 1
+    src.fetch()
+    assert src.odds_skipped == 1                          # given up once, not per poll
+
+
+def test_odds_absent_market_retries_then_gives_up_near_first_pitch():
+    """No posted market: retried silently while the game is >2 h out (books post
+    late), then given up counted close to first pitch — never silent."""
+    src, clock = _odds_source(T0, [_game()], [])          # 18:05 start; now 15:00
+    src.fetch()
+    assert src.odds_skipped == 0                          # >2 h out — still waiting
+    assert ("776001", "odds") not in src._claimed
+    clock["now"] = datetime(2026, 7, 12, 16, 30, tzinfo=timezone.utc)  # <2 h out
+    src.fetch()
+    assert src.odds_skipped == 1
+    assert ("776001", "odds") in src._claimed
+
+
+def test_odds_fetch_failure_neither_claims_nor_gives_up():
+    """A dead Odds API poll is counted per-endpoint and the pick is simply
+    retried next poll — a transient outage must not consume the game's one
+    give-up."""
+    def dead():
+        raise RuntimeError("down")
+    src, clock = _odds_source(
+        datetime(2026, 7, 12, 16, 30, tzinfo=timezone.utc),  # even <2 h out
+        [_game()], dead)
+    src._sleep = lambda s: None
+    src.fetch()
+    assert src.fetch_errors_by_endpoint.get("odds") == 1
+    assert src.odds_skipped == 0
+    assert ("776001", "odds") not in src._claimed
+
+
+def test_odds_pick_resolves_like_any_rival():
+    """Full cycle: the odds favorite (away) wins → win_odds hits while the
+    home-side arms miss — five theories scored on one game."""
+    phase = {"final": False}
+    games = lambda: [_game(state="Final", detailed="Final", home_winner=False,
+                           away_winner=True)] if phase["final"] else [_game()]
+    src, clock = _odds_source(T0, games,
+                              [_odds_event(home_price=2.3, away_price=1.6)])
+    src.fetch()
+    phase["final"] = True
+    clock["now"] = T_AFTER
+    batch = {i.claim_egif: i for i in src.fetch()}
+    odds_item = batch[f'(win_odds "776001" "{AWAY}")']
+    assert odds_item.happened
+    assert not batch[f'(win_naive "776001" "{HOME}")'].happened
+    assert src.resolutions_by_kind["odds"] == 1
+
+
+def test_odds_doubleheader_matches_by_commence_time():
+    """Two games, same teams, same day (a doubleheader): each schedule game
+    matches its own odds event by nearest commence time — and the books can
+    favor different sides per game."""
+    g1 = _game(pk=776001, game_date="2026-07-12T17:05:00Z")
+    g2 = _game(pk=776002, game_date="2026-07-12T23:05:00Z")
+    ev1 = _odds_event(home_price=1.6, away_price=2.3,
+                      commence="2026-07-12T17:07:00Z")
+    ev2 = _odds_event(home_price=2.3, away_price=1.6,
+                      commence="2026-07-12T23:08:00Z")
+    src, _ = _odds_source(datetime(2026, 7, 12, 14, 0, tzinfo=timezone.utc),
+                          [g1, g2], [ev1, ev2])
+    claims = {i.claim_egif for i in src.fetch()}
+    assert f'(pick_odds "776001" "{HOME}")' in claims
+    assert f'(pick_odds "776002" "{AWAY}")' in claims
+
+
+def test_odds_skip_counter_round_trips_state(tmp_path):
+    src, _ = _odds_source(T0, [_game()], [_odds_event(home_price=1.9,
+                                                      away_price=1.9)])
+    src.fetch()
+    sp = str(tmp_path / "ss.json")
+    src.save_state(sp)
+    src2 = SportsSource.load_state(sp, fetch_json=_fixture_fetch([_game()]),
+                                   odds_fetch=lambda: [], clock=lambda: T0)
+    assert src2.odds_skipped == 1
+    assert ("776001", "odds") in src2._claimed

@@ -15,8 +15,15 @@ literature line) · **32 offline tests** incl. the knob-type causal pair through
 refuted→cut moves on evidence→reseeds→**bets again and hits**. Neighboring suites green (101).
 Live smoke against the real API verified payload shapes + a clean start/stop; the empty slate
 was *real* (All-Star break). **Launch is the author's** (play resumes 07-16/17; recommended
-command + the two standing decisions (a) odds key, (b) duration — in RUN_12_LOG). Arm D and
-the odds rival not built (optional/keyed, per pre-registration).
+command in RUN_12_LOG). Arm D not built (optional, per pre-registration).
+**07-13 follow-up: decision (a) TAKEN — the odds rival built** (author supplied a The Odds API
+key): `pick_odds`/`win_odds` + `LAW_ODDS` held via `HELD_LAWS_ODDS`; pick = bookmaker-consensus
+favorite (lowest average decimal h2h price); tie/never-posted skipped *counted*
+(`odds_skipped`, give-up ≤2 h before first pitch); doubleheaders matched by nearest commence;
+lazy quota use (~1–3 calls/game-day of the 500/month tier; live-verified v4 shape, 499 left).
+`select_best` now ranks **five** theories; P4¹² gains its favorite–longshot half. Key only via
+`ODDS_API_KEY` env / `--odds-key` at launch — grep-verified absent from repo, state, console,
+recordings. 41+ sports tests green; neighbors green (107).
 
 **▶▶ EARLIER THIS DAY (2026-07-12) — THE UI TRANSPARENCY CHARTER + THE FULL TRANSPARENCY DOCKET
 (3 tiers, committed cbe74af → 32c1b13 → 59a9dc8).** The author's steer: walk the three modes as

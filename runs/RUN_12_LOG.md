@@ -102,8 +102,21 @@ Design decisions (within the pre-registration, for the author to affirm at launc
 - **Regular season only** (`gameType == "R"`): sportId=1 also carries the All-Star slate
   (verified live 2026-07-12 — gameType "A"); the theories and the P4¹² literature check are
   regular-season claims.
-- **Not built:** the odds arm (decision (a) — a clean mirror of the `strong` rival once a key
-  exists) and arm D induction-from-blank (optional-if-time, per the pre-registration).
+- **Not built:** arm D induction-from-blank (optional-if-time, per the pre-registration).
+- **Decision (a) TAKEN 2026-07-13 — the odds rival is built.** The author supplied a The Odds
+  API free-tier key; `pick_odds`/`win_odds` (`LAW_ODDS`, held via `HELD_LAWS_ODDS`) joins arm C
+  so `select_best` ranks **five** theories (naive · home · strong · cal · odds). The pick is
+  the **bookmaker-consensus favorite** — lower *average decimal price* across the returned
+  books' `h2h` markets (`regions=us`); a cross-book tie is skipped *counted*
+  (`odds_skipped`); an event with no posted market is retried until ~2 h before first pitch,
+  then given up counted; a doubleheader matches its two odds events by nearest commence time
+  (≤ 6 h). Quota: free tier 500 req/month; one lazy odds call per poll *only while unclaimed
+  games await a pick* (~1–3/game-day — a 3-day run uses ≈ tens). Verified against the live v4
+  API 2026-07-13 (list-of-events shape, decimal `h2h`, quota headers; 499 remaining after the
+  probe). **The key lives only in the `ODDS_API_KEY` env var / `--odds-key` flag at launch** —
+  it rides in the request URL only, never in recorded items, state files, console, or the
+  repo (grep-verified). This also arms the P4¹² favorite–longshot half of the literature
+  check.
 
 Verified beyond the offline suites: a **live smoke** of the driver against the real API
 (2026-07-12 ~22:30 MDT, scratch dir) — clean start/poll/stop/report, zero fetch errors; the
@@ -112,15 +125,18 @@ schedule/standings payload shapes match the parser exactly (15 finals 07-12 with
 30 teams in standings). Neighboring suites green (101: resolving/live-runner/weather/agon).
 
 **Launch (the author's):** regular-season play resumes **2026-07-16** (1 game) / **07-17**
-(full 15-game slate). Recommended:
+(full 15-game slate). Recommended (morning of 07-17, or evening 07-16 to catch that day's
+single game):
 
+    export ODDS_API_KEY=<the key>
     uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate \
         --max-seconds 259200
 
 (3 days ≈ 07-17→07-20 covers ~45 games; pacing 1800 s; STOP file honored; `--resume` after a
-kill. Launching earlier just polls quietly through the break.) Decision (a) — odds key — can
-be taken later without disturbing arms A–C; decision (b) is the `--max-seconds` choice.
-Priors P1¹²–P5¹² below stand as pre-registered, unmodified by the build.
+kill. Launching earlier works too — it just polls quietly through the break; then prefer
+`--max-seconds 604800` so the budget survives to cover three game days.) Decision (a) is
+taken (odds rival built, above); decision (b) is the `--max-seconds` choice. Priors
+P1¹²–P5¹² below stand as pre-registered, unmodified by the build.
 
 ## Priors P1¹²–P5¹² — pre-registered
 
@@ -137,7 +153,7 @@ Priors P1¹²–P5¹² below stand as pre-registered, unmodified by the build.
 | field | value |
 |---|---|
 | date / operator | built 2026-07-12 (Claude, this session) · launch _(pending — the author's; play resumes 07-16)_ |
-| source · arms | MLB Stats API (statsapi.mlb.com) · A naive-home / B calibrated win-pct cut / C rival theories + select_best / D optional induction (not built) |
+| source · arms | MLB Stats API (statsapi.mlb.com) + The Odds API (h2h consensus, keyed) · A naive-home / B calibrated win-pct cut / C rivals home·win-pct·**odds** + select_best / D optional induction (not built) |
 | stops | _(pending launch — recommended `--max-seconds 259200`, STOP file)_ |
 | code version (git SHA) | the "Run 12 built" commit, 2026-07-12 |
 

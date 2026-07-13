@@ -24,12 +24,19 @@ temp/precip precedent — one M, one runner, arms distinguished by relation name
   underdog below it). The cut is recalibrated from the ledger
   (``sports_recalibration``) and its fallen laws reseeded — expect recovery.
 - **Arm C — rival theories, the selection register** (``pick_home`` → ``win_home``,
-  ``pick_strong`` → ``win_strong``; :data:`LAW_HOME`/:data:`LAW_STRONG`): home-wins
-  and higher-win-pct-wins bet on the *same* games, ranked live by
-  ``resolving_membrane.select_best``. The rivals are **held** — reseeded verbatim
-  when fallen — because the C register's instrument is the *ledger* (the world's
-  track-record selection), not law standing; arm A is the standing instrument. The
-  odds-favorite rival is deferred on the author's key decision (RUN_12_LOG (a)).
+  ``pick_strong`` → ``win_strong``, and — with an Odds API key — ``pick_odds`` →
+  ``win_odds``; :data:`LAW_HOME`/:data:`LAW_STRONG`/:data:`LAW_ODDS`): home-wins,
+  higher-win-pct-wins, and odds-favorite-wins bet on the *same* games, ranked live
+  by ``resolving_membrane.select_best``. The rivals are **held** — reseeded
+  verbatim when fallen — because the C register's instrument is the *ledger* (the
+  world's track-record selection), not law standing; arm A is the standing
+  instrument. The odds rival (decision (a), taken 2026-07-13) reads **The Odds API**
+  (`the-odds-api.com`, ``h2h`` moneylines, decimal): the pick is the **consensus
+  favorite** — lower average decimal price across the returned bookmakers; a
+  cross-book tie is skipped *counted* (``odds_skipped``), an event with no posted
+  market yet is retried until ~2 h before first pitch, then given up counted. The
+  key rides only in the request URL (``odds_key=`` / the driver's ``ODDS_API_KEY``
+  env) — never in recorded items, state files, or logs.
 - **Arm D (induction-from-blank)** — not built; optional-if-time per the
   pre-registration.
 
@@ -71,22 +78,28 @@ from typing import Callable, Dict, List, Optional, Sequence, Tuple
 from resolving_membrane import ResolvingItem
 
 MLB_API = "https://statsapi.mlb.com/api/v1"
+ODDS_API = "https://api.the-odds-api.com/v4/sports/baseball_mlb/odds"
 USER_AGENT = "Arisbe-EPG/0.1 (research; michael.j.hauan@gmail.com)"
 
-# The four seeded theories (arm D seeds nothing and is not built).
+# The seeded theories (arm D seeds nothing and is not built).
 LAW_NAIVE = "~[ (pick_naive *g *t) ~[ (win_naive g t) ] ]"
 LAW_HOME = "~[ (pick_home *g *t) ~[ (win_home g t) ] ]"
 LAW_STRONG = "~[ (pick_strong *g *t) ~[ (win_strong g t) ] ]"
 LAW_FAV = "~[ (pick_fav *g *t) ~[ (win_fav g t) ] ]"
 LAW_DOG = "~[ (pick_dog *g *t) ~[ (win_dog g t) ] ]"
+LAW_ODDS = "~[ (pick_odds *g *t) ~[ (win_odds g t) ] ]"
 
 SEED_LAWS = [LAW_NAIVE, LAW_HOME, LAW_STRONG, LAW_FAV, LAW_DOG]
+SEED_LAWS_ODDS = SEED_LAWS + [LAW_ODDS]       # when the odds rival runs (keyed)
 # Arm C's rivals are HELD (reseeded verbatim when fallen) — the selection register
 # scores theories by ledger, so a rival must keep betting; arm A never is.
 HELD_LAWS = [LAW_HOME, LAW_STRONG]
+HELD_LAWS_ODDS = HELD_LAWS + [LAW_ODDS]
 
-# Raise-phase pick kinds. "cal" (arm B) resolves to a "fav" or "dog" claim per game.
-ARM_KINDS = ("naive", "home", "strong", "cal")
+# Raise-phase pick kinds. "cal" (arm B) resolves to a "fav" or "dog" claim per
+# game; "odds" needs an Odds API key (or injected fetch) and is off by default.
+DEFAULT_ARMS = ("naive", "home", "strong", "cal")
+ARM_KINDS = DEFAULT_ARMS + ("odds",)
 
 _POSTPONED = ("postponed", "suspended", "cancelled", "canceled")
 
@@ -168,21 +181,33 @@ class SportsSource:
     def __init__(
         self,
         *,
-        arms: Sequence[str] = ARM_KINDS,
+        arms: Optional[Sequence[str]] = None,
         horizon_hours: int = 18,
         grace_hours: int = 12,
         cut: int = 50,
         fetch_json: Optional[Callable[[str], dict]] = None,
+        odds_key: Optional[str] = None,
+        odds_fetch: Optional[Callable[[], list]] = None,
         record_path: Optional[str] = None,
         clock: Optional[Callable[[], datetime]] = None,
         sleep: Optional[Callable[[float], None]] = None,
         fetch_tries: int = 3,
         fetch_backoff: float = 0.5,
     ):
+        has_odds = odds_key is not None or odds_fetch is not None
+        if arms is None:
+            arms = ARM_KINDS if has_odds else DEFAULT_ARMS
         unknown = set(arms) - set(ARM_KINDS)
         if unknown:
             raise ValueError(f"unknown arms {sorted(unknown)!r} — pick from {ARM_KINDS}")
+        if "odds" in arms and not has_odds:
+            raise ValueError("the odds arm needs odds_key= (The Odds API) or an "
+                             "injected odds_fetch=")
         self._arms = tuple(a for a in ARM_KINDS if a in set(arms))
+        self._odds_fetch = odds_fetch or (
+            (lambda: _live_fetch_json(
+                f"{ODDS_API}?apiKey={odds_key}&regions=us&markets=h2h"
+                f"&oddsFormat=decimal")) if odds_key else None)
         self._horizon = horizon_hours
         self._grace = grace_hours
         self._cut = cut
@@ -199,6 +224,7 @@ class SportsSource:
         self.resolutions = 0
         self.unresolved_dropped = 0
         self.postponed_dropped = 0          # the pre-registered grace counter (P5¹²)
+        self.odds_skipped = 0               # odds pick given up (tie / never posted)
         self.claims_raised_by_kind: Dict[str, int] = {}
         self.resolutions_by_kind: Dict[str, int] = {}
         self.fetch_errors = 0
@@ -206,18 +232,21 @@ class SportsSource:
 
     # -- MLB plumbing ---------------------------------------------------------
 
-    def _fetch_retry(self, url: str) -> dict:
-        """``self._fetch(url)`` with a bounded exponential backoff (the F1⁷
-        pattern); re-raises the last exception when every attempt fails."""
+    def _retry(self, call: Callable[[], object]):
+        """``call()`` with a bounded exponential backoff (the F1⁷ pattern);
+        re-raises the last exception when every attempt fails."""
         last: Exception = RuntimeError("no fetch attempted")
         for attempt in range(self._fetch_tries):
             try:
-                return self._fetch(url)
+                return call()
             except Exception as exc:              # transient 5xx/timeout — retry
                 last = exc
                 if attempt + 1 < self._fetch_tries:
                     self._sleep(self._fetch_backoff * (2.0 ** attempt))
         raise last
+
+    def _fetch_retry(self, url: str) -> dict:
+        return self._retry(lambda: self._fetch(url))
 
     def _note_fetch_error(self, endpoint: str) -> None:
         self.fetch_errors += 1
@@ -264,6 +293,67 @@ class SportsSource:
                                             int(tr.get("losses", 0)))
         return table
 
+    @staticmethod
+    def _consensus_favorite(event: dict) -> Optional[str]:
+        """The bookmaker-consensus favorite of one odds event: the team with the
+        lower **average decimal price** across the returned books' ``h2h``
+        markets. ``None`` on a cross-book tie or a market missing either team."""
+        prices: Dict[str, List[float]] = {}
+        for bk in event.get("bookmakers", []):
+            m = next((m for m in bk.get("markets", [])
+                      if m.get("key") == "h2h"), None)
+            for o in (m or {}).get("outcomes", []):
+                try:
+                    prices.setdefault(_const(o.get("name", "")),
+                                      []).append(float(o["price"]))
+                except (KeyError, TypeError, ValueError):
+                    continue
+        avg = {t: sum(v) / len(v) for t, v in prices.items() if v}
+        home = _const(event.get("home_team", ""))
+        away = _const(event.get("away_team", ""))
+        if home not in avg or away not in avg or avg[home] == avg[away]:
+            return None
+        return home if avg[home] < avg[away] else away
+
+    def _odds_table(self) -> Optional[Dict[Tuple[str, str], List[Tuple[datetime, Optional[str]]]]]:
+        """One Odds API poll → ``(home, away) → [(commence, favorite|None), …]``
+        (a list, so a doubleheader's two games match their own entries). ``None``
+        on a fetch failure — the caller retries next poll rather than giving up
+        on any pending pick this one."""
+        if self._odds_fetch is None:
+            return None
+        try:
+            events = self._retry(self._odds_fetch)
+        except Exception:
+            self._note_fetch_error("odds")
+            return None
+        table: Dict[Tuple[str, str], List[Tuple[datetime, Optional[str]]]] = {}
+        for ev in events or []:
+            start = _iso_dt(str(ev.get("commence_time", "")))
+            if start is None:
+                continue
+            key = (_const(ev.get("home_team", "")), _const(ev.get("away_team", "")))
+            table.setdefault(key, []).append((start, self._consensus_favorite(ev)))
+        return table
+
+    @staticmethod
+    def _odds_lookup(table, home: str, away: str, start: datetime
+                     ) -> Tuple[str, Optional[str]]:
+        """Match a schedule game to its odds event by team names + nearest
+        commence time (≤ 6 h apart — sources disagree by minutes, doubleheaders
+        by hours), consuming the entry. Returns ``("ok", favorite)`` /
+        ``("tie", None)`` / ``("absent", None)``."""
+        cands = table.get((home, away))
+        if not cands:
+            return "absent", None
+        i = min(range(len(cands)),
+                key=lambda j: abs((cands[j][0] - start).total_seconds()))
+        commence, fav = cands[i]
+        if abs((commence - start).total_seconds()) > 6 * 3600:
+            return "absent", None
+        cands.pop(i)
+        return ("tie", None) if fav is None else ("ok", fav)
+
     # -- phase 1: raise ----------------------------------------------------------
 
     def _raise_claim(self, game: dict, date: str, kind: str, team: str,
@@ -285,6 +375,7 @@ class SportsSource:
             dates.append(d.isoformat())
             d += timedelta(days=1)
         standings: Optional[Dict[int, float]] = None    # lazy — one fetch per poll
+        odds: object = "unfetched"                       # lazy — one Odds API call
         for date in dates:
             for game in self._schedule(date):
                 start = _iso_dt(str(game.get("gameDate", "")))
@@ -310,6 +401,22 @@ class SportsSource:
                 for kind in ("naive", "home"):
                     if kind in self._arms and (pk, kind) not in self._claimed:
                         items.append(self._raise_claim(game, date, kind, home, gt))
+                if "odds" in self._arms and (pk, "odds") not in self._claimed:
+                    if odds == "unfetched":
+                        odds = self._odds_table()       # None = fetch failed
+                    if odds is not None:
+                        status, ofav = self._odds_lookup(odds, home, away, start)
+                        if status == "ok":
+                            items.append(self._raise_claim(
+                                game, date, "odds", ofav, gt))
+                        elif status == "tie" or (
+                                start - now) < timedelta(hours=2):
+                            # A cross-book tie, or a market still unposted close
+                            # to first pitch: give up on this game's odds pick —
+                            # counted, never silent. An absent market further out
+                            # is retried next poll (books post late).
+                            self._claimed.add((pk, "odds"))
+                            self.odds_skipped += 1
                 want_strong = ("strong" in self._arms
                                and (pk, "strong") not in self._claimed)
                 want_cal = ("cal" in self._arms and not (
@@ -423,6 +530,7 @@ class SportsSource:
                          "resolutions": self.resolutions,
                          "unresolved_dropped": self.unresolved_dropped,
                          "postponed_dropped": self.postponed_dropped,
+                         "odds_skipped": self.odds_skipped,
                          "fetch_errors": self.fetch_errors},
             "claims_raised_by_kind": dict(self.claims_raised_by_kind),
             "resolutions_by_kind": dict(self.resolutions_by_kind),
@@ -448,6 +556,7 @@ class SportsSource:
         src.resolutions = c.get("resolutions", 0)
         src.unresolved_dropped = c.get("unresolved_dropped", 0)
         src.postponed_dropped = c.get("postponed_dropped", 0)
+        src.odds_skipped = c.get("odds_skipped", 0)
         src.fetch_errors = c.get("fetch_errors", 0)
         src.claims_raised_by_kind = dict(state.get("claims_raised_by_kind", {}))
         src.resolutions_by_kind = dict(state.get("resolutions_by_kind", {}))
@@ -471,6 +580,7 @@ def replay_item_batches(path: str) -> List[List[ResolvingItem]]:
 
 
 __all__ = ["SportsSource", "PendingGame", "ResolvingItem", "pct_of",
-           "favorite_of", "replay_item_batches", "ARM_KINDS", "SEED_LAWS",
-           "HELD_LAWS", "LAW_NAIVE", "LAW_HOME", "LAW_STRONG", "LAW_FAV",
-           "LAW_DOG"]
+           "favorite_of", "replay_item_batches", "ARM_KINDS", "DEFAULT_ARMS",
+           "SEED_LAWS", "SEED_LAWS_ODDS", "HELD_LAWS", "HELD_LAWS_ODDS",
+           "LAW_NAIVE", "LAW_HOME", "LAW_STRONG", "LAW_FAV", "LAW_DOG",
+           "LAW_ODDS"]
