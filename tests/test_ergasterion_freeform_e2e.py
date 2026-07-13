@@ -196,6 +196,11 @@ def test_corpus_edit_base_is_consistent(page, app_url):
     page.goto(app_url + "/ergasterion", wait_until="networkidle")
     page.wait_for_selector("#corpus-list > *", timeout=10000)
     page.click("#corpus-list > *")
+    # Picking a corpus graph now asks what you MEAN to do to it (the three
+    # regimes as three doors). "Reason from it" is the posture this test is
+    # about — the old behaviour, now chosen rather than silently assumed.
+    page.wait_for_selector("#btn-intent-reason", state="visible", timeout=10000)
+    page.click("#btn-intent-reason")
     page.wait_for_selector("#workspace-switch", state="visible")
     page.wait_for_load_state("networkidle")
     # A corpus graph opens already fixed (The Argument).

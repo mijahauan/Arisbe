@@ -422,6 +422,25 @@
     .ws-state.sealed  { background: rgba(147,153,178,0.12); border: 1px solid rgba(147,153,178,0.4); color: var(--phase-sealed); }
     .ws-state .lock { font-size: 14px; line-height: 1; }
     .ws-state .ws-sub { color: var(--phase-sealed); font-weight: 400; }
+    /* The entry doors. Each door states its CONSEQUENCE on a second line — the
+       charter's P1 (orientation) + P3 (recognition, never recall): you should
+       never have to remember what a door does, or discover it by trying it. */
+    .entry-group { margin-bottom: 16px; }
+    .entry-group-head {
+      font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase;
+      letter-spacing: 0.5px; margin-bottom: 6px;
+      border-bottom: 1px solid var(--ctp-surface0); padding-bottom: 4px;
+    }
+    #picker-section button.action, #intent-section button.action {
+      display: block; width: 100%; text-align: left; margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .entry-sub {
+      display: block; font-size: 9.5px; font-weight: 400;
+      color: var(--ctp-overlay1, #7f849c); margin-top: 2px;
+    }
+    button.action.primary .entry-sub { color: var(--ctp-surface1, #45475a); }
+
     /* The palette (composing). Same grid bones as the rule grid. */
     .palette-grid {
       display: grid;
@@ -513,22 +532,64 @@
       <div class="panel-body" id="left-body">
 
         <div id="picker-section">
-          <h2 style="font-size: 12px; color: var(--sidebar-accent); margin-bottom: 8px;">
-            Pick a context to compose against
+          <h2 style="font-size: 12px; color: var(--sidebar-accent); margin-bottom: 4px;">
+            What would you like to do?
           </h2>
-          <p style="font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 10px;">
-            Every assertion resides in a context. Choose your starting point.
+          <p style="font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 12px;">
+            Every assertion resides in a context — so the workshop always opens
+            <em>against</em> something. Two questions: are you making a graph, or
+            working on one?
           </p>
-          <button class="action primary" id="btn-start-empty">
-            Empty sheet of assertion
-          </button>
-          <button class="action" id="btn-start-challenge" style="margin-top: 8px;"
-                  title="Open an empty sheet and pick a target to draw freehand — Arisbe grades your attempt with a plain-language diff.">
-            🎯 Practice — draw a challenge
-          </button>
-          <div style="margin-top: 10px;">
+
+          <!-- ── Make something ─────────────────────────────────────────────
+               Four ways in. Each lands on the same clay (regime 1, unfixed);
+               they differ only in what you start from — nothing, a linear form,
+               English, or a target to reproduce. -->
+          <div class="entry-group">
+            <div class="entry-group-head">Make a graph</div>
+            <button class="action primary" id="btn-start-empty"
+                    title="The blank sheet — the one unconditioned context.">
+              ◻ Blank sheet
+              <span class="entry-sub">Draw or place marks from nothing</span>
+            </button>
+            <button class="action" id="btn-start-linear"
+                    title="Paste EGIF (or CGIF/CLIF) and start from the graph it denotes.">
+              ⌨ From a linear form
+              <span class="entry-sub">Paste EGIF · CGIF · CLIF — start from what it denotes</span>
+            </button>
+            <button class="action" id="btn-start-challenge"
+                    title="Pick a target you may read but not see drawn; draw it freehand; Arisbe grades your attempt with a plain-language diff.">
+              🎯 Practice — draw a challenge
+              <span class="entry-sub">Reproduce a target, get graded in EG words</span>
+            </button>
+          </div>
+
+          <!-- Paste-a-linear-form drawer (opened by btn-start-linear). Grafts the
+               parsed graph onto a fresh sheet as clay — the SAME `graft` compose op
+               the Fragment tool uses, but as a first-class door (it was previously
+               reachable only from a collapsed disclosure inside the palette). -->
+          <div id="linear-drawer" style="display:none; margin:6px 0 12px; padding:8px;
+               border:1px solid var(--ctp-surface0); border-radius:3px;">
+            <label style="font-size:10px; color:var(--ctp-overlay0);">Linear form</label>
+            <textarea id="linear-egif" rows="3" placeholder="(Human *x) ~[ (Mortal x) ]"
+                      style="width:100%; margin:4px 0; font-family:monospace; font-size:11px;
+                             background:var(--ctp-base); color:var(--ctp-text);
+                             border:1px solid var(--ctp-surface0);"></textarea>
+            <div style="font-size:9px; color:var(--ctp-overlay0); margin-bottom:6px;">
+              EGIF today. It opens as <strong>clay</strong> — edit freely, then ① fix it.
+            </div>
+            <button class="action primary" id="btn-linear-go">Open it as a graph</button>
+            <div id="linear-feedback" style="font-size:10px; margin-top:6px; line-height:1.4;"></div>
+          </div>
+
+          <!-- ── Work on an existing graph ──────────────────────────────────
+               Picking one does NOT yet say what you intend to do to it — that
+               question (the three regimes, in plain words) is asked next, in
+               #intent-section. -->
+          <div class="entry-group">
+            <div class="entry-group-head">Work on an existing graph</div>
             <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px;">
-              Or start from a corpus UoD
+              From the corpus
             </label>
             <input
               type="text"
@@ -539,15 +600,50 @@
             <div id="corpus-list">
               <div class="empty-state">Loading corpus…</div>
             </div>
-          </div>
-          <div style="margin-top: 14px;">
-            <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px;">
-              Or reopen a saved draft
+            <label style="font-size: 10px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 12px; display:block;">
+              A saved draft
             </label>
             <div id="scratch-list" style="margin-top: 6px;">
               <div class="empty-state">No saved drafts.</div>
             </div>
+            <p style="font-size:10px; color:var(--ctp-overlay0); margin-top:10px;">
+              Have a file? <a href="/import" style="color:var(--ctp-blue);">Import OWL, RDF or CLIF →</a>
+            </p>
           </div>
+        </div>
+
+        <!-- ── The intent question (the three regimes, in plain words) ───────
+             Shown after an existing graph is picked. This is the door the UI
+             never had: "constrained or unconstrained" is really THREE things,
+             and they are the project's own three regimes
+             (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md). Stated as consequences,
+             not regime numbers. -->
+        <div id="intent-section" style="display:none;">
+          <h2 style="font-size: 12px; color: var(--sidebar-accent); margin-bottom: 4px;">
+            What will you do to it?
+          </h2>
+          <p style="font-size: 10px; color: var(--ctp-overlay0); margin-bottom: 10px;">
+            <strong id="intent-target">—</strong>
+          </p>
+
+          <button class="action" id="btn-intent-rearrange" data-term="regime-3"
+                  title="Presentation only: move spots, resize cuts, reroute lines. Arisbe refuses any nudge that would cross a boundary.">
+            ✋ Rearrange it
+            <span class="entry-sub">The picture only — the meaning <em>cannot</em> change</span>
+          </button>
+          <button class="action primary" id="btn-intent-reason" data-term="regime-2"
+                  title="Apply Dau's six rules. Every step is checked and recorded, so the result follows from the original.">
+            ⊢ Reason from it
+            <span class="entry-sub">Apply the rules — each step checked and recorded</span>
+          </button>
+          <button class="action" id="btn-intent-clay" data-term="regime-1"
+                  title="Re-open as clay: edit freely. The result is a DIFFERENT graph with no claim to follow from this one; it must pass gate ① again.">
+            ✎ Re-open as clay
+            <span class="entry-sub">Edit freely — becomes a <em>different</em> graph, claiming nothing</span>
+          </button>
+
+          <button class="action" id="btn-intent-back"
+                  style="margin-top:10px; font-size:10px;">← pick a different graph</button>
         </div>
 
         <div id="session-info" style="display: none;">
@@ -1626,8 +1722,17 @@
         const settleRow = document.getElementById('settle-row');
         if (seqPanel)
           seqPanel.style.display = phase === 'composing' ? 'none' : 'block';
+        // Settle (regime 3) is available in EVERY phase, composing included.
+        // A presentation nudge cannot change meaning — that is *why* it is
+        // unconditionally free (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md: regime 3
+        // is "always free"). Hiding it while composing left the one gesture that
+        // resizes a cut invisible exactly when a user is arranging the sheet, and
+        // their drag silently did nothing.
+        //
+        // The one exception is freeform: there the marks are *ink* (no EGI, so no
+        // DTO to nudge) and you already drag them directly with the Move tool.
         if (settleRow)
-          settleRow.style.display = phase === 'composing' ? 'none' : 'flex';
+          settleRow.style.display = (freeformOn && freeform) ? 'none' : 'flex';
         // Sealed: the right panel becomes the disposition (spec §5).
         if (keepDefaults) {
           if (phase === 'sealed') {
@@ -1707,7 +1812,8 @@
       }
 
       const TOOL_HINTS = {
-        add_cut: 'Click a region to draw a cut there.',
+        add_cut: 'Click a region to draw a cut there. It grows as you fill it — ' +
+                 'to size it by hand, use ✋ Settle appearance.',
         add_line: 'Click a region to place a line of identity — "something exists".',
         add_relation: 'Name it, set the arity, then click a region to place the spot.',
         add_constant: 'Type the name, then click a region to place it.',
@@ -2656,9 +2762,71 @@
           const div = document.createElement('div');
           div.className = 'corpus-uod-item';
           div.textContent = u.name || u.uod_id;
-          div.addEventListener('click', () => openSession('uod:' + u.uod_id));
+          // Picking a corpus graph does not yet say what you MEAN to do to it.
+          // A corpus UoD always opens fixed, so all three intents are live —
+          // ask, rather than silently landing the user in one of them.
+          div.addEventListener('click', () => askIntent(u));
           corpusListEl.appendChild(div);
         });
+      }
+
+      // ---- the intent question: the three regimes, as three doors ----------
+      // "Constrained or unconstrained" is really three things, and Arisbe already
+      // names them: regime 3 (the picture only — meaning CANNOT change), regime 2
+      // (the six rules — meaning changes, but soundly and on the record), regime 1
+      // (clay — a different graph, claiming nothing). Each button states its
+      // consequence; none of them mentions a regime number.
+      let pendingIntentUod = null;
+
+      function askIntent(u) {
+        pendingIntentUod = u;
+        const t = document.getElementById('intent-target');
+        if (t) t.textContent = u.name || u.uod_id;
+        const pick = document.getElementById('picker-section');
+        const intent = document.getElementById('intent-section');
+        if (pick) pick.style.display = 'none';
+        if (intent) intent.style.display = 'block';
+      }
+
+      function closeIntent() {
+        pendingIntentUod = null;
+        const pick = document.getElementById('picker-section');
+        const intent = document.getElementById('intent-section');
+        if (intent) intent.style.display = 'none';
+        if (pick) pick.style.display = 'block';
+      }
+
+      async function openWithIntent(intent) {
+        if (!pendingIntentUod) return;
+        const uod = pendingIntentUod;
+        const intentEl = document.getElementById('intent-section');
+        if (intentEl) intentEl.style.display = 'none';
+        pendingIntentUod = null;
+        await openSession('uod:' + uod.uod_id);
+        if (!currentSessionId) { closeIntent(); return; }   // open failed — go back
+
+        if (intent === 'rearrange') {
+          // Regime 3: turn Settle on for them. Nothing they do here can change
+          // the meaning — presentation_ops refuses any boundary crossing.
+          if (window.SettleAdjust) {
+            SettleAdjust.setEnabled(true);
+            const bs = document.getElementById('btn-settle');
+            if (bs) bs.classList.add('primary');
+          }
+          setStatus('Rearranging — drag a spot, a relation, or a cut’s corner to resize. ' +
+                    'The meaning is held fixed: a nudge that would cross a boundary is refused.',
+                    'success');
+        } else if (intent === 'clay') {
+          // Regime 1: re-open the base graph as clay (the existing round-trip).
+          await editBaseGraph();
+          setStatus('Re-opened as clay — edit freely. This becomes a DIFFERENT graph: ' +
+                    'it claims nothing from the original until you ① fix it.', 'success');
+        } else {
+          // Regime 2: the default posture of a fixed graph — rules ready.
+          setStatus('Reasoning — apply a rule to build the argument. ' +
+                    'Every step is checked and recorded, so the result follows from this graph.',
+                    'success');
+        }
       }
 
       // ---- wiring ----
@@ -2731,6 +2899,71 @@
         extrapolateChk.addEventListener('change', () => rerenderLayout('extrapolate'));
 
       btnStartEmpty.addEventListener('click', () => openSession('empty_sheet'));
+
+      // ---- the intent doors ------------------------------------------------
+      {
+        const on = (id, fn) => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('click', fn);
+        };
+        on('btn-intent-rearrange', () => openWithIntent('rearrange'));
+        on('btn-intent-reason', () => openWithIntent('reason'));
+        on('btn-intent-clay', () => openWithIntent('clay'));
+        on('btn-intent-back', closeIntent);
+
+        // ---- the linear-form door -------------------------------------------
+        // Paste EGIF → open a fresh sheet → graft the parsed graph onto it as
+        // clay. The `graft` compose op already did this; it was only reachable
+        // from a collapsed "Fragment" disclosure INSIDE the palette, i.e. after
+        // you had already found your way in. This makes it a door.
+        on('btn-start-linear', () => {
+          const d = document.getElementById('linear-drawer');
+          if (!d) return;
+          const showing = d.style.display !== 'none';
+          d.style.display = showing ? 'none' : 'block';
+          if (!showing) { const t = document.getElementById('linear-egif'); if (t) t.focus(); }
+        });
+        on('btn-linear-go', async () => {
+          const ta = document.getElementById('linear-egif');
+          const fb = document.getElementById('linear-feedback');
+          const egif = (ta && ta.value || '').trim();
+          if (!egif) {
+            if (fb) { fb.style.color = 'var(--ctp-yellow)';
+                      fb.textContent = 'Paste a linear form first — e.g. (Human *x) ~[ (Mortal x) ]'; }
+            return;
+          }
+          if (fb) { fb.style.color = 'var(--ctp-overlay0)'; fb.textContent = 'Reading it…'; }
+          await openSession('empty_sheet');
+          if (!currentSessionId) return;
+          try {
+            const res = await fetch('/ergasterion/sessions/' + currentSessionId + '/compose', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ action: 'graft', parameters: { egif } }),
+            });
+            const body = await res.json();
+            if (!body.success) {
+              // An unparseable form is a MEANINGFUL non-result, not a crash: say
+              // what the parser objected to, and leave the sheet open as clay.
+              const msg = (body.error && body.error.message) || 'that did not parse';
+              if (fb) { fb.style.color = 'var(--ctp-red)';
+                        fb.textContent = 'Could not read it: ' + msg; }
+              setStatus('The linear form did not parse — the sheet is open and empty; ' +
+                        'fix the text and try again, or compose by hand.', 'error');
+              return;
+            }
+            showSession(body.data, true);
+            await applySelectedLayoutIfAny();
+            if (fb) fb.textContent = '';
+            const d = document.getElementById('linear-drawer');
+            if (d) d.style.display = 'none';
+            setStatus('Opened from the linear form — it is clay: edit freely, then ① fix it.',
+                      'success');
+          } catch (e) {
+            if (fb) { fb.style.color = 'var(--ctp-red)'; fb.textContent = 'Network error: ' + e.message; }
+          }
+        });
+      }
       btnApply.addEventListener('click', applyRule);
       btnSaveScratch.addEventListener('click', saveToScratch);
       btnSendAgon.addEventListener('click', () => sendToAgon(false));
