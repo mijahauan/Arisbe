@@ -45,8 +45,29 @@ settled at 70, not the cap (the digest signature of a calibration knob); the kno
 twice-evidenced and AEG Part II §11.4 reads confirmed. The weather trilogy (7–11) closes.
 **Next:** the charter's long tail (data-term placements grow; organon `?kind=` facet deep link;
 Agon-side rule-check; e2e needs `uv run playwright install chromium` — the CDN download failed
-on this machine, so the charter e2e skips cleanly until then), then **run 12 = sports** (a
-discrete resolving membrane — is the knob-type law the game's or the weather's?).
+on this machine, so the charter e2e skips cleanly until then), then **run 12 = sports**.
+
+**▶▶▶ NEXT SESSION — BUILD RUN 12 (sports, the discrete resolving membrane; pre-registered in
+`runs/RUN_12_LOG.md` + the AEG Part III ledger row).** The weather trilogy closed; run 12 tests
+whether the twice-evidenced **knob-type law** (AEG Part II §11.4) is a law of the *game* or a
+fact about *weather* — sports outcomes are **discrete** (no donated width) and the input is not
+a skilled expert forecast. Four arms: **A** no-knob null (naive home-team law — expect
+trap/silence) · **B** headline: a **manufactured** calibration cut on win-pct differential (the
+F1¹¹ mechanism transplanted — expect recovery) · **C** rival theories over the *same* games
+ranked live by `select_best` (**a register never yet exercised live**) · **D** optional
+induction-from-blank. Plus the arc's first **external-literature check** (home advantage
+≈53–54 %; favorite–longshot if the odds arm runs). Build (offline-first, house pattern):
+`src/sports_source.py` (MLB Stats API, free/no-auth, in-season; injectable fetch +
+record/replay JSONL; postponements dropped counted) → the sports calibration controller
+(mirrors `weather_recalibration`, favorite/underdog around the cut, reuses the `reseed_laws`
+seam) → driver `tools/run_live_sports.py` (clone of run_live_weather + per-segment
+`select_best` standings) → offline tests (knob-type causal pair A-traps/B-recovers;
+select_best ranking; replay round-trip; grace) → THEN launch (author's; note the bursty
+nightly-batch cadence — prefer a 2–3-day paced run or recorded-replay-first). **Author
+decisions:** (a) the odds arm needs a `the-odds-api` free-tier key (without it arm C = home vs
+win-pct, still a live select_best first); (b) duration/pacing. Priors P1¹²–P5¹² drafted in the
+log skeleton, to be affirmed before launch. Parallel, untouched: the 2nd-order crossing
+decisions (A floor / B open-core) remain the author's and gate that frontier.
 
 **▶▶ PREVIOUS (2026-07-07, third sitting) — STORM DOCKET FULLY DISPOSED (G6–G9) while run 8 runs.**
 While the live run-8 resolving-membrane probe executes in the background, closed the four
