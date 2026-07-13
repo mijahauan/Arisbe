@@ -1,0 +1,92 @@
+{
+  "annotations": [
+    {
+      "id": "ann_acbf733d",
+      "scope": "uod",
+      "text": "~[ (zero *p) ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_4883096a",
+      "scope": "uod",
+      "text": "Cohen's forcing conditions as a branching history. A condition is a state of the developing record; an extension is a revision (a game move); the fork is the splitting property \u2014 every condition is dominated by two incompatible extensions. The modal lens reads the forcing trichotomy: 'one' is settled (\u25a1 \u2014 scribed on every reachable sheet), 'zero' is open (\u25c7 \u2014 some trajectory scribes it, some escapes it), 'two' is excluded (no trajectory). The audited \u03b4\u2081 property shows why a correct set discernible in M cannot be generic: the domination that refutes it is always one extension away.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "domain-model",
+        "forcing",
+        "modality",
+        "branching",
+        "demonstration"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_2aac1c2f",
+      "scope": "chain",
+      "text": "Each step is a model-revising 'new_fact' disposition (src/model_revision.py): a reveal of the next entry, juxtaposed onto the condition's sheet. The fork (two steps from s1) records the incompatible extensions \u27e81,1,1\u27e9 and \u27e81,1,0\u27e9 \u2014 trajectories that never reconverge.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "new-fact",
+        "enlargement",
+        "fork",
+        "low-warrant"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_667ea16b",
+      "scope": "step",
+      "text": "After this reveal, \u03b4\u2081 ('no entry is a zero') peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_f0b4687a",
+      "scope": "step",
+      "text": "After this reveal, \u03b4\u2081 ('no entry is a zero') peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_5c8720ec",
+      "scope": "step",
+      "text": "After this reveal, \u03b4\u2081 ('no entry is a zero') peels to FALSE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    }
+  ]
+}

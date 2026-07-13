@@ -144,3 +144,75 @@ def test_quoted_graph_is_attested_one_level_down_real_elk():
     failures = check_quotation(q, layout_fn=layout_fn, attest_fn=attest_correspondence)
     assert failures == [], failures            # the quoted graph draws in §3.3
     assert run_quotation(q, layout_fn=layout_fn, attest_fn=attest_correspondence).quoted_attested
+
+
+# --- S5: trajectory-relative resolution (R_G functoriality) ------------------ #
+# A name's resolution may vary by DAG state (Cohen's reference values R_G);
+# the law holds at every resolving state, and non-resolving states are named.
+# docs/FORCING_AND_THE_GAMMA_CROSSING.md §5.
+
+from second_order_check import (  # noqa: E402
+    attest_quotation_trajectory,
+    check_quotation_at_states,
+    run_quotation_trajectory,
+)
+
+QUOTED_B = "~[ (bird *x) ~[ (flies x) ] ]"     # a different lower graph, branch b
+
+
+def _at_state(quoted, **kw):
+    """The name as it stands at one state: predicative, resolving to ``quoted``."""
+    return _predicative(resolve=lambda: _egi(quoted),
+                        quoted_ground=_egi(quoted), **kw)
+
+
+def test_S5_holds_when_each_state_resolves_to_its_own_ground():
+    """The happy path: the same name resolves to *different* grounds on two
+    branches, each state satisfying S1–S3 against its own ground."""
+    per_state = {"s1": _at_state(QUOTED), "s2": _at_state(QUOTED_B)}
+    assert check_quotation_at_states("mu", per_state) == []
+    rep = run_quotation_trajectory("mu", per_state)
+    assert rep.ok and rep.checked_states == ["s1", "s2"]
+    assert rep.unresolved_states == []
+    attest_quotation_trajectory("mu", per_state)   # does not raise
+
+
+def test_S5_failure_names_the_breaking_state():
+    """The falsifier: one state's resolution is doctored (resolve ≠ that state's
+    ground) — S5 fails and the failure carries the state id."""
+    doctored = _predicative(resolve=lambda: _egi(QUOTED_B),
+                            quoted_ground=_egi(QUOTED))
+    per_state = {"s1": _at_state(QUOTED), "s2": doctored}
+    failures = check_quotation_at_states("mu", per_state)
+    assert failures and all("S5[s2]" in f for f in failures)
+    assert not any("S5[s1]" in f for f in failures)
+    with pytest.raises(SecondOrderViolation):
+        attest_quotation_trajectory("mu", per_state)
+
+
+def test_S5_nonresolving_state_is_named_never_failed():
+    """The horizon: a state where the name does not resolve (R_G undefined at
+    that condition) is reported in unresolved_states — not a failure, never
+    silent."""
+    per_state = {"s1": _at_state(QUOTED), "s2": None}
+    assert check_quotation_at_states("mu", per_state) == []
+    rep = run_quotation_trajectory("mu", per_state)
+    assert rep.ok
+    assert rep.unresolved_states == ["s2"] and rep.checked_states == ["s1"]
+
+
+def test_S5_wholly_unresolved_trajectory_is_vacuous_and_says_so():
+    rep = run_quotation_trajectory("mu", {"s1": None, "s2": None})
+    assert rep.ok and rep.checked_states == []
+    assert any("vacuous" in lim for lim in rep.honest_limits)
+
+
+def test_S5_per_state_law_is_the_full_law():
+    """S5 quantifies the existing checks: a flat impredicative quote at one state
+    fails S1 *through* S5 (the trajectory inherits the comprehension floor)."""
+    host = _egi(HOST)
+    flat_self = Quotation(name="q", sort=SORT_PROPOSITION, host=host,
+                          resolve=lambda: _egi(HOST), quoted_ground=_egi(HOST),
+                          enclosed=False)
+    failures = check_quotation_at_states("mu", {"s1": flat_self})
+    assert any("S5[s1]" in f and "S1 stratified" in f for f in failures)

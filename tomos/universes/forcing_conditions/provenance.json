@@ -1,0 +1,37 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "incollection",
+      "author": "Caterina, Gianluca and Gangle, Rocco",
+      "title": "Consequences of a Diagrammatic Representation of Paul Cohen's Forcing Technique Based on C.S. Peirce's Existential Graphs",
+      "bibkey": "caterina2010forcing",
+      "note": "Model-Based Reasoning in Science & Technology, SCI 314, Springer 2010, 429\u2013443"
+    },
+    {
+      "type": "book",
+      "author": "Cohen, Paul",
+      "title": "Set Theory and the Continuum Hypothesis",
+      "bibkey": "cohen1966set",
+      "note": "the condition poset, dominations, and the generic set"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Caterina, Gianluca and Gangle, Rocco. Consequences of a Diagrammatic Representation of Paul Cohen's Forcing Technique Based on C.S. Peirce's Existential Graphs",
+      "Cohen, Paul. Set Theory and the Continuum Hypothesis"
+    ]
+  }
+}

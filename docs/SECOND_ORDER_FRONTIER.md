@@ -159,6 +159,17 @@ as containment and incidence are today. That is:
 This keeps the crossing maximally Peircean while importing *exactly and only* the paradox-control
 floor he lacked.
 
+Two dev memos (2026-07-13) position this recommendation against the wider record:
+[SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md) surveys the
+modern second-order landscape — the standard-vs-Henkin semantics fork, the comprehension ladder,
+the predicate paradoxes (Montague, Curry, Liar/Yablo), the conservativity discipline — and finds
+the sortal-layer recommendation lands on the well-charted configuration (many-sorted, predicative,
+Henkin-read, grounded-partial); and
+[FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md) shows Cohen's forcing
+construction independently arriving at the same crossing devices (names of graphs; a first-order
+relation on those names), nominating the first asserted second-order claim the core-opening
+decision has been waiting for.
+
 ## Where Arisbe already has a toe in the water
 
 The project is not starting cold; it stands on the first step with reconnaissance on the second:

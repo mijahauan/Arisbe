@@ -417,6 +417,18 @@ a place for a graph" strictly metalinguistic, and the math track
 (Separation/Replacement schemata, the graph-with-holes) is where it grows. That is
 where the next real work lies — **not** in a modal mark.
 
+The trajectory reading (§1) has distinguished ancestry it is worth naming: in Paul
+Cohen's forcing technique, the three modal statuses of a statement about a generic
+extension — necessary, contingent, impossible — are *derived* from first-order
+forcing relations plus the order structure of conditions, never primitively
+asserted; and the condition poset is exactly the shape of Arisbe's derivation DAG.
+The dev memo [FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md)
+records the full dictionary, and the modern-landscape survey
+[SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)
+places this chapter's doctrine — modality as a derived reading, the crossing routed
+through names of graphs — within the semantics and paradox-control debates of logic
+since Peirce.
+
 ---
 
 ## 8. Coda: fact, and the ground no sheet encloses

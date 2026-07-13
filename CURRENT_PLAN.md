@@ -1,6 +1,44 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-12, later sitting) — RUN 12 BUILT (sports, the discrete resolving
+**▶▶ THIS SESSION (2026-07-13) — THE GAMMA/2ND-ORDER FRONTIER POSITIONED: two dev memos +
+three de-risk builds (run 12 launched by the author and running, untouched).** Occasioned by
+the author's Caterina & Gangle 2010 paper (Cohen's forcing in Peirce's EGs) and the follow-up
+ask: position Arisbe against logic *since* Peirce. Shipped:
+- **`docs/FORCING_AND_THE_GAMMA_CROSSING.md`** (dev memo) — the exact dictionary (condition
+  poset ↔ the append-only diachronic DAG; the forcing trichotomy ↔ `Verdict3` + `modal_query`;
+  names/R_G ↔ quotations with trajectory-relative resolution; the generic ↔ the membranes'
+  world; dominations ↔ falsifying feeds); ratifies both settled decisions (modality-as-derived-
+  reading; the crossing = names/aboutness); honest disanalogies (M non-monotone — the DAG is
+  the monotone object; the world not guaranteed generic — the **Gödel–Cohen axis** reading of
+  the run arc); **nominates `(forces s φ)`** as the first asserted 2nd-order claim memo 2's
+  decision-B criterion waits for, admissible only as a defined/grounded/decidable relation.
+- **`docs/SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md`** (dev memo, the author's survey ask) —
+  the modern landscape with per-section consequences: the standard-vs-Henkin fork (SOL validity
+  non-absolute, entangled with CH — mandate the Henkin-read predicative side); Quine vs Boolos
+  (the sortal layer = honest many-sorting); the comprehension ladder (reverse math; Bad
+  Company = decision A in modern dress); **the predicate dragons 10–13** (Montague's collapse ·
+  Curry · ungroundedness/Liar/Yablo · Bad Company, each with its Arisbe guard; `Verdict3` IS
+  Strong Kleene K3, so the native floor is Kripkean-grounded-partial where semantic, stratified
+  where syntactic); the tame stations (MSO, Fagin, GTS/IF — the EPG *is* game-theoretic
+  semantics; finite-M model checking decidable → the Agon register is safe 2nd-order territory,
+  the validity register is where restraint binds); **conservativity over the Dau core named as
+  the crossing invariant**. Verdict: the heading is right — many-sorted · predicative ·
+  Henkin-read · grounded-partial · conservative.
+- **Builds (all additive):** `modal_query.settlement` (the forcing three-case table as a named
+  reading: settled/open/excluded; the per-statement settled-vs-open join) + tests; law **S5
+  trajectory-relative resolution** in `second_order_check` (`check_quotation_at_states` /
+  `attest_quotation_trajectory` / `run_quotation_trajectory`; per-state failures named,
+  non-resolving states = honest horizon) + 5 tests; **corpus exemplar `forcing_conditions`**
+  (`tools/build_forcing_conditions_demo.py` — Cohen's binary-sequence conditions in the
+  revision register, a real DAG fork at ⟨1,1⟩; δ₁ = `~[ (zero *p) ]` as audit-proposal reads
+  TRUE→TRUE→TRUE→FALSE; modal lens □one/◇zero; settlement names the trichotomy) + EXEMPLARS.md
+  §5.2. Book links added (MODALITY_WITHOUT_GAMMA §7, SECOND_ORDER_FRONTIER recommendation);
+  quarto render check green (42/42); corpus-wide suites absorbed the new UoD (810 passed).
+  **The two author crossing decisions (A floor / B open-core) remain open** — the memos sharpen
+  them (A: predicative default + K3-partial evaluation; B: the `(forces s φ)` nominee + the
+  Montague rider + a conservativity check when taken).
+
+**▶▶ PREVIOUS (2026-07-12, later sitting) — RUN 12 BUILT (sports, the discrete resolving
 membrane; pre-registered in `runs/RUN_12_LOG.md`, build section added there).** The whole
 offline-first kit shipped: **`src/sports_source.py`** (MLB Stats API `LiveSource` — picks
 raised per scheduled game, finals resolve them, postponements dropped *counted*, record/replay

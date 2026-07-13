@@ -58,10 +58,24 @@ The law — the second-order restatement of ``RESOLVE ≡ INLINED-AND-ATTESTED``
       marked departure: Peirce leads to *drawing* a second-order claim; the borrowed
       floor says *which* claims are well-formed — S1 is exactly that line.
 
+  S5  **Trajectory-relative resolution** (R_G functoriality — added 2026-07-13,
+      [docs/FORCING_AND_THE_GAMMA_CROSSING.md](../docs/FORCING_AND_THE_GAMMA_CROSSING.md) §5).
+      Cohen's names take their reference values *per generic* (R_G); Arisbe's
+      quotations may likewise resolve differently *per state of the diachronic
+      DAG*. The law: a state-varying quotation satisfies S1–S3 **at every state
+      where it resolves** (quote-equals-quoted against *that state's* ground,
+      attested one level down), and every non-resolving state is **named**, never
+      silent — the per-state honest horizon (S4, one order up the trajectory).
+      Implemented as quantification over :func:`check_quotation`
+      (:func:`check_quotation_at_states` / :func:`attest_quotation_trajectory` /
+      :func:`run_quotation_trajectory`), so S5 adds no new logic to the per-state
+      checks — only the discipline that the whole trajectory is covered.
+
 Falsifiability (``tests/test_second_order_check.py`` pins these, so a pass is
 earned): draw an impredicative quote *flat* and S1 must fail; doctor a candidate's
 ``quoted_ground`` and S2 must fail; a ``read_back`` that drops the sort/quote must
-fail S3.
+fail S3; doctor one state's resolution in a trajectory and S5 must fail *naming
+that state*, while a non-resolving state is reported, not failed.
 """
 
 from __future__ import annotations
@@ -291,6 +305,97 @@ def run_quotation(
     )
 
 
+# --------------------------------------------------------------------------- #
+# S5 — trajectory-relative resolution (R_G functoriality)                       #
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class TrajectoryQuotationReport:
+    """The S5 verdict for one name over a set of DAG states. ``checked_states``
+    are the states where the name resolved and S1–S3 ran; ``unresolved_states``
+    are the named horizon (S4 one order up — reported, never failed)."""
+
+    name: str
+    checked_states: List[str]
+    unresolved_states: List[str]
+    failures: List[str] = field(default_factory=list)
+    honest_limits: List[str] = field(default_factory=list)
+
+    @property
+    def ok(self) -> bool:
+        return not self.failures
+
+
+def check_quotation_at_states(
+    name: str,
+    per_state: "dict[str, Optional[Quotation]]",
+    *,
+    layout_fn: Optional[LayoutFn] = None,
+    attest_fn: Optional[AttestFn] = None,
+) -> List[str]:
+    """Run the S5 law for one name: ``per_state`` maps a DAG state id to the
+    quotation *as it stands at that state* (``None`` = the name does not resolve
+    there — Cohen's R_G undefined at that condition). Every present candidate is
+    checked with the full per-state law; a failure is prefixed with its state, so
+    the report names *where* the trajectory breaks. Returns failures ([] = ok);
+    non-resolving states are the caller-visible horizon, not failures."""
+    failures: List[str] = []
+    for sid in sorted(per_state):
+        q = per_state[sid]
+        if q is None:
+            continue  # named in the report's unresolved_states, never silent
+        for f in check_quotation(q, layout_fn=layout_fn, attest_fn=attest_fn):
+            failures.append(f"  S5[{sid}]{f.rstrip()}")
+    return failures
+
+
+def attest_quotation_trajectory(
+    name: str,
+    per_state: "dict[str, Optional[Quotation]]",
+    *,
+    layout_fn: Optional[LayoutFn] = None,
+    attest_fn: Optional[AttestFn] = None,
+    context: Optional[str] = None,
+) -> None:
+    """Raise ``SecondOrderViolation`` if the name breaks S5 anywhere on the
+    trajectory; else None. The boundary hook a state-varying second-order name
+    would call, exactly as ``attest_quotation`` is per state."""
+    failures = check_quotation_at_states(
+        name, per_state, layout_fn=layout_fn, attest_fn=attest_fn)
+    if failures:
+        raise SecondOrderViolation(failures, context=context or name)
+
+
+def run_quotation_trajectory(
+    name: str,
+    per_state: "dict[str, Optional[Quotation]]",
+    *,
+    layout_fn: Optional[LayoutFn] = None,
+    attest_fn: Optional[AttestFn] = None,
+) -> TrajectoryQuotationReport:
+    """Validate one name over a trajectory → a structured report (the measurement
+    form — never raises; a non-resolving state lands in ``unresolved_states``)."""
+    failures = check_quotation_at_states(
+        name, per_state, layout_fn=layout_fn, attest_fn=attest_fn)
+    checked = sorted(s for s, q in per_state.items() if q is not None)
+    unresolved = sorted(s for s, q in per_state.items() if q is None)
+    limits: List[str] = []
+    if layout_fn is None:
+        limits.append(
+            "S2 §3.3 half skipped at every state: no layout_fn supplied")
+    if not checked:
+        limits.append(
+            "S5 vacuous: the name resolved at no state — the whole trajectory "
+            "is horizon")
+    return TrajectoryQuotationReport(
+        name=name,
+        checked_states=checked,
+        unresolved_states=unresolved,
+        failures=failures,
+        honest_limits=limits,
+    )
+
+
 def _default_attest() -> AttestFn:
     from correspondence_attestation import attest_correspondence
     return attest_correspondence
@@ -300,10 +405,14 @@ __all__ = [
     "Quotation",
     "QuotationReading",
     "QuotationReport",
+    "TrajectoryQuotationReport",
     "SecondOrderViolation",
     "check_quotation",
     "attest_quotation",
     "run_quotation",
+    "check_quotation_at_states",
+    "attest_quotation_trajectory",
+    "run_quotation_trajectory",
     "SORT_PROPOSITION",
     "SORT_ABSTRACTION",
 ]

@@ -1,0 +1,19 @@
+{
+  "uod_id": "forcing_conditions",
+  "uod_type": "historical",
+  "name": "Forcing conditions (Cohen's binary sequences)",
+  "description": "Cohen's poset of finite binary conditions as a diachronic episode: each reveal extends the condition (a game move, not a deduction), and the fork at \u27e81,1\u27e9 is the splitting property \u2014 two incompatible extensions from one condition. The correct-set property \u03b4\u2081 = 'no entry is a zero' (~[ (zero *p) ]) is audited against every state: it holds along the all-ones branch and falls where the domination is met. The modal lens reads the forcing trichotomy off the DAG: \u25a1one (settled \u2014 \u2205 forces it), \u25c7zero (open \u2014 some condition forces it), no 'two' anywhere (excluded). After Caterina & Gangle 2010; see docs/FORCING_AND_THE_GAMMA_CROSSING.md.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

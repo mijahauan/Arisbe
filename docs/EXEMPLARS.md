@@ -161,6 +161,26 @@ across the worlds — ◇G/□G with per-world verdicts) and draws each world as
 thumbnail; challenge mode gained the `de-inesse` and `would-be-course` targets.
 Tests: `tests/test_gamma_demonstrations.py`.
 
+### 5.2 The forcing conditions — Cohen's poset read by the same lenses
+
+`forcing_conditions` ([tools/build_forcing_conditions_demo.py](../tools/build_forcing_conditions_demo.py))
+puts Paul Cohen's forcing conditions — the running example of Caterina & Gangle's
+paper on forcing in Existential Graphs — into the corpus using only the machinery
+above. A *condition* is a finite binary sequence, here a state of a developing
+record: from ⟨1⟩ the reveals extend to ⟨1,1⟩, which **forks** into the incompatible
+extensions ⟨1,1,1⟩ and ⟨1,1,0⟩ — the splitting property ("every condition is
+dominated by two incompatible conditions") drawn as a genuine DAG fork. Each
+extension is a `new_fact` revision (a game move, not a deduction). The correct-set
+property δ₁ = "no entry is a zero" (`~[ (zero *p) ]`) is the standing
+`audit-proposal`: it holds along the all-ones branch and falls where the domination
+is met — TRUE → TRUE → TRUE → FALSE under the audit lens, the structural reason a
+correct set discernible in the ground model cannot be generic. The modal lens reads
+the **forcing trichotomy** off the same DAG — `one` is *settled* (□, "∅ forces it"),
+`zero` is *open* (◇ ∧ ¬□, "some condition forces it"), `two` is *excluded* (¬◇) —
+now named by `modal_query.settlement`. The full mapping between Cohen's construction
+and Arisbe's machinery is the dev memo
+[FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md).
+
 ## 6. A domain model transforming through dialog
 
 `dialogue_model_revision` ([tools/build_dialog_model_evolution.py](../tools/build_dialog_model_evolution.py))

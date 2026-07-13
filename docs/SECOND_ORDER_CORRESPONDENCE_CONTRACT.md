@@ -152,3 +152,13 @@ node — the very device S1 would license).
 
 Until B is taken, this document is the contract and `second_order_check.py` is its
 witness; the frontier is mapped, de-risked, and marked — not yet crossed.
+
+*See also (2026-07-13):* [FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md)
+— Cohen's forcing arrives at the same crossing devices and nominates `(forces s φ)`
+as the first asserted second-order claim decision B waits for; it also adds law
+**S5 (trajectory-relative resolution)** to the harness. And
+[SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)
+— the modern-landscape survey placing this contract's defaults (predicative floor,
+sortal layer) among the post-Peirce semantics and paradox-control results, with the
+K3/grounded-partial refinement to decision A and conservativity-over-the-core as the
+crossing invariant.

@@ -167,6 +167,68 @@ def necessarily(
 
 
 # --------------------------------------------------------------------------- #
+# Settlement — the forcing three-case table as a named reading                  #
+# --------------------------------------------------------------------------- #
+
+@dataclass
+class SettlementResult:
+    """The three-way classification of φ at a state, over its reachable worlds.
+
+    This is Cohen's forcing table read as trajectory semantics
+    (docs/FORCING_AND_THE_GAMMA_CROSSING.md §2): *∅ forces S / some π forces S /
+    no π forces S* becomes
+
+        settled   —  □φ            (every reachable sheet scribes φ)
+        open      —  ◇φ ∧ ¬□φ      (some trajectory scribes φ, some escapes it)
+        excluded  —  ¬◇φ           (no reachable sheet scribes φ)
+
+    It is also the per-statement settled-vs-open join that
+    ``discourse_membrane.contested_contents`` gestures at: an *open* φ is the
+    ◇-contested point the modal lens reads as not settled.
+    """
+
+    status: str                 # "settled" | "open" | "excluded"
+    possible: ModalResult       # the underlying ◇ query
+    necessary: ModalResult      # the underlying □ query
+
+    @property
+    def summary(self) -> str:
+        n = len(self.possible.considered)
+        if self.status == "settled":
+            return f"settled — □φ: scribed on every one of {n} reachable sheet(s)."
+        if self.status == "excluded":
+            return f"excluded — ¬◇φ: scribed on none of {n} reachable sheet(s)."
+        return (f"open — ◇φ ∧ ¬□φ: scribed on {len(self.possible.witnesses)} of "
+                f"{n} reachable sheet(s), absent on "
+                f"{len(self.necessary.counterexamples)}.")
+
+
+def settlement(
+    chain: TransformationChain,
+    predicate: Predicate,
+    *,
+    base: Optional[str] = None,
+    over: str = "states",
+) -> SettlementResult:
+    """Classify φ at ``base`` as settled / open / excluded over its reachable
+    worlds (see :class:`SettlementResult`). Composes :func:`possibly` and
+    :func:`necessarily` — no new frame semantics, just the three-case table
+    named. Honest scope: this is the *trajectory* trichotomy, sound regardless
+    of erasure/retraction along a branch; it is **not** the claim that a verdict
+    at ``base`` persists under extension (which holds only on the
+    enlargement-only fragment — FORCING_AND_THE_GAMMA_CROSSING §4a)."""
+    pos = possibly(chain, predicate, base=base, over=over)
+    nec = necessarily(chain, predicate, base=base, over=over)
+    if nec.holds:
+        status = "settled"
+    elif pos.holds:
+        status = "open"
+    else:
+        status = "excluded"
+    return SettlementResult(status=status, possible=pos, necessary=nec)
+
+
+# --------------------------------------------------------------------------- #
 # Predicate helpers — what it is for a sheet to "scribe φ"                      #
 # --------------------------------------------------------------------------- #
 

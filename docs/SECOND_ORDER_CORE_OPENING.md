@@ -162,3 +162,13 @@ law; `second_order_check.py` is the witness that the law already holds on candid
 Decision **A (which comprehension floor)** is orthogonal and composes with either
 option — the harness parameterises S1 so the floor swaps in without touching this
 overlay-vs-native axis at all.
+
+*See also (2026-07-13):* the criterion above — "an asserted second-order claim earns
+the core change" — now has a **named nominee**:
+[FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md) §5 proposes
+`(forces s φ)` (state s forces the quoted graph φ), drawable as a β-level spot with
+its S3 read-back semantics already defined by the peel + `modal_query`, and — per
+[SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)
+§4 (Montague's theorem) — admissible only as a *defined, grounded, decidable*
+relation, never an axiomatized primitive. Decision B remains open; the nominee is
+what it would be exercised on.

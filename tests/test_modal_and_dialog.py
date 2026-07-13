@@ -76,6 +76,38 @@ def test_equals_graph_and_is_blank_predicates(modal_chain):
 
 
 # --------------------------------------------------------------------------- #
+# settlement — the forcing three-case table as a named reading                 #
+# (docs/FORCING_AND_THE_GAMMA_CROSSING.md §2/§6)                              #
+# --------------------------------------------------------------------------- #
+
+def test_settlement_three_cases(modal_chain):
+    """□ → settled; ◇∧¬□ → open; ¬◇ → excluded — Cohen's ∅-forces / some-π-forces /
+    no-π-forces table read as trajectory semantics."""
+    assert mq.settlement(modal_chain, mq.scribes_relation("cold")).status == "settled"
+    s = mq.settlement(modal_chain, mq.scribes_relation("cloudy"))
+    assert s.status == "open"
+    assert s.possible.holds and not s.necessary.holds
+    assert "open" in s.summary
+    assert mq.settlement(modal_chain, mq.scribes_relation("sunny")).status == "excluded"
+
+
+def test_settlement_over_leaves_differs_from_states(modal_chain):
+    """The transient (cloudy) is open over all reachable states but excluded over
+    trajectory endpoints — the reading names its worlds honestly."""
+    assert mq.settlement(modal_chain, mq.scribes_relation("cloudy"),
+                         over="leaves").status == "excluded"
+    assert mq.settlement(modal_chain, mq.scribes_relation("cold"),
+                         over="leaves").status == "settled"
+
+
+def test_settlement_is_deterministic(modal_chain):
+    a = mq.settlement(modal_chain, mq.scribes_relation("cloudy"))
+    b = mq.settlement(modal_chain, mq.scribes_relation("cloudy"))
+    assert (a.status, a.possible.witnesses, a.necessary.counterexamples) == \
+           (b.status, b.possible.witnesses, b.necessary.counterexamples)
+
+
+# --------------------------------------------------------------------------- #
 # model_revision — enlargement / relinquishment                               #
 # --------------------------------------------------------------------------- #
 

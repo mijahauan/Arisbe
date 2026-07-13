@@ -1,0 +1,32 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_932560bb"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_ec25c5b6",
+      "is_generic": false,
+      "label": "p1"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_ecbc5b8b": [
+      "e_932560bb",
+      "v_ec25c5b6"
+    ]
+  },
+  "nu": {
+    "e_932560bb": [
+      "v_ec25c5b6"
+    ]
+  },
+  "rel": {
+    "e_932560bb": "one"
+  },
+  "rho": {},
+  "sheet": "sheet_ecbc5b8b"
+}
