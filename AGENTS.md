@@ -86,18 +86,17 @@ save_egi_json(egi, "filename.json")
 loaded_egi = load_egi_json("filename.json")
 ```
 
-### Unified D3 Recursive Layout Engine (PRODUCTION)
+### ELK Layout Engine (PRODUCTION)
 ```python
-from unified_d3_engine import UnifiedD3Engine
-from style_loader import StyleLoader
+from elk_layout_engine import ELKLayoutEngine
+from style_loader import load_default_style
 
 # Load style
-style_loader = StyleLoader()
-style = style_loader.load_default_style()
+style = load_default_style()
 
-# Generate layout with recursive bottom-up engine
-engine = UnifiedD3Engine()
-dto = engine.generate_layout(egi, style, layout_deltas=None)
+# Generate the layout DTO (cut-aware ELK; the default layout path)
+engine = ELKLayoutEngine()
+dto = engine.generate_layout(egi, style)
 
 # DTO structure:
 # - dto.vertex_positions: Dict[ElementID, Point]
@@ -328,32 +327,18 @@ branch_id = uod.history.create_branch_from_state(
 - **Complete validation**: 100% comprehensive coverage achieved
 
 ## 🏗️ Layout Engine Architecture
-- **Unified D3 Recursive Engine**: `src/unified_d3_engine.py` - **PRODUCTION ENGINE** (integrated 2025-10-12, refined 2025-10-12)
-- **DiagramController Integration**: DiagramController now uses UnifiedD3Engine
-- **Architecture**: Pure recursive bottom-up with shell-and-core D3 worker
-  - **Python Orchestrator**: Recursive traversal of cut hierarchy (leaf-first)
-  - **D3 Worker**: `src/unified_d3_worker.js` - Two-phase shell-and-core simulation with force optimization
-  - **SVG Renderer**: `src/simple_svg_renderer.py` - Direct LayoutDTO to SVG with Dau-compliant styling
-- **Shell-and-Core Model**: TWO simulations per cut with balanced force hierarchy
-  - **SHELL Simulation**: Layout obstacles (child cuts) using collision + center forces
-  - **CORE Simulation**: Position content with obstacles as exponential repellers
-  - **Force Balance**: Exponential obstacle avoidance > charge repulsion > link/collision forces
-  - **Area Correctness**: Hard boundaries prevent elements from escaping proper cuts
-- **Key Features**:
-  - **Iron-clad EGI.area compliance**: Recursive coordinate translation ensures correctness
-  - **No overlapping cuts**: Shell simulation with obstacle collision prevents sibling overlap
-  - **No escaped elements**: Per-cut coordinate system with recursive translation
-  - **Cache clearing**: Fresh state for each layout prevents ghost elements
-  - **Deterministic layouts**: Seeded random for reproducible results
-  - **Dau compliance**: Sheet is invisible, proper cut nesting
-- **LayoutDTO Structure**:
+- **ELK Layout Engine**: `src/elk_layout_engine.py` (+ `src/elk_worker.js`) — **THE PRODUCTION ENGINE**, the default layout path. Cut-aware ELK; also `rebuild_ligature_anchors` (re-derive ligature endpoints after a regime-3 move).
+- **Alternative projection (opt-in)**: `src/tension_engine.py` — `TensionLayoutEngine` (`?engine=tension`), hierarchical constrained stress placing a relation *between* its arguments (the Peircean single-line reading). §3.3-gated with ELK fallback.
+- **SVG Renderer**: `src/simple_svg_renderer.py` — LayoutDTO → SVG with Dau-compliant styling.
+- **The web boundary**: `web_api/services/layout_service.py` wraps the engine + renderer and **attests §3.3 on every served (EGI, drawing) pair** (`correspondence_attestation.attest_correspondence`). Never bypass it when serving a layout.
+- **LayoutDTO Structure** (`src/layout_dto.py` — platform-independent, shared by engines and renderers):
   - `vertex_positions`: Dict[ElementID, Point]
   - `predicate_positions`: Dict[ElementID, Point]
   - `cut_bounds`: Dict[ElementID, BoundingBox]
   - `ligature_paths`: List[LigaturePath]
   - `area_hierarchy`: Dict[ElementID, Set[ElementID]]
-- **Testing**: Validated on 15-graph tomos with stable, correct results
-- **References**: See `BOTTOM_UP_D3_ARCHITECTURE.md` for complete architectural details
+- **Coordinate-free ground truth**: `src/natural_layout.py` — the containment tree + per-ligature crossing-sequence the drawing is a *projection* of. A renderer is pluggable; this layer imports no geometry.
+- **ARCHIVED (do not import)**: the Qt-era `unified_d3_engine.py` / `unified_d3_worker.js` were archived to `archive/qt-gui-2025/` (May 2026) together with the Qt GUI. They are **not** in `src/` — code or docs referencing `UnifiedD3Engine` are stale. `BOTTOM_UP_D3_ARCHITECTURE.md` describes that retired engine.
 
 ## 🎯 User Edit System & Deterministic Layouts
 - **Layout Deltas**: Support for user modifications to vertex/edge positions (planned)
@@ -361,41 +346,29 @@ branch_id = uod.history.create_branch_from_state(
 - **Pinned nodes**: User-specified positions can be fixed in D3 simulation (supported via fx/fy)
 - **Extensible architecture**: LayoutDTO structure ready for future interactive editing features
 
-## 🎮 DiagramController - Layered Command Architecture
-- **Production Status**: Using UnifiedD3Engine (integrated 2025-10-12)
-- **Layered Architecture**: Clean separation between "what" (use case logic) and "how" (diagram manipulation)
-- **Command Pattern**: High-level commands in Organon/Ergasterion/Agon orchestrate low-level controller operations
-- **Layout Engine**: UnifiedD3Engine with recursive bottom-up and shell-and-core physics
-- **State Management**: Immutable EGI transformations with persistent user constraints across operations
-- **Validation System**: Multi-layer validation for positions, paths, and formal rule preconditions
-- **Undo/Redo Support**: Complete command history management with CommandExecutor
-- **Three Use Cases**:
-  - **Organon**: Visualization & exploration (read-only view operations)
-  - **Ergasterion**: Learning & practice (rule-based EGI modifications)
-  - **Agon**: Formal interaction & gameplay (Endoporeutic Game mechanics)
-- **Formal Rules**: Complete implementation of DC+/-, INS/ERA, IT+/- with Dau compliance
-- **Production Ready**: Comprehensive test suite with 90 passing tests
-- **Critical Fixes Applied** (2025-10-01):
-  - ✅ Ligatures now connect perfectly to vertices (no quantization errors)
-  - ✅ Logical area validation ensures vertices stay within proper cuts
-  - ✅ User position overrides applied before ligature routing
-  - ✅ Invalid positions gracefully rejected to preserve EG correctness
-- **Integration Complete** (2025-10-12):
-  - ✅ DiagramController switched to UnifiedD3Engine
-  - ✅ Shell-and-core model eliminates force-fighting
-  - ✅ Recursive bottom-up respects EGI.area mapping
-  - ✅ LayoutDTO standardized (vertex_positions, predicate_positions, cut_bounds)
-- **Dau-Compliant Styling** (2025-10-12):
-  - ✅ Proper line weight hierarchy: cut (1.5px) < ligature (2.5px) < vertex diameter (7px)
-  - ✅ Transparent predicate backgrounds with minimal padding
-  - ✅ Ligatures connect at predicate boundaries and vertex centers
-  - ✅ Vertex spots continuous with ligatures (no boundary hook)
-  - ✅ Vertex labels positioned beside spots to avoid collisions
-  - ✅ Boundary calculations in LayoutDTO (not renderer)
-  - ✅ Exponential obstacle forces enforce hard cut boundaries
-  - ✅ Charge forces improve geometric distribution
-- **Known Limitations**: Layout not always optimal for complex graphs, but functional for MVP
-- **Test Results**: 90/90 core tests passing, 3/3 GUI Organon tests passing
+## 🎮 The three modes — how they reach the calculus (web)
+
+The Qt-era `DiagramController` was archived with the GUI (`archive/qt-gui-2025/`); the web
+app is the canonical UI. The layering that replaced it:
+
+- **The engine stays headless.** `endoporeutic_game.py` (Agon), `rule_interaction.py` /
+  `formal_transformation_rules.py` (the six Dau rules), `proof_authoring.py` — none of them
+  know about HTTP, sessions, or drawings.
+- **A session manager owns the state.** `web_api/services/agon_session_manager.py` holds one
+  stateless engine instance + per-game `GameState`; `ergasterion_session_manager.py` does the
+  same for workshop sessions. This is the *only* layer that may hold engine state.
+- **Routes are the boundary.** `web_api/routes/{organon,ergasterion,agon}.py` serve the pages
+  and mediate every call into the calculus. `layout_service.py` attests §3.3 on every served
+  (EGI, drawing) pair.
+- **The pages are views.** `web_viewer/*.html` + `js/` speak only HTTP; they hold no logical
+  state and never import a Python object. `diagram-viewer.js` is the one shared pan/zoom
+  component all three modes use.
+- **The invariant**: nothing in `web_viewer/` — and nothing in `routes/` — may hold engine
+  state. It goes through a session manager, or it does not happen.
+- **The three modes** (conceptual, per CLAUDE.md): **Organon** (read-only archive),
+  **Ergasterion** (workshop / composition, regime-1 drafts), **Agon** (the contest + the
+  interpretation register). A graph reaches the attested corpus only through Agon or as a
+  style-only reprojection — there is no direct workshop→corpus route.
 
 ## 🔄 Diachronic Delta Workflow (PRODUCTION)
 - **Architecture**: State_n = (EGI_n, LayoutDeltas_n) - Complete diachronic state representation
