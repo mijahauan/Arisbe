@@ -141,12 +141,17 @@ def retract_subgraph(
     model: RelationalGraphWithCuts, subgraph_egif: str
 ) -> RelationalGraphWithCuts:
     """**Relinquishment of a sheet-level subgraph** — a rule / negation *cut*, the
-    structural generalization of ``retract_relation`` (which drops only sheet
-    atoms). Erases the matching sheet-level cut **as a unit** by the genuine Dau
-    **ERA** rule (the sheet is positive, so erasure is sound), then *verifies* the
-    match: removing the cut must leave exactly ``M minus the subgraph`` — i.e.
-    re-admitting the subgraph reconstructs M (``same_graph``). Raises if no
-    sheet-level subgraph matches (a retraction must have something to retract).
+    structural generalization of ``retract_relation`` (which drops only sheet atoms).
+
+    **On the rule status, precisely** (the opening line used to claim ERA and the
+    closing paragraph to deny it — both were half right). M's laws sit on the
+    **sheet**, which is *positive*, and ERA erases from a positive context — so
+    relinquishing a law **is** a genuine Dau ERA, and it *is* sound (erasure weakens:
+    M ⊨ M−X). ``model_acts.relinquish`` performs it that way and says so. This
+    function removes the subtree **structurally** instead, for one operational reason
+    recorded below — and the result is the same graph, and still a weakening; it is
+    only the *licence* that differs. Use ``model_acts.relinquish`` when the record
+    should say which it was.
 
     This is the move a **challenge-to-M** makes on an over-general law: the black
     swan refutes "all swans are white", so the law is relinquished.

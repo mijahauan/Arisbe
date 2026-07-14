@@ -87,6 +87,39 @@ class AgonMove:
     timestamp: str
 
 
+def _preparation(initial_egi) -> Optional[Dict[str, Any]]:
+    """What this contest must do FIRST, given the board it opens on.
+
+    From a blank sheet: ``DC+`` — there is no negative context, so there is nowhere
+    to suppose anything, and one must be made before the contest can begin. From a
+    board that already carries a cut: nothing — the place is already there.
+
+    Recorded rather than merely done, so an episode always says *where* it is being
+    played (docs/MATHEMATICS_FROM_THE_SHEET.md rung 8b; src/contest_context.py)."""
+    if initial_egi is None:
+        return None
+    try:
+        from contest_context import preparatory_moves
+        moves = preparatory_moves(initial_egi)
+    except Exception:
+        return None
+    if moves:
+        return {
+            "required": moves,
+            "reason": ("the board is a blank sheet — it has no negative context, so "
+                       "there is nowhere to suppose anything. DC+ makes the place: an "
+                       "arena (negative — posit here) and a hold (positive — conclude "
+                       "here). The double cut asserts nothing; it only opens the room."),
+            "arena_exists": False,
+        }
+    return {
+        "required": [],
+        "reason": ("the board already carries a cut, so a negative context — a place "
+                   "to suppose in — already exists. The contest may begin."),
+        "arena_exists": True,
+    }
+
+
 @dataclass
 class AgonEpisode:
     """The dialogical record of one game.
@@ -107,6 +140,13 @@ class AgonEpisode:
     disposition: Optional[Dict[str, Any]] = None
     initial_egi: Optional[RelationalGraphWithCuts] = None
     move_egis: List[RelationalGraphWithCuts] = field(default_factory=list)
+    # The PREPARATORY STEP (contest_context): a contest must happen *somewhere*, and
+    # that somewhere must be a NEGATIVE context, so that what is supposed inside
+    # cannot ramify outward. A blank sheet has no such place — so from nothing, the
+    # first act is forced: DC+, an empty double cut, logically inert, which makes the
+    # arena (negative — posit here) and the hold (positive — conclude here). Recorded
+    # so that every episode says where it is being played.
+    preparation: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -175,7 +215,8 @@ class AgonSessionManager:
         game = AgonGame(
             game_id=game_id,
             state=state,
-            episode=AgonEpisode(setup=setup, initial_egi=state.initial_egi),
+            episode=AgonEpisode(setup=setup, initial_egi=state.initial_egi,
+                                preparation=_preparation(state.initial_egi)),
             current_layout_dto=layout_dto,
             model_egif=model_egif,
             proposal_egif=proposal_egif,
