@@ -98,7 +98,7 @@ def open_arena(egi: RelationalGraphWithCuts,
     Returns the new EGI and the :class:`Arena` (the negative area to posit in, and
     the positive hold to conclude in)."""
     target = area or egi.sheet
-    before = set(egi.Cut)
+    before = {c.id for c in egi.Cut}
     g = apply_rule("DC+", egi, target=target)
     fresh = [c.id for c in g.Cut if c.id not in before]
     if len(fresh) != 2:
@@ -131,6 +131,58 @@ def is_arena(egi: RelationalGraphWithCuts, area: ElementID) -> bool:
     return polarity_of(egi, area) == "negative"
 
 
+def carry_in(egi: RelationalGraphWithCuts, arena: "Arena",
+             element_ids: List[ElementID]) -> RelationalGraphWithCuts:
+    """**Carry M into the arena** — IT+ a working copy of the model inside.
+
+    Iteration copies from a *less*-enclosed context into a *more*-enclosed one, so
+    the sheet (depth 0) → the arena (depth 1) is exactly its licensed direction. And
+    it is sound as a weakening: ``A → B`` entails ``(A ∧ M) → B``. What you get is the
+    ability to **reason under your current beliefs** inside the fence, without
+    asserting anything new outside it.
+
+    This is the transport the author foresaw — and note where it is needed and where
+    it is not (see :func:`deliberate`)."""
+    g = egi
+    for eid in element_ids:
+        g = apply_rule("IT+", g, selection=[eid], target=arena.arena)
+    return g
+
+
+def sheet_elements(egi: RelationalGraphWithCuts) -> List[ElementID]:
+    """M's own content: the edges and cuts sitting directly on the sheet."""
+    return ([e for e in nav.child_edges(egi, egi.sheet)]
+            + [c for c in nav.child_cuts(egi, egi.sheet)])
+
+
+def deliberate(model: RelationalGraphWithCuts, hypothesis_egif: str
+               ) -> Tuple[RelationalGraphWithCuts, "Arena"]:
+    """**Ask "what would follow if…?" without committing to anything.**
+
+    The full preparatory sequence, and it is precisely where the "moving around"
+    lives:
+
+      1. **DC+** — open the arena (a negative place; asserts nothing).
+      2. **IT+** — carry a working copy of M inside (sound: less- → more-enclosed).
+      3. **INS** — posit the hypothesis there (sound: the context is negative).
+
+    Now you may derive freely *inside the fence*. Nothing you conclude there escapes:
+    what the arena finally yields is a **conditional** — *if M and the hypothesis,
+    then …* — never a new assertion about M.
+
+    **And note the contrast, which is the whole point:** *revising* M needs none of
+    this. To remove from M, ERA acts in place (the sheet is positive). To add to M,
+    no rule applies at all — you juxtapose, and pay in warrant (``model_acts``). So
+    **committing is cheap and local; deliberating is expensive and requires
+    transport.** That is not an accident of the calculus: it is the calculus charging
+    you for *thinking before acting*, and charging you nothing for changing your
+    mind."""
+    g, arena = open_arena(model)
+    g = carry_in(g, arena, sheet_elements(model))
+    g = posit(g, arena, hypothesis_egif)
+    return g, arena
+
+
 def preparatory_moves(egi: RelationalGraphWithCuts) -> List[str]:
     """What a contest must do *first*, given the graph it starts from.
 
@@ -147,4 +199,4 @@ def preparatory_moves(egi: RelationalGraphWithCuts) -> List[str]:
 
 
 __all__ = ["Arena", "open_arena", "posit", "polarity_of", "is_arena",
-           "preparatory_moves"]
+           "preparatory_moves", "carry_in", "sheet_elements", "deliberate"]

@@ -123,3 +123,69 @@ def test_a_corollarial_proof_never_opens_an_arena():
         pytest.skip("no chain")
     rules = [s.rule_name for s in chain.steps]
     assert "INS" not in rules and "DC+" not in rules
+
+
+# --- where the transport IS needed, and where it is NOT ---------------------- #
+# The author's inference: adding needs a negative context, removing needs a positive
+# one, so a model must be manageable in both — "lots of moving around". Both halves
+# are true, but they land on DIFFERENT operations, and the split is the point.
+
+from contest_context import carry_in, deliberate, sheet_elements  # noqa: E402
+from proof_authoring import apply_rule  # noqa: E402
+import eg_navigation as _nav  # noqa: E402
+
+M_EGIF = '(swan "Ciel") ~[ (swan *x) ~[ (white x) ] ]'
+
+
+def test_REVISING_M_needs_no_transport_at_all():
+    """Committing is cheap and LOCAL.
+
+    Remove: ERA acts in place — M sits on the sheet, which is positive.
+    Add: no rule applies at all, so there is nothing to reposition; you juxtapose,
+         and pay in warrant (model_acts).
+    Neither move requires carrying M anywhere."""
+    m = parse_egif(M_EGIF)
+    law = _nav.cut_holding_relation(m, m.sheet, "swan")
+    out = apply_rule("ERA", m, selection=[law])          # in place, no arena
+    assert "~[" not in generate_egif(out)                # the law is gone
+
+
+def test_DELIBERATING_about_M_is_where_the_transport_lives():
+    """Thinking is expensive and requires MOVING:
+         DC+  open the arena (negative; asserts nothing)
+         IT+  carry a working copy of M inside (less- → more-enclosed: sound)
+         INS  posit the hypothesis there (the context is negative: sound)"""
+    m = parse_egif(M_EGIF)
+    g, arena = deliberate(m, '(swan "Nox") (black "Nox")')
+    out = generate_egif(g)
+    # M is still asserted OUTSIDE — untouched
+    assert '(swan "Ciel")' in out
+    # …and a working copy + the hypothesis are FENCED inside the arena
+    inside = _nav.child_edges(g, arena.arena)
+    names = {g.rel[e] for e in inside if e in g.rel}
+    assert "black" in names and "swan" in names
+
+
+def test_nothing_derived_inside_the_fence_changes_M():
+    """THE SAFETY PROPERTY that makes the transport worth its cost. You may reason
+    freely under a working copy of M — and M itself is not touched by any of it. What
+    the arena can yield is a CONDITIONAL, never a new assertion about M."""
+    m = parse_egif(M_EGIF)
+    before = generate_egif(m)
+    g, arena = deliberate(m, '(black "Nox")')
+    # go on supposing wild things inside — M outside is still exactly M
+    g = apply_rule("INS", g, egif="(Anything *z)", target=arena.arena)
+    sheet_now = {g.rel[e] for e in _nav.child_edges(g, g.sheet) if e in g.rel}
+    assert "Anything" not in sheet_now
+    assert '(swan "Ciel")' in before and '(swan "Ciel")' in generate_egif(g)
+
+
+def test_carry_in_uses_iteration_in_its_licensed_direction():
+    """IT+ copies from a LESS-enclosed context into a MORE-enclosed one — sheet
+    (depth 0) → arena (depth 1) is exactly its direction, and it is sound as a
+    weakening: A → B entails (A ∧ M) → B."""
+    m = parse_egif(M_EGIF)
+    g, arena = open_arena(m)
+    g2 = carry_in(g, arena, sheet_elements(m))
+    assert polarity_of(g2, arena.arena) == "negative"
+    assert len(_nav.child_edges(g2, arena.arena)) >= 1     # M's content arrived
