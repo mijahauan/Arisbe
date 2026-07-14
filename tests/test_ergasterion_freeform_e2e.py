@@ -92,7 +92,9 @@ def test_freeform_draw_read_fix_and_two_mode_switch(page, app_url):
     assert "unfixed" in (page.get_attribute("#ws-state", "class") or "")
 
     # Enter freeform; arm the Relation tool and place a labelled spot.
-    page.click("#btn-freeform-toggle")
+    # Draw mode is entered by the compose-mode switch — the palette and the
+    # drawing tools are two named, exclusive ways to make a graph.
+    page.click("#cm-draw")
     page.wait_for_selector("#freeform-tools", state="visible")
     page.click('#freeform-tools [data-fftool="predicate"]')
     _click_canvas(page, 0.5, 0.3)              # "loves" (dialog accepts the name)
@@ -160,7 +162,9 @@ def test_spot_snaps_clear_of_cut_boundary(page, app_url):
     page.goto(app_url + "/ergasterion")
     page.click("#btn-start-empty")
     page.wait_for_selector("#workspace-switch", state="visible")
-    page.click("#btn-freeform-toggle")
+    # Draw mode is entered by the compose-mode switch — the palette and the
+    # drawing tools are two named, exclusive ways to make a graph.
+    page.click("#cm-draw")
     page.wait_for_selector("#freeform-tools", state="visible")
     box = page.locator("#canvas").bounding_box()
 

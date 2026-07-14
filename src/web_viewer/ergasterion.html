@@ -441,6 +441,20 @@
     }
     button.action.primary .entry-sub { color: var(--ctp-surface1, #45475a); }
 
+    /* The compose-mode switch: the two ways to make a graph, named. */
+    .compose-mode { display: flex; gap: 0; margin-bottom: 6px; }
+    .cm-seg {
+      flex: 1; padding: 6px 4px; font-size: 11px; cursor: pointer;
+      background: var(--btn-bg); color: var(--ctp-overlay1, #7f849c);
+      border: 1px solid var(--bottombar-border); border-radius: 0;
+    }
+    .cm-seg:first-child { border-radius: 3px 0 0 3px; }
+    .cm-seg:last-child  { border-radius: 0 3px 3px 0; border-left: none; }
+    .cm-seg.active {
+      background: var(--ctp-surface1, #45475a); color: var(--ctp-text);
+      font-weight: 600;
+    }
+
     /* The palette (composing). Same grid bones as the rule grid. */
     .palette-grid {
       display: grid;
@@ -744,6 +758,23 @@
           <!-- Palette (composing phase). Four kinds of ink + the non-placing
                actions — the palette IS the Beta ontology (spec §2.1). -->
           <div id="palette-block" style="display: none;">
+
+            <!-- HOW you compose is a MODE, not an action. Both modes end at the
+                 same gate ①; they differ in who does what:
+                   place  — you name the structure, Arisbe draws it
+                   draw   — you draw the marks, Arisbe reads them
+                 Presenting "Freeform draw" as a lone button among actions left
+                 the difference undiscoverable, and left two "Cut" buttons with
+                 different behaviour on screen at once (charter P2: one word,
+                 one way). Naming the two modes is what makes them one word each. -->
+            <div class="compose-mode" role="group" aria-label="How to compose">
+              <button class="cm-seg active" id="cm-place">▦ Place marks</button>
+              <button class="cm-seg" id="cm-draw">✎ Draw freehand</button>
+            </div>
+            <p id="compose-mode-note" style="font-size:10px; color:var(--ctp-overlay0); margin:0 0 10px;">
+              You name the structure — Arisbe draws it.
+            </p>
+
             <h2 style="font-size: 11px; color: var(--ctp-overlay0); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
               Palette — click the canvas to place
             </h2>
@@ -783,7 +814,11 @@
                  EGI; the picture is read into a sign only at gate ①.
                  docs/FREEFORM_COMPOSITION_AND_LEARNING.md. -->
             <div id="freeform-block" style="margin: 10px 0; border-top: 1px solid var(--ctp-surface0); padding-top: 8px;">
-              <button class="action" id="btn-freeform-toggle" title="Draw marks freely; read them into the graph at gate ①">✎ Freeform draw</button>
+              <!-- The mode switch above drives this; kept (hidden) so the existing
+                   toggle logic, its E2E tests, and the challenge flow that engages
+                   draw-mode for you all keep working through one code path. -->
+              <button class="action" id="btn-freeform-toggle" style="display:none;"
+                      title="Draw marks freely; read them into the graph at gate ①">✎ Freeform draw</button>
 
               <!-- Challenge mode (build step 4): pick a linear form, draw it
                    freehand, grade against the target with the legible diff. Kept
@@ -1703,6 +1738,15 @@
         catch (_) { return currentPhase; }
       }
 
+      // Is there anything on the sheet? (The server's egi_summary, kept per
+      // session/state.) A blank sheet has nothing to settle and nothing to fix.
+      let currentEgiSummary = null;
+      function isSheetEmpty() {
+        const s = currentEgiSummary;
+        if (!s) return true;
+        return !((s.vertex_count || 0) + (s.edge_count || 0) + (s.cut_count || 0));
+      }
+
       function updatePhaseUI() {
         const phase = effectivePhase();
         if (phaseBannerEl) {
@@ -1722,17 +1766,39 @@
         const settleRow = document.getElementById('settle-row');
         if (seqPanel)
           seqPanel.style.display = phase === 'composing' ? 'none' : 'block';
-        // Settle (regime 3) is available in EVERY phase, composing included.
-        // A presentation nudge cannot change meaning — that is *why* it is
+        // Settle (regime 3) is available in EVERY phase, composing included — a
+        // presentation nudge cannot change meaning, which is *why* it is
         // unconditionally free (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md: regime 3
-        // is "always free"). Hiding it while composing left the one gesture that
-        // resizes a cut invisible exactly when a user is arranging the sheet, and
-        // their drag silently did nothing.
+        // is "always free"). Hiding it while composing left the only gesture that
+        // resizes a cut invisible exactly when a user is arranging the sheet.
         //
-        // The one exception is freeform: there the marks are *ink* (no EGI, so no
-        // DTO to nudge) and you already drag them directly with the Move tool.
-        if (settleRow)
-          settleRow.style.display = (freeformOn && freeform) ? 'none' : 'flex';
+        // But it appears only when there is a drawing to settle: on a blank sheet
+        // it is a no-op, and offering a no-op is the same failure (an affordance
+        // that does nothing) in the other direction. Nor in freeform, where the
+        // marks are ink (no EGI, no DTO) and you drag them directly.
+        if (settleRow) {
+          const drawable = !isSheetEmpty() && !(freeformOn && freeform);
+          settleRow.style.display = drawable ? 'flex' : 'none';
+          if (!drawable && window.SettleAdjust && SettleAdjust.isEnabled()) {
+            SettleAdjust.setEnabled(false);
+            const bs = document.getElementById('btn-settle');
+            if (bs) bs.classList.remove('primary');
+          }
+        }
+        // Gate ① on a blank sheet would fix *nothing* — and the blank sheet is
+        // precisely the one thing that cannot be posited (there is no
+        // unconditioned assertion: docs/LEVEL_ZERO_AND_THE_REGISTERS.md). Say so,
+        // rather than letting the click succeed on an empty graph.
+        const btnFix = document.getElementById('btn-fix-graph');
+        if (btnFix && phase === 'composing') {
+          // In freeform the content is ink, not an EGI — ask the canvas.
+          const inkEmpty = !(freeformOn && freeform && !freeform.isEmpty());
+          const empty = isSheetEmpty() && inkEmpty;
+          btnFix.disabled = empty;
+          btnFix.title = empty
+            ? 'Nothing to fix yet — a blank sheet asserts nothing. Place a mark first.'
+            : 'Fix the graph: from here it changes only by the six rules.';
+        }
         // Sealed: the right panel becomes the disposition (spec §5).
         if (keepDefaults) {
           if (phase === 'sealed') {
@@ -2207,6 +2273,9 @@
           currentIntrospection = body.data.introspection || null;
           currentLayoutDto = body.data.layout_dto || null;
           currentEgif = egifFromForms(body.data.linear_forms);
+          // The viewed state's own contents — stepping back to an empty base must
+          // withdraw Settle/Fix, exactly as arriving on a blank sheet does.
+          currentEgiSummary = body.data.egi_summary || null;
           sheetId = (body.data.layout_dto && body.data.layout_dto.sheet_id) || sheetId;
           // The banner tracks the phase *at the viewed state* — a pre-gate
           // state is still clay (acting there forks an open branch).
@@ -2374,6 +2443,8 @@
         currentChain = data.chain || null;
         viewIndex = tipIndex();
         currentEgif = egifFromForms(data.linear_forms);
+        // What's on the sheet — drives "is there anything to settle / to fix?"
+        currentEgiSummary = data.egi_summary || null;
         renderChain(data.chain);
         renderBranches(data.branches);
         // Session-authored definitions + which current spots can be unfolded.
@@ -3091,6 +3162,10 @@
               const v = document.getElementById('freeform-validity');
               if (v) v.innerHTML =
                 '<span style="color:var(--ctp-overlay0);">drawing changed — read it to see what it says</span>';
+              // The ink IS the content in draw mode, so the first mark is what
+              // earns gate ① (an empty canvas has nothing to fix, same as an
+              // empty sheet). Re-evaluate the gate whenever the ink changes.
+              updatePhaseUI();
             },
           });
         }
@@ -3119,7 +3194,40 @@
             ff.disable();
           }
           updatePhaseUI();          // freeform-on drives the whole UI to "The Graph"
+          syncComposeMode();        // keep the mode switch honest
         });
+
+        // ---- the compose-mode switch -----------------------------------------
+        // Two ways to make a graph, named and mutually exclusive. Both end at the
+        // same gate ①; they differ only in who does what. The switch drives the
+        // existing freeform toggle, so there is one code path (and the challenge
+        // flow, which engages draw-mode for the user, stays correct).
+        function syncComposeMode() {
+          const place = document.getElementById('cm-place');
+          const draw = document.getElementById('cm-draw');
+          const note = document.getElementById('compose-mode-note');
+          if (!place || !draw) return;
+          place.classList.toggle('active', !freeformOn);
+          draw.classList.toggle('active', !!freeformOn);
+          const paletteGrid = document.querySelector('#palette-block .palette-grid');
+          if (paletteGrid) paletteGrid.style.display = freeformOn ? 'none' : 'grid';
+          const fragEl = document.querySelector('#palette-block > details');
+          if (fragEl) fragEl.style.display = freeformOn ? 'none' : 'block';
+          if (note) {
+            note.textContent = freeformOn
+              ? 'You draw the marks — Arisbe reads them back to you.'
+              : 'You name the structure — Arisbe draws it.';
+          }
+        }
+        const cmPlace = document.getElementById('cm-place');
+        const cmDraw = document.getElementById('cm-draw');
+        if (cmPlace) cmPlace.addEventListener('click', () => {
+          if (freeformOn) btnFreeformToggle.click();      // leave draw mode
+        });
+        if (cmDraw) cmDraw.addEventListener('click', () => {
+          if (!freeformOn) btnFreeformToggle.click();     // enter draw mode
+        });
+        syncComposeMode();
       }
       document.querySelectorAll('#freeform-tools [data-fftool]').forEach((b) => {
         b.addEventListener('click', () => {

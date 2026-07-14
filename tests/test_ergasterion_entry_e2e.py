@@ -14,11 +14,13 @@ The entry screen answers two questions, in this order:
        ⊢ Reason from it   — regime 2: the six rules; checked and recorded
        ✎ Re-open as clay  — regime 1: a DIFFERENT graph, claiming nothing
 
-Also pins the regime-3 fix these doors depend on: **Settle is available while
-composing**. It used to be hidden until a graph was fixed, which left the only
-gesture that resizes a cut invisible exactly when a user is arranging the sheet
-(their drag silently did nothing) — and it contradicted the doctrine that a
-presentation nudge is *always* free.
+Also pins what the composing panel may offer *yet*. Settle used to be hidden
+until a graph was FIXED, which left the only gesture that resizes a cut invisible
+exactly while a user is arranging the sheet — their drag silently did nothing.
+But it must not appear on a *blank* sheet either: with nothing drawn there is
+nothing to settle, and an affordance that does nothing is the same failure in the
+other direction. So: Settle (and gate ①) appear as soon as there is something to
+settle — and not before.
 
 Requires Playwright + Chromium; skipped cleanly if absent.
 """
@@ -210,17 +212,69 @@ def test_intent_back_returns_to_the_doors(page, app_url):
     assert page.is_hidden("#intent-section")
 
 
-# --- the regime-3 fix the doors depend on ------------------------------------ #
+# --- the composing panel offers only what applies YET ------------------------ #
+# A blank sheet is not a graph: there is nothing to settle (no drawing) and
+# nothing to fix (no assertion — and the blank sheet is precisely what cannot be
+# posited: docs/LEVEL_ZERO_AND_THE_REGISTERS.md). Offering either is an
+# affordance that does nothing — the same failure as hiding one that would.
 
-def test_settle_is_available_while_composing(page, app_url):
-    """The resize fix. Settle used to be hidden until a graph was FIXED, so the
-    only gesture that resizes a cut was invisible exactly while composing — a
-    user's drag silently did nothing. A presentation nudge cannot change meaning,
-    which is *why* it is unconditionally free (regime 3 = "always free")."""
+def _blank_sheet(page, app_url):
     page.goto(app_url + "/ergasterion")
     page.click("#btn-start-empty")
     page.wait_for_selector("#palette-block", state="visible", timeout=15000)
-    assert page.is_visible("#btn-settle"), (
-        "Settle must be reachable while composing — it is the only way to resize "
-        "a cut by hand")
+
+
+def test_blank_sheet_offers_neither_settle_nor_fix(page, app_url):
+    _blank_sheet(page, app_url)
+    assert page.is_hidden("#btn-settle"), "nothing is drawn — nothing to settle"
+    assert page.eval_on_selector("#btn-fix-graph", "e => e.disabled"), \
+        "a blank sheet asserts nothing — gate ① must not fix it"
+    # …and it says why, in plain words (P5 prevent-don't-punish, P6 error language)
+    assert "blank sheet asserts nothing" in page.get_attribute("#btn-fix-graph", "title")
+    assert not page._errs, f"page errors: {page._errs}"
+
+
+def test_placing_a_mark_earns_settle_and_fix(page, app_url):
+    """As soon as there IS a graph, both become available — this is the cut-resize
+    path: place a cut, then Settle can size it by hand."""
+    _blank_sheet(page, app_url)
+    page.click('button[data-tool="add_cut"]')
+    box = page.query_selector("#canvas").bounding_box()
+    page.mouse.click(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.wait_for_function(
+        "!document.querySelector('#btn-fix-graph').disabled", timeout=15000)
+    assert page.is_visible("#btn-settle"), "a drawn cut can be settled (resized)"
+    assert not page._errs, f"page errors: {page._errs}"
+
+
+# --- the two ways to compose are named, and mutually exclusive ---------------- #
+
+def test_compose_mode_switch_names_both_ways_and_says_the_difference(page, app_url):
+    """P2 (one word, one way) + P3: 'Freeform draw' used to be a lone button among
+    actions, so the difference from the palette was undiscoverable — and two 'Cut'
+    buttons with different behaviour sat on screen at once. The two ways are now a
+    named, exclusive mode switch that states who does what."""
+    _blank_sheet(page, app_url)
+    segs = page.eval_on_selector_all(
+        ".cm-seg", "els => els.map(e => e.textContent.trim())")
+    assert "▦ Place marks" in segs and "✎ Draw freehand" in segs
+    # place is the default, and it says what it means
+    assert "You name the structure" in page.text_content("#compose-mode-note")
+    assert page.is_visible("#palette-block .palette-grid")
+
+    page.click("#cm-draw")
+    page.wait_for_function(
+        "document.querySelector('#compose-mode-note')"
+        ".textContent.indexOf('You draw the marks') >= 0", timeout=10000)
+    # exclusive: the palette's marks give way to the drawing tools
+    assert page.is_hidden("#palette-block .palette-grid")
+    assert page.is_visible("#freeform-tools")
+    # and there is no DTO to settle while the content is ink
+    assert page.is_hidden("#btn-settle")
+
+    page.click("#cm-place")
+    page.wait_for_function(
+        "document.querySelector('#compose-mode-note')"
+        ".textContent.indexOf('You name the structure') >= 0", timeout=10000)
+    assert page.is_visible("#palette-block .palette-grid")
     assert not page._errs, f"page errors: {page._errs}"
