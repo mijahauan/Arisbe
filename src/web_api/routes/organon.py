@@ -125,7 +125,55 @@ def _browse_facets(entry: dict) -> dict:
         pass
     # Cheap chain-existence (a file stat, no parse) — the "derived" signal.
     facets["has_chain"] = (base / "history" / "chain.jsonl").exists()
+
+    # The READER's axes (corpus_facets): what is this ABOUT, and what is it FOR.
+    # `category` answers a producer's question (how was it made, has it a history)
+    # and was never a subject taxonomy — using it as one is what made `domain_model`
+    # a junk drawer. Subject/purpose are derived from the authored annotation tags +
+    # the provenance kind; they are a reader's convenience, low-warrant and
+    # revisable, and NOTHING in the calculus consults them.
+    try:
+        from corpus_facets import facets_for, tags_of
+        ann_tags = tags_of(TOMOS_PATH, entry)
+        rf = facets_for(entry.get("uod_id", "?"), tags=ann_tags,
+                        category=entry.get("category"), kind=facets["kind"])
+        facets["subjects"] = list(rf.subjects)
+        facets["purposes"] = list(rf.purposes)
+        facets["tags"] = ann_tags
+    except Exception:
+        facets["subjects"], facets["purposes"], facets["tags"] = [], [], []
     return facets
+
+
+@router.get("/shelves")
+async def shelves():
+    """The reader's two axes, with their glosses and their counts.
+
+    ``UoDCategory`` (the producer's axis: static import vs dynamic session) is left
+    exactly as it is — the code depends on it. This is the axis a *reader* browses
+    by, derived from the authored tags (``corpus_facets``), and it is honest about
+    itself: a facet is a convenience, revisable and low-warrant, and no part of the
+    calculus consults one.
+    """
+    try:
+        from corpus_facets import (PURPOSES, SUBJECTS, facets_for_corpus,
+                                   group_by_purpose, group_by_subject, unfiled)
+        entries = _get_tomos().list_uods()
+        fs = facets_for_corpus(TOMOS_PATH, entries)
+        by_s, by_p = group_by_subject(fs), group_by_purpose(fs)
+        return ApiResponse(success=True, data={
+            "subjects": [{"key": k, "gloss": g, "count": len(by_s.get(k, []))}
+                         for k, g in SUBJECTS.items() if by_s.get(k)],
+            "purposes": [{"key": k, "gloss": g, "count": len(by_p.get(k, []))}
+                         for k, g in PURPOSES.items() if by_p.get(k)],
+            # Never a silent gap: a UoD no rule could shelve is named, not hidden.
+            "unfiled": unfiled(fs),
+            "note": ("A shelf is a reader's convenience, not a fact about the graph "
+                     "— revisable, low-warrant, and never consulted by the rules."),
+        })
+    except Exception as exc:
+        return ApiResponse(success=False,
+                           error={"code": "SHELVES_ERROR", "message": str(exc)})
 
 
 @router.get("/uods")
@@ -168,6 +216,12 @@ async def list_uods():
                 "total_transformations": e.get("total_transformations", 0),
                 "kind": f["kind"],
                 "cited": f["cited"],
+                # The reader's axes — what it is ABOUT and what it is FOR. Multi-
+                # valued on purpose: Cohen's forcing conditions are mathematics AND
+                # a modality demonstration, and forcing one shelf per thing is the
+                # mistake that made `domain_model` a junk drawer.
+                "subjects": f.get("subjects", []),
+                "purposes": f.get("purposes", []),
                 # Standing badge (posited / derived / withstood-Agon) — see standing_of.
                 "standing": standing,
                 "description": f["description"],

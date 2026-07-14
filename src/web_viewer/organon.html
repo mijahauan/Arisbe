@@ -98,7 +98,12 @@
     #organon-controls .ctl-row { display: flex; gap: 7px; align-items: center; }
     #organon-controls .ctl-row label { font-size: 10px; color: var(--ctp-overlay0); white-space: nowrap; }
     #organon-count { font-size: 10px; color: var(--ctp-overlay0); }
-    /* kind facet chips */
+    /* facet chips — two axes: subject (what it's about) and kind (how it was made) */
+    .facet-row-label {
+      font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+      color: var(--ctp-overlay0, #6c7086); margin: 6px 0 3px;
+    }
+    #organon-subjects { display: flex; flex-wrap: wrap; gap: 4px; }
     #organon-facets { display: flex; flex-wrap: wrap; gap: 4px; }
     .facet-chip {
       font-size: 10px; padding: 2px 7px; border-radius: 10px; cursor: pointer;
@@ -296,6 +301,14 @@
             <option value="modified">Recently modified</option>
           </select>
         </div>
+        <!-- The READER's axis: what is this ABOUT. `kind`/`category` answer a
+             producer's question (how was it made) and were never a subject
+             taxonomy — which is how `domain_model` became a junk drawer. A shelf
+             is a convenience: revisable, low-warrant, never consulted by the
+             rules. -->
+        <div class="facet-row-label" data-term="subject">Subject</div>
+        <div id="organon-subjects"></div>
+        <div class="facet-row-label">Made as</div>
         <div id="organon-facets"></div>
         <div id="organon-count"></div>
       </div>
@@ -491,6 +504,8 @@
       let allUods = [];
       let sortMode = 'kind';     // 'kind' (grouped) | 'name' | 'modified'
       let activeKind = null;     // facet filter: a kind id, or null for all
+      let activeSubject = null;  // the reader's axis: a subject key, or null for all
+      let shelves = { subjects: [], purposes: [] };   // from GET /organon/shelves
       let selectedUodId = null;
       let svgPanZoomInstance = null;
       let exportUodId = null;
@@ -654,6 +669,9 @@
         const q = filterEl.value.trim().toLowerCase();
         const filtered = allUods.filter(function (u) {
           if (activeKind && kindOf(u) !== activeKind) return false;
+          // Subjects are MULTI-valued (Cohen's forcing conditions are mathematics
+          // AND a modality demonstration) — match if the UoD sits on that shelf.
+          if (activeSubject && (u.subjects || []).indexOf(activeSubject) < 0) return false;
           return matchesQuery(u, q);
         });
         renderList(filtered);
@@ -664,6 +682,36 @@
             ' items · ' + kinds.size + ' kind' + (kinds.size === 1 ? '' : 's') +
             (q || activeKind ? ' (filtered)' : '');
         }
+      }
+
+      // Subject chips — the reader's axis, served by GET /organon/shelves so the
+      // browser never hardcodes the vocabulary.
+      function renderSubjects() {
+        const host = document.getElementById('organon-subjects');
+        if (!host) return;
+        const chips = ['<span class="facet-chip' + (activeSubject ? '' : ' active') +
+          '" data-subject="">All ' + allUods.length + '</span>'];
+        (shelves.subjects || []).forEach(function (s) {
+          chips.push('<span class="facet-chip' + (activeSubject === s.key ? ' active' : '') +
+            '" data-subject="' + s.key + '" title="' + escapeHtml(s.gloss || '') + '">' +
+            s.key + ' ' + s.count + '</span>');
+        });
+        host.innerHTML = chips.join('');
+        Array.from(host.querySelectorAll('.facet-chip')).forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            activeSubject = chip.dataset.subject || null;
+            renderSubjects();
+            applyFilter();
+          });
+        });
+      }
+
+      async function loadShelves() {
+        try {
+          const res = await fetch('/organon/shelves');
+          const body = await res.json();
+          if (body.success) { shelves = body.data; renderSubjects(); }
+        } catch (e) { /* a missing shelf list must never break the browser */ }
       }
 
       // Facet chips: one per kind present, plus "All". Click to scope the list.
@@ -701,6 +749,7 @@
           }
           allUods = body.data || [];
           renderFacets();
+          await loadShelves();     // the reader's axis (subjects), served not hardcoded
           applyFilter();
           setStatus('Loaded ' + allUods.length + ' UoDs from tomos corpus.');
           // Deep link: /organon?uod=<id> opens that item directly (the pattern
