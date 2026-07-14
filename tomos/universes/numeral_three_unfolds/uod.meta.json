@@ -1,0 +1,19 @@
+{
+  "uod_id": "numeral_three_unfolds",
+  "uod_type": "historical",
+  "name": "The numeral 'three' \u2014 a place, folded into a name",
+  "description": "Peirce: a diagram is a TYPE, and can only be shown through a replica of it \u2014 a TOKEN. So it is with a numeral. '3' is not an object the sheet contains; it is the third position in the order, and the numeral is a *definition* that folds that chain into one spot and unfolds it back again, losing nothing (the fold is checked conservative by same_graph). This is why arithmetic can be practical and logical at once: the numeral is a working abbreviation, and the logic underneath it is always recoverable \u2014 one click of 'unfold'.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

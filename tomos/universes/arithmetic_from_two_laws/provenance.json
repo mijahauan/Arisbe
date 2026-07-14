@@ -1,0 +1,45 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "article",
+      "author": "Peirce, Charles Sanders",
+      "title": "On the Logic of Number",
+      "bibkey": "peirce1881logicofnumber",
+      "note": "American Journal of Mathematics 4 (1881), 85\u201395 \u2014 the first successful axiom system for the natural numbers"
+    },
+    {
+      "type": "incollection",
+      "author": "Carter, Jessica",
+      "title": "Logic of Relations and Diagrammatic Reasoning: Structuralist Elements in the Work of Charles Sanders Peirce",
+      "bibkey": "carter2020logicofrelations",
+      "note": "in Reck & Schiemer (eds.), The Prehistory of Mathematical Structuralism, OUP 2020, ch. 10"
+    },
+    {
+      "type": "incollection",
+      "author": "Shields, Paul",
+      "title": "Peirce's Axiomatization of Arithmetic",
+      "bibkey": "shields1997axiomatization",
+      "note": "in Houser et al. (eds.), Studies in the Logic of C. S. Peirce, Indiana UP 1997 \u2014 the reconstruction P1\u2013P6 used here"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Peirce, Charles Sanders. On the Logic of Number",
+      "Carter, Jessica. Logic of Relations and Diagrammatic Reasoning: Structuralist Elements in the Work of Charles Sanders Peirce",
+      "Shields, Paul. Peirce's Axiomatization of Arithmetic"
+    ]
+  }
+}

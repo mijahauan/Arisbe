@@ -1,0 +1,19 @@
+{
+  "uod_id": "peirce_order_1881",
+  "uod_type": "historical",
+  "name": "Peirce's order (On the Logic of Number, 1881)",
+  "description": "The order, assembled one axiom at a time. Peirce's primitive is the *relative*, not the number: a number is a position in a relational system, so the system comes first. P1\u2013P6 (Shields' reconstruction, proven equivalent to Dedekind and Peano) make the naturals a discrete linear order with a least element and no greatest \u2014 each scribed as an ordinary Beta graph over the single dyadic spot (lt x y). Read the cuts: a cut inside a cut is if\u2013then, and cut DEPTH is quantifier alternation \u2014 P4 (each number has a next, with nothing between) is three cuts deep, and that is exactly its \u2200\u2203\u00ac\u2203 shape. The line of identity is the variable. Nothing here is a number yet; this is the ground on which numbers stand. See docs/MATHEMATICS_FROM_THE_SHEET.md.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

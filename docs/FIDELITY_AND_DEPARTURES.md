@@ -354,6 +354,44 @@ modality."
 
 ---
 
+## 4b. Departure IV — identity is a spot where it must be *concluded*
+
+**Peirce's position.** Identity is not a relation but the **line of identity
+itself**. Two hooks joined by one continuous line *are* one individual: the sign is
+an **icon** of identity, not a statement about it. This is among the most beautiful
+things in the system — Beta needs no `=` sign at all, because sameness is drawn
+rather than predicated, and the teridentity spot lets three lines meet without any
+symbol intruding.
+
+**Where it fails, and it does fail.** Identity can be *asserted* by joining lines.
+It cannot be **inferred**. Look at Peirce's own arithmetic (1881): trichotomy says
+*any two numbers are ordered — or they are the same*, and antisymmetry says *if
+x ≤ y and y ≤ x then x = y*. Both put an identity in the **consequent of a scroll**.
+And a ligature cannot be the head of an implication: a line is drawn or it is not;
+you cannot make two lines *become* one line as the conclusion of an inference.
+
+**The departure.** Where identity must be concluded, Arisbe scribes `(= x y)` — an
+equality **spot**, with the ordinary axioms (reflexive, symmetric, transitive,
+congruent), exactly as first-order logic with equality does. This is a genuine loss
+of iconicity, and it is *not* patched over: the fixtures say `(= x y)` in plain
+sight (`docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md`), and Arisbe's EGIF has no
+coreference-node syntax pretending otherwise.
+
+**What is kept.** Everywhere identity is merely *asserted* — which is the
+overwhelming majority of graphs, and all of Beta's expressive power over
+individuals — Arisbe still draws it Peirce's way: **one shared line, no symbol**.
+The teridentity is intact. The departure is surgical: it bites only at the point
+where an identity is the *conclusion* of a derivation.
+
+**Why this is honest rather than convenient.** The alternative would be to let a
+rule *join* two lines as an inferential act. That is expressible (it is what a
+substitution rule does), but it would make identity a rule of the calculus rather
+than a feature of the drawing — trading a visible departure for an invisible one.
+We would rather the reader see the `=` and know exactly what was given up. See
+[MATHEMATICS_FROM_THE_SHEET](MATHEMATICS_FROM_THE_SHEET.md) rung 4.
+
+---
+
 ## 5. The points of confusion these departures answer
 
 The departures did not arise in a vacuum. Each responds to a genuine knot —

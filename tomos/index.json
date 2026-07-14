@@ -646,7 +646,52 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/forcing_conditions"
+    },
+    {
+      "uod_id": "peirce_order_1881",
+      "name": "Peirce's order (On the Logic of Number, 1881)",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/peirce_order_1881"
+    },
+    {
+      "uod_id": "arithmetic_from_two_laws",
+      "name": "Addition, grown from two drawn laws",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/arithmetic_from_two_laws"
+    },
+    {
+      "uod_id": "numeral_three_unfolds",
+      "name": "The numeral 'three' \u2014 a place, folded into a name",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/numeral_three_unfolds"
     }
   ],
-  "last_updated": "2026-07-13T09:10:35.410345"
+  "last_updated": "2026-07-14T07:58:37.571982"
 }

@@ -1,0 +1,97 @@
+{
+  "annotations": [
+    {
+      "id": "ann_42a037ea",
+      "scope": "chain",
+      "text": "Each step scribes one graph onto the sheet. The chain's *character* is corollarial (proof_character): no INSERTION appears, so nothing entered that the premisses did not already contain \u2014 Peirce's own criterion.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "corollarial",
+        "mathematics",
+        "teaching"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_20d5eb40",
+      "scope": "step",
+      "text": "P1 irreflexivity \u2014 nothing is less than itself",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_90b5c821",
+      "scope": "step",
+      "text": "P2 transitivity \u2014 the scroll: if x<y and y<z, then x<z",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_65dde409",
+      "scope": "step",
+      "text": "P3 trichotomy \u2014 any two are ordered, or the same",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    },
+    {
+      "id": "ann_d31d3e97",
+      "scope": "step",
+      "text": "P4 discreteness \u2014 each has a next \u2014 nothing squeezes between",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-4",
+      "element_id": null
+    },
+    {
+      "id": "ann_6c014960",
+      "scope": "step",
+      "text": "P5 least element \u2014 the count starts somewhere",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-5",
+      "element_id": null
+    },
+    {
+      "id": "ann_f440ea7b",
+      "scope": "step",
+      "text": "P6 no greatest \u2014 and never has to stop",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-6",
+      "element_id": null
+    }
+  ]
+}

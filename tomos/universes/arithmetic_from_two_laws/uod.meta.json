@@ -1,0 +1,19 @@
+{
+  "uod_id": "arithmetic_from_two_laws",
+  "uod_type": "historical",
+  "name": "Addition, grown from two drawn laws",
+  "description": "A number is a *place*: the successor is a relation (existential graphs have no function symbols), and a numeral names a position in the chain. Then addition needs exactly two graphs \u2014 x + 0 = x, and x + s(y) = s(x + y). Forward-chaining them grows the ENTIRE addition table on the sheet; '2 + 3 = 5' is then *read off the diagram*, never typed in. That is Peirce's COROLLARIAL reasoning in his own words: nothing entered that the definitions did not already contain. Watch the audited claim (sum \"2\" \"3\" \"5\") ARRIVE as the second law lands \u2014 and pause on the two readings of that arrival: closed-world, the bare successor-chain HAS no addition, so the claim is FALSE *of that system* until the laws make it true (Peirce exactly: mathematics traces the consequences of hypotheses); open-world, the sheet is merely SILENT and the claim reads UNKNOWN. Commutativity, too, can be *seen* to hold across this stretch \u2014 but seeing it for EVERY number needs induction, and induction is where the sheet ends (a schema, not a graph). See docs/MATHEMATICS_FROM_THE_SHEET.md.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

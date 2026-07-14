@@ -1,0 +1,147 @@
+{
+  "Cut": [],
+  "E": [
+    {
+      "id": "e_0066807c"
+    },
+    {
+      "id": "e_035e4a1e"
+    },
+    {
+      "id": "e_404cf46f"
+    },
+    {
+      "id": "e_42e7e655"
+    },
+    {
+      "id": "e_5a870991"
+    },
+    {
+      "id": "e_75a815ea"
+    },
+    {
+      "id": "e_c981f776"
+    },
+    {
+      "id": "e_d6d604c7"
+    },
+    {
+      "id": "e_ee5513ff"
+    },
+    {
+      "id": "e_f9a4d4fa"
+    },
+    {
+      "id": "e_fba65cdd"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_4c922ae7",
+      "is_generic": false,
+      "label": "5"
+    },
+    {
+      "id": "v_63b8b87c",
+      "is_generic": false,
+      "label": "0"
+    },
+    {
+      "id": "v_672917a1",
+      "is_generic": false,
+      "label": "3"
+    },
+    {
+      "id": "v_9eb03caf",
+      "is_generic": false,
+      "label": "1"
+    },
+    {
+      "id": "v_d5163777",
+      "is_generic": false,
+      "label": "2"
+    },
+    {
+      "id": "v_f8d6b307",
+      "is_generic": false,
+      "label": "4"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "sheet_929a0857": [
+      "e_0066807c",
+      "e_035e4a1e",
+      "e_404cf46f",
+      "e_42e7e655",
+      "e_5a870991",
+      "e_75a815ea",
+      "e_c981f776",
+      "e_d6d604c7",
+      "e_ee5513ff",
+      "e_f9a4d4fa",
+      "e_fba65cdd",
+      "v_4c922ae7",
+      "v_63b8b87c",
+      "v_672917a1",
+      "v_9eb03caf",
+      "v_d5163777",
+      "v_f8d6b307"
+    ]
+  },
+  "nu": {
+    "e_0066807c": [
+      "v_672917a1"
+    ],
+    "e_035e4a1e": [
+      "v_f8d6b307",
+      "v_4c922ae7"
+    ],
+    "e_404cf46f": [
+      "v_9eb03caf",
+      "v_d5163777"
+    ],
+    "e_42e7e655": [
+      "v_63b8b87c",
+      "v_9eb03caf"
+    ],
+    "e_5a870991": [
+      "v_63b8b87c"
+    ],
+    "e_75a815ea": [
+      "v_d5163777",
+      "v_672917a1"
+    ],
+    "e_c981f776": [
+      "v_f8d6b307"
+    ],
+    "e_d6d604c7": [
+      "v_d5163777"
+    ],
+    "e_ee5513ff": [
+      "v_4c922ae7"
+    ],
+    "e_f9a4d4fa": [
+      "v_9eb03caf"
+    ],
+    "e_fba65cdd": [
+      "v_672917a1",
+      "v_f8d6b307"
+    ]
+  },
+  "rel": {
+    "e_0066807c": "num",
+    "e_035e4a1e": "succ",
+    "e_404cf46f": "succ",
+    "e_42e7e655": "succ",
+    "e_5a870991": "num",
+    "e_75a815ea": "succ",
+    "e_c981f776": "num",
+    "e_d6d604c7": "num",
+    "e_ee5513ff": "num",
+    "e_f9a4d4fa": "num",
+    "e_fba65cdd": "succ"
+  },
+  "rho": {},
+  "sheet": "sheet_929a0857"
+}

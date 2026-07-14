@@ -1,0 +1,264 @@
+{
+  "Cut": [
+    {
+      "id": "c_33706809"
+    },
+    {
+      "id": "c_840d6497"
+    },
+    {
+      "id": "c_b996a809"
+    },
+    {
+      "id": "c_e81a3c50"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_28272005"
+    },
+    {
+      "id": "e_289621ce"
+    },
+    {
+      "id": "e_2e21e827"
+    },
+    {
+      "id": "e_49416ddd"
+    },
+    {
+      "id": "e_4ebb1bf4"
+    },
+    {
+      "id": "e_51420c7b"
+    },
+    {
+      "id": "e_704ba37c"
+    },
+    {
+      "id": "e_7d6f39d8"
+    },
+    {
+      "id": "e_98c20418"
+    },
+    {
+      "id": "e_a43b38bd"
+    },
+    {
+      "id": "e_ab90889a"
+    },
+    {
+      "id": "e_af74df68"
+    },
+    {
+      "id": "e_b5e496e5"
+    },
+    {
+      "id": "e_c224d772"
+    },
+    {
+      "id": "e_da546a32"
+    },
+    {
+      "id": "e_fd0cab7d"
+    },
+    {
+      "id": "e_fff78031"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_1fcb79e0",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_230233c8",
+      "is_generic": false,
+      "label": "0"
+    },
+    {
+      "id": "v_4fd384b9",
+      "is_generic": false,
+      "label": "4"
+    },
+    {
+      "id": "v_68cd62d4",
+      "is_generic": false,
+      "label": "1"
+    },
+    {
+      "id": "v_7a4adebd",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_7f289f53",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_93f89a12",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_9cb15083",
+      "is_generic": false,
+      "label": "5"
+    },
+    {
+      "id": "v_b126930f",
+      "is_generic": false,
+      "label": "2"
+    },
+    {
+      "id": "v_bc2c30e9",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_db1b5cf0",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_ecc90d88",
+      "is_generic": false,
+      "label": "3"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_33706809": [
+      "c_b996a809",
+      "e_98c20418",
+      "v_7a4adebd"
+    ],
+    "c_840d6497": [
+      "c_e81a3c50",
+      "e_4ebb1bf4",
+      "e_a43b38bd",
+      "e_af74df68",
+      "v_1fcb79e0",
+      "v_7f289f53",
+      "v_93f89a12",
+      "v_bc2c30e9",
+      "v_db1b5cf0"
+    ],
+    "c_b996a809": [
+      "e_2e21e827"
+    ],
+    "c_e81a3c50": [
+      "e_289621ce"
+    ],
+    "sheet_5e5e8c2a": [
+      "c_33706809",
+      "c_840d6497",
+      "e_28272005",
+      "e_49416ddd",
+      "e_51420c7b",
+      "e_704ba37c",
+      "e_7d6f39d8",
+      "e_ab90889a",
+      "e_b5e496e5",
+      "e_c224d772",
+      "e_da546a32",
+      "e_fd0cab7d",
+      "e_fff78031",
+      "v_230233c8",
+      "v_4fd384b9",
+      "v_68cd62d4",
+      "v_9cb15083",
+      "v_b126930f",
+      "v_ecc90d88"
+    ]
+  },
+  "nu": {
+    "e_28272005": [
+      "v_ecc90d88",
+      "v_4fd384b9"
+    ],
+    "e_289621ce": [
+      "v_bc2c30e9",
+      "v_db1b5cf0",
+      "v_7f289f53"
+    ],
+    "e_2e21e827": [
+      "v_7a4adebd",
+      "v_230233c8",
+      "v_7a4adebd"
+    ],
+    "e_49416ddd": [
+      "v_68cd62d4"
+    ],
+    "e_4ebb1bf4": [
+      "v_93f89a12",
+      "v_db1b5cf0"
+    ],
+    "e_51420c7b": [
+      "v_ecc90d88"
+    ],
+    "e_704ba37c": [
+      "v_9cb15083"
+    ],
+    "e_7d6f39d8": [
+      "v_4fd384b9"
+    ],
+    "e_98c20418": [
+      "v_7a4adebd"
+    ],
+    "e_a43b38bd": [
+      "v_1fcb79e0",
+      "v_7f289f53"
+    ],
+    "e_ab90889a": [
+      "v_4fd384b9",
+      "v_9cb15083"
+    ],
+    "e_af74df68": [
+      "v_bc2c30e9",
+      "v_93f89a12",
+      "v_1fcb79e0"
+    ],
+    "e_b5e496e5": [
+      "v_230233c8"
+    ],
+    "e_c224d772": [
+      "v_b126930f",
+      "v_ecc90d88"
+    ],
+    "e_da546a32": [
+      "v_68cd62d4",
+      "v_b126930f"
+    ],
+    "e_fd0cab7d": [
+      "v_230233c8",
+      "v_68cd62d4"
+    ],
+    "e_fff78031": [
+      "v_b126930f"
+    ]
+  },
+  "rel": {
+    "e_28272005": "succ",
+    "e_289621ce": "sum",
+    "e_2e21e827": "sum",
+    "e_49416ddd": "num",
+    "e_4ebb1bf4": "succ",
+    "e_51420c7b": "num",
+    "e_704ba37c": "num",
+    "e_7d6f39d8": "num",
+    "e_98c20418": "num",
+    "e_a43b38bd": "succ",
+    "e_ab90889a": "succ",
+    "e_af74df68": "sum",
+    "e_b5e496e5": "num",
+    "e_c224d772": "succ",
+    "e_da546a32": "succ",
+    "e_fd0cab7d": "succ",
+    "e_fff78031": "num"
+  },
+  "rho": {},
+  "sheet": "sheet_5e5e8c2a"
+}

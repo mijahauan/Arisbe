@@ -1,0 +1,32 @@
+{
+  "annotations": [
+    {
+      "id": "ann_42a037ea",
+      "scope": "chain",
+      "text": "Each step scribes one graph onto the sheet. The chain's *character* is corollarial (proof_character): no INSERTION appears, so nothing entered that the premisses did not already contain \u2014 Peirce's own criterion.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "corollarial",
+        "mathematics",
+        "teaching"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_6d5472dc",
+      "scope": "step",
+      "text": "Fold the chain into the numeral: 'three' abbreviates 'three steps up from zero'. The abbreviation is conservative \u2014 unfolding returns the same graph (same_graph), so the numeral adds no content, only a name.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    }
+  ]
+}

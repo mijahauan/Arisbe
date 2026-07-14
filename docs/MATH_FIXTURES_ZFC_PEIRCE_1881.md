@@ -84,9 +84,9 @@ Sets with the same members are equal.
 
 ```
 ~[ [*x] [*y]
-   ~[ [*z] ~[ ~[ (in ?z ?x) ~[ (in ?z ?y) ] ]
-              ~[ (in ?z ?y) ~[ (in ?z ?x) ] ] ] ]
-   ~[ [?x ?y] ] ]
+   ~[ [*z] ~[ ~[ (in z x) ~[ (in z y) ] ]
+              ~[ (in z y) ~[ (in z x) ] ] ] ]
+   ~[ (= x y) ] ]
 ```
 Note: the inner `~[ [*z] ~[ … ↔ … ] ]` is the antecedent "x and y have the same
 members," sitting in the negative area; the consequent `x=y` is the ligature
@@ -99,7 +99,7 @@ here as a standalone fixture.)
 `∃x ∀y ¬(y∈x)`
 
 ```
-[*x] ~[ [*y] (in ?y ?x) ]
+[*x] ~[ [*y] (in y x) ]
 ```
 Note: `~[ [*y] (in ?y ?x) ]` is `¬∃y(y∈x)` = "nothing is in x." Cleanest axiom
 in the set.
@@ -111,7 +111,7 @@ exact pair; the exact-pair version needs the `↔` expansion as in Extensionalit
 `∀x∀y ∃z (x∈z ∧ y∈z)`
 
 ```
-~[ [*x] [*y] ~[ [*z] (in ?x ?z) (in ?y ?z) ] ]
+~[ [*x] [*y] ~[ [*z] (in x z) (in y z) ] ]
 ```
 Note: the canonical `∀∀∃` rhythm — two defining labels just inside the leading
 cut, one more cut for the existential.
@@ -123,7 +123,7 @@ For any family F there is a set A containing every member of every member of F.
 
 ```
 ~[ [*F] ~[ [*A]
-   ~[ [*x] [*B] (in ?x ?B) (in ?B ?F) ~[ (in ?x ?A) ] ] ] ]
+   ~[ [*x] [*B] (in x B) (in B F) ~[ (in x A) ] ] ] ]
 ```
 Note: the inner `∃B(…)` in the antecedent becomes a `[*B]` alongside `[*x]` under
 the same cut — the prenex equivalence `∀x(∃B φ → ψ) ≡ ∀x∀B(φ → ψ)` (ψ free of B)
@@ -136,8 +136,8 @@ For any x there is a set y containing every subset of x.
 
 ```
 ~[ [*x] ~[ [*y]
-   ~[ [*z] ~[ [*w] (in ?w ?z) ~[ (in ?w ?x) ] ]
-            ~[ (in ?z ?y) ] ] ] ]
+   ~[ [*z] ~[ [*w] (in w z) ~[ (in w x) ] ]
+            ~[ (in z y) ] ] ] ]
 ```
 Note: the subset relation is inlined as `~[ [*w] (in ?w ?z) ~[ (in ?w ?x) ] ]`.
 This is the first axiom that visibly screams for a defined relation
@@ -151,11 +151,11 @@ There is a set I containing the empty set and closed under successor s = x ∪ {
 
 ```
 [*I]
-  [*e] (in ?e ?I) ~[ [*z] (in ?z ?e) ]
-  ~[ [*x] (in ?x ?I)
-     ~[ [*s] (in ?s ?I)
-        ~[ [*w] ~[ ~[ (in ?w ?s) ~[ ~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ] ] ]
-                   ~[ ~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ] ~[ (in ?w ?s) ] ] ] ] ] ]
+  [*e] (in e I) ~[ [*z] (in z e) ]
+  ~[ [*x] (in x I)
+     ~[ [*s] (in s I)
+        ~[ [*w] ~[ ~[ (in w s) ~[ ~[ ~[ (in w x) ] ~[ (= w x) ] ] ] ]
+                   ~[ ~[ ~[ (in w x) ] ~[ (= w x) ] ] ~[ (in w s) ] ] ] ] ] ]
 ```
 Note: this is the deliberate monster. `(w∈x ∨ w=x)` is the disjunction
 `~[ ~[ (in ?w ?x) ] ~[ [?w ?x] ] ]`, appearing once in each arm of the `w∈s ↔ …`
@@ -169,8 +169,8 @@ Every nonempty set has an ∈-minimal member.
 `∀x [ ∃y(y∈x) → ∃u( u∈x ∧ ¬∃z(z∈u ∧ z∈x) ) ]`
 
 ```
-~[ [*x] [*y] (in ?y ?x)
-   ~[ [*u] (in ?u ?x) ~[ [*z] (in ?z ?u) (in ?z ?x) ] ] ]
+~[ [*x] [*y] (in y x)
+   ~[ [*u] (in u x) ~[ [*z] (in z u) (in z x) ] ] ]
 ```
 Note: the antecedent's witness `y` and the consequent's minimal element `u` are
 distinct bound lines — distinct labels are mandatory.
@@ -196,8 +196,8 @@ is a set.
 
 ```
 ~[ [*p] ~[ [*A] ~[ [*B]
-   ~[ [*x] ~[ ~[ (in ?x ?B) ~[ (in ?x ?A) ⟨φ: ?x⟩ ] ]
-              ~[ (in ?x ?A) ⟨φ: ?x⟩ ~[ (in ?x ?B) ] ] ] ]
+   ~[ [*x] ~[ ~[ (in x B) ~[ (in x A) ⟨φ: x⟩ ] ]
+              ~[ (in x A) ⟨φ: x⟩ ~[ (in x B) ] ] ] ]
 ] ] ]
 ```
 - Hole `⟨φ: ?x⟩`: one port `?x`, TWO occurrences (different depth/polarity).
@@ -212,10 +212,10 @@ For each formula φ(x,y) functional on A, the φ-image of A is a set.
 
 ```
 ~[ [*A]
-   ~[ [*x] (in ?x ?A) ~[ [*y] ⟨φ: ?x ?y⟩
-                          ~[ [*y2] ⟨φ: ?x ?y2⟩ ~[ [?y ?y2] ] ] ] ]   % functionality hyp (∃!)
+   ~[ [*x] (in x A) ~[ [*y] ⟨φ: x y⟩
+                          ~[ [*y2] ⟨φ: x y2⟩ ~[ (= y y2) ] ] ] ]   % functionality hyp (∃!)
    ~[ [*B]
-      ~[ [*x] (in ?x ?A) ~[ [*y] (in ?y ?B) ⟨φ: ?x ?y⟩ ] ] ] ]
+      ~[ [*x] (in x A) ~[ [*y] (in y B) ⟨φ: x y⟩ ] ] ] ]
 ```
 - Hole `⟨φ: ?x ?y⟩`: two ports. THREE occurrences here (twice in the `∃!y`
   uniqueness hypothesis, once in the image clause) — and the second port differs
@@ -321,42 +321,42 @@ Source: C. S. Peirce, "On the Logic of Number," *American Journal of Mathematics
 Dedekind (1888) and Peano (1889). Peirce's naturals = a discrete linear order with
 a least element and no greatest; his induction is the least-number principle.
 
-Primitive: strict order `(lt ?x ?y)` for `x < y`. Equality via ligature.
+Primitive: strict order `(lt x y)` for `x < y`. **Equality is the spot `(= x y)`, not the ligature** — see the note below; this is a recorded departure from Peirce (docs/FIDELITY_AND_DEPARTURES.md).
 
 ### P1. Irreflexivity
 `∀x ¬(x<x)`
 ```
-~[ [*x] (lt ?x ?x) ]
+~[ [*x] (lt x x) ]
 ```
 
 ### P2. Transitivity
 `∀x∀y∀z ( x<y ∧ y<z → x<z )`
 ```
-~[ [*x] [*y] [*z] (lt ?x ?y) (lt ?y ?z) ~[ (lt ?x ?z) ] ]
+~[ [*x] [*y] [*z] (lt x y) (lt y z) ~[ (lt x z) ] ]
 ```
 
 ### P3. Trichotomy (linearity)
 `∀x∀y ( x<y ∨ x=y ∨ y<x )`
 ```
-~[ [*x] [*y] ~[ (lt ?x ?y) ] ~[ [?x ?y] ] ~[ (lt ?y ?x) ] ]
+~[ [*x] [*y] ~[ (lt x y) ] ~[ (= x y) ] ~[ (lt y x) ] ]
 ```
 
 ### P4. Discreteness (immediate successor exists)
 `∀x ∃y ( x<y ∧ ¬∃z(x<z ∧ z<y) )`
 ```
-~[ [*x] ~[ [*y] (lt ?x ?y) ~[ [*z] (lt ?x ?z) (lt ?z ?y) ] ] ]
+~[ [*x] ~[ [*y] (lt x y) ~[ [*z] (lt x z) (lt z y) ] ] ]
 ```
 
 ### P5. Least element (Peirce starts the count at 1)
 `∃x ∀y ( x<y ∨ x=y )`
 ```
-[*x] ~[ [*y] ~[ (lt ?x ?y) ] ~[ [?x ?y] ] ]
+[*x] ~[ [*y] ~[ (lt x y) ] ~[ (= x y) ] ]
 ```
 
 ### P6. No greatest element (unboundedness)
 `∀x ∃y ( x<y )`
 ```
-~[ [*x] ~[ [*y] (lt ?x ?y) ] ]
+~[ [*x] ~[ [*y] (lt x y) ] ]
 ```
 
 ### P7. Induction = least-number principle — SCHEMA, hole arity 1
@@ -365,9 +365,9 @@ For each formula ψ(n): every nonempty ψ-class has a <-least member.
 `∀… [ ∃x ψ(x) → ∃u( ψ(u) ∧ ∀y(ψ(y) → ¬(y<u)) ) ]`
 
 ```
-~[ [*x] ⟨ψ: ?x⟩
-   ~[ [*u] ⟨ψ: ?u⟩
-      ~[ [*y] ⟨ψ: ?y⟩ (lt ?y ?u) ] ] ]
+~[ [*x] ⟨ψ: x⟩
+   ~[ [*u] ⟨ψ: u⟩
+      ~[ [*y] ⟨ψ: y⟩ (lt y u) ] ] ]
 ```
 - Hole `⟨ψ: ?n⟩`: one port, THREE occurrences (`?x`, `?u`, `?y`).
 - Same hole node as ZFC Separation — Peirce's induction validates the schema
@@ -384,11 +384,21 @@ in [`tests/test_math_fixtures.py`](../tests/test_math_fixtures.py)
 (`RECURSION_FIXTURES`):
 
 ```
-plus_base   ~[ [*x] [*z] (zero z) ~[ (plus x z x) ] ]                                  % x + 0 = x
-plus_step   ~[ [*x][*y][*z][*sy][*sz] (plus x y z) (succ y sy) (succ z sz) ~[ (plus x sy sz) ] ]  % x + S(y) = S(x+y)
-times_base  ~[ [*x] [*z] (zero z) ~[ (times x z z) ] ]                                 % x · 0 = 0
-times_step  ~[ [*x][*y][*p][*sy] (times x y p) (succ y sy) ~[ [*q] (plus p x q) (times x sy q) ] ]  % x·S(y) = x·y + x
+plus_base   ~[ (num *x) (zero *z) ~[ (plus x z x) ] ]                                   % x + 0 = x
+plus_step   ~[ (plus *x *y *z) (succ y *sy) (succ z *sz) ~[ (plus x sy sz) ] ]          % x + S(y) = S(x+y)
+times_base  ~[ (num *x) (zero *z) ~[ (times x z z) ] ]                                  % x · 0 = 0
+times_step  ~[ (times *x *y *p) (succ y *sy) (plus p x *q) ~[ (times x sy q) ] ]         % x·S(y) = x·y + x
 ```
+
+**Every body variable must be bound by a relation in the body** — the laws are
+*range-restricted*, and that is not pedantry: it is what makes them **executable**.
+A law like `~[ [*x] [*z] (zero z) ~[ (plus x z x) ] ]` declares `x` without saying
+what it ranges over, so its head is existential and `model_materialization` refuses
+it (`SkippedRule(existential_head)`) — correctly, and audibly. Guarding `x` with
+`(num x)` turns a statement into a *rule that fires*: forward-chaining these grows
+the whole addition table on the sheet. See
+[MATHEMATICS_FROM_THE_SHEET](MATHEMATICS_FROM_THE_SHEET.md) rung 7, and
+`src/peirce_arithmetic.py`.
 
 Reasoning *about* recursively-defined operations uses the **induction schema** (P7);
 see [`tests/test_induction_proofs.py`](../tests/test_induction_proofs.py). Gamma is
