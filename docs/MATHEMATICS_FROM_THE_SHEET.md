@@ -214,6 +214,62 @@ rather than silently clean.)
 *The EG lesson:* the six rules are not bureaucracy. One of them — and only one —
 can introduce an idea, and that fact carries philosophical weight.
 
+## Rung 8b — the arena: where a test may happen at all
+
+Rung 8 says a theorematic proof needs **insertion** — the one rule that scribes what
+the premisses do not contain. Now ask where you are allowed to do that, and something
+forced falls out.
+
+**Insertion is sound only in a negative context.** And a blank sheet has none: it is
+depth 0, positive, and everything scribed there is *asserted*. So on a blank sheet
+there is nowhere to put a hypothesis without thereby *claiming* it.
+
+Hence the first act of any contest starting from nothing is to **make a place**:
+
+```
+~[ ~[ ] ]
+```
+
+A **DC+** — the empty double cut. It is logically *inert* (it says exactly what the
+blank sheet says, so making the place is not itself a claim), and yet it creates two
+areas of opposite polarity:
+
+| | depth | polarity | what you may do |
+|---|---|---|---|
+| **the arena** | 1 | negative | **posit freely** — insertion here is sound |
+| **the hold** | 2 | positive | **conclude** — and *only* by earning it |
+
+Filled, that is a **scroll**: `~[ A ~[ B ] ]` = *A → B*. The arena is literally the
+antecedent-place of a conditional.
+
+**The asymmetry is the guarantee.** You may suppose anything in the arena — the
+engine permits it, and soundness says whatever you scribe there cannot make the
+enclosing sheet false. But try to *insert* a conclusion into the hold and the engine
+**refuses**: `Insertion only allowed in negative (verso) areas`. You can suppose
+freely; you cannot conclude freely. A conclusion must be iterated in and derived.
+
+That is the sandbox — an operating system's isolation, drawn. *A malfunction within
+does not ramify outward*, and it is a **theorem**, not a policy.
+
+**And it explains the mode contract.** What you win in a contest is not `B`; it is
+`A → B`. The hypothesis is *discharged into* the result. That is precisely why
+nothing earned in the workshop or the arena may simply be moved onto the corpus's
+sheet: it was never established unconditionally. To test is to hypothesise; to
+hypothesise is to enter a scroll; and what comes out of a scroll is a conditional.
+
+**The corpus already obeyed this before it was ever written down** — which is the
+evidence that it is discovered rather than decreed:
+
+| proof | starts from | first moves |
+|---|---|---|
+| `peirce_law` | the blank sheet | **DC+ → INS** |
+| `theorem_praeclarum` | the blank sheet | **DC+ → INS** |
+| `ex_falso_quodlibet` | `~[ (P) ]` — a cut already | INS (the place was there) |
+| `beta_modus_ponens` | premisses on the sheet | IT−, DC− — *never posits, so never needs an arena* |
+
+Code: [`src/contest_context.py`](../src/contest_context.py) — `preparatory_moves`,
+`open_arena`, `posit`.
+
 ## Rung 9 — where the sheet ends
 
 Try to draw induction.
