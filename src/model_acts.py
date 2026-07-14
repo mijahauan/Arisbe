@@ -13,30 +13,62 @@ white" is a **genuine Dau ERA**, and it is **sound**: erasure is a *weakening* r
 (M ⊨ M−law). Dropping a belief can never make you assert a falsehood; you only come
 to say *less*. Logically, retraction is **free** — the calculus always permits it.
 
-**ADDING TO M IS NOT A RULE AT ALL.** INS reaches only *negative* contexts, and the
-sheet is positive. Try it and the engine refuses: *"Insertion only allowed in negative
-(verso) areas."* And it is not just INS — **not one of the six rules can put new
-content in a positive context.** That is not a gap in the calculus. It is the calculus
-telling the truth:
+**ADDING TO M — AND THE ERROR TO AVOID HERE.** INS reaches only *negative* contexts,
+and the sheet is positive. Nor is it only INS: run through the six and ask which can
+put content into a positive context —
 
-    You cannot DEDUCE your way to new information.
+    INS   negative only                                                    ✗
+    IT+   copies less-enclosed → more-enclosed; cannot reach the sheet     ✗
+    ERA   removes                                                          ✗
+    IT−   removes                                                          ✗
+    DC+   adds an INERT double cut — no content                            ✗
+    DC−   erases a double cut, EXPOSING its contents to the enclosing area ✓
 
-So admitting `(black "Nox")` into M is **not an inference**. It is **juxtaposition** —
-the bare act of scribing on the sheet — which for Peirce *is* the act of assertion,
-and it enters from **outside** the calculus: from an observation, a report, a source.
-It is **ampliative** (``proof_character``), and what it costs is **warrant**.
+**DC− is the only one.** And it can only expose what was *already there, enclosed*. So:
 
-**Hence the asymmetry, which is the doctrine in one line:**
+    **Nothing ever appears uncircumscribed on the sheet.**
+    A fact reaches a positive context only by DISCHARGE — never by insertion.
 
-    The calculus can license you to GIVE UP a belief.
-    It can never license you to ACQUIRE one.
+That is the author's point, and it corrects a glib earlier formulation of this module
+("adding is juxtaposition"), which made a graph sound as though it could materialise
+from nowhere. It cannot. **An observation enters ENCLOSED** — as the consequent of a
+scroll whose antecedent is its **warrant** ::
+
+    (reported "sighting-1697")                              ← the warrant, asserted
+    ~[ (reported "sighting-1697") ~[ (black "Nox") ] ]      ← "if reported, then so"
+
+and then two ordinary rules bring it out: **IT−** (deiterate the warrant, which the
+sheet already asserts) and **DC−** (discharge). The fact is **derived**, and the
+warrant is not metadata — it is the *antecedent*, in the graph, doing logical work.
+That is :func:`admit_by_discharge`, and once M carries such a trust-law, new
+observations enter **by rule**.
+
+**Where the regress stops, and why that is not a cheat.** Something must be uttered:
+no rule can *originate* content, and the trust-law itself, and the base facts, are
+asserted by an **utterer**. But that act is not *uncontextualized* either — the sheet
+of assertion IS a context (this universe of discourse, this episode), and to scribe on
+it is to speak *in* it, as that utterer, taking responsibility. Peirce's own limit: the
+perceptual judgment is where inference bottoms out, and it is an act, not a deduction.
+:func:`assert_into` is that act, named as such, and it demands a warrant precisely
+because the calculus cannot supply one.
+
+**Hence the shape of the whole thing:**
+
+    The calculus is closed under consequence. It cannot ORIGINATE.
+    Every element on the sheet was either UTTERED, or DISCHARGED from something
+    already circumscribed.
+
+    It can license you to GIVE UP a belief (ERA — free, sound).
+    It can license you to DRAW OUT what your beliefs already contained (DC− — free,
+    sound, and only if the warrant holds).
+    It can never license you to ACQUIRE one from nowhere.
 
 **And the same graph, in two places, is two different speech acts.** Insert
 `(black "Nox")` into a *negative* arena (``contest_context``) and you have **supposed**
-it — free, sound, fenced. Juxtapose the identical graph on the *positive* sheet and
-you have **asserted** it — no rule permits this, and you owe a warrant. *The polarity
-of the place determines the illocutionary force.* That is why the arena is safe and
-the sheet is not.
+it — free, sound, fenced. Have it *discharged* onto the *positive* sheet and you have
+**derived** it. Scribe it there bare, and you have **uttered** it — no rule permits
+that, and you owe a warrant. *The polarity of the place determines the illocutionary
+force.*
 
 Additive; wraps ``model_revision`` rather than replacing it.
 """
@@ -52,7 +84,13 @@ from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 
 RELINQUISH = "relinquish"     # a rule (ERA). Sound. Free.
-ASSERT = "assert"             # not a rule. Ampliative. Costs warrant.
+DISCHARGE = "discharge"       # a rule (IT- then DC-). Sound. The ONLY way content
+                              # reaches the sheet — and only content already there,
+                              # circumscribed, waiting on its warrant.
+UTTER = "utter"               # NOT a rule. The speech act. The only way content
+                              # ORIGINATES — and it is never uncontextualized: an
+                              # utterer says it, on an occasion, taking responsibility.
+ASSERT = UTTER                # (kept: the older name for the same act)
 
 
 class UnwarrantedAssertion(ValueError):
@@ -162,6 +200,73 @@ def assert_into(model: RelationalGraphWithCuts, graph_egif: str, *,
                           "No rule licenses it; the warrant does."))
 
 
+def admit_by_discharge(model: RelationalGraphWithCuts, fact_egif: str,
+                       warrant_egif: str) -> tuple:
+    """**How an observation properly enters M: circumscribed, then discharged.**
+
+    Nothing appears uncircumscribed on the sheet. The fact is *not* juxtaposed; it
+    arrives **enclosed** — as the consequent of a scroll whose antecedent is its
+    **warrant**::
+
+        (warrant)                          ← the report, asserted
+        ~[ (warrant) ~[ (fact) ] ]         ← "if it is reported, it is so"
+
+    Then two ordinary rules bring it out:
+
+      **IT−** deiterate the warrant inside the scroll (the sheet already asserts it),
+      **DC−** discharge the double cut — and the fact lands on the sheet.
+
+    So the fact is **derived, never inserted**, and the warrant is not metadata: it is
+    the *antecedent*, visible in the graph, and doing logical work. Once M carries such
+    a trust-law, new observations enter **by rule**.
+
+    Returns ``(new_model, Act)``. Raises ``UnwarrantedAssertion`` if the warrant is not
+    asserted, or if M carries no scroll conditioning ``fact`` on it — because then
+    there is nothing to discharge, and the fact would have to appear from nowhere."""
+    from proof_authoring import apply_rule
+
+    warrant = parse_egif(warrant_egif)
+    warrant_names = {warrant.rel[e] for e in warrant.rel}
+    sheet_names = {model.rel[e] for e in nav.child_edges(model, model.sheet)
+                   if e in model.rel}
+    if not warrant_names <= sheet_names:
+        raise UnwarrantedAssertion(
+            f"the warrant {warrant_egif!r} is not asserted on M's sheet. A fact enters "
+            f"only by DISCHARGE — it must already be circumscribed in a scroll whose "
+            f"antecedent holds. Assert the warrant first (an utterance), or suppose it "
+            f"in an arena.")
+
+    fact = parse_egif(fact_egif)
+    fact_names = {fact.rel[e] for e in fact.rel}
+    for cut in nav.child_cuts(model, model.sheet):
+        inner = nav.child_cuts(model, cut)
+        ante = {model.rel[e] for e in nav.child_edges(model, cut) if e in model.rel}
+        if len(inner) != 1 or not warrant_names <= ante:
+            continue
+        cons = {model.rel[e] for e in nav.child_edges(model, inner[0])
+                if e in model.rel}
+        if not fact_names <= cons:
+            continue
+        # discharge it: deiterate the warrant, then erase the double cut
+        g = model
+        for e in list(nav.child_edges(g, cut)):
+            if g.rel.get(e) in warrant_names:
+                g = apply_rule("IT-", g, selection=[e])
+        g = apply_rule("DC-", g, selection=[cut])
+        return g, Act(
+            kind=DISCHARGE, is_rule=True, sound=True, warrant=warrant_egif,
+            note=("DERIVED onto the sheet by IT- then DC-. The fact was never "
+                  "inserted — it was already there, circumscribed, waiting on its "
+                  "warrant. DC- is the ONLY rule that can put content in a positive "
+                  "context, and it can only expose what was already enclosed."))
+
+    raise UnwarrantedAssertion(
+        f"M carries no scroll conditioning {fact_egif!r} on {warrant_egif!r}, so there "
+        f"is nothing to discharge — the fact could only appear UNCIRCUMSCRIBED, and no "
+        f"rule permits that. Add the trust-law (an utterance), or suppose the fact in "
+        f"an arena.")
+
+
 def speech_act_of(model: RelationalGraphWithCuts, area) -> str:
     """**The polarity of the place determines the illocutionary force.**
 
@@ -173,5 +278,6 @@ def speech_act_of(model: RelationalGraphWithCuts, area) -> str:
     return "suppose" if polarity_of(model, area) == "negative" else "assert"
 
 
-__all__ = ["RELINQUISH", "ASSERT", "Act", "UnwarrantedAssertion",
-           "relinquish", "assert_into", "speech_act_of"]
+__all__ = ["RELINQUISH", "DISCHARGE", "UTTER", "ASSERT", "Act",
+           "UnwarrantedAssertion", "relinquish", "assert_into",
+           "admit_by_discharge", "speech_act_of"]

@@ -131,3 +131,65 @@ def test_every_agon_episode_records_where_it_is_being_played():
 
     with_cut = _preparation(parse_egif("~[ (P) ]"))
     assert with_cut["required"] == [] and with_cut["arena_exists"] is True
+
+
+# --- nothing appears uncircumscribed on the sheet --------------------------- #
+# The author's correction: an "uncircumscribed graph appearing on the sheet" is not a
+# thing. None of the elements in an episode exist uncontextualized, and none of them
+# can be INSERTED in a positive context. Run through the six rules and only ONE can
+# put content into a positive context at all — DC−, which merely EXPOSES what was
+# already enclosed. So a fact reaches the sheet by DISCHARGE, never by insertion.
+
+from model_acts import DISCHARGE, admit_by_discharge  # noqa: E402
+
+WARRANT = '(reported "sighting-1697")'
+TRUST_LAW = '~[ (reported "sighting-1697") ~[ (black "Nox") ] ]'
+
+
+def test_DC_minus_is_the_only_door_into_a_positive_context():
+    """INS is negative-only; IT+ cannot reach the sheet; ERA and IT− remove; DC+ adds
+    an inert double cut with no content. Only DC− puts anything in a positive
+    context — and only what was already circumscribed there."""
+    m = parse_egif('(swan "Nox")')
+    with pytest.raises(AssertionError, match="negative"):
+        apply_rule("INS", m, egif='(black "Nox")', target=m.sheet)   # the only adder, refused
+
+
+def test_a_fact_enters_by_discharge_not_by_insertion():
+    """The observation arrives ENCLOSED — the consequent of a scroll whose antecedent
+    is its warrant. IT− deiterates the warrant; DC− discharges. The fact is DERIVED
+    onto the sheet, and the warrant did logical work as the antecedent."""
+    import eg_navigation as nav
+    m = parse_egif(f'(swan "Nox") {WARRANT} {TRUST_LAW}')
+    sheet_rels = lambda g: {g.rel[e] for e in nav.child_edges(g, g.sheet) if e in g.rel}
+    assert "black" not in sheet_rels(m)                  # enclosed in the scroll, not on the sheet
+    m2, act = admit_by_discharge(m, '(black "Nox")', WARRANT)
+    assert act.kind == DISCHARGE
+    assert act.is_rule, "IT− then DC− — both are Dau rules"
+    assert act.sound, "discharge is sound: the fact was already entailed"
+    assert "black" in sheet_rels(m2)                     # now DERIVED onto the sheet
+
+
+def test_no_scroll_no_discharge():
+    """If M carries no scroll conditioning the fact on the warrant, there is nothing
+    to discharge — and the fact could only appear UNCIRCUMSCRIBED, which no rule
+    permits. The refusal says exactly that."""
+    m = parse_egif(f'(swan "Nox") {WARRANT}')            # warrant, but no trust-law
+    with pytest.raises(UnwarrantedAssertion, match="nothing to discharge"):
+        admit_by_discharge(m, '(black "Nox")', WARRANT)
+
+
+def test_no_warrant_no_discharge():
+    """The antecedent must actually hold. An unasserted warrant discharges nothing."""
+    m = parse_egif(f'(swan "Nox") {TRUST_LAW}')          # trust-law, but no report
+    with pytest.raises(UnwarrantedAssertion, match="not asserted"):
+        admit_by_discharge(m, '(black "Nox")', WARRANT)
+
+
+def test_once_M_carries_a_trust_law_observations_enter_BY_RULE():
+    """The payoff. The utterer must assert the trust-law and the report — but the
+    FACT itself is then derived, not posited. The calculus cannot originate content;
+    it can draw out what the beliefs already contained."""
+    m = parse_egif(f'(swan "Nox") {WARRANT} {TRUST_LAW}')
+    _m2, act = admit_by_discharge(m, '(black "Nox")', WARRANT)
+    assert act.is_rule and act.sound and act.warrant == WARRANT
