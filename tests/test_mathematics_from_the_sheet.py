@@ -159,8 +159,12 @@ def test_the_ladder_builds_and_the_claim_arrives():
     open_ = [ladder._verdict(chain.states[s], closed=False) for s in states]
     assert closed == ["false", "false", "true"]
     assert open_ == ["unknown", "unknown", "true"]
-    # …and the ladder's own chains are corollarial (nothing entered from outside).
-    assert pc.character_of_chain(chain).character == pc.COROLLARIAL
+    # The chain SCRIBES the two laws — and positing a hypothesis is **ampliative**,
+    # not deduction: no rule compels you to adopt x + s(y) = s(x+y). (Peirce exactly:
+    # mathematics "frames and studies the consequences of hypotheses.") The
+    # COROLLARIAL reasoning is what happens *afterwards*, when the laws are
+    # materialized and the table grows itself — that is the diagram doing the work.
+    assert pc.character_of_chain(chain).character == pc.AMPLIATIVE
 
 
 # --- a doc that teaches EGIF must teach EGIF that PARSES --------------------- #

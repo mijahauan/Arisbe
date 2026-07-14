@@ -69,8 +69,18 @@ from typing import List, Sequence
 CONTENT_ADDING = frozenset({"INS"})
 CONTENT_PRESERVING = frozenset({"ERA", "IT+", "IT-", "DC+", "DC-"})
 
+# Peirce divides reasoning THREE ways — deduction, induction, abduction — and only
+# deduction splits into corollarial and theorematic. A step that revises the model
+# (admit a fact, induce a law, relinquish a refuted one) is neither: it is
+# **ampliative**, adding content no rule of inference compels. Calling such a chain
+# "corollarial" would be a category error, so it gets its own verdict.
+AMPLIATIVE_RULES = frozenset({
+    "REVISE_M", "ADMIT_FACT", "SCRIBE_AXIOM", "SCRIBE_LAW", "FOLD_NUMERAL",
+})
+
 COROLLARIAL = "corollarial"
 THEOREMATIC = "theorematic"
+AMPLIATIVE = "ampliative"
 
 
 @dataclass
@@ -87,6 +97,7 @@ class ProofCharacter:
     character: str
     insertions: List[str] = field(default_factory=list)
     opaque_steps: List[str] = field(default_factory=list)
+    ampliative_steps: List[str] = field(default_factory=list)
     steps: int = 0
 
     @property
@@ -98,6 +109,13 @@ class ProofCharacter:
 
     @property
     def summary(self) -> str:
+        if self.character == AMPLIATIVE:
+            n = len(self.ampliative_steps)
+            core = (f", around a deductive core of {self.steps - n} step(s)"
+                    if self.steps > n else "")
+            return (f"ampliative — {n} of {self.steps} step(s) REVISE the model{core}. "
+                    f"No rule of inference compels a revision: this is induction or "
+                    f"abduction, not deduction, and it is not 'a proof' at all.")
         if self.character == THEOREMATIC:
             return (f"theorematic — {len(self.insertions)} insertion(s) in "
                     f"{self.steps} step(s): the proof had to scribe something the "
@@ -127,18 +145,31 @@ def character_of(steps: Sequence) -> ProofCharacter:
     else can introduce an idea the premisses do not force."""
     insertions: List[str] = []
     opaque: List[str] = []
+    ampliative: List[str] = []
     for s in steps:
         rule = _rule_of(s)
-        if rule in CONTENT_ADDING:
-            insertions.append(getattr(s, "step_id", rule))
+        sid = getattr(s, "step_id", rule or "?")
+        if rule in AMPLIATIVE_RULES:
+            # Not deduction at all — the model was CHANGED, not unfolded.
+            ampliative.append(sid)
+        elif rule in CONTENT_ADDING:
+            insertions.append(sid)
         elif rule not in CONTENT_PRESERVING or _is_derived(s):
-            # A derived/composite step (or an unknown rule name) may expand into
+            # A derived/composite step (or an unknown rule) may expand into
             # primitives we cannot see — including an insertion. Never assume.
-            opaque.append(getattr(s, "step_id", rule or "?"))
+            opaque.append(sid)
+
+    if ampliative:
+        character = AMPLIATIVE          # a revised model is not a proof
+    elif insertions:
+        character = THEOREMATIC
+    else:
+        character = COROLLARIAL
     return ProofCharacter(
-        character=THEOREMATIC if insertions else COROLLARIAL,
+        character=character,
         insertions=insertions,
         opaque_steps=opaque,
+        ampliative_steps=ampliative,
         steps=len(list(steps)),
     )
 
@@ -150,5 +181,6 @@ def character_of_chain(chain) -> ProofCharacter:
 
 __all__ = [
     "ProofCharacter", "character_of", "character_of_chain",
-    "COROLLARIAL", "THEOREMATIC", "CONTENT_ADDING", "CONTENT_PRESERVING",
+    "COROLLARIAL", "THEOREMATIC", "AMPLIATIVE",
+    "CONTENT_ADDING", "CONTENT_PRESERVING", "AMPLIATIVE_RULES",
 ]

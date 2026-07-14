@@ -208,10 +208,14 @@ def _annotations(chain: TransformationChain, *, audit: bool) -> list:
         anns.append(make_annotation(SCOPE_UOD, PROPOSAL, tags=["audit-proposal"]))
     anns.append(make_annotation(
         SCOPE_CHAIN,
-        "Each step scribes one graph onto the sheet. The chain's *character* is "
-        "corollarial (proof_character): no INSERTION appears, so nothing entered "
-        "that the premisses did not already contain — Peirce's own criterion.",
-        tags=["corollarial", "mathematics", "teaching"]))
+        "Each step SCRIBES one graph onto the sheet — and positing a hypothesis is "
+        "ampliative, not deduction (proof_character reads this chain as AMPLIATIVE): "
+        "no rule of inference compels you to adopt an axiom. Peirce exactly — "
+        "mathematics 'frames and studies the consequences of hypotheses.' The "
+        "COROLLARIAL reasoning is what happens next, when the laws are materialized "
+        "and the addition table grows itself: THAT is the diagram doing the work, and "
+        "nothing enters it that the definitions did not already contain.",
+        tags=["ampliative", "corollarial", "mathematics", "teaching"]))
     for step in chain.steps:
         note = (step.user_annotation or step.rule_name)
         anns.append(make_annotation(SCOPE_STEP, note, step_id=step.step_id,

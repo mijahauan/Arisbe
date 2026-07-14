@@ -1,0 +1,102 @@
+{
+  "annotations": [
+    {
+      "id": "ann_ef88a9cf",
+      "scope": "uod",
+      "text": "~[ (swan *x) ~[ (white x) ] ]",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_b0e13573",
+      "scope": "uod",
+      "text": "The black-swan episode with its beats separated. What one 'challenge_to_M' step used to hide: a proposal entertained, a contradiction DERIVED (not declared), a genuine fork between two ways to restore consistency, and an ampliative choice that no rule compels. The conflict is now a real derivation ending in the empty cut \u2014 which needed the premiss that was never on the sheet: nothing is both black and white.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "dialogue",
+        "model-revision",
+        "demonstration",
+        "abduction",
+        "ampliative",
+        "teaching"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_85edb8d6",
+      "scope": "chain",
+      "text": "Four beats: PROPOSE (entertain) \u00b7 EXHIBIT (deduction \u2014 six Dau rules to the empty cut, on an ITERATED WORKING COPY of M, so nothing derived here transfers to M by deduction) \u00b7 FORK (a real DAG branch: both alternatives kept) \u00b7 DISPOSE (abduction \u2014 the choice). proof_character: AMPLIATIVE around a deductive core.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "four-beats",
+        "abduction",
+        "fork"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_a1af845a",
+      "scope": "step",
+      "text": "Beat 1 \u2014 PROPOSE. A black swan, Nox, is reported. Entertained, not yet settled: M now says two incompatible things, and the doubt is real.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    },
+    {
+      "id": "ann_c15ca555",
+      "scope": "step",
+      "text": "Beat 2 \u2014 EXHIBIT. The conflict is DERIVED, not declared: instantiate the law at Nox (UI), deiterate, discharge the double cut \u2192 (white Nox); instantiate disjointness at Nox, deiterate both conjuncts \u2192 the EMPTY CUT. Absurdity, in six Dau rules. The contradiction now *appears*.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_be12525e",
+      "scope": "step",
+      "text": "Beats 3\u20134 \u2014 FORK, then DISPOSE (this branch). Two ways out were open; this one ADMITS the observation and RELINQUISHES the law. Ampliative: the exhibited absurdity does not *compel* this \u2014 it compels only that something give. Choosing which is abduction.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    },
+    {
+      "id": "ann_a767d4a6",
+      "scope": "step",
+      "text": "Beat 4 (the ROAD NOT TAKEN) \u2014 keep the law, reject the report. The other way to restore consistency: deny that Nox is black (a mis-sighting, a mislabelled bird). Cheap now; the cost falls due later if the report was true. Recorded as a sibling so the choice stays visible \u2014 the DAG is where 'having two alternatives in mind' lives.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-4",
+      "element_id": null
+    }
+  ]
+}

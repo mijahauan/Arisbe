@@ -1,0 +1,19 @@
+{
+  "uod_id": "swan_episode_unpacked",
+  "uod_type": "historical",
+  "name": "The black swan, unpacked (four beats and a fork)",
+  "description": "One inning of the Endoporeutic Game, with everything that was packed into a single 'challenge_to_M' step laid out as the four acts it really is. PROPOSE: a black swan is entertained. EXHIBIT: the conflict is DERIVED \u2014 six ordinary Dau rules ending in the EMPTY CUT, so the contradiction is SHOWN, not asserted by a referee (this required scribing the premiss the conflict always needed: nothing is both black and white). FORK: two ways to restore consistency, recorded as two branches of the DAG \u2014 admit the swan and relinquish the law, or keep the law and reject the report. DISPOSE: the choice, which no rule of inference compels \u2014 the absurdity forces only that SOMETHING give, and choosing which is abduction. Entertaining is enclosure: the exhibit runs on an iterated working copy of M, and what is derived inside cannot be exported by deduction \u2014 which is exactly why a model revision is not a proof. proof_character reads this chain as AMPLIATIVE around a deductive core.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

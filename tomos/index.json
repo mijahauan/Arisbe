@@ -691,7 +691,22 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/numeral_three_unfolds"
+    },
+    {
+      "uod_id": "swan_episode_unpacked",
+      "name": "The black swan, unpacked (four beats and a fork)",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/swan_episode_unpacked"
     }
   ],
-  "last_updated": "2026-07-14T07:58:37.571982"
+  "last_updated": "2026-07-14T15:33:53.229148"
 }
