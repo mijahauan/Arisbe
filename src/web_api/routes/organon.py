@@ -95,7 +95,7 @@ def _corpus_deltas(uod):
         return None  # a bad delta file must never break the render
 
 
-def _browse_facets(entry: dict) -> dict:
+def _browse_facets(entry: dict, tomos_root) -> dict:
     """Cheap browse facets for a list row — the provenance ``kind`` + a
     cited/authored flag + the description + tags — read straight from the
     ``provenance.json`` / ``uod.meta.json`` side-files.
@@ -109,7 +109,7 @@ def _browse_facets(entry: dict) -> dict:
     if not entry.get("path"):
         return facets
     from corpus_facets import uod_dir
-    base = Path(uod_dir(TOMOS_PATH, entry))
+    base = Path(uod_dir(tomos_root, entry))
     try:
         prov = json.loads((base / "provenance.json").read_text(encoding="utf-8"))
         facets["kind"] = prov.get("kind")
@@ -193,7 +193,7 @@ async def list_uods():
         live = get_log(TOMOS_PATH).all()   # forward-facing usage status per UoD
         items = []
         for e in entries:
-            f = _browse_facets(e)
+            f = _browse_facets(e, tomos.tomos_root)
             uid = e.get("uod_id", "")
             ls = live.get(uid)
             row_tags = e.get("tags", []) + [t for t in f["extra_tags"] if t not in e.get("tags", [])]

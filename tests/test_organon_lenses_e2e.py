@@ -104,6 +104,16 @@ def _load_uod(page, uod_id):
     time.sleep(2.0)  # load detail + render + loadChain
 
 
+def _wait_lens_offered(page, value):
+    """Wait until loadChain finishes and un-hides a diachronic lens option —
+    a fixed sleep is not enough on a slow (CI) runner."""
+    page.wait_for_function(
+        "v => { const o = document.querySelector(`#view-lens option[value='${v}']`);"
+        " return o && !o.hidden; }",
+        arg=value, timeout=15000,
+    )
+
+
 def test_well_lens_mounts_and_drawing_restores(page, app_url):
     """Well mounts a three.js canvas; switching back to Drawing restores the SVG."""
     _open_organon(page, app_url)
@@ -124,7 +134,7 @@ def test_storyboard_lens_for_a_chained_uod(page, app_url):
     switching back to Drawing restores the chain player."""
     _open_organon(page, app_url)
     _load_uod(page, CHAINED)
-    assert page.eval_on_selector("#view-lens option[value=storyboard]", "o => o.hidden") is False
+    _wait_lens_offered(page, "storyboard")
 
     page.select_option("#view-lens", "storyboard")
     page.wait_for_selector(".sb-frame", timeout=10000)
@@ -171,7 +181,7 @@ def test_derivation_dag_lens_for_a_branching_episode(page, app_url):
     _open_organon(page, app_url)
     _load_uod(page, BRANCHING)
     # the DAG lens is offered; the linear lenses are not (this chain forks)
-    assert page.eval_on_selector("#view-lens option[value='derivation-dag']", "o => o.hidden") is False
+    _wait_lens_offered(page, "derivation-dag")
     assert page.eval_on_selector("#view-lens option[value=storyboard]", "o => o.hidden") is True
 
     page.select_option("#view-lens", "derivation-dag")
@@ -192,7 +202,7 @@ def test_time_stack_lens_for_a_chained_uod(page, app_url):
     _open_organon(page, app_url)
     _load_uod(page, CHAINED)
     # offered only for a chained UoD; hidden for the synchronic majority
-    assert page.eval_on_selector("#view-lens option[value='time-stack']", "o => o.hidden") is False
+    _wait_lens_offered(page, "time-stack")
 
     page.select_option("#view-lens", "time-stack")
     page.wait_for_selector("#organon-canvas canvas", timeout=15000)   # WebGL canvas mounted
@@ -295,7 +305,7 @@ def test_modal_lens_reads_diamond_and_necessity(page, app_url):
     (cloudy)/(calm) are possible-but-not-necessary."""
     _open_organon(page, app_url)
     _load_uod(page, MODAL)
-    assert page.eval_on_selector("#view-lens option[value=modal]", "o => o.hidden") is False
+    _wait_lens_offered(page, "modal")
 
     page.select_option("#view-lens", "modal")
     page.wait_for_selector(".ml-cols", timeout=10000)
@@ -321,7 +331,7 @@ def test_audit_lens_shows_the_verdict_flipping(page, app_url):
     each transition labelled by the admitted fact."""
     _open_organon(page, app_url)
     _load_uod(page, DIALOGUE)
-    assert page.eval_on_selector("#view-lens option[value=audit]", "o => o.hidden") is False
+    _wait_lens_offered(page, "audit")
 
     page.select_option("#view-lens", "audit")
     page.wait_for_selector(".au-state", timeout=10000)
