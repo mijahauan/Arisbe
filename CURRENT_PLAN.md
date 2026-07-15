@@ -1,6 +1,77 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-13) — THE GAMMA/2ND-ORDER FRONTIER POSITIONED: two dev memos +
+**▶▶ THIS SESSION (2026-07-13 → 07-14) — A LONG ARC: run 12 shipped, the doc/UX debt paid,
+the mathematical + dialogical foundations made explicit. 15 commits, pushed.** The session
+opened on the frontier-positioning work (block below) and then, driven by the author's reading
+and questions, went deep on foundations. In order:
+
+- **Run 12 built + the odds arm** (`e6e2808`, `7d83a23`) — the discrete resolving membrane
+  (MLB); `sports_source` / `sports_recalibration` / `run_live_sports`; the odds-favorite rival
+  keyed on The Odds API; 41 offline tests incl. the P1¹²/P2¹² knob-type causal pair. **Launch
+  is the author's** (play resumed 07-16/17; RUN_12_LOG build section). *(Note: the ▶▶▶ NEXT
+  SESSION block still points here — run 12's disposition remains the pending scientific work.)*
+- **The Gamma/2nd-order frontier positioned** (`347dff2`) — two dev memos + three de-risk
+  builds (the block below is the detail).
+- **AGENTS.md reconciled against the code** (`73b6830`, `b501239`) — it taught an import for a
+  layout engine archived in May 2026 (the graph audit surfaced it). Audited every claim: 17→14
+  protected modules, 406→3,018 passing, seven dead doc links, dead code examples, Oct-2025 mode
+  statuses — all corrected against the running code, and the false "docs auto-update" claim
+  replaced with the authority order (code > CLAUDE.md > CURRENT_PLAN > everything else).
+- **E2E restored + two hidden test bugs fixed** (`9e52920`) — `playwright install chromium`
+  (the cache was purged, no upgrade needed); running the e2e suites for the first time in a
+  while surfaced two real test bugs (the Agon NL-door tests never selected a model; a charter
+  test asserted rule-button *visibility* against the Graph↔Argument contract). All 37 e2e green.
+- **Ergasterion entry doors** (`bb9416e`) — the use-case paths made obvious: two groups (make /
+  work on), the **linear-form paste door** (was buried in a collapsed disclosure), and the
+  **three-regime intent chooser** (rearrange / reason / re-open as clay, in plain words). Plus
+  the **cut-resize fix** — Settle was hidden during composing (regime 3 is "always free").
+- **Composing panel: offer only what applies yet** (`3f7bb5c`) — the author caught Settle/Fix/
+  Freeform all offered on a *blank* sheet; Settle/Fix now appear only once there's a mark (gate
+  ① on a blank sheet asserted nothing — Level Zero), and "Freeform" became a named compose-mode
+  switch (two "Cut" buttons was a P2 homonym).
+- **Mathematics from the sheet** (`6abb0b4`) — the arithmetic ladder (Peirce 1881 order → two
+  drawn laws grow the addition table → `2+3=5` read off the diagram). **The result:** Peirce's
+  corollarial/theorematic distinction is *decidable from the chain* (`proof_character` —
+  theorematic iff it needs INS, the auxiliary line; verified on the real corpus: Peirce's Law
+  and Leibniz's Praeclarum need it, modus ponens doesn't). Fixed two real doc defects
+  (MATH_FIXTURES EGIF didn't parse; its addition laws couldn't fire). Departure IV (equality
+  as a spot) recorded.
+- **Organon shelves** (`2431c2b`) — the reader's axis (subject/purpose) beside the producer's
+  `UoDCategory`, derived from authored tags, multi-valued, honest (nothing unfiled). `domain_model`
+  the junk drawer split into six shelves; the Gamma-demonstration trio reunited. The author's
+  correction: `gamma` un-mapped from modality (Arisbe carries modality *without* Gamma) and
+  reserved for the second-order frontier.
+- **The dialogical foundations, made explicit** — driven by four author questions:
+  - **The revision episode unpacked** (`be2d13b`) — `challenge_to_M`'s one step is four beats
+    (PROPOSE · EXHIBIT · FORK · DISPOSE) of three logical kinds; the conflict is now *derived*
+    to the empty cut (6 Dau rules), needing the disjointness premiss that lived only in code;
+    the choice is a real DAG fork; the chain reads **ampliative** (Peirce's third mode, added
+    to `proof_character`). `src/revision_episode.py`, corpus `swan_episode_unpacked`.
+  - **The arena** (`7e2078e`) — a contest must reside in a *negated context* (the OS-sandbox,
+    drawn); from the blank sheet the first act is forced to be **DC+**. A theorem: INS is sound
+    only in a negative context, and the corpus's blank-sheet proofs already open DC+→INS. Every
+    Agon episode now records its preparatory move. `src/contest_context.py`.
+  - **The two acts of M-change** (`abc16db`) — the asymmetry: relinquishing a law *is* a Dau ERA
+    (positive sheet; sound, free), but no rule can *add* to a positive context. `src/model_acts.py`.
+  - **Deliberation needs transport; revision does not** (`5b87b17`) — revising M is local (ERA
+    in place / juxtapose); *deliberating* is where IT+/DC+ earn their keep (DC+ opens the arena,
+    IT+ carries a working copy of M in, INS supposes) — and nothing derived inside changes M.
+  - **Nothing appears uncircumscribed** (`3cf233b`, the author's sharpest correction) — a fact
+    reaches the sheet only by **DISCHARGE** (DC− is the sole door into a positive context, and
+    only exposes what was already enclosed). An observation enters as the consequent of a scroll
+    whose antecedent is its *warrant*; `admit_by_discharge`. The regress stops at an **utterance**
+    — but the sheet is itself a context, so even that is not uncontextualized (Peirce's
+    perceptual-judgment limit). The whole doctrine: the calculus is closed under consequence and
+    cannot originate — every sheet element was uttered or discharged.
+
+New modules this session: `sports_source` · `sports_recalibration` · `proof_character` ·
+`peirce_arithmetic` · `corpus_facets` · `revision_episode` · `contest_context` · `model_acts`.
+New docs: `MATHEMATICS_FROM_THE_SHEET` · `FORCING_AND_THE_GAMMA_CROSSING` ·
+`SECOND_ORDER_LANDSCAPE_AND_POSITIONING`. New corpus UoDs: the arithmetic ladder (3),
+`forcing_conditions`, `swan_episode_unpacked`. All suites green at each commit; the only
+untracked path is `runs/run12/` (the author's live run, kept local).
+
+**▶▶ EARLIER THIS SESSION (2026-07-13) — THE GAMMA/2ND-ORDER FRONTIER POSITIONED: two dev memos +
 three de-risk builds (run 12 launched by the author and running, untouched).** Occasioned by
 the author's Caterina & Gangle 2010 paper (Cohen's forcing in Peirce's EGs) and the follow-up
 ask: position Arisbe against logic *since* Peirce. Shipped:
