@@ -1,6 +1,29 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+0. **THE "MOSES" RELEASE (author-declared 2026-07-15, third sitting): branch + tag the last
+   beta before the 2nd-order crossing — first-order/Peirce-defined territory complete,
+   looking over, not going.** Model: branch `release/moses`, tag `v2.0.0-beta.1` (pyproject
+   bump to `2.0.0b1`; the old `v1.0.0` tag is the 2025 pre-immutable era). CI/CD adopted +
+   WIRED this sitting: canonical.yml + book.yml extended to `release/**` (+ canonical on
+   `v*` tags); NEW `.github/workflows/release.yml` (tag → full suite → uv build → book
+   HTML zip → GitHub Release; notes from RELEASE_NOTES.md else auto; NO Pages/PyPI —
+   "GitHub is backup" holds); GitHub ruleset `release-line-protection` (id 19009506)
+   ACTIVE — release/* requires PR + green `canonical`, 0 approvals, no deletion; main
+   stays directly pushable. Flow rule: shared fixes land on release/moses first, merge
+   forward to main; frontier ink never flows back. **Remaining before the tag —
+   Tier 1 (substance):** (a) dispose the 8 full-suite reds (2026-07-15 run: eg_reader
+   clockwise ×3 = the ternary-`sum` frontier; challenge/define e2e ×4; perf memory 82MB —
+   run-12-on-box suspect) + investigate #6a skos_core ELK order-dependence (reproducibility
+   story) — fix or KNOWN_ISSUES, never silence; (b) #5 phase-2 ontology wrap → gate
+   allowlist empty; (c) Departure II appendix = M_RESIDENCE §8.2 (fold/cross-link the
+   corollaries into FIDELITY_AND_DEPARTURES §3). **Tier 2 (mechanics):** RELEASE_NOTES.md
+   (+KNOWN_ISSUES; distill from CAPABILITY_MAP), README refresh ("freeform = active arc" is
+   stale; polarity discipline absent from top matter), reconcile PROSPECTS_MULTIPERSPECTIVE
+   (R2/R3/G5 shipped 07-07 but still listed as prospects) + ALPHA_RELEASE_PLAN status line
+   ("planning" → done), version bump. **Author's calls:** §8.1 loop migration OUT at tag
+   time (held on run 12; can land on the release branch later as tidying); run 12 decoupled
+   (noted in-flight in the notes). Then: cut branch, bump, tag, let release.yml attest.
 1. **RUN 12 = SPORTS: LAUNCH + DISPOSE (the author's; standing).** Affirm P1¹²–P5¹² + the
    build decisions (RUN_12_LOG), take (a) odds-arm key / (b) duration, launch
    `uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate --max-seconds 259200`
@@ -40,6 +63,21 @@
    e2e ×4; (d) perf memory_stability = load flake (passes alone).
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
+
+**▶▶ THIS SESSION (2026-07-15, third sitting) — THE "MOSES" RELEASE DECLARED + CI/CD
+WIRED.** The author declared the release intent (the last beta before the 2nd-order
+crossing, "looking over the promised land") and directed a CI/CD model for both lines.
+Assessment delivered from fresh evidence: full suite 3336 passed / 8 failed (all
+pre-registered reds — eg_reader clockwise ×3, challenge/define e2e ×4, perf memory; skos_core
+did NOT fire this run, consistent with its order-dependence), docs track closed
+(ALPHA_RELEASE_PLAN §4 all-checked), STORM docket fully disposed, ROADMAP first-order items
+complete-or-edge, frontier (#13, #3-inc2) cleanly fenced. Decisions (author, via question):
+CD = **GitHub Release only** (no Pages, no PyPI) · protection = **release/\* only** (PR +
+green canonical; main stays pushable). Wired: canonical.yml/book.yml → `release/**` (+
+tags), new release.yml (tag-attested Release w/ wheel+sdist+book zip), GitHub ruleset
+`release-line-protection` active. The full release checklist is NEXT-SESSION item 0; run 12
+alive throughout (PID 28386, checkpoints empty over the all-star break — correct); Tier 1
+substance (reds · #5 wrap · Departure II appendix) is the next work.
 
 **▶▶ THIS SESSION (2026-07-15, second sitting) — THE POLARITY DOC SWEEP (NEXT-SESSION item
 3): the corpus's world-scroll re-orientation propagated to the standing docs.** Grep-driven

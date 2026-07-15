@@ -2,7 +2,8 @@ name: Canonical Pipeline CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, "release/**" ]
+    tags: [ "v*" ]
   pull_request:
 
 jobs:

@@ -6,7 +6,7 @@ name: book-render-check
 
 on:
   push:
-    branches: [main]
+    branches: [main, "release/**"]
     paths:
       - "docs/**"
       - ".github/workflows/book.yml"

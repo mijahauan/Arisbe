@@ -1,0 +1,82 @@
+name: release
+
+# CD, scoped deliberately: a v* tag → the full test suite (the same witness as
+# Canonical Pipeline CI) → wheel/sdist + the rendered book (HTML, zipped) →
+# a GitHub Release carrying the artifacts. Nothing is published beyond the
+# GitHub Release itself — no Pages, no PyPI ("local is primary, GitHub is
+# backup"). Release notes come from RELEASE_NOTES.md at the tagged tree if
+# present, else GitHub's auto-generated notes.
+
+on:
+  push:
+    tags: [ "v*" ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install system deps
+        run: sudo apt-get update && sudo apt-get install -y graphviz
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install Python deps
+        run: uv sync --extra dev
+
+      - name: Install Node.js (for ELK layout worker)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Node deps (elkjs)
+        run: npm install
+
+      - name: Run full test suite (the tag is attested, not assumed)
+        run: uv run pytest tests/ -q
+
+      - name: Build wheel + sdist
+        run: uv build
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.9.38
+
+      - name: Render the book (HTML)
+        run: quarto render docs --to html
+
+      - name: Fail on dev-doc leaks
+        run: |
+          leaked=$(ls docs/_book | grep -iE "AUTOMATED_|ROADMAP|CORPUS_AND_IMPORT|MINIMAL_IN_VIEW|ALPHA_RELEASE|CURRENT_PLAN" || true)
+          if [ -n "$leaked" ]; then
+            echo "Dev docs leaked into the rendered book:"; echo "$leaked"; exit 1
+          fi
+
+      - name: Package the book
+        run: |
+          cd docs && zip -qr "../arisbe-book-html-${GITHUB_REF_NAME}.zip" _book
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes_args=(--generate-notes)
+          if [ -f RELEASE_NOTES.md ]; then
+            notes_args=(--notes-file RELEASE_NOTES.md)
+          fi
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            "${notes_args[@]}" \
+            dist/* "arisbe-book-html-${GITHUB_REF_NAME}.zip"
