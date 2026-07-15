@@ -160,7 +160,7 @@ def square_annotations() -> list:
             "(rains)/(mist) on some sheet but not all; (4) the denial of ◇g — '□¬g, "
             "impossible' — here: (thunders) on no reachable sheet. The modal lens's "
             "green/amber/absent columns display exactly this square.",
-            tags=["modality", "broken-cut", "gamma", "lowell-1903", "demonstration"]),
+            tags=["modality", "broken-cut", "peirce-gamma", "lowell-1903", "demonstration"]),
         make_annotation(SCOPE_CHAIN,
             "Peirce's Lowell-IV inferences hold here as frame facts on the reflexive "
             "states reading: □g ⊨ g (his Figs. 2→4, via R6(b) then R5), □g ⊨ ◇g "
@@ -236,7 +236,7 @@ def de_inesse_annotations() -> list:
             "suiciding' (the blue-tinted figure of Ms 490) — needs worlds, and lives "
             "next door in 'would_be_courses' as a branching DAG of courses of "
             "experience.",
-            tags=["de-inesse", "would-be", "prolegomena", "gamma", "demonstration"]),
+            tags=["de-inesse", "would-be", "modality", "prolegomena", "peirce-gamma", "demonstration"]),
     ])
 
 
@@ -261,33 +261,36 @@ _COURSES = [
 
 
 def build_would_be_courses() -> Tuple[TransformationChain, UniverseOfDiscourse]:
-    pc = ProofChain.from_egif(COURSES_BASE)                                  # s0
-    # prosperity: s0 → s1
-    b, fact, label, note = _COURSES[0]
-    pc.apply_derived("ADMIT_FACT",
-                     lambda g, _f=fact: revise_with_disposition(
-                         g, DISPOSITION_NEW_FACT, fact_egif=_f),
-                     label=label, note=note, branch=b,
-                     params={"disposition": DISPOSITION_NEW_FACT, "fact": fact,
-                             "course": b})
-    # ruin: s0 → s2
-    pc.at("s0")
-    b, fact, label, note = _COURSES[1]
-    pc.apply_derived("ADMIT_FACT",
-                     lambda g, _f=fact: revise_with_disposition(
-                         g, DISPOSITION_NEW_FACT, fact_egif=_f),
-                     label=label, note=note, branch=b,
-                     params={"disposition": DISPOSITION_NEW_FACT, "fact": fact,
-                             "course": b})
-    # late-ruin: s1 → s3
-    pc.at("s1")
-    b, fact, label, note = _COURSES[2]
-    pc.apply_derived("ADMIT_FACT",
-                     lambda g, _f=fact: revise_with_disposition(
-                         g, DISPOSITION_NEW_FACT, fact_egif=_f),
-                     label=label, note=note, branch=b,
-                     params={"disposition": DISPOSITION_NEW_FACT, "fact": fact,
-                             "course": b})
+    """The record of each course resides at level 1 of a standing world-scroll
+    (the validity discipline: nothing contingent at depth 0); each course is an
+    explicit rule-licensed ADMIT_TO_M and the would-be's verdict at each world
+    is a recorded PEEL step, threaded through the branch (identity states) so
+    the frame — and the modal reading — is untouched."""
+    from m_steps import admit_step, peel_step
+    from world_scroll import wrap_m
+
+    wrapped, _ = wrap_m(parse_egif(COURSES_BASE))
+    pc = ProofChain(wrapped)                                                 # s0
+
+    def _admit(b, fact, label, note):
+        admit_step(pc, fact, disposition=DISPOSITION_NEW_FACT,
+                   mode="induction", warrant="the course of experience",
+                   note=note, branch=b)
+        step = pc.to_chain().steps[-1]
+        step.parameters["peirce_label"] = label
+        step.parameters["course"] = b
+        peel_step(pc, WOULD_BE_G, closed=True, branch=b)
+
+    peel_step(pc, WOULD_BE_G, closed=True,
+              note="The base world: the would-be holds vacuously — Otto has "
+                   "not failed.")
+    base_audit = pc.current_state_id
+    _admit(*_COURSES[0])                          # prosperity
+    prosperity_audit = pc.current_state_id
+    pc.at(base_audit)
+    _admit(*_COURSES[1])                          # ruin — the fork
+    pc.at(prosperity_audit)
+    _admit(*_COURSES[2])                          # late-ruin
 
     return pc.to_uod(
         uod_id=COURSES_ID,
@@ -299,8 +302,11 @@ def build_would_be_courses() -> Tuple[TransformationChain, UniverseOfDiscourse]:
             "implication, more than the conditional de inesse (see the companion UoD "
             "'would_be_de_inesse'). Here the tinted possibility is a branching DAG of "
             "courses of experience — prosperity, ruin, prosperity-then-late-ruin — "
-            "each branch a new_fact revision (the experiential register: what the "
-            "dialogue with the world admits, not what the rules derive). The would-be "
+            "each branch an explicit ADMIT_TO_M step — a genuine INS into the standing "
+            "world-scroll each record resides in (the experiential register: what the "
+            "dialogue with the world admits, not what the rules derive; nothing "
+            "contingent at depth 0), with the would-be's per-world verdict a recorded "
+            "PEEL step. The would-be "
             "G = 'if Otto fails, Clara suicides' peels TRUE at every reachable world "
             "(□G — the strict implication), while the contrast G2 = 'if Otto fails, "
             "he prospers' is refuted by the ruin course (◇ only). Constant labels "
@@ -348,8 +354,9 @@ def courses_annotations() -> list:
             tags=["would-be", "strict-implication", "modality", "prolegomena",
                   "demonstration"]),
         make_annotation(SCOPE_CHAIN,
-            "Experiential register: each edge is a new_fact enlargement "
-            "(src/model_revision.py) — a course of experience admitting what happens, "
+            "Experiential register: each edge is a new_fact enlargement recorded as "
+            "an explicit ADMIT_TO_M step (src/m_steps.py — a genuine INS into the "
+            "world-scroll's negative arena) — a course of experience admitting what happens, "
             "not a Dau inference. Choosing this accessibility relation R (courses) "
             "rather than derivability (the broken_cut_square's R) is exactly what "
             "Peirce's tinctures chose: the mode of the modality is which R the frame "

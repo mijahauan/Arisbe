@@ -498,36 +498,6 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/hypothetical_syllogism"
     },
     {
-      "uod_id": "zoo_world",
-      "name": "Zoo world \u2014 a closed taxonomy",
-      "category": "domain_model",
-      "uod_type": "standalone",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-29T00:00:00+00:00",
-      "last_modified": "2026-06-29T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/zoo_world"
-    },
-    {
-      "uod_id": "harbor_town",
-      "name": "Harbor town \u2014 an open civic world",
-      "category": "domain_model",
-      "uod_type": "standalone",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-29T00:00:00+00:00",
-      "last_modified": "2026-06-29T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/harbor_town"
-    },
-    {
       "uod_id": "possible_and_necessary",
       "name": "Possibility and necessity (a branching episode)",
       "category": "theorem_proof",
@@ -541,21 +511,6 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/possible_and_necessary"
-    },
-    {
-      "uod_id": "dialogue_model_revision",
-      "name": "A model revised through dialog (the insurance audit)",
-      "category": "domain_model",
-      "uod_type": "historical",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-03T00:00:00+00:00",
-      "last_modified": "2026-06-03T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/dialogue_model_revision"
     },
     {
       "uod_id": "dialogue_swan_revision",
@@ -573,8 +528,8 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/dialogue_swan_revision"
     },
     {
-      "uod_id": "agon_evolution_swan",
-      "name": "A model developed automatically by the Agon (the swans)",
+      "uod_id": "dialogue_model_revision",
+      "name": "A model revised through dialog (the insurance audit)",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -585,52 +540,7 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/agon_evolution_swan"
-    },
-    {
-      "uod_id": "broken_cut_square",
-      "name": "The broken cut, without the broken cut (Lowell 1903)",
-      "category": "theorem_proof",
-      "uod_type": "historical",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-03T00:00:00+00:00",
-      "last_modified": "2026-06-03T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/broken_cut_square"
-    },
-    {
-      "uod_id": "would_be_courses",
-      "name": "The would-be \u2014 courses of experience (Prolegomena 1906)",
-      "category": "domain_model",
-      "uod_type": "historical",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-03T00:00:00+00:00",
-      "last_modified": "2026-06-03T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/would_be_courses"
-    },
-    {
-      "uod_id": "would_be_de_inesse",
-      "name": "P de inesse \u2014 the married woman (Prolegomena 1906)",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2026-07-04T00:00:00+00:00",
-      "last_modified": "2026-07-04T00:00:00+00:00",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/would_be_de_inesse"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/dialogue_model_revision"
     },
     {
       "uod_id": "forcing_conditions",
@@ -646,6 +556,51 @@
       "authors": [],
       "tags": [],
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/forcing_conditions"
+    },
+    {
+      "uod_id": "swan_episode_unpacked",
+      "name": "The black swan, unpacked (four beats and a fork)",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/swan_episode_unpacked"
+    },
+    {
+      "uod_id": "zoo_world",
+      "name": "Zoo world \u2014 a closed taxonomy",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-29T00:00:00+00:00",
+      "last_modified": "2026-06-29T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/zoo_world"
+    },
+    {
+      "uod_id": "harbor_town",
+      "name": "Harbor town \u2014 an open civic world",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-29T00:00:00+00:00",
+      "last_modified": "2026-06-29T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/harbor_town"
     },
     {
       "uod_id": "peirce_order_1881",
@@ -693,8 +648,38 @@
       "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/numeral_three_unfolds"
     },
     {
-      "uod_id": "swan_episode_unpacked",
-      "name": "The black swan, unpacked (four beats and a fork)",
+      "uod_id": "broken_cut_square",
+      "name": "The broken cut, without the broken cut (Lowell 1903)",
+      "category": "theorem_proof",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/broken_cut_square"
+    },
+    {
+      "uod_id": "would_be_de_inesse",
+      "name": "P de inesse \u2014 the married woman (Prolegomena 1906)",
+      "category": "literature_example",
+      "uod_type": "standalone",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2026-07-04T00:00:00+00:00",
+      "last_modified": "2026-07-04T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/literature/would_be_de_inesse"
+    },
+    {
+      "uod_id": "would_be_courses",
+      "name": "The would-be \u2014 courses of experience (Prolegomena 1906)",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -705,8 +690,23 @@
       "total_transformations": 0,
       "authors": [],
       "tags": [],
-      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/swan_episode_unpacked"
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/would_be_courses"
+    },
+    {
+      "uod_id": "agon_evolution_swan",
+      "name": "A model developed automatically by the Agon (the swans)",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "/Users/mjh/Sync/GitHub/Arisbe/tomos/universes/agon_evolution_swan"
     }
   ],
-  "last_updated": "2026-07-14T15:33:53.229148"
+  "last_updated": "2026-07-15T12:55:54.073378"
 }

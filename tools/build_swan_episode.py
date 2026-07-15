@@ -38,10 +38,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import revision_episode as ep
 from annotations import SCOPE_CHAIN, SCOPE_STEP, SCOPE_UOD, annotations_to_list, make_annotation
-from model_revision import (
-    DISPOSITION_CHALLENGE_M, DISPOSITION_NEW_FACT, revise_with_disposition,
-)
+from egif_parser_dau import parse_egif
+from m_steps import peel_step, revise_step
+from model_revision import DISPOSITION_CHALLENGE_M, DISPOSITION_NEW_FACT
 from proof_authoring import ProofChain
+from world_scroll import enlarge_m, wrap_m
 from provenance import KIND_DOMAIN_MODEL, authored_proof, make_provenance
 from tomos_service import TomosService, TransformationChain
 from universe_of_discourse import UniverseOfDiscourse, UoDCategory
@@ -58,21 +59,35 @@ M3 = (f'(swan "Ciel") (white "Ciel") (swan "Dover") (white "Dover") {LAW} {DISJO
 
 PROPOSAL = '~[ (swan *x) ~[ (white x) ] ]'             # the audited claim: all swans white
 
+# The two ways out, as whole worlds (a world-withdrawal names the whole
+# supposition it resupplies — you cannot un-suppose piecemeal at odd depth):
+FACTS = '(swan "Ciel") (white "Ciel") (swan "Dover") (white "Dover")'
+M4_RELINQUISH = f'{FACTS} {DISJOINT} {OBSERVATION}'          # law out, anomaly in
+M4_REJECT = f'{FACTS} {LAW} {DISJOINT} (swan "Nox")'         # law kept, report denied
+
 
 def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
-    pc = ProofChain.from_egif(M3)                       # s0 — M at the end of inning 3
+    wrapped, _ = wrap_m(parse_egif(M3))     # s0 — M3, resident in its world-scroll
+    pc = ProofChain(wrapped)
+
+    # ---- beat 0 · the standing audit ---------------------------------------
+    peel_step(pc, PROPOSAL, closed=True,
+              note="The audited claim at M3: 'all swans are white' holds — for now.")
 
     # ---- beat 1 · PROPOSE ---------------------------------------------------
-    # The report ENTERS as a candidate. (It is scribed here, which makes M
-    # momentarily inconsistent — and that irritation is precisely the point: the
-    # doubt is real, and beat 2 makes it visible.)
+    # The report ENTERS as a candidate — INS into the world-scroll's negative
+    # arena, rule-licensed. (The supposition is now inconsistent — and that
+    # irritation is precisely the point: the doubt is real, beat 2 makes it
+    # visible, and the scroll QUARANTINES it: an inconsistent supposition,
+    # never an inconsistent assertion.)
     pc.apply_derived(
         "PROPOSE",
-        lambda g: revise_with_disposition(g, DISPOSITION_NEW_FACT,
-                                          fact_egif=OBSERVATION),
+        lambda g: enlarge_m(g, OBSERVATION),
         note=("Beat 1 — PROPOSE. A black swan, Nox, is reported. Entertained, not yet "
-              "settled: M now says two incompatible things, and the doubt is real."),
-        params={"beat": ep.PROPOSE, "observation": OBSERVATION})
+              "settled: the supposition now says two incompatible things, and the "
+              "doubt is real — fenced by the scroll it lives in."),
+        params={"beat": ep.PROPOSE, "observation": OBSERVATION,
+                "derivation": ["INS"], "earned": True})
 
     # ---- beat 2 · EXHIBIT ---------------------------------------------------
     # The conflict is DERIVED on an iterated working copy — six Dau rules to the
@@ -97,35 +112,46 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
     fork_state = pc.current_state_id                   # the state the choice is made AT
 
     # ---- beat 3+4a · the main line: relinquish the law ----------------------
+    # A world-withdrawal (the executed ERA·DC+·INS triple): under the polarity
+    # shift the law cannot be erased piecemeal from the antecedent (unsound at
+    # odd depth) — the whole supposition is withdrawn and the amended one
+    # supplied. The DAG keeps the withdrawn world.
     alts = ep.alternatives("all swans are white", "Nox is a black swan")
-    pc.apply_derived(
-        "REVISE_M",
-        lambda g: revise_with_disposition(
-            g, DISPOSITION_CHALLENGE_M, subgraph_egif=LAW, fact_egif=OBSERVATION),
+    revise_step(
+        pc, M4_RELINQUISH,
+        subgraph_egif=LAW, fact_egif=OBSERVATION,
+        disposition=DISPOSITION_CHALLENGE_M, mode="abduction",
+        reason="the contradiction exhibited in beat 2",
         note=("Beats 3–4 — FORK, then DISPOSE (this branch). Two ways out were "
-              "open; this one ADMITS the observation and RELINQUISHES the law. "
-              "Ampliative: the exhibited absurdity does not *compel* this — it "
-              "compels only that something give. Choosing which is abduction."),
-        params={"beat": ep.DISPOSE, "alternative": alts[0].key,
-                "disposition": DISPOSITION_CHALLENGE_M, "mode": "abduction",
-                "reason": "the contradiction exhibited in beat 2"},
+              "open; this one ADMITS the observation and RELINQUISHES the law — "
+              "by withdrawing the whole world (ERA·DC+·INS) and supplying the "
+              "amended one. Ampliative: the exhibited absurdity does not *compel* "
+              "this — it compels only that something give. Choosing which is "
+              "abduction."),
         branch="relinquish-the-law")
+    pc.to_chain().steps[-1].parameters.update(
+        {"beat": ep.DISPOSE, "alternative": alts[0].key})
+    peel_step(pc, PROPOSAL, closed=True, branch="relinquish-the-law")
 
     # ---- beat 4b · the sibling: reject the report ---------------------------
     # The road not taken, kept navigable. A scientist's notebook keeps both.
+    # Also a world-withdrawal: the old retract_atom would be piecemeal erasure
+    # at odd depth — unsound under the polarity shift.
     pc.at(fork_state)
-    pc.apply_derived(
-        "REVISE_M",
-        _reject_report,
+    revise_step(
+        pc, M4_REJECT,
+        subgraph_egif='(black "Nox")',
+        disposition="rejection", mode="convention",
+        reason="the report is denied — a mis-sighting, a mislabelled bird",
         note=("Beat 4 (the ROAD NOT TAKEN) — keep the law, reject the report. The "
               "other way to restore consistency: deny that Nox is black (a "
               "mis-sighting, a mislabelled bird). Cheap now; the cost falls due later "
               "if the report was true. Recorded as a sibling so the choice stays "
               "visible — the DAG is where 'having two alternatives in mind' lives."),
-        params={"beat": ep.DISPOSE, "alternative": alts[1].key,
-                "disposition": "rejection", "mode": "convention",
-                "not_taken": True},
         branch="reject-the-report")
+    pc.to_chain().steps[-1].parameters.update(
+        {"beat": ep.DISPOSE, "alternative": alts[1].key, "not_taken": True})
+    peel_step(pc, PROPOSAL, closed=True, branch="reject-the-report")
 
     return pc.to_uod(
         uod_id=UOD_ID,
@@ -143,18 +169,15 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
             "forces only that SOMETHING give, and choosing which is abduction. "
             "Entertaining is enclosure: the exhibit runs on an iterated working copy "
             "of M, and what is derived inside cannot be exported by deduction — which "
-            "is exactly why a model revision is not a proof. proof_character reads "
+            "is exactly why a model revision is not a proof. M resides at level 1 "
+            "of a standing world-scroll (nothing contingent at depth 0): the "
+            "proposal enters by a rule-licensed INS into the arena, and each "
+            "disposition is a world-withdrawal (the executed ERA·DC+·INS triple — "
+            "the DAG keeps the withdrawn world). proof_character reads "
             "this chain as AMPLIATIVE around a deductive core."
         ),
         category=UoDCategory.DOMAIN_MODEL,
     )
-
-
-def _reject_report(g):
-    """The other branch: keep the law, deny the anomaly. (M returns to what it was
-    before the report — the observation is retracted, not the habit.)"""
-    from model_revision import retract_atom
-    return retract_atom(g, "black", ["Nox"])
 
 
 def _provenance() -> dict:

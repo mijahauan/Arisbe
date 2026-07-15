@@ -119,22 +119,29 @@ def episode():
 
 def test_the_four_beats_are_recorded_individually(episode):
     chain, _uod = episode
-    beats = [s.parameters.get("beat") for s in chain.steps]
+    # PEEL steps are verdict records, not beats — filter to the acts themselves.
+    acts = [s for s in chain.steps if (s.parameters or {}).get("act") != "peel"]
+    beats = [s.parameters.get("beat") for s in acts]
     assert beats[0] == ep.PROPOSE
     assert beats[1] == ep.EXHIBIT
     assert beats[2] == ep.DISPOSE and beats[3] == ep.DISPOSE   # the two branches
+    # the PROPOSE is rule-licensed under the polarity shift: INS into the arena
+    assert acts[0].parameters.get("derivation") == ["INS"]
     # the EXHIBIT carries its derivation and does NOT touch M (it is a proof)
-    exh = chain.steps[1].parameters
+    exh = acts[1].parameters
     assert exh["absurd"] and exh["derivation"] == ["UI", "IT-", "DC-", "UI", "IT-", "IT-"]
     assert exh["working_copy"] is True
+    # each DISPOSE is a world-withdrawal: the executed ERA·DC+·INS triple
+    assert acts[2].parameters["derivation"] == ["ERA", "DC+", "INS"]
+    assert acts[3].parameters["derivation"] == ["ERA", "DC+", "INS"]
 
 
 def test_the_choice_is_a_real_fork_in_the_dag(episode):
     """'Having two alternatives in mind' IS the branch. Both dispositions hang off the
     same parent state; the road not taken stays navigable."""
     chain, _uod = episode
-    froms = [s.from_state_id for s in chain.steps]
-    forked = [f for f in set(froms) if froms.count(f) > 1]
+    revising = [s for s in chain.steps if s.rule_name == "REVISE_M"]
+    forked = {s.from_state_id for s in revising}
     assert len(forked) == 1, "the two ways out must share a parent state"
     branches = {s.branch_id for s in chain.steps if s.branch_id}
     assert branches == {"relinquish-the-law", "reject-the-report"}

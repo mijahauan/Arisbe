@@ -119,6 +119,11 @@ def m_fragment(m_egi: RelationalGraphWithCuts,
     model and of a *materialized* (forward-chained) theory; nested structure M
     keeps undrawn is reported via `nested` so the horizon stays honest.
     """
+    from world_scroll import m_view
+
+    # A world-scrolled M is read through its antecedent area (the validity
+    # discipline); a legacy sheet-level M passes through unchanged.
+    m_egi = m_view(m_egi)
     g_rels = ontology_signature(g_egi)
     g_consts = _constants(g_egi)
     atoms, vmap = _sheet_atoms(m_egi)

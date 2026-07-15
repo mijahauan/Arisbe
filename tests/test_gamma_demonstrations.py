@@ -104,10 +104,13 @@ def test_courses_are_the_experiential_register():
     """Every edge a new_fact revision — courses of experience, not Dau inferences
     (the tincture point: choosing R is choosing the mode)."""
     chain, _ = gd.build_would_be_courses()
-    assert chain.steps and all(
-        s.rule_name == "ADMIT_FACT"
-        and (s.parameters or {}).get("disposition") == "new_fact"
-        for s in chain.steps)
+    admits = [s for s in chain.steps
+              if (s.parameters or {}).get("act") == "m_enlargement"]
+    assert admits and all(
+        s.rule_name == "ADMIT_TO_M"
+        and s.parameters.get("disposition") == "new_fact"
+        and s.parameters.get("derivation") == ["INS"]     # rule-licensed now
+        for s in admits)
     from collections import Counter
     frm = Counter(s.from_state_id for s in chain.steps)
     assert any(v > 1 for v in frm.values())                    # branching courses

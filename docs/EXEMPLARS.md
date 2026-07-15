@@ -62,8 +62,21 @@ step level.
 ## 3. The domain-model boards
 
 Built by [`tools/build_domain_model_exemplars.py`](../tools/build_domain_model_exemplars.py)
-as `kind=domain_model` standalone UoDs. They are a deliberate **closed/open
+as `kind=domain_model` UoDs. They are a deliberate **closed/open
 contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) turns on.
+
+> **Residence (since 2026-07-15, the corpus polarity sweep).** Every M-bearing
+> exemplar in this catalogue resides at level 1 of a **standing world-scroll**
+> `~[ M ~[ ] ]` — nothing contingent stands at depth 0 (the validity
+> discipline, [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3).
+> The boards carry the two-step construction chain that put them there (DC+
+> then INS from the blank sheet — both real rules, replayable); the dialogue
+> exemplars record every M-change as an explicit rule-licensed step
+> (`ADMIT_TO_M` = INS into the arena; `REVISE_M` = the executed ERA·DC+·INS
+> world-withdrawal) and every verdict as a recorded `PEEL` step. The peel
+> reads the antecedent area (`world_scroll.m_view`), so every verdict quoted
+> in this document is unchanged. The standing gate is
+> `tests/test_corpus_polarity_discipline.py`.
 
 ### `zoo_world` — a closed taxonomy with Horn rules
 

@@ -333,7 +333,12 @@ class CorpusOracle(DomainOracle):
         *,
         closed: bool = False,
     ):
-        self._models = list(models)
+        from world_scroll import m_view
+
+        # A model resident in a standing world-scroll (the validity discipline:
+        # M at level 1, never depth 0) is read through its antecedent area;
+        # a legacy sheet-level M passes through unchanged.
+        self._models = [(name, m_view(M)) for name, M in models]
         self._closed = closed
         # Precompute the asserted (sheet-level) atom view of each model.
         self._index: List[Tuple[str, RelationalGraphWithCuts, List[_Atom], Dict, Dict, List]] = []

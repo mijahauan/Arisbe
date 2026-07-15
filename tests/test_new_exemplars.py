@@ -108,7 +108,7 @@ def test_harbor_town_confirms_a_present_fact():
 
 def test_domain_models_are_domain_model_kind():
     for build in models.BUILDERS:
-        _uod, prov, _anns = build()
+        _chain, _uod, prov, _anns = build()
         assert prov["kind"] == "domain_model"
 
 

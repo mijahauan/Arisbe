@@ -14,9 +14,9 @@
       "element_id": null
     },
     {
-      "id": "ann_ae4f2a9e",
+      "id": "ann_778f0d35",
       "scope": "uod",
-      "text": "A domain model revised across the *taxonomy* of inning outcomes \u2014 not one disposition repeated but four distinct ones, each a Peircean mode. 'Every swan is white' is audited against M: induction observes Ciel and leaps to the law; the law then covers a new swan (deduction over an inductive generalization \u2014 G stays TRUE where a bare tally would flip); abduction meets the black swan and relinquishes the over-general law. The taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md) made operational.",
+      "text": "A domain model revised across the *taxonomy* of inning outcomes \u2014 not one disposition repeated but four distinct ones, each a Peircean mode. 'Every swan is white' is audited against M: induction observes Ciel and leaps to the law; the law then covers a new swan (deduction over an inductive generalization \u2014 G stays TRUE where a bare tally would flip); abduction meets the black swan and withdraws the over-general world. M resides in a standing world-scroll \u2014 nothing contingent at depth 0 \u2014 and every verdict is a recorded PEEL step. The taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md) made operational.",
       "author": null,
       "created": null,
       "tags": [
@@ -26,22 +26,24 @@
         "taxonomy",
         "induction",
         "abduction",
-        "demonstration"
+        "demonstration",
+        "world-scroll"
       ],
       "state_id": null,
       "step_id": null,
       "element_id": null
     },
     {
-      "id": "ann_23213725",
+      "id": "ann_7f54f3f8",
       "scope": "chain",
-      "text": "Each step is a model-revising disposition from src/model_revision.py's REVISION_TAXONOMY: new_fact (3a, induction \u00b7 enlargement), generalization (Case 8, induction \u00b7 a law), challenge_to_M (2b, abduction \u00b7 relinquish the law by a genuine Dau ERA + admit the anomaly). Enlargement is INS at the sheet; relinquishment is ERA in the positive sheet \u2014 the same calculus that draws every other graph.",
+      "text": "Every M-change is an explicit rule-licensed step (src/m_steps.py): ADMIT_TO_M = enlargement, a genuine INS into the world-scroll's negative arena (supposing more is free); REVISE_M = relinquishment as world-withdrawal, the executed ERA\u00b7DC+\u00b7INS triple (piecemeal erasure at odd depth would *strengthen* the conditional \u2014 unsound; the DAG keeps the withdrawn world). Each PEEL step records the verdict actually computed at that state \u2014 the record is re-checkable forever.",
       "author": null,
       "created": null,
       "tags": [
         "taxonomy",
         "enlargement",
         "relinquishment",
+        "world-scroll",
         "low-warrant"
       ],
       "state_id": null,
@@ -49,23 +51,9 @@
       "element_id": null
     },
     {
-      "id": "ann_746cff46",
-      "scope": "uod",
-      "text": "M0 (the opening record): 'every swan is white' peels to FALSE \u2014 Ciel's colour is unrecorded.",
-      "author": null,
-      "created": null,
-      "tags": [
-        "audit",
-        "verdict"
-      ],
-      "state_id": null,
-      "step_id": null,
-      "element_id": null
-    },
-    {
-      "id": "ann_35980ffc",
+      "id": "ann_9860e205",
       "scope": "step",
-      "text": "M1: 'every swan is white' peels to TRUE (after new_fact \u00b7 induction).",
+      "text": "M0: 'every swan is white' peels to FALSE.",
       "author": null,
       "created": null,
       "tags": [
@@ -78,24 +66,9 @@
       "element_id": null
     },
     {
-      "id": "ann_ab72bc77",
+      "id": "ann_e9fe86cd",
       "scope": "step",
-      "text": "M2: 'every swan is white' peels to TRUE (after generalization \u00b7 induction).",
-      "author": null,
-      "created": null,
-      "tags": [
-        "audit",
-        "verdict",
-        "taxonomy"
-      ],
-      "state_id": null,
-      "step_id": "step-2",
-      "element_id": null
-    },
-    {
-      "id": "ann_c463afa1",
-      "scope": "step",
-      "text": "M3: 'every swan is white' peels to TRUE (after new_fact \u00b7 induction).",
+      "text": "M1: 'every swan is white' peels to TRUE.",
       "author": null,
       "created": null,
       "tags": [
@@ -108,9 +81,9 @@
       "element_id": null
     },
     {
-      "id": "ann_a59cdc28",
+      "id": "ann_83a8a046",
       "scope": "step",
-      "text": "M4: 'every swan is white' peels to FALSE (after challenge_to_M \u00b7 abduction).",
+      "text": "M2: 'every swan is white' peels to TRUE.",
       "author": null,
       "created": null,
       "tags": [
@@ -119,7 +92,37 @@
         "taxonomy"
       ],
       "state_id": null,
-      "step_id": "step-4",
+      "step_id": "step-5",
+      "element_id": null
+    },
+    {
+      "id": "ann_bd84a9c0",
+      "scope": "step",
+      "text": "M3: 'every swan is white' peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-7",
+      "element_id": null
+    },
+    {
+      "id": "ann_44848db4",
+      "scope": "step",
+      "text": "M4: 'every swan is white' peels to FALSE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict",
+        "taxonomy"
+      ],
+      "state_id": null,
+      "step_id": "step-9",
       "element_id": null
     }
   ]

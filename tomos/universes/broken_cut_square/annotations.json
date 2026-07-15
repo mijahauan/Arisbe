@@ -7,11 +7,11 @@
       "author": null,
       "created": null,
       "tags": [
-        "broken-cut",
-        "demonstration",
-        "lowell-1903",
         "modality",
-        "peirce-gamma"
+        "broken-cut",
+        "peirce-gamma",
+        "lowell-1903",
+        "demonstration"
       ],
       "state_id": null,
       "step_id": null,
@@ -25,10 +25,9 @@
       "created": null,
       "tags": [
         "broken-cut-rules",
-        "cp-4-519",
         "cut-conversion",
         "modal-frame",
-        "modality"
+        "cp-4-519"
       ],
       "state_id": null,
       "step_id": null,

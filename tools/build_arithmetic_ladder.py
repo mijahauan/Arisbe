@@ -37,6 +37,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 import peirce_arithmetic as pa
 from annotations import SCOPE_CHAIN, SCOPE_STEP, SCOPE_UOD, annotations_to_list, make_annotation
+from m_steps import peel_step
+from world_scroll import wrap_m
 from domain_oracle import CorpusOracle
 from egif_parser_dau import parse_egif
 from model_materialization import materialize_egi
@@ -51,10 +53,11 @@ PROPOSAL = pa.sum_claim(2, 3, 5)          # (sum "2" "3" "5")
 
 
 def _scribe(egif: str):
-    """A composing move: juxtapose a graph onto the sheet (the ADMIT step the
-    domain-model exemplars use — a posit, at low warrant)."""
-    from model_revision import DISPOSITION_NEW_FACT, revise_with_disposition
-    return lambda g: revise_with_disposition(g, DISPOSITION_NEW_FACT, fact_egif=egif)
+    """A composing move under the validity discipline: admit the graph into the
+    standing world-scroll's negative arena — a genuine INS (supposing an axiom
+    is rule-licensed; adopting it is still the mathematician's act)."""
+    from world_scroll import enlarge_m
+    return lambda g: enlarge_m(g, egif)
 
 
 def _verdict(egi, claim: str = PROPOSAL, *, closed: bool = True) -> str:
@@ -76,11 +79,14 @@ def _verdict(egi, claim: str = PROPOSAL, *, closed: bool = True) -> str:
 def build_order_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
     """Rungs 1–3: a relation, the scroll, the order. Each axiom is one move, so a
     reader watches the order *assemble* rather than meeting it whole."""
-    pc = ProofChain.from_egif(pa.order_facts(UPTO))       # s0: a stretch of `lt`
+    pc = ProofChain(wrap_m(parse_egif(pa.order_facts(UPTO)))[0])  # s0: the `lt` stretch
     for name, egif, gloss in pa.ORDER_AXIOMS:
-        pc.apply_derived("SCRIBE_AXIOM", _scribe(egif),
+        pc.apply_derived("ADMIT_TO_M", _scribe(egif),
                          note=f"{name} — {gloss}",
-                         params={"axiom": name, "egif": egif})
+                         params={"axiom": name, "egif": egif,
+                                 "act": "m_enlargement", "earned": True,
+                                 "derivation": ["INS"],
+                                 "disposition": "new_fact", "mode": "convention"})
     return pc.to_uod(
         uod_id="peirce_order_1881",
         name="Peirce's order (On the Logic of Number, 1881)",
@@ -109,15 +115,28 @@ def build_addition_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
     """Rungs 5 and 7: position, then addition. The claim `2 + 3 = 5` is UNKNOWN
     on the bare succ-chain and TRUE once the two laws are on the sheet — the
     audit lens shows arithmetic *arriving*."""
-    pc = ProofChain.from_egif(
-        f"{pa.successor_chain(UPTO)} {pa.numbers(UPTO)}")     # s0: the positions
-    pc.apply_derived("SCRIBE_LAW", _scribe(pa.SUM_BASE),
+    pc = ProofChain(wrap_m(parse_egif(
+        f"{pa.successor_chain(UPTO)} {pa.numbers(UPTO)}"))[0])    # s0: the positions
+    peel_step(pc, PROPOSAL, closed=True,
+              note="Before the laws: the bare successor-chain HAS no addition — "
+                   "closed-world, 2+3=5 is FALSE of that system.")
+    pc.apply_derived("ADMIT_TO_M", _scribe(pa.SUM_BASE),
                      note="x + 0 = x — the base of the recursion",
-                     params={"law": "sum_base", "egif": pa.SUM_BASE})
-    pc.apply_derived("SCRIBE_LAW", _scribe(pa.SUM_STEP),
+                     params={"law": "sum_base", "egif": pa.SUM_BASE,
+                             "act": "m_enlargement", "earned": True,
+                             "derivation": ["INS"],
+                             "disposition": "generalization", "mode": "convention"})
+    peel_step(pc, PROPOSAL, closed=True)
+    pc.apply_derived("ADMIT_TO_M", _scribe(pa.SUM_STEP),
                      note=("x + s(y) = s(x + y) — the step. With this the whole "
                            "addition table follows by itself."),
-                     params={"law": "sum_step", "egif": pa.SUM_STEP})
+                     params={"law": "sum_step", "egif": pa.SUM_STEP,
+                             "act": "m_enlargement", "earned": True,
+                             "derivation": ["INS"],
+                             "disposition": "generalization", "mode": "convention"})
+    peel_step(pc, PROPOSAL, closed=True,
+              note="The claim ARRIVES: with both laws in the arena the table "
+                   "grows itself and 2+3=5 is read off the diagram.")
     return pc.to_uod(
         uod_id="arithmetic_from_two_laws",
         name="Addition, grown from two drawn laws",
@@ -149,14 +168,16 @@ def build_addition_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
 
 def build_numeral_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
     """Rung 6: "three" is a definition — a *type*, shown through a token."""
-    pc = ProofChain.from_egif('(succ "0" *a) (succ a *b) (succ b *k) (num k)')
+    pc = ProofChain(wrap_m(parse_egif(
+        '(succ "0" *a) (succ a *b) (succ b *k) (num k)'))[0])
     pc.apply_derived(
         "FOLD_NUMERAL",
-        lambda g: parse_egif('(three *k) (num k)'),
+        lambda g: wrap_m(parse_egif('(three *k) (num k)'))[0],
         note=("Fold the chain into the numeral: 'three' abbreviates 'three steps up "
               "from zero'. The abbreviation is conservative — unfolding returns the "
               "same graph (same_graph), so the numeral adds no content, only a name."),
-        params={"definition": "three", "body": pa.NUMERAL_DEFINITIONS["three"]},
+        params={"definition": "three", "body": pa.NUMERAL_DEFINITIONS["three"],
+                "derivation": ["definition.fold"]},
     )
     return pc.to_uod(
         uod_id="numeral_three_unfolds",
@@ -208,7 +229,9 @@ def _annotations(chain: TransformationChain, *, audit: bool) -> list:
         anns.append(make_annotation(SCOPE_UOD, PROPOSAL, tags=["audit-proposal"]))
     anns.append(make_annotation(
         SCOPE_CHAIN,
-        "Each step SCRIBES one graph onto the sheet — and positing a hypothesis is "
+        "Each step ADMITS one graph into the standing world-scroll's arena (a "
+        "genuine INS — the system resides at level 1; nothing contingent at depth "
+        "0) — and adopting a hypothesis is "
         "ampliative, not deduction (proof_character reads this chain as AMPLIATIVE): "
         "no rule of inference compels you to adopt an axiom. Peirce exactly — "
         "mathematics 'frames and studies the consequences of hypotheses.' The "
@@ -242,11 +265,17 @@ def main(argv=None) -> int:
         print(f"Saved '{uod.uod_id}' — {len(chain.steps)} rungs · {c.character}")
 
     # The headline the addition UoD exists to show: the claim ARRIVES — and the
-    # two readings of its arrival are themselves a lesson.
+    # two readings of its arrival are themselves a lesson. The closed reading is
+    # the recorded PEEL trajectory; both are recomputed from the M-states.
     chain, _uod = build_addition_chain()
-    states = [chain.initial_state_id] + [s.to_state_id for s in chain.steps]
+    states = [chain.initial_state_id] + [
+        s.to_state_id for s in chain.steps
+        if (s.parameters or {}).get("act") != "peel"]
     closed = [_verdict(chain.states[s]) for s in states]
     open_ = [_verdict(chain.states[s], closed=False) for s in states]
+    peels = [s.parameters["verdict"] for s in chain.steps
+             if (s.parameters or {}).get("act") == "peel"]
+    assert peels == closed, (peels, closed)   # the record is earned
     print(f"\n  2 + 3 = 5, closed-world: {' → '.join(v.upper() for v in closed)}"
           "   (the system HAS no addition until the laws land)")
     print(f"  2 + 3 = 5, open-world:   {' → '.join(v.upper() for v in open_)}"

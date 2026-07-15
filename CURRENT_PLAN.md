@@ -1,6 +1,134 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-14 → 07-15) — THE M-RESIDENCE DIALOGUE: the validity discipline
+**▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+1. **RUN 12 = SPORTS: LAUNCH + DISPOSE (the author's; standing).** Affirm P1¹²–P5¹² + the
+   build decisions (RUN_12_LOG), take (a) odds-arm key / (b) duration, launch
+   `uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate --max-seconds 259200`
+   (play resumed 07-16/17); then watch/dispose F1¹²–…, replay `runs/run12/items.jsonl` as the
+   determinism canary, run the P4¹² literature check (home ≈53–54 %).
+2. **THE TWO CROSSING DECISIONS (author's; gate the 2nd-order frontier):** A. comprehension
+   floor (predicative-with-enclosure-escape is the harness default) · B. how much to open the
+   core (two nominees: `(forces s φ)`, `(superseded ⌜M⌝)`). Both now have a categorial footing
+   (CATEGORIES_AND_THE_THREE_PARTS: A = the honest bootstrap drawn as cuts; B = hypostatic
+   abstraction of a graph; Henkin = the Peircean choice).
+3. **TARGETED DOC SWEEP for the polarity re-orientation (half-session, grep-driven).** The
+   corpus now holds M in the standing world-scroll with explicit PEEL/ADMIT_TO_M/REVISE_M
+   steps, but ~13 docs still state the old sheet-residence mechanics; only EXEMPLARS +
+   M_RESIDENCE know the scroll. Split by kind: (a) docs stating sheet-residence as the
+   *corpus's current* mechanics — update: EXEMPLARS §6 body ("enlargement is INS at the
+   sheet / relinquishment is ERA in the positive sheet" → the world-scroll forms),
+   ENDOPOREUTIC_GAME_GUIDE (taxonomy §IV mechanics), GLOSSARY (+ a `world-scroll` entry),
+   CAPABILITY_MAP (+ world_scroll/m_steps/the gate), GETTING_STARTED + MATH_FIXTURES walk-
+   throughs, CLAUDE.md module list (+ src/world_scroll.py, src/m_steps.py,
+   test_corpus_polarity_discipline); (b) the **loop docs** (AUTOMATED_MODEL_DEVELOPMENT,
+   AUTOMATED_ENDOPOREUTIC_GAME, AUTOMATED_GRAPHEUS, DOMAIN_ORACLE_AND_M) — still *accurate*
+   for the live loops: add the two-regimes note (corpus = scroll discipline; loops = legacy
+   sheet regime pending §8.1) rather than rewriting; (c) Quarto book render-check after (the
+   `_devlinks` BOOK set habit).
+4. **§8.1's OPEN HALF (author decision, ordered against #2):** migrate the live loops —
+   `agon_evolution.run` / `live_runner` / membranes move off `assert_fact`/`assert_into` onto
+   the world-scroll forms (`enlarge_m` / `withdraw_and_resupply` / discharge); then unwrap
+   `agon_evolution_swan`'s post-hoc adapter into a native chain.
+5. **Phase-2 ontology wrap (builder-only; the read path is already m_view-aware):** wrap the
+   7 T-box ontologies via `tools/build_ontologies.py` + import pipelines; shrink the gate's
+   allowlist to empty.
+6. **Pre-existing reds to dispose (all proven failing at HEAD, none from the sweep):**
+   (a) **skos_core's ELK layout is order-dependent** (passes alone ×5, fails mid-corpus-sweep
+   — cross-call state in the ELK path; a determinism wrinkle that deserves its own
+   investigation, it touches the reproducibility story); (b) `arithmetic_from_two_laws`
+   fails the *clockwise-ordered* read (ternary `sum` atoms — the colore_between-shaped
+   frontier; either extend `_reader_frontier` with the honest rationale or teach the
+   clockwise override the case; numbered/structure/§3.3 all pass); (c) challenge/define
+   e2e ×4; (d) perf memory_stability = load flake (passes alone).
+7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
+   nuance, R4 accessibility polish, F1⁵ global-label root fix.
+
+**▶▶ THIS SESSION (2026-07-15) — THE CATEGORIAL READING: the reduction thesis, Thirdness as
+employed prerequisite, and the three parts — recorded.** A foundations dialogue driven by the
+author's question (how do the reduction thesis and "all thought is Thirdness" relate to
+Alpha/Beta/Gamma? is Thirdness a prerequisite — employed, unmodelled — for modelling all
+three? is the standing leak-discipline, e.g. teleology kept out of Beta, exactly this?),
+recorded in the new dev memo **`docs/CATEGORIES_AND_THE_THREE_PARTS.md`**. The synthesis:
+(1) the analogy holds **graded by what each part newly quantifies over** (propositions as
+monads / existents / representations), not as a partition — involution for free *(gloss a,
+assistant's, flagged)*; (2) **the reduction thesis is already ink in Beta** — teridentity =
+the irreducible triad as *structure*, while Thirdness as *content* is kept out, and that
+discipline is Peirce's own (the scroll is the conditional *de inesse*; a law in M is
+Beta-shaped ink whose law-character lives wholly in use — materializer/peel/decay = habit
+visible only in behavior); (3) **Thirdness-as-prerequisite is institutionalized as §3.3**
+(the invariant is a triad: two signs, one EGI, attestation = the produced interpretant;
+"the LLM argues, the calculus decides" keeps the Third incorruptible by employing, never
+representing it); (4) **the bootstrap's name is hypostatic abstraction** — both decision-B
+nominees (`(forces s φ)`, `(superseded ⌜M⌝)`) are it applied to a graph, and the categories
+recur one level up (quotations = monads; `same_graph` = the new 2ns; metalearning's
+resolution principles = informal 3ns-at-2nd-order, already inhabited — decision B decides
+only whether it gets ink); (5) **the landscape verdict is the categorial doctrine
+formalized** — conservativity = leak-prevention made checkable, predicativity = the honest
+bootstrap drawn as cuts (decision A's floor), **Henkin = unlimited semiosis respected**
+(range over interpretants-so-far, never the final interpretant as object — the *Peircean*
+choice, not the timid one); (6) DAG-modality read as **degenerate Thirdness as a feature**
+(track record, not law-in-itself; genuine Thirdness regulative; explains Gamma's
+unfinishedness without imputing failure → maxim: an open drawable ladder, never a closed
+Gamma) *(gloss b, assistant's, flagged)*. Cross-linked from SECOND_ORDER_FRONTIER +
+FORCING_AND_THE_GAMMA_CROSSING. Docs only; no code, no core; the two crossing decisions
+remain the author's — now with a categorial footing. Run 12 untouched (launch remains the
+author's; play resumes 07-16/17).
+
+**Also this sitting — THE CORPUS POLARITY SWEEP (author-directed, pre-frontier): the
+M-residence memo's §8.1 corpus half BUILT.** Directive: "sweep the corpus to ensure the
+polarity shift for M and the explicit steps for the verdict and M modification have been
+provided." Author decisions (via question): agon_evolution_swan wrapped post hoc w/ honesty
+flags · the 7 T-box ontologies deferred to phase 2 behind a visible allowlist · the
+arithmetic trio migrated (axioms are supposed, not derived). Built (additive, no protected
+module): **(1) `src/world_scroll.py`** — the standing world-scroll `~[ M ~[ ] ]` (W level-1
+negative = M's residence; H the empty hold — vacuous, inert); recognition STRUCTURAL
+(ink does the work; ambiguity → sheet fallback); `m_view` = the one shared read primitive
+(identity for legacy sheet-level Ms — the live loops coexist); `wrap_m` (the gapless DC+·INS
+inbound construction) / `wrap_state` (id-preserving adapter) / `enlarge_m` (INS into the
+arena — enlargement finally rule-licensed) / `withdraw_and_resupply` (the §4 asymmetry:
+executed ERA·DC+·INS triple; the DAG keeps the withdrawn world). **(2) Read path unified**:
+`CorpusOracle.__init__` · `model_materialization._extract` · `theory_query.entails` (witness
+lands at M's level) · `m_render.m_fragment` each read through `m_view`; `proof_character`
+gains ADMIT_TO_M (ampliative) + NEUTRAL_RULES={PEEL}. **(3) `src/m_steps.py`** — the explicit
+step vocabulary, each EARNED at record time: `peel_step` (PEEL: identity transform whose
+params carry the peel actually run — verdict/witness/counterexample, re-checkable forever),
+`admit_step` (ADMIT_TO_M, derivation ["INS"]), `revise_step` (REVISE_M world-withdrawal as
+ONE step carrying the executed triple — the audit ribbon never peels blank intermediates).
+**(4) All 11 M-bearing UoDs regenerated** through their builders (swan flagship: trajectory
+FALSE→TRUE→TRUE→TRUE→FALSE preserved with inning 4 a genuine world-withdrawal; insurance
+FALSE→TRUE→FALSE→TRUE; forcing trichotomy settled/open/excluded intact w/ dynamic fork base;
+would-be □G intact; swan_episode PROPOSE now rule-licensed INS into the arena — the
+"momentarily inconsistent M" wart resolves to an inconsistent *supposition*, quarantined,
+and BOTH dispose branches are world-withdrawals (the old reject-report `retract_atom` was
+piecemeal erasure at odd depth = unsound under the shift); boards zoo/harbor gain the 2-step
+DC+·INS construction chain; arithmetic SCRIBE_* → ADMIT_TO_M w/ axiom aliases + PEELs for
+2+3=5 arriving FALSE→FALSE→TRUE closed). The organon audit route skips PEEL frames (one
+ribbon frame per M-state — flip sequences unchanged). **(5) The standing gate**
+`tests/test_corpus_polarity_discipline.py`: depth-0 inventory theorem over every state of
+every M-bearing UoD (sheet = cuts + isolated dots, never an edge; blank exempt) ·
+world-scroll present + ligature-closed · explicit derivations on every M-change · declared
+audit-proposals have PEEL steps · **recorded verdicts recompute identically** (the record is
+earned, permanently) · scrolled/sheet-level coexistence · the ontology allowlist is
+self-checking (a wrapped ontology or a new sheet-level M fails the gate knowingly). All 11
+UoDs load+render §3.3-attested at both boundaries. Drive-by: test_corpus_conformance CITED
+allowlist now includes the three gamma-modal exemplars (their theorem_sources are genuine —
+pre-existing failure). Memo §8 carries the status note (corpus half BUILT; live-loop half =
+the remaining §8.1 order). New tests: test_world_scroll (25) + test_m_steps (9) + the gate
+(57); updated: modal_and_dialog / revision_episode / mathematics_from_the_sheet /
+new_exemplars / gamma_demonstrations / organon audit tests. **Triage of the full-suite run
+(3330+ passed):** regeneration surfaced that the Organon-shelves commit (2431c2b) had
+retagged annotations *on disk without updating the builders* — the gamma builder still wrote
+the ambiguous `gamma` tag (→ `peirce-gamma` + `modality` restored IN the builders, the root
+cause) and the evolution demo had lost its shelf tags; corpus_facets green again. **Remaining
+reds are all PRE-EXISTING at HEAD** (proven by a stash-everything baseline run):
+test_eg_reader ×4 — `arithmetic_from_two_laws` fails the *clockwise-ordered* read at HEAD too
+(ternary `sum` atoms, the colore_between-shaped frontier; numbered + structure + §3.3 all
+pass), and `skos_core`'s ELK layout is **order-dependent** (passes alone ×5, fails mid-sweep
+— cross-call state in the ELK path, a determinism wrinkle worth its own look);
+challenge/define e2e ×4 fail at HEAD; perf memory_stability passes alone (load flake). Core
+suite 976 green; organon lens e2e green on the new corpus.
+
+**▶▶ PREVIOUS SESSION (2026-07-14 → 07-15) — THE M-RESIDENCE DIALOGUE: the validity discipline
 re-derived, identified as Departure II, and recorded.** A foundations dialogue driven by the
 author's questions (where does M reside? how do atoms reach depth 0? is this a departure from
 Peirce?), recorded in the new dev memo **`docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md`**:
@@ -208,7 +336,7 @@ twice-evidenced and AEG Part II §11.4 reads confirmed. The weather trilogy (7�
 Agon-side rule-check; e2e needs `uv run playwright install chromium` — the CDN download failed
 on this machine, so the charter e2e skips cleanly until then), then **run 12 = sports**.
 
-**▶▶▶ NEXT SESSION — RUN 12 IS BUILT; LAUNCH + DISPOSE.** The build (above) is committed and
+**▶▶ (superseded by the consolidated ▶▶▶ block at top, 2026-07-15) NEXT SESSION — RUN 12 IS BUILT; LAUNCH + DISPOSE.** The build (above) is committed and
 verified offline + smoke-tested live; regular-season play resumes **2026-07-16/17**. What
 remains: (1) the author affirms priors P1¹²–P5¹² and the build's design decisions (RUN_12_LOG
 build section), takes decisions (a) odds-arm key / (b) duration, and launches
@@ -422,7 +550,7 @@ Both remaining pre-frontier work items closed (all uncommitted, docs-only, no co
   Next precip probe idea: give the precip arm a *calibration* knob (PoP bands / lead-time), not
   just a selectivity gate. **Nothing committed** (author's call at session end).
 
-**▶▶▶ NEXT SESSION — the author's two crossing decisions (nothing forced) + optional cleanup.**
+**▶▶ (superseded by the consolidated ▶▶▶ block at top, 2026-07-15) NEXT SESSION — the author's two crossing decisions (nothing forced) + optional cleanup.**
 Author's standing direction (2026-07-09): **square away alpha/beta before crossing the 2nd-order
 frontier.** STORM is CLOSED, the **alpha/beta UX docket is fully shipped** (U1–U25), and (this
 session) **the 2nd-order prep is complete and run 10 is disposed** — so the pre-frontier work is

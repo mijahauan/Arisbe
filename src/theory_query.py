@@ -168,6 +168,13 @@ def entails(
     query is not a range-restricted Horn universal (the caller should fall back to the
     ordinary peel).
     """
+    from world_scroll import m_view
+
+    # A world-scrolled theory (the validity discipline) is read through its
+    # antecedent area — the frozen witness below must land at M's own level,
+    # not at depth 0 beside the scroll. Legacy sheet-level theories unchanged.
+    theory = m_view(theory)
+
     parsed = _as_universal_horn(query)
     if parsed is None:
         return TheoryQueryResult(

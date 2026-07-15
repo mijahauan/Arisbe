@@ -309,7 +309,23 @@ of graphs — quotation, the third tense of §5, decision B. Even the AG paper
 brushes it: their boxes are explicitly *deictic* ("this is what I say: ___") —
 mention straining to happen inside a first-order notation.
 
-## 8. Implications awaiting the author's direction (nothing built)
+## 8. Implications awaiting the author's direction
+
+> **Status update (2026-07-15): the corpus half of §8.1 was DIRECTED and is
+> BUILT.** The author's pre-frontier sweep ("ensure the polarity shift for M
+> and the explicit steps for the verdict and M modification have been
+> provided") relocated every M-bearing corpus UoD (11; the 7 T-box ontologies
+> deferred to phase 2 by decision, visibly allowlisted) into the standing
+> world-scroll `~[ M ~[ ] ]` — recognition structural (`src/world_scroll.py`),
+> the read path unified on `m_view` (oracle · materializer · theory query ·
+> render-M), every M-change an explicit rule-licensed chain step
+> (`src/m_steps.py`: ADMIT_TO_M = INS into the arena; REVISE_M = the executed
+> ERA·DC+·INS world-withdrawal of §4) and every verdict a recorded PEEL step
+> whose parameters recompute identically (`tests/test_corpus_polarity_discipline.py`,
+> the standing gate). The **live loops** (`agon_evolution.run`, `live_runner`,
+> the membranes) still run the old regime — `agon_evolution_swan` is wrapped
+> post hoc with `earned: false` flags — so the *full* §8.1 order below (retire
+> `assert_into`/`assert_fact` in the loops) remains open.
 
 1. **Adopt the discipline for canonical regimes?** M relocates to level 1 of
    a standing world-scroll; the oracle/peel reads the antecedent area (verdict
@@ -317,6 +333,7 @@ mention straining to happen inside a first-order notation.
    `assert_into`/`assert_fact` retired or re-derived as nesting/discharge;
    membranes INS into the world-scroll (free by rule; warrant justifies the
    *choice*). A decision on the order of the crossing decisions, not a patch.
+   *(Corpus half done, above; the live-loop half is what remains of this item.)*
 2. **Departure II appendix.** Fold §§2–5's new corollaries into
    FIDELITY_AND_DEPARTURES §3 (or cross-link this memo) so the register
    carries its operational completion.

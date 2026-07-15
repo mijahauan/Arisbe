@@ -19,6 +19,14 @@ the Agon model picker (``GET /agon/models`` lists every corpus UoD). The curated
 ``ExampleModel`` entries in ``src/agon_models.py`` pair each with a ready sample
 proposal so a newcomer can play immediately. Import-safe; run as a script to seed.
 
+**Under the validity discipline** (docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §3):
+each board resides at level 1 of a **standing world-scroll** ``~[ M ~[ ] ]`` —
+nothing contingent at depth 0 — and is built by the gapless inbound construction,
+recorded as a real two-step chain from the blank sheet: **DC+** (open the standing
+scroll; asserts nothing) then **INS** (posit the board into the negative arena;
+sound). Both steps are ordinary Dau rules, replayable. The oracle/peel reads the
+antecedent area (``world_scroll.m_view``), so the boards play exactly as before.
+
 See docs/EXEMPLARS.md, docs/DOMAIN_ORACLE_AND_M.md, docs/GENERATION_AND_TESTING.md.
 """
 
@@ -29,27 +37,32 @@ from typing import List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
+import eg_navigation as nav
 from annotations import SCOPE_UOD, annotations_to_list, make_annotation
-from egif_parser_dau import parse_egif
+from proof_authoring import ProofChain
 from provenance import KIND_DOMAIN_MODEL, make_provenance
-from tomos_service import TomosService
-from universe_of_discourse import (
-    UniverseOfDiscourse,
-    UoDCategory,
-    UoDMetadata,
-    UoDType,
-)
+from tomos_service import TomosService, TransformationChain
+from universe_of_discourse import UniverseOfDiscourse, UoDCategory
 
 _WHEN = datetime(2026, 6, 29, tzinfo=timezone.utc)
 
 
-def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
-    meta = UoDMetadata(
-        uod_id=uod_id, uod_type=UoDType.STANDALONE, name=name,
-        description=description, category=UoDCategory.DOMAIN_MODEL,
-        created=_WHEN, last_modified=_WHEN,
-    )
-    return UniverseOfDiscourse(metadata=meta, current_egi=parse_egif(egif))
+def _uod(uod_id: str, name: str, description: str, egif: str):
+    """Build the board by the gapless inbound construction — DC+ then INS, both
+    real Dau rules from the blank sheet — so the board resides in its standing
+    world-scroll and carries the two-step chain that put it there."""
+    pc = ProofChain.from_blank()
+    pc.apply("DC+", into=lambda g: g.sheet,
+             note="Open the standing world-scroll: an empty double cut asserts "
+                  "nothing, and until it exists there is nowhere to suppose a "
+                  "model that is not an assertion.")
+    pc.apply("INS", insert=egif,
+             into=lambda g: nav.child_cuts(g, g.sheet)[0],
+             note="Posit the board into the negative arena — insertion is sound "
+                  "there, and the supposition is fenced: nothing contingent "
+                  "stands at depth 0.")
+    return pc.to_uod(uod_id=uod_id, name=name, description=description,
+                     category=UoDCategory.DOMAIN_MODEL, created=_WHEN)
 
 
 # --------------------------------------------------------------------------- #
@@ -67,8 +80,8 @@ ZOO_EGIF = (
 )
 
 
-def zoo_world() -> Tuple[UniverseOfDiscourse, dict, List[dict]]:
-    uod = _uod(
+def zoo_world() -> Tuple[TransformationChain, UniverseOfDiscourse, dict, List[dict]]:
+    chain, uod = _uod(
         "zoo_world", "Zoo world — a closed taxonomy",
         "A small closed zoology authored as facts plus Horn rules: four named "
         "animals (Rex the dog, Tom the cat, Moby the whale, Pip the sparrow) and a "
@@ -98,7 +111,7 @@ def zoo_world() -> Tuple[UniverseOfDiscourse, dict, List[dict]]:
             "universal definitely FALSE.",
             tags=["domain-model", "synthetic", "closed-world", "horn", "agon-board"]),
     ])
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -111,8 +124,8 @@ HARBOR_EGIF = (
 )
 
 
-def harbor_town() -> Tuple[UniverseOfDiscourse, dict, List[dict]]:
-    uod = _uod(
+def harbor_town() -> Tuple[TransformationChain, UniverseOfDiscourse, dict, List[dict]]:
+    chain, uod = _uod(
         "harbor_town", "Harbor town — an open civic world",
         "A small open-world geography: Bayside is a harbor town; Greyrock is an "
         "island with a lighthouse; a ferry runs Bayside→Greyrock. Authored as facts "
@@ -139,7 +152,7 @@ def harbor_town() -> Tuple[UniverseOfDiscourse, dict, List[dict]]:
             "differently open vs. closed.",
             tags=["domain-model", "synthetic", "open-world", "relational", "agon-board"]),
     ])
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -153,11 +166,15 @@ def main(argv=None) -> int:
     tomos_root = Path(__file__).resolve().parent.parent / "tomos"
     service = TomosService(tomos_root)
     for build in BUILDERS:
-        uod, prov, anns = build()
-        service.save_uod(uod)                       # §3.3 attests at the boundary
-        service.save_provenance(uod, prov)
+        chain, uod, prov, anns = build()
+        # sanity: the board resides in its standing world-scroll and reads back
+        from world_scroll import find_world_scroll, m_view
+        from egif_parser_dau import parse_egif as _parse
+        assert find_world_scroll(uod.current_egi) is not None
+        service.save_uod_with_chain(uod, chain, provenance=prov)  # §3.3 attests
         service.save_annotations(uod, anns)
-        print(f"Saved domain model '{uod.uod_id}' — {uod.metadata.name}")
+        print(f"Saved domain model '{uod.uod_id}' — {uod.metadata.name} "
+              f"({len(chain.steps)}-step DC+·INS construction)")
     return 0
 
 

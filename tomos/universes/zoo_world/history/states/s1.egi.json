@@ -1,0 +1,26 @@
+{
+  "Cut": [
+    {
+      "id": "cut_71219429"
+    },
+    {
+      "id": "cut_edc22e10"
+    }
+  ],
+  "E": [],
+  "V": [],
+  "alphabet": null,
+  "area": {
+    "cut_71219429": [],
+    "cut_edc22e10": [
+      "cut_71219429"
+    ],
+    "sheet_b68f0934": [
+      "cut_edc22e10"
+    ]
+  },
+  "nu": {},
+  "rel": {},
+  "rho": {},
+  "sheet": "sheet_b68f0934"
+}

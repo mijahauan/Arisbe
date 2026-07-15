@@ -979,9 +979,16 @@ async def get_uod_audit(uod_id: str, proposal: Optional[str] = None,
             }
 
         frames = [_frame(0, "base", chain.initial_state_id)]
-        for i, step in enumerate(chain.steps, start=1):
+        for step in chain.steps:
+            # A PEEL step is the *record* of a verdict, not a change of M — an
+            # identity transform (m_steps.peel_step). Its state peels the same
+            # as the frame before it, so it adds no ribbon frame; the ribbon
+            # stays one frame per M-state and the lens recomputes each verdict
+            # (the recorded one is re-checked by the corpus sweep gate).
+            if (step.parameters or {}).get("act") == "peel":
+                continue
             frames.append(_frame(
-                i, "step", step.to_state_id, rule=step.rule_name,
+                len(frames), "step", step.to_state_id, rule=step.rule_name,
                 params=(step.parameters or {}), annotation=step.user_annotation))
 
         return ApiResponse(success=True, data={

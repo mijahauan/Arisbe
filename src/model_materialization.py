@@ -226,6 +226,11 @@ def _extract(
     """Read ``egi`` into (base facts, canonical Horn rules, report-with-skips) —
     the shared front half of :func:`materialize_egi` and
     :class:`IncrementalMaterializer` (``derived_facts`` left for the caller)."""
+    from world_scroll import m_view
+
+    # A world-scrolled M (the validity discipline) is read through its
+    # antecedent area; a legacy sheet-level M passes through unchanged.
+    egi = m_view(egi)
     vmap = {v.id: v for v in egi.V}
     edge_ids = {e.id for e in egi.E}
     cut_ids = {c.id for c in egi.Cut}

@@ -38,8 +38,10 @@ from annotations import SCOPE_CHAIN, SCOPE_STEP, SCOPE_UOD, annotations_to_list,
 from domain_oracle import CorpusOracle
 from egif_parser_dau import parse_egif
 from model_materialization import materialize_egi
-from model_revision import DISPOSITION_NEW_FACT, revise_with_disposition
+from m_steps import admit_step, peel_step
+from model_revision import DISPOSITION_NEW_FACT
 from proof_authoring import ProofChain
+from world_scroll import wrap_m
 from provenance import KIND_DOMAIN_MODEL, authored_proof, make_provenance
 from semantic_game import evaluate
 from tomos_service import TomosService, TransformationChain
@@ -49,13 +51,14 @@ UOD_ID = "forcing_conditions"
 M0_EGIF = '(one "p1")'                       # the condition ⟨1⟩
 PROPOSAL_G = '~[ (zero *p) ]'                # δ₁ membership: no entry is a zero
 
-# (state-to-fork-from, fact, branch, narration). ``None`` = continue the trunk.
+# (fork?, fact, branch, narration). ``fork=True`` = return to the fork base
+# (the ⟨1,1⟩ state, captured dynamically) before extending.
 REVEALS = [
-    (None, '(one "p2")', None,
+    (False, '(one "p2")', None,
      "Reveal p2 = 1 — extend the condition to ⟨1,1⟩ (the fork's base)."),
-    (None, '(one "p3")', "all-ones",
+    (False, '(one "p3")', "all-ones",
      "Reveal p3 = 1 — the all-ones extension ⟨1,1,1⟩; δ₁ survives."),
-    ("s1", '(zero "p3")', "meets-the-domination",
+    (True, '(zero "p3")', "meets-the-domination",
      "Reveal p3 = 0 — the incompatible extension ⟨1,1,0⟩; the domination "
      "(sequences containing a zero) is met and δ₁ is refuted."),
 ]
@@ -69,19 +72,28 @@ def _verdict(model_egi, proposal_egif: str = PROPOSAL_G) -> str:
     return evaluate(parse_egif(proposal_egif), oracle, closed=True).verdict.value
 
 
-def build_forcing_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
-    pc = ProofChain.from_egif(M0_EGIF)                                    # s0 = ⟨1⟩
-    for fork_from, fact, branch, note in REVEALS:
-        if fork_from is not None:
-            pc.at(fork_from)                     # the fork: two steps share s1
-        pc.apply_derived(
-            "ADMIT_FACT",
-            lambda g, _f=fact: revise_with_disposition(
-                g, DISPOSITION_NEW_FACT, fact_egif=_f),
-            note=note, branch=branch,
-            params={"disposition": DISPOSITION_NEW_FACT, "fact": fact},
-        )
-    return pc.to_uod(
+def build_forcing_chain() -> Tuple[TransformationChain, UniverseOfDiscourse, list, str]:
+    """Returns (chain, uod, verdicts, fork_base_id). The condition record
+    resides at level 1 of a standing world-scroll (the validity discipline);
+    each reveal is an explicit rule-licensed ADMIT_TO_M and each audit of δ₁ a
+    recorded PEEL step, threaded through the trunk (identity states) so the
+    branch structure — and the modal reading of the leaves — is untouched."""
+    wrapped, _ = wrap_m(parse_egif(M0_EGIF))
+    pc = ProofChain(wrapped)                                              # s0 = ⟨1⟩
+    verdicts = [peel_step(pc, PROPOSAL_G, closed=True,
+                          note="The opening condition ⟨1⟩: δ₁ holds.").verdict.value]
+    fork_base = None
+    for fork, fact, branch, note in REVEALS:
+        if fork:
+            pc.at(fork_base)          # the fork: two extensions share the base
+        admit_step(pc, fact, disposition=DISPOSITION_NEW_FACT,
+                   mode="induction", warrant="the next entry revealed",
+                   note=note, branch=branch)
+        verdicts.append(peel_step(pc, PROPOSAL_G, closed=True,
+                                  branch=branch).verdict.value)
+        if fork_base is None:
+            fork_base = pc.current_state_id      # the ⟨1,1⟩ state (post-audit)
+    chain, uod = pc.to_uod(
         uod_id=UOD_ID,
         name="Forcing conditions (Cohen's binary sequences)",
         description=(
@@ -98,6 +110,7 @@ def build_forcing_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
         ),
         category=UoDCategory.DOMAIN_MODEL,
     )
+    return chain, uod, verdicts, fork_base
 
 
 def forcing_provenance() -> dict:
@@ -136,38 +149,40 @@ def forcing_annotations(chain: TransformationChain) -> list:
             "that refutes it is always one extension away.",
             tags=["domain-model", "forcing", "modality", "branching", "demonstration"]),
         make_annotation(SCOPE_CHAIN,
-            "Each step is a model-revising 'new_fact' disposition "
-            "(src/model_revision.py): a reveal of the next entry, juxtaposed onto "
-            "the condition's sheet. The fork (two steps from s1) records the "
-            "incompatible extensions ⟨1,1,1⟩ and ⟨1,1,0⟩ — trajectories that never "
-            "reconverge.",
-            tags=["new-fact", "enlargement", "fork", "low-warrant"]),
+            "Each reveal is an explicit ADMIT_TO_M step (src/m_steps.py): the next "
+            "entry admitted by a genuine INS into the condition's standing "
+            "world-scroll (nothing contingent at depth 0). The fork (two ADMIT "
+            "steps from the ⟨1,1⟩ state) records the incompatible extensions "
+            "⟨1,1,1⟩ and ⟨1,1,0⟩ — trajectories that never reconverge. Each δ₁ "
+            "verdict is a recorded PEEL step.",
+            tags=["new-fact", "enlargement", "fork", "world-scroll", "low-warrant"]),
     ]
-    # Tag each step's resulting state with the audited verdict.
+    # Marginalia: tag each PEEL step with its recorded verdict.
     for step in chain.steps:
-        v = _verdict(chain.states[step.to_state_id])
-        anns.append(make_annotation(
-            SCOPE_STEP,
-            f"After this reveal, δ₁ ('no entry is a zero') peels to {v.upper()}.",
-            step_id=step.step_id, tags=["audit", "verdict"]))
+        prm = step.parameters or {}
+        if prm.get("act") == "peel":
+            v = str(prm.get("verdict", "?")).upper()
+            anns.append(make_annotation(
+                SCOPE_STEP,
+                f"δ₁ ('no entry is a zero') peels to {v} here.",
+                step_id=step.step_id, tags=["audit", "verdict"]))
     return annotations_to_list(anns)
 
 
 def main(argv=None) -> int:
     import modal_query as mq
 
-    chain, uod = build_forcing_chain()
+    chain, uod, verdicts, fork_base = build_forcing_chain()
 
-    # The fork is real: two steps share from_state_id s1, and the branches never
-    # reconverge (two trajectory endpoints).
+    # The fork is real: two ADMIT steps share the fork base, and the branches
+    # never reconverge (two trajectory endpoints — the final audit states).
     froms = [s.from_state_id for s in chain.steps]
-    assert froms.count("s1") == 2, f"expected the fork at s1, got {froms}"
+    assert froms.count(fork_base) == 2, (
+        f"expected the fork at {fork_base}, got {froms}")
     assert len(mq.leaf_states(chain)) == 2
 
-    # The audited δ₁ property: holds along the trunk and the all-ones branch,
-    # falls where the domination is met.
-    verdicts = [_verdict(chain.states[chain.initial_state_id])] + [
-        _verdict(chain.states[s.to_state_id]) for s in chain.steps]
+    # The audited δ₁ property (the recorded PEEL verdicts): holds along the
+    # trunk and the all-ones branch, falls where the domination is met.
     assert verdicts == ["true", "true", "true", "false"], verdicts
 
     # The forcing trichotomy, read by the settlement lens.
@@ -181,7 +196,8 @@ def main(argv=None) -> int:
     service = TomosService(tomos_root)
     service.save_uod_with_chain(uod, chain, provenance=forcing_provenance())
     service.save_annotations(uod, forcing_annotations(chain))
-    print(f"Saved '{UOD_ID}' — {len(chain.steps)} reveals, fork at s1.")
+    print(f"Saved '{UOD_ID}' — {len(chain.steps)} steps (world-scroll residence; "
+          f"explicit PEEL/ADMIT_TO_M), fork at {fork_base}.")
     print(f"  δ₁ audit: {' → '.join(v.upper() for v in verdicts)}")
     for res in (settled, opened, excluded):
         print(f"  settlement: {res.summary}")

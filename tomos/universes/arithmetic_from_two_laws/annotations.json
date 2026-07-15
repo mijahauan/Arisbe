@@ -14,12 +14,13 @@
       "element_id": null
     },
     {
-      "id": "ann_42a037ea",
+      "id": "ann_579e8758",
       "scope": "chain",
-      "text": "Each step scribes one graph onto the sheet. The chain's *character* is corollarial (proof_character): no INSERTION appears, so nothing entered that the premisses did not already contain \u2014 Peirce's own criterion.",
+      "text": "Each step ADMITS one graph into the standing world-scroll's arena (a genuine INS \u2014 the system resides at level 1; nothing contingent at depth 0) \u2014 and adopting a hypothesis is ampliative, not deduction (proof_character reads this chain as AMPLIATIVE): no rule of inference compels you to adopt an axiom. Peirce exactly \u2014 mathematics 'frames and studies the consequences of hypotheses.' The COROLLARIAL reasoning is what happens next, when the laws are materialized and the addition table grows itself: THAT is the diagram doing the work, and nothing enters it that the definitions did not already contain.",
       "author": null,
       "created": null,
       "tags": [
+        "ampliative",
         "corollarial",
         "mathematics",
         "teaching"
@@ -29,9 +30,9 @@
       "element_id": null
     },
     {
-      "id": "ann_abf8731c",
+      "id": "ann_89eeff7e",
       "scope": "step",
-      "text": "x + 0 = x \u2014 the base of the recursion",
+      "text": "Before the laws: the bare successor-chain HAS no addition \u2014 closed-world, 2+3=5 is FALSE of that system.",
       "author": null,
       "created": null,
       "tags": [
@@ -42,7 +43,33 @@
       "element_id": null
     },
     {
-      "id": "ann_f55a3450",
+      "id": "ann_a9599cb7",
+      "scope": "step",
+      "text": "x + 0 = x \u2014 the base of the recursion",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-2",
+      "element_id": null
+    },
+    {
+      "id": "ann_e2a281f6",
+      "scope": "step",
+      "text": "peel: G does not hold in M (the Skeptic wins).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    },
+    {
+      "id": "ann_4375841e",
       "scope": "step",
       "text": "x + s(y) = s(x + y) \u2014 the step. With this the whole addition table follows by itself.",
       "author": null,
@@ -51,7 +78,20 @@
         "rung"
       ],
       "state_id": null,
-      "step_id": "step-2",
+      "step_id": "step-4",
+      "element_id": null
+    },
+    {
+      "id": "ann_81c85bc0",
+      "scope": "step",
+      "text": "The claim ARRIVES: with both laws in the arena the table grows itself and 2+3=5 is read off the diagram.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "rung"
+      ],
+      "state_id": null,
+      "step_id": "step-5",
       "element_id": null
     }
   ]

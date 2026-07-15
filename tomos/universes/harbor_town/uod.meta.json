@@ -1,6 +1,6 @@
 {
   "uod_id": "harbor_town",
-  "uod_type": "standalone",
+  "uod_type": "historical",
   "name": "Harbor town \u2014 an open civic world",
   "description": "A small open-world geography: Bayside is a harbor town; Greyrock is an island with a lighthouse; a ferry runs Bayside\u2192Greyrock. Authored as facts only, with no closure \u2014 so the record is a sample of a larger world, not the whole of it. As a game board it produces the *independent* outcome: a proposal the facts neither confirm nor deny (e.g. 'Bayside hosts a market') reads UNKNOWN \u2014 a candidate new fact, not a falsehood. The contrast piece to zoo_world's closed taxonomy.",
   "category": "domain_model",

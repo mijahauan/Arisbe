@@ -1,0 +1,87 @@
+{
+  "Cut": [
+    {
+      "id": "cut_146ffe97"
+    },
+    {
+      "id": "cut_4119fd1e"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_540b4472"
+    },
+    {
+      "id": "e_a2429b07"
+    },
+    {
+      "id": "e_d9dd4c90"
+    },
+    {
+      "id": "e_e5879dd7"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_368aaa58",
+      "is_generic": false,
+      "label": "Otto"
+    },
+    {
+      "id": "v_86971575",
+      "is_generic": false,
+      "label": "Otto"
+    },
+    {
+      "id": "v_c3876189",
+      "is_generic": false,
+      "label": "Clara"
+    },
+    {
+      "id": "v_ef4c3013",
+      "is_generic": false,
+      "label": "Clara"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "cut_146ffe97": [
+      "cut_4119fd1e",
+      "e_540b4472",
+      "e_a2429b07",
+      "e_d9dd4c90",
+      "e_e5879dd7",
+      "v_368aaa58",
+      "v_86971575",
+      "v_c3876189",
+      "v_ef4c3013"
+    ],
+    "cut_4119fd1e": [],
+    "sheet_405dd7a1": [
+      "cut_146ffe97"
+    ]
+  },
+  "nu": {
+    "e_540b4472": [
+      "v_ef4c3013"
+    ],
+    "e_a2429b07": [
+      "v_368aaa58"
+    ],
+    "e_d9dd4c90": [
+      "v_c3876189"
+    ],
+    "e_e5879dd7": [
+      "v_86971575",
+      "v_ef4c3013"
+    ]
+  },
+  "rel": {
+    "e_540b4472": "married_woman",
+    "e_a2429b07": "fails_in_business",
+    "e_d9dd4c90": "commits_suicide",
+    "e_e5879dd7": "husband"
+  },
+  "rho": {},
+  "sheet": "sheet_405dd7a1"
+}

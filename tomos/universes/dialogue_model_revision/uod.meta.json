@@ -2,7 +2,7 @@
   "uod_id": "dialogue_model_revision",
   "uod_type": "historical",
   "name": "A model revised through dialog (the insurance audit)",
-  "description": "A reference model M that transforms through ongoing dialog, persisted as its own history. The standing proposal G = 'every patient is insured' is peeled against M after each revision; the verdict moves FALSE\u2192TRUE\u2192FALSE\u2192TRUE as the dialogue admits Ben's insurance (G holds), a new patient Cal (G unsettled), then Cal's coverage (G holds again). Each step is a model-revising 'new_fact' disposition (src/model_revision.py) \u2014 a new posit at low warrant. The exemplar of the manifest floor: a model is never frozen, and 'fact' is the defeasible status of the last-standing trajectory.",
+  "description": "A reference model M that transforms through ongoing dialog, persisted as its own history. The standing proposal G = 'every patient is insured' is peeled against M after each revision; the verdict moves FALSE\u2192TRUE\u2192FALSE\u2192TRUE as the dialogue admits Ben's insurance (G holds), a new patient Cal (G unsettled), then Cal's coverage (G holds again). Each step is a model-revising 'new_fact' disposition recorded as an explicit ADMIT_TO_M step \u2014 a genuine INS into the standing world-scroll's negative arena (src/m_steps.py; M resides at level 1, nothing contingent at depth 0), with each verdict a recorded PEEL step. The exemplar of the manifest floor: a model is never frozen, and 'fact' is the defeasible status of the last-standing trajectory.",
   "category": "domain_model",
   "created": "2026-06-03T00:00:00+00:00",
   "last_modified": "2026-06-03T00:00:00+00:00",

@@ -76,7 +76,17 @@ CONTENT_PRESERVING = frozenset({"ERA", "IT+", "IT-", "DC+", "DC-"})
 # "corollarial" would be a category error, so it gets its own verdict.
 AMPLIATIVE_RULES = frozenset({
     "REVISE_M", "ADMIT_FACT", "SCRIBE_AXIOM", "SCRIBE_LAW", "FOLD_NUMERAL",
+    # the world-scroll vocabulary (M resident at level 1, world_scroll.py):
+    # enlargement is a genuine INS into the arena, but *choosing* to suppose
+    # more is still ampliative — no inference compelled the enlargement.
+    "ADMIT_TO_M",
 })
+
+# A recorded observation that changes nothing — the peel's verdict scribed as
+# an act (identity transform). Neither content-adding nor a hidden expansion:
+# skipping it keeps a corollarial chain corollarial and an ampliative one
+# honest about WHICH steps did the amplifying.
+NEUTRAL_RULES = frozenset({"PEEL"})
 
 COROLLARIAL = "corollarial"
 THEOREMATIC = "theorematic"
@@ -149,6 +159,9 @@ def character_of(steps: Sequence) -> ProofCharacter:
     for s in steps:
         rule = _rule_of(s)
         sid = getattr(s, "step_id", rule or "?")
+        if rule in NEUTRAL_RULES:
+            # A verdict record (PEEL): an act, not an inference — no content.
+            continue
         if rule in AMPLIATIVE_RULES:
             # Not deduction at all — the model was CHANGED, not unfolded.
             ampliative.append(sid)
@@ -182,5 +195,5 @@ def character_of_chain(chain) -> ProofCharacter:
 __all__ = [
     "ProofCharacter", "character_of", "character_of_chain",
     "COROLLARIAL", "THEOREMATIC", "AMPLIATIVE",
-    "CONTENT_ADDING", "CONTENT_PRESERVING", "AMPLIATIVE_RULES",
+    "CONTENT_ADDING", "CONTENT_PRESERVING", "AMPLIATIVE_RULES", "NEUTRAL_RULES",
 ]

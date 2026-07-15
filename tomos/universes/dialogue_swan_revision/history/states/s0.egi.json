@@ -1,76 +1,88 @@
 {
-  "Cut": [],
+  "Cut": [
+    {
+      "id": "cut_b7d7ae8f"
+    },
+    {
+      "id": "cut_e1628de6"
+    }
+  ],
   "E": [
     {
-      "id": "e_0a1b43c5"
+      "id": "e_0df9601d"
     },
     {
-      "id": "e_14ebd984"
+      "id": "e_1f892591"
     },
     {
-      "id": "e_1b2862d2"
+      "id": "e_a5baa422"
     },
     {
-      "id": "e_d314d98c"
+      "id": "e_b421ebe7"
     },
     {
-      "id": "e_f5b60a62"
+      "id": "e_c24ccd71"
     }
   ],
   "V": [
     {
-      "id": "v_10b10b67",
+      "id": "v_e3f9e83b",
       "is_generic": false,
-      "label": "Bianca"
+      "label": "Alba"
     },
     {
-      "id": "v_5f9d4c85",
+      "id": "v_ea2b44d2",
       "is_generic": false,
       "label": "Ciel"
     },
     {
-      "id": "v_fdcf84ae",
+      "id": "v_f943a055",
       "is_generic": false,
-      "label": "Alba"
+      "label": "Bianca"
     }
   ],
   "alphabet": null,
   "area": {
-    "sheet_6ef508c8": [
-      "e_0a1b43c5",
-      "e_14ebd984",
-      "e_1b2862d2",
-      "e_d314d98c",
-      "e_f5b60a62",
-      "v_10b10b67",
-      "v_5f9d4c85",
-      "v_fdcf84ae"
+    "cut_b7d7ae8f": [
+      "cut_e1628de6",
+      "e_0df9601d",
+      "e_1f892591",
+      "e_a5baa422",
+      "e_b421ebe7",
+      "e_c24ccd71",
+      "v_e3f9e83b",
+      "v_ea2b44d2",
+      "v_f943a055"
+    ],
+    "cut_e1628de6": [],
+    "sheet_b42a072f": [
+      "cut_b7d7ae8f"
     ]
   },
   "nu": {
-    "e_0a1b43c5": [
-      "v_fdcf84ae"
+    "e_0df9601d": [
+      "v_e3f9e83b"
     ],
-    "e_14ebd984": [
-      "v_5f9d4c85"
+    "e_1f892591": [
+      "v_f943a055"
     ],
-    "e_1b2862d2": [
-      "v_fdcf84ae"
+    "e_a5baa422": [
+      "v_ea2b44d2"
     ],
-    "e_d314d98c": [
-      "v_10b10b67"
+    "e_b421ebe7": [
+      "v_e3f9e83b"
     ],
-    "e_f5b60a62": [
-      "v_10b10b67"
+    "e_c24ccd71": [
+      "v_f943a055"
     ]
   },
   "rel": {
-    "e_0a1b43c5": "white",
-    "e_14ebd984": "swan",
-    "e_1b2862d2": "swan",
-    "e_d314d98c": "swan",
-    "e_f5b60a62": "white"
+    "e_0df9601d": "white",
+    "e_1f892591": "swan",
+    "e_a5baa422": "swan",
+    "e_b421ebe7": "swan",
+    "e_c24ccd71": "white"
   },
   "rho": {},
-  "sheet": "sheet_6ef508c8"
+  "sheet": "sheet_b42a072f"
 }

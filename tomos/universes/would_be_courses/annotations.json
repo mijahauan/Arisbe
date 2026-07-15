@@ -20,27 +20,27 @@
       "author": null,
       "created": null,
       "tags": [
-        "demonstration",
+        "would-be",
+        "strict-implication",
         "modality",
         "prolegomena",
-        "strict-implication",
-        "would-be"
+        "demonstration"
       ],
       "state_id": null,
       "step_id": null,
       "element_id": null
     },
     {
-      "id": "ann_a075f873",
+      "id": "ann_c0d6e8f7",
       "scope": "chain",
-      "text": "Experiential register: each edge is a new_fact enlargement (src/model_revision.py) \u2014 a course of experience admitting what happens, not a Dau inference. Choosing this accessibility relation R (courses) rather than derivability (the broken_cut_square's R) is exactly what Peirce's tinctures chose: the mode of the modality is which R the frame ranges over (docs/MODALITY_WITHOUT_GAMMA.md \u00a72 \u2014 the multimodal point).",
+      "text": "Experiential register: each edge is a new_fact enlargement recorded as an explicit ADMIT_TO_M step (src/m_steps.py \u2014 a genuine INS into the world-scroll's negative arena) \u2014 a course of experience admitting what happens, not a Dau inference. Choosing this accessibility relation R (courses) rather than derivability (the broken_cut_square's R) is exactly what Peirce's tinctures chose: the mode of the modality is which R the frame ranges over (docs/MODALITY_WITHOUT_GAMMA.md \u00a72 \u2014 the multimodal point).",
       "author": null,
       "created": null,
       "tags": [
-        "accessibility",
         "experiential-register",
-        "new-fact",
-        "tinctures"
+        "tinctures",
+        "accessibility",
+        "new-fact"
       ],
       "state_id": null,
       "step_id": null,

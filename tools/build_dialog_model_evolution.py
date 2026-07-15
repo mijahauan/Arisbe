@@ -38,8 +38,10 @@ from annotations import SCOPE_CHAIN, SCOPE_STEP, SCOPE_UOD, annotations_to_list,
 from domain_oracle import CorpusOracle
 from egif_parser_dau import parse_egif
 from model_materialization import materialize_egi
-from model_revision import DISPOSITION_NEW_FACT, revise_with_disposition
+from m_steps import admit_step, peel_step
+from model_revision import DISPOSITION_NEW_FACT
 from proof_authoring import ProofChain
+from world_scroll import wrap_m
 from provenance import KIND_DOMAIN_MODEL, authored_proof, make_provenance
 from semantic_game import evaluate
 from tomos_service import TomosService, TransformationChain
@@ -69,16 +71,23 @@ def _verdict(model_egif_or_egi, proposal_egif: str = PROPOSAL_G) -> str:
     return evaluate(parse_egif(proposal_egif), oracle, closed=True).verdict.value
 
 
-def build_dialogue_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
-    pc = ProofChain.from_egif(M0_EGIF)                                       # s0 = M0
+def build_dialogue_chain() -> Tuple[TransformationChain, UniverseOfDiscourse, list]:
+    """Returns (chain, uod, verdicts) — the verdicts are recorded PEEL steps,
+    each earned by the peel actually run at build time. M resides at level 1
+    of a standing world-scroll (the validity discipline: nothing contingent at
+    depth 0), and each inning is an explicit rule-licensed ADMIT_TO_M (a
+    genuine INS into the negative arena)."""
+    wrapped, _ = wrap_m(parse_egif(M0_EGIF))
+    pc = ProofChain(wrapped)                                                 # s0 = M0
+    verdicts = [peel_step(pc, PROPOSAL_G, closed=True,
+                          note="M0 (the opening record): Ben is a "
+                               "counterexample — the audit opens FALSE.").verdict.value]
     for disposition, fact, label, note in INNINGS:
-        pc.apply_derived(
-            "ADMIT_FACT",
-            lambda g, _d=disposition, _f=fact: revise_with_disposition(g, _d, fact_egif=_f),
-            label=label, note=note,
-            params={"disposition": disposition, "fact": fact},
-        )
-    return pc.to_uod(
+        admit_step(pc, fact, disposition=disposition, mode="induction",
+                   warrant="the dialogue's accepted evidence", note=note)
+        pc.to_chain().steps[-1].parameters["peirce_label"] = label
+        verdicts.append(peel_step(pc, PROPOSAL_G, closed=True).verdict.value)
+    chain, uod = pc.to_uod(
         uod_id=UOD_ID,
         name="A model revised through dialog (the insurance audit)",
         description=(
@@ -87,12 +96,16 @@ def build_dialogue_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
             "peeled against M after each revision; the verdict moves FALSE→TRUE→FALSE→"
             "TRUE as the dialogue admits Ben's insurance (G holds), a new patient Cal "
             "(G unsettled), then Cal's coverage (G holds again). Each step is a "
-            "model-revising 'new_fact' disposition (src/model_revision.py) — a new "
-            "posit at low warrant. The exemplar of the manifest floor: a model is never "
-            "frozen, and 'fact' is the defeasible status of the last-standing trajectory."
+            "model-revising 'new_fact' disposition recorded as an explicit ADMIT_TO_M "
+            "step — a genuine INS into the standing world-scroll's negative arena "
+            "(src/m_steps.py; M resides at level 1, nothing contingent at depth 0), "
+            "with each verdict a recorded PEEL step. The exemplar of the manifest "
+            "floor: a model is never frozen, and 'fact' is the defeasible status of "
+            "the last-standing trajectory."
         ),
         category=UoDCategory.DOMAIN_MODEL,
     )
+    return chain, uod, verdicts
 
 
 def dialogue_provenance() -> dict:
@@ -122,28 +135,30 @@ def dialogue_annotations(chain: TransformationChain) -> list:
             "in Organon. No model is ever frozen (docs/MANIFEST_AND_MEANING.md).",
             tags=["domain-model", "dialogue", "model-revision", "liveness", "demonstration"]),
         make_annotation(SCOPE_CHAIN,
-            "Each step is a model-revising 'new_fact' disposition (src/model_revision.py): "
-            "an independent proposal the dialogue accepts as evidence, juxtaposed onto M's "
-            "sheet as a new posit at low warrant. Enlargement here; retraction (free to "
-            "demote, the ERA dual) is the other licensed move.",
-            tags=["new-fact", "enlargement", "low-warrant"]),
+            "Each inning is an explicit ADMIT_TO_M step (src/m_steps.py): an "
+            "independent proposal the dialogue accepts as evidence, admitted by a "
+            "genuine INS into the world-scroll's negative arena (supposing more is "
+            "free); the warrant justifies the choice and rides on the step. Each "
+            "verdict is a recorded PEEL step, re-checkable forever. Relinquishment "
+            "(the other licensed move) is world-withdrawal — see "
+            "dialogue_swan_revision.",
+            tags=["new-fact", "enlargement", "world-scroll", "low-warrant"]),
     ]
-    # Tag each state with the verdict it yields, so a reader can see the audit move.
-    states_in_order = [chain.initial_state_id] + [s.to_state_id for s in chain.steps]
-    for i, sid in enumerate(states_in_order):
-        v = _verdict(chain.states[sid])
-        stage = "M0 (the opening record)" if i == 0 else f"M{i}"
-        anns.append(make_annotation(SCOPE_STEP if i > 0 else SCOPE_UOD,
-            f"{stage}: 'every patient is insured' peels to {v.upper()}.",
-            step_id=(chain.steps[i - 1].step_id if i > 0 else None),
-            tags=["audit", "verdict"]))
+    # Marginalia: tag each PEEL step with its recorded verdict.
+    m_index = 0
+    for step in chain.steps:
+        p = step.parameters or {}
+        if p.get("act") == "peel":
+            v = str(p.get("verdict", "?")).upper()
+            anns.append(make_annotation(SCOPE_STEP,
+                f"M{m_index}: 'every patient is insured' peels to {v}.",
+                step_id=step.step_id, tags=["audit", "verdict"]))
+            m_index += 1
     return annotations_to_list(anns)
 
 
 def main(argv=None) -> int:
-    chain, uod = build_dialogue_chain()
-    verdicts = [_verdict(chain.states[chain.initial_state_id])] + [
-        _verdict(chain.states[s.to_state_id]) for s in chain.steps]
+    chain, uod, verdicts = build_dialogue_chain()
     assert verdicts == ["false", "true", "false", "true"], (
         f"expected the audit to flip FALSE→TRUE→FALSE→TRUE, got {verdicts}")
 
@@ -151,10 +166,10 @@ def main(argv=None) -> int:
     service = TomosService(tomos_root)
     service.save_uod_with_chain(uod, chain, provenance=dialogue_provenance())
     service.save_annotations(uod, dialogue_annotations(chain))
-    print(f"Saved '{uod.uod_id}' — M revised over {len(chain.steps)} innings.")
-    labels = ["M0"] + [f"M{i+1}" for i in range(len(chain.steps))]
-    for lab, v in zip(labels, verdicts):
-        print(f"  {lab}: every patient insured → {v.upper()}")
+    print(f"Saved '{uod.uod_id}' — M revised over {len(chain.steps)} steps "
+          f"(world-scroll residence; explicit PEEL/ADMIT_TO_M).")
+    for i, v in enumerate(verdicts):
+        print(f"  M{i}: every patient insured → {v.upper()}")
     return 0
 
 

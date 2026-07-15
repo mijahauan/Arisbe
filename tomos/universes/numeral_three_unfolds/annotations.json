@@ -1,12 +1,13 @@
 {
   "annotations": [
     {
-      "id": "ann_42a037ea",
+      "id": "ann_579e8758",
       "scope": "chain",
-      "text": "Each step scribes one graph onto the sheet. The chain's *character* is corollarial (proof_character): no INSERTION appears, so nothing entered that the premisses did not already contain \u2014 Peirce's own criterion.",
+      "text": "Each step ADMITS one graph into the standing world-scroll's arena (a genuine INS \u2014 the system resides at level 1; nothing contingent at depth 0) \u2014 and adopting a hypothesis is ampliative, not deduction (proof_character reads this chain as AMPLIATIVE): no rule of inference compels you to adopt an axiom. Peirce exactly \u2014 mathematics 'frames and studies the consequences of hypotheses.' The COROLLARIAL reasoning is what happens next, when the laws are materialized and the addition table grows itself: THAT is the diagram doing the work, and nothing enters it that the definitions did not already contain.",
       "author": null,
       "created": null,
       "tags": [
+        "ampliative",
         "corollarial",
         "mathematics",
         "teaching"

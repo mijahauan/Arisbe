@@ -37,6 +37,12 @@ CITED = {
     "peirce_cp_4_394_man_mortal", "roberts_1973_p57_disjunction",
     "sowa_2011_p356_quantification", "sowa_cat_on_mat", "dau_2006_p112_ligature",
     "theorem_praeclarum",
+    # The gamma-modal exemplars each reconstruct a real Peirce figure and cite
+    # it as theorem_source (broken-cut square: Lowell 1903 / CP 4.510ff; de
+    # inesse vs would-be: Prolegomena 1906, CP 4.546–4.549; the courses: Ms 490,
+    # the CP 4.575 omission — verified against Roberts 1973 pp. 89, 95–96).
+    # Genuine citations on Arisbe-authored boards, not fabrications.
+    "broken_cut_square", "would_be_de_inesse", "would_be_courses",
     # imported ontologies (kind=ontology) — each cites its source vocabulary
     "porphyry_tree", "foaf_core", "sumo_upper", "bfo_core", "colore_between",
     "colore_field", "skos_core",

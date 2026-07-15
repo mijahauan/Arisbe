@@ -47,9 +47,9 @@
       "element_id": null
     },
     {
-      "id": "ann_a1af845a",
+      "id": "ann_6967b0d6",
       "scope": "step",
-      "text": "Beat 1 \u2014 PROPOSE. A black swan, Nox, is reported. Entertained, not yet settled: M now says two incompatible things, and the doubt is real.",
+      "text": "The audited claim at M3: 'all swans are white' holds \u2014 for now.",
       "author": null,
       "created": null,
       "tags": [
@@ -60,9 +60,9 @@
       "element_id": null
     },
     {
-      "id": "ann_c15ca555",
+      "id": "ann_95f9b651",
       "scope": "step",
-      "text": "Beat 2 \u2014 EXHIBIT. The conflict is DERIVED, not declared: instantiate the law at Nox (UI), deiterate, discharge the double cut \u2192 (white Nox); instantiate disjointness at Nox, deiterate both conjuncts \u2192 the EMPTY CUT. Absurdity, in six Dau rules. The contradiction now *appears*.",
+      "text": "Beat 1 \u2014 PROPOSE. A black swan, Nox, is reported. Entertained, not yet settled: the supposition now says two incompatible things, and the doubt is real \u2014 fenced by the scroll it lives in.",
       "author": null,
       "created": null,
       "tags": [
@@ -73,9 +73,9 @@
       "element_id": null
     },
     {
-      "id": "ann_be12525e",
+      "id": "ann_e2d5f76e",
       "scope": "step",
-      "text": "Beats 3\u20134 \u2014 FORK, then DISPOSE (this branch). Two ways out were open; this one ADMITS the observation and RELINQUISHES the law. Ampliative: the exhibited absurdity does not *compel* this \u2014 it compels only that something give. Choosing which is abduction.",
+      "text": "Beat 2 \u2014 EXHIBIT. The conflict is DERIVED, not declared: instantiate the law at Nox (UI), deiterate, discharge the double cut \u2192 (white Nox); instantiate disjointness at Nox, deiterate both conjuncts \u2192 the EMPTY CUT. Absurdity, in six Dau rules. The contradiction now *appears*.",
       "author": null,
       "created": null,
       "tags": [
@@ -86,7 +86,33 @@
       "element_id": null
     },
     {
-      "id": "ann_a767d4a6",
+      "id": "ann_fb0364f6",
+      "scope": "step",
+      "text": "Beats 3\u20134 \u2014 FORK, then DISPOSE (this branch). Two ways out were open; this one ADMITS the observation and RELINQUISHES the law \u2014 by withdrawing the whole world (ERA\u00b7DC+\u00b7INS) and supplying the amended one. Ampliative: the exhibited absurdity does not *compel* this \u2014 it compels only that something give. Choosing which is abduction.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-4",
+      "element_id": null
+    },
+    {
+      "id": "ann_25325a36",
+      "scope": "step",
+      "text": "peel: G does not hold in M (the Skeptic wins).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-5",
+      "element_id": null
+    },
+    {
+      "id": "ann_e4399fdd",
       "scope": "step",
       "text": "Beat 4 (the ROAD NOT TAKEN) \u2014 keep the law, reject the report. The other way to restore consistency: deny that Nox is black (a mis-sighting, a mislabelled bird). Cheap now; the cost falls due later if the report was true. Recorded as a sibling so the choice stays visible \u2014 the DAG is where 'having two alternatives in mind' lives.",
       "author": null,
@@ -95,7 +121,20 @@
         "beat"
       ],
       "state_id": null,
-      "step_id": "step-4",
+      "step_id": "step-6",
+      "element_id": null
+    },
+    {
+      "id": "ann_62fc6c26",
+      "scope": "step",
+      "text": "peel: G holds in M (the Proposer wins).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "beat"
+      ],
+      "state_id": null,
+      "step_id": "step-7",
       "element_id": null
     }
   ]

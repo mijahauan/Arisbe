@@ -1,63 +1,73 @@
 {
-  "Cut": [],
+  "Cut": [
+    {
+      "id": "cut_146ffe97"
+    },
+    {
+      "id": "cut_4119fd1e"
+    }
+  ],
   "E": [
     {
-      "id": "e_47e247dc"
+      "id": "e_540b4472"
     },
     {
-      "id": "e_9cda317c"
+      "id": "e_e5879dd7"
     },
     {
-      "id": "e_ad605d55"
-    },
-    {
-      "id": "e_c5bfb6a8"
+      "id": "e_ef58638e"
     }
   ],
   "V": [
     {
-      "id": "v_22957367",
-      "is_generic": false,
-      "label": "Clara"
-    },
-    {
-      "id": "v_db75a813",
+      "id": "v_72919a7c",
       "is_generic": false,
       "label": "Otto"
+    },
+    {
+      "id": "v_86971575",
+      "is_generic": false,
+      "label": "Otto"
+    },
+    {
+      "id": "v_ef4c3013",
+      "is_generic": false,
+      "label": "Clara"
     }
   ],
   "alphabet": null,
   "area": {
-    "sheet_5a1b0745": [
-      "e_47e247dc",
-      "e_9cda317c",
-      "e_ad605d55",
-      "e_c5bfb6a8",
-      "v_22957367",
-      "v_db75a813"
+    "cut_146ffe97": [
+      "cut_4119fd1e",
+      "e_540b4472",
+      "e_e5879dd7",
+      "e_ef58638e",
+      "v_72919a7c",
+      "v_86971575",
+      "v_ef4c3013"
+    ],
+    "cut_4119fd1e": [],
+    "sheet_405dd7a1": [
+      "cut_146ffe97"
     ]
   },
   "nu": {
-    "e_47e247dc": [
-      "v_db75a813"
+    "e_540b4472": [
+      "v_ef4c3013"
     ],
-    "e_9cda317c": [
-      "v_22957367"
+    "e_e5879dd7": [
+      "v_86971575",
+      "v_ef4c3013"
     ],
-    "e_ad605d55": [
-      "v_db75a813",
-      "v_22957367"
-    ],
-    "e_c5bfb6a8": [
-      "v_22957367"
+    "e_ef58638e": [
+      "v_72919a7c"
     ]
   },
   "rel": {
-    "e_47e247dc": "fails_in_business",
-    "e_9cda317c": "commits_suicide",
-    "e_ad605d55": "husband",
-    "e_c5bfb6a8": "married_woman"
+    "e_540b4472": "married_woman",
+    "e_e5879dd7": "husband",
+    "e_ef58638e": "prospers"
   },
   "rho": {},
-  "sheet": "sheet_5a1b0745"
+  "sheet": "sheet_405dd7a1"
 }

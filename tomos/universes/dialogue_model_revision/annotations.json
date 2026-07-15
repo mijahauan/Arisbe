@@ -31,14 +31,15 @@
       "element_id": null
     },
     {
-      "id": "ann_bf974a93",
+      "id": "ann_a8458dae",
       "scope": "chain",
-      "text": "Each step is a model-revising 'new_fact' disposition (src/model_revision.py): an independent proposal the dialogue accepts as evidence, juxtaposed onto M's sheet as a new posit at low warrant. Enlargement here; retraction (free to demote, the ERA dual) is the other licensed move.",
+      "text": "Each inning is an explicit ADMIT_TO_M step (src/m_steps.py): an independent proposal the dialogue accepts as evidence, admitted by a genuine INS into the world-scroll's negative arena (supposing more is free); the warrant justifies the choice and rides on the step. Each verdict is a recorded PEEL step, re-checkable forever. Relinquishment (the other licensed move) is world-withdrawal \u2014 see dialogue_swan_revision.",
       "author": null,
       "created": null,
       "tags": [
         "new-fact",
         "enlargement",
+        "world-scroll",
         "low-warrant"
       ],
       "state_id": null,
@@ -46,23 +47,9 @@
       "element_id": null
     },
     {
-      "id": "ann_96bb764e",
-      "scope": "uod",
-      "text": "M0 (the opening record): 'every patient is insured' peels to FALSE.",
-      "author": null,
-      "created": null,
-      "tags": [
-        "audit",
-        "verdict"
-      ],
-      "state_id": null,
-      "step_id": null,
-      "element_id": null
-    },
-    {
-      "id": "ann_7ec6b784",
+      "id": "ann_1f6a5d26",
       "scope": "step",
-      "text": "M1: 'every patient is insured' peels to TRUE.",
+      "text": "M0: 'every patient is insured' peels to FALSE.",
       "author": null,
       "created": null,
       "tags": [
@@ -74,7 +61,21 @@
       "element_id": null
     },
     {
-      "id": "ann_4a40a3b8",
+      "id": "ann_bc0c261e",
+      "scope": "step",
+      "text": "M1: 'every patient is insured' peels to TRUE.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit",
+        "verdict"
+      ],
+      "state_id": null,
+      "step_id": "step-3",
+      "element_id": null
+    },
+    {
+      "id": "ann_f12986fa",
       "scope": "step",
       "text": "M2: 'every patient is insured' peels to FALSE.",
       "author": null,
@@ -84,11 +85,11 @@
         "verdict"
       ],
       "state_id": null,
-      "step_id": "step-2",
+      "step_id": "step-5",
       "element_id": null
     },
     {
-      "id": "ann_c084f5be",
+      "id": "ann_046ca39e",
       "scope": "step",
       "text": "M3: 'every patient is insured' peels to TRUE.",
       "author": null,
@@ -98,7 +99,7 @@
         "verdict"
       ],
       "state_id": null,
-      "step_id": "step-3",
+      "step_id": "step-7",
       "element_id": null
     }
   ]

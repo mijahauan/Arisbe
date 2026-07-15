@@ -142,18 +142,28 @@ def test_revise_with_disposition_dispatches():
 
 def test_dialogue_audit_verdict_flips():
     """'Every patient is insured' moves FALSE→TRUE→FALSE→TRUE as the dialogue admits
-    Ben's insurance, a new patient Cal, then Cal's coverage."""
-    chain, _uod = dialog.build_dialogue_chain()
-    verdicts = [dialog._verdict(chain.states[chain.initial_state_id])] + [
-        dialog._verdict(chain.states[s.to_state_id]) for s in chain.steps]
+    Ben's insurance, a new patient Cal, then Cal's coverage. The verdicts are the
+    recorded PEEL steps — and recomputing them from the states agrees."""
+    chain, _uod, verdicts = dialog.build_dialogue_chain()
     assert verdicts == ["false", "true", "false", "true"]
+    # the recorded PEEL verdicts are earned: recomputation agrees, state by state
+    peels = [s for s in chain.steps if (s.parameters or {}).get("act") == "peel"]
+    assert [p.parameters["verdict"] for p in peels] == verdicts
+    for p in peels:
+        assert dialog._verdict(chain.states[p.to_state_id]) == p.parameters["verdict"]
 
 
 def test_dialogue_chain_records_revisions():
-    chain, uod = dialog.build_dialogue_chain()
-    assert len(chain.steps) == 3
-    assert all(s.rule_name == "ADMIT_FACT" for s in chain.steps)
-    assert all(s.parameters.get("disposition") == "new_fact" for s in chain.steps)
+    """M resides in a standing world-scroll; each inning is an explicit
+    rule-licensed ADMIT_TO_M (INS into the negative arena)."""
+    from world_scroll import find_world_scroll
+
+    chain, uod, _verdicts = dialog.build_dialogue_chain()
+    admits = [s for s in chain.steps if s.rule_name == "ADMIT_TO_M"]
+    assert len(admits) == 3
+    assert all(s.parameters.get("disposition") == "new_fact" for s in admits)
+    assert all(s.parameters.get("derivation") == ["INS"] for s in admits)
+    assert find_world_scroll(uod.current_egi) is not None
 
 
 # --------------------------------------------------------------------------- #
@@ -237,12 +247,20 @@ def test_swan_exemplar_walks_the_taxonomy():
     """'Every swan is white' moves FALSE→TRUE→TRUE→TRUE→FALSE as the dialogue
     observes (induction), generalizes (induction), admits a covered newcomer, then
     meets the black swan and revises M (abduction)."""
-    chain, _uod = swan.build_swan_chain()
-    verdicts = [swan._verdict(chain.states[chain.initial_state_id])] + [
-        swan._verdict(chain.states[s.to_state_id]) for s in chain.steps]
+    chain, _uod, verdicts = swan.build_swan_chain()
     assert verdicts == ["false", "true", "true", "true", "false"]
+    # the recorded PEEL verdicts are earned: recomputation agrees, state by state
+    peels = [s for s in chain.steps if (s.parameters or {}).get("act") == "peel"]
+    assert [p.parameters["verdict"] for p in peels] == verdicts
+    for p in peels:
+        assert swan._verdict(chain.states[p.to_state_id]) == p.parameters["verdict"]
     # The exemplar exercises more than one mode (the contrast with the insurance walk).
-    modes = {s.parameters.get("mode") for s in chain.steps}
+    revising = [s for s in chain.steps if (s.parameters or {}).get("act") != "peel"]
+    modes = {s.parameters.get("mode") for s in revising}
     assert {"induction", "abduction"} <= modes
-    dispositions = {s.parameters.get("disposition") for s in chain.steps}
+    dispositions = {s.parameters.get("disposition") for s in revising}
     assert {"new_fact", "generalization", "challenge_to_M"} <= dispositions
+    # the relinquishment is a world-withdrawal: the executed ERA·DC+·INS triple
+    withdrawal = next(s for s in revising
+                      if s.parameters.get("disposition") == "challenge_to_M")
+    assert withdrawal.parameters["derivation"] == ["ERA", "DC+", "INS"]

@@ -154,11 +154,17 @@ def test_the_ladder_builds_and_the_claim_arrives():
     import build_arithmetic_ladder as ladder
     chain, uod = ladder.build_addition_chain()
     assert uod.uod_id == "arithmetic_from_two_laws"
-    states = [chain.initial_state_id] + [s.to_state_id for s in chain.steps]
+    states = [chain.initial_state_id] + [
+        s.to_state_id for s in chain.steps
+        if (s.parameters or {}).get("act") != "peel"]
     closed = [ladder._verdict(chain.states[s]) for s in states]
     open_ = [ladder._verdict(chain.states[s], closed=False) for s in states]
     assert closed == ["false", "false", "true"]
     assert open_ == ["unknown", "unknown", "true"]
+    # the recorded PEEL verdicts agree with recomputation (the record is earned)
+    peels = [s.parameters["verdict"] for s in chain.steps
+             if (s.parameters or {}).get("act") == "peel"]
+    assert peels == closed
     # The chain SCRIBES the two laws — and positing a hypothesis is **ampliative**,
     # not deduction: no rule compels you to adopt x + s(y) = s(x+y). (Peirce exactly:
     # mathematics "frames and studies the consequences of hypotheses.") The
