@@ -33,7 +33,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
 
       - name: Install Python deps
-        run: uv sync --extra dev
+        run: uv sync --extra dev --extra web
 
       - name: Install Node.js (for ELK layout worker)
         uses: actions/setup-node@v4
