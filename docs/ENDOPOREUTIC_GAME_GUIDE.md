@@ -568,7 +568,10 @@ This is the richest case — it corresponds to **genuinely new knowledge** that 
 alone cannot adjudicate:
 
 - **3a. New empirical fact**: G describes an observation. Both players agree to
-  assert G into M (INS at the sheet). M grows by **induction**. The Skeptic
+  admit G into M — a rule-licensed INS into the standing world-scroll's antecedent
+  area, where M resides as a supposition (the `ADMIT_TO_M` step; see
+  [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
+  §3). M grows by **induction**. The Skeptic
   decides whether to accept G into M — the Agonothetes facilitates this decision.
 - **3b. Abductive hypothesis**: G *explains* something puzzling in M (unifies
   seemingly unrelated theorems). Tentatively accepted as a hypothesis. Peirce's

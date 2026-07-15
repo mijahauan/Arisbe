@@ -73,7 +73,8 @@ Shipped in the Agon interpretation register, both parts, read-only chrome (M dra
   meet (shared / G-only = the addressability gap / M-only = context beyond G), so a reader sees what the
   terms mean without leaving the board.
 - **(c) the relevant-neighborhood M-render** — `m_render.m_fragment`: draws only the part of M the proposal
-  *touches* — seed = M's sheet atoms whose relation/individual G uses, then one hop along the same
+  *touches* — seed = M's own atoms (read through `world_scroll.m_view` since the 2026-07-15 polarity
+  sweep: the scroll's antecedent for a corpus M, the sheet for a loop-built one) whose relation/individual G uses, then one hop along the same
   individual / line of identity, budget-capped (~a handful); the rest is reported as a **horizon** ("+N
   more facts beyond view"). Materialized (forward-chained) facts render too.
 

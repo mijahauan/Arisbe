@@ -11,20 +11,18 @@
    core (two nominees: `(forces s φ)`, `(superseded ⌜M⌝)`). Both now have a categorial footing
    (CATEGORIES_AND_THE_THREE_PARTS: A = the honest bootstrap drawn as cuts; B = hypostatic
    abstraction of a graph; Henkin = the Peircean choice).
-3. **TARGETED DOC SWEEP for the polarity re-orientation (half-session, grep-driven).** The
-   corpus now holds M in the standing world-scroll with explicit PEEL/ADMIT_TO_M/REVISE_M
-   steps, but ~13 docs still state the old sheet-residence mechanics; only EXEMPLARS +
-   M_RESIDENCE know the scroll. Split by kind: (a) docs stating sheet-residence as the
-   *corpus's current* mechanics — update: EXEMPLARS §6 body ("enlargement is INS at the
-   sheet / relinquishment is ERA in the positive sheet" → the world-scroll forms),
-   ENDOPOREUTIC_GAME_GUIDE (taxonomy §IV mechanics), GLOSSARY (+ a `world-scroll` entry),
-   CAPABILITY_MAP (+ world_scroll/m_steps/the gate), GETTING_STARTED + MATH_FIXTURES walk-
-   throughs, CLAUDE.md module list (+ src/world_scroll.py, src/m_steps.py,
-   test_corpus_polarity_discipline); (b) the **loop docs** (AUTOMATED_MODEL_DEVELOPMENT,
-   AUTOMATED_ENDOPOREUTIC_GAME, AUTOMATED_GRAPHEUS, DOMAIN_ORACLE_AND_M) — still *accurate*
-   for the live loops: add the two-regimes note (corpus = scroll discipline; loops = legacy
-   sheet regime pending §8.1) rather than rewriting; (c) Quarto book render-check after (the
-   `_devlinks` BOOK set habit).
+3. **✅ DONE 2026-07-15 (second sitting) — TARGETED DOC SWEEP for the polarity
+   re-orientation.** See the ▶▶ entry below. The grep survey found the stale set *smaller*
+   than feared: GETTING_STARTED + MATH_FIXTURES (and MATHEMATICS_FROM_THE_SHEET) were
+   already clean — their "sheet" talk is the generic sheet of assertion, not M-residence.
+   Updated: EXEMPLARS §6 (all three stale passages → world-scroll forms + explicit steps),
+   ENDOPOREUTIC_GAME_GUIDE taxonomy case 3a, GLOSSARY (+ `World-scroll` + `The explicit
+   M-steps` entries, Peel cross-ref), CAPABILITY_MAP (model-revision row fixed + a new
+   M-residence row), ROADMAP §2(c) ("M's sheet atoms" → m_view), CLAUDE.md (world_scroll +
+   m_steps module entries, model_revision regime note, the gate in the test list); the four
+   loop docs got the standing **two-regimes note** (corpus = scroll discipline; loops =
+   legacy sheet regime pending §8.1). Quarto render-check passed (42/42; anchors +
+   `_devlinks` GitHub routing verified; BOOK set unchanged — no new chapters).
 4. **§8.1's OPEN HALF (author decision, ordered against #2):** migrate the live loops —
    `agon_evolution.run` / `live_runner` / membranes move off `assert_fact`/`assert_into` onto
    the world-scroll forms (`enlarge_m` / `withdraw_and_resupply` / discharge); then unwrap
@@ -42,6 +40,32 @@
    e2e ×4; (d) perf memory_stability = load flake (passes alone).
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
+
+**▶▶ THIS SESSION (2026-07-15, second sitting) — THE POLARITY DOC SWEEP (NEXT-SESSION item
+3): the corpus's world-scroll re-orientation propagated to the standing docs.** Grep-driven
+survey (subagent inventory) then targeted edits; docs only, no code, no core. **(a) Corpus-
+mechanics docs updated:** EXEMPLARS §6 — the insurance dialogue's "juxtaposed onto M's sheet"
+→ admission into the standing world-scroll `~[ M ~[ ] ]` by rule-licensed INS recorded as
+ADMIT_TO_M with every table verdict an explicit recomputable PEEL step; the swan M4
+relinquishment → world-withdrawal (the executed ERA·DC+·INS triple, one REVISE_M step); the
+taxonomy paragraph now names the corpus regime (m_steps) beside the live-loop legacy
+primitives. ENDOPOREUTIC_GAME_GUIDE case 3a ("INS at the sheet" → INS into the world-scroll's
+antecedent, ADMIT_TO_M). GLOSSARY + two entries (`World-scroll`, `The explicit M-steps: PEEL,
+ADMIT_TO_M, REVISE_M`) + a Peel cross-ref. CAPABILITY_MAP — the model-revision row's "each a
+real Dau move on M's sheet" corrected + a new SHIPPED row for M-residence (world_scroll /
+m_steps / the polarity gate). ROADMAP §2(c) "M's sheet atoms" → M's own atoms via m_view.
+CLAUDE.md — world_scroll.py + m_steps.py module entries, a regime note on model_revision.py,
+test_corpus_polarity_discipline.py in the key-test list. **(b) The four loop docs**
+(AUTOMATED_MODEL_DEVELOPMENT, AUTOMATED_ENDOPOREUTIC_GAME, AUTOMATED_GRAPHEUS,
+DOMAIN_ORACLE_AND_M) each carry a standing **two-regimes note** near the top — corpus =
+scroll discipline; the live loops they describe = legacy sheet regime, accurate as written,
+coexisting through `m_view`, migration = M_RESIDENCE §8.1's open half; DOMAIN_ORACLE's note
+adds the reading rule ("sheet-level atoms" = M's own area either regime). **(c) Verified
+clean, no edit:** GETTING_STARTED, MATH_FIXTURES_ZFC_PEIRCE_1881, MATHEMATICS_FROM_THE_SHEET
+(their "sheet" mentions are the generic sheet of assertion). **Render-check:** `quarto render
+docs --to html` 42/42 chapters; the new GLOSSARY anchors resolve
+(#world-scroll, #the-explicit-m-steps-peel-admit_to_m-revise_m) and `_devlinks` routes the
+M_RESIDENCE links to GitHub (not a chapter; BOOK set unchanged).
 
 **▶▶ THIS SESSION (2026-07-15) — THE CATEGORIAL READING: the reduction thesis, Thirdness as
 employed prerequisite, and the three parts — recorded.** A foundations dialogue driven by the

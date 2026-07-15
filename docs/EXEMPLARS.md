@@ -210,7 +210,13 @@ by — evidence:
 | M3 | + admit `(insured Cal)` | **TRUE** (settled again, for now) |
 
 Each step is a model-revising `new_fact` disposition — an independent proposal the
-dialogue accepts, juxtaposed onto M's sheet as a new posit at low warrant. The exemplar
+dialogue accepts and admits into the **standing world-scroll** `~[ M ~[ ] ]` (M resides
+at level 1, the scroll's antecedent area, as a supposition — never a depth-0 posit; see
+[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
+§3). Admission is a rule-licensed **INS** into that negative area, recorded as an
+explicit `ADMIT_TO_M` chain step whose warrant rides on the step, not the ink; each
+verdict in the table is likewise an explicit, forever-recomputable `PEEL` step
+([src/m_steps.py](../src/m_steps.py)). The exemplar
 makes the manifest floor operational: **a model is never frozen**, and "fact" is the
 defeasible status of the last-standing trajectory
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
@@ -240,17 +246,26 @@ new individual arrives with no recorded colour yet G stays TRUE — the *general
 forward-chains (white Dover), where insurance's Cal (no rule in M) flipped the verdict
 FALSE. Deduction over an inductive law vs a bare tally. **The irritation of doubt
 revises M:** the black swan refutes the law; the episode's outcome is *challenge-to-M*
-(2b) — the over-general law is **relinquished** (a genuine Dau ERA in the positive sheet)
-and the anomaly admitted. M is corrected by abduction — "the only logical operation which
-introduces any new idea."
+(2b) — the over-general law is **relinquished by world-withdrawal**: the whole
+supposition-scroll is withdrawn and an amended M supplied (the executed ERA · DC+ · INS
+triple, one explicit `REVISE_M` step — piecemeal erasure inside the antecedent would
+*strengthen* the conditional, which is why un-supposing is all-or-nothing; the DAG keeps
+the withdrawn world) — and the anomaly admitted. M is corrected by abduction — "the only
+logical operation which introduces any new idea."
 
 The taxonomy is enacted by [src/model_revision.py](../src/model_revision.py)'s
 `REVISION_TAXONOMY` — the M-revising subset of the disposition taxonomy, each entry
-carrying its mode + structural **kind** (enlargement = `assert_fact`/`add_rule`, INS at
-the sheet; relinquishment = `retract_relation` for a fact, `retract_subgraph` for a
-law/cut, ERA in the positive sheet), dispatched by `revise_with_disposition`. The same
-calculus that draws every other graph; the dispositions that *don't* revise M
-(`redundancy`, `rejection`, `open_conjecture`, …) are recorded judgments, not edits.
+carrying its mode + structural **kind** (enlargement / relinquishment). In the **corpus**
+the kinds are performed as world-scroll moves recorded by the explicit steps of
+[src/m_steps.py](../src/m_steps.py): enlargement = `ADMIT_TO_M` (a genuine INS into the
+standing scroll's antecedent area — supposing more is free in a negative context);
+relinquishment = `REVISE_M` (world-withdrawal, the executed ERA · DC+ · INS triple). The
+**live loops** (`agon_evolution`, `live_runner`, the membranes) still dispatch the legacy
+sheet-level primitives (`assert_fact`/`add_rule`, `retract_relation`/`retract_atom`/
+`retract_subgraph`) through `revise_with_disposition`, pending the
+M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §8.1 loop migration. The same calculus that draws
+every other graph; the dispositions that *don't* revise M (`redundancy`, `rejection`,
+`open_conjecture`, …) are recorded judgments, not edits.
 
 ### Reading them in Organon — the **audit lens**
 

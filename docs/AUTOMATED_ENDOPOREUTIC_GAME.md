@@ -11,6 +11,19 @@ living with a given reality through the membrane* and locate the drive (**tropis
 (**dianexus**), and the not-yet-legible (**horizon**) in the *methodeutic surround outside the
 calculus* · aim = **discovery** · **Drafted**: 2026-06-30 · **restructured 2026-07-11** (below)
 
+> **Two regimes (standing note, 2026-07-15).** The attested **corpus** now holds M at level 1 of
+> the standing world-scroll `~[ M ~[ ] ]`, every M-change an explicit rule-licensed step
+> (`ADMIT_TO_M` = INS into the antecedent; `REVISE_M` = the executed ERA·DC+·INS
+> world-withdrawal) and every verdict a recomputable `PEEL` step — `src/world_scroll.py` +
+> `src/m_steps.py`, gated by `tests/test_corpus_polarity_discipline.py`; see
+> [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3–§4.
+> The **live loops this document designs and runs** (`agon_llm`, the membranes, `live_runner`,
+> the run ledger's eleven runs) still play on the legacy sheet-level regime — a proposal placed on
+> the sheet, dispositions dispatched through `revise_with_disposition` — and this document remains
+> accurate for them; the two regimes coexist because every reader goes through `m_view` (identity
+> for a sheet-level M). Migrating the loops onto the world-scroll forms is that memo's §8.1 open
+> half, an author decision ordered against the crossing decisions.
+
 > **How to read this document (restructured 2026-07-11).** It is now three parts. **Part I
 > (§1–§10)** is the design of record — what the automated game *is* and what was built, largely
 > as drafted before any live run. **Part II (§11)** is *what running it has taught* — the

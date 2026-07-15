@@ -12,6 +12,13 @@ implementation session works from. Supersedes the "shape of the work" sketch in
 (`docs/references/Signs_of_Logic.pdf`), Ch. 4 "Existential graphs on the move", pp. 134–137,
 and the janus-faced-cut discussion pp. 164–166.
 
+> **Two regimes (standing note, 2026-07-15).** The attested **corpus** now holds M at level 1 of
+> the standing world-scroll `~[ M ~[ ] ]` with explicit M-steps (PEEL / ADMIT_TO_M / REVISE_M —
+> `src/world_scroll.py` + `src/m_steps.py`; `docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md`
+> §3–§4, and `docs/ENDOPOREUTIC_GAME_GUIDE.md` §"Taxonomy" case 3a for the corrected admission
+> mechanics). The live Agon loops this plan feeds still run the legacy sheet-level regime; the two
+> coexist through `m_view`. The loop migration is that memo's §8.1 open half.
+
 ---
 
 ## 0. What this is, in one paragraph
