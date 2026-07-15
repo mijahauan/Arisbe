@@ -5,7 +5,9 @@ An environment for **doing logic in pictures**, built around Charles S. Peirce's
 
 The central engineering and research problem the codebase solves: **inerrant correspondence between an EGI's linear written form and its graphical drawn form**. The contract is stated in [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md), tested against the tomos corpus, exposed as a refusal-bearing API in [src/presentation_ops.py](src/presentation_ops.py), and runtime-attested at the web service boundary by [src/correspondence_attestation.py](src/correspondence_attestation.py). When picture and proposition come apart, the system refuses to serve a drawing it can't attest.
 
-**The exact-correspondence engine (complete, June 2026).** That contract is now realized *geometrically*: a cut **is its drawn curve**, every mark is an **extent** (label box, not anchor point), and the whole §3.3 invariant — cut containment, ligature crossing-sequence, label/numeral extents, no improper occlusion, argument order by clockwise placement — is checked as a set of **exact facts about the literal drawn picture**, no proxy shape. A cut can be an arbitrary human-drawn polyline, tested point-in-polygon by both the attestation and the reader and hit-tested in the browser via `isPointInFill`. See [docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md). This is the foundation for the **freeform composition canvas** (draw logic by hand, read it into a sign on demand) — the active arc.
+**The exact-correspondence engine (complete, June 2026).** That contract is now realized *geometrically*: a cut **is its drawn curve**, every mark is an **extent** (label box, not anchor point), and the whole §3.3 invariant — cut containment, ligature crossing-sequence, label/numeral extents, no improper occlusion, argument order by clockwise placement — is checked as a set of **exact facts about the literal drawn picture**, no proxy shape. A cut can be an arbitrary human-drawn polyline, tested point-in-polygon by both the attestation and the reader and hit-tested in the browser via `isPointInFill`. See [docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md). It is the foundation the **freeform composition canvas** (draw logic by hand, read it into a sign on demand — shipped, live in Ergasterion) was built on.
+
+**The validity discipline (July 2026).** The attested corpus now enacts a standing discipline about *where saying happens*: nothing contingent stands at depth 0 — the sheet is the world's level, carrying only what the calculus itself delivers — and a domain model **M** resides as a *supposition* at level 1 of a standing world-scroll `~[ M ~[ ] ]`. Every change to M is an explicit rule-licensed chain step (admission = insertion into the scroll's antecedent; revision = withdrawal of the whole world, the history keeping the old one) and every verdict is a recorded, forever-recomputable peel. See [docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) and the standing gate `tests/test_corpus_polarity_discipline.py`. **The active frontier** is now the *second-order crossing* — logic about the graphs themselves (quotation, `(forces s φ)`) — mapped in [docs/SECOND_ORDER_FRONTIER.md](docs/SECOND_ORDER_FRONTIER.md) and deliberately paused on two author decisions; the "Moses" beta tags the completed first-order territory before that crossing.
 
 ---
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mijahauan/Arisbe)
@@ -510,18 +512,23 @@ the Qt implementation was archived in May 2026.
 
 ### 🔧 In Progress / Next
 
-- **Freeform composition canvas** *(built; the active arc)* — composition is now
-  draw-then-read: place/drag/erase typed marks (cut / relation / line-of-identity)
+- **The second-order crossing** *(the active frontier — deliberately paused)* —
+  logic *about* the graphs themselves: quotation (a graph as an object, mention
+  without force), `(forces s φ)`, `(superseded ⌜M⌝ …)`. The landscape is mapped
+  ([docs/SECOND_ORDER_FRONTIER.md](docs/SECOND_ORDER_FRONTIER.md),
+  [docs/SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](docs/SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)),
+  the validation harness built (`second_order_check`), and the advance gates on two
+  author decisions (the comprehension floor; how much to open the core). The
+  **"Moses" beta** tags the completed first-order territory before this crossing.
+- **Freeform composition canvas** *(shipped, including challenge mode)* — composition
+  is draw-then-read: place/drag/erase typed marks (cut / relation / line-of-identity)
   at free positions, with no live EGI; the picture is read into a sign only at gate
   ① (`read_drawing` → validity → build EGI → "what it says"). **Live** in Ergasterion
   (`web_viewer/js/freeform-canvas.js` + `read-drawing`/`fix-drawing` routes), with a
-  **Graph↔Argument** two-mode workspace (fixed/unfixed unmistakable; rules act only
-  on a fixed graph; "Edit base graph" re-opens an independent copy), draw-time
-  snapping, a fix-time validity pass (`drawing_validity`), the drawing→EGI builder
-  (`drawing_to_egi`), and the legible EGI diff (`egi_diff`). **Remaining: challenge
-  mode** — show a linear form, draw it freehand, grade with `same_graph` + the diff,
-  difficulty gradient straight from the corpus
-  (`docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
+  **Graph↔Argument** two-mode workspace, draw-time snapping, a fix-time validity pass
+  (`drawing_validity`), the drawing→EGI builder (`drawing_to_egi`), the legible EGI
+  diff (`egi_diff`), and **challenge mode** (draw a target freehand, graded by
+  `same_graph` + the diff; `docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
 - **Agon web arena** — surface the Endoporeutic Game engine (live as a REPL) as a
   web route
 - **Math horizon** — the ∀x scaffold tactic (`derived_rules.py`) and selection-driven

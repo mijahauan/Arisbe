@@ -289,6 +289,63 @@ is left honestly open (whether negative-context placement *constitutes*
 fallibility or merely *diagrams* it), and that joint is the author's to close, not
 the notation's.
 
+### 3b. Appendix — the operational completion (2026-07-15)
+
+A foundations dialogue of 2026-07-14→15, recorded in
+[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md),
+re-derived this departure from the mechanics alone and completed it operationally.
+The register gains five corollaries, each in its favor:
+
+1. **Validity by construction.** Under the discipline every reachable graph — and
+   the whole Universe of Discourse, each transition rule-licensed — is *valid by
+   construction* (the blank is valid, the six rules preserve validity, induction
+   over the chain). A false supposition in an odd context is *truly enabled*:
+   insertion there is unconditionally sound, so error is quarantined by the scroll
+   and charged to the player's ledger, never to the sheet.
+2. **The depth-0 inventory theorem.** What may stand uncircumscribed in the
+   sheet's own area is exactly: nothing (the blank); seps (every *saying* at
+   depth 0 lives inside one); and heavy dots — bare "something exists," which
+   predicates nothing and re-asserts only the presupposition the sheet itself
+   makes by representing a universe. "Contingent" is the exact boundary of the
+   theorem: every theorem of the calculus stands at depth 0 legitimately; no
+   legitimate path ever exposes an uncircumscribed contingent proposition there.
+3. **The outbound discharge path**, completing the registered inbound
+   construction. A fact reaches an even area *derived, never inserted*:
+   deiteration (an equivalence, polarity-indifferent, unlike erasure) empties the
+   warrant, double-cut removal discharges — classical modus ponens run inside the
+   standing supposition, at even depths ≥ 2, so depth 0 stays contingency-free
+   **by invariance, not by vigilance**.
+4. **The asymmetry flip, and revision as world-withdrawal.** With the model M
+   resident at level 1 of the standing world-scroll `~[ M ~[ ] ]`, acquiring is
+   free (insertion in a negative context — supposing more) but piecemeal shedding
+   is unsound (erasing from an antecedent strengthens the conditional). Revision
+   is therefore withdrawal of the *whole* supposition-scroll and supply of an
+   amended one — foundations-style belief revision, *forced by the calculus*, with
+   the diachronic record keeping the withdrawn world.
+5. **Presence is play — the three tenses.** Ink at first order cannot be held
+   "without force" (a double cut around a retired law is inert — it still binds).
+   What "keep the old M in view" needs splits into: *in force* (the rivals
+   pattern), *withdrawn-remembered* (the history), and *present-without-force* —
+   expressible only one order up, as **quotation**. That third tense nominates
+   `(superseded ⌜M⌝ …)` as a candidate first second-order claim
+   ([SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
+
+The assertive-graphs literature (Bellucci, Chiffi & Pietarinen 2021, "Beta
+Assertive Graphs") bears on the register in its favor: it documents that the gloss
+this departure rejects is the *live standard reading* (so the departure is real,
+not a strawman), and exhibits the price of the notational alternative — making
+assertion the object logic costs the classical calculus (their system comes out
+intuitionistic, with two non-interdefinable quantifier lines). Arisbe buys
+assertion-sensitivity as a regimen on *acts*, leaving the Dau-classical core
+untouched; their intuitionistic caution is the same instinct Arisbe places in the
+open-world verdict semantics instead.
+
+Since 2026-07-15 the discipline is **enacted in the attested corpus**: M resides
+in the standing world-scroll, every M-change is an explicit rule-licensed step and
+every verdict a recomputable peel record, guarded by a standing gate
+(`tests/test_corpus_polarity_discipline.py`). The live automated loops still run
+the older sheet-level regime, honestly flagged, pending a separate decision.
+
 ---
 
 ## 4. Departure III — Gamma is not needed at all

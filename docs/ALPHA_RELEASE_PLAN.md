@@ -1,6 +1,8 @@
 # Alpha Release — Documentation Consolidation Plan
 
-**Status:** planning (started 2026-06-30). **Goal:** prepare an alpha release of Arisbe to
+**Status:** DONE (started 2026-06-30; build sequence §4 completed 2026-07-02 — the
+documentation track is closed; the release mechanics live in CURRENT_PLAN's "Moses" item).
+**Goal:** prepare an alpha release of Arisbe to
 share with others, delivering the documentation as **both a book (PDF/epub) and a browseable
 web help**, single-sourced, plus a clean "clone → run → open the book" path.
 

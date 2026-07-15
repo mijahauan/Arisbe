@@ -64,6 +64,43 @@
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
 
+**▶▶ THIS SESSION (2026-07-15, third sitting, continued) — MOSES TIER 1 + TIER 2 EXECUTED
+(item 0's pre-tag checklist).** **Tier 1 (all 8 reds disposed at root cause, nothing
+frontier'd):** (1) **Layout nondeterminism root-caused** — the "skos_core order-dependence"
+(#6a) and the shifting clockwise failures were ONE bug: `_structural_key` in
+`elk_layout_engine._build_area_children` is not a total order, and Python's stable sort
+resolved ties (identical atoms, unlabeled vertices) by frozenset hash-order iteration —
+which varies with PYTHONHASHSEED per process. Proven: seed 0 always failed arithmetic,
+seed 1 always skos. Fix = element-id tie-break (ids persist in the corpus record; ties are
+structurally indistinguishable siblings, iso-family resemblance unaffected). Verified by a
+corpus-wide probe: full DTO (positions, cut bounds, ligature routes) **bit-identical across
+seeds 0/1/2 for all 44 UoDs**. (2) **arithmetic clockwise ×3 = a real reader bug, fixed**:
+`assign_order_labels` anchor mode trusted a value-level rotation offset, which with a
+repeated argument (`(sum x y x)`) can mark the WRONG hook of the repeated vertex; anchor
+now requires distinct args (repeats → full numbering). eg_reader 21/21 under both seeds.
+(3) challenge/define e2e ×4 = selector drift from the composing-panel change (3f7bb5c hid
+`#btn-freeform-toggle`); tests now click `#cm-draw` like the freeform e2e — 4 green.
+(4) perf memory threshold re-sized 50→120MB with measured numbers in the rationale (isolated
+≈0; warm full-suite 82MB after hash-consing + corpus growth). (5) **Phase-2 ontology wrap
+DONE — the gate's allowlist is EMPTY**: all 7 T-boxes reside in the world-scroll (porphyry/
+foaf/sumo/colore_between via the rule-licensed 2-step DC+·INS chain; bfo_core/colore_field
+structurally — their importers emit cross-sibling vertex references no linear EGIF can
+express, an INS would silently rescope, recorded in annotations; skos_core structurally —
+EGIF-expressible but the INS reparse re-orders siblings past the ELK reader-inversion
+frontier, the id-preserving wrap keeps its drawn record invertible). `world_scroll._copy_area`
+made two-pass (shell then edges) so cross-sibling refs copy. Gate 65 passed w/ 0 allowlisted;
+theory_query still decides SUMO/porphyry/FOAF theorems through the scroll; correspondence
+invariant 774 passed. **Pre-existing importer finding reported, not fixed:** BFO/COLORE-field
+EGIF round-trip is lossy (cross-sibling scoping) — candidate fix = per-axiom variable
+freshening in `domain_model_importer`. (6) **Departure II appendix**: FIDELITY_AND_DEPARTURES
+§3b (the five corollaries + the assertive-graphs bearing + enacted-in-corpus status); memo
+§8.2 marked done. **Tier 2:** RELEASE_NOTES.md authored (Moses framing, highlights, honest
+known-issues, quickstart); pyproject 1.0.0 → **2.0.0b1**; README refreshed (freeform "active
+arc" → shipped; the validity-discipline paragraph + second-order frontier as the active
+edge); PROSPECTS_MULTIPERSPECTIVE disposition note (R2/R3/G5 shipped); ALPHA_RELEASE_PLAN
+status → DONE. Remaining: full-suite green → commit → the author cuts `release/moses` + tag
+`v2.0.0-beta.1`.
+
 **▶▶ THIS SESSION (2026-07-15, third sitting) — THE "MOSES" RELEASE DECLARED + CI/CD
 WIRED.** The author declared the release intent (the last beta before the 2nd-order
 crossing, "looking over the promised land") and directed a CI/CD model for both lines.

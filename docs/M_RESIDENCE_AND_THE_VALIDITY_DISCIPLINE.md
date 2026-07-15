@@ -336,7 +336,9 @@ mention straining to happen inside a first-order notation.
    *(Corpus half done, above; the live-loop half is what remains of this item.)*
 2. **Departure II appendix.** Fold §§2–5's new corollaries into
    FIDELITY_AND_DEPARTURES §3 (or cross-link this memo) so the register
-   carries its operational completion.
+   carries its operational completion. *(DONE 2026-07-15: FIDELITY_AND_DEPARTURES
+   §3b — the five corollaries, the assertive-graphs bearing, and the
+   enacted-in-corpus status, cross-linked back to this memo.)*
 3. **Decision B** now has two nominees: `(forces s φ)` (imported, exact) and
    `(superseded ⌜M⌝ …)` (homegrown, from the revision workflow). The case for
    opening the door has a second, independent plaintiff.

@@ -12,6 +12,15 @@
 > want, not endorsements. Its `Rx` prospect tags are decoded in
 > [GLOSSARY](GLOSSARY.md#notation--reference-numbers).
 
+> **Disposition so far (2026-07-07, recorded 2026-07-15).** The near-term trio was taken
+> up: **R3 shipped** (`src/mcp_verifier.py` + `src/mcp_server.py` — the referee as an MCP
+> service: check_egif / peel / apply_rule / validate_step / attest), **R2 shipped in its
+> contract half** (`docs/CORRESPONDENCE_CONTRACT.md` — the prover-agnostic §3.3 spec +
+> tomos dataset card, MIT), and the **G5 ops runbook** landed as `runs/OPERATIONS.md`.
+> **R4** remains open (an accessibility-polish thread is on the standing optional list).
+> The larger bets (R1/R5/R9) still wait on the named tensions; the rest of this menu is
+> undisposed.
+
 ## The seven lenses (and what each community is living)
 
 | Lens | Its state of the art, in one line | Its defining unmet need |
