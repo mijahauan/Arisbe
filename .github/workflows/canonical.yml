@@ -31,10 +31,13 @@ jobs:
       - name: Install Node.js (for ELK layout worker)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install Node deps (elkjs)
         run: npm install
+
+      - name: Install Playwright Chromium (for the e2e suites)
+        run: uv run playwright install --with-deps chromium
 
       - name: Run full test suite
         run: uv run pytest tests/ -q

@@ -210,14 +210,28 @@ def _read_json(path) -> object:
 
 
 def _uod_dir(tomos_root, entry: dict) -> str:
-    """A UoD's directory. The index entry carries an absolute ``path`` — and it must
-    be used: the corpus is NOT all under ``universes/`` (the 15 literature examples
-    live in ``literature/``). Falls back to ``universes/<id>`` when path is absent."""
+    """A UoD's directory, resolved against THIS clone's tomos root. The index
+    entry's ``path`` must be honored — the corpus is NOT all under
+    ``universes/`` (the 15 literature examples live in ``literature/``) — but
+    it is stored tomos-root-relative now (a legacy absolute entry from another
+    machine is re-rooted by its trailing ``<category>/<uod_id>`` components).
+    Falls back to ``universes/<id>`` when path is absent."""
     import os
     path = entry.get("path")
-    if path and os.path.isdir(path):
-        return path
+    if path:
+        p = path if os.path.isabs(path) else os.path.join(str(tomos_root), path)
+        if os.path.isdir(p):
+            return p
+        parts = os.path.normpath(path).split(os.sep)
+        if len(parts) >= 2:
+            rerooted = os.path.join(str(tomos_root), parts[-2], parts[-1])
+            if os.path.isdir(rerooted):
+                return rerooted
     return os.path.join(str(tomos_root), "universes", entry.get("uod_id", ""))
+
+
+# Public name for other modules (the web routes) that need the same resolution.
+uod_dir = _uod_dir
 
 
 def tags_of(tomos_root, uod_id_or_entry) -> List[str]:

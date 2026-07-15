@@ -106,10 +106,10 @@ def _browse_facets(entry: dict) -> dict:
     import json
     facets = {"kind": None, "cited": False, "description": "", "extra_tags": [],
               "warrant": None, "has_chain": False}
-    path = entry.get("path")
-    if not path:
+    if not entry.get("path"):
         return facets
-    base = Path(path)
+    from corpus_facets import uod_dir
+    base = Path(uod_dir(TOMOS_PATH, entry))
     try:
         prov = json.loads((base / "provenance.json").read_text(encoding="utf-8"))
         facets["kind"] = prov.get("kind")

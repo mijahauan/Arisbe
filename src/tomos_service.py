@@ -321,7 +321,9 @@ class TomosService:
             "total_transformations": uod.metadata.total_transformations,
             "authors": uod.metadata.authors,
             "tags": list(uod.metadata.tags),
-            "path": str(self._get_uod_path(uod)),
+            # Stored tomos-root-relative so the index is portable across
+            # checkouts (readers resolve via _entry_path).
+            "path": str(self._get_uod_path(uod).relative_to(self.tomos_root)),
         }
         
         self._index.universes.append(entry)
@@ -335,6 +337,23 @@ class TomosService:
             return self.literature_dir / uod.uod_id
         else:
             return self.universes_dir / uod.uod_id
+
+    def _entry_path(self, entry: Dict) -> Path:
+        """Resolve an index entry's storage path against THIS clone's tomos root.
+
+        The index historically stored machine-absolute paths; on any other
+        checkout (CI, a collaborator's clone) they don't exist, so every
+        ``load_uod`` silently returned ``None`` corpus-wide.  Entries are
+        written tomos-root-relative now; a legacy absolute entry that doesn't
+        exist here is re-rooted by its trailing ``<category>/<uod_id>``
+        components (the layout every entry has).
+        """
+        p = Path(entry.get("path", ""))
+        if not p.is_absolute():
+            return self.tomos_root / p
+        if p.exists():
+            return p
+        return self.tomos_root / p.parent.name / p.name
     
     def _get_uod_files(self, uod_path: Path) -> Dict[str, Path]:
         """Get file paths for UoD storage."""
@@ -590,7 +609,7 @@ class TomosService:
         if entry is None:
             return None
         
-        uod_path = Path(entry["path"])
+        uod_path = self._entry_path(entry)
         if not uod_path.exists():
             return None
         
@@ -847,7 +866,7 @@ class TomosService:
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             return {}
-        deltas_path = Path(entry["path"]) / "history" / "deltas.json"
+        deltas_path = self._entry_path(entry) / "history" / "deltas.json"
         if not deltas_path.exists():
             return {}
         try:
@@ -866,7 +885,7 @@ class TomosService:
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             return False
-        return (Path(entry["path"]) / "history" / "chain.jsonl").exists()
+        return (self._entry_path(entry) / "history" / "chain.jsonl").exists()
 
     def load_chain(self, uod_id: str) -> Optional[TransformationChain]:
         """Load the transformation chain persisted alongside a UoD.
@@ -886,7 +905,7 @@ class TomosService:
         if entry is None:
             return None
 
-        uod_path = Path(entry["path"])
+        uod_path = self._entry_path(entry)
         chain_jsonl = uod_path / "history" / "chain.jsonl"
         states_dir = uod_path / "history" / "states"
 
@@ -977,7 +996,7 @@ class TomosService:
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             return None
-        biblio_path = Path(entry["path"]) / "bibliography.json"
+        biblio_path = self._entry_path(entry) / "bibliography.json"
         if not biblio_path.exists():
             return None
         try:
@@ -1026,7 +1045,7 @@ class TomosService:
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             return []
-        ann_path = Path(entry["path"]) / "annotations.json"
+        ann_path = self._entry_path(entry) / "annotations.json"
         if not ann_path.exists():
             return []
         try:
@@ -1071,7 +1090,7 @@ class TomosService:
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             return None
-        prov_path = Path(entry["path"]) / "provenance.json"
+        prov_path = self._entry_path(entry) / "provenance.json"
         if not prov_path.exists():
             return None
         try:
@@ -1095,7 +1114,7 @@ class TomosService:
         if entry is None:
             return False
         
-        uod_path = Path(entry["path"])
+        uod_path = self._entry_path(entry)
         if uod_path.exists():
             import shutil
             shutil.rmtree(uod_path)
