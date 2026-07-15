@@ -10,6 +10,9 @@
 > survey ([SECOND_ORDER_LANDSCAPE_AND_POSITIONING](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md),
 > written the same day). It bears directly on the two author crossing decisions
 > (A: the comprehension floor; B: opening the core for a graph-valued node).
+> [CATEGORIES_AND_THE_THREE_PARTS](CATEGORIES_AND_THE_THREE_PARTS.md) (2026-07-15) gives
+> the same two decisions their categorial footing — `(forces s φ)` read as hypostatic
+> abstraction of a graph.
 
 ## §0 Why this memo
 

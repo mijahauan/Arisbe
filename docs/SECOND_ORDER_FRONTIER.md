@@ -7,7 +7,10 @@ beyond him, and the rule that the crossing must stay a moving picture of thought
 modal half of Gamma, dissolved into the diachronic sheet), [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md)
 (why self-modeling waits behind this frontier), and [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)
 (the method for marking where we part from Peirce). The named research frontier of
-[ROADMAP.md](ROADMAP.md) #13.*
+[ROADMAP.md](ROADMAP.md) #13.
+[CATEGORIES_AND_THE_THREE_PARTS.md](CATEGORIES_AND_THE_THREE_PARTS.md) (2026-07-15) supplies
+the categorial why for this frontier's constraints — the reduction thesis, Thirdness as
+employed prerequisite, and the landscape verdict read as Peircean doctrine.*
 
 > **What this is.** [MODALITY_WITHOUT_GAMMA](MODALITY_WITHOUT_GAMMA.md) takes the *modal* half of
 > Peirce's Gamma off the table (the diachronic DAG is the Kripke frame — no broken cuts, no
