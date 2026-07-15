@@ -151,17 +151,30 @@ def _copy_area(
     skip: set = frozenset(),
 ) -> RelationalGraphWithCuts:
     """Recursively copy ``src_area``'s contents into ``dst_area``, preserving
-    element ids/objects. Per area: vertices first, then edges (their vertices
-    are in the same or an enclosing area, already copied), then cuts."""
+    element ids/objects. Two passes over the area tree: first the *shell*
+    (every vertex and cut), then every edge. A well-scoped graph only needs
+    vertices copied per-area before its edges, but some imported theories
+    (e.g. the OWL pairwise-disjointness expansion, or a relationalised shared
+    constant) carry an edge whose vertex sits in a *sibling* cut — the shell
+    pass makes the copy total over those too, byte-identical on well-scoped
+    graphs (ids and area assignments are preserved either way)."""
     v_by_id = {v.id: v for v in src.V}
     e_by_id = {e.id: e for e in src.E}
     c_by_id = {c.id: c for c in src.Cut}
 
-    def walk(g, s_area, d_area):
+    def walk_shell(g, s_area, d_area):
         for vid in nav.child_vertices(src, s_area):
             if vid in skip:
                 continue
             g = g.with_vertex_in_context(v_by_id[vid], d_area)
+        for cid in nav.child_cuts(src, s_area):
+            if cid in skip:
+                continue
+            g = g.with_cut(c_by_id[cid], context_id=d_area)
+            g = walk_shell(g, cid, cid)
+        return g
+
+    def walk_edges(g, s_area, d_area):
         for eid in nav.child_edges(src, s_area):
             if eid in skip:
                 continue
@@ -170,11 +183,10 @@ def _copy_area(
         for cid in nav.child_cuts(src, s_area):
             if cid in skip:
                 continue
-            g = g.with_cut(c_by_id[cid], context_id=d_area)
-            g = walk(g, cid, cid)
+            g = walk_edges(g, cid, cid)
         return g
 
-    return walk(dst, src_area, dst_area)
+    return walk_edges(walk_shell(dst, src_area, dst_area), src_area, dst_area)
 
 
 # ---------------------------------------------------------------------------

@@ -96,7 +96,9 @@ def _enter_freeform_with_challenge(page, app_url):
     page.goto(app_url + "/ergasterion")
     page.click("#btn-start-empty")
     page.wait_for_selector("#workspace-switch", state="visible")
-    page.click("#btn-freeform-toggle")
+    # Draw mode is entered by the compose-mode switch — the palette and the
+    # drawing tools are two named, exclusive ways to make a graph.
+    page.click("#cm-draw")
     page.wait_for_selector("#freeform-tools", state="visible")
     page.click("#challenge-details > summary")
     page.wait_for_selector("#challenge-select", state="visible")

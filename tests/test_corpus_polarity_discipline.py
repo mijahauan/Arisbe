@@ -15,10 +15,13 @@ M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §2b–§4, as a standing test:
 * world-scrolled corpus Ms and legacy sheet-level Ms (the live loops) **coexist**
   through the same oracle.
 
-The 7 ontology UoDs are the deliberate phase-2 debt (author decision,
-2026-07-15): pure T-boxes whose wrap is builder-only work now that the read
-path is m_view-aware. They are allowlisted HERE, visibly, so the debt cannot
-be forgotten silently. The wrapped-post-hoc chain (``agon_evolution_swan``) is
+The phase-2 ontology wrap landed 2026-07-15 (``tools/build_ontologies.py``):
+all 7 imported T-boxes now reside in the standing world-scroll — five by the
+rule-licensed DC+·INS residence chain, two (``bfo_core``, ``colore_field``) by
+the id-preserving structural adapter because their importers emit cross-sibling
+vertex references no linear EGIF can express (recorded in their annotations).
+The allowlist is EMPTY; it stays here as the named mechanism for any *future*
+deliberate debt. The wrapped-post-hoc chain (``agon_evolution_swan``) is
 exempt from the explicit-step requirement — its steps are honestly flagged
 ``residence: "wrapped-post-hoc"`` (the live loop's migration is §8.1's
 separate order) — but its *states* satisfy the polarity like every other.
@@ -41,12 +44,11 @@ from world_scroll import find_world_scroll, is_ligature_closed, m_view
 
 TOMOS_ROOT = Path(__file__).parent.parent / "tomos"
 
-# Phase-2 debt (deferred by author decision 2026-07-15): the imported T-box
-# ontologies still author at sheet level. Their wrap is builder-only work.
-ONTOLOGY_ALLOWLIST = {
-    "porphyry_tree", "foaf_core", "sumo_upper", "bfo_core",
-    "colore_between", "colore_field", "skos_core",
-}
+# Phase-2 debt PAID (2026-07-15): the 7 imported T-box ontologies are wrapped
+# by their builder (tools/build_ontologies.py). Empty — every M-bearing corpus
+# UoD is under the discipline. Any future deliberate exemption goes here, with
+# its reason, so the debt cannot be forgotten silently.
+ONTOLOGY_ALLOWLIST: set = set()
 
 
 @pytest.fixture(scope="module")

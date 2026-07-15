@@ -28,7 +28,9 @@ pytest.importorskip("playwright")
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 REPO = Path(__file__).parent.parent
-SYNCHRONIC = "porphyry_tree"        # no recorded chain
+SYNCHRONIC = "skos_core"            # no recorded chain (structurally-wrapped
+                                    # residence, 2026-07-15 — porphyry_tree now
+                                    # carries a real DC+·INS residence chain)
 CHAINED = "theorem_praeclarum"      # a worked 7-step proof (linear)
 BRANCHING = "branching_confluence"  # a fork-and-merge episode (a DAG)
 MODAL = "possible_and_necessary"    # a branching weather episode — □cold, ◇cloudy/◇calm

@@ -32,6 +32,21 @@
       "state_id": null,
       "step_id": null,
       "element_id": null
+    },
+    {
+      "id": "ann_422bcdc0",
+      "scope": "uod",
+      "text": "Residence (phase-2 wrap, 2026-07-15): M is housed at level 1 of the standing world-scroll ~[ M ~[ ] ] by the id-preserving structural adapter (world_scroll.wrap_state), not the DC+\u00b7INS chain \u2014 the OWL pairwise-disjointness expansion reuses one variable across the three sibling disjointness cuts, so the imported graph carries edge\u2192vertex references no linear EGIF can express, and an INS (which parses EGIF) would silently rescope them. Honest structural residence beats a forced rescope; the content is same_graph-identical to the import and the residence is verified (scroll recognized, ligature-closed, m_view reads back identical).",
+      "author": null,
+      "created": null,
+      "tags": [
+        "residence",
+        "world-scroll",
+        "structural-wrap"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
     }
   ]
 }

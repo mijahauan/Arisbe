@@ -298,10 +298,17 @@ def assign_order_labels(egi, dto: LayoutDTO) -> LayoutDTO:
             cw = _clockwise_order(dto, pid)
             if cw == seq:
                 mode[pid] = "none"           # placement already reads ν
-            elif _rotation_offset(seq, cw) is not None:
-                mode[pid] = "anchor"         # one start index pins the rotation
+            elif (len(set(seq)) == len(seq)
+                  and _rotation_offset(seq, cw) is not None):
+                # One start index pins the rotation — but only when the
+                # arguments are distinct: with a repeated vertex (e.g.
+                # (sum x y x)) the value-level rotation offset can point at
+                # the *other* hook of the repeated vertex than the one that
+                # carries ν's first argument, so the anchor would mark the
+                # wrong line and the read comes back permuted.
+                mode[pid] = "anchor"
             else:
-                mode[pid] = "full"           # genuine permutation — number all
+                mode[pid] = "full"           # permutation or repeated argument
         else:  # numbered
             mode[pid] = "full"
 

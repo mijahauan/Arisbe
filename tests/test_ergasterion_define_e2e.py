@@ -85,7 +85,9 @@ def _draw_and_fix_man(page):
     """Draw man(x) freehand and fix it → lands in the Argument workspace."""
     page.click("#btn-start-empty")
     page.wait_for_selector("#workspace-switch", state="visible")
-    page.click("#btn-freeform-toggle")
+    # Draw mode is entered by the compose-mode switch — the palette and the
+    # drawing tools are two named, exclusive ways to make a graph.
+    page.click("#cm-draw")
     page.wait_for_selector("#freeform-tools", state="visible")
     page.click('#freeform-tools [data-fftool="predicate"]')
     _click_canvas(page, 0.5, 0.3)                 # "man" (dialog accepts the name)

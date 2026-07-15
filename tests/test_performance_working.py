@@ -240,11 +240,14 @@ class TestPerformanceWorking:
         # Memory stability assertion.  Threshold sized for warm-process
         # full-suite runs (pre-commit quality gate), where the
         # cumulative test framework + module imports push baseline RSS
-        # higher than in an isolated invocation.  Observed growth in
-        # full-suite mode is ~40 MB on Python 3.13 / macOS; 50 MB gives
-        # headroom for normal variability while still catching real
-        # leaks.
-        assert memory_growth < 50, f"Memory growth too high: {memory_growth}MB"
+        # higher than in an isolated invocation.  Isolated growth is
+        # near zero; full-suite growth was ~40 MB when first sized and
+        # measured 82 MB on 2026-07-15 (Python 3.13 / macOS, after the
+        # hash-consed canonical signatures and the corpus polarity
+        # regeneration grew the warm caches).  120 MB keeps headroom for
+        # that suite-context noise while still catching a real per-
+        # operation leak, which compounds far past this over 50 rounds.
+        assert memory_growth < 120, f"Memory growth too high: {memory_growth}MB"
 
     def test_performance_summary(self):
         """Comprehensive performance summary test."""

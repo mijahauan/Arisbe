@@ -21,28 +21,53 @@ Three, in ascending realism — the general import model exercised end to end:
     three categories — Independent / Relative / Mediating = Firstness / Secondness
     / Thirdness — so the upper ontology is, at root, Peircean.
 
+**Under the validity discipline** (docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE
+§3, the phase-2 ontology wrap, 2026-07-15): each imported theory resides at
+level 1 of a **standing world-scroll** ``~[ M ~[ ] ]`` — nothing contingent at
+depth 0. An ontology is *supposed* (imported, low-warrant), not derived, so the
+preferred construction is the gapless inbound chain from the blank sheet —
+**DC+** (open the standing scroll; asserts nothing) then **INS** (suppose the
+theory into the negative arena; sound there) — recorded as a real two-step
+chain, exactly like the domain-model boards. Three imports are instead housed
+by the id-preserving structural adapter (``world_scroll.wrap_state``), each
+recorded honestly in its annotations: ``bfo_core`` and ``colore_field`` cannot
+ride the EGIF INS vehicle at all — their importers emit edges whose vertices
+sit in *sibling* cuts (the OWL pairwise-disjointness expansion / a
+relationalised shared constant), which no linear EGIF can express, so an INS
+would silently rescope them — and ``skos_core`` is EGIF-expressible but the
+INS reparse re-orders siblings past the geometric reader's ELK inversion
+frontier, so the id-preserving wrap keeps its drawn record invertible. Every
+builder verifies the residence: scroll recognized, ligature-closed, and M
+reads back ``same_graph``-identical through ``m_view``.
+
 Import-safe (no side effects on import).  Run to seed the corpus.
 """
 
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import eg_navigation as nav
 from annotations import SCOPE_UOD, annotations_to_list, make_annotation
+from eg_navigation import same_graph
+from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from ontology_egif import OntologyEGIF
+from proof_authoring import ProofChain
 from provenance import KIND_ONTOLOGY, make_provenance
 from suokif_to_eg import upper_taxonomy
+from tomos_service import TransformationChain
 from universe_of_discourse import (
     UniverseOfDiscourse,
     UoDCategory,
     UoDMetadata,
     UoDType,
 )
+from world_scroll import find_world_scroll, is_ligature_closed, m_view, wrap_state
 
 _WHEN = datetime(2026, 6, 8, tzinfo=timezone.utc)
 _WHEN_BFO = datetime(2026, 6, 12, tzinfo=timezone.utc)
@@ -56,13 +81,69 @@ _SKOS_TTL = (Path(__file__).resolve().parent.parent / "corpus" / "ontologies"
              / "skos_core.ttl")
 
 
-def _uod(uod_id: str, name: str, description: str, egif: str) -> UniverseOfDiscourse:
-    meta = UoDMetadata(
+def _check_residence(egi, m) -> None:
+    """The builder-side gate: the standing world-scroll is recognized, no line
+    of identity crosses its boundary (the withdrawal ERA stays available), and
+    M reads back ``same_graph``-identical through the shared read primitive."""
+    scroll = find_world_scroll(egi)
+    assert scroll is not None, "no standing world-scroll after the wrap"
+    assert is_ligature_closed(egi, scroll), (
+        "a line of identity crosses the world-scroll boundary")
+    assert same_graph(m_view(egi), m), (
+        "M does not read back identically through m_view — the wrap changed "
+        "the imported theory")
+
+
+def _meta(uod_id: str, name: str, description: str,
+          created: datetime) -> UoDMetadata:
+    return UoDMetadata(
         uod_id=uod_id, uod_type=UoDType.STANDALONE, name=name,
         description=description, category=UoDCategory.DOMAIN_MODEL,
-        created=_WHEN, last_modified=_WHEN,
+        created=created, last_modified=created,
     )
-    return UniverseOfDiscourse(metadata=meta, current_egi=parse_egif(egif))
+
+
+def _uod(uod_id: str, name: str, description: str, egif: str,
+         *, created: datetime = _WHEN, m=None,
+         ) -> Tuple[TransformationChain, UniverseOfDiscourse]:
+    """Build the theory's residence by the gapless inbound construction — DC+
+    then INS, both real Dau rules from the blank sheet — so the imported
+    theory resides in its standing world-scroll and carries the two-step chain
+    that put it there (an ontology is *supposed*, not derived).
+
+    ``m`` (optional) is the authoritative imported EGI when ``egif`` was
+    generated from one — the residence check then verifies faithfulness to
+    the *import*, not merely to a reparse of its text."""
+    pc = ProofChain.from_blank()
+    pc.apply("DC+", into=lambda g: g.sheet,
+             note="Open the standing world-scroll: an empty double cut asserts "
+                  "nothing, and until it exists there is nowhere to suppose an "
+                  "imported theory that is not an assertion.")
+    pc.apply("INS", insert=egif,
+             into=lambda g: nav.child_cuts(g, g.sheet)[0],
+             note="Suppose the imported theory into the negative arena — "
+                  "insertion is sound there, and the supposition is fenced: "
+                  "nothing contingent stands at depth 0.")
+    _check_residence(pc.current, m if m is not None else parse_egif(egif))
+    uod = UniverseOfDiscourse(metadata=_meta(uod_id, name, description, created),
+                              current_egi=pc.current)
+    return pc.to_chain(), uod
+
+
+def _uod_structural(uod_id: str, name: str, description: str, m_egi,
+                    *, created: datetime,
+                    ) -> Tuple[Optional[TransformationChain], UniverseOfDiscourse]:
+    """House an imported EGI in the standing world-scroll **structurally**
+    (``world_scroll.wrap_state``, id-preserving) — for the imports whose graphs
+    carry cross-sibling vertex references no linear EGIF can express, so the
+    rule-licensed INS (which parses EGIF) would silently rescope them. No chain
+    is recorded (there was no rule application); the residence is documented in
+    the UoD's annotations and verified here like every other."""
+    wrapped, _ = wrap_state(m_egi)
+    _check_residence(wrapped, m_egi)
+    uod = UniverseOfDiscourse(metadata=_meta(uod_id, name, description, created),
+                              current_egi=wrapped)
+    return None, uod
 
 
 def _anns(*texts_tags) -> List[dict]:
@@ -84,7 +165,7 @@ def porphyry():
             .subsumes("Beast", "Animal")
             .disjoint("Man", "Beast")
             .instance("Socrates", "Man"))
-    uod = _uod(
+    chain, uod = _uod(
         "porphyry_tree", "Porphyry's Tree",
         "The classic genus–species hierarchy of Porphyry's Isagoge (c. 270 CE): "
         "Substance ⊐ Body ⊐ Living ⊐ Animal, divided into Man (rational) and Beast "
@@ -109,7 +190,7 @@ def porphyry():
          "and the context the man–mortal scroll presupposes.",
          ["ontology", "cited", "history-of-logic", "t-box"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -123,7 +204,7 @@ def foaf():
             .domain("knows", 2, 2, "Person")   # range(knows)  ⊑ Person
             .instance("Alice", "Person")
             .instance("Bob", "Person"))
-    uod = _uod(
+    chain, uod = _uod(
         "foaf_core", "FOAF (core)",
         "A core slice of the FOAF (Friend of a Friend) vocabulary: Person ⊑ Agent, "
         "with the knows relation typed Person→Person (domain and range), and two "
@@ -146,7 +227,7 @@ def foaf():
          "A small populated board (Alice, Bob) for the game.",
          ["ontology", "cited", "semantic-web", "domain-range"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -161,7 +242,7 @@ def sumo():
     n_cls = len(kept["classes"])
     skipped = report["skipped"]
     n_skipped = sum(skipped.values())
-    uod = _uod(
+    chain, uod = _uod(
         "sumo_upper", "SUMO (upper taxonomy)",
         f"The upper structural spine of the Suggested Upper Merged Ontology — "
         f"{n_sub} subsumptions over {n_cls} classes (depth ≤ 2 from Entity), "
@@ -208,7 +289,7 @@ def sumo():
          f"via tools/suokif_to_eg.py.",
          ["provenance", "honest-partial-import", "no-silent-caps"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -221,9 +302,9 @@ def bfo():
     from domain_model_importer import from_owl_file
 
     result = from_owl_file(_BFO)
-    meta = UoDMetadata(
-        uod_id="bfo_core", uod_type=UoDType.STANDALONE, name="BFO (core taxonomy)",
-        description=(
+    chain, uod = _uod_structural(
+        "bfo_core", "BFO (core taxonomy)",
+        (
             "The upper is-a taxonomy of the Basic Formal Ontology (BFO 2.0): Entity ⊐ "
             "{Continuant, Occurrent}; IndependentContinuant ⊐ MaterialEntity ⊐ "
             "{Object, FiatObjectPart, ObjectAggregate}; the realizable line "
@@ -231,9 +312,8 @@ def bfo():
             "the three dependence kinds disjoint. A pure T-box and a second real upper "
             "ontology beside SUMO — imported from OWL functional syntax through the "
             "OWL→CLIF→EGI pipeline."),
-        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+        result.egi, created=_WHEN_BFO,
     )
-    uod = UniverseOfDiscourse(metadata=meta, current_egi=result.egi)
     prov = make_provenance(
         theorem_source={"type": "book",
                         "author": "Arp, Robert and Smith, Barry and Spear, Andrew D.",
@@ -267,8 +347,19 @@ def bfo():
          f"boundary while the taxonomy is cheap (the layout-perf frontier; M is data, "
          f"draw only the contested fragment). Translator skips: {skips}.",
          ["provenance", "owl-import", "honest-partial-import", "no-silent-caps"]),
+        ("Residence (phase-2 wrap, 2026-07-15): M is housed at level 1 of the "
+         "standing world-scroll ~[ M ~[ ] ] by the id-preserving structural "
+         "adapter (world_scroll.wrap_state), not the DC+·INS chain — the OWL "
+         "pairwise-disjointness expansion reuses one variable across the three "
+         "sibling disjointness cuts, so the imported graph carries edge→vertex "
+         "references no linear EGIF can express, and an INS (which parses EGIF) "
+         "would silently rescope them. Honest structural residence beats a "
+         "forced rescope; the content is same_graph-identical to the import and "
+         "the residence is verified (scroll recognized, ligature-closed, m_view "
+         "reads back identical).",
+         ["residence", "world-scroll", "structural-wrap"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -288,10 +379,10 @@ def colore_between():
     result = from_clif_file(_COLORE_BETWEEN)
     g = result.egi
     facts, rep = materialize_egi(g)  # honest report: a relational FOL theory
-    meta = UoDMetadata(
-        uod_id="colore_between", uod_type=UoDType.STANDALONE,
-        name="COLORE betweenness",
-        description=(
+    chain, uod = _uod(
+        "colore_between",
+        "COLORE betweenness",
+        (
             "The betweenness ontology from COLORE (the Common Logic Ontology "
             "Repository, M. Grüninger et al., University of Toronto): a ternary "
             "between(x,y,z) relation axiomatised by symmetry, identity-of-ends, and "
@@ -299,9 +390,8 @@ def colore_between():
             "weak_between → bet. The first corpus ontology imported from a real "
             "external CL repository, validating the OWL/CLIF→EGI pipeline on foreign "
             "first-order content."),
-        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+        generate_egif(g), created=_WHEN_BFO, m=g,
     )
-    uod = UniverseOfDiscourse(metadata=meta, current_egi=g)
     prov = make_provenance(
         theorem_source={"type": "webpage",
                         "author": "Grüninger, Michael and others",
@@ -337,7 +427,7 @@ def colore_between():
          f"((density (dmv v m)) ↦ ∃z (dmv(v,m,z) ∧ density(z))).",
          ["provenance", "clif-import", "honest-partial-import", "non-horn-residue"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -365,10 +455,9 @@ def colore_field():
     result = from_clif_text(closure.combined_clif)
     g = result.egi
     modules = ", ".join(m.iri.replace(COLORE_PREFIX, "") for m in closure.modules)
-    meta = UoDMetadata(
-        uod_id="colore_field", uod_type=UoDType.STANDALONE,
-        name="COLORE field algebra",
-        description=(
+    chain, uod = _uod_structural(
+        "colore_field", "COLORE field algebra",
+        (
             "The real-number field algebra from COLORE (the Common Logic Ontology "
             "Repository, M. Grüninger et al., University of Toronto): the ringoid "
             "tower field ⊃ commutative_ring ⊃ ring ⊃ semiring, with sum and prod "
@@ -377,9 +466,8 @@ def colore_field():
             "(field → commutative_ring → ring → semiring) with the ring axioms' "
             "nested function terms relationalised on import — the first corpus UoD "
             "whose import chain was resolved by the machine, not by hand."),
-        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+        g, created=_WHEN_BFO,
     )
-    uod = UniverseOfDiscourse(metadata=meta, current_egi=g)
     prov = make_provenance(
         theorem_source={"type": "webpage",
                         "author": "Grüninger, Michael and others",
@@ -419,8 +507,19 @@ def colore_field():
          f"frontier, as with bfo_core's full axiomatisation; M is data, draw only the "
          f"contested fragment).",
          ["provenance", "clif-import", "cl-imports-auto-resolved", "non-horn-residue"]),
+        ("Residence (phase-2 wrap, 2026-07-15): M is housed at level 1 of the "
+         "standing world-scroll ~[ M ~[ ] ] by the id-preserving structural "
+         "adapter (world_scroll.wrap_state), not the DC+·INS chain — the "
+         "relationalised shared constants (the ring's zero and one) are each a "
+         "single vertex referenced by edges in *sibling* axiom cuts, a shape no "
+         "linear EGIF can express, so an INS (which parses EGIF) would silently "
+         "rescope them. Honest structural residence beats a forced rescope; the "
+         "content is same_graph-identical to the import and the residence is "
+         "verified (scroll recognized, ligature-closed, m_view reads back "
+         "identical).",
+         ["residence", "world-scroll", "structural-wrap"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 # --------------------------------------------------------------------------- #
@@ -442,9 +541,9 @@ def skos_core():
     from domain_model_importer import from_rdf_file
 
     result = from_rdf_file(_SKOS_TTL)
-    meta = UoDMetadata(
-        uod_id="skos_core", uod_type=UoDType.STANDALONE, name="SKOS (semantic-relation core)",
-        description=(
+    chain, uod = _uod_structural(
+        "skos_core", "SKOS (semantic-relation core)",
+        (
             "The semantic-relation core of the W3C Simple Knowledge Organization "
             "System (SKOS, Miles & Bechhofer 2009): the Concept / ConceptScheme / "
             "Collection classes (pairwise disjoint) and the semantic relations — "
@@ -455,9 +554,8 @@ def skos_core():
             "front-end, and a *populated, rule-bearing* model: the broader chain "
             "closes under transitivity (Dog broaderTransitive Animal) and related "
             "closes symmetrically — a live target for the semantic game."),
-        category=UoDCategory.DOMAIN_MODEL, created=_WHEN_BFO, last_modified=_WHEN_BFO,
+        result.egi, created=_WHEN_BFO,
     )
-    uod = UniverseOfDiscourse(metadata=meta, current_egi=result.egi)
     prov = make_provenance(
         theorem_source={"type": "techreport",
                         "author": "Miles, Alistair and Bechhofer, Sean",
@@ -496,8 +594,20 @@ def skos_core():
          f"only the contested fragment). The `ex:` animal thesaurus is authored here "
          f"to populate the scheme, not part of SKOS. Translator skips: {skips}.",
          ["provenance", "rdf-import", "honest-partial-import", "no-silent-caps"]),
+        ("Residence (phase-2 wrap, 2026-07-15): M is housed at level 1 of the "
+         "standing world-scroll ~[ M ~[ ] ] by the id-preserving structural "
+         "adapter (world_scroll.wrap_state), not the DC+·INS chain. Unlike "
+         "bfo_core/colore_field this import IS EGIF-expressible — but the INS "
+         "vehicle implies a reparse whose re-ordered siblings ELK packs past the "
+         "geometric reader's inversion frontier (read_drawing no longer recovers "
+         "the graph under ELK/peirce), while the id-preserving wrap keeps the "
+         "drawn record invertible, as it was at sheet level. The stronger drawn "
+         "property was kept over the two-step chain; content is same_graph-"
+         "identical to the import and the residence is verified (scroll "
+         "recognized, ligature-closed, m_view reads back identical).",
+         ["residence", "world-scroll", "structural-wrap"]),
     )
-    return uod, prov, anns
+    return chain, uod, prov, anns
 
 
 def build_all() -> List[Tuple]:
@@ -510,15 +620,22 @@ def main(argv=None) -> int:
 
     tomos_root = Path(__file__).resolve().parent.parent / "tomos"
     service = TomosService(tomos_root)
-    for uod, prov, anns in build_all():
+    built = build_all()
+    for chain, uod, prov, anns in built:
         prov.validate()
-        service.save_uod(uod)                       # §3.3 attests at the boundary
-        service.save_provenance(uod, prov.to_dict())
+        if chain is not None:
+            # §3.3 attests inside save_uod before any chain files are written
+            service.save_uod_with_chain(uod, chain, provenance=prov.to_dict())
+            how = f"{len(chain.steps)}-step DC+·INS residence chain"
+        else:
+            service.save_uod(uod)                   # §3.3 attests at the boundary
+            service.save_provenance(uod, prov.to_dict())
+            how = "structural residence (wrap_state; see annotations)"
         service.save_annotations(uod, anns)
         g = uod.current_egi
         print(f"  saved {uod.uod_id:16} kind=ontology  "
-              f"V{len(g.V)} E{len(g.E)} Cut{len(g.Cut)}")
-    print(f"\nimported {len(build_all())} ontologies.")
+              f"V{len(g.V)} E{len(g.E)} Cut{len(g.Cut)}  [{how}]")
+    print(f"\nimported {len(built)} ontologies.")
     return 0
 
 

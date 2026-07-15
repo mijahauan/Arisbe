@@ -381,10 +381,18 @@ class ELKLayoutEngine:
         # family resemblance a copy should have (TRANSFORMATION_WORKFLOW_SPEC
         # §2 IT+, §3a continuity).  It also makes layout reproducible across
         # runs regardless of element-id hashing.
+        # The structural key is not total: structurally identical siblings (e.g.
+        # several atoms of one relation, unlabeled vertices) tie, and a stable
+        # sort would then fall back to the frozenset's hash-order iteration —
+        # which varies with PYTHONHASHSEED, making layout differ per process.
+        # The element id breaks ties deterministically (ids persist in the
+        # corpus record), and between structurally indistinguishable siblings
+        # any fixed choice preserves the iso-family resemblance equally.
         ordered_contents = sorted(
             area_contents,
-            key=lambda eid: self._structural_key(
-                egi, eid, cut_ids, vertex_ids, edge_ids
+            key=lambda eid: (
+                self._structural_key(egi, eid, cut_ids, vertex_ids, edge_ids),
+                eid,
             ),
         )
 
