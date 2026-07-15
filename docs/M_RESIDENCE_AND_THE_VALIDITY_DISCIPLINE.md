@@ -74,6 +74,56 @@ is classical modus ponens (`beta_modus_ponens` is this shape). Note this is
 the *outbound* direction of Departure II's registered *inbound* construction
 (DC+ · INS · IT+ nesting — how M enters as a defeasible given).
 
+## 2b. The depth-0 inventory theorem, and the venue of discharge
+
+Author follow-up (2026-07-15): *shouldn't we say explicitly that no path
+discharges to depth 0 — that depth 0 can legitimately contain only nothing or
+seps? What role does "contingent" play in "no pure-rule path to contingent
+depth 0"?*
+
+**The role of "contingent": it is the exact boundary of the theorem.** By
+soundness *and completeness*, reachable-from-blank = **valid**. So depth 0
+legitimately carries content all the time — every theorem of the calculus
+stands there (a proof from the blank *ends* as a sheet-level graph:
+`peirce_law`, `theorem_praeclarum`). Drop "contingent" and the claim is false;
+keep it and the claim is gapless.
+
+**The depth-0 inventory theorem.** What can a valid graph carry *uncircumscribed
+in the sheet's own area*? Exactly three kinds of thing:
+
+1. **nothing** (the blank);
+2. **seps** (cuts — every *saying* at depth 0 lives inside one);
+3. **heavy dots / lines of identity** — bare "something exists," which Dau's
+   isolated-vertex rule inserts in arbitrary contexts
+   (UNIVERSAL_GENERALIZATION_DAU_HOMEWORK) and which is valid because the
+   universe of discourse is presupposed nonempty. This is the one refinement
+   the author's "nothing or seps" formulation needs — and it is no
+   counterexample in spirit: the dot *predicates nothing* (Peirce's pure
+   demonstrative); it re-asserts only the presupposition the sheet itself
+   makes by representing a universe.
+
+**Never an uncircumscribed spot.** An uncircumscribed relation atom `P` at
+depth 0 makes the graph entail `P`; `P` is falsifiable; the rules preserve
+validity; the blank is valid — so no legitimate path from the blank sheet ever
+exposes an uncircumscribed proposition on it. Stated as the author asked:
+**explicitly, no such path exists.**
+
+**The venue of discharge — reconciling this with §2's discharge path.** The §2
+demonstration *presupposed the utterance*: warrant and trust-law already stood
+at depth 0 (the old regime's act), and the discharge then computed *relative
+consequence* — given contingent depth-0 content, more follows to depth 0. That
+never breached the theorem (which concerns paths from the blank); it
+propagated the act's contingency. Under the gapless discipline the same
+mechanics can never fire at depth 0: with no contingent depth-0 copy, IT− is
+never licensed inside a sheet-level scroll's ring, so a sheet-level antecedent
+never empties, so DC− at depth 0 removes only genuinely inert double cuts —
+**depth 0 is contingency-free by invariance, not by vigilance.** And DC−
+loses nothing: all contingent discharge happens at even depths ≥ 2, under the
+standing supposition — the modus-ponens two-step runs identically at level 2
+(IT+ carries warrant and trust-law into the hold; IT− deiterates; DC−
+discharges), and what it wins is *committed-under-M* — which is Level Zero's
+form again. Deduction is untouched; only its venue is fixed.
+
 ## 3. The discipline
 
 Everything contingent lives within a cut. Depth 0 is the world's level: it
