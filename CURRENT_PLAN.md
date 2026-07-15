@@ -1,6 +1,33 @@
 # Current Plan
 
-**▶▶ THIS SESSION (2026-07-13 → 07-14) — A LONG ARC: run 12 shipped, the doc/UX debt paid,
+**▶▶ THIS SESSION (2026-07-14 → 07-15) — THE M-RESIDENCE DIALOGUE: the validity discipline
+re-derived, identified as Departure II, and recorded.** A foundations dialogue driven by the
+author's questions (where does M reside? how do atoms reach depth 0? is this a departure from
+Peirce?), recorded in the new dev memo **`docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md`**:
+the depth-0 "utterance" door rejected (commitment = the scribing act + author, not depth; the
+only unique power of depth-0 assertion is *detachment*, which fallibilism denies); everything
+contingent within a cut, blank = the reality beyond the membrane → **every reachable EGI and
+the whole UoD valid by construction**; M relocates to level 1 of a standing world-scroll (the
+change-asymmetry *flips*: INS free / piecemeal ERA unsound → revision = withdraw the whole
+scroll, the DAG keeping the old world); the **presence-is-play** theorem (DC+ around old-M is
+inert — no force-free ink at first order) → the **three tenses** (in-force = the rivals
+pattern · withdrawn-remembered = the DAG · present-without-force = QUOTATION, gated on
+decision B), nominating **`(superseded ⌜M⌝)`** as the second candidate (beside `(forces s φ)`)
+for decision B's first asserted 2nd-order claim. **Fidelity verdict (memo §6): NOT a new
+departure — this IS Departure II** (FIDELITY_AND_DEPARTURES §3, gapless thesis, survived the
+adversarial exam at 0.82); the assistant's recurrent "SA = assertion at depth 0" argument was
+the *rejected* textbook gloss (lesson → NEW `tasks/lessons.md`). The Bellucci/Chiffi/Pietarinen
+*Beta Assertive Graphs* paper (JAL 2021) read as strengthening the register (documents the
+rejected gloss as the standard reading; the AG route pays with intuitionism + new primitives
+where Arisbe pays with regimen, Dau core untouched; their ¬∀→∃¬ non-theorem = our K3 UNKNOWN).
+Coda §7b: **Departures II and III are one policy** — force and modality are carried by the
+architecture around the picture (polarity = force, DAG = modality, chain = responsibility),
+never pictured; both bottom out at the same second-order frontier. Standing code tension named
+(memo §8, NOT built): `model_acts.assert_into`/`model_revision.assert_fact` perform the
+register's "forbidden move" with warrant as metadata; ink-exact forms = `admit_by_discharge` +
+DC+·INS·IT+ nesting. Docs only this session; run 12 untouched (launch remains the author's).
+
+**▶▶ PREVIOUS SESSION (2026-07-13 → 07-14) — A LONG ARC: run 12 shipped, the doc/UX debt paid,
 the mathematical + dialogical foundations made explicit. 15 commits, pushed.** The session
 opened on the frontier-positioning work (block below) and then, driven by the author's reading
 and questions, went deep on foundations. In order:
