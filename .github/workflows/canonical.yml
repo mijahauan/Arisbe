@@ -5,6 +5,7 @@ on:
     branches: [ main, master, "release/**" ]
     tags: [ "v*" ]
   pull_request:
+  workflow_dispatch:
 
 jobs:
   canonical:
