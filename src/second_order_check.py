@@ -34,9 +34,11 @@ The law — the second-order restatement of ``RESOLVE ≡ INLINED-AND-ATTESTED``
       history is at most ◇ (*some* trajectory), and asserting it flat misreads ◇ as
       □; it is legitimate only enclosed (under a cut, as an antecedent one
       conditions on). A *predicative* quote (a strictly-lower graph, no reach-back)
-      is always well-formed. **This is one chosen, defensible floor** — the most
-      Peirce-continuous (his "vary the sort, not the rules" method) — not the only
-      one; the choice is the author's (SECOND_ORDER_FRONTIER §"The design rule").
+      is always well-formed. **This floor is RATIFIED as doctrine** (the author,
+      2026-07-16 — CROSSING_DECISION_BRIEFS verdict A1): predicative with the
+      enclosure escape, formation stratified while evaluation stays K3-partial
+      (verdict A2). It remains parameterized so a *measured* climb stays possible,
+      but any climb re-proves conservativity over the Dau core (verdict A3).
 
   S2  **Quote-equals-quoted-and-attested** (the object recovers; §3.3 recurses).
       Resolving the quotation yields *exactly* the independently-obtained quoted

@@ -172,3 +172,14 @@ its S3 read-back semantics already defined by the peel + `modal_query`, and — 
 §4 (Montague's theorem) — admissible only as a *defined, grounded, decidable*
 relation, never an axiomatized primitive. Decision B remains open; the nominee is
 what it would be exercised on.
+
+> **DECISION B TAKEN (the author, 2026-07-16 — CROSSING_DECISION_BRIEFS).** The
+> frontier is crossed, exemplar-first: rather than holding B for an awaited
+> demonstrated need, the need is *established* by fitting exemplar cases chosen to
+> illustrate graphs-about-graphs clearly and robustly. **Both nominees get ink** —
+> `(superseded ⌜M⌝ reason)` and `(forces s φ)` (Montague rider binding). Staging as
+> this memo ordered: overlay first, then **B-min**, then **B-full following B-min**;
+> taken jointly with the reference-node increment-2 use/mention fork (one core
+> opening, both riders). Decision A was ratified the same day (predicative floor,
+> split-level, conservativity as the crossing invariant — the corpus-level
+> no-new-first-order-theorems check joins the crossing's verification).

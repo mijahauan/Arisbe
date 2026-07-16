@@ -1,5 +1,25 @@
 # The Crossing Decision Briefs — A (the comprehension floor) · B (opening the core)
 
+> **VERDICTS TAKEN (the author, 2026-07-16).**
+> **A1–A4 affirmed as written**: the predicative floor with the enclosure escape is
+> ratified as doctrine; formation stratified, evaluation K3-partial; conservativity
+> over the Dau core is the standing crossing invariant; the ladder above stays named
+> for a measured, re-proved climb.
+> **B affirmed, amended at B2 and B4**: the frontier **is crossed** — the author's
+> framing: *"the point of crossing the frontier is to enable handling graphs about
+> graphs, so we needn't shy away from implementing it, but rather should choose some
+> fitting exemplar cases that will illustrate its usefulness clearly and robustly."*
+> So B2's wait-for-a-demonstrated-need trigger is **replaced by an exemplar-first
+> mandate**: the need is established by the chosen exemplars, not awaited. **B4 =
+> both nominees** — `(superseded ⌜M⌝ reason)` and `(forces s φ)` (the latter under
+> the Montague rider) both get ink. Staging stands: overlay (B1) → **B-min** →
+> **B-full follows B-min** (B5 amended from "waits for its own demonstrated need"
+> to "follows"). B3 (jointly with the reference-node use/mention fork — one core
+> opening, both riders) stands as written. Recorded in
+> SECOND_ORDER_CORE_OPENING §7, SECOND_ORDER_LANDSCAPE_AND_POSITIONING §6,
+> M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §8.3, REFERENCE_AND_TRANSCLUSION_NODE §7,
+> and `second_order_check.py` (S1 ratified).
+
 **Dev memo (decision aid), 2026-07-15.** One page per decision, distilled for the
 author's verdict from the standing record: SECOND_ORDER_FRONTIER ·
 SECOND_ORDER_LANDSCAPE_AND_POSITIONING · SECOND_ORDER_CORE_OPENING ·

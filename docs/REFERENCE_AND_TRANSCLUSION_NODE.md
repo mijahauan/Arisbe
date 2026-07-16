@@ -231,6 +231,13 @@ schema ↔ reference unify in practice *before* any structure is committed to th
 
 ## 7. Deferred (needs the core, or a later increment)
 
+> **THE GATE OPENS (2026-07-16).** Crossing decision B was taken
+> (CROSSING_DECISION_BRIEFS; SECOND_ORDER_CORE_OPENING §7): the core opens B-min →
+> B-full, **jointly with this section's increment-2 use/mention fork** — one core
+> opening, both riders, exemplar-first. The fork's discipline stands as written
+> below: use = governed import via the scroll, mention = second-order naming; the
+> fork is chosen *before* any cross-UoD splice is built.
+
 - **Structural distinguishability + the glyph in §3.3.** If a consumer must tell "this edge is a
   reference, not an asserted relation" at the *EGI* level (rather than via the overlay), or the renderer's
   reference glyph must be attested as a distinct drawn kind, then `egi_core_dau` and §3.3 totality grow a

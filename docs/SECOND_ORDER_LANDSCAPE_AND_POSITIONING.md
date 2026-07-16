@@ -214,6 +214,14 @@ named stations, and Arisbe should know which one it is standing at:
 
 ## §6 The verdict — are we properly heading there?
 
+> **RATIFIED (the author, 2026-07-16 — CROSSING_DECISION_BRIEFS verdicts A1–A4).**
+> The configuration below is no longer a default awaiting a verdict: the predicative
+> floor (S1, enclosure escape) is doctrine; formation stratified / evaluation
+> K3-partial; **conservativity over the Dau core is the standing crossing
+> invariant**; the ladder stays named for a measured climb. Decision B was taken the
+> same day (cross, exemplar-first, both nominees, B-min → B-full) — see
+> SECOND_ORDER_CORE_OPENING §7.
+
 **Yes — and the landscape says the heading is not merely defensible but close to the
 uniquely sensible one.** The configuration the settled decisions plus memo defaults
 describe is, in modern terms:

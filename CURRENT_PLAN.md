@@ -1,6 +1,30 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+-1. **THE CROSSING IS ON (verdicts taken 2026-07-16 — CROSSING_DECISION_BRIEFS).** The
+   author affirmed **A1–A4** (predicative floor ratified as doctrine; stratified formation /
+   K3-partial evaluation; **conservativity over the Dau core = the standing crossing
+   invariant**; ladder named for measured climbs) and **B amended**: cross now,
+   **exemplar-first** ("the point … is to enable handling graphs about graphs; we needn't
+   shy away — choose fitting exemplar cases that illustrate its usefulness clearly and
+   robustly"), **B4 = both nominees**, **B-full follows B-min**, B3 joint-with-mention-fork
+   stands. Verdicts recorded in CORE_OPENING §7 · LANDSCAPE §6 · M_RESIDENCE §8.3 ·
+   REFERENCE_AND_TRANSCLUSION_NODE §7 · second_order_check.py S1. **Build staging:**
+   ⓪ *Overlay stratum* (no core, main): `Quotation` overlay + glyph on the exemplars,
+   S1/S2/S4/S5 attested, S3 skip-named. ① *B-min* (one authorized core opening): sort-on-
+   incidence + graph-valued area + `with_quotation`; six rules sort-preserving; the
+   second-order READER (the substantive build) → S3 flips to checked; `attest_quotation`
+   boundary hook; the A3 conservativity gate (corpus test: no new first-order theorems);
+   the reference-node increment-2 use/mention fork rides the same opening. ② *B-full*:
+   native graph-valued element kind (ν hooks a blank, P3′), committed dotted-oval render
+   conventions (P5′); exemplars re-expressed natively. **Proposed exemplar slate (for the
+   author's blessing):** (i) the swan's third tense — `(superseded ⌜M_swan_law⌝ …)` on
+   `dialogue_swan_revision`, the withdrawn law as labeled exhibit (audit-lens shelf);
+   (ii) `(forces s φ)` on the forcing-trichotomy exemplar (settled/open/excluded as
+   drawn, S5-resolved, Montague-rider-defined assertions; modal lens gains assertable
+   ink); (iii) cross-UoD **mention** — a commentary UoD naming `peirce_law` as object
+   (scholarly citation use; increment-2's fork exercised on the mention side). Frontier
+   ink → main only; fixes → release/moses first, merge forward.
 0. **✅ SHIPPED 2026-07-15/16 — THE "MOSES" RELEASE: `v2.0.0-beta.1` on `release/moses`,
    published as a GitHub Release (wheel + sdist + book-HTML zip), the tag attested by a
    full-suite CI pass.** Getting to green surfaced and fixed, beyond the Tier-1 reds:

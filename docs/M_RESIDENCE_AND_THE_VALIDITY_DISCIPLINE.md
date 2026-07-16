@@ -341,4 +341,7 @@ mention straining to happen inside a first-order notation.
    enacted-in-corpus status, cross-linked back to this memo.)*
 3. **Decision B** now has two nominees: `(forces s φ)` (imported, exact) and
    `(superseded ⌜M⌝ …)` (homegrown, from the revision workflow). The case for
-   opening the door has a second, independent plaintiff.
+   opening the door has a second, independent plaintiff. *(TAKEN 2026-07-16:
+   the author affirmed B with **both nominees** — the door opens exemplar-first,
+   B-min → B-full; see CROSSING_DECISION_BRIEFS. The third tense gets its
+   machinery.)*
