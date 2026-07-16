@@ -10,7 +10,7 @@ Date: 2025-10-12
 
 import math
 import xml.etree.ElementTree as ET
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 import render_geometry as rg
 from layout_dto import LayoutDTO
@@ -28,6 +28,7 @@ class SimpleSVGRenderer:
         egif: str = "",
         egi: Optional[RelationalGraphWithCuts] = None,
         reference_marks: Optional[Dict[str, int]] = None,
+        quotation_marks: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> str:
         """
         Convert LayoutDTO to SVG string.
@@ -43,11 +44,20 @@ class SimpleSVGRenderer:
                 Pure chrome: it reads the overlay (``reference_node.render_marks``),
                 never the EGI, and changes no DTO geometry, so §3.3 (which reads the
                 DTO) is untouched. Default ``None`` is byte-identical to before.
+            quotation_marks: optional {element_id: {"sort", "horizon"}} — decorate
+                those vertex spots as second-order quoting names (Peirce's device:
+                a dotted oval around the name + a "⌜+N⌝" badge for the quoted
+                graph's element count), fed by
+                ``quotation_overlay.render_quotation_marks``. Same discipline as
+                reference_marks: pure chrome, off by default, no DTO change —
+                Stage ⓪'s glyph (the sort itself is overlay, not drawing; S3 is
+                honestly not claimed by this ink).
 
         Returns:
             SVG string
         """
         reference_marks = reference_marks or {}
+        quotation_marks = quotation_marks or {}
         
         # Use style from DTO (already contains Dau style specification)
         style = dto.style
@@ -70,6 +80,10 @@ class SimpleSVGRenderer:
         # spot's dashed box + its "+N beyond view" horizon badge.  Style-overridable;
         # the default is a neutral blue that reads as "pointer, not primitive".
         reference_accent = _raw.get("reference", {}).get("accent_color", "#7287fd")
+        # The quotation accent (second-order Stage ⓪): a distinct ink for the
+        # dotted oval + "⌜+N⌝" badge of a quoting name.  Style-overridable; the
+        # default is a violet that reads as "mention, one order up".
+        quotation_accent = _raw.get("quotation", {}).get("accent_color", "#ca9ee6")
         font_style = _raw.get("global", {}).get("font_style", "normal")
         ligature_routing = _raw.get("ligature", {}).get("routing_mode", "orthogonal")
         # A cut is drawn as an inscribed ellipse (Peirce/Sowa "oval") or a
@@ -376,13 +390,23 @@ class SimpleSVGRenderer:
                 if v and v.label:
                     label = v.label
 
+            # Is this vertex a second-order quoting name? (overlay, not the
+            # EGI — chrome only, exactly as reference spots are.)
+            quotation = quotation_marks.get(v_id)
+
             # Wrap in a named group so the frontend can detect clicks by element ID
-            v_g = ET.SubElement(element_group, "g", {
+            v_attrs_g = {
                 "id": v_id,
                 "data-element-id": v_id,
                 "data-element-type": "vertex",
                 "cursor": "pointer",
-            })
+            }
+            if quotation is not None:
+                v_attrs_g["class"] = "quotation-spot"
+                v_attrs_g["data-quotation"] = "true"
+                v_attrs_g["data-quotation-sort"] = str(quotation.get("sort", ""))
+                v_attrs_g["data-quotation-horizon"] = str(quotation.get("horizon", 0))
+            v_g = ET.SubElement(element_group, "g", v_attrs_g)
 
             # Transparent hit area (larger than the dot) for easier clicking
             hit = style.vertex_radius + 6
@@ -427,7 +451,48 @@ class SimpleSVGRenderer:
                 if font_style != "normal":
                     v_attrs["font-style"] = font_style
                 ET.SubElement(v_g, "text", v_attrs).text = label
-        
+
+            # The quotation glyph — Peirce's dotted oval around the quoting
+            # name, plus a "⌜+N⌝" horizon badge (the reference glyph's idiom,
+            # one order up).  Pure decoration; drawn strokes only, no change to
+            # any position §3.3 reads (the DTO was attested before rendering).
+            if quotation is not None:
+                q_min_x, q_max_x = cx - style.vertex_radius, cx + style.vertex_radius
+                q_min_y, q_max_y = cy - style.vertex_radius, cy + style.vertex_radius
+                if label and style.vertex_rendering_mode != "dot_only":
+                    _qbox = _label_boxes.get(v_id)
+                    if _qbox is None:
+                        _qbox = vertex_label_box(label, pos, style, dto.ligature_paths,
+                                                 v_id, egi=egi, cut_bounds=dto.cut_bounds)
+                    q_min_x = min(q_min_x, _qbox.min_x + offset_x)
+                    q_max_x = max(q_max_x, _qbox.max_x + offset_x)
+                    q_min_y = min(q_min_y, _qbox.min_y + offset_y)
+                    q_max_y = max(q_max_y, _qbox.max_y + offset_y)
+                q_cx, q_cy = (q_min_x + q_max_x) / 2, (q_min_y + q_max_y) / 2
+                q_rx = (q_max_x - q_min_x) / 2 + 6
+                q_ry = (q_max_y - q_min_y) / 2 + 5
+                ET.SubElement(v_g, "ellipse", {
+                    "class": "quotation-oval",
+                    "cx": str(q_cx), "cy": str(q_cy),
+                    "rx": str(q_rx), "ry": str(q_ry),
+                    "fill": "none",
+                    "stroke": quotation_accent,
+                    "stroke-width": "1",
+                    "stroke-dasharray": "1,3",
+                    "stroke-linecap": "round",
+                })
+                badge = ET.SubElement(v_g, "text", {
+                    "class": "quotation-horizon",
+                    "x": str(q_cx + q_rx + 2),
+                    "y": str(q_cy - q_ry + 2),
+                    "text-anchor": "start",
+                    "font-size": str(max(8.0, float(style.font_size) * 0.7)),
+                    "font-family": style.font_family,
+                    "fill": quotation_accent,
+                    "font-weight": "bold",
+                })
+                badge.text = f"⌜+{quotation.get('horizon', 0)}⌝"
+
         # ====================================================================
         # Render Predicates (Edge Labels)
         # ====================================================================

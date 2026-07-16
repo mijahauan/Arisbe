@@ -1,0 +1,99 @@
+{
+  "Cut": [
+    {
+      "id": "c_fc3654b6"
+    },
+    {
+      "id": "cut_876429e6"
+    },
+    {
+      "id": "cut_89593b9b"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_12842111"
+    },
+    {
+      "id": "e_c7c1ae65"
+    },
+    {
+      "id": "e_f9524744"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_43b6bc44",
+      "is_generic": false,
+      "label": "phi-zero"
+    },
+    {
+      "id": "v_70d7496f",
+      "is_generic": false,
+      "label": "phi-two"
+    },
+    {
+      "id": "v_8745750c",
+      "is_generic": false,
+      "label": "phi-one"
+    },
+    {
+      "id": "v_894bc649",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_9328eed6",
+      "is_generic": false,
+      "label": "s0"
+    },
+    {
+      "id": "v_c47086a9",
+      "is_generic": false,
+      "label": "s6"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_fc3654b6": [
+      "e_f9524744",
+      "v_70d7496f",
+      "v_894bc649"
+    ],
+    "cut_876429e6": [
+      "c_fc3654b6",
+      "cut_89593b9b",
+      "e_12842111",
+      "e_c7c1ae65",
+      "v_43b6bc44",
+      "v_8745750c",
+      "v_9328eed6",
+      "v_c47086a9"
+    ],
+    "cut_89593b9b": [],
+    "sheet_a90e765d": [
+      "cut_876429e6"
+    ]
+  },
+  "nu": {
+    "e_12842111": [
+      "v_c47086a9",
+      "v_43b6bc44"
+    ],
+    "e_c7c1ae65": [
+      "v_9328eed6",
+      "v_8745750c"
+    ],
+    "e_f9524744": [
+      "v_894bc649",
+      "v_70d7496f"
+    ]
+  },
+  "rel": {
+    "e_12842111": "forces",
+    "e_c7c1ae65": "forces",
+    "e_f9524744": "forces"
+  },
+  "rho": {},
+  "sheet": "sheet_a90e765d"
+}

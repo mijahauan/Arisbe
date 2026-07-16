@@ -280,3 +280,53 @@ read-only navigation projections — never the asserted drawing.
 Tests for all of this: [tests/test_modal_and_dialog.py](../tests/test_modal_and_dialog.py)
 (the modules + exemplars) and [tests/test_organon_routes.py](../tests/test_organon_routes.py)
 / [tests/test_organon_lenses_e2e.py](../tests/test_organon_lenses_e2e.py) (the lenses).
+
+## 7. The second-order quotation exemplars (Stage ⓪ of the crossing)
+
+The crossing verdicts of 2026-07-16
+([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)) took the second-order
+frontier *exemplar-first*: rather than waiting for a demonstrated need, three fitting
+cases were chosen to illustrate graphs-about-graphs clearly and robustly. Stage ⓪ is
+the **overlay stratum** (no protected-core change): a quotation is a
+proposition-sorted *name* drawn in the host graph, whose sort and target live in an
+overlay record beside the EGI (`src/quotation_overlay.py`, persisted as
+`quotations.json` — the `reference_node` pattern). Each quotation is attested against
+the second-order law (`src/second_order_check.py`) **at build time**: S1
+stratification read off the drawn enclosure, S2 quote-equals-quoted against an
+independent ground plus the correspondence check (§3.3) one level down through the
+real layout engine, S5 per state of the referenced trajectory, S4 horizons named —
+and S3 (read-back one order up) **skip-named**, never silently passed, until the
+B-min core opening puts the sort in the drawing. All three built by
+[tools/build_quotation_exemplars.py](../tools/build_quotation_exemplars.py); each
+houses its claims at level 1 of a standing world-scroll (nothing contingent at
+depth 0) and exports a `quotation_glyph.svg` showing the dotted-oval glyph.
+
+- **`swan_third_tense` — the swan's third tense.** `(superseded "M_swan_law"
+  "Nox")`: the law withdrawn in `dialogue_swan_revision` (§6) held before the mind
+  as a labeled exhibit — **present without force**, the third tense the validity
+  discipline exposed (in force / withdrawn-remembered / present-without-force).
+  First order cannot do this: a double cut around the old law still binds. The name
+  resolves through the withdrawal step's own record (`REVISE_M`'s `subgraph_egif`),
+  and per state (S5, Cohen's R_G reading): the drawn law recovers structurally at
+  s4–s7 and nowhere else — the horizon named, never silent.
+- **`forcing_forces` — `(forces s φ)`.** The imported-exact nominee on the
+  forcing-trichotomy exemplar (`forcing_conditions`), under the **Montague rider**:
+  `forces` enters only as a defined, grounded, decidable relation — the peel at s,
+  `modal_query.settlement` for the trajectory — never an axiomatized primitive with
+  reflection schemas. The trichotomy as drawn, state-indexed claims: ∅ forces *one*
+  (settled), ⟨1,1,0⟩ forces *zero* (open), and nothing forces *two* (excluded —
+  drawn as a genuine negation). Every claim is recomputed before it is scribed, and
+  S5 reads the trichotomy as trajectory-relative resolution: φ₁ resolves at every
+  state, φ₂ on one branch, φ₃ nowhere.
+- **`peirce_law_commentary` — cross-UoD mention.** A commentary naming
+  `peirce_law` (§2) as *object*: the quoted graph is the whole theorem, resolved by
+  corpus id without importing one element of it — mention, not use, so no
+  co-assertion crosses universes (the reference-node increment-2 fork's mention
+  side, exercised overlay-first). Carries the real scholarly citation
+  (`scholarly_citation.citation_for` → Peirce 1885, *On the Algebra of Logic*).
+
+Tests: [tests/test_quotation_overlay.py](../tests/test_quotation_overlay.py) (the
+mark, the enclosure-off-the-drawing discipline, the impredicative-flat refusal, the
+three exemplars re-attested, the glyph's geometry-neutrality) beside
+[tests/test_second_order_check.py](../tests/test_second_order_check.py) (the law and
+its falsifiers).

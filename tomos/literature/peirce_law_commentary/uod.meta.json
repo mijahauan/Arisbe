@@ -1,0 +1,19 @@
+{
+  "uod_id": "peirce_law_commentary",
+  "uod_type": "historical",
+  "name": "Commentary on Peirce's law (cross-UoD mention)",
+  "description": "The reference-node increment-2 fork's MENTION side, exercised overlay-first (Stage \u24ea): a commentary UoD naming peirce_law as object \u2014 (cites \"peirce_law\" \"Peirce-1885\") \u2014 where the name is a quotation overlay resolving to the whole theorem graph ((P\u2283Q)\u2283P)\u2283P without importing one element of it. Mention is not use: resolution produces the quoted graph for checking, never splices it (no co-assertion across universes). Carries the real scholarly citation (Peirce 1885, On the Algebra of Logic).",
+  "category": "canonical_pattern",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

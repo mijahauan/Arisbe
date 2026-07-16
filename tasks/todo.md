@@ -1,74 +1,59 @@
-# Session 2026-07-03 (3rd sitting) — atom-level decay + semi-naive materialization → duration-probe readiness
+# Stage ⓪ — the Quotation overlay stratum (2026-07-15 session)
 
-The rulebook decision is AFFIRMED (author, 2026-07-03, RUN_4_LOG horizon): **atom-level decay**
-— the habit is the fact, not the name; use = re-delivery (first increment); erasure via
-`model_revision.retract_atom`; `per_entity_cap` stays as membrane flow-control; per-name cap
-rejected. Riding along (correctness-preserving, no affirmation needed): **semi-naive
-materialization** against F2⁗'s round-compute wall.
+The crossing's first build rung (CURRENT_PLAN item -1; SECOND_ORDER_CORE_OPENING §5.1;
+verdicts A1–A4 + B taken 2026-07-16). **No core change; main; additive.**
 
-## Build
+Deliverable: the first drawable, S1/S2/S4/S5-attested quotations in corpus exemplars,
+S3 skip-named, S4 horizon honest. The overlay is the strict prefix B-min promotes.
 
-- [x] 1. Atom-key vocabulary (`agon_evolution.py`): `atom_key` / `parse_atom_key` /
-      `sheet_atom_keys` / `delivered_atom_keys` (sheet-level ground atoms of a proposal —
-      "use = re-delivery"; a denial refreshes nothing).
-- [x] 2. `model_revision.retract_atom` → structural (`without_element` + orphan-vertex prune):
-      cut-preserving, so per-atom decay on a sheet carrying laws never silently drops a law
-      (the old text-rebuild dropped every cut).
-- [x] 3. `agon_evolution.run` ttl path → atom-level: seed/touch/stale/decay per atom
-      (touch on every round — a redundant re-delivery is the habit holding);
-      `RoundOutcome.decayed` carries atom keys; decay step retracts via `retract_atom`.
-- [x] 4. `live_runner.LiveRunner` cross-segment decay → atom-level; laws dropped only when a
-      relation *name* vanishes from the sheet; episodes retro-marked atom-precisely
-      (`mark_decayed_atoms`); state.json ledger keys are the atom keys (old name-keyed state
-      degrades gracefully).
-- [x] 5. `tropism.WarmSetTropism.reaches` → atom-precise decay-adjacency (the fact nearest its
-      ttl, not the name), name-key fallback for old ledgers.
-- [x] 6. `agon_metalearning` — `_last_erasures`/`_stickiness` atom-precise (an atom decaying
-      under a surviving name must read decay, not durability); add `mark_decayed_atoms`.
-- [x] 7. Semi-naive materialization (`model_materialization.py`): delta-driven fixpoint
-      (exact same closure; empty-body rules seeded); rule canonicalization;
-      `IncrementalMaterializer` (hit / extension / rebuild, counters observable);
-      `peel(materializer=)` + `run(materializer=)` + one per `LiveRunner`;
-      `_match_body` kept for `dl_reasoning`.
-- [x] 7b. **UNPLANNED, PROFILE-MANDATED — the actual F2⁗ wall:** `canonical_signature`'s WL
-      refinement (unshared tree colors; termination check never fired → always |V|+1 rounds)
-      dominated round compute via `assert_fact`'s `generate_egif`. Fixed exactly: hash-cons
-      colors to canonical rank strings + stop at partition stabilization. 15.7 s → 3.3 ms on
-      the 200-atom hub sheet; canonicality canaries pass; module unprotected.
+## Plan
 
-## Verify
+- [x] 1. `src/quotation_overlay.py` — `QuotationMark` (serialisable overlay beside the
+      EGI, mirroring `reference_node.ReferenceMark`): sort (proposition/abstraction),
+      target, enclosed, impredicative override, origin, warrant="low"; to/from_dict.
+      Resolver seam (state-of-a-UoD / corpus-UoD / inline-EGIF targets) →
+      `quotation_candidate` bridges to `second_order_check.Quotation`;
+      `attest_quotation_mark` / `run_quotation_mark` boundary hooks (S5 via
+      per-state candidates).
+- [x] 2. Dotted-oval render glyph in `simple_svg_renderer` (`quotation_marks=`,
+      pure chrome, off by default — the exact shape of the reference 1b glyph);
+      prove it changes no attested DTO geometry.
+- [x] 3. Exemplar (i): swan third tense — `(superseded ⌜M_swan_law⌝ …)` overlay on
+      `dialogue_swan_revision`; predicative (quoted state strictly below); S5
+      trajectory attest across the revision chain.
+- [x] 4. Exemplar (ii): `(forces s φ)` on `forcing_conditions` — the settled/open/
+      excluded trichotomy as per-state quotations (Montague rider: defined via the
+      peel/modal machinery, never axiomatized); S5.
+- [x] 5. Exemplar (iii): cross-UoD **mention** — a commentary UoD naming `peirce_law`
+      as object (scholarly-citation use; the increment-2 fork's mention side,
+      overlay-only so no co-assertion hazard).
+- [x] 6. `tests/test_quotation_overlay.py` — 28 tests green (round-trip, S1
+      impredicative-flat refusal + structural self-quote detection, exemplars
+      re-attest with real ELK, S5 falsifier naming the state, S3 in honest_limits,
+      glyph geometry-neutrality, persistence). Quality gate + core protection green;
+      corpus gates green (polarity, correspondence invariant, peirce-latex,
+      eg_reader, organon routes, tomos parsing); Quarto book 42/42. Full suite run
+      pending completion at wrap.
+- [x] 7. Docs: CURRENT_PLAN ▶▶ fourth-sitting block + item -1 "⓪ BUILT"; CLAUDE.md
+      module + test entries; SECOND_ORDER_CORE_OPENING §7 build note; CAPABILITY_MAP
+      §I row (+ reference-node row cross-link); EXEMPLARS §7.
 
-- [x] 8. Updated pinned tests (agon_evolution decay → atom keys; live_runner
-      warm-name-defeats-decay → the dissolution headline; tropism ordering → atom keys).
-- [x] 9. New tests: incremental-vs-full equivalence (growth/retraction/recursive/reparse +
-      peel-verdict match); atom-level decay headlines; `mark_decayed_atoms` +
-      within-run atom-precise stickiness; atom-precise tropism rotation + name fallback.
-- [x] 10. Arc suites green (295 passed, 1 key-gated skip) + core suites (111) + demos clean.
-      Post-signature-fix referee: round-trip + correspondence suites (running at wrap; see
-      review note).
-- [x] 11. Timing: 25-round segment at 200 atoms ~450 s (extrapolated pre-fix) → 2.6 s
-      (signature fix) → 1.55 s (+ incremental materializer).
-
-## Duration probe readiness (launch is the author's call, per the pre-registration discipline)
-
-- [x] 12. §16 written: 16.1 rulebook record · 16.2 the F2⁗ decomposition + both riders ·
-      16.3 run-5 priors P1⁵–P6⁵ (DRAFT, affirm pre-launch) + runs/RUN_5_LOG.md skeleton +
-      driver command (`--source recentchanges --runs-dir runs/run5 --max-seconds 28800`).
-- [x] 13. Docs currency: CLAUDE.md (agon_evolution/live_runner/model_revision/
-      model_materialization bullets + the canonical-signature note), §10 atom units,
-      CURRENT_PLAN session block + NEXT SESSION, memory + MEMORY.md.
+Deferred (named): S3 read-back (IS stage ①); lens surfacing of the exhibits
+(audit-lens shelf / modal forcing ink) + web wiring of the glyph (reference_marks
+is equally unwired — one web seam for both later).
 
 ## Review
 
-The affirmed rulebook is built verbatim (atom unit, use = re-delivery, retract_atom erasure,
-per_entity_cap untouched, per-name cap not built). Two deviations, both surfaced honestly:
-(1) `retract_atom` was made structural — the affirmation said "the existing retract_atom",
-but the existing one rebuilt M from sheet atoms only, silently dropping every cut; at
-atom-decay frequency that latent bug would have bitten any sheet carrying a law. Contract
-unchanged (drop exactly one atom), tests pass. (2) The F2⁗ rider grew a second half:
-profiling showed the round-compute wall was `generate_egif`'s canonical signatures, not the
-peel — fixed exactly (hash-consing, same canonical guarantee, tie-breaks among truly
-symmetric elements may differ), with the corpus round-trip + correspondence suites as
-referee. In-run decay now also fires on non-revising rounds (⑤ runs every generation, per
-the design's loop); previously erasure was deferred to the next revising round.
-Run 5 is NOT launched: §16.3's priors are a DRAFT and the discipline is affirm-then-run.
+Stage ⓪ of the crossing is built, additive, on main. The overlay module mirrors
+reference_node exactly (mark beside the EGI, resolver seam, boundary hooks); its
+one doctrinal refinement is that S1's enclosure is computed from the drawn host,
+never stored. The three blessed exemplars are corpus records attested at build
+time — the builder refuses to save what does not recompute — and each saved
+verdict re-attests in tests. Surprises: (a) the polarity gate forced the design
+into commentary UoDs housed in standing world-scrolls (which turned out
+philosophically exact for present-without-force); (b) CANONICAL_PATTERN UoDs
+save under tomos/literature/, so the glyph export had to resolve the entry path
+through the service rather than assume universes/. Next rung: ① B-min — an
+authorized protected-core opening (sort-on-incidence + with_quotation + the
+second-order reader; S3 flips to checked; A3 conservativity gate; the
+use/mention fork's core half rides the same opening).

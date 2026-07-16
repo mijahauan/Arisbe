@@ -334,7 +334,7 @@
     },
     {
       "uod_id": "de_morgan",
-      "name": "De Morgan (¬(P∧Q) ⊢ ¬P∨¬Q)",
+      "name": "De Morgan (\u00ac(P\u2227Q) \u22a2 \u00acP\u2228\u00acQ)",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -349,7 +349,7 @@
     },
     {
       "uod_id": "contraposition",
-      "name": "Contraposition (P→Q ⊢ ¬Q→¬P)",
+      "name": "Contraposition (P\u2192Q \u22a2 \u00acQ\u2192\u00acP)",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -364,7 +364,7 @@
     },
     {
       "uod_id": "ex_falso_quodlibet",
-      "name": "Ex falso quodlibet (¬P ⊢ P→Q)",
+      "name": "Ex falso quodlibet (\u00acP \u22a2 P\u2192Q)",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -379,7 +379,7 @@
     },
     {
       "uod_id": "hypothetical_syllogism",
-      "name": "Hypothetical Syllogism (P→Q, Q→R ⊢ P→R)",
+      "name": "Hypothetical Syllogism (P\u2192Q, Q\u2192R \u22a2 P\u2192R)",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -469,7 +469,7 @@
     },
     {
       "uod_id": "zoo_world",
-      "name": "Zoo world — a closed taxonomy",
+      "name": "Zoo world \u2014 a closed taxonomy",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -484,7 +484,7 @@
     },
     {
       "uod_id": "harbor_town",
-      "name": "Harbor town — an open civic world",
+      "name": "Harbor town \u2014 an open civic world",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -529,7 +529,7 @@
     },
     {
       "uod_id": "numeral_three_unfolds",
-      "name": "The numeral 'three' — a place, folded into a name",
+      "name": "The numeral 'three' \u2014 a place, folded into a name",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -559,7 +559,7 @@
     },
     {
       "uod_id": "would_be_de_inesse",
-      "name": "P de inesse — the married woman (Prolegomena 1906)",
+      "name": "P de inesse \u2014 the married woman (Prolegomena 1906)",
       "category": "literature_example",
       "uod_type": "standalone",
       "is_static": true,
@@ -574,7 +574,7 @@
     },
     {
       "uod_id": "would_be_courses",
-      "name": "The would-be — courses of experience (Prolegomena 1906)",
+      "name": "The would-be \u2014 courses of experience (Prolegomena 1906)",
       "category": "domain_model",
       "uod_type": "historical",
       "is_static": false,
@@ -706,7 +706,52 @@
       "authors": [],
       "tags": [],
       "path": "universes/skos_core"
+    },
+    {
+      "uod_id": "swan_third_tense",
+      "name": "The swan's third tense (superseded \u231cM_swan_law\u231d)",
+      "category": "canonical_pattern",
+      "uod_type": "historical",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "literature/swan_third_tense"
+    },
+    {
+      "uod_id": "forcing_forces",
+      "name": "Forces (state s forces the quoted graph \u03c6)",
+      "category": "canonical_pattern",
+      "uod_type": "historical",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "literature/forcing_forces"
+    },
+    {
+      "uod_id": "peirce_law_commentary",
+      "name": "Commentary on Peirce's law (cross-UoD mention)",
+      "category": "canonical_pattern",
+      "uod_type": "historical",
+      "is_static": true,
+      "is_dynamic": false,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "literature/peirce_law_commentary"
     }
   ],
-  "last_updated": "2026-07-15T15:37:42.321615"
+  "last_updated": "2026-07-15T23:02:25.114576"
 }

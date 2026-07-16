@@ -1,0 +1,51 @@
+{
+  "Cut": [
+    {
+      "id": "cut_19c9efbf"
+    },
+    {
+      "id": "cut_38c2885a"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_4b052d78"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_5a2d9e90",
+      "is_generic": false,
+      "label": "Peirce-1885"
+    },
+    {
+      "id": "v_ba6ea862",
+      "is_generic": false,
+      "label": "peirce_law"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "cut_19c9efbf": [],
+    "cut_38c2885a": [
+      "cut_19c9efbf",
+      "e_4b052d78",
+      "v_5a2d9e90",
+      "v_ba6ea862"
+    ],
+    "sheet_267a7937": [
+      "cut_38c2885a"
+    ]
+  },
+  "nu": {
+    "e_4b052d78": [
+      "v_ba6ea862",
+      "v_5a2d9e90"
+    ]
+  },
+  "rel": {
+    "e_4b052d78": "cites"
+  },
+  "rho": {},
+  "sheet": "sheet_267a7937"
+}

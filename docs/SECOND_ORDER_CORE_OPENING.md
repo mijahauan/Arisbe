@@ -183,3 +183,18 @@ what it would be exercised on.
 > opening, both riders). Decision A was ratified the same day (predicative floor,
 > split-level, conservativity as the crossing invariant — the corpus-level
 > no-new-first-order-theorems check joins the crossing's verification).
+
+> **Stage ⓪ BUILT (2026-07-15).** The overlay stratum of §5 step 1 is in the
+> codebase: `src/quotation_overlay.py` (`QuotationMark` beside the EGI +
+> `quotations.json` persistence + the resolver seam + boundary hooks into this
+> memo's law) and the dotted-oval render glyph (`simple_svg_renderer`'s
+> `quotation_marks=`, pure chrome, off by default) — no protected module
+> touched. The three blessed exemplars are in the corpus, S1/S2/S4/S5-attested
+> at build time with the real layout engine and S3 skip-named:
+> `swan_third_tense` (the withdrawn law as exhibit, S5 naming s4–s7),
+> `forcing_forces` (`(forces s φ)` under the Montague rider, the trichotomy as
+> trajectory-relative resolution), `peirce_law_commentary` (cross-UoD mention
+> with the real citation). Builder `tools/build_quotation_exemplars.py`; tests
+> `tests/test_quotation_overlay.py`. Next rung: ① B-min (the authorized core
+> opening — sort-on-incidence, `with_quotation`, the second-order reader → S3
+> checked, the A3 conservativity gate, the mention/use fork's core half).

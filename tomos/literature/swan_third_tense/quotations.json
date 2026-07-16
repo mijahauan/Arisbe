@@ -1,0 +1,17 @@
+{
+  "quotations": [
+    {
+      "element_id": "v_d64dcfce",
+      "target": "dialogue_swan_revision#step-8",
+      "sort": "proposition",
+      "kind": "chain-step",
+      "origin": "dialogue_swan_revision",
+      "warrant": "low",
+      "impredicative": null,
+      "extra": {
+        "shape_egif": "~[ (swan *x) ~[ (white x) ] ]",
+        "note": "the withdrawn swan law, present without force (the third tense)"
+      }
+    }
+  ]
+}

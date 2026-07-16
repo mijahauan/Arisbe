@@ -1,0 +1,43 @@
+{
+  "quotations": [
+    {
+      "element_id": "v_8745750c",
+      "target": "(one *p)",
+      "sort": "proposition",
+      "kind": "egif",
+      "origin": "forcing_conditions",
+      "warrant": "low",
+      "impredicative": null,
+      "extra": {
+        "relation": "one",
+        "settlement": "settled"
+      }
+    },
+    {
+      "element_id": "v_43b6bc44",
+      "target": "(zero *p)",
+      "sort": "proposition",
+      "kind": "egif",
+      "origin": "forcing_conditions",
+      "warrant": "low",
+      "impredicative": null,
+      "extra": {
+        "relation": "zero",
+        "settlement": "open"
+      }
+    },
+    {
+      "element_id": "v_70d7496f",
+      "target": "(two *p)",
+      "sort": "proposition",
+      "kind": "egif",
+      "origin": "forcing_conditions",
+      "warrant": "low",
+      "impredicative": null,
+      "extra": {
+        "relation": "two",
+        "settlement": "excluded"
+      }
+    }
+  ]
+}

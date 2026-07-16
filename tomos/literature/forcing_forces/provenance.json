@@ -1,0 +1,36 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "incollection",
+      "author": "Caterina, Gianluca and Gangle, Rocco",
+      "title": "Consequences of a Diagrammatic Representation of Paul Cohen's Forcing Technique Based on C.S. Peirce's Existential Graphs",
+      "bibkey": "caterina2010forcing"
+    },
+    {
+      "type": "article",
+      "author": "Montague, Richard",
+      "title": "Syntactical Treatments of Modality, with Corollaries on Reflexion Principles and Finite Axiomatizability",
+      "bibkey": "montague1963syntactical",
+      "note": "the rider: forces enters as a defined, grounded, decidable relation \u2014 never an axiomatized predicate on sentence names with reflection schemas"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Caterina, Gianluca and Gangle, Rocco. Consequences of a Diagrammatic Representation of Paul Cohen's Forcing Technique Based on C.S. Peirce's Existential Graphs",
+      "Montague, Richard. Syntactical Treatments of Modality, with Corollaries on Reflexion Principles and Finite Axiomatizability"
+    ]
+  }
+}

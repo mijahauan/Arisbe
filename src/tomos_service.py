@@ -1056,6 +1056,53 @@ class TomosService:
         except (json.JSONDecodeError, OSError):
             return []
 
+    def save_quotations(
+        self, uod: UniverseOfDiscourse, quotations: List[Dict[str, Any]]
+    ) -> None:
+        """Persist the quotation overlay beside a UoD (Stage ⓪ of the
+        second-order crossing — ``src/quotation_overlay.py``).
+
+        Quotation marks are overlay records *about* elements of the graph —
+        which lines name which quoted graphs — kept beside the UoD exactly as
+        ``annotations.json`` is, and like it **outside §3.3** (the mark is not
+        a sign in the graph; the law it must satisfy is S1–S5, attested by
+        ``quotation_overlay.attest_quotation_mark`` at the boundaries that
+        serve it, not here).  ``quotations`` is the already-serialized list
+        (from ``quotation_overlay.quotation_marks_to_list``).  Written to
+        ``<uod_path>/quotations.json`` as ``{"quotations": [...]}`` only when
+        non-empty; an overwriting save with an empty list clears a stale file.
+        Call after ``save_uod`` (so the directory exists).
+        """
+        uod_path = self._get_uod_path(uod)
+        uod_path.mkdir(parents=True, exist_ok=True)
+        q_path = uod_path / "quotations.json"
+        if quotations:
+            with open(q_path, "w", encoding="utf-8") as f:
+                json.dump({"quotations": quotations}, f, indent=2)
+        elif q_path.exists():
+            q_path.unlink()
+
+    def load_quotations(self, uod_id: str) -> List[Dict[str, Any]]:
+        """Load the quotation overlay for a UoD, or ``[]`` if absent.
+
+        Returns the serialized list of mark dicts (rehydrated by the caller via
+        ``quotation_overlay.quotation_marks_from_list``).  The symmetric write
+        is ``save_quotations``.
+        """
+        entry = self.get_uod_metadata(uod_id)
+        if entry is None:
+            return []
+        q_path = self._entry_path(entry) / "quotations.json"
+        if not q_path.exists():
+            return []
+        try:
+            with open(q_path, "r", encoding="utf-8") as f:
+                loaded = json.load(f)
+            items = loaded.get("quotations") if isinstance(loaded, dict) else None
+            return items if isinstance(items, list) else []
+        except (json.JSONDecodeError, OSError):
+            return []
+
     # ===== Provenance bundle (typed multi-layer attribution for a proof) =====
 
     def save_provenance(

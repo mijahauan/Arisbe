@@ -1,0 +1,19 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "exemplar",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": []
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "quotations": [
+    {
+      "element_id": "v_ba6ea862",
+      "target": "peirce_law",
+      "sort": "proposition",
+      "kind": "uod",
+      "origin": "tomos",
+      "warrant": "low",
+      "impredicative": null,
+      "extra": {
+        "bibkey": "peirce1885algebra",
+        "note": "mention, not use: the theorem named as object, no element imported"
+      }
+    }
+  ]
+}

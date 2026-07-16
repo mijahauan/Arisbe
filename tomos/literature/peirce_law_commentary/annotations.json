@@ -1,0 +1,35 @@
+{
+  "annotations": [
+    {
+      "id": "ann_7d91a1b3",
+      "scope": "uod",
+      "text": "Second-order Stage \u24ea, the mention side of the use/mention fork: the quoted object is another UoD's graph, addressed by its corpus id. Citation (via scholarly_citation): Peirce, Charles Sanders (1885). On the Algebra of Logic: A Contribution to the Philosophy of Notation. In American Journal of Mathematics, Vol. 7, pp. 180\u2013202. Peirce's Law is the \u2018fifth icon\u2019 (~CP 3.384). Attested at build: S1 (predicative \u2014 the quoted theorem sits in another universe, no reach-back), S2 against a hand-written independent ground + \u00a73.3 one level down (real ELK). S3 skip-named until B-min.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "quotation",
+        "second-order",
+        "mention",
+        "citation",
+        "exemplar"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_ee1f4bf4",
+      "scope": "chain",
+      "text": "Residence by the gapless inbound construction (DC+ then INS): a scholarly commentary is supposed, not asserted at depth 0.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "world-scroll",
+        "low-warrant"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

@@ -11,7 +11,8 @@
    stands. Verdicts recorded in CORE_OPENING §7 · LANDSCAPE §6 · M_RESIDENCE §8.3 ·
    REFERENCE_AND_TRANSCLUSION_NODE §7 · second_order_check.py S1. **Build staging:**
    ⓪ *Overlay stratum* (no core, main): `Quotation` overlay + glyph on the exemplars,
-   S1/S2/S4/S5 attested, S3 skip-named. ① *B-min* (one authorized core opening): sort-on-
+   S1/S2/S4/S5 attested, S3 skip-named — **✅ BUILT 2026-07-15 (fourth sitting), see
+   the ▶▶ block below; next rung = ① B-min.** ① *B-min* (one authorized core opening): sort-on-
    incidence + graph-valued area + `with_quotation`; six rules sort-preserving; the
    second-order READER (the substantive build) → S3 flips to checked; `attest_quotation`
    boundary hook; the A3 conservativity gate (corpus test: no new first-order theorems);
@@ -100,6 +101,44 @@
    e2e ×4; (d) perf memory_stability = load flake (passes alone).
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
+
+**▶▶ THIS SESSION (2026-07-15, fourth sitting) — STAGE ⓪ OF THE CROSSING BUILT: the
+quotation overlay stratum (CURRENT_PLAN item -1's opening rung; no protected-core
+change; frontier ink on main).** (1) **`src/quotation_overlay.py`** — `QuotationMark`
+(a proposition-sorted *name* drawn in the host + a serialisable overlay beside the
+EGI, the `reference_node.ReferenceMark` pattern; persisted as `quotations.json` via
+new `tomos_service.save_quotations`/`load_quotations`); resolver seam (inline EGIF /
+**chain-step record** — the withdrawal step names what it withdrew / **corpus-UoD
+mention** / chain dispatch); `quotation_candidate` + `attest_quotation_mark` +
+`run_quotation_mark` bridge into `second_order_check`'s law with **S1's enclosure
+read off the drawn host, never stored** (the honest-picture principle);
+`lift_cut`/`find_cut_matching` (structural recovery of a drawn law, reusing
+`world_scroll._copy_area`) power `trajectory_candidates`/S5. Resolution is
+**mention, not use** — never splices (the safety that lets it run cross-UoD at
+Stage ⓪). (2) **The dotted-oval glyph** — `simple_svg_renderer` `quotation_marks=`
+(dotted ellipse + `⌜+N⌝` horizon badge, quotation accent; pure chrome, off by
+default, default output byte-identical, DTO untouched). (3) **The three blessed
+exemplars built + attested at build time** (`tools/build_quotation_exemplars.py`;
+each refuses to save what does not recompute; claims housed at level 1 of a standing
+world-scroll by DC+·INS; glyph SVG exported per exemplar): `swan_third_tense` — the
+withdrawn law as labeled exhibit, resolving via `REVISE_M`'s own `subgraph_egif`,
+S5 = the law drawn at exactly s4–s7, horizon named; `forcing_forces` — `(forces s
+φ)` under the Montague rider (peel at s + `settlement` recomputed before scribing;
+the trichotomy AS trajectory-relative resolution: φ₁ everywhere / φ₂ one branch /
+φ₃ nowhere); `peirce_law_commentary` — cross-UoD mention (the increment-2 fork's
+mention side, overlay-first) with the real Peirce 1885 citation via
+`scholarly_citation`. (4) **S3 skip-named everywhere** — the harness reports it as
+an honest limit; it flips to checked at ① B-min. (5) Tests:
+`tests/test_quotation_overlay.py` (28 — mark round-trip, enclosure-off-the-drawing,
+impredicative-flat refusal + structural self-quote detection, mention-not-use,
+exemplars re-attested with real ELK, S5 falsifier naming the state, glyph
+geometry-neutrality, persistence); corpus gates green over the grown corpus
+(polarity discipline, correspondence invariant, peirce-latex totality, eg_reader,
+organon routes, tomos parsing). Docs: CAPABILITY_MAP §I row, EXEMPLARS §7,
+SECOND_ORDER_CORE_OPENING §7 build note, CLAUDE.md module + test entries. Deferred
+(named): lens surfacing of the exhibits (audit-lens shelf link / modal forcing ink)
+and web wiring of the glyph (reference_marks is equally unwired — one web seam for
+both later); ① B-min is the next rung and is an **authorized core opening**.
 
 **▶▶ THIS SESSION (2026-07-15, third sitting, continued) — MOSES TIER 1 + TIER 2 EXECUTED
 (item 0's pre-tag checklist).** **Tier 1 (all 8 reds disposed at root cause, nothing

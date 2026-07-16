@@ -1,0 +1,51 @@
+{
+  "Cut": [
+    {
+      "id": "cut_99d4ae20"
+    },
+    {
+      "id": "cut_eba254fd"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_6980e51f"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_53b9d43e",
+      "is_generic": false,
+      "label": "Nox"
+    },
+    {
+      "id": "v_d64dcfce",
+      "is_generic": false,
+      "label": "M_swan_law"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "cut_99d4ae20": [
+      "cut_eba254fd",
+      "e_6980e51f",
+      "v_53b9d43e",
+      "v_d64dcfce"
+    ],
+    "cut_eba254fd": [],
+    "sheet_04695d69": [
+      "cut_99d4ae20"
+    ]
+  },
+  "nu": {
+    "e_6980e51f": [
+      "v_d64dcfce",
+      "v_53b9d43e"
+    ]
+  },
+  "rel": {
+    "e_6980e51f": "superseded"
+  },
+  "rho": {},
+  "sheet": "sheet_04695d69"
+}
