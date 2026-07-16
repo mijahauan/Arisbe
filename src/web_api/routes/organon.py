@@ -580,13 +580,18 @@ async def get_history_structure(uod_id: str, style: Optional[str] = None,
         frm, to = Counter(e["from"] for e in edges), Counter(e["to"] for e in edges)
         branching = any(v > 1 for v in frm.values()) or any(v > 1 for v in to.values())
 
+        from chain_branches import branch_report
+
         return ApiResponse(success=True, data={
             "uod_id": uod_id, "name": uod.name, "has_chain": True,
             "step_count": len(chain.steps), "frames": frames,
             # The DAG view consumes this; `branching` lets the client offer the
             # linear lenses (storyboard / time-stack) only when the chain is a line.
             "dag": {"nodes": nodes, "edges": edges, "branching": branching,
-                    "initial_state_id": chain.initial_state_id}})
+                    "initial_state_id": chain.initial_state_id},
+            # Branch orientation (charter P1) — the same block /chain carries,
+            # so the DAG lens can name unlabeled lines ("main" / "branch N").
+            "branches": branch_report(chain).to_dict()})
     except Exception as exc:
         return ApiResponse(success=False, error={
             "code": "HISTORY_STRUCTURE_ERROR", "message": str(exc),
@@ -658,7 +663,8 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
             return {"summary": " · ".join(bits) or "no net change"}
 
         def _frame(index, kind, egi, state_id, rule=None, annotation=None,
-                   step_id=None, prev_egi=None):
+                   step_id=None, prev_egi=None, from_state_id=None,
+                   branch_id=None):
             _dto, svg = generate_layout(egi, style_name=style, engine=engine)  # attests §3.3 per state
             frame_anns = list(for_state(layer, state_id))
             if step_id is not None:
@@ -670,6 +676,10 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "annotation": annotation,  # "<peirce label>: <note>" (baked-in)
                 "step_id": step_id,
                 "state_id": state_id,
+                # The DAG linkage (branch orientation): which state this step
+                # left from, and the step's human branch label (may be None).
+                "from_state_id": from_state_id,
+                "branch_id": branch_id,
                 "diff": _step_diff(prev_egi, egi) if prev_egi is not None else None,
                 "annotations": annotations_to_list(frame_anns),  # additive layer
                 "svg": svg,
@@ -684,7 +694,6 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
             _frame(0, "base", chain.states[chain.initial_state_id],
                    chain.initial_state_id)
         ]
-        _prev = chain.states[chain.initial_state_id]
         for i, step in enumerate(chain.steps, start=1):
             _cur = chain.states[step.to_state_id]
             frames.append(
@@ -696,10 +705,15 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                     rule=step.rule_name,
                     annotation=step.user_annotation,
                     step_id=step.step_id,
-                    prev_egi=_prev,
+                    # The diff baseline is THIS step's own parent state — on a
+                    # branching chain the previous *authored* frame can be the
+                    # other line's leaf, and diffing against it would misstate
+                    # what the step changed.
+                    prev_egi=chain.states[step.from_state_id],
+                    from_state_id=step.from_state_id,
+                    branch_id=step.branch_id,
                 )
             )
-            _prev = _cur
 
         # A chain *branches* when two steps share a from_state (fork) or a
         # to_state (converge) — the linear lenses (storyboard / time-stack / the
@@ -710,6 +724,11 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
         _to = _C(s.to_state_id for s in chain.steps)
         branching = any(v > 1 for v in _frm.values()) or any(v > 1 for v in _to.values())
 
+        # Branch orientation (charter P1): which lines of development exist,
+        # which states lie on which, where they fork and converge — the data
+        # the player's branch strip and honest counter read.
+        from chain_branches import branch_report
+
         return ApiResponse(
             success=True,
             data={
@@ -717,6 +736,7 @@ async def get_uod_chain(uod_id: str, style: Optional[str] = None,
                 "has_chain": True,
                 "step_count": len(chain.steps),
                 "branching": branching,
+                "branches": branch_report(chain).to_dict(),
                 # Whole-derivation and whole-universe notes (not tied to a frame).
                 "chain_annotations": annotations_to_list(for_scope(layer, SCOPE_CHAIN)),
                 "uod_annotations": annotations_to_list(for_scope(layer, SCOPE_UOD)),
@@ -861,6 +881,11 @@ async def get_uod_modal(uod_id: str, over: str = "states",
         leaves = mq.leaf_states(chain)
         thumbs_omitted = thumbs and len(worlds) > 24
         render_thumbs = thumbs and not thumbs_omitted
+        # Branch orientation (charter P1): tag each world with the line(s) of
+        # development it lies on, so the worlds strip is not an anonymous set.
+        from chain_branches import branch_report
+        _br = branch_report(chain)
+        _branch_labels = {b.index: b.label for b in _br.branches}
         worlds_detail = []
         for w in worlds:
             d = {
@@ -868,6 +893,8 @@ async def get_uod_modal(uod_id: str, over: str = "states",
                 "egif": generate_egif(chain.states[w]).strip() or "(blank sheet)",
                 "is_initial": w == chain.initial_state_id,
                 "is_leaf": w in leaves,
+                "branches": [_branch_labels[i]
+                             for i in _br.membership.get(w, [])],
             }
             if proposal_block is not None:
                 d["verdict"] = proposal_block["verdicts"].get(w)
@@ -884,6 +911,7 @@ async def get_uod_modal(uod_id: str, over: str = "states",
         return ApiResponse(success=True, data={
             "uod_id": uod_id, "name": uod.name, "has_chain": True,
             "over": over, "branching": branching,
+            "branches_total": _br.count,
             "world_count": len(worlds), "worlds": worlds_detail,
             "relations": relations,
             "blank_possible": blank.holds,

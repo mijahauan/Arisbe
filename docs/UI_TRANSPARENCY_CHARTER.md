@@ -54,6 +54,13 @@ announces its consequence at the moment of toggling.
 the drawn form **is** the sign, so a stale preview is not cosmetic debt, it is a false sign.
 (The settle-editor snap-back fix, commit `e44f283`, is this principle enforced.)
 **Test:** no UI state can display an act the engine rejected.
+*Worked example (2026-07-16):* Organon's chain player on a **branching** episode read
+"state 5 / 9" — a total that aggregated two *incompatible* futures into one line, with `»`
+landing on whichever branch's leaf happened to be authored last. The counter was a false
+sign about the shape of the reasoning. The fix (the ⑂ branch strip): the player follows
+one branch at a time and the counter's total is the *active branch's* length — "state 2 / 2
+· on wind-rises (branch 1 of 2) · lines converge here". The rule generalizes: **a counter
+never aggregates incompatible futures.**
 
 ### P5 · Prevent, don't punish
 What is illegal *here, now* is visibly unavailable, with its reason — the server refusal is

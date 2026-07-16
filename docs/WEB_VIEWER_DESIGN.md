@@ -91,6 +91,7 @@ identifiers may lag and are aligned opportunistically):
 | A position within a recorded derivation | **state** | frame |
 | Count label | "*N* move(s)" | — |
 | Position label | "state *N* / total" ("base state · 0") | "step N", "frame N" |
+| A line of development in a branching chain | **branch** (glyph **⑂**) | fork (the noun), line, variant |
 | The three modes | **Organon · Ergasterion · Agon** | — |
 
 (Agon's "Frame `~[ M ~[ G ] ]`" is a *different* sense — the framing of the
@@ -113,6 +114,39 @@ proposition — and is left as is.)
 - **Legitimate per-mode chrome** (keep): Organon's bright Latte detail header
   (read-only register), Ergasterion's phase banner (composing/deriving/sealed),
   Agon's turn banner (current role + territory).
+
+### The branch strip (⑂) — orientation on a branching chain
+
+A recorded chain is a DAG in general; two moves leaving one state fork the
+episode into **branches**. Wherever a reader steps through a branching chain,
+the surface must answer the orientation question from visible text alone
+(UI_TRANSPARENCY_CHARTER P1): *which branch am I following, and how many are
+there?* The pattern (shipped 2026-07-16, Organon's chain player; Ergasterion's
+session switcher is the same idiom):
+
+- a **⑂ strip** of `.branch-chip`s, one per branch — `⑂ <label> · K move(s)`,
+  the active branch highlighted; clicking a chip switches the followed line,
+  keeping the current state when the new branch shares it (the prefix, a
+  convergence state) and landing at the fork point otherwise;
+- an **honest counter** — `state N / M · on <label> (branch i of k)` where M is
+  the *active branch's* length. **A counter never aggregates incompatible
+  futures** (charter P4): the flat "state 5 / 9" over a two-branch chain was a
+  false sign, and `»` jumping to the *other* branch's leaf was its enactment;
+- a **fork cue** at a state with several continuations — `⑂ 2 continuations:
+  <label> | <label>`, each clickable ("take this road");
+- a **convergence note** — `· lines converge here` on a state shared by
+  several branches (the alternate-proofs diamond);
+- branch **labels** come from the chain's recorded `branch_id`s: the
+  ordered-unique labels along the line joined with `" → "` (a line relabeled
+  mid-journey reads `prosperity → late-ruin`), falling back to `main` /
+  `branch N`. Enumeration is `src/chain_branches.py` (pure, deterministic;
+  branches are root→leaf paths keyed by step ids, so the diamond's repeated
+  state stays unambiguous).
+
+The modal lens tags each world with the branch(es) it lies on, and the
+derivation-DAG lens's legend names every branch (labeled or not). The DAG
+lens stays one click away (`view as DAG →` on the strip) rather than becoming
+the default — the Drawing lens keeps the linear-form panel and context reflex.
 
 ---
 
@@ -180,3 +214,9 @@ auto-dim/peek docking behaviour on a synthetic deterministic host).
   mirror / source of truth; keep the two in sync by hand.
 - **Agon 340px panel width** — left intentional (see §4); unify to 320px only if
   the denser layout proves unnecessary.
+- **`.branch-chip` CSS exists twice** (Ergasterion's local tokens, Organon's
+  `--ctp-*` re-tokening) — promote to `design-system.css` when a third surface
+  needs it.
+- **Per-branch storyboard / time-stack** — the linear lenses are hidden on a
+  branching chain today; scoping them to the *active* branch is a real feature
+  (the branch strip already knows the line), not built yet.

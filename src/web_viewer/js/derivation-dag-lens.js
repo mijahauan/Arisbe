@@ -157,10 +157,18 @@ window.DerivationDag = (function () {
       stage.appendChild(el);
     });
 
-    // Legend (branch colours + the structure note).
+    // Legend (branch colours + the structure note). The `branches` block
+    // (chain_branches, charter P1) names every line — including unlabeled
+    // ones ("main" / "branch N") that carry no branch_id on their edges.
+    const br = historyData && historyData.branches;
+    const branchLine = (br && br.count > 1)
+      ? '<span>⑂ ' + br.count + ' branches: ' +
+        br.branches.map(b => esc(b.label)).join(' · ') + '</span>'
+      : '';
     const legend = document.createElement('div');
     legend.className = 'dd-legend';
-    legend.innerHTML = '<span>depth = derivation order · forks &amp; merges shown · ' +
+    legend.innerHTML = branchLine +
+      '<span>depth = derivation order · forks &amp; merges shown · ' +
       'states are immutable (append-only provenance) · click a state to open it</span>' +
       branches.map(b => '<span><span class="dd-sw" style="background:' + colorOf(b) + '"></span>' +
         esc(b) + '</span>').join('');

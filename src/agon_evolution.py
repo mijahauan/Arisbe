@@ -714,6 +714,10 @@ def _fork_siblings(
                                               f"{bv.rationale}",
                 params={"disposition": bv.disposition, "mode": spec["mode"],
                         "sibling": True, **bv.kwargs},
+                # Label the sibling line by its disposition so the history
+                # navigation names it (the ⑂ strip / DAG legend) instead of a
+                # bare "branch N".
+                branch=bv.disposition,
             )
             branched.append(bv.disposition)
         except Exception:

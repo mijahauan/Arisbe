@@ -103,6 +103,37 @@
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
 
+**▶▶ THIS SESSION (2026-07-16, sixth sitting) — BRANCH ORIENTATION IN THE HISTORY
+NAVIGATION (the author's pre-B-full visualization revisit: a branching UoD showed
+nothing of which branch one is on or how many exist — a charter P1 failure, and the
+player's counter a P4 lie aggregating incompatible futures, with `»` jumping to the
+other branch's leaf).** (1) **`src/chain_branches.py`** — pure branch enumerator over a
+persisted `TransformationChain`: branches = root→leaf paths in authored order (branch
+0 = "main"), keyed by step ids (the convergence diamond makes state ids ambiguous —
+possible_and_necessary's s2 arrives twice); labels = ordered-unique `branch_id`s along
+the line joined " → " ("prosperity → late-ruin"), fallback main/branch N; membership /
+fork_state_ids / convergence_state_ids / per-fork continuations; cycle-guarded + capped
+(truncated flag), deterministic. The previously write-only `branch_id` finally read
+back. (2) **Routes (additive):** `/chain` frames carry `from_state_id`+`branch_id` and
+the payload a top-level `branches` block (also on `/history-structure` and `/modal` —
+per-world branch tags + `branches_total`); **diff-baseline fix**: a step's legible diff
+now compares against its OWN parent state, not the previous authored frame (post-fork
+it diffed against the other line's leaf). (3) **The player** (`organon.html`): follows
+ONE branch at a time — ⑂ chip strip (Ergasterion's vocabulary/chip idiom re-tokened to
+--ctp-*; `view as DAG →` link), honest per-branch counter ("state N / M · on <label>
+(branch i of k)"), fork cue ("⑂2 continuations: …", clickable take-this-road chips),
+"· lines converge here" on shared states, next/prev/»/Play walk the active line,
+branch-aware jumpToState/applyViewStyle; linear chains byte-identical. (4) **Riders:**
+`agon_evolution._fork_siblings` now labels sibling lines `branch=disposition`;
+modal-lens world cards say "on <label>" (suppressed when shared by all); DAG-lens
+legend names every line incl. unlabeled; Ergasterion header "⑂ Branches". Author calls:
+label-journey join (" → ") + proposed cue register, both ratified. Tests: +18
+(test_chain_branches 10, route additions 6, e2e 2); docs WEB_VIEWER_DESIGN §3 vocab
+row + §4 branch-strip pattern + §6 follow-ups (chip CSS dedup, per-branch storyboard),
+charter P4 worked example ("a counter never aggregates incompatible futures"),
+CAPABILITY_MAP Organon row. Follow-ups named, not built: per-branch storyboard/
+time-stack; .branch-chip promotion to design-system.css.**
+
 **▶▶ THIS SESSION (2026-07-16, fifth sitting) — STAGE ① B-min BUILT: THE AUTHORIZED
 CORE OPENING (CURRENT_PLAN item -1's second rung; the crossing's one genuine
 protected-core edit, executed under `.core_modification_authorized`; frontier ink on

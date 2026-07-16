@@ -387,3 +387,66 @@ def test_accessible_lens_aria_tree_and_keyboard_nav(page, app_url):
     page.select_option("#view-lens", "drawing")
     page.wait_for_selector("#organon-canvas svg", timeout=10000)
     assert not page._lens_errors, f"console/page errors: {page._lens_errors[:5]}"
+
+
+def test_branch_strip_orients_on_a_branching_episode(page, app_url):
+    """Charter P1 on the diachronic axis: a reader of a branching UoD sees
+    which line they are following and how many exist, from visible text alone
+    — the ⑂ chip strip, the honest per-branch counter, the fork cue, and the
+    convergence note. And » follows the ACTIVE line to its own leaf (the old
+    flat player jumped to the other branch's — the P4 counter lie)."""
+    _open_organon(page, app_url)
+    _load_uod(page, MODAL)   # possible_and_necessary: the fork-and-converge diamond
+    _wait_lens_offered(page, "derivation-dag")
+
+    # The strip is visible with one chip per line; the active line is named.
+    page.wait_for_selector("#cp-branches", state="visible", timeout=15000)
+    chips = page.query_selector_all("#cp-branches .branch-chip")
+    assert len(chips) == 2
+    active = page.query_selector("#cp-branches .branch-chip.active")
+    assert active and "wind-rises" in active.inner_text()
+
+    # The counter is honest: per-line total + the branch position.
+    counter = page.inner_text("#cp-counter")
+    assert "branch 1 of 2" in counter and "wind-rises" in counter
+
+    # At the fork (the base state) the cue names both continuations.
+    cue = page.inner_text("#cp-fork-cue")
+    assert "2 continuations" in cue
+    assert "wind-rises" in cue and "clears-first" in cue
+
+    # » lands on the ACTIVE line's leaf; the diamond's converged state says so.
+    page.click("#cp-last")
+    page.wait_for_function(
+        "() => document.getElementById('cp-counter').textContent.includes('2 / 2')",
+        timeout=10000)
+    counter = page.inner_text("#cp-counter")
+    assert "wind-rises" in counter
+    assert "lines converge here" in counter
+
+    # Switching lines by chip keeps the shared state and renames the counter.
+    page.eval_on_selector_all(
+        "#cp-branches .branch-chip",
+        "els => { const t = els.find(e => e.textContent.includes('clears-first'));"
+        " if (t) t.click(); }")
+    page.wait_for_function(
+        "() => document.getElementById('cp-counter').textContent.includes('clears-first')",
+        timeout=10000)
+    counter = page.inner_text("#cp-counter")
+    assert "branch 2 of 2" in counter
+
+    assert not page._lens_errors, page._lens_errors
+
+
+def test_linear_chain_shows_no_branch_strip(page, app_url):
+    """A linear proof reads exactly as before: no strip, the plain counter."""
+    _open_organon(page, app_url)
+    _load_uod(page, CHAINED)   # theorem_praeclarum, a straight line
+    _wait_lens_offered(page, "storyboard")
+    strip = page.query_selector("#cp-branches")
+    assert strip is not None
+    assert not strip.is_visible()
+    counter = page.inner_text("#cp-counter")
+    assert counter.strip() == "base state · 0 / 7"
+    assert page.inner_text("#cp-fork-cue").strip() == ""
+    assert not page._lens_errors, page._lens_errors

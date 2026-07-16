@@ -103,7 +103,14 @@ window.ModalLens = (function () {
 
     const worlds = (data.worlds || []).map(w => {
       const cls = 'ml-world' + (w.is_leaf ? ' ml-leaf' : '') + (w.is_initial ? ' ml-init' : '');
-      const tag = [w.is_initial ? 'start' : '', w.is_leaf ? 'rests here' : ''].filter(Boolean).join(' · ');
+      // Branch orientation (charter P1): name the line(s) of development a
+      // world lies on — the lens whose subject is branching should never show
+      // an anonymous set of worlds. Shared-by-all worlds carry no tag (noise).
+      const onLines = (data.branching && w.branches &&
+                       w.branches.length && w.branches.length < (data.branches_total || 99))
+        ? 'on ' + w.branches.join(' & ') : '';
+      const tag = [w.is_initial ? 'start' : '', w.is_leaf ? 'rests here' : '', onLines]
+        .filter(Boolean).join(' · ');
       // The world drawn (the picture itself, §3.3-attested server-side); the EGIF
       // rides as the tooltip and as the fallback when thumbnails were omitted.
       const body = w.svg

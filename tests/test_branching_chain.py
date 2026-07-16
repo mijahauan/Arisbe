@@ -116,3 +116,78 @@ def test_chain_route_flags_branching(client):
     # a linear proof is not flagged
     lin = client.get("/organon/uods/barbara/chain").json()["data"]
     assert lin.get("branching") is False
+
+
+# ---- branch orientation: the branches block (charter P1) ---------------------
+
+def test_chain_route_carries_branch_orientation(client):
+    """Every frame carries its DAG linkage and the top-level branches block
+    enumerates the lines of development — the data the player's branch strip
+    and honest counter read."""
+    body = client.get("/organon/uods/branching_confluence/chain").json()["data"]
+    br = body["branches"]
+    assert br["branching"] is True and br["count"] == 2
+    assert {b["label"] for b in br["branches"]} == {"erase-P-first", "erase-Q-first"}
+    # frames carry from_state_id + branch_id (base frame: None/None)
+    base = body["frames"][0]
+    assert base["from_state_id"] is None and base["branch_id"] is None
+    for f in body["frames"][1:]:
+        assert f["from_state_id"] is not None
+        assert f["branch_id"] in {"erase-P-first", "erase-Q-first"}
+    # the diamond: the convergence state belongs to both branches
+    conv = br["convergence_state_ids"]
+    assert len(conv) == 1
+    assert br["membership"][conv[0]] == [0, 1]
+    # the fork's continuations name the forward labels
+    fork = br["fork_state_ids"][0]
+    labels = [c["label"] for c in br["continuations"][fork]]
+    assert set(labels) == {"erase-P-first", "erase-Q-first"}
+
+
+def test_step_diff_baseline_is_the_steps_own_parent(client):
+    """On a branching chain each step's diff compares against its OWN
+    from-state — never the previous authored frame (the other line's leaf)."""
+    body = client.get("/organon/uods/branching_confluence/chain").json()["data"]
+    # every step frame changes exactly one thing in this diamond (one ERA per
+    # step); a wrong baseline (other branch's leaf) would show a compound diff
+    for f in body["frames"][1:]:
+        assert f["diff"]["summary"].startswith("−1"), (
+            f["state_id"], f["diff"]["summary"])
+
+
+def test_linear_chain_branches_block_is_degenerate_and_additive(client):
+    lin = client.get("/organon/uods/barbara/chain").json()["data"]
+    br = lin["branches"]
+    assert br["branching"] is False and br["count"] == 1
+    assert br["branches"][0]["label"] == "main"
+    assert br["fork_state_ids"] == [] and br["convergence_state_ids"] == []
+    # additivity: the pre-existing keys are all still present
+    for key in ("uod_id", "has_chain", "step_count", "branching",
+                "chain_annotations", "uod_annotations", "frames"):
+        assert key in lin
+    for key in ("index", "kind", "rule", "annotation", "step_id", "state_id",
+                "diff", "annotations", "svg", "egi_summary", "linear_forms",
+                "introspection"):
+        assert key in lin["frames"][0]
+
+
+def test_history_structure_carries_the_branches_block(client):
+    body = client.get(
+        "/organon/uods/branching_confluence/history-structure").json()["data"]
+    assert body["branches"]["count"] == 2
+    assert {b["label"] for b in body["branches"]["branches"]} == {
+        "erase-P-first", "erase-Q-first"}
+
+
+def test_modal_worlds_carry_their_branch_labels(client):
+    """The modal lens's worlds are not an anonymous set: each world names the
+    line(s) of development it lies on (charter P1 for the lens whose subject
+    IS the branching)."""
+    body = client.get(
+        "/organon/uods/branching_confluence/modal?thumbs=false").json()["data"]
+    assert body["branches_total"] == 2
+    by_id = {w["id"]: w for w in body["worlds"]}
+    # the root and the converged state lie on both lines; the middles on one
+    labels = {tuple(sorted(w["branches"])) for w in body["worlds"]}
+    assert ("erase-P-first", "erase-Q-first") in labels     # shared states
+    assert any(len(w["branches"]) == 1 for w in body["worlds"])  # exclusive middles

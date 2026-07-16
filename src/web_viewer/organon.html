@@ -272,6 +272,25 @@
     .overview-badge .ov-pill { fill: var(--ctp-base); opacity: 0.92; }
     .overview-badge .ov-pill-text { fill: var(--ctp-text); font: 600 12px ui-sans-serif, system-ui, sans-serif; }
     .overview-badge .ov-sub-text { fill: var(--ctp-subtext0); font: 500 10px ui-sans-serif, system-ui, sans-serif; }
+    /* Branch chips (the ⑂ strip): which line of development the player is
+       following, and how many exist. Same class name and vocabulary as
+       Ergasterion's switcher (charter P2: one word, one way), re-tokened to
+       Organon's palette. */
+    .branch-chip {
+      padding: 3px 8px;
+      background: var(--ctp-surface0);
+      color: var(--ctp-text);
+      border: 1px solid var(--ctp-surface1);
+      border-radius: 3px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .branch-chip:hover { border-color: var(--ctp-blue); }
+    .branch-chip.active {
+      border-color: var(--ctp-blue);
+      background: rgba(137,180,250,0.12);
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -453,6 +472,16 @@
         </div>
         <span id="cp-counter" style="font-size:12px; color:var(--ctp-subtext0); min-width:90px;"></span>
         <span id="cp-annotation" style="font-size:12px; color:var(--ctp-text); flex:1 1 240px;"></span>
+        <!-- Fork cue: shown when the current state has more than one
+             continuation — the reader picks a road (charter P1). -->
+        <span id="cp-fork-cue" style="font-size:12px; color:var(--ctp-mauve);"></span>
+        <!-- The ⑂ branch strip: one chip per line of development; the active
+             line is what the player follows. Hidden on a linear chain. -->
+        <div id="cp-branches" style="display:none; flex-basis:100%; align-items:center; gap:6px; flex-wrap:wrap;">
+          <span style="font-size:10px; color:var(--ctp-overlay0);">⑂ Branches</span>
+          <span id="cp-branch-list" style="display:flex; flex-wrap:wrap; gap:4px;"></span>
+          <a id="cp-dag-link" href="#" style="margin-left:auto; font-size:11px; color:var(--ctp-blue); text-decoration:none;">view as DAG →</a>
+        </div>
       </div>
 
       <div id="organon-canvas">
@@ -514,8 +543,16 @@
 
       // Diachronic chain player state.
       let chainFrames = [];      // ordered frames from /chain (base + steps)
-      let chainIndex = 0;        // currently shown frame
+      let chainIndex = 0;        // currently shown frame (flat index)
       let chainPlayTimer = null; // setInterval handle while playing
+      // Branch orientation (charter P1): the /chain `branches` block — the
+      // lines of development, their labels, membership, forks, convergences.
+      // The player follows ONE line at a time (activeBranch); stepping and
+      // the counter are computed through that line's path, so the counter
+      // never aggregates incompatible futures (charter P4).
+      let chainBranches = null;
+      let activeBranch = 0;
+      let branchPathMemo = {};   // branch index -> flat frame indices
       let currentCitation = null; // {citation, bibtex, key, has_source} from /export/citation
 
       // View-projection state (style + layout engine; both are projection
@@ -1062,6 +1099,11 @@
             const body = await res.json();
             if (body.success && body.data && body.data.has_chain) {
               chainFrames = body.data.frames || [];
+              // Enumeration is deterministic, so the active line survives a
+              // reprojection; only the memoized flat indices must rebuild.
+              chainBranches = body.data.branches || chainBranches;
+              branchPathMemo = {};
+              renderBranchStrip();
               // Style/engine reproject the Drawing; if a structural lens is active
               // it is style-independent, so leave it untouched.
               if (currentLens === 'drawing') {
@@ -1165,6 +1207,15 @@
         if (idx < 0) {
           setStatus('That state is not on the linear chain player.', true);
           return;
+        }
+        // Adopt a line that holds this state, so the player's counter and
+        // stepping orient correctly after the jump (charter P1).
+        if (chainBranches && chainFrames[idx]) {
+          const owners = chainBranches.membership[chainFrames[idx].state_id] || [];
+          if (owners.length && owners.indexOf(activeBranch) < 0) {
+            activeBranch = owners[0];
+            renderBranchStrip();
+          }
         }
         chainIndex = idx;
         selectLens('drawing');
@@ -1396,29 +1447,176 @@
         stopPlay();
         chainFrames = [];
         chainIndex = 0;
+        chainBranches = null;
+        activeBranch = 0;
+        branchPathMemo = {};
+        const strip = document.getElementById('cp-branches');
+        if (strip) strip.style.display = 'none';
+        const cue = document.getElementById('cp-fork-cue');
+        if (cue) cue.innerHTML = '';
         if (cp.bar) cp.bar.style.display = 'none';
+      }
+
+      // ---- Branch orientation (charter P1/P4) ----
+      // A chain is a DAG in general: two steps sharing a from-state fork a
+      // line of development. The player follows ONE line (activeBranch); its
+      // path is the flat frame indices of that line's steps, keyed by step_id
+      // (state ids repeat on a convergence diamond, step ids never do).
+
+      function isBranching() {
+        return !!(chainBranches && chainBranches.count > 1);
+      }
+
+      function branchPath(bi) {
+        if (branchPathMemo[bi]) return branchPathMemo[bi];
+        const path = [0];
+        const b = chainBranches && chainBranches.branches[bi];
+        if (b) {
+          b.step_ids.forEach(function (sid) {
+            const idx = chainFrames.findIndex(function (fr) { return fr.step_id === sid; });
+            if (idx >= 0) path.push(idx);
+          });
+        } else {
+          for (let k = 1; k < chainFrames.length; k++) path.push(k);
+        }
+        branchPathMemo[bi] = path;
+        return path;
+      }
+
+      function posInPath(flatIdx) {
+        // Position of a flat frame index on the active line. May adjust
+        // chainIndex (the diamond: same state reached by the other line's
+        // step — remap to the active line's own frame for that state) or
+        // adopt a line that holds the state (a DAG-lens jump).
+        let path = branchPath(activeBranch);
+        let pos = path.indexOf(flatIdx);
+        if (pos >= 0) return pos;
+        const f = chainFrames[flatIdx];
+        if (!f || !chainBranches) return 0;
+        const own = path.find(function (ix) {
+          return chainFrames[ix].state_id === f.state_id;
+        });
+        if (own !== undefined) { chainIndex = own; return path.indexOf(own); }
+        const owners = chainBranches.membership[f.state_id] || [];
+        if (owners.length) {
+          activeBranch = owners[0];
+          renderBranchStrip();
+          path = branchPath(activeBranch);
+          pos = path.indexOf(flatIdx);
+          if (pos >= 0) return pos;
+        }
+        return 0;
+      }
+
+      function renderBranchStrip() {
+        const strip = document.getElementById('cp-branches');
+        const list = document.getElementById('cp-branch-list');
+        if (!strip || !list) return;
+        if (!isBranching()) { strip.style.display = 'none'; list.innerHTML = ''; return; }
+        list.innerHTML = '';
+        chainBranches.branches.forEach(function (b) {
+          const chip = document.createElement('button');
+          chip.type = 'button';
+          chip.className = 'branch-chip' + (b.index === activeBranch ? ' active' : '');
+          chip.textContent = '⑂ ' + b.label + ' · ' + b.step_count +
+            ' move' + (b.step_count === 1 ? '' : 's');
+          chip.title = 'Follow this line of development';
+          chip.addEventListener('click', function () { switchChainBranch(b.index); });
+          list.appendChild(chip);
+        });
+        strip.style.display = 'flex';
+      }
+
+      function switchChainBranch(bi) {
+        if (!chainBranches || bi === activeBranch || !chainBranches.branches[bi]) return;
+        stopPlay();
+        const oldPath = branchPath(activeBranch);
+        const oldPos = oldPath.indexOf(chainIndex);
+        activeBranch = bi;
+        const newPath = branchPath(bi);
+        // Keep the current state if the new line shares it (the prefix, a
+        // convergence state); else fall back to the deepest shared ancestor
+        // (the fork point) so the reader lands where the roads part.
+        let target = newPath[0];
+        for (let k = (oldPos >= 0 ? oldPos : 0); k >= 0; k--) {
+          const fr = chainFrames[oldPath[k]];
+          if (!fr) continue;
+          const own = newPath.find(function (ix) {
+            return chainFrames[ix].state_id === fr.state_id;
+          });
+          if (own !== undefined) { target = own; break; }
+        }
+        renderBranchStrip();
+        showFrame(target, true);
+        setStatus('On ' + chainBranches.branches[bi].label + '.');
+      }
+
+      function takeContinuation(c) {
+        stopPlay();
+        if (c.branch_indices && c.branch_indices.length &&
+            c.branch_indices.indexOf(activeBranch) < 0) {
+          activeBranch = c.branch_indices[0];
+          renderBranchStrip();
+        }
+        const idx = chainFrames.findIndex(function (fr) { return fr.step_id === c.step_id; });
+        if (idx >= 0) showFrame(idx, true);
+      }
+
+      function renderForkCue(f) {
+        const cue = document.getElementById('cp-fork-cue');
+        if (!cue) return;
+        cue.innerHTML = '';
+        if (!isBranching()) return;
+        const conts = chainBranches.continuations[f.state_id];
+        if (!conts || conts.length < 2) return;
+        cue.appendChild(document.createTextNode('⑂ ' + conts.length + ' continuations: '));
+        conts.forEach(function (c, k) {
+          if (k) cue.appendChild(document.createTextNode(' | '));
+          const a = document.createElement('a');
+          a.href = '#';
+          a.textContent = c.label;
+          a.style.color = 'var(--ctp-mauve)';
+          a.addEventListener('click', function (ev) {
+            ev.preventDefault();
+            takeContinuation(c);
+          });
+          cue.appendChild(a);
+        });
       }
 
       function showFrame(i, animate) {
         if (!chainFrames.length) return;
         chainIndex = Math.max(0, Math.min(i, chainFrames.length - 1));
+        const branching = isBranching();
+        // posInPath may remap chainIndex (the diamond) — resolve before reading f.
+        const pos = branching ? posInPath(chainIndex) : chainIndex;
         const f = chainFrames[chainIndex];
-        const total = chainFrames.length - 1;  // step count (frame 0 is base)
+        const total = branching
+          ? branchPath(activeBranch).length - 1     // the ACTIVE line's length —
+          : chainFrames.length - 1;                 // never two incompatible futures (P4)
+        const bLabel = branching ? chainBranches.branches[activeBranch].label : null;
+        const branchSuffix = branching
+          ? ' · on ' + bLabel + ' (branch ' + (activeBranch + 1) + ' of ' + chainBranches.count + ')'
+          : '';
+        const converges = branching &&
+          chainBranches.convergence_state_ids.indexOf(f.state_id) >= 0;
         // Context reflex: this frame's ground position + its own introspection
         // (bundled with the frame, so element ids match this drawing). Set before
         // the render so the panel paints with the right enclosure data.
         if (currentContextGround) {
-          currentContextGround.derivation = chainIndex === 0
-            ? { label: 'state', text: 'base · 0 of ' + total }
-            : { label: 'state', text: chainIndex + ' of ' + total };
+          currentContextGround.derivation = pos === 0
+            ? { label: 'state', text: 'base · 0 of ' + total + (branching ? ' · on ' + bLabel : '') }
+            : { label: 'state', text: pos + ' of ' + total + (branching ? ' · on ' + bLabel : '') };
         }
         currentContextIntrospection = f.introspection || null;
         if (canvasEl) canvasEl.dataset.cxSel = '';   // selection is per-state
         renderCanvas(f.svg, f.linear_forms, animate);
         if (cp.counter) {
-          cp.counter.textContent = chainIndex === 0
+          cp.counter.textContent = (pos === 0
             ? 'base state · 0 / ' + total
-            : 'state ' + chainIndex + ' / ' + total;
+            : 'state ' + pos + ' / ' + total)
+            + branchSuffix
+            + (converges ? ' · lines converge here' : '');
         }
         if (cp.annotation) {
           // U10: name the rule + rationale AND what the step changed (the legible
@@ -1430,10 +1628,11 @@
             ? 'The blank/asserted starting context.'
             : (f.rule ? f.rule + ' — ' : '') + (f.annotation || '') + diff;
         }
-        if (cp.prev) cp.prev.disabled = chainIndex === 0;
-        if (cp.first) cp.first.disabled = chainIndex === 0;
-        if (cp.next) cp.next.disabled = chainIndex === total;
-        if (cp.last) cp.last.disabled = chainIndex === total;
+        renderForkCue(f);
+        if (cp.prev) cp.prev.disabled = pos === 0;
+        if (cp.first) cp.first.disabled = pos === 0;
+        if (cp.next) cp.next.disabled = pos === total;
+        if (cp.last) cp.last.disabled = pos === total;
         // Keep the header "shape" counts in step with the frame on screen.
         // The base frame is the blank/asserted starting context (often 0/0/0),
         // so qualify it — otherwise the bare counts read as the theorem's own
@@ -1445,17 +1644,40 @@
         }
       }
 
+      // Step along the ACTIVE line (on a linear chain: the flat order).
+      function stepWithin(delta) {
+        stopPlay();
+        if (!isBranching()) { showFrame(chainIndex + delta, true); return; }
+        const path = branchPath(activeBranch);
+        const pos = posInPath(chainIndex);
+        const np = Math.max(0, Math.min(pos + delta, path.length - 1));
+        showFrame(path[np], true);
+      }
+
+      function lastFrameOnLine() {
+        return isBranching()
+          ? branchPath(activeBranch)[branchPath(activeBranch).length - 1]
+          : chainFrames.length - 1;
+      }
+
       function togglePlay() {
         if (chainPlayTimer) { stopPlay(); return; }
         if (!chainFrames.length) return;
-        // From the last frame, Play restarts at the base.
-        if (chainIndex >= chainFrames.length - 1) showFrame(0, false);
+        const endPos = isBranching()
+          ? branchPath(activeBranch).length - 1 : chainFrames.length - 1;
+        const curPos = isBranching() ? posInPath(chainIndex) : chainIndex;
+        // From the line's last frame, Play restarts at the base.
+        if (curPos >= endPos) showFrame(0, false);
         cp.play.textContent = '⏸ Pause';
         chainPlayTimer = setInterval(function () {
-          if (chainIndex >= chainFrames.length - 1) { stopPlay(); return; }
-          showFrame(chainIndex + 1, true);
-          // Stop as soon as the final frame is shown (don't idle a tick on it).
-          if (chainIndex >= chainFrames.length - 1) stopPlay();
+          const path = isBranching() ? branchPath(activeBranch) : null;
+          const total = path ? path.length - 1 : chainFrames.length - 1;
+          const pos = path ? posInPath(chainIndex) : chainIndex;
+          if (pos >= total) { stopPlay(); return; }
+          showFrame(path ? path[pos + 1] : chainIndex + 1, true);
+          // Stop as soon as the line's final frame is shown.
+          const pos2 = path ? posInPath(chainIndex) : chainIndex;
+          if (pos2 >= total) stopPlay();
         }, 1100);
       }
 
@@ -1470,6 +1692,9 @@
           const frames = body.data.frames || [];
           if (frames.length < 2) return;  // nothing to play through
           chainFrames = frames;
+          chainBranches = body.data.branches || null;
+          activeBranch = 0;
+          branchPathMemo = {};
           currentHasChain = true;
           // reveal the diachronic lenses (DAG always; linear ones only if a line)
           setDiachronicLensesAvailable(true, !!body.data.branching);
@@ -1477,18 +1702,31 @@
           const chainBtn = document.getElementById('export-chain-go');
           if (chainBtn) chainBtn.style.display = 'inline-block';
           if (cp.bar) cp.bar.style.display = 'flex';
+          renderBranchStrip();
           // Start at the base state so the episode plays forward.
           showFrame(0, false);
-          setStatus('Diachronic chain: ' + (frames.length - 1) +
-            ' move(s). Use the player to follow each rule application.');
+          if (isBranching()) {
+            setStatus('Diachronic chain: ' + chainBranches.count +
+              ' branches. Following ' + chainBranches.branches[0].label +
+              ' — use the ⑂ strip to switch.');
+          } else {
+            setStatus('Diachronic chain: ' + (frames.length - 1) +
+              ' move(s). Use the player to follow each rule application.');
+          }
         } catch (_) { /* leave player hidden on any error */ }
       }
 
       if (cp.first) cp.first.addEventListener('click', function () { stopPlay(); showFrame(0, true); });
-      if (cp.prev)  cp.prev.addEventListener('click', function () { stopPlay(); showFrame(chainIndex - 1, true); });
-      if (cp.next)  cp.next.addEventListener('click', function () { stopPlay(); showFrame(chainIndex + 1, true); });
-      if (cp.last)  cp.last.addEventListener('click', function () { stopPlay(); showFrame(chainFrames.length - 1, true); });
+      if (cp.prev)  cp.prev.addEventListener('click', function () { stepWithin(-1); });
+      if (cp.next)  cp.next.addEventListener('click', function () { stepWithin(1); });
+      // » follows the ACTIVE line to its leaf — never the other branch's.
+      if (cp.last)  cp.last.addEventListener('click', function () { stopPlay(); showFrame(lastFrameOnLine(), true); });
       if (cp.play)  cp.play.addEventListener('click', togglePlay);
+      const dagLink = document.getElementById('cp-dag-link');
+      if (dagLink) dagLink.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        selectLens('derivation-dag');
+      });
 
       // ---- Export ----
       function b64ToBlob(b64, mime) {

@@ -342,6 +342,11 @@ def test_run_forks_the_dag_on_irreducible_disagreement():
     assert o.disposition == "new_fact" and o.branched == ["definition"]
     froms = [s.from_state_id for s in res.chain.steps]
     assert froms.count("s0") == 2                            # a genuine fork off the pre-round state
+    # The sibling line is LABELED by its disposition, so the history
+    # navigation names it (the ⑂ strip / DAG legend), never a bare "branch N".
+    sibling = next(s for s in res.chain.steps
+                   if (s.parameters or {}).get("sibling"))
+    assert sibling.branch_id == "definition"
 
 
 def test_run_without_a_branch_aware_panel_never_forks():
