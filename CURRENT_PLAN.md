@@ -17,8 +17,8 @@
    boundary hook; the A3 conservativity gate (corpus test: no new first-order theorems);
    the reference-node increment-2 use/mention fork rides the same opening. ② *B-full*:
    native graph-valued element kind (ν hooks a blank, P3′), committed dotted-oval render
-   conventions (P5′); exemplars re-expressed natively. **Proposed exemplar slate (for the
-   author's blessing):** (i) the swan's third tense — `(superseded ⌜M_swan_law⌝ …)` on
+   conventions (P5′); exemplars re-expressed natively. **Exemplar slate BLESSED by the
+   author (2026-07-16), all three:** (i) the swan's third tense — `(superseded ⌜M_swan_law⌝ …)` on
    `dialogue_swan_revision`, the withdrawn law as labeled exhibit (audit-lens shelf);
    (ii) `(forces s φ)` on the forcing-trichotomy exemplar (settled/open/excluded as
    drawn, S5-resolved, Montague-rider-defined assertions; modal lens gains assertable
