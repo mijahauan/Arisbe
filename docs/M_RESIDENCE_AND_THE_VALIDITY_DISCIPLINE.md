@@ -497,3 +497,43 @@ adding to it.
 4. **D4 — ordering.** Take this sweep before B-full (it is first-order,
    touches the corpus, and B-full's exemplars would otherwise be built on a
    residence about to move)? And fold the §8.1 live-loop migration into it?
+
+### 9.7 Bearing on the third tense (the author's follow-up, same sitting)
+
+The author asked whether the cells remove the need to bring a superseded M
+forward as a *quoted* M — "we don't need to quote it but simply leave it
+alone and let it fall out of sight when it no longer applies in habitual
+use." The finding, which sharpens both proposals:
+
+- **"Leave it alone" is not available at first order.** Standing ink in the
+  committal register *binds* — the materializer fires a standing law, the
+  peel applies it, however long unused (the picture-never-lies principle
+  applied to force; §5's blade unblunted). The first-order trichotomy is
+  exhaustive: **in force** (standing) / **absent** (erased; DAG-remembered) /
+  present-without-force — which exists only one order up. The cells cheapen
+  the *transitions*; they create no first-order middle state.
+- **"Falling out of sight through disuse" is the decay path to absence —
+  and the cells make decay itself rule-licensed.** The live loops' disuse
+  mechanism currently retracts atoms by structural surgery
+  (`retract_atom`, the legacy regime); under cells the fading of a habit
+  through disuse becomes a licensed ERA at even depth — a legal move of the
+  calculus, not maintenance beside it. (A corollary in the proposal's
+  favor, to be added to any adoption order: refutation-driven retraction
+  and disuse-driven fading become the *same licensed move*, distinguished
+  by the step's recorded disposition — surprise vs. entropy.)
+- **What quotation remains for: present discourse about absent content.**
+  `(superseded ⌜M_swan_law⌝ "Nox")` is a *now*-assertion about a withdrawn
+  habit — who killed it and why, in today's ink. The DAG cannot say that
+  (memory, not recall); an emptied husk cannot (the scar is anonymous).
+  So under this proposal the third tense re-glosses: it was never a stage
+  of the **revision** workflow — revision needs only erase-and-remember,
+  one move under cells — it is the register of **self-controlled
+  criticism**: a past habit held before the mind as an *object*, to be
+  judged. Decision B's case is not weakened: revision's plaintiff retires,
+  but criticism's stands, and `(forces s φ)` + cross-UoD mention (the
+  citation register) were always independent.
+
+If D1 is adopted, §5's tense-3 paragraph should carry this re-gloss, and a
+fourth tense-flavor should be named beside *withdrawn-remembered*:
+**faded** — absence reached by disuse rather than refutation, same drawn
+result, different recorded disposition.
