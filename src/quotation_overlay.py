@@ -167,6 +167,20 @@ def lift_cut(egi: RelationalGraphWithCuts, cut_id: ElementID) -> RelationalGraph
     return _copy_area(egi, view, cut_id, cut_id)
 
 
+def lift_quotation(
+    egi: RelationalGraphWithCuts, cut_id: ElementID
+) -> RelationalGraphWithCuts:
+    """The quoted graph a quotation oval holds — the oval's *contents* as a
+    standalone graph (ids preserved). Contrast :func:`lift_cut`, which keeps
+    the cut itself as the root: right for recovering a law-shaped *negation*,
+    wrong for an oval, whose dotted curve is the quotation device itself, not
+    part of the quoted object."""
+    if cut_id not in egi.quotation:
+        raise ValueError(f"cut {cut_id!r} is not a quotation area")
+    view = create_empty_graph()
+    return _copy_area(egi, view, cut_id, view.sheet)
+
+
 def find_cut_matching(
     egi: RelationalGraphWithCuts, shape: RelationalGraphWithCuts
 ) -> Optional[ElementID]:
@@ -324,6 +338,170 @@ class ChainQuotationResolver:
 
 
 # --------------------------------------------------------------------------- #
+# Scribing a quotation into the core (stage ① B-min) and projecting it away.
+# --------------------------------------------------------------------------- #
+
+def scribe_quotation(
+    host: RelationalGraphWithCuts,
+    name_label: str,
+    quoted: RelationalGraphWithCuts,
+    *,
+    context_id: Optional[ElementID] = None,
+    sort: str = SORT_PROPOSITION,
+    target: Optional[str] = None,
+    kind: str = "egif",
+    origin: Optional[str] = None,
+    warrant: str = "low",
+    **extra: Any,
+) -> tuple:
+    """Draw a full quotation into ``host``: a sorted name vertex + a
+    quotation-flagged oval holding ``quoted``'s ink (ids preserved via the
+    same ``_copy_area`` machinery ``m_view`` trusts).
+
+    The core half is ``with_quotation`` (the B-min constructor); this helper
+    adds the ink filling and the Stage-⓪ provenance mark (``target`` defaults
+    to the quoted graph's own EGIF, so every scribed quotation stays
+    resolvable). Returns ``(new_host, mark, quotation_cut_id)``.
+
+    Contrast :func:`mark_quotation`, which decorates *existing* ink; and note
+    the cross-UoD mention case does not scribe at all — a whole other
+    universe cannot inline, so its name gets ``with_sort`` only and the oval
+    stays a named horizon (S4)."""
+    from egi_core_dau import create_vertex
+    from egif_generator_dau import generate_egif
+
+    name = create_vertex(label=name_label, is_generic=False)
+    new_host = host.with_quotation(
+        name,
+        context_id=context_id if context_id is not None else host.sheet,
+        sort_name=sort,
+    )
+    cut_id = next(cid for cid, vid in new_host.quotation.items() if vid == name.id)
+    new_host = _copy_area(quoted, new_host, quoted.sheet, cut_id)
+    mark = QuotationMark(
+        element_id=name.id,
+        target=target if target is not None else generate_egif(quoted).strip(),
+        sort=sort,
+        kind=kind,
+        origin=origin,
+        warrant=warrant,
+        extra=dict(extra),
+    )
+    return new_host, mark, cut_id
+
+
+def quote_existing_name(
+    host: RelationalGraphWithCuts,
+    name_vid: ElementID,
+    quoted: RelationalGraphWithCuts,
+    *,
+    sort: str = SORT_PROPOSITION,
+) -> tuple:
+    """The conversion form of :func:`scribe_quotation`: an *existing* drawn
+    name (typically a constant argument of a host relation) gains the sort
+    and a quotation oval holding ``quoted``'s ink, drawn in the name's own
+    area (the core's same-area attachment invariant). Returns
+    ``(new_host, quotation_cut_id)``."""
+    from egi_core_dau import create_cut
+
+    area = element_area(host).get(name_vid)
+    if area is None:
+        raise ValueError(f"vertex {name_vid!r} is not in the host graph")
+    cut = create_cut()
+    g = host.with_cut(cut, area)
+    g = g.with_quotation_binding(name_vid, cut.id, sort_name=sort)
+    return _copy_area(quoted, g, quoted.sheet, cut.id), cut.id
+
+
+# The explicit chain step for scribing a quotation (B-min). Registered
+# NEUTRAL in proof_character: a mention adds no asserted content — the oval
+# exhibits its ink without force, the way a PEEL records an act, not an
+# inference.
+QUOTE = "QUOTE"
+
+
+def quote_step(
+    pc,
+    name_label: str,
+    quoted_egif: str,
+    *,
+    sort: str = SORT_PROPOSITION,
+    note: Optional[str] = None,
+    branch: Optional[str] = None,
+):
+    """Scribe a quotation onto the chain's current state as an explicit
+    ``QUOTE`` step: the labeled constant (already drawn) gains the sort and a
+    dotted oval holding ``quoted_egif``'s ink — present without force. The
+    locator resolves against the current state, ``proof_authoring``'s idiom."""
+    quoted = parse_egif(quoted_egif)
+
+    def transform(g):
+        vid = nav.vertex_by_label(g, name_label)
+        new_g, _cut_id = quote_existing_name(g, vid, quoted, sort=sort)
+        return new_g
+
+    params = {
+        "act": "quotation",
+        "earned": True,
+        "derivation": ["with_quotation_binding"],
+        "name_label": name_label,
+        "sort": sort,
+        "quoted_egif": quoted_egif,
+    }
+    return pc.apply_derived(
+        QUOTE, transform, note=note or f"quote ⌜{name_label}⌝", params=params,
+        branch=branch)
+
+
+def sort_step(
+    pc,
+    name_label: str,
+    *,
+    sort: str = SORT_PROPOSITION,
+    target: Optional[str] = None,
+    note: Optional[str] = None,
+    branch: Optional[str] = None,
+):
+    """The oval-less half of ``QUOTE`` — a cross-UoD mention's name gains the
+    core sort but no quotation area (a whole other universe cannot inline;
+    the quoted graph stays a resolver-served, S4-named horizon)."""
+
+    def transform(g):
+        return g.with_sort(nav.vertex_by_label(g, name_label), sort)
+
+    params = {
+        "act": "quotation",
+        "earned": True,
+        "derivation": ["with_sort"],
+        "name_label": name_label,
+        "sort": sort,
+    }
+    if target is not None:
+        params["cross_uod_target"] = target
+    return pc.apply_derived(
+        QUOTE, transform, note=note or f"sort ⌜{name_label}⌝ (mention by name)",
+        params=params, branch=branch)
+
+
+def project_first_order(egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
+    """Strip the quotation layer: every quotation removed atomically
+    (``without_quotation``), every residual sort dropped — what the graph
+    asserts *first-order*. The A3 erasure projection: the conservativity gate
+    demands the projection's verdicts equal the quotation-bearing graph's
+    (the quoted layer licenses nothing)."""
+    g = egi
+    while g.quotation:
+        g = g.without_quotation(sorted(g.quotation)[0])
+    if g.sort:
+        import dataclasses
+
+        from frozendict import frozendict
+
+        g = dataclasses.replace(g, sort=frozendict())
+    return g
+
+
+# --------------------------------------------------------------------------- #
 # Authoring, bridging, and attesting a quotation.
 # --------------------------------------------------------------------------- #
 
@@ -405,12 +583,16 @@ def attest_quotation_mark(
     layout_fn=None,
     attest_fn=None,
     quoted_ground: Optional[RelationalGraphWithCuts] = None,
+    read_back: Optional[Callable] = None,
     context: Optional[str] = None,
 ) -> None:
     """Boundary hook: raise ``SecondOrderViolation`` if the marked quotation
-    breaks the law (S2's §3.3 half needs ``layout_fn``), else None. The
-    quotation analogue of ``attest_reference``."""
-    cand = quotation_candidate(host, mark, resolver, quoted_ground=quoted_ground)
+    breaks the law (S2's §3.3 half needs ``layout_fn``; S3 runs iff
+    ``read_back`` is supplied — ``second_order_reader.read_quotation_back``
+    for a core-carried quotation), else None. The quotation analogue of
+    ``attest_reference``."""
+    cand = quotation_candidate(host, mark, resolver, quoted_ground=quoted_ground,
+                               read_back=read_back)
     attest_quotation(cand, layout_fn=layout_fn, attest_fn=attest_fn,
                      context=context or mark.target)
 
@@ -423,10 +605,13 @@ def run_quotation_mark(
     layout_fn=None,
     attest_fn=None,
     quoted_ground: Optional[RelationalGraphWithCuts] = None,
+    read_back: Optional[Callable] = None,
 ) -> QuotationReport:
     """Non-raising measurement form — a structured report for a marked
-    quotation (S3's skip is named in ``honest_limits``)."""
-    cand = quotation_candidate(host, mark, resolver, quoted_ground=quoted_ground)
+    quotation (S3 runs iff ``read_back`` is supplied; its skip is otherwise
+    named in ``honest_limits``)."""
+    cand = quotation_candidate(host, mark, resolver, quoted_ground=quoted_ground,
+                               read_back=read_back)
     return run_quotation(cand, layout_fn=layout_fn, attest_fn=attest_fn)
 
 
@@ -538,7 +723,14 @@ __all__ = [
     "quotation_marks_from_list",
     "is_enclosed",
     "lift_cut",
+    "lift_quotation",
     "find_cut_matching",
+    "scribe_quotation",
+    "quote_existing_name",
+    "QUOTE",
+    "quote_step",
+    "sort_step",
+    "project_first_order",
     "QuotationResolver",
     "EGIFQuotationResolver",
     "ChainStepQuotationResolver",

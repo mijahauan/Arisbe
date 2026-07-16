@@ -3,7 +3,6 @@ Formal EG transformation rules implementing precise Peirce-Dau formalism.
 Each rule has clear preconditions, transformations, and postconditions.
 """
 
-import dataclasses
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
@@ -11,9 +10,213 @@ from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 
 from frozendict import frozendict
 
-from egi_core_dau import AreaPolarity, Cut, Edge, ElementID, RelationalGraphWithCuts, Vertex
+from egi_core_dau import (
+    AlphabetDAU,
+    AreaPolarity,
+    Cut,
+    Edge,
+    ElementID,
+    RelationalGraphWithCuts,
+    Vertex,
+)
 from graph_isomorphism_engine import IsomorphismValidator
 from subgraph_closure_validator import SubgraphClosureValidator
+
+
+# ---------------------------------------------------------------------------
+# Shared reconstruction + quotation-boundary discipline (B-min, 2026-07-16)
+# ---------------------------------------------------------------------------
+
+
+def _extended_alphabet(source_alphabet, rel, nu, rho):
+    """Grow an alphabet to cover a rebuilt graph's vocabulary.
+
+    A transformation may lawfully introduce new relation names (INS of a new
+    fact) or constants; the alphabet describes the graph's language, it does
+    not close it. Arity conflicts on an already-declared name still refuse at
+    validation (Dau's arity discipline)."""
+    if source_alphabet is None:
+        return None
+    declared = source_alphabet.C | source_alphabet.F | source_alphabet.R
+    new_rels = set(rel.values()) - declared
+    consts = {v for v in rho.values() if v is not None}
+    new_consts = consts - source_alphabet.C
+    if not new_rels and not new_consts:
+        return source_alphabet
+    ar = dict(source_alphabet.ar)
+    for eid, name in rel.items():
+        if name in new_rels and name not in ar:
+            ar[name] = len(nu.get(eid, ()))
+    for c in new_consts:
+        ar.setdefault(c, 1)
+    return AlphabetDAU(
+        C=source_alphabet.C | frozenset(new_consts),
+        F=source_alphabet.F,
+        R=source_alphabet.R | frozenset(new_rels),
+        ar=frozendict(ar),
+    )
+
+
+def _rebuild_graph(
+    source: RelationalGraphWithCuts,
+    *,
+    V=None,
+    E=None,
+    nu=None,
+    cuts=None,
+    area=None,
+    rel=None,
+    sort=None,
+) -> RelationalGraphWithCuts:
+    """Rebuild a graph from ``source`` with replaced components, always
+    forwarding ``alphabet``/``rho``/``sort``/``quotation`` pruned to the
+    surviving elements.
+
+    This is the single reconstruction path for every rule. It also repairs
+    the historical kwarg-omission wart: DC-/ERA/IT+/IT- used to construct
+    the result graph without ``alphabet``/``rho``, silently dropping
+    constants metadata on rho-bearing graphs (author-ratified fix,
+    2026-07-16)."""
+    V = source.V if V is None else V
+    E = source.E if E is None else E
+    nu = source.nu if nu is None else nu
+    cuts = source.Cut if cuts is None else cuts
+    area = source.area if area is None else area
+    rel = source.rel if rel is None else rel
+    v_ids = {v.id for v in V}
+    c_ids = {c.id for c in cuts}
+    base_sort = source.sort if sort is None else sort
+    new_rho = frozendict({k: v for k, v in source.rho.items() if k in v_ids})
+    return RelationalGraphWithCuts(
+        V=V,
+        E=E,
+        nu=nu,
+        sheet=source.sheet,
+        Cut=cuts,
+        area=area,
+        rel=rel,
+        alphabet=_extended_alphabet(source.alphabet, rel, nu, new_rho),
+        rho=new_rho,
+        sort=frozendict({k: v for k, v in base_sort.items() if k in v_ids}),
+        quotation=frozendict(
+            {
+                k: v
+                for k, v in source.quotation.items()
+                if k in c_ids and v in v_ids
+            }
+        ),
+    )
+
+
+def _inside_quotation(egi: RelationalGraphWithCuts, element_id: ElementID) -> bool:
+    """True when the element lies inside a quotation area (any enclosing cut
+    is quotation-flagged)."""
+    try:
+        ctx = egi.get_context(element_id)
+    except ValueError:
+        return False
+    while True:
+        if ctx in egi.quotation:
+            return True
+        if ctx == egi.sheet:
+            return False
+        try:
+            ctx = egi.get_context(ctx)
+        except ValueError:
+            return False
+
+
+def _refuse_quotation_boundary(
+    egi: RelationalGraphWithCuts,
+    target_area: ElementID,
+    selected_subgraph: FrozenSet[ElementID],
+    *,
+    allow_whole_unit: bool = False,
+    deep: bool = False,
+) -> Optional[str]:
+    """The mention-not-use discipline (B-min): quoted ink asserts nothing, so
+    no rule operates inside a quotation area, and the quotation apparatus
+    (flagged cut + quoting name) moves only as a whole unit where a rule
+    admits it at all.
+
+    Returns a refusal message, or None when the operation is admissible.
+    No-ops (returns None immediately) on a first-order graph.
+
+    allow_whole_unit: the rule may take a complete unit (both the flagged cut
+        and its quoting name selected together) — ERA of the whole exhibit,
+        DC+ around it. When False any touch of the apparatus is refused
+        (IT+/IT- at B-min: iterating or deiterating a quotation is a named
+        limit, not a licensed move).
+    deep: additionally refuse a selected plain cut whose interior carries
+        quotation apparatus (the copy paths would silently degrade the copy
+        to an unflagged cut + unsorted name)."""
+    if not egi.quotation:
+        return None
+    # The target area must not be (or lie inside) a quotation area.
+    current = target_area
+    while True:
+        if current in egi.quotation:
+            return (
+                f"Target area lies within quotation area {current}: quoted ink "
+                f"asserts nothing, so no rule operates there (mention, not use)"
+            )
+        if current == egi.sheet:
+            break
+        try:
+            current = egi.get_context(current)
+        except ValueError:
+            break
+    quoting_names = {v: c for c, v in egi.quotation.items()}
+    for elem in selected_subgraph:
+        if elem in egi.quotation or elem in quoting_names:
+            continue  # unit membership handled below
+        if _inside_quotation(egi, elem):
+            return (
+                f"Selection reaches inside a quotation area ({elem}): quoted "
+                f"ink is opaque to the calculus"
+            )
+    for elem in selected_subgraph:
+        if elem in egi.quotation:
+            if not allow_whole_unit:
+                return (
+                    f"Quotation area {elem} cannot take part in this rule "
+                    f"(a B-min limit: the exhibit is erased whole or left alone)"
+                )
+            name_id = egi.quotation[elem]
+            if name_id not in selected_subgraph:
+                return (
+                    f"Quotation area {elem} selected without its quoting name "
+                    f"{name_id}: the quotation moves only as a whole unit"
+                )
+        elif elem in quoting_names:
+            if not allow_whole_unit:
+                return (
+                    f"Quoting name {elem} cannot take part in this rule "
+                    f"(a B-min limit: the exhibit is erased whole or left alone)"
+                )
+            cut_id = quoting_names[elem]
+            if cut_id not in selected_subgraph:
+                return (
+                    f"Quoting name {elem} selected without its oval {cut_id}: "
+                    f"the quotation moves only as a whole unit"
+                )
+    if deep:
+        cut_ids = {c.id for c in egi.Cut}
+        for elem in selected_subgraph:
+            if elem in cut_ids and elem not in egi.quotation:
+                interior = egi.get_full_context(elem)
+                touched = sorted(
+                    e
+                    for e in interior
+                    if e in egi.quotation or e in quoting_names
+                )
+                if touched:
+                    return (
+                        f"Selected cut {elem} encloses quotation apparatus "
+                        f"({touched[0]}): copying would silently degrade the "
+                        f"exhibit (a B-min limit)"
+                    )
+    return None
 
 
 @dataclass
@@ -126,6 +329,16 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         if not context.selected_subgraph.issubset(area_contents):
             return False, "Selected subgraph contains elements not in target area"
 
+        # B-min: never inside a quotation area; a quotation unit encloses whole
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=True,
+        )
+        if refusal:
+            return False, refusal
+
         return True, None
 
     def apply_transformation(
@@ -197,21 +410,11 @@ class DoubleCutInsertionRule(FormalTransformationRule):
             # Add the new cuts to the cut set
             new_cuts = egi.Cut | {outer_cut, inner_cut}
 
-            result_egi = RelationalGraphWithCuts(
-                V=egi.V,
-                E=egi.E,
-                nu=egi.nu,
-                sheet=egi.sheet,
-                Cut=new_cuts,
+            result_egi = _rebuild_graph(
+                egi,
+                cuts=new_cuts,
                 area=frozendict(new_area_mapping),
-                rel=egi.rel,
             )
-
-            # Add additional attributes if they exist
-            if hasattr(egi, "alphabet"):
-                result_egi = dataclasses.replace(result_egi, alphabet=egi.alphabet)
-            if hasattr(egi, "rho"):
-                result_egi = dataclasses.replace(result_egi, rho=egi.rho)
 
             return TransformationResult(
                 success=True,
@@ -277,6 +480,23 @@ class DoubleCutErasureRule(FormalTransformationRule):
         if not any(cut.id == inner_element_id for cut in context.source_egi.Cut):
             return False, "Inner element must be a cut for DC-"
 
+        # B-min: a dotted oval is not half of a double negation
+        if outer_cut_id in context.source_egi.quotation:
+            return False, (
+                "Outer cut is a quotation area: a quotation is not a negation, "
+                "so it cannot form half of a double cut"
+            )
+        if inner_element_id in context.source_egi.quotation:
+            return False, (
+                "Inner cut is a quotation area: a quotation is not a negation, "
+                "so it cannot form half of a double cut"
+            )
+        refusal = _refuse_quotation_boundary(
+            context.source_egi, context.target_area, frozenset()
+        )
+        if refusal:
+            return False, refusal
+
         # Double cut pattern found - inner cut can contain any content
         return True, None
 
@@ -330,14 +550,10 @@ class DoubleCutErasureRule(FormalTransformationRule):
             if inner_cut_id in new_area_mapping:
                 del new_area_mapping[inner_cut_id]
 
-            result_egi = RelationalGraphWithCuts(
-                V=egi.V,
-                E=egi.E,
-                nu=egi.nu,
-                sheet=egi.sheet,
-                Cut=new_cuts,
+            result_egi = _rebuild_graph(
+                egi,
+                cuts=new_cuts,
                 area=frozendict(new_area_mapping),
-                rel=egi.rel,
             )
 
             return TransformationResult(
@@ -389,6 +605,13 @@ class InsertionRule(FormalTransformationRule):
         # Verify target area exists
         if context.target_area not in context.source_egi.area:
             return False, f"Target area {context.target_area} does not exist"
+
+        # B-min: nothing is inserted into a quotation area (mention, not use)
+        refusal = _refuse_quotation_boundary(
+            context.source_egi, context.target_area, frozenset()
+        )
+        if refusal:
+            return False, refusal
 
         # CRITICAL: Check if subgraph to insert is closed per Dau's requirement
         # Use comprehensive closure validator
@@ -498,22 +721,14 @@ class InsertionRule(FormalTransformationRule):
                 inserted_elements
             )
 
-            # Preserve rho mapping for constants
-            new_rho = dict(getattr(egi, "rho", {}))
-
-            result_egi = RelationalGraphWithCuts(
+            result_egi = _rebuild_graph(
+                egi,
                 V=frozenset(new_vertices),
                 E=frozenset(new_edges),
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=egi.Cut,
                 area=frozendict(new_area_mapping),
                 rel=frozendict(new_rel),
             )
-
-            # Add rho mapping if it exists
-            if new_rho:
-                result_egi = dataclasses.replace(result_egi, rho=frozendict(new_rho))
 
             return TransformationResult(
                 success=True,
@@ -582,6 +797,17 @@ class ErasureRule(FormalTransformationRule):
             p = parent_area.get(elem)
             if p != context.target_area and p not in context.selected_subgraph:
                 return False, "Selected subgraph contains elements not in target area"
+
+        # B-min: never inside a quotation area; the exhibit is erased whole
+        # (flagged cut + quoting name together) or left alone
+        refusal = _refuse_quotation_boundary(
+            egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=True,
+        )
+        if refusal:
+            return False, refusal
 
         # CRITICAL: Check if subgraph is closed per Dau's requirement.
         # Use comprehensive closure validator with automatic expansion.
@@ -667,12 +893,12 @@ class ErasureRule(FormalTransformationRule):
                 if element_id in new_area_mapping:
                     del new_area_mapping[element_id]
 
-            result_egi = RelationalGraphWithCuts(
+            result_egi = _rebuild_graph(
+                egi,
                 V=new_vertices,
                 E=new_edges,
                 nu=new_nu,
-                sheet=egi.sheet,
-                Cut=new_cuts,
+                cuts=new_cuts,
                 area=frozendict(new_area_mapping),
                 rel=new_rel,
             )
@@ -884,6 +1110,19 @@ class IterationRule(FormalTransformationRule):
                 f"Source: {source_area}, Destination: {context.target_area}"
             )
 
+        # B-min: never into a quotation area; iterating the quotation
+        # apparatus (even as a whole unit, even enclosed in a selected plain
+        # cut) is a named limit — the copy paths would degrade the exhibit
+        refusal = _refuse_quotation_boundary(
+            egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         return True, None
 
     def apply_transformation(
@@ -1004,14 +1243,23 @@ class IterationRule(FormalTransformationRule):
                 dest_contents | frozenset(top_level_copies)
             )
 
-            result_egi = RelationalGraphWithCuts(
+            # Sort-preservation: a copied line carries its second-order sort
+            # (a pure mention-by-name vertex may be iterated; the quotation
+            # apparatus itself is refused by preconditions)
+            new_sort = dict(egi.sort)
+            for orig_id, copy_id in element_mapping.items():
+                if copy_id != orig_id and orig_id in egi.sort:
+                    new_sort[copy_id] = egi.sort[orig_id]
+
+            result_egi = _rebuild_graph(
+                egi,
                 V=frozenset(new_vertices),
                 E=frozenset(new_edges),
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=frozenset(new_cuts),
+                cuts=frozenset(new_cuts),
                 area=frozendict(new_area_mapping),
                 rel=frozendict(new_rel),
+                sort=frozendict(new_sort),
             )
 
             return TransformationResult(
@@ -1081,6 +1329,18 @@ class DeiterationRule(FormalTransformationRule):
         """
         if not context.selected_subgraph:
             return False, "Must select a subgraph to deiterate"
+
+        # B-min: deiterating quotation apparatus is a named limit; quoted ink
+        # never counts as a repeated assertion (mention, not use)
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
 
         # Use the sophisticated isomorphism engine for proper Dau compliance
         return self._check_deiteration_with_isomorphism_engine(context)
@@ -1212,10 +1472,12 @@ class DeiterationRule(FormalTransformationRule):
                 orig_vertex = self._get_vertex(egi, original_id)
                 mapped_vertex = self._get_vertex(egi, mapped_id)
 
-                # Must have identical properties
+                # Must have identical properties (incl. second-order sort —
+                # a sorted line never matches an unsorted twin)
                 if (
                     orig_vertex.label != mapped_vertex.label
                     or orig_vertex.is_generic != mapped_vertex.is_generic
+                    or egi.sort.get(original_id) != egi.sort.get(mapped_id)
                 ):
                     return False
 
@@ -1242,6 +1504,10 @@ class DeiterationRule(FormalTransformationRule):
             # Cut structural identity
             elif self._is_cut(egi, original_id):
                 if not self._is_cut(egi, mapped_id):
+                    return False
+
+                # A quotation area never matches a negation (B-min)
+                if (original_id in egi.quotation) != (mapped_id in egi.quotation):
                     return False
 
                 # Cut contents must be structurally equivalent
@@ -1401,6 +1667,13 @@ class HeavyDotInsertionRule(FormalTransformationRule):
         if context.target_area not in context.source_egi.area:
             return False, f"Target area {context.target_area} does not exist"
 
+        # B-min: not into a quotation area
+        refusal = _refuse_quotation_boundary(
+            context.source_egi, context.target_area, frozenset()
+        )
+        if refusal:
+            return False, refusal
+
         return True, None
 
     def apply_transformation(
@@ -1430,14 +1703,10 @@ class HeavyDotInsertionRule(FormalTransformationRule):
                 [heavy_dot_id]
             )
 
-            result_egi = RelationalGraphWithCuts(
+            result_egi = _rebuild_graph(
+                egi,
                 V=new_vertices,
-                E=egi.E,
-                nu=egi.nu,
-                sheet=egi.sheet,
-                Cut=egi.Cut,
                 area=frozendict(new_area_mapping),
-                rel=egi.rel,
             )
 
             return TransformationResult(

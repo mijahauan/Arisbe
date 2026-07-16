@@ -194,6 +194,46 @@ class SimpleSVGRenderer:
                 "data-element-type": "cut",
                 "cursor": "pointer",
             })
+
+            # B-min committed convention: a quotation area draws DOTTED in the
+            # quotation accent — the stroke is the drawn distinction itself
+            # (set from dto.cut_stroke by eg_reader.assign_second_order_marks,
+            # read back by eg_reader.read_drawing), not chrome.
+            is_quotation_cut = (
+                (getattr(dto, "cut_stroke", None) or {}).get(cut_id) == "quotation"
+            )
+            cut_stroke_color = quotation_accent if is_quotation_cut else cut_line_color
+            extra_stroke = (
+                {"stroke-dasharray": "4,3", "stroke-linecap": "round"}
+                if is_quotation_cut else {}
+            )
+            if is_quotation_cut:
+                cut_g.set("data-cut-stroke", "quotation")
+                # The drawn attachment (Peirce's abutment made explicit): a
+                # short dotted tie from the oval's boundary to its quoting
+                # name — the ink the reader pairs them by (proximity alone is
+                # not a reliable carrier under every layout).
+                tie_name = (getattr(dto, "quotation_ties", None) or {}).get(cut_id)
+                tie_pos = dto.vertex_positions.get(tie_name) if tie_name else None
+                if tie_pos is not None:
+                    ncx = tie_pos.x + offset_x
+                    ncy = tie_pos.y + offset_y
+                    ocx = bounds.min_x + offset_x + bounds.width / 2
+                    ocy = bounds.min_y + offset_y + bounds.height / 2
+                    dx, dy = ncx - ocx, ncy - ocy
+                    dist = math.hypot(dx, dy) or 1.0
+                    bx = ocx + dx / dist * (bounds.width / 2)
+                    by = ocy + dy / dist * (bounds.height / 2)
+                    ET.SubElement(cut_g, "line", {
+                        "class": "quotation-tie",
+                        "x1": f"{bx:.2f}", "y1": f"{by:.2f}",
+                        "x2": f"{ncx:.2f}", "y2": f"{ncy:.2f}",
+                        "stroke": quotation_accent,
+                        "stroke-width": "1",
+                        "stroke-dasharray": "2,3",
+                        "data-tie-name": str(tie_name),
+                    })
+
             freeform = (getattr(dto, "cut_boundary", None) or {}).get(cut_id)
             if freeform:
                 # A human-drawn cut: draw its literal polyline (the curve §3.3 and
@@ -204,8 +244,9 @@ class SimpleSVGRenderer:
                 ET.SubElement(cut_g, "path", {
                     "d": d,
                     "fill": fill_color,
-                    "stroke": cut_line_color,
+                    "stroke": cut_stroke_color,
                     "stroke-width": str(style.cut_line_width),
+                    **extra_stroke,
                 })
             elif cut_shape in ("oval", "circle") and cut_wobble > 0:
                 # Peirce's hand: a slightly irregular closed loop instead of a
@@ -218,16 +259,18 @@ class SimpleSVGRenderer:
                 ET.SubElement(cut_g, "path", {
                     "d": d,
                     "fill": fill_color,
-                    "stroke": cut_line_color,
+                    "stroke": cut_stroke_color,
                     "stroke-width": str(style.cut_line_width),
+                    **extra_stroke,
                 })
             elif cut_shape in ("oval", "circle"):
                 ET.SubElement(cut_g, "ellipse", {
                     "cx": str(x + width / 2), "cy": str(y + height / 2),
                     "rx": str(width / 2), "ry": str(height / 2),
                     "fill": fill_color,
-                    "stroke": cut_line_color,
-                    "stroke-width": str(style.cut_line_width)
+                    "stroke": cut_stroke_color,
+                    "stroke-width": str(style.cut_line_width),
+                    **extra_stroke,
                 })
             else:
                 ET.SubElement(cut_g, "rect", {
@@ -236,8 +279,9 @@ class SimpleSVGRenderer:
                     "rx": str(style.cut_corner_radius),
                     "ry": str(style.cut_corner_radius),
                     "fill": fill_color,
-                    "stroke": cut_line_color,
-                    "stroke-width": str(style.cut_line_width)
+                    "stroke": cut_stroke_color,
+                    "stroke-width": str(style.cut_line_width),
+                    **extra_stroke,
                 })
         
         # ====================================================================
@@ -394,6 +438,11 @@ class SimpleSVGRenderer:
             # EGI — chrome only, exactly as reference spots are.)
             quotation = quotation_marks.get(v_id)
 
+            # The COMMITTED sort (B-min): set from dto.vertex_sorts by
+            # eg_reader.assign_second_order_marks — real drawn convention,
+            # read back by eg_reader, held total by §3.3.
+            committed_sort = (getattr(dto, "vertex_sorts", None) or {}).get(v_id)
+
             # Wrap in a named group so the frontend can detect clicks by element ID
             v_attrs_g = {
                 "id": v_id,
@@ -406,6 +455,8 @@ class SimpleSVGRenderer:
                 v_attrs_g["data-quotation"] = "true"
                 v_attrs_g["data-quotation-sort"] = str(quotation.get("sort", ""))
                 v_attrs_g["data-quotation-horizon"] = str(quotation.get("horizon", 0))
+            if committed_sort:
+                v_attrs_g["data-sort"] = committed_sort
             v_g = ET.SubElement(element_group, "g", v_attrs_g)
 
             # Transparent hit area (larger than the dot) for easier clicking
@@ -451,6 +502,22 @@ class SimpleSVGRenderer:
                 if font_style != "normal":
                     v_attrs["font-style"] = font_style
                 ET.SubElement(v_g, "text", v_attrs).text = label
+
+            # The committed sort tincture (B-min): the ⌜⌝ mark beside a sorted
+            # line — the drawn half of the sort the reader recovers.  Drawn
+            # strokes only; the machine-readable mark is dto.vertex_sorts.
+            if committed_sort:
+                sort_badge = ET.SubElement(v_g, "text", {
+                    "class": "sort-badge",
+                    "x": str(cx + style.vertex_radius + 2),
+                    "y": str(cy - style.vertex_radius - 2),
+                    "text-anchor": "start",
+                    "font-size": str(max(8.0, float(style.font_size) * 0.7)),
+                    "font-family": style.font_family,
+                    "fill": quotation_accent,
+                    "font-weight": "bold",
+                })
+                sort_badge.text = "⌜⌝" if committed_sort == "proposition" else "⌜λ⌝"
 
             # The quotation glyph — Peirce's dotted oval around the quoting
             # name, plus a "⌜+N⌝" horizon badge (the reference glyph's idiom,

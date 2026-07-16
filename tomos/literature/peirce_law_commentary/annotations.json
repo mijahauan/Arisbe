@@ -1,9 +1,9 @@
 {
   "annotations": [
     {
-      "id": "ann_7d91a1b3",
+      "id": "ann_20d7b046",
       "scope": "uod",
-      "text": "Second-order Stage \u24ea, the mention side of the use/mention fork: the quoted object is another UoD's graph, addressed by its corpus id. Citation (via scholarly_citation): Peirce, Charles Sanders (1885). On the Algebra of Logic: A Contribution to the Philosophy of Notation. In American Journal of Mathematics, Vol. 7, pp. 180\u2013202. Peirce's Law is the \u2018fifth icon\u2019 (~CP 3.384). Attested at build: S1 (predicative \u2014 the quoted theorem sits in another universe, no reach-back), S2 against a hand-written independent ground + \u00a73.3 one level down (real ELK). S3 skip-named until B-min.",
+      "text": "Second-order Stage \u24ea, the mention side of the use/mention fork: the quoted object is another UoD's graph, addressed by its corpus id. Citation (via scholarly_citation): Peirce, Charles Sanders (1885). On the Algebra of Logic: A Contribution to the Philosophy of Notation. In American Journal of Mathematics, Vol. 7, pp. 180\u2013202. Peirce's Law is the \u2018fifth icon\u2019 (~CP 3.384). Attested at build: S1 (predicative \u2014 the quoted theorem sits in another universe, no reach-back), S2 against a hand-written independent ground + \u00a73.3 one level down (real ELK). At B-min the name carries the CORE proposition sort (drawn badge, \u00a73.3-total); S3's quoted-half stays honestly skip-named \u2014 a cross-UoD mention draws no oval (the named B-min horizon).",
       "author": null,
       "created": null,
       "tags": [

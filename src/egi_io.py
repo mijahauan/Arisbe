@@ -13,7 +13,7 @@ from egi_core_dau import RelationalGraphWithCuts, Vertex, Edge, Cut, AlphabetDAU
 
 
 def to_dict(egi: RelationalGraphWithCuts) -> Dict[str, Any]:
-    return {
+    d = {
         "sheet": egi.sheet,
         "V": [{"id": v.id, "label": v.label, "is_generic": v.is_generic} for v in sorted(egi.V, key=lambda x: x.id)],
         "E": [{"id": e.id} for e in sorted(egi.E, key=lambda x: x.id)],
@@ -29,6 +29,13 @@ def to_dict(egi: RelationalGraphWithCuts) -> Dict[str, Any]:
         },
         "rho": {k: v for k, v in sorted(egi.rho.items())},
     }
+    # Second-order maps (B-min): emitted only when non-empty, so a first-order
+    # graph's JSON is byte-identical to the pre-B-min schema.
+    if egi.sort:
+        d["sort"] = {k: v for k, v in sorted(egi.sort.items())}
+    if egi.quotation:
+        d["quotation"] = {k: v for k, v in sorted(egi.quotation.items())}
+    return d
 
 
 def from_dict(d: Dict[str, Any]) -> RelationalGraphWithCuts:
@@ -48,6 +55,8 @@ def from_dict(d: Dict[str, Any]) -> RelationalGraphWithCuts:
             ar=frozendict(alph_in.get("ar", {})),
         ).with_defaults()
     rho = frozendict(d.get("rho", {}))
+    sort = frozendict(d.get("sort", {}))
+    quotation = frozendict(d.get("quotation", {}))
     return RelationalGraphWithCuts(
         V=V,
         E=E,
@@ -58,6 +67,8 @@ def from_dict(d: Dict[str, Any]) -> RelationalGraphWithCuts:
         rel=rel,
         alphabet=alphabet,
         rho=rho,
+        sort=sort,
+        quotation=quotation,
     )
 
 

@@ -1,13 +1,7 @@
 {
   "Cut": [
     {
-      "id": "c_2ff5439d"
-    },
-    {
       "id": "c_ace88630"
-    },
-    {
-      "id": "c_af7888c3"
     },
     {
       "id": "c_c3a271ba"
@@ -21,13 +15,7 @@
   ],
   "E": [
     {
-      "id": "e_3849d894"
-    },
-    {
       "id": "e_6469bf5d"
-    },
-    {
-      "id": "e_845b84f6"
     },
     {
       "id": "e_89921005"
@@ -41,11 +29,6 @@
   ],
   "V": [
     {
-      "id": "v_345987dd",
-      "is_generic": true,
-      "label": null
-    },
-    {
       "id": "v_4320c5ca",
       "is_generic": false,
       "label": "s6"
@@ -54,11 +37,6 @@
       "id": "v_6d99a4ee",
       "is_generic": false,
       "label": "phi-zero"
-    },
-    {
-      "id": "v_8f0de228",
-      "is_generic": true,
-      "label": null
     },
     {
       "id": "v_b3454bb0",
@@ -88,26 +66,16 @@
   ],
   "alphabet": null,
   "area": {
-    "c_2ff5439d": [
-      "e_845b84f6",
-      "v_345987dd"
-    ],
     "c_ace88630": [
-      "c_af7888c3",
       "e_89921005",
       "v_c3a1704d",
       "v_fcdd69b0"
-    ],
-    "c_af7888c3": [
-      "e_3849d894",
-      "v_8f0de228"
     ],
     "c_c3a271ba": [
       "e_fc0c553f",
       "v_d0c54075"
     ],
     "cut_9ecee68e": [
-      "c_2ff5439d",
       "c_ace88630",
       "c_c3a271ba",
       "cut_e2e62ff2",
@@ -124,15 +92,9 @@
     ]
   },
   "nu": {
-    "e_3849d894": [
-      "v_8f0de228"
-    ],
     "e_6469bf5d": [
       "v_b3454bb0",
       "v_dec13547"
-    ],
-    "e_845b84f6": [
-      "v_345987dd"
     ],
     "e_89921005": [
       "v_c3a1704d",
@@ -147,14 +109,10 @@
     ]
   },
   "quotation": {
-    "c_2ff5439d": "v_6d99a4ee",
-    "c_af7888c3": "v_fcdd69b0",
     "c_c3a271ba": "v_dec13547"
   },
   "rel": {
-    "e_3849d894": "two",
     "e_6469bf5d": "forces",
-    "e_845b84f6": "zero",
     "e_89921005": "forces",
     "e_f23f8755": "forces",
     "e_fc0c553f": "one"
@@ -162,8 +120,6 @@
   "rho": {},
   "sheet": "sheet_48d1132b",
   "sort": {
-    "v_6d99a4ee": "proposition",
-    "v_dec13547": "proposition",
-    "v_fcdd69b0": "proposition"
+    "v_dec13547": "proposition"
   }
 }

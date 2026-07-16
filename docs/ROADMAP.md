@@ -263,9 +263,16 @@ few things first:
     ([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md), P1–P5 + the
     law S1–S4), and a checker runs it on candidate quotations *without touching the protected core*
     (`src/second_order_check.py` + `tests/test_second_order_check.py`, falsifiers biting; the paradox
-    floor S1 = dragon 9 drawn as an enclosure rule). What remains — the *crossing* — is two author
-    decisions: **which comprehension floor**, and **how much to open the core** (overlay-forever vs.
-    a native graph-valued node + a sort-reader that recovers S3 off the drawing).
+    floor S1 = dragon 9 drawn as an enclosure rule). **The crossing was decided and taken
+    (2026-07-16, [CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)):** the predicative
+    floor is doctrine, conservativity over the Dau core is the standing crossing invariant, and the
+    core opened exemplar-first — stage ⓪ (the quotation overlay) and stage ① (**B-min**, the
+    authorized core opening: sort-on-incidence + graph-valued area in the data model, the six rules
+    sort-preserving with the quotation boundary opaque, the committed dotted-oval convention, and
+    the second-order reader that recovers S3 off the drawing — CHECKED on the drawn exemplars) both
+    shipped 2026-07-15/16 (SECOND_ORDER_CORE_OPENING §7's build notes). What remains on this ladder
+    is **② B-full**: a native graph-valued element kind (ν hooks a blank, P3′) with committed render
+    conventions (P5′), following B-min per verdict B5.
 
 ---
 

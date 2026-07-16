@@ -91,18 +91,40 @@ def linear_forms(egi) -> Dict[str, object]:
     reading, never as an editable fifth notation. Defensive: a failure leaves
     ``reading`` absent rather than breaking the forms.
     """
+    # B-min: a quotation-bearing graph has NO linear syntax for its
+    # second-order layer (the generators refuse loudly rather than emit a
+    # dotted oval as a negation).  The honest surface: generate the
+    # FIRST-ORDER PROJECTION's forms and carry the named limit in the payload
+    # so every panel can say what the reader is (and isn't) seeing.
+    gen_egi = egi
+    second_order_limit = None
+    if getattr(egi, "sort", None) or getattr(egi, "quotation", None):
+        from quotation_overlay import project_first_order
+
+        gen_egi = project_first_order(egi)
+        n_quot = len(getattr(egi, "quotation", {}) or {})
+        n_sort = len(getattr(egi, "sort", {}) or {})
+        second_order_limit = (
+            f"first-order projection: the drawing carries {n_sort} sorted "
+            f"name(s) and {n_quot} quotation oval(s) that no linear notation "
+            f"can express at B-min — the quoted layer is shown only in the "
+            f"picture (a named limit, not an omission)"
+        )
+
     forms: Dict[str, object] = {}
     for f in _FORMATS:
-        result = _generate_one(egi, f["generator"])
+        result = _generate_one(gen_egi, f["generator"])
         forms[f["key"]] = {"label": f["label"], **result}
     out: Dict[str, object] = {
         "default": _DEFAULT_FORMAT,
         "formats": linear_formats(),
         "forms": forms,
     }
+    if second_order_limit:
+        out["second_order_limit"] = second_order_limit
     try:
         from eg_to_english import english_readings
-        out["reading"] = english_readings(egi)
+        out["reading"] = english_readings(gen_egi)
     except Exception:
         pass  # the gloss is a convenience; never let it break the linear forms
     return out

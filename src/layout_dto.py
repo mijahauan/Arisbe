@@ -85,3 +85,21 @@ class LayoutDTO:
     # see presentation_ops.resolve_cut_boundaries.  §3.3 and the browser both read
     # containment off this curve.
     cut_boundary: Optional[Dict[ElementID, Tuple[Point, ...]]] = None
+    # The committed second-order convention (B-min, 2026-07-16) — the drawn
+    # marks that carry the core's sort/quotation maps into the picture, the
+    # exact analogue of LigaturePath.order_label (set by a decorator, drawn by
+    # the renderer, read back by eg_reader; §3.3's committed-convention check
+    # holds them total against the EGI).  Both None on a first-order drawing.
+    #   cut_stroke: cut_id -> "quotation" (dotted oval; absent/None = solid
+    #     negation stroke).  vertex_sorts: vertex_id -> the drawn sort badge
+    #     ("proposition" | "abstraction") on a quoting line.
+    #   quotation_ties: quotation-cut-id -> quoting-vertex-id — the drawn
+    #     ATTACHMENT (Peirce's abutment made explicit): the renderer draws a
+    #     short dotted tie from the oval's boundary to its name, and the
+    #     reader pairs them by that ink (proximity alone is not a reliable
+    #     carrier — a layout may place a name nearer another oval).  Absent
+    #     (a freeform drawing), the reader falls back to one-to-one
+    #     nearest-in-area assignment.
+    cut_stroke: Optional[Dict[ElementID, str]] = None
+    vertex_sorts: Optional[Dict[ElementID, str]] = None
+    quotation_ties: Optional[Dict[ElementID, ElementID]] = None

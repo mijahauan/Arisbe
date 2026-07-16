@@ -87,13 +87,26 @@ def compute_canonical_signatures(
         idx = {c: f"{i:08d}" for i, c in enumerate(distinct)}
         return {k: idx[c] for k, c in colors.items()}
 
+    # Second-order maps (B-min): a sorted line must never collapse with an
+    # unsorted twin, so the sort joins the initial color; a quotation area
+    # must never collapse with a negation, so quoted-ness joins the cut sig.
+    # Both are appended uniformly (empty string / 0 when absent), preserving
+    # relative order — a first-order graph's canonical order is unchanged.
+    sort_map = getattr(graph, "sort", {}) or {}
+    quotation_map = getattr(graph, "quotation", {}) or {}
+
     initial: Dict[ElementID, Any] = {}
     for v in graph.V:
         vid = v.id
         if is_constant(vid):
-            initial[vid] = ("const", vertex_depth[vid], constant_name(vid))
+            initial[vid] = (
+                "const",
+                vertex_depth[vid],
+                constant_name(vid),
+                sort_map.get(vid, ""),
+            )
         else:
-            initial[vid] = ("generic", vertex_depth[vid])
+            initial[vid] = ("generic", vertex_depth[vid], sort_map.get(vid, ""))
     vertex_color: Dict[ElementID, str] = ranked(initial)
     n_classes = len(set(vertex_color.values()))
 
@@ -149,7 +162,7 @@ def compute_canonical_signatures(
         esigs = sorted(final_edge_sig[eid] for eid in area if eid in graph._edge_map)
         vsigs = sorted(vertex_color[vid] for vid in area if vid in graph._vertex_map)
         csigs = sorted(compute_cut_sig(c) for c in area if c in graph._cut_map)
-        sig = (tuple(esigs), tuple(vsigs), tuple(csigs))
+        sig = (tuple(esigs), tuple(vsigs), tuple(csigs), int(cid in quotation_map))
         cut_sig[cid] = sig
         return sig
 

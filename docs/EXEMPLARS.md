@@ -281,25 +281,33 @@ Tests for all of this: [tests/test_modal_and_dialog.py](../tests/test_modal_and_
 (the modules + exemplars) and [tests/test_organon_routes.py](../tests/test_organon_routes.py)
 / [tests/test_organon_lenses_e2e.py](../tests/test_organon_lenses_e2e.py) (the lenses).
 
-## 7. The second-order quotation exemplars (Stage ⓪ of the crossing)
+## 7. The second-order quotation exemplars (stages ⓪ and ① of the crossing)
 
 The crossing verdicts of 2026-07-16
 ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)) took the second-order
 frontier *exemplar-first*: rather than waiting for a demonstrated need, three fitting
-cases were chosen to illustrate graphs-about-graphs clearly and robustly. Stage ⓪ is
-the **overlay stratum** (no protected-core change): a quotation is a
-proposition-sorted *name* drawn in the host graph, whose sort and target live in an
-overlay record beside the EGI (`src/quotation_overlay.py`, persisted as
-`quotations.json` — the `reference_node` pattern). Each quotation is attested against
-the second-order law (`src/second_order_check.py`) **at build time**: S1
-stratification read off the drawn enclosure, S2 quote-equals-quoted against an
-independent ground plus the correspondence check (§3.3) one level down through the
-real layout engine, S5 per state of the referenced trajectory, S4 horizons named —
-and S3 (read-back one order up) **skip-named**, never silently passed, until the
-B-min core opening puts the sort in the drawing. All three built by
-[tools/build_quotation_exemplars.py](../tools/build_quotation_exemplars.py); each
-houses its claims at level 1 of a standing world-scroll (nothing contingent at
-depth 0) and exports a `quotation_glyph.svg` showing the dotted-oval glyph.
+cases were chosen to illustrate graphs-about-graphs clearly and robustly. Stage ⓪
+built the **overlay stratum** (no protected-core change): a quotation as a
+proposition-sorted *name* whose sort and target live in an overlay record beside the
+EGI (`src/quotation_overlay.py`, persisted as `quotations.json`). **Stage ① (B-min,
+the authorized core opening, same day)** moved the sort into the core: the data model
+carries `sort` and `quotation` maps, each exemplar's scribing is an explicit `QUOTE`
+chain step (neutral — a mention asserts nothing), the quoted graph is **drawn in the
+host** inside a committed dotted oval (opaque to the calculus: no rule operates
+inside, the peel/materializer skip it), and the drawn convention — dotted stroke,
+sort badge, attachment tie — is held total by the correspondence check. Each
+quotation is attested against the second-order law (`src/second_order_check.py`)
+**at build time**: S1 stratification read off the drawn enclosure, S2
+quote-equals-quoted against an independent ground plus the correspondence check
+(§3.3) one level down through the real layout engine, **S3 (read-back one order up)
+CHECKED** — the drawing itself recovers the `(sort, quoted)` device through the
+second-order reader — S5 per state of the referenced trajectory, S4 horizons named.
+The cross-UoD mention's quoted-half stays an honestly named horizon (an oval cannot
+inline another universe), and linear notations show the exemplars' **first-order
+projection** with the limit named (no linear sort syntax exists at B-min). All three
+built by [tools/build_quotation_exemplars.py](../tools/build_quotation_exemplars.py);
+each houses its claims at level 1 of a standing world-scroll (nothing contingent at
+depth 0) and exports a `quotation_glyph.svg` showing the dotted-oval convention.
 
 - **`swan_third_tense` — the swan's third tense.** `(superseded "M_swan_law"
   "Nox")`: the law withdrawn in `dialogue_swan_revision` (§6) held before the mind

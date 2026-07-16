@@ -985,6 +985,13 @@ def insert_from_egif(
             "INS only allowed in negative (verso) areas.", {}
         )
 
+    # B-min: nothing is inserted into a quotation area (mention, not use)
+    from formal_transformation_rules import _refuse_quotation_boundary
+
+    refusal = _refuse_quotation_boundary(host_egi, target_area, frozenset())
+    if refusal:
+        return TransformationResult(False, None, refusal, {})
+
     try:
         import uuid
         from egif_parser_dau import parse_egif
@@ -1068,6 +1075,8 @@ def insert_from_egif(
         existing = new_area.get(target_area, frozenset())
         new_area[target_area] = existing | frozenset(top_new)
 
+        from formal_transformation_rules import _extended_alphabet
+
         result_egi = RelationalGraphWithCuts(
             V=frozenset(new_V),
             E=frozenset(new_E),
@@ -1076,7 +1085,12 @@ def insert_from_egif(
             Cut=frozenset(new_Cut),
             area=fd(new_area),
             rel=fd(new_rel),
+            alphabet=_extended_alphabet(
+                host_egi.alphabet, new_rel, new_nu, new_rho
+            ),
             rho=fd(new_rho) if new_rho else fd(),
+            sort=host_egi.sort,
+            quotation=host_egi.quotation,
         )
 
         return TransformationResult(

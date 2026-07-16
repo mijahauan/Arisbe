@@ -11,12 +11,13 @@
    stands. Verdicts recorded in CORE_OPENING §7 · LANDSCAPE §6 · M_RESIDENCE §8.3 ·
    REFERENCE_AND_TRANSCLUSION_NODE §7 · second_order_check.py S1. **Build staging:**
    ⓪ *Overlay stratum* (no core, main): `Quotation` overlay + glyph on the exemplars,
-   S1/S2/S4/S5 attested, S3 skip-named — **✅ BUILT 2026-07-15 (fourth sitting), see
-   the ▶▶ block below; next rung = ① B-min.** ① *B-min* (one authorized core opening): sort-on-
+   S1/S2/S4/S5 attested, S3 skip-named — **✅ BUILT 2026-07-15 (fourth sitting).**
+   ① *B-min* (one authorized core opening): sort-on-
    incidence + graph-valued area + `with_quotation`; six rules sort-preserving; the
    second-order READER (the substantive build) → S3 flips to checked; `attest_quotation`
    boundary hook; the A3 conservativity gate (corpus test: no new first-order theorems);
-   the reference-node increment-2 use/mention fork rides the same opening. ② *B-full*:
+   the reference-node increment-2 use/mention fork rides the same opening —
+   **✅ BUILT 2026-07-16 (fifth sitting), see the ▶▶ block below; next rung = ② B-full.** ② *B-full*:
    native graph-valued element kind (ν hooks a blank, P3′), committed dotted-oval render
    conventions (P5′); exemplars re-expressed natively. **Exemplar slate BLESSED by the
    author (2026-07-16), all three:** (i) the swan's third tense — `(superseded ⌜M_swan_law⌝ …)` on
@@ -101,6 +102,57 @@
    e2e ×4; (d) perf memory_stability = load flake (passes alone).
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
+
+**▶▶ THIS SESSION (2026-07-16, fifth sitting) — STAGE ① B-min BUILT: THE AUTHORIZED
+CORE OPENING (CURRENT_PLAN item -1's second rung; the crossing's one genuine
+protected-core edit, executed under `.core_modification_authorized`; frontier ink on
+main).** Four author calls taken via question at plan time: swan re-expression =
+convert (the exhibit drawn in its host), oval depth = counts as a level (dotted
+stroke is the distinction, not depth), the DC−/ERA/IT± alphabet/rho-drop wart =
+fixed in-scope, linear forms = refuse + projection (no sort syntax invented).
+**(1) The core** (`egi_core_dau`): `sort` + `quotation` as parallel ρ-pattern maps
+(default-empty → first-order bit-identical; validation = same-area attachment, one
+oval per name, no quotation-in-quotation) + `with_sort` / `with_quotation_binding` /
+`with_quotation` / `without_quotation` (atomic; `_without_vertex`/`_without_cut`
+refuse piecemeal); every builder forwards, `apply_isomorphism` remaps; `egi_io`
+emits the keys only when non-empty (old JSON loads; corpus re-save byte-identical);
+iso engine + canonical signature carry sort/quoted-ness (uniform append — sortless
+order unchanged). **(2) The six rules**: one `_rebuild_graph` forwards
+alphabet/rho/sort/quotation (the ratified wart repair; `_extended_alphabet` GROWS
+the language over lawful new vocabulary instead of closing it) +
+`_refuse_quotation_boundary` (mention-not-use: nothing operates inside an oval; ERA
+whole-exhibit-or-nothing; DC− refuses a dotted oval as half a double cut; IT± refuse
+the apparatus, deep; IT−/`same_graph` never match sorted↔unsorted or oval↔negation);
+`rule_interaction.insert_from_egif` same seam. **(3) The committed drawn
+convention + THE READER → S3 CHECKED**: `LayoutDTO.cut_stroke`/`vertex_sorts`/
+`quotation_ties` (the `order_label` idiom — set by `eg_reader.assign_second_order_marks`
+in BOTH engines, drawn by `simple_svg_renderer` as dotted oval + ⌜⌝ badge + oval→name
+tie, read back by `read_drawing` geometrically with ties primary / one-to-one
+nearest-assignment fallback — the tie exists because tension layout proved proximity
+alone lies about attachment); §3.3 gains the committed-convention totality checks
+(active only on non-empty maps); `second_order_reader.read_quotation_back` supplies
+the harness's `read_back` injection point + `attest_served_quotations` = the regime-2
+boundary hook in `layout_service` (both serve paths). **(4) Conservativity (A3) +
+limits**: `test_second_order_conservativity` (3 tiers: corpus invisibility w/
+self-checking bearer allowlist; erasure projection via `project_first_order` — the
+quoted law licenses NOTHING, asserted-vs-quoted verdicts split exactly as doctrine
+says; rules restraint); interpreters opaque (peel skips ovals, materializer skips w/
+`quotation` reason, `scribes_relation` ignores quoted ink); linear generators raise
+`SecondOrderNotInLinearForm` (`second_order_limits.py`), `linear_forms` service
+serves the first-order projection + named limit. **(5) Exemplars re-expressed +
+rebuilt**: explicit `QUOTE`/`sort_step` chain steps (neutral in `proof_character`);
+swan's law + the three φ now DRAWN in committed ovals; S3 asserts True at build
+(swan + forcing); peirce = core-sorted mention, S3 quoted-half honestly None; S5
+trajectories unchanged (s4–s7; trichotomy). **(6) The fork rider**:
+`test_use_mention_fork` — mention discharged core-side, use = scroll-only w/ the
+no-splice-resolver deferral pinned. Tests: +73 new (27 core / 18 rules / 12 reader /
+10 A3 / 6 fork) + overlay grown to 39; eg_reader/peirce-latex/organon/polarity
+corpus gates green. Docs: SECOND_ORDER_CORE_OPENING §7 build note,
+REFERENCE_AND_TRANSCLUSION §7 mention-discharge note, EXEMPLARS §7, CAPABILITY_MAP
+row, CLAUDE.md entries. Named limits: no linear sort syntax; no
+quotation-in-quotation; no IT± of exhibits; cross-UoD mention S3 = sort-half only;
+web lens surfacing of committed strokes still the deferred one-seam item. Next
+rung = ② B-full (native graph-valued element kind, ν-hookable blank, P3′/P5′).**
 
 **▶▶ THIS SESSION (2026-07-15, fourth sitting) — STAGE ⓪ OF THE CROSSING BUILT: the
 quotation overlay stratum (CURRENT_PLAN item -1's opening rung; no protected-core

@@ -238,6 +238,19 @@ schema ↔ reference unify in practice *before* any structure is committed to th
 > below: use = governed import via the scroll, mention = second-order naming; the
 > fork is chosen *before* any cross-UoD splice is built.
 
+> **THE MENTION HALF DISCHARGED (2026-07-16, B-min).** The fork's *mention*
+> core half shipped with the B-min opening (SECOND_ORDER_CORE_OPENING §7's
+> stage-① build note): a cross-UoD mention's name is now a **core-sorted
+> line** (`egi_core_dau.with_sort`, the proposition sort as committed drawn
+> ink held total by the correspondence check), resolving the whole target
+> universe via `UoDQuotationResolver` with **no element imported** —
+> `peirce_law_commentary` is the corpus exemplar, and
+> `tests/test_use_mention_fork.py` pins both the no-co-assertion law and the
+> *use*-side deferral (there is deliberately no cross-UoD splice resolver;
+> the only sanctioned import shape remains the scroll `~[ B ~[ G ] ]`).
+> Building a use-side splice is now a knowing act gated by that test, not
+> drift.
+
 - **Structural distinguishability + the glyph in §3.3.** If a consumer must tell "this edge is a
   reference, not an asserted relation" at the *EGI* level (rather than via the overlay), or the renderer's
   reference glyph must be attested as a distinct drawn kind, then `egi_core_dau` and §3.3 totality grow a

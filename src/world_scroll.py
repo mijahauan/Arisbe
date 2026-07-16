@@ -46,6 +46,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
+from frozendict import frozendict
+
 import eg_navigation as nav
 from contest_context import open_arena, posit, Arena
 from egi_core_dau import (
@@ -186,7 +188,34 @@ def _copy_area(
             g = walk_edges(g, cid, cid)
         return g
 
-    return walk_edges(walk_shell(dst, src_area, dst_area), src_area, dst_area)
+    result = walk_edges(walk_shell(dst, src_area, dst_area), src_area, dst_area)
+
+    # B-min: carry the source's second-order maps for the copied elements
+    # (the with_* builders forward the destination's maps; the source's
+    # entries must ride along explicitly). A quotation entry carries only
+    # when both its oval and its quoting name landed in the copy — lifting
+    # an oval's interior alone yields the quoted graph itself, quotation-free.
+    copied_v = {v.id for v in result.V}
+    copied_c = {c.id for c in result.Cut}
+    new_sort = {
+        vid: s
+        for vid, s in src.sort.items()
+        if vid in copied_v and vid not in result.sort
+    }
+    new_quot = {
+        cid: vid
+        for cid, vid in src.quotation.items()
+        if cid in copied_c and vid in copied_v and cid not in result.quotation
+    }
+    if new_sort or new_quot:
+        import dataclasses
+
+        result = dataclasses.replace(
+            result,
+            sort=frozendict({**result.sort, **new_sort}),
+            quotation=frozendict({**result.quotation, **new_quot}),
+        )
+    return result
 
 
 # ---------------------------------------------------------------------------

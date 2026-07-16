@@ -36,6 +36,10 @@ class EGIFGenerator:
             raise TypeError(
                 "EGIFGenerator.generate() called without a graph. Provide one in constructor or use generate_egif(graph)."
             )
+        # B-min: no linear syntax for the second-order layer — refuse loudly
+        # rather than emit a quotation oval as a negation (the named limit).
+        from second_order_limits import refuse_second_order_in_linear_form
+        refuse_second_order_in_linear_form(self.graph, "EGIF")
         # Compute canonical structural signatures before any label assignment
         # so that all sort keys can be UUID-independent.
         self._compute_canonical_signatures()

@@ -1,7 +1,12 @@
 """
-Build the **Stage ⓪ quotation exemplars** — the author-blessed slate (2026-07-16)
-that crosses the second-order frontier *exemplar-first*, on the overlay stratum
-(no protected-core change; ``src/quotation_overlay.py``).
+Build the **quotation exemplars** — the author-blessed slate (2026-07-16) that
+crosses the second-order frontier *exemplar-first*. Built at Stage ⓪ on the
+overlay stratum; **re-expressed at stage ① B-min** (the authorized core
+opening): the sort and the quotation oval now live in the core
+(``egi_core_dau.sort``/``.quotation``), each scribing is an explicit QUOTE
+chain step, the drawn ovals are committed dotted ink (not chrome), and **S3
+(read-back one order up) is CHECKED** wherever the quoted graph is drawn —
+the cross-UoD mention's quoted-half stays a named horizon.
 
 Design of record: docs/CROSSING_DECISION_BRIEFS.md (the verdicts) +
 docs/SECOND_ORDER_CORE_OPENING.md §5 step 1 (the overlay rung). Three
@@ -35,10 +40,10 @@ proposition-sorted name whose quoted graph resolves and attests:
 
 Every quotation is **attested at build time** (S1 stratification off the drawn
 enclosure; S2 quote-equals-quoted against an independent ground + §3.3 one
-level down through the real ELK engine; S5 per state; S4 horizons named) — the
-builder refuses to save what does not recompute. S3 (read-back one order up)
-is **skip-named**: the sort lives in the overlay, not the drawing, until B-min
-opens the core. Original to Arisbe, low warrant. See docs/EXEMPLARS.md.
+level down through the real ELK engine; S3 read-back through the second-order
+reader where the quoted graph is drawn; S5 per state; S4 horizons named) — the
+builder refuses to save what does not recompute. Original to Arisbe, low
+warrant. See docs/EXEMPLARS.md.
 """
 
 import sys
@@ -65,10 +70,13 @@ from quotation_overlay import (
     attest_quotation_mark_trajectory,
     mark_quotation,
     quotation_marks_to_list,
+    quote_step,
     render_quotation_marks,
     run_quotation_mark,
     run_quotation_mark_trajectory,
+    sort_step,
 )
+from second_order_reader import read_quotation_back
 from second_order_check import Quotation, run_quotation_trajectory
 from semantic_game import evaluate
 from simple_svg_renderer import SimpleSVGRenderer
@@ -152,8 +160,15 @@ def build_swan_third_tense(service: TomosService) -> Tuple[str, List[str], List[
     withdrawal = next(s for s in swan_chain.steps if s.rule_name == "REVISE_M")
 
     pc = _residence(SWAN_CONTENT)
+    # B-min: the exhibit is DRAWN — the name gains the core sort and a dotted
+    # quotation oval holding the law's ink, recorded as an explicit QUOTE step
+    # (neutral: a mention asserts nothing).
+    quote_step(pc, "M_swan_law", SWAN_LAW,
+               note="scribe the withdrawn law into a quotation oval beside "
+                    "its name — present without force, now present in ink")
     host = pc.current
     name_vid = vertex_by_label(host, "M_swan_law")
+    oval_id = next(c for c, v in host.quotation.items() if v == name_vid)
 
     resolver = ChainStepQuotationResolver(service)
     mark = mark_quotation(
@@ -163,9 +178,17 @@ def build_swan_third_tense(service: TomosService) -> Tuple[str, List[str], List[
         note="the withdrawn swan law, present without force (the third tense)")
 
     ground = parse_egif(SWAN_LAW)
-    # S1/S2 (+ §3.3 one level down, real ELK); refuses on any law failure.
-    attest_quotation_mark(host, mark, resolver, layout_fn=_layout_fn,
-                          quoted_ground=ground, context=SWAN_UOD)
+    # S1/S2 (+ §3.3 one level down, real ELK) AND S3 — the drawing itself
+    # reads back the (sort, quoted) device via the second-order reader.
+    host_dto = _layout_fn(host)
+    attest_quotation_mark(
+        host, mark, resolver, layout_fn=_layout_fn, quoted_ground=ground,
+        read_back=lambda: read_quotation_back(host, host_dto, oval_id),
+        context=SWAN_UOD)
+    s3_report = run_quotation_mark(
+        host, mark, resolver, layout_fn=_layout_fn, quoted_ground=ground,
+        read_back=lambda: read_quotation_back(host, host_dto, oval_id))
+    assert s3_report.read_back_faithful is True, s3_report.failures
     # S5 — the name's reference value per state (Cohen's R_G): the drawn law
     # recovered structurally at s4–s7, the rest named horizon.
     report = run_quotation_mark_trajectory(host, mark, SWAN_LAW, swan_chain.states)
@@ -182,12 +205,15 @@ def build_swan_third_tense(service: TomosService) -> Tuple[str, List[str], List[
             "swan law withdrawn in dialogue_swan_revision held before the mind "
             "as a labeled exhibit — (superseded \"M_swan_law\" \"Nox\") names "
             "the law without re-asserting it (present without force, the third "
-            "tense of the validity discipline). The name is a quotation overlay "
-            "resolving to ~[ (swan *x) ~[ (white x) ] ] via the withdrawal "
-            "step's own record, checked per state along the swan trajectory "
-            "(S5): it stands drawn at s4–s7 and nowhere else — the horizon is "
-            "named. S3 (read-back one order up) is honestly skip-named until "
-            "B-min puts the sort in the drawing."
+            "tense of the validity discipline). At B-min the exhibit is DRAWN: "
+            "the name carries the core proposition sort and a dotted quotation "
+            "oval holds the law's ink — opaque to the calculus (no rule "
+            "operates inside; the peel skips it). The name still resolves to "
+            "~[ (swan *x) ~[ (white x) ] ] via the withdrawal step's own "
+            "record, checked per state along the swan trajectory (S5): it "
+            "stands drawn at s4–s7 and nowhere else — the horizon is named. "
+            "S3 (read-back one order up) is CHECKED: the drawing reads back "
+            "the (sort, quoted) device through the second-order reader."
         ),
         category=UoDCategory.CANONICAL_PATTERN,
     )
@@ -196,15 +222,17 @@ def build_swan_third_tense(service: TomosService) -> Tuple[str, List[str], List[
         kind=KIND_EXEMPLAR).to_dict())
     service.save_annotations(uod, annotations_to_list([
         make_annotation(SCOPE_UOD,
-            "Second-order Stage ⓪ (the crossing, exemplar-first): the "
+            "Second-order stage ① (B-min, the authorized core opening): the "
             "homegrown nominee (superseded ⌜M⌝ reason). The exhibit says THAT "
             "the law was superseded (by the black swan Nox); the law itself "
-            "appears only quoted — named, not asserted. Predicative (the "
+            "appears only quoted — named, not asserted, drawn in a dotted "
+            "quotation oval the calculus treats as opaque. Predicative (the "
             "quoted state sits strictly below the host), S1's always-legal "
             "case. Attested at build: S1 stratification off the drawn "
             "enclosure, S2 quote-equals-quoted + §3.3 one level down (real "
-            "ELK), S5 per state (checked s4–s7; horizon s0–s3, s8–s9), S4 "
-            "horizons named. S3 skip-named (the frontier's stage-① reader).",
+            "ELK), S3 read-back one order up (the drawing recovers the "
+            "(sort, quoted) device — the stage-① reader), S5 per state "
+            "(checked s4–s7; horizon s0–s3, s8–s9), S4 horizons named.",
             tags=["quotation", "second-order", "third-tense", "exemplar"]),
         make_annotation(SCOPE_CHAIN,
             "Residence by the gapless inbound construction (DC+ then INS): "
@@ -258,7 +286,14 @@ def build_forcing_forces(service: TomosService) -> Tuple[str, Dict[str, List[str
                    "phi-two": "excluded"}, tri
 
     pc = _residence(FORCES_CONTENT)
+    # B-min: each φ is DRAWN — its name gains the core sort and a dotted
+    # oval holding φ's shape, one explicit QUOTE step per claim.
+    for name, (rel, shape) in PHI.items():
+        quote_step(pc, name, shape,
+                   note=f"scribe φ = {shape} into a quotation oval beside "
+                        f"⌜{name}⌝")
     host = pc.current
+    host_dto = _layout_fn(host)
     resolver = EGIFQuotationResolver()
     marks = []
     for name, (rel, shape) in PHI.items():
@@ -267,12 +302,17 @@ def build_forcing_forces(service: TomosService) -> Tuple[str, Dict[str, List[str
             host, vid, shape, resolver, origin="forcing_conditions",
             relation=rel, settlement=tri[name]))
 
+    oval_of = {v: c for c, v in host.quotation.items()}
     checked: Dict[str, List[str]] = {}
     for mark in marks:
-        # S1/S2 (+ §3.3 one level down) per claim.
-        attest_quotation_mark(host, mark, resolver, layout_fn=_layout_fn,
-                              quoted_ground=parse_egif(mark.target),
-                              context=FORCES_UOD)
+        # S1/S2 (+ §3.3 one level down) AND S3 per claim — the drawn oval
+        # reads back φ through the second-order reader.
+        oval = oval_of[mark.element_id]
+        attest_quotation_mark(
+            host, mark, resolver, layout_fn=_layout_fn,
+            quoted_ground=parse_egif(mark.target),
+            read_back=lambda o=oval: read_quotation_back(host, host_dto, o),
+            context=FORCES_UOD)
         # S5 — the trichotomy as trajectory-relative resolution.
         rel = mark.extra["relation"]
         per_state = _phi_per_state(host, mark, rel, mark.target, fc_chain.states)
@@ -295,9 +335,12 @@ def build_forcing_forces(service: TomosService) -> Tuple[str, Dict[str, List[str
             "axiomatized primitive (the Montague rider). The trichotomy drawn: "
             "∅ forces one (settled), ⟨1,1,0⟩ forces zero (open), nothing "
             "forces two (excluded — drawn as the negation ~[ (forces *s "
-            "\"phi-two\") ]). Every claim recomputed before scribing; S5 reads "
-            "the trichotomy as trajectory-relative resolution (φ₁ everywhere, "
-            "φ₂ on one branch, φ₃ nowhere — the whole trajectory horizon)."
+            "\"phi-two\") ]). At B-min each φ is DRAWN: its name carries the "
+            "core proposition sort and a dotted oval holds φ's shape (opaque "
+            "to the calculus). Every claim recomputed before scribing; S3 "
+            "checked (each oval reads back its φ); S5 reads the trichotomy as "
+            "trajectory-relative resolution (φ₁ everywhere, φ₂ on one branch, "
+            "φ₃ nowhere — the whole trajectory horizon)."
         ),
         category=UoDCategory.CANONICAL_PATTERN,
     )
@@ -321,14 +364,14 @@ def build_forcing_forces(service: TomosService) -> Tuple[str, Dict[str, List[str
         kind=KIND_EXEMPLAR).to_dict())
     service.save_annotations(uod, annotations_to_list([
         make_annotation(SCOPE_UOD,
-            "Second-order Stage ⓪: the forcing trichotomy as drawn, "
+            "Second-order stage ① (B-min): the forcing trichotomy as drawn, "
             "state-indexed claims. forces(s, φ) is decidable over finite "
-            "objects — its S3 read-back is well-defined the day B-min puts "
-            "the sort in the drawing; until then S3 is skip-named. The "
+            "objects, and at B-min its S3 read-back RUNS: each φ's dotted "
+            "oval reads back its shape through the second-order reader. The "
             "excluded case is a genuine drawn negation: no state forces "
             "⌜(two *p)⌝. Attested at build: claims recomputed via the peel + "
-            "settlement; S1/S2 (+ §3.3 one level down) per claim; S5 = the "
-            "trichotomy read as trajectory-relative resolution.",
+            "settlement; S1/S2 (+ §3.3 one level down) + S3 per claim; S5 = "
+            "the trichotomy read as trajectory-relative resolution.",
             tags=["quotation", "second-order", "forcing", "exemplar"]),
         make_annotation(SCOPE_CHAIN,
             "Residence by the gapless inbound construction (DC+ then INS); "
@@ -346,6 +389,12 @@ def build_peirce_law_commentary(service: TomosService) -> Tuple[str, str]:
     import json
 
     pc = _residence(MENTION_CONTENT)
+    # B-min: the cross-UoD mention's name gains the CORE sort but no oval —
+    # a whole other universe cannot inline, so the quoted graph stays a
+    # resolver-served, S4-named horizon (S3's sort-half is committed drawn
+    # ink held total by §3.3; its quoted-half stays honestly skip-named).
+    sort_step(pc, "peirce_law", target="peirce_law",
+              note="sort ⌜peirce_law⌝ — mention by name, the oval-less state")
     host = pc.current
     name_vid = vertex_by_label(host, "peirce_law")
 
@@ -394,8 +443,10 @@ def build_peirce_law_commentary(service: TomosService) -> Tuple[str, str]:
             f"corpus id. Citation (via scholarly_citation): {cite['citation']} "
             f"Attested at build: S1 (predicative — the quoted theorem sits in "
             f"another universe, no reach-back), S2 against a hand-written "
-            f"independent ground + §3.3 one level down (real ELK). S3 "
-            f"skip-named until B-min.",
+            f"independent ground + §3.3 one level down (real ELK). At B-min "
+            f"the name carries the CORE proposition sort (drawn badge, "
+            f"§3.3-total); S3's quoted-half stays honestly skip-named — a "
+            f"cross-UoD mention draws no oval (the named B-min horizon).",
             tags=["quotation", "second-order", "mention", "citation", "exemplar"]),
         make_annotation(SCOPE_CHAIN,
             "Residence by the gapless inbound construction (DC+ then INS): a "
@@ -424,8 +475,10 @@ def main(argv=None) -> int:
     print(f"Saved '{uid}' — cross-UoD mention with citation:")
     print(f"  {citation}")
 
-    print("S3 (read-back one order up): skip-named on all three — the sort "
-          "lives in the overlay until B-min puts it in the drawing.")
+    print("S3 (read-back one order up): CHECKED on swan + forcing (the "
+          "drawing carries the sort and the oval reads back its quoted "
+          "graph); the cross-UoD mention's quoted-half stays a named "
+          "horizon — an oval cannot inline another universe (B-min limit).")
     return 0
 
 

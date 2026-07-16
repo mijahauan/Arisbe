@@ -233,8 +233,22 @@ def settlement(
 # --------------------------------------------------------------------------- #
 
 def scribes_relation(name: str) -> Predicate:
-    """φ = 'a relation named ``name`` is scribed somewhere on the sheet'."""
-    return lambda egi: name in set(egi.rel.values())
+    """φ = 'a relation named ``name`` is scribed somewhere on the sheet'.
+
+    Quoted ink does not count as scribed (B-min: a quotation area exhibits
+    its contents without force — mention, not use)."""
+
+    def _scribed(egi) -> bool:
+        if not egi.quotation:
+            return name in set(egi.rel.values())
+        from formal_transformation_rules import _inside_quotation
+
+        return any(
+            rel_name == name and not _inside_quotation(egi, eid)
+            for eid, rel_name in egi.rel.items()
+        )
+
+    return _scribed
 
 
 def equals_graph(egif: str) -> Predicate:

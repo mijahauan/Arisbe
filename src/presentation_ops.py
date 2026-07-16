@@ -1089,6 +1089,18 @@ def _clone_dto(
         viewport_bounds=dto.viewport_bounds,
         sheet_id=dto.sheet_id,
         style=dto.style,
+        # B-min committed second-order marks ride through regime-3 ops
+        # unchanged (they are annotation, not geometry).
+        cut_stroke=(
+            dict(dto.cut_stroke) if getattr(dto, "cut_stroke", None) else None
+        ),
+        vertex_sorts=(
+            dict(dto.vertex_sorts) if getattr(dto, "vertex_sorts", None) else None
+        ),
+        quotation_ties=(
+            dict(dto.quotation_ties)
+            if getattr(dto, "quotation_ties", None) else None
+        ),
     )
 
 

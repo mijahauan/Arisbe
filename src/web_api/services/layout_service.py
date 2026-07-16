@@ -479,10 +479,19 @@ def generate_layout(
     # single-line reading).  Cold layout only; §3.3-gated with a graceful ELK
     # fallback, so ?engine=tension never breaks — it shows the tension layout
     # where it attests and ELK otherwise.
+    # The committed second-order convention (B-min): decorate every candidate
+    # DTO with the dotted-oval strokes + sort badges BEFORE it is attested —
+    # §3.3's committed-convention check holds them total against the EGI, so
+    # an undecorated quotation-bearing pair must never reach an attest.
+    # A first-order graph passes through unchanged (the decorator no-ops).
+    from eg_reader import assign_second_order_marks
+
     if engine == "tension":
         from tension_engine import TensionLayoutEngine
         try:
-            candidate = TensionLayoutEngine().generate_layout(egi, style)
+            candidate = assign_second_order_marks(
+                egi, TensionLayoutEngine().generate_layout(egi, style)
+            )
             attest_correspondence(
                 egi, candidate, context="layout_service.tension_engine"
             )
@@ -499,6 +508,7 @@ def generate_layout(
             candidate = builder(previous_layout, egi, style)
             if candidate is None:
                 continue
+            candidate = assign_second_order_marks(egi, candidate)
             try:
                 attest_correspondence(egi, candidate, context=ctx)
                 dto = candidate
@@ -510,7 +520,7 @@ def generate_layout(
                 dto = None
 
     if dto is None:
-        dto = elk_engine.generate_layout(egi, style)
+        dto = assign_second_order_marks(egi, elk_engine.generate_layout(egi, style))
         # Boundary-event attestation (docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md
         # §6, §8 bullet 1).  Every (EGI, DTO) pair we hand to the renderer
         # — initial diagram serve, post-transformation re-render, anywhere
@@ -572,6 +582,25 @@ def generate_layout(
     # only — positions/bounds/paths are untouched, so §3.3 (attested above) holds.
     from eg_reader import assign_order_labels
     dto = assign_order_labels(egi, dto)
+
+    # The committed second-order convention (B-min, 2026-07-16): every
+    # quotation cut draws dotted and every sorted line carries its badge —
+    # set from the EGI's sort/quotation maps, read back by eg_reader, held
+    # total against the EGI by §3.3's committed-convention check.  Annotation
+    # only (no geometry change); a first-order graph passes through unchanged.
+    from eg_reader import assign_second_order_marks
+    dto = assign_second_order_marks(egi, dto)
+
+    # Regime-2 second-order boundary hook (SECOND_ORDER_CORE_OPENING §5 step
+    # 3): a served quotation-bearing pair verifies S1–S3 beside §3.3 — the
+    # served drawing must read the (sort, quoted) device back, and the quoted
+    # graph attests full §3.3 one level down.  No-op on a first-order pair.
+    if getattr(egi, "quotation", None):
+        from second_order_reader import attest_served_quotations
+        attest_served_quotations(
+            egi, dto,
+            layout_fn=lambda g: generate_layout(g)[0],
+            context="layout_service.generate_layout")
 
     renderer = SimpleSVGRenderer()
     svg = renderer.render_to_svg(dto, egif=egif, egi=egi)
@@ -716,6 +745,15 @@ def attest_and_render(
         (dto, svg_string) — the same DTO passed in, plus its rendered SVG.
     """
     attest_correspondence(egi, dto, context="layout_service.attest_and_render")
+
+    # Regime-2 second-order boundary hook: a regime-3 touch-up of a
+    # quotation-bearing drawing must still read the device back (S1–S3).
+    if getattr(egi, "quotation", None):
+        from second_order_reader import attest_served_quotations
+        attest_served_quotations(
+            egi, dto,
+            layout_fn=lambda g: generate_layout(g)[0],
+            context="layout_service.attest_and_render")
 
     try:
         egif = EGIFGenerator().generate(egi)

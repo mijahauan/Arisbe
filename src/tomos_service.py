@@ -162,6 +162,10 @@ def _attest_uod_in_correspondence(
     engine = ELKLayoutEngine()
     style = load_default_style()
     dto = engine.generate_layout(uod.current_egi, style)
+    # B-min committed convention: decorate before attesting, exactly as the
+    # serving path does — §3.3 holds the dotted ovals + sort badges total.
+    from eg_reader import assign_second_order_marks
+    dto = assign_second_order_marks(uod.current_egi, dto)
     attest_correspondence(uod.current_egi, dto, context=context)
 
 

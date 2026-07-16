@@ -260,6 +260,10 @@ class SemanticGame:
         cut_parts: List[Tuple[Verdict3, Verdict3, Optional[dict]]] = []
         for cid in contents:
             if cid in self._cut_ids:
+                if cid in self._egi.quotation:
+                    # B-min: a quotation area is not a negation — quoted ink
+                    # asserts nothing (mention, not use), so the peel skips it
+                    continue
                 cv, cw = self._holds(cid, beta, depth=depth + 1, transcript=transcript)
                 cut_parts.append((_not3(cv), cv, cw))
 

@@ -86,10 +86,21 @@ class GraphIsomorphismEngine:
         e_ids = {e.id for e in egi.E}
         c_ids = {c.id for c in egi.Cut}
 
+        # Second-order maps (B-min): default empty via getattr so pre-B-min
+        # pickles/mocks lacking the fields still build.
+        sort_map = getattr(egi, "sort", {}) or {}
+        quotation_map = getattr(egi, "quotation", {}) or {}
+
         for elem_id in subgraph_ids:
             if elem_id in v_ids:
                 v = next(v for v in egi.V if v.id == elem_id)
-                G.add_node(elem_id, ntype="v", label=v.label, is_generic=v.is_generic)
+                G.add_node(
+                    elem_id,
+                    ntype="v",
+                    label=v.label,
+                    is_generic=v.is_generic,
+                    sort=sort_map.get(elem_id, ""),
+                )
             elif elem_id in e_ids:
                 G.add_node(
                     elem_id,
@@ -98,7 +109,13 @@ class GraphIsomorphismEngine:
                     arity=len(egi.nu.get(elem_id, ())),
                 )
             elif elem_id in c_ids:
-                G.add_node(elem_id, ntype="c", label=None, is_generic=False)
+                G.add_node(
+                    elem_id,
+                    ntype="c",
+                    label=None,
+                    is_generic=False,
+                    quoted=elem_id in quotation_map,
+                )
             else:
                 raise ValueError(f"Unknown element ID: {elem_id}")
 
@@ -124,10 +141,15 @@ class GraphIsomorphismEngine:
         if n1["ntype"] != n2["ntype"]:
             return False
         if n1["ntype"] == "v":
-            return n1["label"] == n2["label"] and n1["is_generic"] == n2["is_generic"]
+            return (
+                n1["label"] == n2["label"]
+                and n1["is_generic"] == n2["is_generic"]
+                and n1.get("sort", "") == n2.get("sort", "")
+            )
         if n1["ntype"] == "e":
             return n1["rel"] == n2["rel"] and n1["arity"] == n2["arity"]
-        return True  # cuts: structural match only
+        # cuts: structural match, but a quotation area never matches a negation
+        return n1.get("quoted", False) == n2.get("quoted", False)
 
     @staticmethod
     def _edge_match(e1_dict: dict, e2_dict: dict) -> bool:

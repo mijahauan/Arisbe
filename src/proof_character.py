@@ -85,8 +85,10 @@ AMPLIATIVE_RULES = frozenset({
 # A recorded observation that changes nothing — the peel's verdict scribed as
 # an act (identity transform). Neither content-adding nor a hidden expansion:
 # skipping it keeps a corollarial chain corollarial and an ampliative one
-# honest about WHICH steps did the amplifying.
-NEUTRAL_RULES = frozenset({"PEEL"})
+# honest about WHICH steps did the amplifying. QUOTE (B-min) joins it: a
+# quotation exhibits its ink without force — a mention asserts nothing, so
+# scribing one is an act, not an inference.
+NEUTRAL_RULES = frozenset({"PEEL", "QUOTE"})
 
 COROLLARIAL = "corollarial"
 THEOREMATIC = "theorematic"

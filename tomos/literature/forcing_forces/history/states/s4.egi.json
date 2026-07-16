@@ -7,9 +7,6 @@
       "id": "c_ace88630"
     },
     {
-      "id": "c_af7888c3"
-    },
-    {
       "id": "c_c3a271ba"
     },
     {
@@ -20,9 +17,6 @@
     }
   ],
   "E": [
-    {
-      "id": "e_3849d894"
-    },
     {
       "id": "e_6469bf5d"
     },
@@ -54,11 +48,6 @@
       "id": "v_6d99a4ee",
       "is_generic": false,
       "label": "phi-zero"
-    },
-    {
-      "id": "v_8f0de228",
-      "is_generic": true,
-      "label": null
     },
     {
       "id": "v_b3454bb0",
@@ -93,14 +82,9 @@
       "v_345987dd"
     ],
     "c_ace88630": [
-      "c_af7888c3",
       "e_89921005",
       "v_c3a1704d",
       "v_fcdd69b0"
-    ],
-    "c_af7888c3": [
-      "e_3849d894",
-      "v_8f0de228"
     ],
     "c_c3a271ba": [
       "e_fc0c553f",
@@ -124,9 +108,6 @@
     ]
   },
   "nu": {
-    "e_3849d894": [
-      "v_8f0de228"
-    ],
     "e_6469bf5d": [
       "v_b3454bb0",
       "v_dec13547"
@@ -148,11 +129,9 @@
   },
   "quotation": {
     "c_2ff5439d": "v_6d99a4ee",
-    "c_af7888c3": "v_fcdd69b0",
     "c_c3a271ba": "v_dec13547"
   },
   "rel": {
-    "e_3849d894": "two",
     "e_6469bf5d": "forces",
     "e_845b84f6": "zero",
     "e_89921005": "forces",
@@ -163,7 +142,6 @@
   "sheet": "sheet_48d1132b",
   "sort": {
     "v_6d99a4ee": "proposition",
-    "v_dec13547": "proposition",
-    "v_fcdd69b0": "proposition"
+    "v_dec13547": "proposition"
   }
 }

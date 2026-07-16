@@ -108,7 +108,13 @@ class ELKLayoutEngine:
         # rounded-rectangle path skips this entirely and is byte-identical.
         if self._cut_is_oval(style):
             positioned = self._refit_oval_cuts(egi, style, element_sizes, positioned)
-        return self._elk_result_to_dto(positioned, egi, style, element_sizes)
+        dto = self._elk_result_to_dto(positioned, egi, style, element_sizes)
+        # B-min committed convention: the engine's DTO carries the dotted-oval
+        # strokes + sort badges from the EGI's second-order maps, so EVERY
+        # consumer of a fresh layout gets a drawing whose picture doesn't lie
+        # one order up (annotation only; a first-order graph is unchanged).
+        from eg_reader import assign_second_order_marks
+        return assign_second_order_marks(egi, dto)
 
     # -------------------------------------------------------------------------
     # Oval-cut refit — feed cut_shape into the layout's padding

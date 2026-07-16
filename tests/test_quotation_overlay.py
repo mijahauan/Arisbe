@@ -401,3 +401,151 @@ class TestPersistence:
     def test_absent_overlay_reads_empty(self, tomos):
         assert tomos.load_quotations("peirce_law") == []
         assert tomos.load_quotations("no_such_uod") == []
+
+
+# --------------------------------------------------------------------------- #
+# B-min (stage ①): the core-carried quotation — scribe, convert, project.     #
+# --------------------------------------------------------------------------- #
+
+
+class TestScribeAndProject:
+    """The construction half of the core opening: ``scribe_quotation`` /
+    ``quote_existing_name`` put the sort and the oval IN the graph;
+    ``project_first_order`` is the A3 erasure projection (strips the layer,
+    recovering exactly the never-quoted host)."""
+
+    def test_scribe_then_project_recovers_the_host(self):
+        from quotation_overlay import project_first_order, scribe_quotation
+
+        host = parse_egif('(P *x) ~[ (Q x) ]')
+        quoted = parse_egif('~[ (swan *s) ~[ (white s) ] ]')
+        new_host, mark, cut_id = scribe_quotation(host, "M_law", quoted)
+        assert cut_id in new_host.quotation
+        assert new_host.sort[new_host.quotation[cut_id]] == SORT_PROPOSITION
+        assert same_graph(project_first_order(new_host), host)
+
+    def test_scribed_oval_lifts_to_the_quoted_graph(self):
+        from quotation_overlay import lift_quotation, scribe_quotation
+
+        host = parse_egif('(P *x)')
+        quoted = parse_egif('~[ (swan *s) ~[ (white s) ] ]')
+        new_host, _mark, cut_id = scribe_quotation(host, "M_law", quoted)
+        # the oval's CONTENTS are the quoted object (the dotted curve is the
+        # device, not part of the object): lift_quotation, not lift_cut
+        assert same_graph(lift_quotation(new_host, cut_id), quoted)
+
+    def test_quote_existing_name_binds_in_the_names_area(self):
+        from quotation_overlay import quote_existing_name
+
+        host = parse_egif('~[ (superseded "M_law") ]')
+        name_id = vertex_by_label(host, "M_law")
+        quoted = parse_egif('(white *w)')
+        new_host, cut_id = quote_existing_name(host, name_id, quoted)
+        assert new_host.quotation[cut_id] == name_id
+        assert new_host.get_context(cut_id) == new_host.get_context(name_id)
+
+    def test_default_mark_target_is_the_quoted_egif(self):
+        from quotation_overlay import EGIFQuotationResolver, scribe_quotation
+
+        host = parse_egif('(P *x)')
+        quoted = parse_egif('(white *w)')
+        _h, mark, _c = scribe_quotation(host, "M_law", quoted)
+        assert same_graph(EGIFQuotationResolver().resolve(mark), quoted)
+
+
+class TestQuoteStep:
+    """The explicit QUOTE chain step — the scribing recorded, earned at
+    record time, neutral in proof_character (a mention asserts nothing)."""
+
+    def test_quote_step_records_and_transforms(self):
+        from proof_authoring import ProofChain
+        from quotation_overlay import quote_step
+
+        pc = ProofChain.from_blank()
+        pc.apply("DC+", into=lambda g: g.sheet)
+        import eg_navigation as nav
+
+        pc.apply("INS", insert='(superseded "M_law")',
+                 into=lambda g: nav.child_cuts(g, g.sheet)[0])
+        quote_step(pc, "M_law", '~[ (swan *s) ~[ (white s) ] ]')
+        host = pc.current
+        assert len(host.quotation) == 1
+        step = pc._steps[-1]
+        assert step.rule_name == "QUOTE"
+        assert step.parameters["act"] == "quotation"
+        assert step.parameters["earned"] is True
+
+    def test_quote_is_neutral_in_proof_character(self):
+        from proof_character import NEUTRAL_RULES
+
+        assert "QUOTE" in NEUTRAL_RULES
+
+    def test_sort_step_gives_the_mention_by_name_state(self):
+        from proof_authoring import ProofChain
+        from quotation_overlay import sort_step
+
+        pc = ProofChain.from_blank()
+        pc.apply("DC+", into=lambda g: g.sheet)
+        import eg_navigation as nav
+
+        pc.apply("INS", insert='(cites "peirce_law")',
+                 into=lambda g: nav.child_cuts(g, g.sheet)[0])
+        sort_step(pc, "peirce_law", target="peirce_law")
+        host = pc.current
+        name_id = vertex_by_label(host, "peirce_law")
+        assert host.sort[name_id] == SORT_PROPOSITION
+        assert host.quotation == {}  # no oval: the named horizon
+
+
+class TestInterpreterOpacity:
+    """Quoted ink asserts nothing: the peel, the materializer, and the modal
+    reading all skip a quotation area (mention, not use)."""
+
+    def _quoted_m(self):
+        from quotation_overlay import scribe_quotation
+
+        m = parse_egif('(swan "Alba") (white "Alba")')
+        law = parse_egif('~[ (swan *x) ~[ (black x) ] ]')
+        quoted_m, _mark, _cut = scribe_quotation(m, "old_law", law)
+        return m, quoted_m
+
+    def test_peel_ignores_quoted_ink(self):
+        from domain_oracle import CorpusOracle
+        from semantic_game import evaluate
+
+        m, quoted_m = self._quoted_m()
+        oracle = CorpusOracle([("M", m)], closed=True)
+        g = quoted_m  # evaluate the quotation-bearing graph AS the proposal
+        verdict = evaluate(g, oracle, closed=True).verdict.value
+        # the host's own atoms hold in M; the quoted law (which M would
+        # falsify — Alba is white, and the law demands black) is skipped
+        assert verdict == "true"
+
+    def test_materializer_skips_a_quoted_law(self):
+        from model_materialization import materialize_egi
+
+        _m, quoted_m = self._quoted_m()
+        facts_egi, report = materialize_egi(quoted_m)
+        assert report.rules_applied == 0
+        assert any(s.reason == "quotation" for s in report.skipped)
+        assert "black" not in set(facts_egi.rel.values())
+
+    def test_scribes_relation_ignores_quoted_ink(self):
+        from modal_query import scribes_relation
+
+        _m, quoted_m = self._quoted_m()
+        assert scribes_relation("swan")(quoted_m)      # host ink counts
+        assert not scribes_relation("black")(quoted_m)  # quoted ink does not
+
+    def test_copy_area_carries_the_maps(self):
+        from quotation_overlay import scribe_quotation
+        from world_scroll import _copy_area
+        from egi_core_dau import create_empty_graph
+
+        host = parse_egif('(P *x)')
+        quoted = parse_egif('(white *w)')
+        quoted_host, _mark, cut_id = scribe_quotation(host, "M_law", quoted)
+        view = create_empty_graph()
+        copied = _copy_area(quoted_host, view, quoted_host.sheet, view.sheet)
+        assert dict(copied.quotation) == dict(quoted_host.quotation)
+        assert dict(copied.sort) == dict(quoted_host.sort)

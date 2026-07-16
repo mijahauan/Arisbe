@@ -61,6 +61,12 @@ class ReadEG:
     # predicate id -> the vertices it connects, **in argument order**, read by the
     # style's convention (numbered or clockwise) — the recovered ν sequence.
     incidence: Dict[str, List[str]] = field(default_factory=dict)
+    # The second-order reading (B-min committed convention): a dotted oval is a
+    # quotation area, keyed to its quoting line — recovered from the drawn
+    # stroke + the drawn sort badge + geometric attachment (the sorted line
+    # beside the oval), never from the EGI.  Empty on a first-order drawing.
+    quotation_areas: Dict[str, str] = field(default_factory=dict)
+    vertex_sorts: Dict[str, str] = field(default_factory=dict)
 
     # -- per-element queries (what the author asked to be able to read off any
     #    element: its container, its area's co-residents, its connections) -------
@@ -219,7 +225,79 @@ def read_drawing(dto: LayoutDTO) -> ReadEG:
         pid: order_predicate(pid, items) for pid, items in pending.items()
     }
 
-    return ReadEG(sheet_id=dto.sheet_id, area=area, incidence=incidence)
+    # The second-order reading (B-min): the drawn sort badges are the marks
+    # themselves (the order_label idiom — the DTO field IS what the renderer
+    # drew); the quoting line for each dotted oval is recovered GEOMETRICALLY —
+    # never by consulting an EGI.  Ovals and sorted names pair one-to-one
+    # within their shared drawn area by minimal total distance (a name quotes
+    # at most one oval; greedy-nearest would let two ovals claim one name).
+    vertex_sorts: Dict[str, str] = dict(dto.vertex_sorts or {})
+    quotation_areas: Dict[str, str] = {}
+    container_of: Dict[str, str] = {
+        kid: area_id for area_id, kids in area.items() for kid in kids
+    }
+    ovals_by_home: Dict[str, List[str]] = {}
+    for cid, stroke in (dto.cut_stroke or {}).items():
+        if stroke == "quotation" and cid in dto.cut_bounds:
+            home = container_of.get(cid, dto.sheet_id)
+            ovals_by_home.setdefault(home, []).append(cid)
+    names_by_home: Dict[str, List[str]] = {}
+    for vid in vertex_sorts:
+        if vid in dto.vertex_positions:
+            names_by_home.setdefault(
+                container_of.get(vid, dto.sheet_id), []).append(vid)
+
+    def _dist2(cid: str, vid: str) -> float:
+        b = dto.cut_bounds[cid]
+        p = dto.vertex_positions[vid]
+        cx, cy = (b.min_x + b.max_x) / 2, (b.min_y + b.max_y) / 2
+        return (p.x - cx) ** 2 + (p.y - cy) ** 2
+
+    # The drawn attachment ties (the renderer's dotted oval→name connector)
+    # are the primary carrier: they pair each oval with its quoting line the
+    # way order numerals carry ν.  Ovals with no drawn tie (a freeform
+    # drawing) fall through to the geometric assignment below.
+    ties = dict(dto.quotation_ties or {})
+    for cid, vid in ties.items():
+        if cid in {c for cs in ovals_by_home.values() for c in cs} \
+                and vid in vertex_sorts:
+            quotation_areas[cid] = vid
+    ovals_by_home = {
+        home: [c for c in cs if c not in quotation_areas]
+        for home, cs in ovals_by_home.items()
+    }
+    claimed = set(quotation_areas.values())
+    names_by_home = {
+        home: [v for v in vs if v not in claimed]
+        for home, vs in names_by_home.items()
+    }
+
+    from itertools import permutations
+
+    for home, ovals in ovals_by_home.items():
+        names = names_by_home.get(home, [])
+        if not names:
+            continue  # ovals with no sorted line beside them read as broken
+        ovals = sorted(ovals)
+        if len(names) <= 7 and len(ovals) <= len(names):
+            best = min(
+                permutations(names, len(ovals)),
+                key=lambda perm: sum(_dist2(c, v) for c, v in zip(ovals, perm)),
+            )
+            for c, v in zip(ovals, best):
+                quotation_areas[c] = v
+        else:  # oversized area: greedy one-to-one, tightest oval first
+            used: Set[str] = set()
+            for c in sorted(ovals, key=lambda c: min(_dist2(c, v) for v in names)):
+                cands = [v for v in names if v not in used]
+                if not cands:
+                    break
+                v = min(cands, key=lambda v: _dist2(c, v))
+                quotation_areas[c] = v
+                used.add(v)
+
+    return ReadEG(sheet_id=dto.sheet_id, area=area, incidence=incidence,
+                  quotation_areas=quotation_areas, vertex_sorts=vertex_sorts)
 
 
 def _clockwise_order(dto: LayoutDTO, pid: str) -> List[str]:
@@ -327,13 +405,36 @@ def assign_order_labels(egi, dto: LayoutDTO) -> LayoutDTO:
     return dataclasses.replace(dto, ligature_paths=new_paths)
 
 
+def assign_second_order_marks(egi, dto: LayoutDTO) -> LayoutDTO:
+    """Return ``dto`` with the committed second-order marks set from the EGI —
+    the sibling of :func:`assign_order_labels`, for B-min's convention: every
+    quotation cut draws dotted (``cut_stroke``), every sorted line draws its
+    sort badge (``vertex_sorts``).  A first-order graph leaves both fields
+    ``None`` — the DTO (and every byte downstream) is unchanged."""
+    sort_map = dict(getattr(egi, "sort", {}) or {})
+    quotation_map = dict(getattr(egi, "quotation", {}) or {})
+    if not sort_map and not quotation_map:
+        return dto
+    return dataclasses.replace(
+        dto,
+        cut_stroke={cid: "quotation" for cid in quotation_map} or None,
+        vertex_sorts=dict(sort_map) or None,
+        quotation_ties=dict(quotation_map) or None,
+    )
+
+
 def reading_matches_egi(reading: ReadEG, egi, *, ordered: bool = True) -> bool:
     """Whether the EG read from a drawing is the same EG as ``egi`` — the area
     tree matches exactly and each predicate's incidence matches.  With
     ``ordered`` (default) the incidence must match as a **sequence** (the full ν,
     argument order included, recovered by the style's convention); set
     ``ordered=False`` to compare only the incidence multiset.  This is the drawn→EG
-    half of the round trip ``read(render(egi)) == egi``."""
+    half of the round trip ``read(render(egi)) == egi``.
+
+    B-min: the second-order reading must match too — the drawn dotted ovals and
+    sort badges recover exactly the EGI's ``quotation``/``sort`` maps (both
+    directions: an undrawn quotation or a spurious dotted oval is a mismatch).
+    First-order graphs compare empty-to-empty, unchanged."""
     egi_area = {a: set(c) for a, c in egi.area.items()}
     for a, kids in egi_area.items():
         if reading.area.get(a, set()) != kids:
@@ -343,7 +444,17 @@ def reading_matches_egi(reading: ReadEG, egi, *, ordered: bool = True) -> bool:
         want = list(egi.nu.get(e.id, ()))
         if got != want if ordered else sorted(got) != sorted(want):
             return False
+    if reading.vertex_sorts != dict(getattr(egi, "sort", {}) or {}):
+        return False
+    if reading.quotation_areas != dict(getattr(egi, "quotation", {}) or {}):
+        return False
     return True
 
 
-__all__ = ["ReadEG", "read_drawing", "reading_matches_egi", "assign_order_labels"]
+__all__ = [
+    "ReadEG",
+    "read_drawing",
+    "reading_matches_egi",
+    "assign_order_labels",
+    "assign_second_order_marks",
+]

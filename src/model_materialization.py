@@ -251,6 +251,13 @@ def _extract(
     # Classify sheet-level cuts into Horn rules vs. skipped.
     horn: Set[Tuple[Tuple[Fact, ...], Tuple[Fact, ...]]] = set()
     for c1 in [x for x in egi.area.get(egi.sheet, ()) if x in cut_ids]:
+        if c1 in egi.quotation:
+            # B-min: a quotation area licenses nothing — the quoted shape
+            # (even a law-shaped one) is mentioned, never applied
+            report.skipped.append(
+                SkippedRule("quotation", _describe_cut(egi, c1, edge_ids, cut_ids))
+            )
+            continue
         inner_cuts = [x for x in egi.area.get(c1, ()) if x in cut_ids]
         if len(inner_cuts) == 0:
             report.skipped.append(SkippedRule("denial", _describe_cut(egi, c1, edge_ids, cut_ids)))

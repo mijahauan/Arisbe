@@ -46,6 +46,9 @@ class CLIFGenerator:
             raise TypeError(
                 "CLIFGenerator.generate() called without a graph. Provide one in constructor or use generate_clif(graph)."
             )
+        # B-min: no linear syntax for the second-order layer (named limit).
+        from second_order_limits import refuse_second_order_in_linear_form
+        refuse_second_order_in_linear_form(self.graph, "CLIF")
         # Reset cached canonical signatures (graph may have changed).
         self._vertex_sig = {}
         self._edge_sig = {}

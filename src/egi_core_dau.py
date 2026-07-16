@@ -22,6 +22,14 @@ ElementID = str
 VertexSequence = Tuple[ElementID, ...]
 RelationName = str
 
+# Second-order sorts (B-min, the authorized core opening 2026-07-16).
+# A line of identity may carry a second-order sort; an unsorted line is an
+# ordinary (individual) line. String-equal to second_order_check's constants —
+# the S1–S5 law harness remains the external authority on the sort vocabulary.
+SORT_PROPOSITION = "proposition"
+SORT_ABSTRACTION = "abstraction"
+SECOND_ORDER_SORTS = frozenset({SORT_PROPOSITION, SORT_ABSTRACTION})
+
 
 class AreaPolarity(Enum):
     """Polarity of an area based on nesting depth of cuts.
@@ -109,6 +117,19 @@ class RelationalGraphWithCuts:
     # Maps vertex_id -> variable name (e.g., "x", "y", "z") for generic vertices
     variable_names: frozendict[ElementID, str] = frozendict()
 
+    # Second-order maps (B-min, 2026-07-16). Both default empty, and every
+    # validation below is conditional on non-emptiness, so a first-order graph
+    # is bit-identical to the pre-B-min core.
+    #   sort: vertex_id -> "proposition" | "abstraction" (absent = individual line)
+    #   quotation: quotation-cut-id -> quoting-vertex-id — the cut is a
+    #     graph-valued area (holds quoted ink, asserts nothing, is NOT a
+    #     negation for the calculus) keyed to the sorted name that quotes it.
+    #     The name and its oval must reside in the same area (the drawn
+    #     attachment); one name per oval, one oval per name; no quotation
+    #     nested inside a quotation area (a named B-min limit).
+    sort: frozendict[ElementID, str] = frozendict()
+    quotation: frozendict[ElementID, ElementID] = frozendict()
+
     # Hierarchical index for efficient nesting operations
     # This is integral to EGI logic, not just spatial representation
     hierarchical_index: Optional["HierarchicalIndex"] = None
@@ -148,6 +169,8 @@ class RelationalGraphWithCuts:
         self._validate_dau_constraints()
         # Validate optional AlphabetDAU / rho if present
         self._validate_alphabet_and_rho()
+        # Validate the second-order maps if present (no-op on a first-order graph)
+        self._validate_second_order()
 
     def _build_hierarchical_index(self, hierarchical_index):
         """Build hierarchical index from area mapping."""
@@ -317,6 +340,57 @@ class RelationalGraphWithCuts:
                 raise ValueError(
                     f"rho assigns '{const_name}' to {vid}, but it is not in Alphabet.C"
                 )
+
+    def _validate_second_order(self):
+        """Validate the second-order maps (B-min). Conditional on non-emptiness,
+        so a first-order graph (both maps empty) incurs no new checks."""
+        if not self.sort and not self.quotation:
+            return
+        # sort: keys are vertices, values are second-order sorts
+        for vid, sort_name in self.sort.items():
+            if vid not in self._vertex_map:
+                raise ValueError(f"sort refers to unknown vertex '{vid}'")
+            if sort_name not in SECOND_ORDER_SORTS:
+                raise ValueError(
+                    f"sort assigns '{sort_name}' to {vid}; must be one of "
+                    f"{sorted(SECOND_ORDER_SORTS)} (an individual line carries no entry)"
+                )
+        # quotation: keys are cuts, values are second-order-sorted vertices,
+        # name and oval share an area, one oval per name, no nesting
+        seen_names: Set[ElementID] = set()
+        for cut_id, name_id in self.quotation.items():
+            if cut_id not in self._cut_map:
+                raise ValueError(f"quotation flags unknown cut '{cut_id}'")
+            if name_id not in self._vertex_map:
+                raise ValueError(
+                    f"quotation cut '{cut_id}' names unknown vertex '{name_id}'"
+                )
+            if self.sort.get(name_id) not in SECOND_ORDER_SORTS:
+                raise ValueError(
+                    f"quotation cut '{cut_id}' is quoted by '{name_id}', which "
+                    f"carries no second-order sort (a quotation area requires a "
+                    f"sorted quoting name)"
+                )
+            if name_id in seen_names:
+                raise ValueError(
+                    f"vertex '{name_id}' quotes more than one oval (one oval per name)"
+                )
+            seen_names.add(name_id)
+            if self.get_context(cut_id) != self.get_context(name_id):
+                raise ValueError(
+                    f"quotation cut '{cut_id}' and its quoting name '{name_id}' "
+                    f"must reside in the same area (the drawn attachment)"
+                )
+        # No quotation nested inside a quotation area (a named B-min limit)
+        for cut_id in self.quotation:
+            parent = self.get_context(cut_id)
+            while parent != self.sheet:
+                if parent in self.quotation:
+                    raise ValueError(
+                        f"quotation cut '{cut_id}' is nested inside quotation "
+                        f"area '{parent}' (quotation-in-quotation is a B-min limit)"
+                    )
+                parent = self.get_context(parent)
 
     # Core access methods
 
@@ -533,6 +607,8 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     # Ligature operations (Definition 12.8)
@@ -683,6 +759,8 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     def with_edge(
@@ -723,6 +801,8 @@ class RelationalGraphWithCuts:
             rel=frozendict(new_rel),
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     # Transformation Rules (Definition 12.14)
@@ -796,6 +876,15 @@ class RelationalGraphWithCuts:
             new_vertex_id = vertex_mapping.get(vertex_id, vertex_id)
             new_rho[new_vertex_id] = const_name
 
+        # Map second-order functions (sort keyed by vertex, quotation cut->vertex)
+        new_sort = {
+            vertex_mapping.get(vid, vid): s for vid, s in self.sort.items()
+        }
+        new_quotation = {
+            cut_mapping.get(cid, cid): vertex_mapping.get(vid, vid)
+            for cid, vid in self.quotation.items()
+        }
+
         return RelationalGraphWithCuts(
             V=frozenset(new_vertices),
             E=frozenset(new_edges),
@@ -806,6 +895,8 @@ class RelationalGraphWithCuts:
             rel=frozendict(new_rel),
             alphabet=self.alphabet,
             rho=frozendict(new_rho),
+            sort=frozendict(new_sort),
+            quotation=frozendict(new_quotation),
         )
 
     def change_identity_edge_orientation(
@@ -834,6 +925,8 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     def add_vertex_to_ligature(
@@ -923,6 +1016,12 @@ class RelationalGraphWithCuts:
         }
         new_rho = {vid: name for vid, name in self.rho.items() if vid != vertex_id}
 
+        if vertex_id in set(self.quotation.values()):
+            raise ValueError(
+                f"Vertex {vertex_id} is a quoting name; remove its quotation "
+                f"atomically via without_quotation"
+            )
+
         return RelationalGraphWithCuts(
             V=frozenset(v for v in self.V if v.id != vertex_id),
             E=frozenset(e for e in self.E if e.id != identity_edge_id),
@@ -933,6 +1032,10 @@ class RelationalGraphWithCuts:
             rel=frozendict(new_rel),
             alphabet=self.alphabet,
             rho=frozendict(new_rho),
+            sort=frozendict(
+                {vid: s for vid, s in self.sort.items() if vid != vertex_id}
+            ),
+            quotation=self.quotation,
         )
 
     def with_cut(
@@ -963,6 +1066,164 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
+        )
+
+    # Second-order constructors (B-min, the authorized core opening 2026-07-16)
+
+    def with_sort(
+        self, vertex_id: ElementID, sort_name: str
+    ) -> "RelationalGraphWithCuts":
+        """Create new graph with the given vertex carrying a second-order sort.
+
+        The sorted line names a graph-valued object (proposition/abstraction);
+        an unsorted line remains an ordinary individual line. Validation runs
+        in __post_init__ (sort vocabulary, vertex existence)."""
+        if vertex_id not in self._vertex_map:
+            raise ValueError(f"Vertex {vertex_id} not found")
+        if sort_name not in SECOND_ORDER_SORTS:
+            raise ValueError(
+                f"'{sort_name}' is not a second-order sort "
+                f"({sorted(SECOND_ORDER_SORTS)}); an individual line carries no sort"
+            )
+        new_sort = dict(self.sort)
+        new_sort[vertex_id] = sort_name
+        return RelationalGraphWithCuts(
+            V=self.V,
+            E=self.E,
+            nu=self.nu,
+            sheet=self.sheet,
+            Cut=self.Cut,
+            area=self.area,
+            rel=self.rel,
+            alphabet=self.alphabet,
+            rho=self.rho,
+            sort=frozendict(new_sort),
+            quotation=self.quotation,
+        )
+
+    def with_quotation_binding(
+        self,
+        vertex_id: ElementID,
+        cut_id: ElementID,
+        *,
+        sort_name: Optional[str] = None,
+    ) -> "RelationalGraphWithCuts":
+        """Flag an EXISTING cut as the quotation area of an EXISTING vertex.
+
+        The conversion form of with_quotation: ink already drawn (e.g. a law
+        scribed under an ordinary cut) becomes a quotation without moving. The
+        vertex must carry a second-order sort already, or sort_name must be
+        given. Same-area attachment, one-oval-per-name, and no-nesting are
+        enforced by __post_init__."""
+        if cut_id not in self._cut_map:
+            raise ValueError(f"Cut {cut_id} not found")
+        if vertex_id not in self._vertex_map:
+            raise ValueError(f"Vertex {vertex_id} not found")
+        if cut_id in self.quotation:
+            raise ValueError(f"Cut {cut_id} is already a quotation area")
+        base = self.with_sort(vertex_id, sort_name) if sort_name else self
+        if base.sort.get(vertex_id) not in SECOND_ORDER_SORTS:
+            raise ValueError(
+                f"Vertex {vertex_id} carries no second-order sort; pass "
+                f"sort_name or call with_sort first"
+            )
+        new_quotation = dict(base.quotation)
+        new_quotation[cut_id] = vertex_id
+        return RelationalGraphWithCuts(
+            V=base.V,
+            E=base.E,
+            nu=base.nu,
+            sheet=base.sheet,
+            Cut=base.Cut,
+            area=base.area,
+            rel=base.rel,
+            alphabet=base.alphabet,
+            rho=base.rho,
+            sort=base.sort,
+            quotation=frozendict(new_quotation),
+        )
+
+    def with_quotation(
+        self,
+        name_vertex: Vertex,
+        *,
+        context_id: ElementID = None,
+        sort_name: str = SORT_PROPOSITION,
+        quotation_cut: Optional[Cut] = None,
+    ) -> "RelationalGraphWithCuts":
+        """Install a quotation: a NEW sorted name vertex + a NEW empty
+        quotation-flagged cut, both in context_id, associated in .quotation.
+
+        The constructive sibling of with_quotation_binding. The oval starts
+        empty; its quoted ink is filled by ordinary with_vertex_in_context /
+        with_edge / with_cut calls (or quotation_overlay.scribe_quotation,
+        which copies a whole quoted graph in)."""
+        if context_id is None:
+            context_id = self.sheet
+        cut = quotation_cut if quotation_cut is not None else create_cut()
+        g = self.with_vertex_in_context(name_vertex, context_id)
+        g = g.with_cut(cut, context_id)
+        return g.with_quotation_binding(name_vertex.id, cut.id, sort_name=sort_name)
+
+    def without_quotation(self, cut_id: ElementID) -> "RelationalGraphWithCuts":
+        """Remove a quotation atomically: the flagged cut + its whole subtree
+        + both map entries. The only sanctioned unquoting (_without_vertex /
+        _without_cut refuse piecemeal removal).
+
+        The quoting name is removed too when nothing else holds it (no ν
+        reference from a surviving edge); a host-wired name (e.g. an argument
+        of a host relation) survives, de-quoted but still sorted — the legal
+        'mention by name' state."""
+        if cut_id not in self.quotation:
+            raise ValueError(f"Cut {cut_id} is not a quotation area")
+        name_id = self.quotation[cut_id]
+        doomed: Set[ElementID] = set(self.get_full_context(cut_id)) | {cut_id}
+        surviving_nu = {
+            eid: seq for eid, seq in self.nu.items() if eid not in doomed
+        }
+        name_held = any(name_id in seq for seq in surviving_nu.values())
+        if not name_held:
+            doomed.add(name_id)
+        # A host edge cannot reference oval-interior ink (Dau's dominating-nodes
+        # constraint: an edge is at least as deep as its vertices), but verify.
+        for eid, seq in surviving_nu.items():
+            dangling = [vid for vid in seq if vid in doomed]
+            if dangling:
+                raise ValueError(
+                    f"Removing quotation {cut_id} would orphan hooks of edge "
+                    f"{eid} on {dangling}"
+                )
+        new_area = {}
+        for ctx_id, elements in self.area.items():
+            if ctx_id in doomed:
+                continue
+            new_area[ctx_id] = frozenset(e for e in elements if e not in doomed)
+        return RelationalGraphWithCuts(
+            V=frozenset(v for v in self.V if v.id not in doomed),
+            E=frozenset(e for e in self.E if e.id not in doomed),
+            nu=frozendict(surviving_nu),
+            sheet=self.sheet,
+            Cut=frozenset(c for c in self.Cut if c.id not in doomed),
+            area=frozendict(new_area),
+            rel=frozendict(
+                {k: v for k, v in self.rel.items() if k not in doomed}
+            ),
+            alphabet=self.alphabet,
+            rho=frozendict(
+                {k: v for k, v in self.rho.items() if k not in doomed}
+            ),
+            sort=frozendict(
+                {
+                    k: v
+                    for k, v in self.sort.items()
+                    if k not in doomed
+                }
+            ),
+            quotation=frozendict(
+                {k: v for k, v in self.quotation.items() if k != cut_id}
+            ),
         )
 
     def with_vertex_moved_to_context(
@@ -1002,6 +1263,8 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     def without_element(self, element_id: ElementID) -> "RelationalGraphWithCuts":
@@ -1017,6 +1280,11 @@ class RelationalGraphWithCuts:
 
     def _without_vertex(self, vertex_id: ElementID) -> "RelationalGraphWithCuts":
         """Remove vertex and update area mappings."""
+        if vertex_id in set(self.quotation.values()):
+            raise ValueError(
+                f"Vertex {vertex_id} is a quoting name; remove its quotation "
+                f"atomically via without_quotation"
+            )
         new_V = frozenset(v for v in self.V if v.id != vertex_id)
         new_area = dict(self.area)
 
@@ -1035,6 +1303,10 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=frozendict(
+                {k: v for k, v in self.sort.items() if k != vertex_id}
+            ),
+            quotation=self.quotation,
         )
 
     def _without_edge(self, edge_id: ElementID) -> "RelationalGraphWithCuts":
@@ -1059,12 +1331,19 @@ class RelationalGraphWithCuts:
             rel=new_rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
     def _without_cut(self, cut_id: ElementID) -> "RelationalGraphWithCuts":
         """Remove cut and redistribute its contents."""
         if cut_id not in {c.id for c in self.Cut}:
             raise ValueError(f"Cut {cut_id} not found")
+        if cut_id in self.quotation:
+            raise ValueError(
+                f"Cut {cut_id} is a quotation area; remove it atomically "
+                f"via without_quotation"
+            )
 
         # Get parent context and cut's contents
         parent_context = self.get_context(cut_id)
@@ -1090,6 +1369,8 @@ class RelationalGraphWithCuts:
             rel=self.rel,
             alphabet=self.alphabet,
             rho=self.rho,
+            sort=self.sort,
+            quotation=self.quotation,
         )
 
 

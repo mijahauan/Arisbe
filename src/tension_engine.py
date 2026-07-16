@@ -94,10 +94,15 @@ class TensionLayoutEngine:
         # (docs/TENSION_LAYOUT.md §10) — the Peircean reading. Self-attest: a
         # non-monotone thread that doesn't realize its crossing-sequence falls
         # through to the hierarchical node placement below.
+        # B-min committed convention: every tension DTO carries the dotted-oval
+        # strokes + sort badges (annotation only; first-order unchanged).
+        from eg_reader import assign_second_order_marks
+
         thread = extract_thread(egi)
         if thread is not None:
             try:
-                dto = self._thread_layout(egi, style, sizes, thread)
+                dto = assign_second_order_marks(
+                    egi, self._thread_layout(egi, style, sizes, thread))
                 attest_correspondence(egi, dto, context="tension_engine.thread")
                 return dto
             except Exception:
@@ -111,13 +116,15 @@ class TensionLayoutEngine:
         if extract_tree(egi) is not None:
             for weighted in (True, False):
                 try:
-                    dto = self._tree_layout(egi, style, sizes, weighted=weighted)
+                    dto = assign_second_order_marks(
+                        egi, self._tree_layout(egi, style, sizes, weighted=weighted))
                     attest_correspondence(egi, dto, context="tension_engine.tree")
                     return dto
                 except Exception:
                     continue  # try the slacker embedding, then hierarchical
 
-        return self._hierarchical_layout(egi, style, sizes)
+        return assign_second_order_marks(
+            egi, self._hierarchical_layout(egi, style, sizes))
 
     def _hierarchical_layout(self, egi, style, sizes) -> LayoutDTO:
         res = self._layout_area(egi, egi.sheet, sizes, style)

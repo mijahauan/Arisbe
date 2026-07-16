@@ -198,3 +198,69 @@ what it would be exercised on.
 > `tests/test_quotation_overlay.py`. Next rung: ① B-min (the authorized core
 > opening — sort-on-incidence, `with_quotation`, the second-order reader → S3
 > checked, the A3 conservativity gate, the mention/use fork's core half).
+
+> **Stage ① B-min BUILT (2026-07-16 — the authorized core opening).** The one
+> genuine protected-core edit, exactly as §5 step 2 ordered, authorized by the
+> author's crossing verdicts and executed under `.core_modification_authorized`:
+>
+> * **Sort-on-incidence + graph-valued area** — `RelationalGraphWithCuts` gains
+>   two parallel maps in the `ρ` pattern (both default-empty; a first-order
+>   graph is bit-identical): `sort` (vertex → `proposition`/`abstraction`) and
+>   `quotation` (quotation-cut → quoting-vertex — Sowa's proposition-typed
+>   context, a cut flagged as *holding* a quoted graph rather than negating).
+>   Validated: same-area attachment, one oval per name, no
+>   quotation-in-quotation (a named B-min limit). New constructors
+>   `with_sort` / `with_quotation_binding` (convert existing ink) /
+>   `with_quotation` (fresh name + empty oval) / `without_quotation` (the only
+>   sanctioned unquoting — atomic; piecemeal removal refuses).
+> * **The six rules sort-preserving + the quotation boundary opaque** — one
+>   shared `_rebuild_graph` forwards `alphabet`/`rho`/`sort`/`quotation`
+>   through every rule (repairing the historical DC−/ERA/IT± alphabet/rho
+>   drop — author-ratified; the alphabet *grows* to cover lawfully introduced
+>   vocabulary rather than closing the language), and
+>   `_refuse_quotation_boundary` enforces mention-not-use: no rule operates
+>   inside an oval; ERA takes the whole exhibit or nothing; DC− refuses a
+>   dotted oval as either half of a double cut; IT± refuse the apparatus
+>   entirely (deep — a plain cut enclosing an exhibit won't copy). IT−
+>   matching and `same_graph` treat a sorted line / quotation area as never
+>   matching an unsorted twin / a negation.
+> * **The committed drawn convention + the second-order READER → S3 CHECKED** —
+>   `LayoutDTO.cut_stroke`/`vertex_sorts` carry the dotted-oval stroke and the
+>   sort badge (the `order_label` idiom: set by
+>   `eg_reader.assign_second_order_marks` in both engines, drawn by
+>   `simple_svg_renderer`, read back geometrically by `read_drawing` with
+>   one-to-one oval↔name pairing); §3.3 gains the committed-convention
+>   totality check (`correspondence_attestation`, active only on non-empty
+>   maps). `src/second_order_reader.py` supplies the harness's `read_back`
+>   injection point (`read_quotation_back`) and the regime-2 boundary hook
+>   (`attest_served_quotations`, wired beside `attest_correspondence` in
+>   `layout_service`). **S3 flips from skip-named to checked** on
+>   `swan_third_tense` and `forcing_forces`; the cross-UoD mention's
+>   quoted-half stays an honestly named horizon (an oval cannot inline
+>   another universe).
+> * **The A3 conservativity gate** — `tests/test_second_order_conservativity.py`,
+>   three tiers: corpus-wide invisibility-when-unused (byte-identical JSON,
+>   canonical order unchanged), erasure projection (`project_first_order`;
+>   the quoted law licenses *nothing* — asserted it derives, quoted it does
+>   not; the peel/materializer/modal readings all skip ovals), rules
+>   restraint (every boundary refusal + the linear-form refusal).
+> * **Linear forms refuse loudly** — `SecondOrderNotInLinearForm`
+>   (`src/second_order_limits.py`) in all three generators; corpus surfaces
+>   (`linear_forms` service) show the **first-order projection + the named
+>   limit**. No sort syntax is invented at B-min (author-ratified).
+> * **The mention fork's core half discharged** — `peirce_law_commentary`'s
+>   name is core-sorted (`sort_step`; drawn badge, §3.3-total); *use* remains
+>   scroll-only, and the deferral is pinned as a test
+>   (`tests/test_use_mention_fork.py`).
+> * **Exemplars re-expressed** — each scribing is an explicit `QUOTE` chain
+>   step (registered neutral in `proof_character`: a mention asserts nothing);
+>   the swan's law and the three φ are now drawn *in* their hosts inside
+>   committed dotted ovals; S5 trajectories unchanged (s4–s7; the trichotomy).
+>
+> Tests: `test_second_order_core` (27) · `test_rules_second_order` (18) ·
+> `test_second_order_reader` (12, falsifiers pinned) ·
+> `test_second_order_conservativity` (10) · `test_use_mention_fork` (6) +
+> the extended `test_quotation_overlay` (39). Named limits: no linear sort
+> syntax; no quotation-in-quotation; no IT± of exhibits; cross-UoD mention
+> S3 = sort-half only. Next rung: ② **B-full** (native graph-valued element
+> kind, ν-hookable blank, P3′/P5′), which follows B-min per verdict B5.

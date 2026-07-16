@@ -486,6 +486,88 @@ def check_correspondence(
                 f"{ordered} ≠ ν {tuple(nu_seq)}"
             )
 
+    # The committed second-order convention (B-min, 2026-07-16).  Active only
+    # when the EGI carries sort/quotation entries (or the DTO claims some) —
+    # a first-order pair runs zero new checks, bit-identical to before.  The
+    # law: every quotation cut draws its dotted stroke and every sorted line
+    # its badge, and vice versa (the picture never lies, one order up).
+    egi_sort = dict(getattr(egi, "sort", {}) or {})
+    egi_quotation = dict(getattr(egi, "quotation", {}) or {})
+    dto_strokes = dict(getattr(dto, "cut_stroke", None) or {})
+    dto_sorts = dict(getattr(dto, "vertex_sorts", None) or {})
+    if egi_sort or egi_quotation or dto_strokes or dto_sorts:
+        quoted_drawn = {
+            cid for cid, s in dto_strokes.items() if s == "quotation"
+        }
+        undrawn = set(egi_quotation) - quoted_drawn
+        if undrawn:
+            failures.append(
+                f"  second-order: quotation cut(s) drawn without the dotted "
+                f"stroke: {sorted(undrawn)}"
+            )
+        spurious = quoted_drawn - set(egi_quotation)
+        if spurious:
+            failures.append(
+                f"  second-order: dotted oval(s) drawn for non-quotation "
+                f"cut(s): {sorted(spurious)}"
+            )
+        if dto_sorts != egi_sort:
+            failures.append(
+                f"  second-order: drawn sort badges {dto_sorts} ≠ the EGI's "
+                f"sort map {egi_sort}"
+            )
+        # The drawn attachment ties are committed ink: when the EGI carries
+        # quotations, every oval must draw its tie to exactly its quoting name.
+        dto_ties = dict(getattr(dto, "quotation_ties", None) or {})
+        if egi_quotation and dto_ties != egi_quotation:
+            failures.append(
+                f"  second-order: drawn attachment ties {dto_ties} ≠ the "
+                f"EGI's quotation map {egi_quotation}"
+            )
+        # The drawn attachment: name and oval share a drawn area — the same
+        # deepest-containing-curve reading the eye (and eg_reader) uses to
+        # pair them geometrically.
+        def _box_area(b) -> float:
+            return (b.max_x - b.min_x) * (b.max_y - b.min_y)
+
+        def _deepest_cut_for_point(p):
+            best = None
+            for ocid, ob in dto.cut_bounds.items():
+                if ocid == egi.sheet:
+                    continue
+                if point_in_cut(p, ob, cut_shape, cut_radius,
+                                cut_boundaries.get(ocid)):
+                    if best is None or _box_area(ob) < _box_area(
+                            dto.cut_bounds[best]):
+                        best = ocid
+            return best
+
+        def _deepest_cut_for_bounds(b, exclude):
+            best = None
+            for ocid, ob in dto.cut_bounds.items():
+                if ocid in (exclude, egi.sheet):
+                    continue
+                if bounds_in_cut(b, ob, cut_shape, cut_radius,
+                                 cut_boundaries.get(ocid)):
+                    if best is None or _box_area(ob) < _box_area(
+                            dto.cut_bounds[best]):
+                        best = ocid
+            return best
+
+        for cid, vid in egi_quotation.items():
+            b = dto.cut_bounds.get(cid)
+            vpos = dto.vertex_positions.get(vid)
+            if b is None or vpos is None:
+                continue  # totality already reported it
+            cut_home = _deepest_cut_for_bounds(b, exclude=cid)
+            name_home = _deepest_cut_for_point(vpos)
+            if cut_home != name_home:
+                failures.append(
+                    f"  second-order: quotation cut {cid} and its quoting "
+                    f"name {vid} are drawn in different areas "
+                    f"({cut_home} vs {name_home})"
+                )
+
     return failures
 
 
