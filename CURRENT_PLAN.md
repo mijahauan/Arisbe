@@ -1,7 +1,20 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
-0. **THE "MOSES" RELEASE (author-declared 2026-07-15, third sitting): branch + tag the last
+0. **✅ SHIPPED 2026-07-15/16 — THE "MOSES" RELEASE: `v2.0.0-beta.1` on `release/moses`,
+   published as a GitHub Release (wheel + sdist + book-HTML zip), the tag attested by a
+   full-suite CI pass.** Getting to green surfaced and fixed, beyond the Tier-1 reds:
+   canonical CI had been `disabled_manually` since April (root causes: `uv sync` missing
+   the web extra → 24 collection errors; the tomos index storing machine-absolute
+   `/Users/mjh/...` paths → `load_uod` None corpus-wide off this machine — now
+   root-relative w/ `_entry_path` re-rooting; Playwright browser absent → e2e now
+   installed + genuinely run on Linux; `_browse_facets` resolving against the module
+   TOMOS_PATH instead of the live service root; three chained-lens e2e fixed-sleep races →
+   `_wait_lens_offered` polling). **First full-suite CI pass in the project's history**,
+   then on the tag again (35m48s) before publishing. Remaining from the original item:
+   nothing — the release stands; tidying flows fix-on-release-first, merge forward.
+   *(Original item text preserved below for the record.)*
+   **THE "MOSES" RELEASE (author-declared 2026-07-15, third sitting): branch + tag the last
    beta before the 2nd-order crossing — first-order/Peirce-defined territory complete,
    looking over, not going.** Model: branch `release/moses`, tag `v2.0.0-beta.1` (pyproject
    bump to `2.0.0b1`; the old `v1.0.0` tag is the 2025 pre-immutable era). CI/CD adopted +
