@@ -594,3 +594,80 @@ always will.
    designated active by record), with the designation convention to be
    fixed? Or keep the one-scroll discipline (abandonment always = whole-ERA,
    presence of the old M always via DAG/quotation)?
+
+### 9.9 Presence and pruning: the memory economy (the author's third follow-up, same sitting)
+
+The author's question: a dusty M has utility mostly *in the environs of model
+revision*, and as the UoD matures — revision rarer, habits settled — that
+utility fades; the old M remains in the DAG in any event. So how is the EGI
+**pruned by ERA** — not merely tidied by the minimal in-view set — and how
+does that eventually meet **resource budgeting** and the **outsourcing of
+memories for recall by external calls**?
+
+**Two economies, firmly distinct.** THE_MINIMAL_IN_VIEW_SET governs
+*attention* (what is in view; folding changes no ink). Pruning governs
+*presence* (what stands in the EGI at all; a real, recorded move). They
+coordinate as a graded ladder in which each rung is cheaper to hold and
+every rung is recoverable:
+
+| rung | what it is | mechanism | recovery |
+|---|---|---|---|
+| **in view** | attended | the in-view set's rules (fold, DOI, chapters) | unfold |
+| **active** | present, read | the designated residence; `m_view` | — |
+| **dusty** | present, unread | §9.8's standing vacuous structure | enter the room |
+| **pruned** | absent from the sheet; DAG only | **ERA of the whole structure at depth 0 (licensed)**, disposition recorded | quotation of a DAG address (`uod_id@state_id`), or re-supply |
+| **offloaded** | DAG segment moved to cold/external storage | tiering (below) | resolver fetch by address — the external call |
+
+**Pruning is epistemically free; only recall latency is spent.** ERA never
+denies the utterance; the DAG keeps the withdrawn world; §2b's inventory
+theorem is untouched (pruning *removes* sheet content, never adds). So the
+pruning policy is purely an economy of presence — safe to automate under a
+budget, because nothing knowable is lost, only the cost of getting it back
+changes (immediate entry → DAG walk → external fetch).
+
+**The clock should be habituation itself, and it is already measured.** The
+author's "less and less frequently with model maturation" is an observable
+the system computes: `agon_metalearning`'s settlement/stability/poise
+metrics say when a territory has stopped being revised. So the natural
+pruning triggers, in order of principle:
+
+1. **settlement-keyed** — a dusty room is pruned after the successor M has
+   *withstood* (no `challenge_to_M` touching that territory for k rounds;
+   settled@k is already a computed quantity);
+2. **disuse TTL** — the `UsageLedger` idiom at room granularity ("use" of a
+   dusty room = entry / consultation / quotation-resolution; rooms nobody
+   revisits age out) — the same habit-economy that already bounds |M| at
+   atom level, one granularity up;
+3. **budget caps** — the `live_runner` idiom (`max_m_relations`,
+   `frontier_cap`): a sheet-size bound, oldest-dust-first when exceeded,
+   drops *counted, never silent*.
+
+Each firing is an explicit chain step — the same licensed ERA, with the
+**disposition recorded** (`pruned:settled` / `pruned:disuse` /
+`pruned:budget`), extending §9.7's rule that surprise and entropy are one
+move distinguished by their recorded reasons.
+
+**The real storage weight is the DAG, and pruning the sheet does not touch
+it.** Chain states persist whole (`history/states/<id>.egi.json`); the
+archive grows monotonically — that is its job. The budget question there is
+**tiering**, and the seams exist: `live_runner` already segments,
+checkpoints, and drops in-RAM chains (carrying only M forward); state
+addresses (`uod_id@state_id`) are location-transparent; the MCP verifier's
+content-addressed ids make cold segments dedupe- and offload-friendly. The
+"outsourcing" rung is then additive: cold DAG segments move to external
+storage, and **recall is an external call through the existing resolver
+seam** — a remote `QuotationResolver` (kind-dispatched, exactly like
+`UoDQuotationResolver`) fetches by address. Warrant note: recalling one's
+*own* archived state is attested provenance (the chain vouches), not a
+low-warrant import — the import floor applies to foreign content, not to
+memory.
+
+**What is genuinely the author's here (folds into D5's environs):**
+
+6. **D6 — pruning policy.** Which triggers, in which regimes? A live loop
+   needs automatic pruning (settlement-keyed + budget-capped, dispositions
+   recorded); a scholarly/corpus UoD arguably prunes only by deliberate act
+   (the author's ERA, never a daemon's). And the tiering order (when a DAG
+   segment goes cold) is an operations knob (runs/OPERATIONS) rather than
+   doctrine — but the *recall-is-a-licensed-quotation* principle is
+   doctrine, and worth ruling with D1–D5.

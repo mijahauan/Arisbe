@@ -352,6 +352,14 @@ genuinely temporal axis (the **rate** of succession: which transitions get dwell
 stay honest) is ruled separately in [`RATE_AND_INTELLIGIBILITY.md`](RATE_AND_INTELLIGIBILITY.md), with its
 own pre-registered hypotheses (2026-07-03).*
 
+*And this whole document governs **attention** — what is in view — never **presence** — what stands in
+the EGI at all. Folding a dusty structure out of view changes no ink; pruning it is a real move (a
+licensed ERA, recorded, the DAG remembering). The presence-economy — when a dusty M is pruned from the
+sheet, how the record's own storage is budgeted and tiered, and how erased content is recalled by
+address — is ruled separately in M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §9.9 (2026-07-16). The two
+economies coordinate: fold precedes dust, dust precedes prune, prune precedes offload — each step
+cheaper to hold, each recoverable.*
+
 ## 10. The validation methodology — the diagram↔narration correspondence check
 
 The rules in §9 are *hypotheses about how people think*. They must be testable, or they are decoration. The
