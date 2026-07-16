@@ -161,6 +161,11 @@ prior state. That is philosophically right (foundations-style belief
 revision), and it answers the author's earlier question ("leave the first M
 behind in the DAG?") in the strongest form: the calculus *forces* that shape.
 
+> *But see §9 (proposed 2026-07-16): housing the model's elements in cells at
+> even depth inverts this asymmetry to the fallibilist pole — retraction one
+> licensed ERA, admission one licensed INS — while the standing structure
+> still asserts nothing.*
+
 ## 5. Presence is play: the three tenses
 
 The author proposed keeping the old M in view — rewrite the fixed M beside it,
@@ -345,3 +350,150 @@ mention straining to happen inside a first-order notation.
    the author affirmed B with **both nominees** — the door opens exemplar-first,
    B-min → B-full; see CROSSING_DECISION_BRIEFS. The third tense gets its
    machinery.)*
+
+## 9. The second relocation: agreed content at even depth (PROPOSED 2026-07-16 — awaiting the author's verdicts)
+
+> **Status: PROPOSED.** The author raised this before taking up B-full
+> (2026-07-16, sixth sitting); this section is the design memo to be ruled
+> on. Nothing below is built.
+
+### 9.1 The prompting observation
+
+The discipline of §§3–4 rightly evicted M from depth 0. But it housed M at
+**level 1 — the area where anything at all may be inserted**. The license
+that made enlargement free (INS in a negative context) also made supposition
+*cheap*: the standing record cannot distinguish an earned admission from an
+arbitrary one by its drawn place. And the asymmetry of §4 — acquiring free,
+shedding heavy — is **backwards for a fallibilist M**. On Peirce's own
+account it is the *surprise* that dissolves a habit: when the black swan
+arrives, the record should let the refuted fact die in one licensed move.
+Instead, relinquishment costs the whole ERA·DC+·INS world-withdrawal, while
+supposing more costs nothing.
+
+The author's re-framing: a model — its facts, individuals, and relations —
+is not a supposition heap. It is what the players have **agreed functions as
+true in that context**. The proposal: the model's elements should reside,
+*after* INS into a negative context, **in a positive context deeper than the
+INS level** — even depth, where erasure is licensed, so that M-revision is
+easy exactly when a new fact or realization forces it.
+
+Behind the specific proposal stands a longer suspicion the author has now
+named: a successful representation of *thought* needs much greater
+contextual depth than one working level. The depth-0 discipline was the
+prerequisite, not the destination — once nothing contingent stands exposed
+at the world's level, the deeper levels are free to carry **epistemic
+register**, not merely negation-count: depth 0 the world's own level (valid
+by construction) · level 1 the challengeable membrane · level 2 the agreed ·
+the dotted oval the mentioned (present without force, §5's third tense).
+This is recognizably the territory Peirce reached for with the tinctures —
+provinces of the sheet — but here it falls out of polarity and license, with
+no new primitive.
+
+### 9.2 The trap in the bare form
+
+A positive context above the INS level, with nothing conditioning it, is a
+**double cut**: `~[ ~[ M ] ]` ≡ M — the standing structure would *assert M
+at depth 0*, precisely what the discipline forbids (§5 already proved this
+blade: "a double cut around old-M still binds"). The obvious repair — a real
+antecedent, `~[ C ~[ M ] ]`, "given the agreement C, M holds" — trades one
+violation for another: now a **contingent conditional** stands asserted at
+the world's level, and valid-by-construction is lost again. The current
+scroll keeps its consequent *empty* for exactly this reason: `~[ M ~[ ] ]`
+is vacuously true, so the standing record asserts nothing.
+
+### 9.3 The realizable form: cells beside the hold
+
+Keep the empty hold — it is what buys vacuity — and house the model's
+elements in **cut-wrapped cells at level 2, siblings of the hold**:
+
+```
+~[   ~[ facts · individuals · laws … ]   ~[ facts … ]   ~[ ]   ]
+      └─ a cell: level 2, POSITIVE        └─ another     └─ the hold
+```
+
+The outer negation is vacuously true so long as one empty cut stands among
+its contents, so the standing structure asserts nothing — the same standing
+status as today ("correspondence, not truth" untouched). And the licenses
+now read:
+
+| act | move | area | license | soundness |
+|---|---|---|---|---|
+| **enlarge M** | INS of a *closed cell* `~[ f … ]` | level 1 (odd, negative) | ✓ INS | sound (insertion in a negative area) |
+| **retract a fact / law** | ERA of the element(s) *inside* a cell | level 2 (even, positive) | ✓ ERA | sound (erasure in a positive area, Dau's theorem) |
+| **empty a cell wholesale** | ERA of all its contents | level 2 | ✓ ERA | sound; the emptied husk remains |
+| **remove a cell's husk** | — (a cut at odd depth) | level 1 | ✗ not ERA-licensed | world-withdrawal only (§4's triple) |
+
+Both acts of M-change become **single rule-licensed moves** — which neither
+the current regime (retraction = the triple) nor the bare `~[ C ~[ M ] ]`
+form (enlargement unlicensed) achieves. This is the author's proposal
+precisiated, not an alternative to it: INS happens at the negative level;
+the inserted ink *lands* at the positive level inside its own cut.
+
+Notable corollaries:
+
+- **The swan collapses to one move.** Relinquishing the over-general law is
+  a single ERA of the law's subgraph inside its cell; the DAG keeps the
+  prior state; ERA never denies the utterance (§5 tense 2 unchanged).
+- **Scar tissue is honest.** An emptied cell's husk cannot be erased at odd
+  depth, so it stands as a *visible* record that something was agreed here
+  and withdrawn — audit-legible, and structurally indistinguishable from
+  the hold (both are empty cuts in W), which is tolerable because any empty
+  cut keeps the vacuity.
+- **Laws keep their Horn shape.** A law's cut-structure inside a cell
+  re-roots through `m_view` exactly as today (cell contents → the view's
+  sheet; the law reads as a sheet-level cut to the materializer).
+
+### 9.4 The register reading
+
+Even depth is the Verifier's territory in the endoporeutic evaluation:
+content there is *defended* — it functions as true under the enclosing
+condition. "Agreed to function as true in that context" is what even
+polarity *means* dialogically, so the drawn place follows the epistemic
+register: level 1 was the right home for M-as-**supposition**; the cells are
+the right home for M-as-**in-context agreement**. That is a genuine register
+upgrade — admission stays deliberate (an INS recorded with its warrant, the
+Agon's disposition), retraction becomes immediate (the fallibilist pole) —
+and it amends the gloss of §§3–4, not their mechanics: everything contingent
+still lives within a cut; depth 0 still carries only what the calculus
+delivers; the standing structure still asserts nothing.
+
+The episode-form is untouched: the arena scroll `~[ M ~[ G ] ]` of an EPG
+episode is *different ink* — the tested conditional of a play, built and
+peeled per episode — and must not be conflated with the residence structure.
+Residence ≠ episode; the peel reads M through `m_view` regardless of where
+it resides.
+
+### 9.5 What adoption would touch (sweep #2)
+
+`m_view` is the one shared read primitive, so the oracle, materializer,
+theory query, and render-M follow a **single change** (union of cell
+interiors, re-rooted). Beyond it: `world_scroll` recognition (W holds only
+cuts; **at least one** empty — empty cells are scars indistinguishable from
+the hold, so the hold loses uniqueness), `wrap_m`/`enlarge_m` (cell-wrapped
+INS), `m_steps` (ADMIT_TO_M = INS-of-cell, derivation `["INS"]` unchanged in
+kind; REVISE_M's relinquishment becomes a **single ERA** — the triple
+retires to the rare husk-removal case), the standing polarity gate rewritten
+to the new inventory, the 11 M-bearing corpus UoDs migrated with their
+flip-trajectories re-derived, and the four loop docs' two-regimes notes
+updated. The §8.1 live-loop half would migrate **straight to cells** rather
+than to level-1 first — this proposal reshapes that open order rather than
+adding to it.
+
+### 9.6 The author's verdicts
+
+1. **D1 — the register shift.** Adopt M-as-in-context-agreement (cells at
+   even depth) as an amendment to the discipline's gloss, recorded as a
+   corollary of Departure II? (§§3–4 stand; §4's asymmetry table gains the
+   third column above.)
+2. **D2 — cell granularity.** One cell per admission (each cell = one
+   admitted batch; emptied cells = visible scars; the audit reads the
+   history off the synchronic drawing) vs. one consolidated cell (tidier
+   picture, history only in the DAG)?
+3. **D3 — the hold's story.** Accept that empty cells and the hold are
+   structurally indistinguishable (any empty cut keeps vacuity; "the
+   committal area" story retold as "the committal *register*, of which the
+   hold is the first cell")? Or must the hold stay unique (then recognition
+   needs a marked hold — against the no-special-notation principle of §7b)?
+4. **D4 — ordering.** Take this sweep before B-full (it is first-order,
+   touches the corpus, and B-full's exemplars would otherwise be built on a
+   residence about to move)? And fold the §8.1 live-loop migration into it?

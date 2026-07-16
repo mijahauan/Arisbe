@@ -1,6 +1,27 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+-2. **THE SECOND RELOCATION OF M — PROPOSED, AWAITING THE AUTHOR'S VERDICTS
+   (2026-07-16, sixth sitting; gates B-full per its own D4).** The author's
+   re-framing: a model's facts/individuals/relations are not a supposition heap
+   but what the players have *agreed functions as true in that context* — so
+   they should reside at EVEN depth (a positive context deeper than the INS
+   level), where retraction is a licensed ERA (the fallibilist pole), instead of
+   level 1 where anything may be inserted and relinquishment costs the
+   world-withdrawal triple. Design memo = **M_RESIDENCE §9**: the bare form's
+   trap (double cut asserts; real antecedent asserts a contingent conditional),
+   the realizable form = **cells beside the hold** `~[ ~[M…] ~[M…] ~[ ] ]`
+   (BOTH acts single licensed moves — enlarge = INS of a closed cell at odd
+   depth, retract = ERA inside a cell at even depth; vacuity kept by any empty
+   cut; emptied husks = honest scars; laws keep their Horn shape through
+   m_view; swan relinquishment collapses to ONE ERA), the register reading
+   (even depth = the Verifier's committal territory; depth as epistemic
+   register — the author's "greater contextual depth" territory), sweep-#2
+   impact (m_view single change point; recognition "at least one empty cut";
+   m_steps REVISE_M → single ERA; gate rewrite; 11 UoDs migrate; §8.1's
+   live-loop half folds in, migrating straight to cells). **Verdicts D1–D4**
+   (register shift / cell granularity / the hold's story / ordering vs B-full)
+   at §9.6.
 -1. **THE CROSSING IS ON (verdicts taken 2026-07-16 — CROSSING_DECISION_BRIEFS).** The
    author affirmed **A1–A4** (predicative floor ratified as doctrine; stratified formation /
    K3-partial evaluation; **conservativity over the Dau core = the standing crossing
