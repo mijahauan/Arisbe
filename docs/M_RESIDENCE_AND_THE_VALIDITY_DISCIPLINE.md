@@ -161,7 +161,7 @@ prior state. That is philosophically right (foundations-style belief
 revision), and it answers the author's earlier question ("leave the first M
 behind in the DAG?") in the strongest form: the calculus *forces* that shape.
 
-> *But see §9 (proposed 2026-07-16): housing the model's elements in cells at
+> *But see §9 (ratified 2026-07-16): housing the model's elements in cells at
 > even depth inverts this asymmetry to the fallibilist pole — retraction one
 > licensed ERA, admission one licensed INS — while the standing structure
 > still asserts nothing.*
@@ -353,9 +353,10 @@ mention straining to happen inside a first-order notation.
 
 ## 9. The second relocation: agreed content at even depth (PROPOSED 2026-07-16 — awaiting the author's verdicts)
 
-> **Status: PROPOSED.** The author raised this before taking up B-full
-> (2026-07-16, sixth sitting); this section is the design memo to be ruled
-> on. Nothing below is built.
+> **Status: RATIFIED (the author, 2026-07-16, same sitting — all six
+> verdicts as recommended; see §9.10). The relocation sweep is directed and
+> ordered before B-full. Nothing is built yet; CURRENT_PLAN carries the
+> build order.**
 
 ### 9.1 The prompting observation
 
@@ -671,3 +672,31 @@ memory.
    segment goes cold) is an operations knob (runs/OPERATIONS) rather than
    doctrine — but the *recall-is-a-licensed-quotation* principle is
    doctrine, and worth ruling with D1–D5.
+
+### 9.10 The verdicts (the author, 2026-07-16 — all six as recommended)
+
+1. **D1 — ADOPTED.** M-as-in-context-agreement: the model's elements reside
+   in cells at even depth beside the hold; recorded as a corollary of
+   Departure II. §§3–4's mechanics stand; their gloss amends (§9.4); §5
+   gains the re-gloss of §9.7 and the fourth tense-flavor **faded**.
+2. **D2 — PER-ADMISSION CELLS.** Each admitted batch its own erasable cell;
+   emptied husks stand as visible scars — the synchronic drawing carries its
+   own audit (the honest-picture principle applied to revision).
+3. **D3 — INDISTINGUISHABILITY ACCEPTED.** Empty cells and the hold are one
+   kind: the committal *register*, of which the hold is the first cell. No
+   marked hold (per §7b's no-special-notation principle).
+4. **D4 — THIS SWEEP BEFORE B-FULL.** The relocation (sweep #2) precedes the
+   B-full core opening; §8.1's live-loop half folds in, the loops migrating
+   straight to cells.
+5. **D5 — THE DUSTY ROOM ADMITTED, designation by record.** Abandoned Ms may
+   remain standing (vacuous, globally forceless, enterable); the designated
+   active residence is named by the chain's record (the last supply /
+   admission), never by special notation. The rivals pattern of §5 tense 1,
+   made resident.
+6. **D6 — PRUNING POLICY SPLIT.** Live loops prune automatically
+   (settlement-keyed via the metalearning signal, then disuse TTL, then
+   budget caps — every firing a licensed ERA with its disposition recorded:
+   `pruned:settled` / `pruned:disuse` / `pruned:budget`); scholarly/corpus
+   UoDs prune only by deliberate act. DAG tiering is an operations knob;
+   **recall-is-a-licensed-quotation** (one's own archive = attested
+   provenance, not low-warrant import) is doctrine.

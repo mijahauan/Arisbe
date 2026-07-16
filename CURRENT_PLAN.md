@@ -1,8 +1,14 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
--2. **THE SECOND RELOCATION OF M — PROPOSED, AWAITING THE AUTHOR'S VERDICTS
-   (2026-07-16, sixth sitting; gates B-full per its own D4).** The author's
+-2. **THE SECOND RELOCATION OF M — VERDICTS TAKEN (2026-07-16, all six as
+   recommended; M_RESIDENCE §9.10): D1 cells ADOPTED · D2 per-admission ·
+   D3 hold-indistinguishability accepted · D4 THIS SWEEP BEFORE B-FULL
+   (§8.1's live-loop half folds in, straight to cells) · D5 dusty rooms
+   admitted (designation by record) · D6 pruning split (live loops
+   automatic: settlement/TTL/budget, dispositions recorded; scholarly
+   deliberate; recall-is-a-licensed-quotation = doctrine). NEXT BUILD =
+   sweep #2.** Original proposal note follows. The author's
    re-framing: a model's facts/individuals/relations are not a supposition heap
    but what the players have *agreed functions as true in that context* — so
    they should reside at EVEN depth (a positive context deeper than the INS
