@@ -537,3 +537,60 @@ If D1 is adopted, §5's tense-3 paragraph should carry this re-gloss, and a
 fourth tense-flavor should be named beside *withdrawn-remembered*:
 **faded** — absence reached by disuse rather than refutation, same drawn
 result, different recorded disposition.
+
+### 9.8 The dusty room: abandonment without erasure (the author's second follow-up, same sitting)
+
+The author corrected §9.7's over-reach: a whole abandoned M is **not in force
+globally** — "were we to enter that 'dusty room' again, and reason with
+what's there, then yes." The correction stands. §5's blade cuts against the
+plain **double cut** (`~[~[M_old]]` — assertive); a whole abandoned M left
+standing in its **vacuous standing form** asserts nothing, is consulted by
+nothing, and its content functions as true only *within its own context* —
+the endoporeutic reading exactly. §9.7's "standing ink binds" holds only
+*inside the active residence* (the room the oracle reads), where a
+superseded law does keep firing until erased.
+
+**The presence-ladder for a whole M** (the author's hinge: *in the DAG only,
+or still present in the UoD?*):
+
+1. **active** — the designated residence; `m_view` reads it; its laws fire;
+2. **dusty** — standing in the current UoD, vacuous, globally forceless,
+   *enterable*: viewing an old M needs no quotation, because the ink is
+   there; it falls out of sight through habitual disuse (nothing consults
+   it) while remaining recoverable by walking in;
+3. **erased** — the whole structure ERA'd at depth 0 (licensed; the
+   withdraw half of §4's triple, without the resupply obligation); DAG
+   only — memory, not presence;
+4. **quoted** — recalled from absence into present discourse as an object
+   (`UoDQuotationResolver` already addresses `uod_id@state_id` — a DAG
+   state; the swan's mark resolves through the withdrawal step's record —
+   "we still can use quotes to recover what we decide to erase").
+
+**Quotation's irreducible remainder** narrows once more, to two acts:
+recall of the *erased*, and **discourse-about** — the dusty room stands
+mute about its own retirement (no special notation, honestly so);
+`(superseded ⌜M⌝ reason)` is the only way today's ink can assert *that* a
+habit was retired and *why*. Viewing never needed the quote; asserting-about
+always will.
+
+**Two consequences for the verdicts:**
+
+- **Granularity — the proposals compose.** Dust works at whole-structure
+  granularity because vacuity is structural; a single law inside the
+  *active* M cannot go dusty in place (it fires until erased). So the cells
+  (§9.3) make within-M revision one licensed move, and the dusty room makes
+  whole-M abandonment free — don't even erase; just stop reading it.
+- **Designation.** Recognition currently demands exactly one sheet scroll;
+  rivals and dusty rooms need "*the* designated residence" answered without
+  special notation — plausibly **by record** (the chain's last
+  supply/admission names the room the practice reads), which is where this
+  meets §5's tense-1 rivals pattern (several Ms standing, the ledger
+  ranking; a dusty room is a rival nobody plays). Readers that scan raw ink
+  (the modal lens's "scribed somewhere") will see dusty relations — a
+  lens-semantics note to carry honestly: *scribed ≠ in force*.
+
+5. **D5 — the dusty room.** Admit abandonment-without-erasure as a
+   recognized standing state (several vacuous structures on the sheet, one
+   designated active by record), with the designation convention to be
+   fixed? Or keep the one-scroll discipline (abandonment always = whole-ERA,
+   presence of the old M always via DAG/quotation)?
