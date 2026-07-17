@@ -125,9 +125,13 @@ def test_overview_collapses_expands_and_restores(page, app_url):
         '.overview-badge[data-overview-cut="' + cut + '"]', "els => els.length")
     assert still == 0, f"expanded cut {cut} should no longer be a placeholder"
 
-    # Collapse all → back to the exact top-level overview.
+    # Collapse all → back to the exact top-level overview. Poll rather than
+    # fixed-sleep: a slow CI runner can take >1.5s to re-render the badges
+    # (observed 2026-07-17: count read 0 mid-render).
     page.click("#ov-reset")
-    time.sleep(1.5)
+    page.wait_for_function(
+        "n => document.querySelectorAll('.overview-badge').length === n",
+        arg=initial, timeout=20000)
     assert _badge_count(page) == initial
 
     # Switch back to Drawing → the attested SVG (no badges).

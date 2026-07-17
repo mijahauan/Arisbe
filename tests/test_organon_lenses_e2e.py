@@ -308,7 +308,7 @@ def test_modal_lens_reads_diamond_and_necessity(page, app_url):
     _wait_lens_offered(page, "modal")
 
     page.select_option("#view-lens", "modal")
-    page.wait_for_selector(".ml-cols", timeout=10000)
+    page.wait_for_selector(".ml-cols", timeout=20000)
     nec = page.eval_on_selector(".ml-nec", "el => el.textContent")
     pos = page.eval_on_selector(".ml-pos", "el => el.textContent")
     assert "cold" in nec, f"expected cold under □ Necessary, got: {nec}"
