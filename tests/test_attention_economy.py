@@ -66,3 +66,61 @@ class TestScoring:
             e.observe(1, [(Want(kind="k1", key=(99,)), 2)])
             return [w.key for w in e.choose(7, round_idx=2)]
         assert build() == build()
+
+
+class TestGuards:
+    def test_noisy_tv_kind_decays_below_productive(self):
+        e = _econ()
+        noise = Want(kind="coin", key=("n",))
+        good = Want(kind="hunt", key=("g",))
+        e.register(noise); e.register(good)
+        for r in range(1, 8):
+            e.observe(r, [(noise, 0), (good, 1)])
+        assert e.kind_yield("coin") < e.kind_yield("hunt")
+        assert e.choose(1, round_idx=9)[0].kind == "hunt"
+
+    def test_attempt_decay_sinks_a_barren_want(self):
+        e = _econ(attempt_decay=0.5)
+        barren = Want(kind="k", key=("barren",))
+        fresh = Want(kind="k", key=("fresh",), created_round=99)  # newer — loses ties
+        e.register(barren); e.register(fresh)
+        for r in range(3):           # probe barren 3 times, no yield
+            e.choose(1, round_idx=r)  # barren wins ties at first (older)
+            e.observe(r, [(barren, 0)])
+        assert e.choose(1, round_idx=10)[0].key == ("fresh",)
+
+    def test_register_cap_counts_drops(self):
+        e = _econ(max_wants=2)
+        assert e.register(Want(kind="k", key=(1,)))
+        assert e.register(Want(kind="k", key=(2,)))
+        assert e.register(Want(kind="k", key=(3,))) is False
+        assert e.dropped == 1
+
+    def test_musement_reservation_every_period_when_k_is_1(self):
+        e = _econ(musement_fraction=0.1)
+        e.register(Want(kind="musement", key=("m",), created_round=1))
+        e.register(Want(kind="hunt", key=("h",)))
+        e.observe(1, [(Want(kind="hunt", key=("h",)), 5)])  # hunt far outscores
+        # round 10 is a musement round (period = 1/0.1); round 11 is not
+        assert e.choose(1, round_idx=10)[0].kind == "musement"
+        assert e.choose(1, round_idx=11)[0].kind == "hunt"
+
+    def test_boredom_doubles_musement_and_yield_resets_it(self):
+        e = _econ(musement_fraction=0.1, boredom_rounds=3)
+        w = Want(kind="k", key=("w",))
+        e.register(w)
+        for r in range(3):
+            e.observe(r, [(w, 0)])
+        assert e.effective_musement() == 0.2
+        e.observe(4, [(w, 2)])
+        assert e.effective_musement() == 0.1
+
+    def test_scoring_failure_degrades_to_mechanical_order(self):
+        e = _econ()
+        good = Want(kind="k", key=("good",), created_round=1)
+        bad = Want(kind="k", key=("bad",), created_round=2, cost=1.0)
+        e.register(good); e.register(bad)
+        e._y = None  # sabotage internal state: scoring will raise
+        chosen = e.choose(2, round_idx=3)
+        assert [w.key for w in chosen] == [("good",), ("bad",)]  # mechanical order
+        assert e.fallbacks == 1
