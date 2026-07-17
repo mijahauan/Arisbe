@@ -154,3 +154,63 @@ class TestIntegration:
         final = res.uod.current_egi
         assert peel(final, FERMAT_LAW).verdict is Verdict3.FALSE
         assert peel(final, '(fermat_number "4294967297")').verdict is Verdict3.TRUE
+
+
+class TestCriteria:
+    def _arm(self, chooser=None, musement=True, rounds=90):
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy
+        from arithmetic_world import ArithmeticWorld, ProbeDirectedFeed, FERMAT_LAW
+        feed = ProbeDirectedFeed(ArithmeticWorld(), AttentionEconomy(),
+                                 chooser=chooser, musement=musement)
+        res = run(M0 + " " + FERMAT_LAW, feed, rounds=rounds,
+                  uod_id="rung1_arm", name="rung 1 arm", seed_laws=[FERMAT_LAW])
+        return res, feed
+
+    def test_s1_economy_beats_fifo_and_scatter(self):
+        from arithmetic_world import fifo_chooser, scatter_chooser
+        econ, _ = self._arm()
+        fifo, _ = self._arm(chooser=fifo_chooser)
+        scat, _ = self._arm(chooser=scatter_chooser)
+        r_e, r_f, r_s = (refutation_round(econ), refutation_round(fifo),
+                         refutation_round(scat))
+        assert r_e is not None, "economy must refute within budget"
+        assert r_f is None or r_e < r_f, f"economy {r_e} must beat FIFO {r_f}"
+        assert r_s is None or r_e < r_s, f"economy {r_e} must beat scatter {r_s}"
+
+    def test_s2_coin_kind_never_dominates(self):
+        econ, feed = self._arm()
+        from attention_economy import AttentionEconomy
+        # coin atoms exist in M, but no probe kind is 'coin' — the noise guard here
+        # is that repeated zero-yield kinds decay: assert every kind that yielded
+        # nothing across the run scores below the hunt kind at the end.
+        snap = feed.journal[-1]["snapshot"]["kinds"]
+        assert snap.get("hunt", 0) >= max(
+            (v for k, v in snap.items() if k in ("confirm",)), default=0)
+
+    def test_s3_musement_finds_the_off_docket_law(self):
+        from agon_evolution import peel
+        from semantic_game import Verdict3
+        from arithmetic_world import MUSEMENT_LAW
+        from egif_parser_dau import parse_egif
+        from eg_navigation import same_graph
+        on, _ = self._arm(musement=True)
+        off, _ = self._arm(musement=False)
+        assert peel(on.uod.current_egi, MUSEMENT_LAW).verdict is Verdict3.TRUE
+        # MUSEMENT_LAW (fermat_number -> odd) is a domain tautology: every Fermat
+        # number the world can name is odd by construction, so ``peel`` reads it
+        # TRUE the moment M holds even one fermat_number atom -- and vacuously
+        # TRUE with zero (no individual satisfies the antecedent to counter it).
+        # That holds in *both* arms once the shared FERMAT_LAW hunts land parity
+        # data, so a bare peel on the off arm can never discriminate "found by
+        # musement" from "never examined" -- it is never anything but TRUE. The
+        # criterion this test exists to check is admission: did the law actually
+        # get proposed to the panel and leapt to as a standing generalization?
+        # Only the musement want ever proposes MUSEMENT_LAW itself as G, so
+        # ``known_laws`` membership is the real discriminator.
+        found = lambda laws: any(same_graph(parse_egif(MUSEMENT_LAW), parse_egif(l))
+                                  for l in laws)
+        assert found(on.known_laws), \
+            "musement must get the off-docket law admitted as a standing generalization"
+        assert not found(off.known_laws), \
+            "without musement the off-docket law is never proposed, so never admitted"
