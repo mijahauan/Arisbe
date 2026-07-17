@@ -132,10 +132,17 @@ its own vocabulary, a part of what Arisbe builds — and because the differences
 instructive as the agreements. The design consequences live in
 [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md).)*
 
-- **Pragmatist inquiry (Peirce, *The Fixation of Belief*; Dewey's pattern of inquiry).** The
-  ground, not a neighbor: doubt → inquiry → settled belief is the loop the automated game
-  mechanizes, and Dewey's "indeterminate situation" is the membrane's raw deliverance before
-  it becomes a legible proposal. Stated here only so the newer concordances below are read as
+- **Pragmatist inquiry (Peirce, *The Fixation of Belief*; Dewey's reflex arc and pattern
+  of inquiry).** The ground, not a neighbor: *The Fixation of Belief* (1877) is the engine
+  itself — inquiry driven by the **irritation of doubt** (a state of friction that disrupts
+  action), ending not in abstract truth but in a settled *habit of action* — and doubt →
+  inquiry → settled belief is the loop the automated game mechanizes. Dewey contributes
+  twice: *The Reflex Arc Concept in Psychology* (1896) dismantled the linear
+  stimulus–response picture in favor of a **continuous perception–action loop** — actions
+  dictate what stimuli are received, and the current internal state dictates how they are
+  interpreted — the circuit the directed-engagement design closes; his later
+  "indeterminate situation" (*Logic*, 1938) is the membrane's raw deliverance before it
+  becomes a legible proposal. Stated here so the newer concordances below are read as
   *corroborations of a Peircean design*, not as its sources.
 
 - **Neo-pragmatism (Rorty, *Philosophy and the Mirror of Nature*; *Consequences of
@@ -164,8 +171,13 @@ instructive as the agreements. The design consequences live in
   warrant (in-context competence), the calculus supplies validity, and neither is asked to
   do the other's work.
 
-- **Predictive processing / active inference (Friston; Clark, *Surfing Uncertainty*; Seth).**
-  The closest formal neighbor. The interpretant functioning as a *prediction*, doubt as
+- **Predictive processing / active inference (Helmholtz; Friston; Clark, *Surfing
+  Uncertainty*; Seth).** The closest formal neighbor, with the deepest root: Helmholtz's
+  **unconscious inference** (1860s) — perception as the brain *predicting* what the senses
+  will report and processing only the difference — is the ancestor Friston's free-energy
+  principle (2006–) formalizes: free energy ≈ surprisal ≈ *doubt*, minimized either by
+  updating the model (perceptual inference) or by acting on the world (active inference).
+  The interpretant functioning as a *prediction*, doubt as
   *prediction error*, and model revision as error-minimization is this literature's core loop —
   and Arisbe's resolving membrane (forecast recorded before the outcome; the
   `PredictionLedger`) implements the perception half of it. The Markov blanket and Arisbe's
@@ -178,12 +190,18 @@ instructive as the agreements. The design consequences live in
   neighbor has that Arisbe lacks: the **action arm** (acting on the world to reduce expected
   error), which is Arisbe's named, unbuilt "directed engagement."
 
-- **Cybernetics (Conant & Ashby; W. R. Ashby).** The good-regulator theorem — "every good
-  regulator of a system must be a model of that system" — is the one-line *external*
-  justification for M's existence: anything that is to cope with a world must carry a model
-  of it. And the law of requisite variety explains a design fact Arisbe reached empirically:
-  disuse-decay bounds M's variety to the *engaged* world-slice, because a model's variety
-  need only match the variety of what it actually regulates, not of the archive.
+- **Cybernetics (Wiener; W. R. Ashby; Conant & Ashby).** Wiener (1948) made the feedback
+  loop — error correction — the general mechanism of biological and machine intelligence;
+  Ashby's **Homeostat** (1948; *Design for a Brain*, 1952) was the first *physical*
+  implementation of remodeling driven by environmental friction: when its variables were
+  pushed out of bounds (its doubt), it re-randomized its own internal wiring until a
+  configuration restored equilibrium — **ultrastability**, the mechanical bootstrap. The
+  good-regulator theorem (Conant & Ashby 1970) — "every good regulator of a system must be
+  a model of that system" — is the one-line *external* justification for M's existence:
+  anything that is to cope with a world must carry a model of it. And the law of requisite
+  variety explains a design fact Arisbe reached empirically: disuse-decay bounds M's
+  variety to the *engaged* world-slice, because a model's variety need only match the
+  variety of what it actually regulates, not of the archive.
 
 - **Cellular automata (Conway's Game of Life).** The concordance that shaped the automated
   loop's design directly, and the one whose *differences* are doctrine — the full analysis is
@@ -200,6 +218,20 @@ instructive as the agreements. The design consequences live in
   membrane is the crux. In short: Life is a closed determinism bounded by its edge; the Agon
   loop is an open negotiation bounded by the world. (Whether Life itself is worth encoding as
   a closed CA-in-EG demo is a named backlog item there.)
+
+- **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
+  Schmidhuber; Oudeyer & Kaplan).** The machine-learning face of the same loop. The **TD
+  error** — the delta between expected and experienced — is the doubt-delta exactly, and
+  its fixed point is Peircean: **when the TD error is zero the agent stops learning, which
+  is Peirce's settled belief** (a habit no longer irritated). Schmidhuber's artificial
+  curiosity inverts the drive: reward = **compression progress**, so the agent *seeks out*
+  what it cannot yet predict in order to resolve it — doubt-seeking, not merely
+  doubt-resolving, which is what Arisbe's musement pole and docket of doubts implement in
+  recorded form. The honest differences: RL's learning signal is a scalar folded into
+  weights, where Arisbe's is a *disposition with a recorded mode and derivation*; and the
+  curiosity literature's own hard lesson — target learning *progress*, never raw error,
+  else the noisy TV captures the agent — is adopted as a standing guard in the
+  directed-engagement design.
 
 - **Evolutionary epistemology / falsificationism (Popper; Campbell's blind-variation-and-
   selective-retention; Lakatos's research programmes).** Popper is already cited elsewhere in
@@ -270,8 +302,12 @@ diagrammatic advantages; "only (DMN), (B), (5) new." See [MODALITY_WITHOUT_GAMMA
 Peirce's Graphs* (2002) · Bellucci & Pietarinen, *Two Dogmas of Diagrammatic Reasoning*.
 **Concordances (added 2026-07-17):** Peirce, *The Fixation of Belief* (1877) & *Note on the
 Theory of the Economy of Research* (1879) · Dewey, *Logic: The Theory of Inquiry* (1938) ·
+Dewey, *The Reflex Arc Concept in Psychology* (1896) ·
 Rorty, *Philosophy and the Mirror of Nature* (1979), *Consequences of Pragmatism* (1982) &
 *Contingency, Irony, and Solidarity* (1989); also *Solidarity or Objectivity?* (1985) ·
+Helmholtz, *Treatise on Physiological Optics* (1860s, unconscious inference) ·
+Wiener, *Cybernetics* (1948) · Ashby, *Design for a Brain* (1952, the Homeostat) ·
+Sutton, *Learning to Predict by the Methods of Temporal Differences* (Mach. Learn. 1988) ·
 Friston, *The free-energy principle* (Nat. Rev. Neurosci. 2010) · Clark, *Surfing Uncertainty*
 (2016) · Conant & Ashby, *Every good regulator of a system must be a model of that system*
 (Int. J. Systems Science 1970) · Ashby, *An Introduction to Cybernetics* (1956) · Gardner,

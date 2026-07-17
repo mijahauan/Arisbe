@@ -36,6 +36,24 @@ generate interpretant-as-prediction → interact → experience); **doubt define
 prediction error** (the delta between predicted and experienced next state); and remodeling
 (abduction) triggered exactly when doubt is nonzero.
 
+**Lineage (attribution, recorded 2026-07-17).** The MPA is not a novel architecture but the
+**convergence point of four traditions**, and the doc owes each its credit: **American
+pragmatism** — Peirce's *The Fixation of Belief* (1877) formalized the engine (inquiry
+driven by the *irritation of doubt*, ending in a settled habit of action), and Dewey's
+*The Reflex Arc Concept in Psychology* (1896) dismantled linear stimulus–response in favor
+of the continuous perception–action loop (our actions dictate what stimuli we receive);
+**cybernetics** — Wiener (1948) made feedback the general mechanism, and Ashby's
+**Homeostat** (1948) was the first *physical* implementation of remodeling driven by
+environmental friction (ultrastability: out-of-bounds variables trigger re-randomized
+internal wiring until equilibrium returns — doubt as a voltage); **predictive processing**
+— Helmholtz's *unconscious inference* (1860s) through Friston's free-energy principle
+(2006–): free energy *is* doubt, minimized either by updating the model (perceptual
+inference) or by acting on the world (active inference — the action arm this doc stages);
+**machine learning** — Schmidhuber's artificial curiosity (reward = compression progress,
+the agent *seeking* doubt to resolve it) and temporal-difference learning, whose TD error
+is the doubt-delta exactly (and TD error = 0 is Peirce's settled belief). Full entries in
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
+
 Laid against the codebase, the automaton is about four-fifths built — scattered, under
 other names:
 
@@ -180,6 +198,30 @@ AUTOMATED_ENDOPOREUTIC_GAME §4c as the future edge. This rung has real outward-
 consequences (Arisbe would be *acting* on a shared world) and therefore needs its own
 ethics-and-etiquette design before any build; nothing below rung 2 acts outside Arisbe's
 own polls.
+
+**Rung 1 — AUTHORIZED 2026-07-17 (the arithmetic stage), with pre-registered criteria.**
+The author chose the staging **arithmetic → vault → author-as-oracle** (each field a
+separate cycle; the horizon register deliberately waits for the vault, where illegibility
+genuinely exists) and the architecture **attention socket + world #1**: a world-agnostic
+`AttentionEconomy` + `ProbeDirectedFeed` pair, with a computed-arithmetic world
+(`arithmetic_world.py`) as the first field — deterministic, CI-safe, zero NL, and with a
+real cost model (probing *n* costs what primality testing costs). The headline trajectory:
+**Fermat's 1640 conjecture** (every 2^2^n + 1 is prime) proposed, confirmed at F0–F4,
+**refuted at F5 = 641 × 6 700 417** (Euler 1732) — reachable under budget only if
+attention spends on severity rather than cheap re-confirmation. Criteria registered
+*before* the build, in the run-log discipline:
+
+- **S1 (economy).** Under a fixed probe budget, the economy-ordered arm reaches the
+  Fermat refutation in strictly fewer probes than FIFO and random arms
+  (`run_ablation`, fresh feeds per arm).
+- **S2 (noisy TV).** The planted patternless predicate's probe-kind decays below every
+  productive kind's priority within the run — the noise never captures attention.
+- **S3 (musement).** A planted regularity unreachable from the docket's wants is found
+  with the musement pole on and not found (same budget) with it off.
+- **S4 (determinism).** Identical configurations yield identical trajectories, and the
+  probe journal replays offline — the determinism canary.
+- **S5 (discipline).** Zero protected-module changes; the produced UoD passes the
+  polarity gate; every growth channel bounded with drops counted.
 
 **What rung 1 is *not*:** it is not a new membrane, a new referee, or a change to the
 calculus. The mode contract and the low-warrant floor (the "border guards" of
