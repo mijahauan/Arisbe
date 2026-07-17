@@ -229,6 +229,31 @@ AUTOMATED_ENDOPOREUTIC_GAME §4d) are untouched; only the *conduct* of inquiry �
 methodeutic, explicitly outside the game — gains machinery. Nothing auto-promotes;
 progression, not progress.
 
+**Build record (2026-07-17).** All five pre-registered criteria HELD. **S1 HELD**: under
+identical 90-round budgets (`probe_budget=1`), the economy arm refuted Fermat's conjecture
+at **round 6**; the FIFO arm **never refuted within 90 rounds**; the scatter arm **never
+within 90** either (an extended 300-round probe showed scatter refuting at round 127, FIFO
+still never) — the strict ordering economy < scatter < FIFO holds via the None-branch on the
+two slower arms. **S2 HELD** as pre-registered (snapshot form): final-run kind yields
+hunt ≈ 2.60 vs confirm ≈ 0.019 — the barren kind decayed far below the productive one.
+**S3 HELD, with one honest mechanism repair**: the off-arm's original `peel`-based assertion
+was unsatisfiable by construction (`fermat_number → odd` is a domain tautology — `peel`
+model-checks against M's facts and reads TRUE whether or not the law was ever admitted), so
+"found" is tested instead by **admission into `known_laws`** (a structural `same_graph`
+match) — the law enters M only via the musement pathway; with musement off it never does.
+Verified by the task reviewer as a repair, not a weakening of the criterion. **S4 HELD**:
+identical configs yield identical journals (`replay_choices`), identical disposition
+sequences, and identical refutation rounds; scatter's ordering is golden-pinned to the sha1
+digest (a revert to salted `hash()` fails the golden across processes). **S5 HELD**:
+`git diff --stat` against the pre-build commit shows only two new files touched —
+`src/attention_economy.py` (+167) and `src/arithmetic_world.py` (+247), pure additions, zero
+existing files touched; the persistence test round-trips through `TomosService.
+save_uod_with_chain` with the correspondence check (LINEAR_GRAPHICAL_CORRESPONDENCE §3.3)
+gating the disk write; the full
+suite passed 3691 / skipped 137 / xfailed 1 / failed 0. Modules: `src/attention_economy.py`
+(the socket), `src/arithmetic_world.py` (world #1 + `ProbeDirectedFeed`). Next: the vault as
+world #2 (a separate cycle).
+
 ## 4 · Arisbe itself as a proposition in the wider EPG
 
 The author's proposal: consider Arisbe a proposition in a wider Endoporeutic Game that we

@@ -14,6 +14,18 @@ end-to-end — items 2/4/5 retired as done with their evidence, item 6's four pr
 confirmed green (full suite 3652 passed / 0 failed), item 1 (RUN 12) re-headed to its live
 leg 2, and item -5 written as the ▶ B-full prep. Items -4…0 are the completed record.
 
+**Later this sitting (2026-07-17):** rung-1 arithmetic stage BUILT via subagent-driven
+execution (10 tasks, per-task adversarial review) — `src/attention_economy.py` (the socket)
++ `src/arithmetic_world.py` (world #1), zero existing files touched. All five pre-registered
+criteria disposed HELD: S1 economy refuted Fermat's conjecture at round 6 vs FIFO/scatter
+never within 90 rounds; S2 barren-kind yield ≈0.019 vs productive-kind ≈2.60; S3 held with
+an honest mechanism repair (admission-into-`known_laws`, not the unsatisfiable `peel` form);
+S4 identical journals/trajectories, sha1-pinned ordering; S5 pure additions, full suite 3691
+passed / 137 skipped / 1 xfailed / 0 failed. Full record: `docs/BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md`
+§3 build record. Vault stage (world #2) next, a separate cycle. Also this sitting: RUN 12's
+first resolutions landed 15:23 CDT — 5 resolved, 3 hits / 2 misses, net +1, two
+`challenge_to_M` relinquishments, and a cal-arm re-generalization at cut 75.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was
