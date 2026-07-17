@@ -26,6 +26,18 @@ passed / 137 skipped / 1 xfailed / 0 failed. Full record: `docs/BOOTSTRAP_AND_DI
 first resolutions landed 15:23 CDT — 5 resolved, 3 hits / 2 misses, net +1, two
 `challenge_to_M` relinquishments, and a cal-arm re-generalization at cut 75.
 
+**Closing the sitting (2026-07-17):** the author's three doctrine threads written into the
+record as `docs/THE_MEASURE_OF_KNOWLEDGE.md` — the knowledge definition (author's seed
+quoted) revised into the four-component measure K1–K4 (severity-weighted record ·
+durability · compression [K3 not built, named] · use) with the three guards (never truth ·
+never a target · vector-never-scalar-over-agents); the fractal levels
+(atom→law→M→mechanism→project, one ledger shape across scales); the Rawls/ethics reading
+(reflective equilibrium as doubt-loop; veil-shaped method-gate; record-as-public-reason;
+maximin-flavored docket; honest tensions per FIDELITY Examination III, Fricker as the
+load-bearing bridge); and pedagogy (weight-bearing scaffold = the measure read didactically;
+the EPG as tutorial protocol; the **tutor loop** = the named build candidate). Six author
+decisions open in that doc's §6 — including the "Doubt 4" clarification.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was

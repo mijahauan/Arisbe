@@ -21,7 +21,10 @@
 > **Companions:** [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) (the loop)
 > · [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) (the roles, the
 > membranes, and §4d — the methodeutic surround this doc extends) ·
-> [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the grounding).
+> [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the grounding) ·
+> [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) (2026-07-17: the doctrine
+> read *off* this machinery — knowledge defined and measured, its fractal levels, the
+> ethical and pedagogical corollaries).
 >
 > *Written 2026-07-17. Design only — nothing new is built by this doc; everything cited as
 > built carries its module name. Readings that are the assistant's are flagged as such.*
