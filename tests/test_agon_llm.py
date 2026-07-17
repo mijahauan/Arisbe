@@ -340,8 +340,11 @@ def test_run_forks_the_dag_on_irreducible_disagreement():
     res = run("", graphist, rounds=1, uod_id="llm_branch", name="branch", panel=judge)
     o = res.outcomes[0]
     assert o.disposition == "new_fact" and o.branched == ["definition"]
+    # a genuine fork off the pre-round state: the main REVISE_M and its sibling
+    # share a from_state (the blank seed's DC+ residence step precedes them)
+    main = next(s for s in res.chain.steps if s.rule_name == "REVISE_M")
     froms = [s.from_state_id for s in res.chain.steps]
-    assert froms.count("s0") == 2                            # a genuine fork off the pre-round state
+    assert froms.count(main.from_state_id) == 2
     # The sibling line is LABELED by its disposition, so the history
     # navigation names it (the ⑂ strip / DAG legend), never a bare "branch N".
     sibling = next(s for s in res.chain.steps

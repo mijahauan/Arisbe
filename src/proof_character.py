@@ -76,10 +76,15 @@ CONTENT_PRESERVING = frozenset({"ERA", "IT+", "IT-", "DC+", "DC-"})
 # "corollarial" would be a category error, so it gets its own verdict.
 AMPLIATIVE_RULES = frozenset({
     "REVISE_M", "ADMIT_FACT", "SCRIBE_AXIOM", "SCRIBE_LAW", "FOLD_NUMERAL",
-    # the world-scroll vocabulary (M resident at level 1, world_scroll.py):
-    # enlargement is a genuine INS into the arena, but *choosing* to suppose
-    # more is still ampliative — no inference compelled the enlargement.
-    "ADMIT_TO_M",
+    # the world-scroll vocabulary (M resident in cells at even depth,
+    # world_scroll.py): enlargement is a genuine INS-of-cell and retraction a
+    # genuine ERA-in-cell, but *choosing* which content M carries is still
+    # ampliative — no inference compelled the admission or the retraction
+    # (the licence makes the move sound, not obligatory).
+    "ADMIT_TO_M", "RETRACT_FROM_M",
+    # the live loop's recorded acts (agon_evolution): a disposition injection
+    # or a disuse-decay erasure changes M by a choice/economy, not an inference.
+    "DECAY",
 })
 
 # A recorded observation that changes nothing — the peel's verdict scribed as

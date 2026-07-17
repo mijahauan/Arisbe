@@ -309,6 +309,15 @@ exactly once, **§3.3-attested in Dau and Peirce**. This is the straight
 pass-through the example called for, and it follows from one principle (the
 thread pulled taut through the containment nest) with no special cases.
 
+> **Scope note (2026-07-16, sweep #2).** The thread/tree fast paths place only
+> the line of identity and box the cuts around it, so a cut with an **empty
+> area** — no thread content to anchor it — would box at the origin, atop the
+> thread. The world-scroll residence makes off-thread empty cuts routine (the
+> hold, the scars), so `generate_layout` now takes the hierarchical placement
+> (whose sibling overlap-removal handles content-free cuts) whenever the graph
+> carries an empty cut; the thread/tree paths remain for pure lines of
+> identity, unchanged.
+
 **Variable spacing (cut area ∝ length²).** Peirce ovals are √2-grown to bound
 their contents, so cut area scales with the *square* of the thread length — a
 uniform step wastes it. Each gap is instead sized to only what must fit there:

@@ -65,17 +65,20 @@ Built by [`tools/build_domain_model_exemplars.py`](../tools/build_domain_model_e
 as `kind=domain_model` UoDs. They are a deliberate **closed/open
 contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) turns on.
 
-> **Residence (since 2026-07-15, the corpus polarity sweep).** Every M-bearing
-> exemplar in this catalogue resides at level 1 of a **standing world-scroll**
-> `~[ M ~[ ] ]` — nothing contingent stands at depth 0 (the validity
-> discipline, [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3).
+> **Residence (relocated 2026-07-16, sweep #2 — the second relocation).** Every
+> M-bearing exemplar in this catalogue holds its elements in **cells at even
+> depth** of a standing world-scroll `~[ ~[cell] … ~[ ] ]` — nothing contingent
+> stands at depth 0, and at least one empty cut (the hold / any scars) keeps
+> the standing structure vacuous
+> ([M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9).
 > The boards carry the two-step construction chain that put them there (DC+
-> then INS from the blank sheet — both real rules, replayable); the dialogue
-> exemplars record every M-change as an explicit rule-licensed step
-> (`ADMIT_TO_M` = INS into the arena; `REVISE_M` = the executed ERA·DC+·INS
-> world-withdrawal) and every verdict as a recorded `PEEL` step. The peel
-> reads the antecedent area (`world_scroll.m_view`), so every verdict quoted
-> in this document is unchanged. The standing gate is
+> then INS-of-cell from the blank sheet — both real rules, replayable); the
+> dialogue exemplars record every M-change as an explicit rule-licensed step
+> (`ADMIT_TO_M` = one INS of a closed cell; `RETRACT_FROM_M` = one ERA inside
+> a cell; `REVISE_M` = the challenge composite, ERA + INS in one step — the
+> emptied husk standing as a scar) and every verdict as a recorded `PEEL`
+> step. The peel reads the cells' union (`world_scroll.m_view`), so every
+> verdict quoted in this document is unchanged. The standing gate is
 > `tests/test_corpus_polarity_discipline.py`.
 
 ### `zoo_world` — a closed taxonomy with Horn rules
@@ -210,10 +213,11 @@ by — evidence:
 | M3 | + admit `(insured Cal)` | **TRUE** (settled again, for now) |
 
 Each step is a model-revising `new_fact` disposition — an independent proposal the
-dialogue accepts and admits into the **standing world-scroll** `~[ M ~[ ] ]` (M resides
-at level 1, the scroll's antecedent area, as a supposition — never a depth-0 posit; see
+dialogue accepts and admits into the **standing world-scroll** `~[ ~[cell] … ~[ ] ]`
+(M's elements reside in cells at even depth, the register of in-context agreement —
+never a depth-0 posit; see
 [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
-§3). Admission is a rule-licensed **INS** into that negative area, recorded as an
+§9). Admission is one rule-licensed **INS of a closed cell**, recorded as an
 explicit `ADMIT_TO_M` chain step whose warrant rides on the step, not the ink; each
 verdict in the table is likewise an explicit, forever-recomputable `PEEL` step
 ([src/m_steps.py](../src/m_steps.py)). The exemplar
@@ -246,26 +250,26 @@ new individual arrives with no recorded colour yet G stays TRUE — the *general
 forward-chains (white Dover), where insurance's Cal (no rule in M) flipped the verdict
 FALSE. Deduction over an inductive law vs a bare tally. **The irritation of doubt
 revises M:** the black swan refutes the law; the episode's outcome is *challenge-to-M*
-(2b) — the over-general law is **relinquished by world-withdrawal**: the whole
-supposition-scroll is withdrawn and an amended M supplied (the executed ERA · DC+ · INS
-triple, one explicit `REVISE_M` step — piecemeal erasure inside the antecedent would
-*strengthen* the conditional, which is why un-supposing is all-or-nothing; the DAG keeps
-the withdrawn world) — and the anomaly admitted. M is corrected by abduction — "the only
-logical operation which introduces any new idea."
+(2b) — the over-general law is **relinquished by ONE licensed ERA inside its cell**
+(erasure is sound at even depth — the fallibilist pole; the emptied husk stands as a
+visible scar) and the anomaly admitted as a fresh cell, both in one explicit `REVISE_M`
+composite step; the DAG keeps the pre-challenge world. M is corrected by abduction —
+"the only logical operation which introduces any new idea."
 
 The taxonomy is enacted by [src/model_revision.py](../src/model_revision.py)'s
 `REVISION_TAXONOMY` — the M-revising subset of the disposition taxonomy, each entry
-carrying its mode + structural **kind** (enlargement / relinquishment). In the **corpus**
-the kinds are performed as world-scroll moves recorded by the explicit steps of
-[src/m_steps.py](../src/m_steps.py): enlargement = `ADMIT_TO_M` (a genuine INS into the
-standing scroll's antecedent area — supposing more is free in a negative context);
-relinquishment = `REVISE_M` (world-withdrawal, the executed ERA · DC+ · INS triple). The
-**live loops** (`agon_evolution`, `live_runner`, the membranes) still dispatch the legacy
-sheet-level primitives (`assert_fact`/`add_rule`, `retract_relation`/`retract_atom`/
-`retract_subgraph`) through `revise_with_disposition`, pending the
-M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §8.1 loop migration. The same calculus that draws
-every other graph; the dispositions that *don't* revise M (`redundancy`, `rejection`,
-`open_conjecture`, …) are recorded judgments, not edits.
+carrying its mode + structural **kind** (enlargement / relinquishment). Since sweep #2
+(the second relocation) corpus and live loops alike perform the kinds as licensed cell
+moves recorded by the explicit steps of [src/m_steps.py](../src/m_steps.py):
+enlargement = `ADMIT_TO_M` (one INS of a closed cell); retraction = `RETRACT_FROM_M`
+(one ERA inside a cell — disuse-fading and refutation the same move, split by the
+recorded `flavor`); the challenge = `REVISE_M` (the ERA + INS composite);
+world-withdrawal (the triple) retired to rare full replacement. The **live loops**
+(`agon_evolution`, `live_runner`, the membranes) dispatch through the residence-aware
+`revise_with_disposition` and open every chain with genuine DC+ · INS residence steps
+(the §8.1 migration, discharged). The same calculus that draws every other graph; the
+dispositions that *don't* revise M (`redundancy`, `rejection`, `open_conjecture`, …)
+are recorded judgments, not edits.
 
 ### Reading them in Organon — the **audit lens**
 
@@ -306,7 +310,7 @@ The cross-UoD mention's quoted-half stays an honestly named horizon (an oval can
 inline another universe), and linear notations show the exemplars' **first-order
 projection** with the limit named (no linear sort syntax exists at B-min). All three
 built by [tools/build_quotation_exemplars.py](../tools/build_quotation_exemplars.py);
-each houses its claims at level 1 of a standing world-scroll (nothing contingent at
+each houses its claims in a cell of a standing world-scroll (nothing contingent at
 depth 0) and exports a `quotation_glyph.svg` showing the dotted-oval convention.
 
 - **`swan_third_tense` — the swan's third tense.** `(superseded "M_swan_law"

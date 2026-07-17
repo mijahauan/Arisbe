@@ -163,8 +163,10 @@ def test_deprecation_overturns_bare_value_end_to_end():
     res = runner.run()
     assert res.segments[0].dispositions == {"new_fact": 1}          # bare value admitted
     assert res.segments[1].dispositions.get("retract_fact") == 1    # then relinquished
-    # the referenced value stands; the bare deprecated one is gone
-    assert same_graph(parse_egif(res.final_model_egif),
+    # the referenced value stands; the bare deprecated one is gone (M's content
+    # read through m_view — the carried M is resident in the standing scroll)
+    from world_scroll import m_view
+    assert same_graph(m_view(parse_egif(res.final_model_egif)),
                       parse_egif('(place_of_birth "Q42" "London")'))
 
 
@@ -363,7 +365,8 @@ def test_recentchanges_overturn_bites_because_the_stream_revisits():
                    panel=_wikidata_panel(), clock=lambda: 0.0).run()
     # the bare value was admitted (poll 1), then relinquished when its deprecation arrived
     # with the value still standing (poll 2) — the referenced replacement is what stands
-    assert same_graph(parse_egif(r.final_model_egif),
+    from world_scroll import m_view
+    assert same_graph(m_view(parse_egif(r.final_model_egif)),
                       parse_egif('(place_of_birth "Q42" "London")'))
     by_mech = {p.mechanism: p for p in mechanism_principles(r.episodes)}
     assert by_mech["consensus"].stick_rate == 0.0 and not by_mech["consensus"].durable

@@ -260,7 +260,9 @@ def test_swan_exemplar_walks_the_taxonomy():
     assert {"induction", "abduction"} <= modes
     dispositions = {s.parameters.get("disposition") for s in revising}
     assert {"new_fact", "generalization", "challenge_to_M"} <= dispositions
-    # the relinquishment is a world-withdrawal: the executed ERA·DC+·INS triple
-    withdrawal = next(s for s in revising
-                      if s.parameters.get("disposition") == "challenge_to_M")
-    assert withdrawal.parameters["derivation"] == ["ERA", "DC+", "INS"]
+    # the relinquishment is ONE composite licensed step (sweep #2, cells at
+    # even depth): ERA the law inside its cell, INS the anomaly's fresh cell
+    challenge = next(s for s in revising
+                     if s.parameters.get("disposition") == "challenge_to_M")
+    assert challenge.parameters["derivation"] == ["ERA", "INS"]
+    assert challenge.parameters["act"] == "m_revision"

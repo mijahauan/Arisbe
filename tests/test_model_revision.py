@@ -102,3 +102,75 @@ def test_challenge_to_m_end_to_end_relinquishes_law():
     # the over-general swan law is gone; the precip law still stands
     assert not same_graph(revised, m)
     assert same_graph(assert_fact(retract_subgraph(revised, PRECIP), PRECIP), revised)
+
+
+# --------------------------------------------------------------------------- #
+# Sweep #2: the residence-aware dispatch — when M is resident in the standing #
+# world-scroll, every disposition is enacted by licensed rules (INS-of-cell / #
+# ERA-in-cell) and the recorded variant returns the executed derivation.      #
+# --------------------------------------------------------------------------- #
+
+from eg_navigation import same_graph as _same
+from model_revision import revise_with_disposition_recorded
+from world_scroll import find_world_scroll, m_view, wrap_m
+
+
+def _resident(*egifs):
+    g, _ = wrap_m(_build(*egifs))
+    return g
+
+
+def test_resident_enlargement_is_a_licensed_ins_of_cell():
+    m = _resident('(swan "Ciel")')
+    revised, derivation = revise_with_disposition_recorded(
+        m, "new_fact", fact_egif='(swan "Dover")')
+    assert derivation == ["INS"]
+    scroll = find_world_scroll(revised)
+    assert scroll is not None and len(scroll.cell_ids) == 2
+    assert _same(m_view(revised), parse_egif('(swan "Ciel") (swan "Dover")'))
+
+
+def test_resident_generalization_admits_a_law_cell():
+    m = _resident('(swan "Ciel") (white "Ciel")')
+    revised, derivation = revise_with_disposition_recorded(
+        m, "generalization", rule_egif=SWAN)
+    assert derivation == ["INS"]
+    assert _same(m_view(revised),
+                 parse_egif(f'(swan "Ciel") (white "Ciel") {SWAN}'))
+
+
+def test_resident_retract_fact_is_a_licensed_era():
+    m = _resident('(swan "Ciel") (white "Ciel")')
+    revised, derivation = revise_with_disposition_recorded(
+        m, "retract_fact", relation="white", labels=["Ciel"])
+    assert derivation == ["ERA"]
+    assert _same(m_view(revised), parse_egif('(swan "Ciel")'))
+
+
+def test_resident_challenge_is_era_then_ins():
+    m = _resident(SWAN, '(swan "Ciel") (white "Ciel")')
+    revised, derivation = revise_with_disposition_recorded(
+        m, "challenge_to_M", subgraph_egif=SWAN,
+        fact_egif='(swan "Nox") (black "Nox")')
+    assert derivation == ["ERA", "INS"]
+    assert _same(m_view(revised),
+                 parse_egif('(swan "Ciel") (white "Ciel") (swan "Nox") '
+                            '(black "Nox")'))
+    # the residence stands; the emptied husk is a scar
+    assert find_world_scroll(revised) is not None
+
+
+def test_plain_dispatcher_returns_the_same_graph_resident():
+    m = _resident('(swan "Ciel")')
+    a = revise_with_disposition(m, "new_fact", fact_egif='(swan "Dover")')
+    b, _ = revise_with_disposition_recorded(m, "new_fact",
+                                            fact_egif='(swan "Dover")')
+    assert _same(a, b)
+
+
+def test_sheet_fallback_reports_empty_derivation():
+    m = _build('(swan "Ciel")')          # bare sheet-level M, no scroll
+    revised, derivation = revise_with_disposition_recorded(
+        m, "new_fact", fact_egif='(swan "Dover")')
+    assert derivation == []              # no rule licensed the move — honest
+    assert _same(revised, parse_egif('(swan "Ciel") (swan "Dover")'))

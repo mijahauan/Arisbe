@@ -98,6 +98,10 @@ class EpisodeRecord:
 
 
 def _sheet_relations(egif_graph) -> Set[str]:
+    """M's standing relation names — read through ``m_view`` (identity on a
+    bare sheet-level graph), so a resident M's cells count (sweep #2)."""
+    from world_scroll import m_view
+    egif_graph = m_view(egif_graph)
     return {
         egif_graph.rel[e.id]
         for e in egif_graph.E
@@ -106,8 +110,11 @@ def _sheet_relations(egif_graph) -> Set[str]:
 
 
 def _sheet_atoms(egif_graph) -> Set[Tuple[str, Tuple]]:
-    """Standing (sheet-level) atoms as ``(relation, (labels…))`` — the atom-precise twin of
-    :func:`_sheet_relations` (the atom-level decay rulebook's unit)."""
+    """M's standing atoms as ``(relation, (labels…))`` — the atom-precise twin of
+    :func:`_sheet_relations` (the atom-level decay rulebook's unit), read
+    through ``m_view``."""
+    from world_scroll import m_view
+    egif_graph = m_view(egif_graph)
     return {
         (egif_graph.rel[e.id],
          tuple(egif_graph.get_vertex(v).label for v in egif_graph.nu.get(e.id, ())))

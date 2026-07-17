@@ -1,7 +1,22 @@
 {
   "Cut": [
     {
+      "id": "c_203cffca"
+    },
+    {
+      "id": "c_551eb471"
+    },
+    {
       "id": "c_8496aced"
+    },
+    {
+      "id": "c_879e8120"
+    },
+    {
+      "id": "c_bbf3677d"
+    },
+    {
+      "id": "c_e4d7dad9"
     },
     {
       "id": "cut_442dff16"
@@ -11,6 +26,18 @@
     }
   ],
   "E": [
+    {
+      "id": "e_1a008746"
+    },
+    {
+      "id": "e_6c1ec90c"
+    },
+    {
+      "id": "e_77a501fd"
+    },
+    {
+      "id": "e_85b81615"
+    },
     {
       "id": "e_95c8c09b"
     },
@@ -29,7 +56,22 @@
   ],
   "V": [
     {
+      "id": "v_42f5658c",
+      "is_generic": false,
+      "label": "Dover"
+    },
+    {
+      "id": "v_4bc9a247",
+      "is_generic": true,
+      "label": null
+    },
+    {
       "id": "v_58a080db",
+      "is_generic": false,
+      "label": "Ciel"
+    },
+    {
+      "id": "v_92c6d528",
       "is_generic": false,
       "label": "Ciel"
     },
@@ -46,6 +88,13 @@
   ],
   "alphabet": null,
   "area": {
+    "c_203cffca": [
+      "e_6c1ec90c"
+    ],
+    "c_551eb471": [
+      "e_1a008746",
+      "v_92c6d528"
+    ],
     "c_8496aced": [
       "e_95c8c09b",
       "e_aa31dcab",
@@ -56,8 +105,23 @@
       "v_c60db643",
       "v_ca51b79e"
     ],
+    "c_879e8120": [
+      "c_bbf3677d"
+    ],
+    "c_bbf3677d": [
+      "c_203cffca",
+      "e_85b81615",
+      "v_4bc9a247"
+    ],
+    "c_e4d7dad9": [
+      "e_77a501fd",
+      "v_42f5658c"
+    ],
     "cut_442dff16": [
+      "c_551eb471",
       "c_8496aced",
+      "c_879e8120",
+      "c_e4d7dad9",
       "cut_d389fbee"
     ],
     "cut_d389fbee": [],
@@ -66,6 +130,18 @@
     ]
   },
   "nu": {
+    "e_1a008746": [
+      "v_92c6d528"
+    ],
+    "e_6c1ec90c": [
+      "v_4bc9a247"
+    ],
+    "e_77a501fd": [
+      "v_42f5658c"
+    ],
+    "e_85b81615": [
+      "v_4bc9a247"
+    ],
     "e_95c8c09b": [
       "v_c60db643"
     ],
@@ -83,6 +159,10 @@
     ]
   },
   "rel": {
+    "e_1a008746": "white",
+    "e_6c1ec90c": "white",
+    "e_77a501fd": "swan",
+    "e_85b81615": "swan",
     "e_95c8c09b": "white",
     "e_aa31dcab": "swan",
     "e_ababb77e": "white",

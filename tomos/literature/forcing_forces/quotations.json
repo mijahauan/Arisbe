@@ -1,7 +1,7 @@
 {
   "quotations": [
     {
-      "element_id": "v_dec13547",
+      "element_id": "v_79f26d1c",
       "target": "(one *p)",
       "sort": "proposition",
       "kind": "egif",
@@ -14,7 +14,7 @@
       }
     },
     {
-      "element_id": "v_6d99a4ee",
+      "element_id": "v_56ed3da5",
       "target": "(zero *p)",
       "sort": "proposition",
       "kind": "egif",
@@ -27,7 +27,7 @@
       }
     },
     {
-      "element_id": "v_fcdd69b0",
+      "element_id": "v_71e6a6a6",
       "target": "(two *p)",
       "sort": "proposition",
       "kind": "egif",

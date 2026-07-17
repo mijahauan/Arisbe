@@ -1,30 +1,30 @@
 """**The corpus polarity gate** — the validity discipline held over the real corpus.
 
-M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §2b–§4, as a standing test:
+M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE §2b–§4 + the second relocation (§9,
+ratified 2026-07-16: M's elements in cells at even depth), as a standing test:
 
 * every M-bearing (``category=domain_model``) corpus UoD satisfies the
   **depth-0 inventory theorem** — its sheet area holds nothing but cuts (and,
   at most, isolated vertices): no contingent atom stands uncircumscribed;
-* each resides in a recognized **standing world-scroll** ``~[ M ~[ ] ]``,
-  ligature-closed (so the withdrawal ERA stays available);
+* each resides in the recognized **standing residence**
+  ``~[ ~[cell] … ~[ ] ]`` — W holds ONLY cuts, at least one of them empty
+  (the hold / any scars; vacuity) — ligature-closed at W (so the withdrawal
+  ERA stays available for the rare full replacement);
 * its chain records M-changes as **explicit, rule-licensed steps** — an
-  enlargement carries ``derivation: ["INS"]``, a world-withdrawal carries the
+  enlargement carries ``derivation: ["INS"]`` (a closed cell), a retraction
+  one-or-more executed ``"ERA"``s (inside a cell — the fallibilist pole), the
+  challenge composite its executed ERA/INS list, a world-withdrawal the
   executed ``["ERA", "DC+", "INS"]`` triple;
 * every recorded **PEEL verdict is earned, permanently** — recomputing the peel
   against the step's own state reproduces it;
-* world-scrolled corpus Ms and legacy sheet-level Ms (the live loops) **coexist**
+* resident corpus Ms and bare sheet-level Ms (inline fixtures) **coexist**
   through the same oracle.
 
-The phase-2 ontology wrap landed 2026-07-15 (``tools/build_ontologies.py``):
-all 7 imported T-boxes now reside in the standing world-scroll — five by the
-rule-licensed DC+·INS residence chain, two (``bfo_core``, ``colore_field``) by
-the id-preserving structural adapter because their importers emit cross-sibling
-vertex references no linear EGIF can express (recorded in their annotations).
-The allowlist is EMPTY; it stays here as the named mechanism for any *future*
-deliberate debt. The wrapped-post-hoc chain (``agon_evolution_swan``) is
-exempt from the explicit-step requirement — its steps are honestly flagged
-``residence: "wrapped-post-hoc"`` (the live loop's migration is §8.1's
-separate order) — but its *states* satisfy the polarity like every other.
+Since sweep #2 the live loop (``agon_evolution.run``) emits native
+rule-licensed chains (DC+ · INS residence steps + licensed cell moves), so the
+old ``wrapped-post-hoc`` exemption is retired — ``agon_evolution_swan`` is held
+to the same standard as the hand-built corpus. The allowlist is EMPTY; it
+stays here as the named mechanism for any *future* deliberate debt.
 """
 
 import sys
@@ -87,7 +87,9 @@ def test_no_contingent_atom_stands_at_depth_zero(tomos, uod_id):
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
 def test_m_resides_in_a_standing_world_scroll(tomos, uod_id):
-    """Every state carries the recognized shape ~[ M ~[ ] ], ligature-closed."""
+    """Every state carries the recognized residence ``~[ ~[cell] … ~[ ] ]``
+    (the §9.3 inventory: W holds only cuts, at least one empty),
+    ligature-closed at W."""
     uod = tomos.load_uod(uod_id, attest=False)
     chain, states = _chain_states(tomos, uod_id)
     for egi in [uod.current_egi] + states:
@@ -95,15 +97,27 @@ def test_m_resides_in_a_standing_world_scroll(tomos, uod_id):
             continue    # the blank sheet — the inventory theorem's "nothing"
                         # case (a construction chain legitimately starts here)
         scroll = find_world_scroll(egi)
-        assert scroll is not None, f"{uod_id}: no standing world-scroll"
+        assert scroll is not None, f"{uod_id}: no standing residence"
+        # The §9.3 inventory, asserted explicitly beside the recognition:
+        w = scroll.cut_id
+        assert not nav.child_edges(egi, w) and not nav.child_vertices(egi, w), (
+            f"{uod_id}: content stands at level 1 (the retired shape) — M's "
+            f"elements belong in cells at even depth")
+        assert scroll.hold_ids, (
+            f"{uod_id}: no empty cut in W — the outer negation would bind")
         assert is_ligature_closed(egi, scroll), (
-            f"{uod_id}: a line of identity crosses the world-scroll boundary — "
+            f"{uod_id}: a line of identity crosses the residence boundary — "
             f"the withdrawal ERA would be refused")
 
 
 # --------------------------------------------------------------------------- #
 # 2 · explicit steps for M-modification                                        #
 # --------------------------------------------------------------------------- #
+
+M_ACTS = ("m_enlargement", "m_retraction", "m_revision", "world_withdrawal")
+M_RULES = ("REVISE_M", "REVISE_M(sibling)", "ADMIT_TO_M", "RETRACT_FROM_M",
+           "DECAY")
+
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
 def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
@@ -112,34 +126,44 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
         pytest.skip("static board with no chain")
     for step in chain.steps:
         p = step.parameters or {}
-        if p.get("residence") == "wrapped-post-hoc":
-            continue        # the honest adapter (agon_evolution_swan); see module doc
         if p.get("act") == "m_enlargement":
             assert p.get("derivation") == ["INS"], (
                 f"{uod_id}/{step.step_id}: enlargement without its INS derivation")
+        if p.get("act") == "m_retraction":
+            d = p.get("derivation")
+            assert d and set(d) == {"ERA"}, (
+                f"{uod_id}/{step.step_id}: retraction without its executed "
+                f"licensed ERA(s) — got {d!r}")
+        if p.get("act") == "m_revision":
+            d = p.get("derivation")
+            assert d and set(d) <= {"ERA", "INS"}, (
+                f"{uod_id}/{step.step_id}: challenge composite without its "
+                f"executed ERA/INS list — got {d!r}")
         if p.get("act") == "world_withdrawal":
             assert p.get("derivation") == ["ERA", "DC+", "INS"], (
                 f"{uod_id}/{step.step_id}: withdrawal without the executed triple")
-        if step.rule_name in ("REVISE_M", "ADMIT_TO_M") \
-                and p.get("act") not in ("m_enlargement", "world_withdrawal"):
+        if step.rule_name in M_RULES and p.get("act") not in M_ACTS:
             pytest.fail(f"{uod_id}/{step.step_id}: an M-change with no act record")
 
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
 def test_declared_audit_proposals_have_recorded_peel_steps(tomos, uod_id):
     """A UoD that declares a standing audit-proposal records its verdicts as
-    explicit PEEL steps (the wrapped-post-hoc chain exempt, flagged)."""
+    explicit PEEL steps — or, for a chain the live loop emitted natively, as
+    per-round audited ``standing_verdict``s the audit lens recomputes (the
+    loop's steps carry ``proposal``; its standing audit is per-round, not a
+    separate step). Either way the verdict is *in the record*."""
     anns = tomos.load_annotations(uod_id) or []
     declares = any("audit-proposal" in (a.get("tags") or []) for a in anns)
     chain, _ = _chain_states(tomos, uod_id)
     if not declares or chain is None:
         pytest.skip("no declared audit-proposal / no chain")
-    if any((s.parameters or {}).get("residence") == "wrapped-post-hoc"
-           for s in chain.steps):
-        pytest.skip("wrapped-post-hoc chain (the live loop's own migration is "
-                    "the §8.1 order, taken separately)")
     peels = [s for s in chain.steps if (s.parameters or {}).get("act") == "peel"]
-    assert peels, f"{uod_id} declares an audit-proposal but records no PEEL step"
+    loop_rounds = [s for s in chain.steps
+                   if (s.parameters or {}).get("proposal")]
+    assert peels or loop_rounds, (
+        f"{uod_id} declares an audit-proposal but records neither PEEL steps "
+        f"nor loop-round proposals")
 
 
 # --------------------------------------------------------------------------- #

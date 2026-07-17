@@ -116,14 +116,15 @@ def _uod(uod_id: str, name: str, description: str, egif: str,
     the *import*, not merely to a reparse of its text."""
     pc = ProofChain.from_blank()
     pc.apply("DC+", into=lambda g: g.sheet,
-             note="Open the standing world-scroll: an empty double cut asserts "
-                  "nothing, and until it exists there is nowhere to suppose an "
+             note="Open the standing residence: an empty double cut asserts "
+                  "nothing, and until it exists there is nowhere to hold an "
                   "imported theory that is not an assertion.")
-    pc.apply("INS", insert=egif,
+    pc.apply("INS", insert=f"~[ {egif.strip()} ]",
              into=lambda g: nav.child_cuts(g, g.sheet)[0],
-             note="Suppose the imported theory into the negative arena — "
-                  "insertion is sound there, and the supposition is fenced: "
-                  "nothing contingent stands at depth 0.")
+             note="Supply the imported theory as one closed cell — insertion "
+                  "is sound in the negative arena, and the content lands at "
+                  "even depth (in-context agreement), where retraction is a "
+                  "licensed ERA: nothing contingent stands at depth 0.")
     _check_residence(pc.current, m if m is not None else parse_egif(egif))
     uod = UniverseOfDiscourse(metadata=_meta(uod_id, name, description, created),
                               current_egi=pc.current)

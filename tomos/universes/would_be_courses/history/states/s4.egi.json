@@ -1,87 +1,99 @@
 {
   "Cut": [
     {
-      "id": "cut_146ffe97"
+      "id": "c_120a7417"
     },
     {
-      "id": "cut_4119fd1e"
+      "id": "c_405bff45"
+    },
+    {
+      "id": "cut_794cfa14"
+    },
+    {
+      "id": "cut_dac4dd23"
     }
   ],
   "E": [
     {
-      "id": "e_540b4472"
+      "id": "e_55c257ff"
     },
     {
-      "id": "e_a2429b07"
+      "id": "e_80f993a0"
     },
     {
-      "id": "e_d9dd4c90"
+      "id": "e_c100c1f3"
     },
     {
-      "id": "e_e5879dd7"
+      "id": "e_d30fc41d"
     }
   ],
   "V": [
     {
-      "id": "v_368aaa58",
+      "id": "v_07f45d44",
       "is_generic": false,
       "label": "Otto"
     },
     {
-      "id": "v_86971575",
+      "id": "v_41aac7ad",
+      "is_generic": false,
+      "label": "Clara"
+    },
+    {
+      "id": "v_65a49c55",
+      "is_generic": false,
+      "label": "Clara"
+    },
+    {
+      "id": "v_8e2effe0",
       "is_generic": false,
       "label": "Otto"
-    },
-    {
-      "id": "v_c3876189",
-      "is_generic": false,
-      "label": "Clara"
-    },
-    {
-      "id": "v_ef4c3013",
-      "is_generic": false,
-      "label": "Clara"
     }
   ],
   "alphabet": null,
   "area": {
-    "cut_146ffe97": [
-      "cut_4119fd1e",
-      "e_540b4472",
-      "e_a2429b07",
-      "e_d9dd4c90",
-      "e_e5879dd7",
-      "v_368aaa58",
-      "v_86971575",
-      "v_c3876189",
-      "v_ef4c3013"
+    "c_120a7417": [
+      "e_55c257ff",
+      "e_80f993a0",
+      "v_07f45d44",
+      "v_65a49c55"
     ],
-    "cut_4119fd1e": [],
-    "sheet_405dd7a1": [
-      "cut_146ffe97"
+    "c_405bff45": [
+      "e_c100c1f3",
+      "e_d30fc41d",
+      "v_41aac7ad",
+      "v_8e2effe0"
+    ],
+    "cut_794cfa14": [],
+    "cut_dac4dd23": [
+      "c_120a7417",
+      "c_405bff45",
+      "cut_794cfa14"
+    ],
+    "sheet_013c6ba4": [
+      "cut_dac4dd23"
     ]
   },
   "nu": {
-    "e_540b4472": [
-      "v_ef4c3013"
+    "e_55c257ff": [
+      "v_65a49c55"
     ],
-    "e_a2429b07": [
-      "v_368aaa58"
+    "e_80f993a0": [
+      "v_07f45d44"
     ],
-    "e_d9dd4c90": [
-      "v_c3876189"
+    "e_c100c1f3": [
+      "v_41aac7ad"
     ],
-    "e_e5879dd7": [
-      "v_86971575",
-      "v_ef4c3013"
+    "e_d30fc41d": [
+      "v_8e2effe0",
+      "v_41aac7ad"
     ]
   },
   "rel": {
-    "e_540b4472": "married_woman",
-    "e_a2429b07": "fails_in_business",
-    "e_d9dd4c90": "commits_suicide",
-    "e_e5879dd7": "husband"
+    "e_55c257ff": "commits_suicide",
+    "e_80f993a0": "fails_in_business",
+    "e_c100c1f3": "married_woman",
+    "e_d30fc41d": "husband"
   },
   "rho": {},
-  "sheet": "sheet_405dd7a1"
+  "sheet": "sheet_013c6ba4"
 }

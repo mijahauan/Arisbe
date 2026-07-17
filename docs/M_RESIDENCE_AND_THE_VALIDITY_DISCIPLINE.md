@@ -327,10 +327,17 @@ mention straining to happen inside a first-order notation.
 > (`src/m_steps.py`: ADMIT_TO_M = INS into the arena; REVISE_M = the executed
 > ERA·DC+·INS world-withdrawal of §4) and every verdict a recorded PEEL step
 > whose parameters recompute identically (`tests/test_corpus_polarity_discipline.py`,
-> the standing gate). The **live loops** (`agon_evolution.run`, `live_runner`,
-> the membranes) still run the old regime — `agon_evolution_swan` is wrapped
-> post hoc with `earned: false` flags — so the *full* §8.1 order below (retire
-> `assert_into`/`assert_fact` in the loops) remains open.
+> the standing gate).
+>
+> **Status update (2026-07-16, sweep #2): the live-loop half is DISCHARGED —
+> folded into the second relocation per verdict D4 (§9.10), the loops
+> migrating straight to cells.** `agon_evolution.run` opens every chain with
+> genuine DC+ · INS residence steps; `revise_with_disposition` dispatches to
+> the licensed cell moves when M is resident (sheet-level fallback retained
+> for bare fixtures); decay is the licensed ERA with its `pruned:disuse`
+> flavor recorded; `live_runner` reads/decays/reseeds through the residence;
+> `agon_evolution_swan` is a native chain (the post-hoc adapter deleted).
+> §1 below is fully taken.
 
 1. **Adopt the discipline for canonical regimes?** M relocates to level 1 of
    a standing world-scroll; the oracle/peel reads the antecedent area (verdict
@@ -353,10 +360,29 @@ mention straining to happen inside a first-order notation.
 
 ## 9. The second relocation: agreed content at even depth (PROPOSED 2026-07-16 — awaiting the author's verdicts)
 
-> **Status: RATIFIED (the author, 2026-07-16, same sitting — all six
-> verdicts as recommended; see §9.10). The relocation sweep is directed and
-> ordered before B-full. Nothing is built yet; CURRENT_PLAN carries the
-> build order.**
+> **Status: BUILT (sweep #2, 2026-07-16 — the same day the verdicts were
+> taken; see §9.10).** The relocation is total: `world_scroll.py` recognizes
+> and constructs the cells shape (`~[ ~[cell] … ~[ ] ]`; recognition = W
+> holds only cuts, at least one empty; `m_view` = the union of the cells'
+> interiors, ids preserved), `retract_from_m` is the licensed single-ERA
+> retraction, `m_steps` gained `RETRACT_FROM_M` (`retract_step`, with the
+> D6 `flavor` field — `pruned:disuse` = the *faded* tense) and the
+> `challenge_step` composite (ONE recorded `REVISE_M`: ERA + INS — the swan
+> relinquishment collapsed to one move, preserving the exemplar's state
+> numbering), the world-withdrawal triple retired to the rare
+> full-replacement case, **the §8.1 live-loop half folded in** (verdict D4:
+> `agon_evolution.run` opens with genuine DC+ · INS residence steps and
+> every disposition/decay lands as a licensed cell move with its executed
+> derivation recorded; `revise_with_disposition` is residence-aware;
+> `live_runner` counts/decays/reseeds through the residence;
+> `agon_evolution_swan` is a native chain, the post-hoc adapter deleted),
+> all 18 M-bearing corpus UoDs rebuilt in the new shape, and the polarity
+> gate rewritten to the §9.3 inventory with `m_retraction ⇒ ERA(s)` and
+> `m_revision ⇒ the executed ERA/INS list`. **Deferred, named:** D5's dusty
+> rooms (multiple standing residences + designation-by-record) and D6's
+> room-granularity pruning triggers (settlement-keyed / TTL / budget) —
+> no dusty rooms exist yet to designate or prune; the recorded pruning
+> disposition is in place.
 
 ### 9.1 The prompting observation
 

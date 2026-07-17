@@ -39,7 +39,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import revision_episode as ep
 from annotations import SCOPE_CHAIN, SCOPE_STEP, SCOPE_UOD, annotations_to_list, make_annotation
 from egif_parser_dau import parse_egif
-from m_steps import peel_step, revise_step
+from m_steps import peel_step, retract_step
 from model_revision import DISPOSITION_CHALLENGE_M, DISPOSITION_NEW_FACT
 from proof_authoring import ProofChain
 from world_scroll import enlarge_m, wrap_m
@@ -59,11 +59,9 @@ M3 = (f'(swan "Ciel") (white "Ciel") (swan "Dover") (white "Dover") {LAW} {DISJO
 
 PROPOSAL = '~[ (swan *x) ~[ (white x) ] ]'             # the audited claim: all swans white
 
-# The two ways out, as whole worlds (a world-withdrawal names the whole
-# supposition it resupplies — you cannot un-suppose piecemeal at odd depth):
-FACTS = '(swan "Ciel") (white "Ciel") (swan "Dover") (white "Dover")'
-M4_RELINQUISH = f'{FACTS} {DISJOINT} {OBSERVATION}'          # law out, anomaly in
-M4_REJECT = f'{FACTS} {LAW} {DISJOINT} (swan "Nox")'         # law kept, report denied
+# The two ways out. Under the cells residence (M_RESIDENCE §9) each is ONE
+# licensed ERA inside a cell — the fallibilist pole: relinquish the law, or
+# deny one atom of the report — no whole-world withdrawal needed.
 
 
 def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
@@ -112,20 +110,20 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
     fork_state = pc.current_state_id                   # the state the choice is made AT
 
     # ---- beat 3+4a · the main line: relinquish the law ----------------------
-    # A world-withdrawal (the executed ERA·DC+·INS triple): under the polarity
-    # shift the law cannot be erased piecemeal from the antecedent (unsound at
-    # odd depth) — the whole supposition is withdrawn and the amended one
-    # supplied. The DAG keeps the withdrawn world.
+    # ONE licensed ERA of the law inside its cell (M_RESIDENCE §9: erasure is
+    # sound at even depth — the fallibilist pole; the observation was already
+    # admitted at beat 1, so nothing else moves). The emptied place stands and
+    # the DAG keeps the pre-choice world.
     alts = ep.alternatives("all swans are white", "Nox is a black swan")
-    revise_step(
-        pc, M4_RELINQUISH,
-        subgraph_egif=LAW, fact_egif=OBSERVATION,
+    retract_step(
+        pc,
+        subgraph_egif=LAW,
         disposition=DISPOSITION_CHALLENGE_M, mode="abduction",
         reason="the contradiction exhibited in beat 2",
         note=("Beats 3–4 — FORK, then DISPOSE (this branch). Two ways out were "
-              "open; this one ADMITS the observation and RELINQUISHES the law — "
-              "by withdrawing the whole world (ERA·DC+·INS) and supplying the "
-              "amended one. Ampliative: the exhibited absurdity does not *compel* "
+              "open; this one keeps the observation and RELINQUISHES the law — "
+              "one licensed ERA inside its cell (erasure is sound at even "
+              "depth). Ampliative: the exhibited absurdity does not *compel* "
               "this — it compels only that something give. Choosing which is "
               "abduction."),
         branch="relinquish-the-law")
@@ -135,19 +133,21 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
 
     # ---- beat 4b · the sibling: reject the report ---------------------------
     # The road not taken, kept navigable. A scientist's notebook keeps both.
-    # Also a world-withdrawal: the old retract_atom would be piecemeal erasure
-    # at odd depth — unsound under the polarity shift.
+    # Also one licensed ERA — deny the single atom (black Nox); the shared
+    # line of identity (Nox himself, still a swan) survives the erasure.
     pc.at(fork_state)
-    revise_step(
-        pc, M4_REJECT,
-        subgraph_egif='(black "Nox")',
+    retract_step(
+        pc,
+        relation="black", labels=["Nox"],
         disposition="rejection", mode="convention",
         reason="the report is denied — a mis-sighting, a mislabelled bird",
         note=("Beat 4 (the ROAD NOT TAKEN) — keep the law, reject the report. The "
               "other way to restore consistency: deny that Nox is black (a "
-              "mis-sighting, a mislabelled bird). Cheap now; the cost falls due later "
-              "if the report was true. Recorded as a sibling so the choice stays "
-              "visible — the DAG is where 'having two alternatives in mind' lives."),
+              "mis-sighting, a mislabelled bird) — one licensed ERA of that atom; "
+              "Nox himself, still a swan, survives on his line of identity. Cheap "
+              "now; the cost falls due later if the report was true. Recorded as a "
+              "sibling so the choice stays visible — the DAG is where 'having two "
+              "alternatives in mind' lives."),
         branch="reject-the-report")
     pc.to_chain().steps[-1].parameters.update(
         {"beat": ep.DISPOSE, "alternative": alts[1].key, "not_taken": True})
@@ -169,11 +169,12 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
             "forces only that SOMETHING give, and choosing which is abduction. "
             "Entertaining is enclosure: the exhibit runs on an iterated working copy "
             "of M, and what is derived inside cannot be exported by deduction — which "
-            "is exactly why a model revision is not a proof. M resides at level 1 "
-            "of a standing world-scroll (nothing contingent at depth 0): the "
-            "proposal enters by a rule-licensed INS into the arena, and each "
-            "disposition is a world-withdrawal (the executed ERA·DC+·INS triple — "
-            "the DAG keeps the withdrawn world). proof_character reads "
+            "is exactly why a model revision is not a proof. M's elements reside in "
+            "cells at even depth of a standing world-scroll (nothing contingent at "
+            "depth 0; the second relocation): the proposal enters by a rule-licensed "
+            "INS of a closed cell, and each disposition is ONE licensed ERA inside a "
+            "cell — relinquish the law, or deny the report's atom — the fallibilist "
+            "pole, with the DAG keeping the road not taken. proof_character reads "
             "this chain as AMPLIATIVE around a deductive core."
         ),
         category=UoDCategory.DOMAIN_MODEL,

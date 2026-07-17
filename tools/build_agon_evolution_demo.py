@@ -13,16 +13,14 @@ The result is saved with an ``audit-proposal`` annotation so Organon's **audit
 lens** pre-fills the standing proposal and draws the verdict ribbon over the
 automated trajectory.
 
-**Residence note (the polarity shift, wrapped post hoc).** The live loop
-(``agon_evolution.run``) still builds M at sheet level — its migration to the
-world-scroll is the M-residence memo's §8.1 order, taken separately. To keep the
-*corpus* free of contingent depth-0 content, every chain state is re-housed in a
-standing world-scroll AFTER the run (``world_scroll.wrap_state`` — structural,
-id-preserving), and every step is flagged ``earned: false`` /
-``residence: "wrapped-post-hoc"``: the ink now satisfies the discipline, and the
-record says honestly that the wrap was an adapter, not a rule-licensed
-construction. The peel reads the antecedent area either way, so verdicts are
-unchanged.
+**Residence note (sweep #2 — the chain is native).** Since the second
+relocation (M_RESIDENCE §9, ratified 2026-07-16) the live loop itself plays
+over M resident in the standing world-scroll: the chain opens with genuine
+DC+ · INS residence steps (the seed supplied as one closed cell), every
+disposition lands as a licensed INS-of-cell / ERA-in-cell with its executed
+derivation recorded, and no post-hoc adapter is needed — the §8.1 order is
+discharged. The polarity gate holds this chain to the same standard as the
+hand-built corpus.
 """
 
 from pathlib import Path
@@ -95,27 +93,10 @@ def annotations():
     ])
 
 
-def _wrap_post_hoc(res):
-    """Re-house every chain state in a standing world-scroll (structural,
-    id-preserving) and flag each step as wrapped-post-hoc — the honest adapter
-    for a chain the legacy loop produced at sheet level."""
-    from world_scroll import find_world_scroll, wrap_state
-
-    for sid, egi in list(res.chain.states.items()):
-        res.chain.states[sid] = wrap_state(egi)[0]
-    for step in res.chain.steps:
-        params = step.parameters if step.parameters is not None else {}
-        params.update({"earned": False, "residence": "wrapped-post-hoc"})
-    res.uod.current_egi = res.chain.states[
-        res.chain.steps[-1].to_state_id if res.chain.steps
-        else res.chain.initial_state_id]
-    res.uod._current_egif = res.uod._current_cgif = res.uod._current_clif = None
-    assert all(find_world_scroll(g) is not None for g in res.chain.states.values())
-    return res
-
-
 def main(argv=None) -> int:
-    res = _wrap_post_hoc(build())
+    from world_scroll import find_world_scroll
+
+    res = build()
     dispositions = [o.disposition for o in res.outcomes]
     modes = [o.mode for o in res.outcomes]
     standing = [o.standing_verdict for o in res.outcomes]
@@ -123,6 +104,11 @@ def main(argv=None) -> int:
         f"the loop did not reproduce the swan trajectory: {dispositions}"
     assert standing == ["true", "true", "true", "false"], \
         f"unexpected audited-proposal trajectory: {standing}"
+    # The chain is NATIVE (sweep #2): rule-licensed from its first move, every
+    # non-blank state resident — no post-hoc adapter, no earned:false flags.
+    assert [s.rule_name for s in res.chain.steps[:2]] == ["DC+", "INS"]
+    assert all(find_world_scroll(g) is not None
+               for sid, g in res.chain.states.items() if sid not in ("s0", "s1"))
 
     tomos_root = Path(__file__).resolve().parent.parent / "tomos"
     service = TomosService(tomos_root)
@@ -130,7 +116,7 @@ def main(argv=None) -> int:
     service.save_annotations(res.uod, annotations())
 
     print(f"Saved '{UOD_ID}' — M developed automatically over {len(res.outcomes)} rounds "
-          f"(states wrapped post hoc into the world-scroll; steps flagged).")
+          f"(native residence chain: DC+ · INS + licensed cell moves).")
     for o in res.outcomes:
         print(f"  round {o.round_idx}: {o.disposition:15} [{o.mode:9}]  "
               f"every swan white → {o.standing_verdict.upper()}")

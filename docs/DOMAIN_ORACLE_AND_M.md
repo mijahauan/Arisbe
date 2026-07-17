@@ -10,16 +10,18 @@ oracle scale steps 4–6 (cache → [horizon](GLOSSARY.md#horizon) → SPARQL) �
 > oracle's ego-graph slice) with a horizon map-symbol — never M in full. "M queried, not held" is itself the
 > extended-mind / long-term-working-memory precedent (cues, not content).
 
-> **Two regimes (standing note, 2026-07-15).** In the attested **corpus**, M now resides at level 1
-> of the standing [world-scroll](GLOSSARY.md#world-scroll) `~[ M ~[ ] ]` — nothing contingent
-> stands at depth 0 — with every M-change an explicit rule-licensed step and every verdict a
+> **One regime (updated 2026-07-16, sweep #2 — the second relocation).** Corpus *and* live
+> loops now hold M's elements in **cells at even depth** of the standing
+> [world-scroll](GLOSSARY.md#world-scroll) `~[ ~[cell] … ~[ ] ]` — nothing contingent stands at
+> depth 0; enlargement is one licensed INS of a closed cell and retraction one licensed ERA
+> inside a cell — with every M-change an explicit rule-licensed step and every verdict a
 > recomputable `PEEL` step (see
-> [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3–§4).
-> The live loops still hold M at sheet level, and the two regimes coexist because every reader in
-> this document — the oracle, materialization, the theory query, render-M — goes through
-> `world_scroll.m_view`, which serves M's own area either way. So where this document says M's
-> "sheet-level" atoms, read *M's own area*: the sheet for a loop-built M, the scroll's antecedent
-> for a corpus M. Verdict semantics are unchanged — the episode was always "given M, then G".
+> [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9).
+> Every reader in this document — the oracle, materialization, the theory query, render-M —
+> goes through `world_scroll.m_view`, which serves M's own content either way (identity for a
+> bare sheet-level fixture). So where this document says M's "sheet-level" atoms, read *M's own
+> content*: the union of the cells' interiors for a resident M, the sheet for a bare fixture.
+> Verdict semantics are unchanged — the episode was always "given M, then G".
 
 > The question this answers: the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.

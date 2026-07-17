@@ -315,13 +315,20 @@ The register gains five corollaries, each in its favor:
    warrant, double-cut removal discharges — classical modus ponens run inside the
    standing supposition, at even depths ≥ 2, so depth 0 stays contingency-free
    **by invariance, not by vigilance**.
-4. **The asymmetry flip, and revision as world-withdrawal.** With the model M
-   resident at level 1 of the standing world-scroll `~[ M ~[ ] ]`, acquiring is
-   free (insertion in a negative context — supposing more) but piecemeal shedding
-   is unsound (erasing from an antecedent strengthens the conditional). Revision
-   is therefore withdrawal of the *whole* supposition-scroll and supply of an
-   amended one — foundations-style belief revision, *forced by the calculus*, with
-   the diachronic record keeping the withdrawn world.
+4. **The asymmetry flip, and revision as world-withdrawal — amended by the
+   second relocation (M-residence memo §9, ratified 2026-07-16).** At level 1
+   of the standing world-scroll `~[ M ~[ ] ]`, acquiring was free (insertion
+   in a negative context — supposing more) but piecemeal shedding unsound
+   (erasing from an antecedent strengthens the conditional), so revision was
+   withdrawal of the *whole* supposition-scroll — foundations-style belief
+   revision, forced by the calculus. Housing M's elements in **cells at even
+   depth beside the hold** (`~[ ~[cell] … ~[ ] ]`) inverts the asymmetry to
+   the **fallibilist pole** while the standing structure still asserts
+   nothing: enlargement = one licensed INS of a closed cell, retraction = one
+   licensed ERA inside a cell (the emptied husk a visible scar), the
+   withdrawal triple retiring to rare full replacement. The register reading:
+   even depth is the Verifier's committal territory — M as *in-context
+   agreement*, no longer a supposition heap.
 5. **Presence is play — the three tenses.** Ink at first order cannot be held
    "without force" (a double cut around a retired law is inert — it still binds).
    What "keep the old M in view" needs splits into: *in force* (the rivals
@@ -340,11 +347,12 @@ assertion-sensitivity as a regimen on *acts*, leaving the Dau-classical core
 untouched; their intuitionistic caution is the same instinct Arisbe places in the
 open-world verdict semantics instead.
 
-Since 2026-07-15 the discipline is **enacted in the attested corpus**: M resides
-in the standing world-scroll, every M-change is an explicit rule-licensed step and
-every verdict a recomputable peel record, guarded by a standing gate
-(`tests/test_corpus_polarity_discipline.py`). The live automated loops still run
-the older sheet-level regime, honestly flagged, pending a separate decision.
+Since 2026-07-15 the discipline is **enacted in the attested corpus**, and since
+2026-07-16 (sweep #2, the second relocation) in the **live automated loops** as
+well: M's elements reside in cells at even depth of the standing world-scroll,
+every M-change is an explicit rule-licensed single move (INS-of-cell /
+ERA-in-cell) and every verdict a recomputable peel record, guarded by a standing
+gate (`tests/test_corpus_polarity_discipline.py`). One regime, corpus and loops.
 
 ---
 

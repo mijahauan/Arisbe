@@ -120,13 +120,14 @@ def _residence(content_egif: str) -> ProofChain:
     negative antecedent area — nothing contingent stands at depth 0."""
     pc = ProofChain.from_blank()
     pc.apply("DC+", into=lambda g: g.sheet,
-             note="Open the standing scroll: an empty double cut asserts "
+             note="Open the standing residence: an empty double cut asserts "
                   "nothing, and until it exists there is nowhere to hold a "
                   "commentary that is not an assertion at the world's level.")
-    pc.apply("INS", insert=content_egif,
+    pc.apply("INS", insert=f"~[ {content_egif.strip()} ]",
              into=lambda g: nav.child_cuts(g, g.sheet)[0],
-             note="Suppose the commentary into the negative arena — insertion "
-                  "is sound there, and the claims are fenced (low warrant).")
+             note="Supply the commentary as one closed cell — insertion is "
+                  "sound in the negative arena, the content lands at even "
+                  "depth, and the claims are fenced (low warrant).")
     return pc
 
 

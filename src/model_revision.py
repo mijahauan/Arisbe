@@ -30,11 +30,12 @@ resulting model. Used by ``tools/build_dialog_model_evolution.py``.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
+from world_scroll import enlarge_m, find_world_scroll, retract_from_m
 
 # --------------------------------------------------------------------------- #
 # The inning-outcome taxonomy, scoped to the dispositions that *revise M*       #
@@ -284,7 +285,15 @@ def revise_with_disposition(
     follows the disposition's taxonomy ``kind``/``content``; the *mode* of inference
     (induction / deduction / abduction / convention) is the taxonomy's to record.
 
-      enlargement (juxtapose a posit onto M's sheet) —
+    **Residence-aware (sweep #2):** when M is resident in the standing
+    world-scroll, every move is a genuine licensed rule — enlargement = INS of
+    a closed cell (``world_scroll.enlarge_m``), retraction = ERA inside a cell
+    (``world_scroll.retract_from_m``), the challenge = their composite. A bare
+    sheet-level M (legacy fixtures, proposals) takes the structural sheet
+    primitives below unchanged. ``revise_with_disposition_recorded`` returns
+    the executed derivation alongside.
+
+      enlargement (a fresh cell when resident; sheet juxtaposition otherwise) —
         * ``new_fact`` (3a, induction), ``abductive_hypothesis`` (3b, abduction),
           ``definition`` (3d, convention), ``theorem_registration`` (1a, deduction)
           — admit ``fact_egif``.
@@ -301,8 +310,72 @@ def revise_with_disposition(
     ``tautology``, …) leave M untouched and are rejected here — they are recorded
     judgments, not model edits.
     """
-    spec = revision_taxonomy(disposition)   # raises for a non-revising disposition
+    return revise_with_disposition_recorded(
+        model, disposition, fact_egif=fact_egif, relation=relation,
+        rule_egif=rule_egif, subgraph_egif=subgraph_egif, labels=labels)[0]
 
+
+def revise_with_disposition_recorded(
+    model: RelationalGraphWithCuts,
+    disposition: str,
+    *,
+    fact_egif: Optional[str] = None,
+    relation: Optional[str] = None,
+    rule_egif: Optional[str] = None,
+    subgraph_egif: Optional[str] = None,
+    labels: Optional[List[Optional[str]]] = None,
+) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """:func:`revise_with_disposition` returning also the **executed licensed
+    derivation** — ``["INS"]`` for an enlargement (a fresh cell), one ``"ERA"``
+    per erasure for a retraction, their concatenation for the challenge
+    composite — when M is resident in the standing world-scroll (sweep #2:
+    every move a genuine Dau rule). For a bare sheet-level M (the legacy
+    fallback regime: inline fixtures, proposals) the structural sheet
+    primitives run unchanged and the derivation is ``[]`` (no rule licensed
+    the move — honest)."""
+    spec = revision_taxonomy(disposition)   # raises for a non-revising disposition
+    scroll = find_world_scroll(model)
+
+    # ------------------------------------------------------------------ #
+    # Resident M (the §9 residence): every move one licensed rule.        #
+    # ------------------------------------------------------------------ #
+    if scroll is not None:
+        if spec["kind"] == "enlargement":
+            if spec["content"] == "rule":
+                payload = rule_egif or subgraph_egif
+                if not payload:
+                    raise ValueError(f"{disposition} disposition requires rule_egif")
+            else:
+                payload = fact_egif
+                if not payload:
+                    raise ValueError(f"{disposition} disposition requires fact_egif")
+            return enlarge_m(model, payload), ["INS"]
+
+        if disposition == DISPOSITION_RETRACT:
+            if not relation:
+                raise ValueError("retract_fact disposition requires relation")
+            return retract_from_m(model, relation=relation, labels=labels)
+
+        if disposition == DISPOSITION_CHALLENGE_M:
+            if not (subgraph_egif or relation or fact_egif):
+                raise ValueError(
+                    "challenge_to_M requires something to relinquish (subgraph_egif / "
+                    "relation) and/or an anomaly to admit (fact_egif)")
+            revised, derivation = model, []
+            if subgraph_egif or relation:
+                revised, derivation = retract_from_m(
+                    revised, subgraph_egif=subgraph_egif, relation=relation,
+                    labels=labels)
+            if fact_egif:
+                revised = enlarge_m(revised, fact_egif)
+                derivation = derivation + ["INS"]
+            return revised, derivation
+
+        raise ValueError(f"disposition {disposition!r} does not revise M")
+
+    # ------------------------------------------------------------------ #
+    # Sheet-level fallback (legacy regime) — the structural primitives.   #
+    # ------------------------------------------------------------------ #
     # Enlargement family — the structural move is juxtaposition; ``content`` says
     # which argument carries it (a rule for laws, a fact/constraint otherwise).
     if spec["kind"] == "enlargement":
@@ -310,18 +383,18 @@ def revise_with_disposition(
             payload = rule_egif or subgraph_egif
             if not payload:
                 raise ValueError(f"{disposition} disposition requires rule_egif")
-            return add_rule(model, payload)
+            return add_rule(model, payload), []
         if not fact_egif:
             raise ValueError(f"{disposition} disposition requires fact_egif")
-        return assert_fact(model, fact_egif)
+        return assert_fact(model, fact_egif), []
 
     # Relinquishment family.
     if disposition == DISPOSITION_RETRACT:
         if not relation:
             raise ValueError("retract_fact disposition requires relation")
         if labels is not None:                       # atom-level: drop just this value
-            return retract_atom(model, relation, labels)
-        return retract_relation(model, relation)     # coarse: drop every fact of the name
+            return retract_atom(model, relation, labels), []
+        return retract_relation(model, relation), [] # coarse: drop every fact of the name
 
     if disposition == DISPOSITION_CHALLENGE_M:
         revised = model
@@ -335,6 +408,6 @@ def revise_with_disposition(
             raise ValueError(
                 "challenge_to_M requires something to relinquish (subgraph_egif / "
                 "relation) and/or an anomaly to admit (fact_egif)")
-        return revised
+        return revised, []
 
     raise ValueError(f"disposition {disposition!r} does not revise M")

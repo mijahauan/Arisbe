@@ -1,147 +1,153 @@
 {
   "Cut": [
     {
-      "id": "c_2ff5439d"
+      "id": "c_3c3dce03"
     },
     {
-      "id": "c_ace88630"
+      "id": "c_56460436"
     },
     {
-      "id": "c_c3a271ba"
+      "id": "c_9dfe18ea"
     },
     {
-      "id": "cut_9ecee68e"
+      "id": "c_ea742410"
     },
     {
-      "id": "cut_e2e62ff2"
+      "id": "cut_034eea3f"
+    },
+    {
+      "id": "cut_1037d778"
     }
   ],
   "E": [
     {
-      "id": "e_6469bf5d"
+      "id": "e_03daba11"
     },
     {
-      "id": "e_845b84f6"
+      "id": "e_a387b33a"
     },
     {
-      "id": "e_89921005"
+      "id": "e_bf4fd3bd"
     },
     {
-      "id": "e_f23f8755"
+      "id": "e_e481f640"
     },
     {
-      "id": "e_fc0c553f"
+      "id": "e_eea8e317"
     }
   ],
   "V": [
     {
-      "id": "v_345987dd",
+      "id": "v_3f6d1901",
       "is_generic": true,
       "label": null
     },
     {
-      "id": "v_4320c5ca",
-      "is_generic": false,
-      "label": "s6"
-    },
-    {
-      "id": "v_6d99a4ee",
+      "id": "v_56ed3da5",
       "is_generic": false,
       "label": "phi-zero"
     },
     {
-      "id": "v_b3454bb0",
+      "id": "v_5e574c53",
       "is_generic": false,
-      "label": "s0"
+      "label": "s6"
     },
     {
-      "id": "v_c3a1704d",
-      "is_generic": true,
-      "label": null
+      "id": "v_71e6a6a6",
+      "is_generic": false,
+      "label": "phi-two"
     },
     {
-      "id": "v_d0c54075",
-      "is_generic": true,
-      "label": null
-    },
-    {
-      "id": "v_dec13547",
+      "id": "v_79f26d1c",
       "is_generic": false,
       "label": "phi-one"
     },
     {
-      "id": "v_fcdd69b0",
+      "id": "v_87ee850e",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e849f2a5",
       "is_generic": false,
-      "label": "phi-two"
+      "label": "s0"
+    },
+    {
+      "id": "v_f1b0c5fa",
+      "is_generic": true,
+      "label": null
     }
   ],
   "alphabet": null,
   "area": {
-    "c_2ff5439d": [
-      "e_845b84f6",
-      "v_345987dd"
+    "c_3c3dce03": [
+      "e_e481f640",
+      "v_87ee850e"
     ],
-    "c_ace88630": [
-      "e_89921005",
-      "v_c3a1704d",
-      "v_fcdd69b0"
+    "c_56460436": [
+      "e_03daba11",
+      "v_71e6a6a6",
+      "v_f1b0c5fa"
     ],
-    "c_c3a271ba": [
-      "e_fc0c553f",
-      "v_d0c54075"
+    "c_9dfe18ea": [
+      "c_3c3dce03",
+      "c_56460436",
+      "c_ea742410",
+      "e_a387b33a",
+      "e_bf4fd3bd",
+      "v_56ed3da5",
+      "v_5e574c53",
+      "v_79f26d1c",
+      "v_e849f2a5"
     ],
-    "cut_9ecee68e": [
-      "c_2ff5439d",
-      "c_ace88630",
-      "c_c3a271ba",
-      "cut_e2e62ff2",
-      "e_6469bf5d",
-      "e_f23f8755",
-      "v_4320c5ca",
-      "v_6d99a4ee",
-      "v_b3454bb0",
-      "v_dec13547"
+    "c_ea742410": [
+      "e_eea8e317",
+      "v_3f6d1901"
     ],
-    "cut_e2e62ff2": [],
-    "sheet_48d1132b": [
-      "cut_9ecee68e"
+    "cut_034eea3f": [],
+    "cut_1037d778": [
+      "c_9dfe18ea",
+      "cut_034eea3f"
+    ],
+    "sheet_ccf5ebff": [
+      "cut_1037d778"
     ]
   },
   "nu": {
-    "e_6469bf5d": [
-      "v_b3454bb0",
-      "v_dec13547"
+    "e_03daba11": [
+      "v_f1b0c5fa",
+      "v_71e6a6a6"
     ],
-    "e_845b84f6": [
-      "v_345987dd"
+    "e_a387b33a": [
+      "v_e849f2a5",
+      "v_79f26d1c"
     ],
-    "e_89921005": [
-      "v_c3a1704d",
-      "v_fcdd69b0"
+    "e_bf4fd3bd": [
+      "v_5e574c53",
+      "v_56ed3da5"
     ],
-    "e_f23f8755": [
-      "v_4320c5ca",
-      "v_6d99a4ee"
+    "e_e481f640": [
+      "v_87ee850e"
     ],
-    "e_fc0c553f": [
-      "v_d0c54075"
+    "e_eea8e317": [
+      "v_3f6d1901"
     ]
   },
   "quotation": {
-    "c_2ff5439d": "v_6d99a4ee",
-    "c_c3a271ba": "v_dec13547"
+    "c_3c3dce03": "v_79f26d1c",
+    "c_ea742410": "v_56ed3da5"
   },
   "rel": {
-    "e_6469bf5d": "forces",
-    "e_845b84f6": "zero",
-    "e_89921005": "forces",
-    "e_f23f8755": "forces",
-    "e_fc0c553f": "one"
+    "e_03daba11": "forces",
+    "e_a387b33a": "forces",
+    "e_bf4fd3bd": "forces",
+    "e_e481f640": "one",
+    "e_eea8e317": "zero"
   },
   "rho": {},
-  "sheet": "sheet_48d1132b",
+  "sheet": "sheet_ccf5ebff",
   "sort": {
-    "v_6d99a4ee": "proposition",
-    "v_dec13547": "proposition"
+    "v_56ed3da5": "proposition",
+    "v_79f26d1c": "proposition"
   }
 }

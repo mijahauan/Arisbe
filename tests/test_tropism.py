@@ -300,7 +300,8 @@ def test_deprecation_on_warm_repoll_meets_its_standing_target():
     assert res.segments[0].dispositions == {"new_fact": 1}          # the habit forms
     assert res.segments[1].dispositions.get("retract_fact") == 1    # …and meets its denial
     assert res.segments[1].dispositions.get("new_fact") == 1
-    assert same_graph(parse_egif(res.final_model_egif),
+    from world_scroll import m_view
+    assert same_graph(m_view(parse_egif(res.final_model_egif)),
                       parse_egif('(place_of_birth "Adam" "London")'))
     assert src.injected == 1 and tropism.emitted == 1
 
@@ -404,6 +405,7 @@ def test_stream_plus_tropism_composition_delivers_the_p2_event():
     assert res.segments[0].dispositions == {"new_fact": 1}          # the habit forms
     assert res.segments[1].dispositions.get("retract_fact") == 1    # …and meets its denial
     assert res.segments[1].dispositions.get("new_fact") == 1
-    assert same_graph(parse_egif(res.final_model_egif),
+    from world_scroll import m_view
+    assert same_graph(m_view(parse_egif(res.final_model_egif)),
                       parse_egif('(place_of_birth "Adam" "London")'))
     assert src.injected == 1 and tropism.emitted == 1

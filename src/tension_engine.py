@@ -98,8 +98,16 @@ class TensionLayoutEngine:
         # strokes + sort badges (annotation only; first-order unchanged).
         from eg_reader import assign_second_order_marks
 
+        # The thread/tree fast paths place only the line of identity and box the
+        # cuts around it (`_box_cuts`) — a cut with an EMPTY area has no thread
+        # content to anchor it and boxes at the origin, atop the thread (the
+        # world-scroll residence makes off-thread empty cuts — the hold, scars —
+        # routine since sweep #2). Those graphs take the hierarchical placement,
+        # whose sibling overlap-removal handles content-free cuts correctly.
+        has_empty_cut = any(not egi.get_area(c.id) for c in egi.Cut)
+
         thread = extract_thread(egi)
-        if thread is not None:
+        if thread is not None and not has_empty_cut:
             try:
                 dto = assign_second_order_marks(
                     egi, self._thread_layout(egi, style, sizes, thread))
@@ -113,7 +121,7 @@ class TensionLayoutEngine:
         # tree pulled taut through the cut nest (docs/TENSION_LAYOUT.md §11).
         # Try the compact (per-edge-length) embedding first; fall back to the
         # slacker uniform-spaced one if a tight junction can't route cleanly.
-        if extract_tree(egi) is not None:
+        if extract_tree(egi) is not None and not has_empty_cut:
             for weighted in (True, False):
                 try:
                     dto = assign_second_order_marks(

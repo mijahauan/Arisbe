@@ -1,14 +1,55 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+-3. **✅ BUILT 2026-07-16 (sixth sitting) — SWEEP #2, THE SECOND RELOCATION OF M
+   (M_RESIDENCE §9, verdicts D1–D6; §9's status note carries the full record).**
+   M's elements now reside in per-admission cells at even depth beside the hold
+   (`~[ ~[cell] … ~[ ] ]`; recognition = W holds only cuts, ≥1 empty; scars =
+   holds, one kind). `world_scroll.py` rebuilt (m_view = union of cell interiors,
+   ids preserved, shells-before-edges across cells for EGIF-shared constants;
+   `retract_from_m` = the licensed single-ERA retraction with a
+   cross-cell-widening guard; the triple retired to rare full replacement);
+   `m_steps` gained `RETRACT_FROM_M` (`retract_step`, D6 `flavor` field) + the
+   `challenge_step` composite (ONE `REVISE_M`: ERA+INS — the swan collapses to
+   one move, S5 pins s4–s7 preserved verbatim); `revise_with_disposition`
+   residence-aware (single-dispatcher migration for agon_evolution + agon_llm +
+   siblings; sheet fallback for bare fixtures, derivation `[]`).
+   **§8.1's live-loop half DISCHARGED per D4**: `agon_evolution.run` opens every
+   chain with genuine DC+ · INS residence steps and stamps act/derivation on every
+   injected step; decay = the licensed ERA, `flavor: "pruned:disuse"` (the *faded*
+   tense); `live_runner` counters/decay/reseed through the residence (the
+   reseed-concat silent-regression fixed to `enlarge_m`); peripherals
+   (agon_metalearning, agon_llm brief/laws, query_docket, tropism) read via
+   `m_view`; `agon_evolution_swan` is a NATIVE chain (post-hoc adapter deleted).
+   All 18 M-bearing corpus UoDs rebuilt in the new shape (old-shape audit clean —
+   the only pattern-matches are `peirce_law` proof intermediates, not residences);
+   the polarity gate rewritten to the §9.3 inventory + the new derivation
+   assertions, no wrapped-post-hoc exemption. **Two layout riders the full suite
+   surfaced (both root-caused, not silenced):** (a) the tension engine's
+   thread/tree fast paths box an *empty* cut at the origin, atop the thread —
+   off-thread empty cuts (hold/scars) are routine under the residence, so
+   `generate_layout` now defers such graphs to the hierarchical placement
+   (TENSION_LAYOUT §10 scope note); (b) small single-atom cells under the
+   peirce-authentic *oval* style left no room for a constant's label
+   (place_label_boxes fell back → §3.3 straddle) — `_refit_oval_cuts` now adds
+   vertical label headroom to cuts directly holding a labelled vertex. Docs
+   swept (M_RESIDENCE §9 → BUILT,
+   the four loop docs' two-regimes notes → one regime, GLOSSARY/CAPABILITY_MAP/
+   EXEMPLARS/FIDELITY §3b/GAME_GUIDE 3a/CLAUDE.md). **Named follow-ups (deferred
+   by scope ruling): D5 dusty rooms** (multiple standing residences +
+   designation-by-record — nothing creates one yet) **and D6 room-granularity
+   pruning** (settlement-keyed / TTL / budget at whole-room grain; the recorded
+   `pruned:*` disposition is in place at atom grain). RUN 12 note: its running
+   process is unaffected; a post-sweep resume re-houses its flat M on the first
+   segment (ledger content-keyed, unharmed).
 -2. **THE SECOND RELOCATION OF M — VERDICTS TAKEN (2026-07-16, all six as
    recommended; M_RESIDENCE §9.10): D1 cells ADOPTED · D2 per-admission ·
    D3 hold-indistinguishability accepted · D4 THIS SWEEP BEFORE B-FULL
    (§8.1's live-loop half folds in, straight to cells) · D5 dusty rooms
    admitted (designation by record) · D6 pruning split (live loops
    automatic: settlement/TTL/budget, dispositions recorded; scholarly
-   deliberate; recall-is-a-licensed-quotation = doctrine). NEXT BUILD =
-   sweep #2.** Original proposal note follows. The author's
+   deliberate; recall-is-a-licensed-quotation = doctrine). ✅ BUILT — see
+   -3 above.** Original proposal note follows. The author's
    re-framing: a model's facts/individuals/relations are not a supposition heap
    but what the players have *agreed functions as true in that context* — so
    they should reside at EVEN depth (a positive context deeper than the INS

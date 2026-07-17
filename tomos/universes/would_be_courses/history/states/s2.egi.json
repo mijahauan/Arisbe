@@ -1,73 +1,85 @@
 {
   "Cut": [
     {
-      "id": "cut_146ffe97"
+      "id": "c_405bff45"
     },
     {
-      "id": "cut_4119fd1e"
+      "id": "c_6774afe8"
+    },
+    {
+      "id": "cut_794cfa14"
+    },
+    {
+      "id": "cut_dac4dd23"
     }
   ],
   "E": [
     {
-      "id": "e_540b4472"
+      "id": "e_c100c1f3"
     },
     {
-      "id": "e_e5879dd7"
+      "id": "e_d30fc41d"
     },
     {
-      "id": "e_ef58638e"
+      "id": "e_fea46b9a"
     }
   ],
   "V": [
     {
-      "id": "v_72919a7c",
+      "id": "v_1165a8d2",
       "is_generic": false,
       "label": "Otto"
     },
     {
-      "id": "v_86971575",
-      "is_generic": false,
-      "label": "Otto"
-    },
-    {
-      "id": "v_ef4c3013",
+      "id": "v_41aac7ad",
       "is_generic": false,
       "label": "Clara"
+    },
+    {
+      "id": "v_8e2effe0",
+      "is_generic": false,
+      "label": "Otto"
     }
   ],
   "alphabet": null,
   "area": {
-    "cut_146ffe97": [
-      "cut_4119fd1e",
-      "e_540b4472",
-      "e_e5879dd7",
-      "e_ef58638e",
-      "v_72919a7c",
-      "v_86971575",
-      "v_ef4c3013"
+    "c_405bff45": [
+      "e_c100c1f3",
+      "e_d30fc41d",
+      "v_41aac7ad",
+      "v_8e2effe0"
     ],
-    "cut_4119fd1e": [],
-    "sheet_405dd7a1": [
-      "cut_146ffe97"
+    "c_6774afe8": [
+      "e_fea46b9a",
+      "v_1165a8d2"
+    ],
+    "cut_794cfa14": [],
+    "cut_dac4dd23": [
+      "c_405bff45",
+      "c_6774afe8",
+      "cut_794cfa14"
+    ],
+    "sheet_013c6ba4": [
+      "cut_dac4dd23"
     ]
   },
   "nu": {
-    "e_540b4472": [
-      "v_ef4c3013"
+    "e_c100c1f3": [
+      "v_41aac7ad"
     ],
-    "e_e5879dd7": [
-      "v_86971575",
-      "v_ef4c3013"
+    "e_d30fc41d": [
+      "v_8e2effe0",
+      "v_41aac7ad"
     ],
-    "e_ef58638e": [
-      "v_72919a7c"
+    "e_fea46b9a": [
+      "v_1165a8d2"
     ]
   },
   "rel": {
-    "e_540b4472": "married_woman",
-    "e_e5879dd7": "husband",
-    "e_ef58638e": "prospers"
+    "e_c100c1f3": "married_woman",
+    "e_d30fc41d": "husband",
+    "e_fea46b9a": "prospers"
   },
   "rho": {},
-  "sheet": "sheet_405dd7a1"
+  "sheet": "sheet_013c6ba4"
 }

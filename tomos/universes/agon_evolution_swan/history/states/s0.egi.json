@@ -1,88 +1,13 @@
 {
-  "Cut": [
-    {
-      "id": "cut_1f2a9a96"
-    },
-    {
-      "id": "cut_56e5f6a5"
-    }
-  ],
-  "E": [
-    {
-      "id": "e_1f7dfc11"
-    },
-    {
-      "id": "e_3c98cce0"
-    },
-    {
-      "id": "e_956225b0"
-    },
-    {
-      "id": "e_b19a1a0c"
-    },
-    {
-      "id": "e_e3a55970"
-    }
-  ],
-  "V": [
-    {
-      "id": "v_66e44d06",
-      "is_generic": false,
-      "label": "Alba"
-    },
-    {
-      "id": "v_bab45c22",
-      "is_generic": false,
-      "label": "Bianca"
-    },
-    {
-      "id": "v_fbb6e4c3",
-      "is_generic": false,
-      "label": "Ciel"
-    }
-  ],
+  "Cut": [],
+  "E": [],
+  "V": [],
   "alphabet": null,
   "area": {
-    "cut_1f2a9a96": [
-      "cut_56e5f6a5",
-      "e_1f7dfc11",
-      "e_3c98cce0",
-      "e_956225b0",
-      "e_b19a1a0c",
-      "e_e3a55970",
-      "v_66e44d06",
-      "v_bab45c22",
-      "v_fbb6e4c3"
-    ],
-    "cut_56e5f6a5": [],
-    "sheet_f11f444f": [
-      "cut_1f2a9a96"
-    ]
+    "sheet_fd58a752": []
   },
-  "nu": {
-    "e_1f7dfc11": [
-      "v_66e44d06"
-    ],
-    "e_3c98cce0": [
-      "v_fbb6e4c3"
-    ],
-    "e_956225b0": [
-      "v_bab45c22"
-    ],
-    "e_b19a1a0c": [
-      "v_66e44d06"
-    ],
-    "e_e3a55970": [
-      "v_bab45c22"
-    ]
-  },
-  "rel": {
-    "e_1f7dfc11": "white",
-    "e_3c98cce0": "swan",
-    "e_956225b0": "swan",
-    "e_b19a1a0c": "swan",
-    "e_e3a55970": "white"
-  },
+  "nu": {},
+  "rel": {},
   "rho": {},
-  "sheet": "sheet_f11f444f"
+  "sheet": "sheet_fd58a752"
 }

@@ -97,7 +97,8 @@ class WarmSetTropism:
         budget = self._k if k is None else k
         if not model_egif or budget <= 0:
             return []
-        egi = parse_egif(model_egif)
+        from world_scroll import m_view
+        egi = m_view(parse_egif(model_egif))   # M's standing facts (sweep #2)
         label_to_id, ambiguous = reverse_labels(self._label_map())
         last = ledger.snapshot() if ledger is not None else {}
 

@@ -200,11 +200,27 @@ class ELKLayoutEngine:
         if not cut_ids:
             return positioned
 
+        # A cut that directly holds a labelled (constant) vertex needs vertical
+        # headroom beyond the content box: the global label pass
+        # (`presentation_ops.place_label_boxes`) may place the name above/below
+        # its dot, and a low, wide ellipse (the small single-atom cells of the
+        # world-scroll residence) is thin at its ends — without the headroom the
+        # label box straddles the inscribed ellipse and §3.3 refuses the pair.
+        labeled_cuts: Set[ElementID] = {
+            egi.get_context(v.id)
+            for v in egi.V
+            if getattr(v, "label", None) and egi.get_context(v.id) in cut_ids
+        }
+        label_headroom = 16.0
+
         contents = self._measure_cut_contents(positioned, cut_ids)
         for _ in range(self.MAX_OVAL_PASSES):
-            overrides = {
-                cid: self._oval_padding(w, h) for cid, (w, h) in contents.items()
-            }
+            overrides = {}
+            for cid, (w, h) in contents.items():
+                ph, pv = self._oval_padding(w, h)
+                if cid in labeled_cuts:
+                    pv += label_headroom
+                overrides[cid] = (ph, pv)
             elk_graph = self._egi_to_elk_graph(
                 egi, style, element_sizes, pad_overrides=overrides
             )

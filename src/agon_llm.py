@@ -248,6 +248,8 @@ class AttentionBrief:
 def _sheet_ground_atoms(
     model: RelationalGraphWithCuts,
 ) -> List[Tuple[str, List[Optional[str]]]]:
+    from world_scroll import m_view
+    model = m_view(model)          # a resident M's standing facts (sweep #2)
     return [
         (model.rel[e.id], [model.get_vertex(v).label for v in model.nu.get(e.id, ())])
         for e in model.E
@@ -256,7 +258,10 @@ def _sheet_ground_atoms(
 
 
 def _model_laws(model: RelationalGraphWithCuts) -> List[Tuple[str, str]]:
-    """(body, head) relation pairs of each sheet-level scroll ``~[ (B *x) ~[ (H x) ] ]``."""
+    """(body, head) relation pairs of each standing scroll ``~[ (B *x) ~[ (H x) ] ]``
+    of M — read through ``m_view``, where a resident law reads sheet-level."""
+    from world_scroll import m_view
+    model = m_view(model)
     laws: List[Tuple[str, str]] = []
     for outer in child_cuts(model, model.sheet):
         inner = child_cuts(model, outer)
@@ -566,7 +571,9 @@ class LLMGrapheus:
 
     # -- brief + payload -------------------------------------------------------
     def _brief(self, ctx: DeliberationContext, vocab: List[str]) -> str:
-        m_egif = generate_egif(ctx.model).strip() or "(the blank sheet)"
+        from world_scroll import m_view
+        # show the LLM M's *content* (through m_view), not the residence chrome
+        m_egif = generate_egif(m_view(ctx.model)).strip() or "(the blank sheet)"
         lines = [
             f"Model M (its sheet as EGIF): {_quarantine(m_egif)}",
             "M speaks these relations (use these EXACT names): "

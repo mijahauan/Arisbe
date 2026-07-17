@@ -1,51 +1,57 @@
 {
   "Cut": [
     {
-      "id": "cut_8b5af944"
+      "id": "c_75757904"
     },
     {
-      "id": "cut_c6551c9b"
+      "id": "cut_159eec87"
+    },
+    {
+      "id": "cut_e14a1d6c"
     }
   ],
   "E": [
     {
-      "id": "e_032ff883"
+      "id": "e_2db9cf42"
     }
   ],
   "V": [
     {
-      "id": "v_022bf60c",
+      "id": "v_bc86459a",
       "is_generic": false,
       "label": "peirce_law"
     },
     {
-      "id": "v_b40607ba",
+      "id": "v_dd5ecff3",
       "is_generic": false,
       "label": "Peirce-1885"
     }
   ],
   "alphabet": null,
   "area": {
-    "cut_8b5af944": [
-      "cut_c6551c9b",
-      "e_032ff883",
-      "v_022bf60c",
-      "v_b40607ba"
+    "c_75757904": [
+      "e_2db9cf42",
+      "v_bc86459a",
+      "v_dd5ecff3"
     ],
-    "cut_c6551c9b": [],
-    "sheet_eda85f2c": [
-      "cut_8b5af944"
+    "cut_159eec87": [
+      "c_75757904",
+      "cut_e14a1d6c"
+    ],
+    "cut_e14a1d6c": [],
+    "sheet_2cccf613": [
+      "cut_159eec87"
     ]
   },
   "nu": {
-    "e_032ff883": [
-      "v_022bf60c",
-      "v_b40607ba"
+    "e_2db9cf42": [
+      "v_bc86459a",
+      "v_dd5ecff3"
     ]
   },
   "rel": {
-    "e_032ff883": "cites"
+    "e_2db9cf42": "cites"
   },
   "rho": {},
-  "sheet": "sheet_eda85f2c"
+  "sheet": "sheet_2cccf613"
 }

@@ -24,18 +24,19 @@ decide), [EXEMPLARS.md](EXEMPLARS.md) §6 (the swan revision walk — *one hand-
 sequence of exactly this loop*), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the
 [warrant](GLOSSARY.md#warrant) floor: attest correspondence, not truth).
 
-> **Two regimes (standing note, 2026-07-15).** The attested **corpus** now holds M at level 1 of
-> the standing world-scroll `~[ M ~[ ] ]`, every M-change an explicit rule-licensed step
-> (`ADMIT_TO_M` = INS into the antecedent; `REVISE_M` = the executed ERA·DC+·INS
-> world-withdrawal) and every verdict a recomputable `PEEL` step — `src/world_scroll.py` +
-> `src/m_steps.py`, gated by `tests/test_corpus_polarity_discipline.py`; see
-> [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3–§4.
-> The **live loop this document designs** (`agon_evolution.run` and everything downstream) still
-> runs the legacy sheet-level regime — `assert_fact` / `retract_*` on M's sheet, e.g. §4's
-> `retract_subgraph` over a sheet-level cut — and this document remains accurate for it; the two
-> regimes coexist because every reader goes through `m_view` (identity for a sheet-level M).
-> Migrating the loops onto the world-scroll forms is that memo's §8.1 open half, an author
-> decision ordered against the crossing decisions.
+> **One regime (updated 2026-07-16, sweep #2 — the second relocation).** The **live loop this
+> document designs** (`agon_evolution.run` and everything downstream) now plays over M resident
+> in **cells at even depth** of the standing world-scroll `~[ ~[cell] … ~[ ] ]`, same as the
+> corpus: the chain opens with genuine DC+ · INS residence steps (the seed as one closed cell),
+> every disposition lands as a licensed INS-of-cell / ERA-in-cell with its executed derivation
+> recorded (`revise_with_disposition` is residence-aware), and disuse-decay is the *same*
+> licensed ERA as refutation, distinguished by the recorded `flavor` (`pruned:disuse` — the
+> *faded* tense). Every reader goes through `m_view` (identity for a bare sheet-level fixture).
+> `src/world_scroll.py` + `src/m_steps.py`, gated by
+> `tests/test_corpus_polarity_discipline.py`; see
+> [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9 —
+> the §8.1 loop migration is discharged. Where this document says "on M's sheet", read *in M's
+> cells*.
 
 ---
 

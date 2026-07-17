@@ -14,9 +14,9 @@
       "element_id": null
     },
     {
-      "id": "ann_778f0d35",
+      "id": "ann_342157ba",
       "scope": "uod",
-      "text": "A domain model revised across the *taxonomy* of inning outcomes \u2014 not one disposition repeated but four distinct ones, each a Peircean mode. 'Every swan is white' is audited against M: induction observes Ciel and leaps to the law; the law then covers a new swan (deduction over an inductive generalization \u2014 G stays TRUE where a bare tally would flip); abduction meets the black swan and withdraws the over-general world. M resides in a standing world-scroll \u2014 nothing contingent at depth 0 \u2014 and every verdict is a recorded PEEL step. The taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md) made operational.",
+      "text": "A domain model revised across the *taxonomy* of inning outcomes \u2014 not one disposition repeated but four distinct ones, each a Peircean mode. 'Every swan is white' is audited against M: induction observes Ciel and leaps to the law; the law then covers a new swan (deduction over an inductive generalization \u2014 G stays TRUE where a bare tally would flip); abduction meets the black swan and relinquishes the over-general law in one licensed move. M's elements reside in cells at even depth of a standing world-scroll \u2014 nothing contingent at depth 0 \u2014 and every verdict is a recorded PEEL step. The taxonomy of game outcomes (docs/ENDOPOREUTIC_GAME_GUIDE.md) made operational.",
       "author": null,
       "created": null,
       "tags": [
@@ -34,9 +34,9 @@
       "element_id": null
     },
     {
-      "id": "ann_7f54f3f8",
+      "id": "ann_cc421aaf",
       "scope": "chain",
-      "text": "Every M-change is an explicit rule-licensed step (src/m_steps.py): ADMIT_TO_M = enlargement, a genuine INS into the world-scroll's negative arena (supposing more is free); REVISE_M = relinquishment as world-withdrawal, the executed ERA\u00b7DC+\u00b7INS triple (piecemeal erasure at odd depth would *strengthen* the conditional \u2014 unsound; the DAG keeps the withdrawn world). Each PEEL step records the verdict actually computed at that state \u2014 the record is re-checkable forever.",
+      "text": "Every M-change is an explicit rule-licensed step (src/m_steps.py): ADMIT_TO_M = enlargement, a genuine INS of a closed cell into the residence (each admitted batch its own cell); REVISE_M = the challenge composite, ONE step executing the licensed ERA of the law inside its cell (erasure is sound at even depth \u2014 retraction is finally one move, the fallibilist pole) + the INS of the anomaly's cell; the emptied husk stands as a visible scar and the DAG keeps the pre-challenge world. Each PEEL step records the verdict actually computed at that state \u2014 the record is re-checkable forever.",
       "author": null,
       "created": null,
       "tags": [

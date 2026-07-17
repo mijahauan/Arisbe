@@ -190,7 +190,7 @@ core move), yielding a three-valued verdict plus a witness or counterexample. Th
 **Sowa**: *"Graphist and Grapheus would take turns **peeling off** negations and mapping subgraphs
 of g to M"* (Sowa 2011, *From Existential Graphs to Conceptual Graphs*). (Not, as far as we can
 verify, Peirce's own word.) In the corpus every recorded verdict is an explicit, forever-recomputable
-`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-revise_m).
+`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-retract_from_m-revise_m).
 
 ### Episode
 **Episode** — one play of the Endoporeutic Game: *given a model M, then a proposition G* (peel →
@@ -235,29 +235,37 @@ registered, a model revised, a hypothesis held).
 assertion.
 
 ### World-scroll
-**World-scroll** — the standing scroll `~[ M ~[ ] ]` in which a domain model M resides in the
-attested corpus. M's content lives at level 1 (the scroll's antecedent, an oddly-enclosed area — a
-*supposition*), and the level-2 hold is empty, so the standing scroll asserts nothing (a conditional
-with a blank consequent is vacuously true). Under the validity discipline nothing contingent stands
-at depth 0 — the sheet is the world's level, carrying only what the calculus itself delivers.
-Enlarging M is a rule-licensed **INS** into the antecedent (supposing more is free in a negative
-area); relinquishing is **world-withdrawal** — ERA the whole scroll, DC+ a fresh one, INS the
-amended M (piecemeal erasure inside an antecedent would strengthen the conditional), the DAG keeping
-the withdrawn world. Recognition is structural, never annotational (`src/world_scroll.py`); every
-reader reaches M's content through `m_view`, which falls back to the sheet for a legacy sheet-level
-M (the live loops). See
-[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §3–§4.
+**World-scroll** — the standing structure in which a domain model M resides: since the second
+relocation (M-residence memo §9, ratified and built 2026-07-16), `~[ ~[cell] … ~[ ] ]` — M's
+elements live in **cut-wrapped cells at level 2** (evenly-enclosed, *positive*: the register of
+in-context agreement), siblings of at least one **empty cut** (the hold, and any scars — one kind),
+whose presence keeps the outer negation vacuously true, so the standing structure asserts nothing.
+Under the validity discipline nothing contingent stands at depth 0 — the sheet is the world's
+level, carrying only what the calculus itself delivers. The change-asymmetry sits at the
+fallibilist pole: **enlarging** M is one licensed **INS of a closed cell** into W (each admitted
+batch its own cell); **retracting** — whether refutation-driven or disuse-fading, distinguished
+only by the recorded disposition — is one licensed **ERA inside a cell** (erasure is sound at even
+depth), the emptied husk standing as a visible scar; **full replacement** (the rare case — a husk
+is a cut at odd depth, not ERA-licensed) remains the world-withdrawal triple ERA · DC+ · INS, the
+DAG keeping the withdrawn world. Recognition is structural, never annotational
+(`src/world_scroll.py`: one sheet cut whose children are all cuts, at least one empty); every
+reader reaches M's content through `m_view` (the union of the cells' interiors; identity for a
+bare sheet-level fixture). See
+[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9.
 
-### The explicit M-steps: PEEL, ADMIT_TO_M, REVISE_M
-**PEEL / ADMIT_TO_M / REVISE_M** — the explicit chain-step vocabulary (`src/m_steps.py`) by which
-the corpus records verdicts and M-modification, each step *earned at record time* (the transform
-runs real Dau rules or a real evaluation; the parameters say what happened, never merely assert it).
-**PEEL** records a peel actually run against the current state — proposal, three-valued verdict,
-witness/counterexample — recomputable forever. **ADMIT_TO_M** is enlargement: a genuine INS into the
-[world-scroll](#world-scroll)'s antecedent area, the warrant riding on the step, not the ink.
-**REVISE_M** is relinquishment as world-withdrawal: one step carrying the executed ERA · DC+ · INS
-triple. Guarded corpus-wide by the standing gate `tests/test_corpus_polarity_discipline.py`, which
-recomputes every recorded verdict.
+### The explicit M-steps: PEEL, ADMIT_TO_M, RETRACT_FROM_M, REVISE_M
+**PEEL / ADMIT_TO_M / RETRACT_FROM_M / REVISE_M** — the explicit chain-step vocabulary
+(`src/m_steps.py`) by which the corpus (and, since sweep #2, the live loops) records verdicts and
+M-modification, each step *earned at record time* (the transform runs real Dau rules or a real
+evaluation; the parameters say what happened, never merely assert it). **PEEL** records a peel
+actually run against the current state — proposal, three-valued verdict, witness/counterexample —
+recomputable forever. **ADMIT_TO_M** is enlargement: a genuine INS of a closed cell into the
+[world-scroll](#world-scroll), the warrant riding on the step, not the ink. **RETRACT_FROM_M** is
+retraction: one licensed ERA inside a cell, its `flavor` field distinguishing surprise from
+entropy (`pruned:disuse` — the *faded* tense-flavor). **REVISE_M** is the challenge composite
+(ONE step: the executed ERA of the impugned law + the INS of the anomaly's cell) or, in its rare
+world-withdrawal form, the executed ERA · DC+ · INS triple. Guarded corpus-wide by the standing
+gate `tests/test_corpus_polarity_discipline.py`, which recomputes every recorded verdict.
 
 ### Scribe
 **Scribe** (verb) — to draw/assert a graph on the sheet (Peirce's term for inscribing a graph).

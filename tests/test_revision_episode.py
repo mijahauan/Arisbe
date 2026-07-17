@@ -131,16 +131,20 @@ def test_the_four_beats_are_recorded_individually(episode):
     exh = acts[1].parameters
     assert exh["absurd"] and exh["derivation"] == ["UI", "IT-", "DC-", "UI", "IT-", "IT-"]
     assert exh["working_copy"] is True
-    # each DISPOSE is a world-withdrawal: the executed ERA·DC+·INS triple
-    assert acts[2].parameters["derivation"] == ["ERA", "DC+", "INS"]
-    assert acts[3].parameters["derivation"] == ["ERA", "DC+", "INS"]
+    # each DISPOSE is ONE licensed ERA inside a cell (sweep #2, the cells
+    # residence: relinquish the law / deny the report's atom — the fallibilist
+    # pole; no whole-world withdrawal needed)
+    assert acts[2].parameters["act"] == "m_retraction"
+    assert acts[2].parameters["derivation"] == ["ERA"]
+    assert acts[3].parameters["act"] == "m_retraction"
+    assert acts[3].parameters["derivation"] == ["ERA"]
 
 
 def test_the_choice_is_a_real_fork_in_the_dag(episode):
     """'Having two alternatives in mind' IS the branch. Both dispositions hang off the
     same parent state; the road not taken stays navigable."""
     chain, _uod = episode
-    revising = [s for s in chain.steps if s.rule_name == "REVISE_M"]
+    revising = [s for s in chain.steps if s.rule_name == "RETRACT_FROM_M"]
     forked = {s.from_state_id for s in revising}
     assert len(forked) == 1, "the two ways out must share a parent state"
     branches = {s.branch_id for s in chain.steps if s.branch_id}

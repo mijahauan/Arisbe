@@ -45,12 +45,14 @@ from model_revision import (
     DISPOSITION_NEW_FACT,
     DISPOSITION_GENERALIZATION,
     DISPOSITION_CHALLENGE_M,
-    retract_atom,
+    DISPOSITION_RETRACT,
     revise_with_disposition,
+    revise_with_disposition_recorded,
     revision_taxonomy,
 )
 from proof_authoring import ProofChain
 from universe_of_discourse import UniverseOfDiscourse, UoDCategory
+from world_scroll import find_world_scroll, m_view
 
 
 # --------------------------------------------------------------------------- #
@@ -97,7 +99,10 @@ def _is_ground_positive(egif: str) -> bool:
 
 
 def _sheet_relations(model: RelationalGraphWithCuts) -> Set[str]:
-    """Relation names occurring as *sheet-level* facts (the decayable units)."""
+    """Relation names occurring as *standing* facts of M (the decayable units) —
+    read through ``m_view``, so a resident M's cell atoms count (identity on a
+    bare sheet-level graph)."""
+    model = m_view(model)
     return {
         model.rel[e.id]
         for e in model.E
@@ -124,8 +129,9 @@ def _antecedent_relation(law_egif: str) -> Optional[str]:
 
 
 def _already_holds(model: RelationalGraphWithCuts, ground_egif: str) -> bool:
-    """Every atom of a ground proposal is already a sheet fact of M (with the
-    same relation + constant arguments)."""
+    """Every atom of a ground proposal is already a standing fact of M (with the
+    same relation + constant arguments) — M read through ``m_view``."""
+    model = m_view(model)
     existing = {
         (model.rel[e.id], tuple(_labels(model, e.id)))
         for e in model.E
@@ -165,8 +171,11 @@ def parse_atom_key(key: str) -> Tuple[str, List[Optional[str]]]:
 
 
 def sheet_atom_keys(egi: RelationalGraphWithCuts) -> Set[str]:
-    """The atom keys of every **standing** (sheet-level) fact of M — the decayable
-    units. Content inside a cut (a law, a denial) is not a standing habit."""
+    """The atom keys of every **standing** fact of M — the decayable units,
+    read through ``m_view`` (a resident M's cell atoms are its standing facts;
+    identity on a bare sheet-level graph, so a *proposal* parse is unaffected).
+    Content inside a law/denial cut is not a standing habit."""
+    egi = m_view(egi)
     return {
         atom_key(egi.rel[e.id], _labels(egi, e.id))
         for e in egi.E
@@ -363,10 +372,11 @@ class ContradictionAgent:
             return None
         e = inside[0]
         rel, labels = g.rel[e.id], tuple(_labels(g, e.id))
+        model = m_view(ctx.model)          # a resident M's standing facts
         standing = {
-            (ctx.model.rel[x.id], tuple(_labels(ctx.model, x.id)))
-            for x in ctx.model.E
-            if area_of(ctx.model, x.id) == ctx.model.sheet and x.id in ctx.model.rel
+            (model.rel[x.id], tuple(_labels(model, x.id)))
+            for x in model.E
+            if area_of(model, x.id) == model.sheet and x.id in model.rel
         }
         if (rel, labels) not in standing:
             return None                          # nothing standing to contradict
@@ -609,7 +619,28 @@ def run(
     extends the previous round's closure instead of rebuilding it (F2⁗).
     """
     panel = panel or Agonothetes()
-    pc = ProofChain.from_egif(model_egif)
+    # Ensure-residence (sweep #2): the loop plays over M resident in the
+    # standing world-scroll. A bare sheet-level seed is housed by two genuine
+    # recorded rule steps — DC+ opens the residence (the empty double cut
+    # asserts nothing) and INS supplies the seed as one closed cell — so the
+    # chain is rule-licensed from its first move (no post-hoc adapter). An
+    # already-resident seed (a later segment's carry) continues as-is.
+    if find_world_scroll(parse_egif(model_egif)) is None:
+        pc = ProofChain.from_blank()
+        pc.apply("DC+", into=lambda g: g.sheet,
+                 note="Open the standing residence: an empty double cut "
+                      "asserts nothing, and until it exists there is nowhere "
+                      "to hold a model that is not an assertion at the "
+                      "world's level.")
+        if model_egif.strip():
+            pc.apply("INS", insert=f"~[ {model_egif} ]",
+                     into=lambda g: child_cuts(g, g.sheet)[0],
+                     note="Supply the seed M as one closed cell — insertion "
+                          "is sound in the negative arena, and the content "
+                          "lands at even depth where retraction is a "
+                          "licensed ERA.")
+    else:
+        pc = ProofChain.from_egif(model_egif)
     mat = materializer if materializer is not None else IncrementalMaterializer()
     ledger: Optional[UsageLedger] = None
     if ttl:
@@ -649,12 +680,20 @@ def run(
             continue
 
         spec = revision_taxonomy(winner.disposition)
+        # Dry-run against the pre-step state to learn the executed licensed
+        # derivation (deterministic: apply_derived runs the same dispatch on
+        # the same graph), so the step's params carry act + derivation and
+        # the polarity gate can hold the loop's chains to the same standard
+        # as the hand-built corpus.
+        _, derivation = revise_with_disposition_recorded(
+            pc.current, winner.disposition, **winner.kwargs)
         pc.apply_derived(
             "REVISE_M",
             lambda g, w=winner: revise_with_disposition(g, w.disposition, **w.kwargs),
             label=f"{r}·M", note=winner.rationale,
             params={"disposition": winner.disposition, "mode": spec["mode"],
-                    "proposal": g_egif, **winner.kwargs},
+                    "proposal": g_egif, "act": _act_for(winner.disposition),
+                    "derivation": derivation, "earned": True, **winner.kwargs},
         )
         _update_known_laws(known_laws, winner)
 
@@ -683,6 +722,17 @@ def run(
     )
 
 
+def _act_for(disposition: str) -> str:
+    """The recorded act a disposition performs on the residence: enlargements
+    read ``m_enlargement``, a pure retraction ``m_retraction``, the challenge
+    composite ``m_revision`` — the same vocabulary as ``m_steps``."""
+    if disposition == DISPOSITION_CHALLENGE_M:
+        return "m_revision"
+    if disposition == DISPOSITION_RETRACT:
+        return "m_retraction"
+    return "m_enlargement"
+
+
 def _fork_siblings(
     pc: ProofChain,
     panel: "Agonothetes",
@@ -707,13 +757,17 @@ def _fork_siblings(
     for bv in dissenters:
         try:
             spec = revision_taxonomy(bv.disposition)
-            pc.at(pre_id).apply_derived(
+            pc.at(pre_id)
+            _, derivation = revise_with_disposition_recorded(
+                pc.current, bv.disposition, **bv.kwargs)
+            pc.apply_derived(
                 "REVISE_M(sibling)",
                 lambda g, w=bv: revise_with_disposition(g, w.disposition, **w.kwargs),
                 label=f"{round_idx}·M~", note=f"dissenting reading (irreducible disagreement): "
                                               f"{bv.rationale}",
                 params={"disposition": bv.disposition, "mode": spec["mode"],
-                        "sibling": True, **bv.kwargs},
+                        "sibling": True, "act": _act_for(bv.disposition),
+                        "derivation": derivation, "earned": True, **bv.kwargs},
                 # Label the sibling line by its disposition so the history
                 # navigation names it (the ⑂ strip / DAG legend) instead of a
                 # bare "branch N".
@@ -741,9 +795,13 @@ def _update_known_laws(known_laws: List[str], winner: Vote) -> None:
 
 def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[str]:
     """⑤b — erase each standing **atom** idle past ttl (atom-level decay: the habit
-    is the fact, not the name; erasure by ``retract_atom``, which preserves every
-    other atom of the name and any standing law cut). An atom already gone from the
-    sheet — retracted by a game move — is simply forgotten."""
+    is the fact, not the name). Under the residence the fading of a habit through
+    disuse is a **licensed ERA at even depth** — the same move as refutation-driven
+    retraction, distinguished by the recorded disposition/flavor (§9.7: the *faded*
+    tense; D6: ``pruned:disuse``) — dispatched through the residence-aware
+    ``revise_with_disposition``, which preserves every other atom of the name and
+    any standing law cut. An atom already gone — retracted by a game move — is
+    simply forgotten."""
     stale = ledger.stale(round_idx)
     if not stale:
         return []
@@ -754,13 +812,18 @@ def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[st
             ledger.forget(key)
             continue
         rel, labels = parse_atom_key(key)
+        _, derivation = revise_with_disposition_recorded(
+            pc.current, DISPOSITION_RETRACT, relation=rel, labels=list(labels))
         pc.apply_derived(
             "DECAY",
-            lambda g, _r=rel, _l=labels: retract_atom(g, _r, list(_l)),
+            lambda g, _r=rel, _l=labels: revise_with_disposition(
+                g, DISPOSITION_RETRACT, relation=_r, labels=list(_l)),
             label=f"{round_idx}·decay",
             note=f"({rel} {' '.join(repr(l) for l in labels)}) fell from use — "
                  f"erased (disuse-decay).",
             params={"disposition": "retract_fact", "mode": "none",
+                    "act": "m_retraction", "derivation": derivation,
+                    "flavor": "pruned:disuse", "earned": True,
                     "relation": rel, "labels": list(labels)},
         )
         decayed.append(key)

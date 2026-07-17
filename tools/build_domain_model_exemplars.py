@@ -53,14 +53,15 @@ def _uod(uod_id: str, name: str, description: str, egif: str):
     world-scroll and carries the two-step chain that put it there."""
     pc = ProofChain.from_blank()
     pc.apply("DC+", into=lambda g: g.sheet,
-             note="Open the standing world-scroll: an empty double cut asserts "
-                  "nothing, and until it exists there is nowhere to suppose a "
+             note="Open the standing residence: an empty double cut asserts "
+                  "nothing, and until it exists there is nowhere to hold a "
                   "model that is not an assertion.")
-    pc.apply("INS", insert=egif,
+    pc.apply("INS", insert=f"~[ {egif.strip()} ]",
              into=lambda g: nav.child_cuts(g, g.sheet)[0],
-             note="Posit the board into the negative arena — insertion is sound "
-                  "there, and the supposition is fenced: nothing contingent "
-                  "stands at depth 0.")
+             note="Supply the board as one closed cell — insertion is sound in "
+                  "the negative arena, the content lands at even depth "
+                  "(in-context agreement), and nothing contingent stands at "
+                  "depth 0.")
     return pc.to_uod(uod_id=uod_id, name=name, description=description,
                      category=UoDCategory.DOMAIN_MODEL, created=_WHEN)
 

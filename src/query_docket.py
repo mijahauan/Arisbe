@@ -98,8 +98,11 @@ class DocketEntry:
 # --------------------------------------------------------------------------- #
 
 def _sheet_atoms(egi) -> List[Tuple[str, List[Optional[str]]]]:
-    """Ground atoms on the sheet: (relation, [labels…]) — constants carry labels,
-    generic vertices read as None."""
+    """M's standing ground atoms: (relation, [labels…]) — constants carry labels,
+    generic vertices read as None. Read through ``m_view`` (identity on a bare
+    sheet-level graph), so a resident M's cells count (sweep #2)."""
+    from world_scroll import m_view
+    egi = m_view(egi)
     out = []
     for e in egi.E:
         if e.id in egi.rel and area_of(egi, e.id) == egi.sheet:

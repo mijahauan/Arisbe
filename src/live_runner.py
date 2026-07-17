@@ -46,6 +46,7 @@ from agon_evolution import (
 )
 from model_materialization import IncrementalMaterializer
 from model_revision import retract_atom
+from world_scroll import enlarge_m, find_world_scroll, m_view, retract_from_m
 
 
 # --------------------------------------------------------------------------- #
@@ -172,6 +173,10 @@ class LiveResult:
 # --------------------------------------------------------------------------- #
 
 def _sheet_relations(egi) -> set:
+    """M's standing relation names — read through ``m_view``, so the counters
+    keep meaning "M's content" now that M is resident in the standing
+    world-scroll (sweep #2); identity on a bare sheet-level graph."""
+    egi = m_view(egi)
     return {egi.rel[e.id] for e in egi.E
             if area_of(egi, e.id) == egi.sheet and e.id in egi.rel}
 
@@ -181,8 +186,10 @@ def _sheet_relation_count(egi) -> int:
 
 
 def _sheet_atom_count(egi) -> int:
-    """Atoms (relation edges) on the sheet — the F1″ unit. Distinct from
-    :func:`_sheet_relation_count`: one warm hub *name* can hold dozens of atoms."""
+    """Atoms (relation edges) standing in M — the F1″ unit, read through
+    ``m_view``. Distinct from :func:`_sheet_relation_count`: one warm hub
+    *name* can hold dozens of atoms."""
+    egi = m_view(egi)
     return sum(1 for e in egi.E
                if area_of(egi, e.id) == egi.sheet and e.id in egi.rel)
 
@@ -272,7 +279,13 @@ class LiveRunner:
         resumed run must not grant every relation a fresh ttl). A killed process therefore
         loses at most its in-flight segment — the crash/resume gap for an unattended run.
         The caller supplies a fresh ``source``; ``config.state_path`` defaults to the same
-        path so the resumed run keeps checkpointing its state."""
+        path so the resumed run keeps checkpointing its state.
+
+        Residence note (sweep #2): a state file written by a pre-relocation run
+        carries M as *flat* sheet-level EGIF — ``agon_evolution.run``'s
+        ensure-residence houses it in the standing world-scroll on the first
+        resumed segment (two recorded rule steps). The ledger/docket are keyed
+        by content (``atom_key``), so they survive the re-housing unchanged."""
         import json
         with open(state_path, "r", encoding="utf-8") as fh:
             state = json.load(fh)
@@ -384,13 +397,24 @@ class LiveRunner:
             # ``reseed_laws`` — laws to re-scribe onto M after a relinquishment
             # (e.g. the weather recalibrator returning a fallen law under a wider,
             # better-calibrated discretization, docs/AUTOMATED_ENDOPOREUTIC_GAME.md
-            # §19). Juxtapose each law cut back onto the carried sheet + registry so
-            # the next segment materializes it and bets again — predict→refute→
-            # re-generalize, not predict→refute→silence.
-            for _law in (extra or {}).get("reseed_laws", []) or []:
-                model_egif = f"{model_egif} {_law}".strip()
-                if _law not in self._laws:
-                    self._laws.append(_law)
+            # §19). Re-supply each law into the carried M + registry so the next
+            # segment materializes it and bets again — predict→refute→
+            # re-generalize, not predict→refute→silence. NOTE: the carried M is
+            # resident in the standing world-scroll (sweep #2), so the re-supply
+            # must be an INS-of-cell (``enlarge_m``) — a bare string juxtaposition
+            # would put a second cut at sheet level and silently defeat
+            # recognition (m_view identity → counters and oracle reading chrome).
+            reseeds = (extra or {}).get("reseed_laws", []) or []
+            if reseeds:
+                g = parse_egif(model_egif)
+                for _law in reseeds:
+                    if find_world_scroll(g) is not None:
+                        g = enlarge_m(g, _law)
+                    else:                      # legacy sheet-level carry
+                        g = parse_egif(f"{generate_egif(g)} {_law}".strip())
+                    if _law not in self._laws:
+                        self._laws.append(_law)
+                model_egif = generate_egif(g)
             if hasattr(feed, "episodes"):       # accumulate the meta-learning records
                 if self._episodes:
                     # a relinquishment in THIS segment of content admitted in an EARLIER one is
@@ -465,8 +489,11 @@ class LiveRunner:
         """Erase **atoms** idle past ``ttl`` global rounds — the only bound on the unbounded
         sheet, applied across segments so |M| (and per-round cost, memory, disk) stays flat.
         Atom-level (the rulebook decision, 2026-07-03): the ledger and the erasure both work
-        in :func:`agon_evolution.atom_key` units, retracting via ``retract_atom`` so other
-        atoms of the same name — and any standing law cut — survive. Returns
+        in :func:`agon_evolution.atom_key` units. Under the residence (sweep #2) the
+        erasure is the licensed ERA-in-cell (``retract_from_m``) — the *faded* tense,
+        the same move as refutation, D6's ``pruned:disuse`` economy — falling back to
+        the structural ``retract_atom`` on a legacy sheet-level carry; either way other
+        atoms of the same name and any standing law cut survive. Returns
         ``(new_model_egif, dropped_atom_keys)``."""
         if self._ledger is None:
             return model_egif, set()
@@ -481,7 +508,10 @@ class LiveRunner:
         for key in self._ledger.stale(now):
             if key in present:
                 rel, labels = parse_atom_key(key)
-                g = retract_atom(g, rel, labels)
+                if find_world_scroll(g) is not None:
+                    g = retract_from_m(g, relation=rel, labels=labels)[0]
+                else:
+                    g = retract_atom(g, rel, labels)
                 dropped.add(key)
             self._ledger.forget(key)
         if dropped:

@@ -172,8 +172,46 @@ def test_redundant_proposal_is_a_non_revising_round():
               uod_id="r", name="r")
     assert res.outcomes[0].disposition is None
     assert not res.outcomes[0].changed
-    # M is untouched
-    assert same_graph(res.uod.current_egi, parse_egif(SWAN_M0))
+    # M is untouched (its content read through m_view — the loop plays over
+    # M resident in the standing world-scroll since sweep #2)
+    from world_scroll import m_view
+    assert same_graph(m_view(res.uod.current_egi), parse_egif(SWAN_M0))
+
+
+def test_loop_chain_is_rule_licensed_from_the_first_move():
+    """Sweep #2 / §8.1: the loop's chain opens with genuine DC+ · INS residence
+    steps and every M-revising step carries act + executed derivation — the
+    same standard the polarity gate holds the hand-built corpus to."""
+    from world_scroll import find_world_scroll
+    res = run(SWAN_M0, CorpusProposer(SWAN_POOL), rounds=4,
+              uod_id="s", name="s")
+    steps = res.chain.steps
+    assert [s.rule_name for s in steps[:2]] == ["DC+", "INS"]
+    assert find_world_scroll(res.uod.current_egi) is not None
+    for s in steps:
+        if s.rule_name.startswith("REVISE_M") or s.rule_name == "DECAY":
+            assert s.parameters.get("act") in {
+                "m_enlargement", "m_retraction", "m_revision"}
+            derivation = s.parameters.get("derivation")
+            assert derivation and set(derivation) <= {"ERA", "INS"}
+    # every state after the residence steps carries the standing scroll
+    for sid, egi in res.chain.states.items():
+        if sid in ("s0", "s1"):
+            continue
+        assert find_world_scroll(egi) is not None
+
+
+def test_decay_records_the_faded_flavor():
+    """§9.7/D6: disuse-decay is the same licensed ERA as refutation-driven
+    retraction, distinguished by the recorded flavor."""
+    pool = ['(swan "Bianca")', '(white "Bianca")', '(swan "Ciel")']
+    res = run('(swan "Alba") (white "Alba") (rumor "X")', CorpusProposer(pool),
+              rounds=3, ttl=2, uod_id="decay", name="decay")
+    decay_steps = [s for s in res.chain.steps if s.rule_name == "DECAY"]
+    assert decay_steps
+    for s in decay_steps:
+        assert s.parameters["flavor"] == "pruned:disuse"
+        assert s.parameters["derivation"] == ["ERA"]
 
 
 def test_mutation_membrane_finds_supported_subsumptions_only():

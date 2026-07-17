@@ -1,138 +1,154 @@
 {
   "Cut": [
     {
-      "id": "c_3388a165"
+      "id": "c_203cffca"
     },
     {
-      "id": "cut_42365dcb"
+      "id": "c_551eb471"
     },
     {
-      "id": "cut_b4dcf6af"
+      "id": "c_8496aced"
+    },
+    {
+      "id": "c_879e8120"
+    },
+    {
+      "id": "c_bbf3677d"
+    },
+    {
+      "id": "cut_442dff16"
+    },
+    {
+      "id": "cut_d389fbee"
     }
   ],
   "E": [
     {
-      "id": "e_015d254b"
+      "id": "e_1a008746"
     },
     {
-      "id": "e_05f29c26"
+      "id": "e_6c1ec90c"
     },
     {
-      "id": "e_0a73eeb9"
+      "id": "e_85b81615"
     },
     {
-      "id": "e_46ec21eb"
+      "id": "e_95c8c09b"
     },
     {
-      "id": "e_6eb5d3c9"
+      "id": "e_aa31dcab"
     },
     {
-      "id": "e_791444a1"
+      "id": "e_ababb77e"
     },
     {
-      "id": "e_a35bba0f"
+      "id": "e_c04f7085"
     },
     {
-      "id": "e_bdf3b4d7"
-    },
-    {
-      "id": "e_d016666d"
+      "id": "e_c0710de1"
     }
   ],
   "V": [
     {
-      "id": "v_04404c39",
-      "is_generic": false,
-      "label": "Nox"
+      "id": "v_4bc9a247",
+      "is_generic": true,
+      "label": null
     },
     {
-      "id": "v_04595483",
+      "id": "v_58a080db",
       "is_generic": false,
       "label": "Ciel"
     },
     {
-      "id": "v_24c68b35",
+      "id": "v_92c6d528",
       "is_generic": false,
-      "label": "Alba"
+      "label": "Ciel"
     },
     {
-      "id": "v_9272172e",
+      "id": "v_c60db643",
       "is_generic": false,
       "label": "Bianca"
     },
     {
-      "id": "v_abf29eb2",
+      "id": "v_ca51b79e",
       "is_generic": false,
-      "label": "Dover"
+      "label": "Alba"
     }
   ],
   "alphabet": null,
   "area": {
-    "c_3388a165": [
-      "e_0a73eeb9"
+    "c_203cffca": [
+      "e_6c1ec90c"
     ],
-    "cut_42365dcb": [],
-    "cut_b4dcf6af": [
-      "c_3388a165",
-      "cut_42365dcb",
-      "e_015d254b",
-      "e_05f29c26",
-      "e_46ec21eb",
-      "e_6eb5d3c9",
-      "e_791444a1",
-      "e_a35bba0f",
-      "e_bdf3b4d7",
-      "e_d016666d",
-      "v_04404c39",
-      "v_04595483",
-      "v_24c68b35",
-      "v_9272172e",
-      "v_abf29eb2"
+    "c_551eb471": [
+      "e_1a008746",
+      "v_92c6d528"
     ],
-    "sheet_ca4039e3": [
-      "cut_b4dcf6af"
+    "c_8496aced": [
+      "e_95c8c09b",
+      "e_aa31dcab",
+      "e_ababb77e",
+      "e_c04f7085",
+      "e_c0710de1",
+      "v_58a080db",
+      "v_c60db643",
+      "v_ca51b79e"
+    ],
+    "c_879e8120": [
+      "c_bbf3677d"
+    ],
+    "c_bbf3677d": [
+      "c_203cffca",
+      "e_85b81615",
+      "v_4bc9a247"
+    ],
+    "cut_442dff16": [
+      "c_551eb471",
+      "c_8496aced",
+      "c_879e8120",
+      "cut_d389fbee"
+    ],
+    "cut_d389fbee": [],
+    "sheet_fd58a752": [
+      "cut_442dff16"
     ]
   },
   "nu": {
-    "e_015d254b": [
-      "v_24c68b35"
+    "e_1a008746": [
+      "v_92c6d528"
     ],
-    "e_05f29c26": [
-      "v_04404c39"
+    "e_6c1ec90c": [
+      "v_4bc9a247"
     ],
-    "e_0a73eeb9": [
-      "v_04404c39"
+    "e_85b81615": [
+      "v_4bc9a247"
     ],
-    "e_46ec21eb": [
-      "v_04595483"
+    "e_95c8c09b": [
+      "v_c60db643"
     ],
-    "e_6eb5d3c9": [
-      "v_04595483"
+    "e_aa31dcab": [
+      "v_c60db643"
     ],
-    "e_791444a1": [
-      "v_9272172e"
+    "e_ababb77e": [
+      "v_ca51b79e"
     ],
-    "e_a35bba0f": [
-      "v_abf29eb2"
+    "e_c04f7085": [
+      "v_ca51b79e"
     ],
-    "e_bdf3b4d7": [
-      "v_24c68b35"
-    ],
-    "e_d016666d": [
-      "v_9272172e"
+    "e_c0710de1": [
+      "v_58a080db"
     ]
   },
   "rel": {
-    "e_015d254b": "swan",
-    "e_05f29c26": "swan",
-    "e_0a73eeb9": "white",
-    "e_46ec21eb": "white",
-    "e_6eb5d3c9": "swan",
-    "e_791444a1": "swan",
-    "e_a35bba0f": "swan",
-    "e_bdf3b4d7": "white",
-    "e_d016666d": "white"
+    "e_1a008746": "white",
+    "e_6c1ec90c": "white",
+    "e_85b81615": "swan",
+    "e_95c8c09b": "white",
+    "e_aa31dcab": "swan",
+    "e_ababb77e": "white",
+    "e_c04f7085": "swan",
+    "e_c0710de1": "swan"
   },
   "rho": {},
-  "sheet": "sheet_ca4039e3"
+  "sheet": "sheet_fd58a752"
 }
