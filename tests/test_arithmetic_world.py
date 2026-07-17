@@ -214,3 +214,13 @@ class TestCriteria:
             "musement must get the off-docket law admitted as a standing generalization"
         assert not found(off.known_laws), \
             "without musement the off-docket law is never proposed, so never admitted"
+
+
+class TestDeterminism:
+    def test_s4_identical_configs_identical_trajectories(self):
+        from arithmetic_world import replay_choices
+        a, feed_a = TestCriteria()._arm(rounds=40)
+        b, feed_b = TestCriteria()._arm(rounds=40)
+        assert replay_choices(feed_a.journal) == replay_choices(feed_b.journal)
+        assert [o.disposition for o in a.outcomes] == [o.disposition for o in b.outcomes]
+        assert refutation_round(a) == refutation_round(b)
