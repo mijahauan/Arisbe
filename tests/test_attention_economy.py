@@ -81,13 +81,13 @@ class TestGuards:
 
     def test_attempt_decay_sinks_a_barren_want(self):
         e = _econ(attempt_decay=0.5)
-        barren = Want(kind="k", key=("barren",))
-        fresh = Want(kind="k", key=("fresh",), created_round=99)  # newer — loses ties
+        # barren outscores fresh on raw score (severity 2.0 vs 1.0), so absent
+        # the attempt-decay term it MUST win; three barren attempts decay it
+        # 2*0.05*0.5**3 = 0.0125 < fresh's 0.05 — only the decay term flips this.
+        barren = Want(kind="k", key=("barren",), severity=2.0, attempts=3)
+        fresh = Want(kind="k", key=("fresh",))
         e.register(barren); e.register(fresh)
-        for r in range(3):           # probe barren 3 times, no yield
-            e.choose(1, round_idx=r)  # barren wins ties at first (older)
-            e.observe(r, [(barren, 0)])
-        assert e.choose(1, round_idx=10)[0].key == ("fresh",)
+        assert e.choose(1, round_idx=1)[0].key == ("fresh",)
 
     def test_register_cap_counts_drops(self):
         e = _econ(max_wants=2)
