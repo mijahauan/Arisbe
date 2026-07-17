@@ -126,3 +126,31 @@ class TestFeed:
         out = feed.propose(parse_egif('(even "0")'), 1)   # must return, not hang
         assert out is None or isinstance(out, str)
         assert e.dropped > 0                 # the refused registrations were counted
+
+
+M0 = '(even "0")'
+
+
+def refutation_round(res):
+    from agon_evolution import DISPOSITION_CHALLENGE_M
+    for o in res.outcomes:
+        if o.disposition == DISPOSITION_CHALLENGE_M:
+            return o.round_idx
+    return None
+
+
+class TestIntegration:
+    def test_economy_arm_refutes_fermat(self):
+        from agon_evolution import run, peel
+        from semantic_game import Verdict3
+        from attention_economy import AttentionEconomy
+        from arithmetic_world import ArithmeticWorld, ProbeDirectedFeed, FERMAT_LAW
+        feed = ProbeDirectedFeed(ArithmeticWorld(), AttentionEconomy())
+        res = run(M0 + " " + FERMAT_LAW, feed, rounds=30,
+                  uod_id="rung1_econ", name="rung 1 economy arm",
+                  seed_laws=[FERMAT_LAW])
+        r = refutation_round(res)
+        assert r is not None, "the economy arm must reach the F5 refutation in 30 rounds"
+        final = res.uod.current_egi
+        assert peel(final, FERMAT_LAW).verdict is Verdict3.FALSE
+        assert peel(final, '(fermat_number "4294967297")').verdict is Verdict3.TRUE
