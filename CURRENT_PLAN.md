@@ -250,24 +250,33 @@
    ("planning" → done), version bump. **Author's calls:** §8.1 loop migration OUT at tag
    time (held on run 12; can land on the release branch later as tidying); run 12 decoupled
    (noted in-flight in the notes). Then: cut branch, bump, tag, let release.yml attest.
-1. **RUN 12 = SPORTS: EXECUTED 2026-07-14→17, ran to its 3-day cap — DISPOSAL IS THE
-   AUTHOR'S, and the run came back EVIDENTIALLY THIN.** Totals recorded in RUN_12_LOG
-   (9 segments · 85 rounds · 144 polls · |M|≈90 · cut 225 from a seed of 50 · 7
-   re-generalizations · 5 laws standing · poise `● ● ✕ ● ● ● ● ● ●`, one absorbed
-   stumble). **The catch (F0¹², recorded not disposed): picks raised=80 but
-   resolved=5** — one per arm — with **`fetch_errors=12 (schedule:12)` standing
-   unchanged at every segment. So `select_best` "chose" naive on a five-way tie at
-   net −1, and the P4¹² literature check reads home-win 0.000 over ONE decided bet
-   (vs the documented ≈53–54 %). **P3¹²/P4¹² + the ledger half of P2¹² are UNDISPOSED
-   — never given data, so neither confirmed nor refuted;** P1¹²/P5¹² *are* evidenced
-   (the floor held: 9 checkpoints §3.3-attested, crash-free to the cap, cut learned +
-   carried, decay bounded |M|, poise legible). Candidate root causes in order:
-   (a) the persistent schedule-endpoint fault (never a transient — the count never
-   moves); (b) resolution latency vs the cap (bets settling after the run ends);
-   (c) the poll→round→resolution ratio (144 → 85 → 5). **The author's calls:** re-run
-   (fix the schedule fetch first, size the cap to resolution latency) vs. dispose the
-   sports arc on P1¹²/P5¹² and carry P3¹²/P4¹² to a faster-settling source. Also
-   pending: replay `runs/run12/items.jsonl` as the determinism canary.
+1. **▶ RUN 12 = SPORTS: RESUME TONIGHT (the author's; TIME-CRITICAL — the window
+   closes 2026-07-18 ~05:35Z).** The first leg (2026-07-13 07:30 → 07-17 03:14) ran
+   its cap **inside the All-Star break** — the author's hypothesis, confirmed against
+   the run's own state: **all 75 pending claims are dated 2026-07-17**, the resumption
+   day, first pitch `17:35Z`, and the run stopped **~14 h before those games started**.
+   Not a bug, an empty world (`unresolved_dropped=0`, `postponed_dropped=0` — nothing
+   was lost; the picks are still pending). The `schedule:12` fetch errors are a
+   **startup artifact** (already 12 at segment 1, never incrementing after — carried
+   from the two false starts at 06:02/06:16 before the real 07:30 start); this log's
+   first draft called them a persistent fault and had the inference backwards.
+   **The move: `--resume`, NOT a fresh `--regenerate` start.** Resume harvests the 75
+   pending claims as tonight's games go Final (~20:30Z onward) — **≈75 resolutions,
+   15× the whole first leg** — and keeps the learned cut (225) + the 81-entry ledger,
+   all of which a restart discards. `grace_hours=12` drops a pending claim at
+   `start + 12h`, so **resume before 2026-07-18 ~05:35Z** or the 75 are counted into
+   `unresolved_dropped` and wasted. **Verified against the real state (2026-07-17):**
+   the carried `model_egif` is flat (pre-sweep-#2) and meets the new residence code
+   cleanly — ensure-residence wraps it (1 cell), `m_view` is `same_graph` to the flat
+   M, and the **81 atom keys are identical before/after re-housing**, so the ledger and
+   its decay clock survive exactly; the resumed chain opens `DC+ · INS`. Confound to
+   note in the write-up: leg 1 played the sheet-level regime, leg 2 plays cells.
+   Then: dispose F1¹²…, replay `runs/run12/items.jsonl` as the determinism canary, and
+   re-run the P4¹² literature check (home ≈53–54 %) on the real sample.
+   *Standing totals from leg 1 (RUN_12_LOG): 9 segments · 85 rounds · 144 polls ·
+   |M|≈90 · cut 50→225 · 7 re-generalizations · 5 laws standing · poise one absorbed
+   stumble. **P1¹²/P5¹² evidenced** (the floor held); **P3¹²/P4¹² + the ledger half of
+   P2¹² UNDISPOSED** — never given data.*
 2. **✅ TAKEN 2026-07-16 — THE TWO CROSSING DECISIONS** (CROSSING_DECISION_BRIEFS):
    A1–A4 affirmed as written (predicative floor = doctrine; stratified formation /
    K3-partial evaluation; **conservativity over the Dau core = the standing crossing

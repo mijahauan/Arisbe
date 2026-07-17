@@ -172,21 +172,47 @@ read), but the *resolution* path — the world's teeth — barely engaged.
 
 ## Findings (dated, disposed)
 
-**F0¹² — the run is evidentially thin; the priors cannot be disposed on it (2026-07-17,
-recorded by Claude; disposition the author's).** 80 raised : 5 resolved, with 12 schedule-endpoint
-fetch errors standing at every segment. The three priors that need resolutions —
-**P3¹²** (select_best discriminates between arms), **P4¹²** (home-win rate ≈53–54 % vs the
-literature; measured **0.000 over 1** decided home-rival bet), and the ledger half of **P2¹²** —
-are **UNDISPOSED**: they were never given data, so neither confirmed nor refuted. What *is*
-evidenced: **P1¹²/P5¹²** (the floor held — 9 segments checkpointed and §3.3-attested, crash-free
-to the cap, the cut learned and carried, decay bounded |M|, poise legible with one absorbed
-stumble). The candidate root causes, in the order worth checking: (a) the `schedule:12` fetch
-errors — a persistent endpoint/params fault, not a transient, since the count never moves across
-segments; (b) resolution-window vs cap — MLB games resolving after the pick's grace window, so
-the run ends before its own bets settle; (c) the pacing/poll ratio (144 polls → 85 rounds → 5
-resolutions). **The author's calls:** whether to re-run (fixing the schedule fetch first, and
-sizing the cap to the resolution latency) or to dispose the sports arc as-is on P1¹²/P5¹² and
-carry P3¹²/P4¹² to a source whose outcomes land faster.
+**F0¹² — the run is evidentially thin, and the cause is the ALL-STAR BREAK: the run spent its
+whole budget inside it (2026-07-17; the author's hypothesis, confirmed against the run's own
+state by Claude).** 80 raised : 5 resolved. The three priors that need resolutions — **P3¹²**
+(select_best discriminates between arms), **P4¹²** (home-win rate ≈53–54 % vs the literature;
+measured **0.000 over 1** decided home-rival bet), and the ledger half of **P2¹²** — are
+**UNDISPOSED**: never given data, so neither confirmed nor refuted. What *is* evidenced:
+**P1¹²/P5¹²** — the floor held (9 segments checkpointed and §3.3-attested, crash-free to the cap,
+the cut learned 50→225 and carried, decay bounded |M|, poise legible with one absorbed stumble).
+
+**The evidence for the break, from `sports_state.json`:** **all 75 pending claims are dated
+`2026-07-17`** — the day play resumes — with `game_time` `2026-07-17T17:35:00Z` and later. The run
+started **2026-07-13 07:30** and stopped **~2026-07-17 03:14**, i.e. it opened at the break, found
+essentially nothing to bet on for three days (one game resolved: the 5 `challenge_to_M` at
+segment 3, all five arms picking the loser — hence 0h/5m and the five-way −1 tie), raised its
+first real slate on the resumption day, and **hit its cap ~14 h before those games started**.
+Not a bug: an empty world. `unresolved_dropped=0` and `postponed_dropped=0` confirm nothing was
+lost — the picks are *still pending*, waiting on games that had not yet been played.
+
+**Correction to this log's first draft (recorded honestly):** the `schedule:12` fetch errors are
+**a startup artifact, not a persistent fault**. The console shows `fetch_errors=12` *already at
+segment 1* and never incrementing across the following 8 segments — the count is carried in the
+state from the run's two false starts (`run start` lines at 06:02 and 06:16 on 07-13, before the
+real 07:30 start that added the odds rival). Twelve errors at the beginning, zero thereafter. The
+earlier reading ("never moves ⇒ persistent fault") had the inference exactly backwards.
+
+**Disposition — RESUME, do not restart (recommended 2026-07-17 12:33Z; the author's call).** The
+state holds **75 pending claims on tonight's resumption slate** (first pitch 17:35Z). `--resume`
+harvests them as the games go Final (~20:30Z onward) — **~75 resolutions, 15× the entire first
+leg**, and it keeps the learned cut (225) and the 81-entry disuse ledger. A fresh `--regenerate`
+start would discard all three. **Time-critical:** `grace_hours=12` drops a pending claim once
+`now > start + 12 h`, so the 75 expire at **2026-07-18 ~05:35Z**; resume before then or they are
+counted into `unresolved_dropped` and wasted.
+
+**Resume verified against this state (2026-07-17):** the carried `model_egif` is *flat*
+(pre-sweep-#2), so it meets the new residence code — tested directly: `run()`'s ensure-residence
+recognizes it after wrapping (1 cell), `m_view` is `same_graph` to the flat M, and the **81 atom
+keys are identical before and after re-housing**, so the ledger and its decay clock survive
+exactly (the keys are content-based). The resumed chain opens `DC+ · INS`. One honest confound to
+note in any write-up: the run's first leg played the *pre*-sweep-#2 sheet-level regime and the
+resumed leg plays cells — the M-content and the ledger are unaffected, but the residence regime
+changes mid-run.
 
 ---
 
