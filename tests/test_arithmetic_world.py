@@ -116,3 +116,13 @@ class TestFeed:
             feed.propose(m, r)
             outstanding = sum(1 for wt in e.wants() if wt.kind == "extend")
             assert outstanding <= 3, f"extend wants unbounded: {outstanding} at round {r}"
+
+    def test_propose_terminates_when_economy_at_cap(self):
+        from egif_parser_dau import parse_egif
+        from attention_economy import AttentionEconomy
+        from arithmetic_world import ArithmeticWorld, ProbeDirectedFeed
+        e = AttentionEconomy(max_wants=60)   # smaller than the feed's own seeds
+        feed = ProbeDirectedFeed(ArithmeticWorld(), e)
+        out = feed.propose(parse_egif('(even "0")'), 1)   # must return, not hang
+        assert out is None or isinstance(out, str)
+        assert e.dropped > 0                 # the refused registrations were counted

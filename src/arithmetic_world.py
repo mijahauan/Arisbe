@@ -188,12 +188,17 @@ class ProbeDirectedFeed:
     def _refill_extends(self, round_idx: int):
         outstanding = sum(1 for w in self._economy.wants() if w.kind == "extend")
         n = self._extend_next
-        while outstanding < 3:
+        for _ in range(64):                      # bounded scan — never spins
+            if outstanding >= 3:
+                break
             if n not in self._world.probed and n not in FERMATS:
+                before = self._economy.dropped
                 if self._economy.register(Want(
                         kind="extend", key=("extend", n), payload=n,
                         cost=self._world.probe_cost(n), created_round=round_idx)):
                     outstanding += 1
+                elif self._economy.dropped > before:
+                    break                        # pool at cap — stop; the drop is counted
             n += 1
         self._extend_next = n
 
