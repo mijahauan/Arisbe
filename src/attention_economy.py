@@ -131,3 +131,37 @@ class AttentionEconomy:
             "streak": self._streak,
             "effective_musement": self.effective_musement(),
         }
+
+
+# --------------------------------------------------------------------------- #
+# Intake adapters — the docket and the meta-learning frontier become wants.    #
+# Non-invasive: QueryDocket and agon_metalearning are read, never modified.    #
+# --------------------------------------------------------------------------- #
+
+def wants_from_docket(docket, *, round_idx: int = 0, cost: float = 1.0) -> List[Want]:
+    """Each open docket entry (a named want M neither holds nor denies) as a Want.
+    ``created_round`` is back-dated by the entry's age so older doubts win ties;
+    the entry's own attempt count carries over (a barren docket want sinks here too)."""
+    out: List[Want] = []
+    for entry in docket.open_entries:
+        out.append(Want(
+            kind="docket", key=entry.key, payload=entry, cost=cost,
+            created_round=round_idx - entry.age, attempts=entry.attempts))
+    return out
+
+
+def wants_from_frontier(episodes, *, round_idx: int = 0, cost: float = 1.0,
+                        severity: float = 4.0) -> List[Want]:
+    """The ◇-contested horizon as wants: claims no mechanism settled
+    (``agon_metalearning.unresolved_frontier``) — cross-run feedback, the
+    game-studying-the-game edge. Higher severity than a bare particular: a
+    contested claim's resolution settles more."""
+    from agon_metalearning import unresolved_frontier
+    return [
+        Want(kind="frontier", key=(claim,), payload=claim, cost=cost,
+             severity=severity, created_round=round_idx)
+        for claim in unresolved_frontier(episodes)
+    ]
+
+
+__all__ = ["Want", "AttentionEconomy", "wants_from_docket", "wants_from_frontier"]

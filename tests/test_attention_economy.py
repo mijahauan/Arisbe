@@ -124,3 +124,30 @@ class TestGuards:
         chosen = e.choose(2, round_idx=3)
         assert [w.key for w in chosen] == [("good",), ("bad",)]  # mechanical order
         assert e.fallbacks == 1
+
+
+class TestAdapters:
+    def test_wants_from_docket_wraps_open_entries(self):
+        from attention_economy import wants_from_docket
+        from query_docket import QueryDocket
+        d = QueryDocket(labels={}, k=2)
+        d.note_unknowns([("orbits", ["Q1", "Q2"])])
+        ws = wants_from_docket(d, round_idx=5)
+        assert len(ws) == 1
+        w = ws[0]
+        assert w.kind == "docket"
+        assert w.key == ("orbits", ("Q1", "Q2"))
+        assert w.payload is d.open_entries[0]
+
+    def test_wants_from_frontier_takes_unresolved_claims(self):
+        from attention_economy import wants_from_frontier
+        from agon_metalearning import DisputeEpisode
+        eps = [
+            DisputeEpisode(claim_egif='(hot "Sun")', mechanism="unresolved",
+                           settled=None, reverts=3, disposition=None, stuck=None),
+            DisputeEpisode(claim_egif='(cold "Pluto")', mechanism="reliable_source",
+                           settled=True, reverts=0, disposition="new_fact", stuck=True),
+        ]
+        ws = wants_from_frontier(eps, round_idx=2)
+        assert [w.key for w in ws] == [('(hot "Sun")',)]
+        assert ws[0].kind == "frontier" and ws[0].severity == 4.0
