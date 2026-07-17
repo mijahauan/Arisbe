@@ -151,3 +151,16 @@ class TestAdapters:
         ws = wants_from_frontier(eps, round_idx=2)
         assert [w.key for w in ws] == [('(hot "Sun")',)]
         assert ws[0].kind == "frontier" and ws[0].severity == 4.0
+
+    def test_wants_from_docket_backdates_age_and_carries_attempts(self):
+        from attention_economy import wants_from_docket
+        from query_docket import DocketEntry
+
+        class FakeDocket:
+            open_entries = [DocketEntry(
+                shape="orbits", constants=("Q1",),
+                provenance="unknown_in_peel", age=3, attempts=2)]
+
+        ws = wants_from_docket(FakeDocket(), round_idx=5)
+        assert ws[0].created_round == 2   # 5 - age 3: older doubts win ties
+        assert ws[0].attempts == 2        # a barren docket want sinks here too
