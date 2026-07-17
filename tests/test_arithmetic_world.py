@@ -105,4 +105,14 @@ class TestFeed:
         s1 = [w.key for w in scatter_chooser(e, 5, 1)]
         assert f1 == [(0,), (1,), (2,), (3,), (4,)]
         assert s1 != f1
-        assert s1 == [w.key for w in scatter_chooser(e, 5, 1)]
+        # golden: pinned from the sha1 digest formula — a revert to salted hash() fails this across processes
+        assert s1 == [(11,), (1,), (2,), (4,), (8,)]
+
+    def test_extend_window_stays_bounded(self):
+        from egif_parser_dau import parse_egif
+        feed, w, e = self._feed()
+        m = parse_egif('(even "0")')
+        for r in range(1, 12):
+            feed.propose(m, r)
+            outstanding = sum(1 for wt in e.wants() if wt.kind == "extend")
+            assert outstanding <= 3, f"extend wants unbounded: {outstanding} at round {r}"

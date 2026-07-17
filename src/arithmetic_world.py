@@ -186,14 +186,14 @@ class ProbeDirectedFeed:
                 cost=0.5, created_round=round_idx))
 
     def _refill_extends(self, round_idx: int):
-        added = 0
+        outstanding = sum(1 for w in self._economy.wants() if w.kind == "extend")
         n = self._extend_next
-        while added < 3:
+        while outstanding < 3:
             if n not in self._world.probed and n not in FERMATS:
-                self._economy.register(Want(
-                    kind="extend", key=("extend", n), payload=n,
-                    cost=self._world.probe_cost(n), created_round=round_idx))
-                added += 1
+                if self._economy.register(Want(
+                        kind="extend", key=("extend", n), payload=n,
+                        cost=self._world.probe_cost(n), created_round=round_idx)):
+                    outstanding += 1
             n += 1
         self._extend_next = n
 
