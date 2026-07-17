@@ -178,15 +178,18 @@ class TestCriteria:
         assert r_f is None or r_e < r_f, f"economy {r_e} must beat FIFO {r_f}"
         assert r_s is None or r_e < r_s, f"economy {r_e} must beat scatter {r_s}"
 
-    def test_s2_coin_kind_never_dominates(self):
+    def test_s2_barren_kinds_never_dominate(self):
         econ, feed = self._arm()
-        from attention_economy import AttentionEconomy
-        # coin atoms exist in M, but no probe kind is 'coin' — the noise guard here
-        # is that repeated zero-yield kinds decay: assert every kind that yielded
-        # nothing across the run scores below the hunt kind at the end.
+        # There is no separate 'coin' probe-kind — coin atoms ride inside every
+        # probe's conjunction, and a coin law is structurally unproposable in this
+        # feed. The noise guard actually evidenced: every barren kind (confirm,
+        # the cheap re-probing trap; extend; musement) decays strictly below the
+        # productive 'hunt' kind by the end of the run.
         snap = feed.journal[-1]["snapshot"]["kinds"]
-        assert snap.get("hunt", 0) >= max(
-            (v for k, v in snap.items() if k in ("confirm",)), default=0)
+        hunt = snap.get("hunt", 0)
+        others = {k: v for k, v in snap.items() if k != "hunt"}
+        assert others, "expected non-hunt kinds in the snapshot"
+        assert all(hunt > v for v in others.values()), f"a barren kind rivals hunt: {snap}"
 
     def test_s3_musement_finds_the_off_docket_law(self):
         from agon_evolution import peel
@@ -235,3 +238,14 @@ class TestPersistence:
         reloaded = service.load_chain("rung1_arm")
         assert reloaded is not None
         assert len(reloaded.steps) == len(res.chain.steps)
+
+        from world_scroll import find_world_scroll, is_ligature_closed
+        final = res.uod.current_egi
+        scroll = find_world_scroll(final)
+        assert scroll is not None, "M must reside in the standing world-scroll"
+        assert is_ligature_closed(final, scroll)
+        # every M-changing step carries an acknowledged act with its derivation
+        for step in res.chain.steps:
+            p = step.parameters or {}
+            if p.get("act") in ("m_enlargement", "m_retraction", "m_revision"):
+                assert p.get("derivation"), f"silent M-change at step {step.step_id}"

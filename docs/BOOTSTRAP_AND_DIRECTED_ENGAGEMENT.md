@@ -234,8 +234,16 @@ identical 90-round budgets (`probe_budget=1`), the economy arm refuted Fermat's 
 at **round 6**; the FIFO arm **never refuted within 90 rounds**; the scatter arm **never
 within 90** either (an extended 300-round probe showed scatter refuting at round 127, FIFO
 still never) — the strict ordering economy < scatter < FIFO holds via the None-branch on the
-two slower arms. **S2 HELD** as pre-registered (snapshot form): final-run kind yields
-hunt ≈ 2.60 vs confirm ≈ 0.019 — the barren kind decayed far below the productive one.
+two slower arms. (The FIFO arm is degenerate by construction — it re-probes `("confirm", 0)`
+every round, so "never refuted" is a priori for that arm; the meaningful S1 margin is
+economy's 6 against scatter's 127-in-300.) **S2 HELD**, with an honest mechanism
+disclosure: as built there is no separate `coin` probe-kind — coin atoms ride inside every
+probe's atom conjunction (`atoms_for`), and a coin *law* is structurally unproposable in
+this feed (nothing ever proposes `coin` as a subsumption head), so the noisy-TV guard is
+evidenced instead by the cheap-trap `confirm` kind's yield decaying to ≈0.019 against the
+productive `hunt` kind's ≈2.60 — the barren kind decayed far below the productive one, and
+the same decay holds strictly for every other non-hunt kind in the final snapshot (`extend`,
+`musement`).
 **S3 HELD, with one honest mechanism repair**: the off-arm's original `peel`-based assertion
 was unsatisfiable by construction (`fermat_number → odd` is a domain tautology — `peel`
 model-checks against M's facts and reads TRUE whether or not the law was ever admitted), so
@@ -249,10 +257,20 @@ digest (a revert to salted `hash()` fails the golden across processes). **S5 HEL
 `src/attention_economy.py` (+167) and `src/arithmetic_world.py` (+247), pure additions, zero
 existing files touched; the persistence test round-trips through `TomosService.
 save_uod_with_chain` with the correspondence check (LINEAR_GRAPHICAL_CORRESPONDENCE §3.3)
-gating the disk write; the full
+gating the disk write, and the produced trajectory passes the polarity-gate checks
+(world-scroll residence, ligature closure, acknowledged acts with derivations on every
+M-changing step), asserted in `TestPersistence`; the full
 suite passed 3691 / skipped 137 / xfailed 1 / failed 0. Modules: `src/attention_economy.py`
 (the socket), `src/arithmetic_world.py` (world #1 + `ProbeDirectedFeed`). Next: the vault as
 world #2 (a separate cycle).
+
+**Carried to the vault cycle:** unused imports in `attention_economy.py`; the `re.fullmatch`
+tightening + hoisted `import re` in `ArithmeticWorld.test_law_instance`; the docket/frontier
+dispatch branch in `ProbeDirectedFeed.propose` must count-or-refuse (never silently discard)
+an unrecognized want kind; extracting the feed-seeding logic (`_seed_wants`) into a reusable
+helper the vault world can share; and yield attribution at `probe_budget` > 1 (currently the
+whole round's model delta is credited to every chosen want — correct at budget 1, but it
+double-counts once several wants are chosen per round).
 
 ## 4 · Arisbe itself as a proposition in the wider EPG
 

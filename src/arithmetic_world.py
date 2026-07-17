@@ -93,7 +93,9 @@ class ArithmeticWorld:
 
 # --------------------------------------------------------------------------- #
 # The socket — a Proposer whose next item is chosen by the attention layer.    #
-# World-agnostic in shape: the vault stage swaps the world, keeps the feed.    #
+# The reusable part is the socket itself: AttentionEconomy + the chooser/      #
+# journal pattern below. The vault (world #2) brings its own seeding and its   #
+# own feed built on that same socket, not this feed verbatim.                  #
 # --------------------------------------------------------------------------- #
 import hashlib                                        # noqa: E402
 
@@ -209,6 +211,10 @@ class ProbeDirectedFeed:
             prev_atoms, prev_cuts = self._prev_sig
             atoms, cuts = sig
             events = len(atoms ^ prev_atoms) + abs(cuts - prev_cuts)
+            # the whole round's model delta is credited to *every* chosen want's
+            # kind (round-granular attribution): exact at probe_budget=1 (one want
+            # chosen per round), but double-counts once several wants share a round
+            # — the vault cycle must revisit this before raising the budget.
             self._economy.observe(round_idx, [(w, events) for w in self._last_chosen])
             self._last_chosen = []
         self._prev_sig = sig
