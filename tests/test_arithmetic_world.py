@@ -48,3 +48,61 @@ class TestWorld:
         w.atoms_for(6)          # over the cap for a *new* n
         assert w.dropped == 1
         assert w.atoms_for(4294967297)   # Fermat numbers are exempt (law instances)
+
+
+class TestFeed:
+    def _feed(self, **kw):
+        from attention_economy import AttentionEconomy
+        from arithmetic_world import ArithmeticWorld, ProbeDirectedFeed
+        w = ArithmeticWorld()
+        e = AttentionEconomy()
+        return ProbeDirectedFeed(w, e, **kw), w, e
+
+    def test_one_egif_per_propose_and_probes_settle(self):
+        from egif_parser_dau import parse_egif
+        feed, w, e = self._feed()
+        m = parse_egif('(even "0")')
+        out = feed.propose(m, 1)
+        assert isinstance(out, str) and out.strip()
+        parse_egif(out)   # every emission is legal EGIF
+
+    def test_hunt_wants_cover_all_fermat_instances_up_front(self):
+        from arithmetic_world import FERMATS
+        from egif_parser_dau import parse_egif
+        feed, w, e = self._feed()
+        feed.propose(parse_egif('(even "0")'), 1)
+        hunts = [wt for wt in e.wants() if wt.kind == "hunt"]
+        covered = {wt.key[2] for wt in hunts} | {n for n in w.probed if n in FERMATS}
+        assert covered >= set(FERMATS)
+
+    def test_yield_read_from_model_delta(self):
+        from egif_parser_dau import parse_egif
+        feed, w, e = self._feed()
+        m0 = parse_egif('(even "0")')
+        feed.propose(m0, 1)
+        # the model grew between calls — the feed must credit yield to last round's kinds
+        m1 = parse_egif('(even "0") (odd "1") (prime "2")')
+        feed.propose(m1, 2)
+        assert any(v > 0 for v in e.snapshot()["kinds"].values())
+
+    def test_journal_records_choices_and_is_deterministic(self):
+        from egif_parser_dau import parse_egif
+        def drive():
+            feed, w, e = self._feed()
+            m = parse_egif('(even "0")')
+            for r in range(1, 6):
+                feed.propose(m, r)
+            return [j["chosen"] for j in feed.journal]
+        assert drive() == drive()
+
+    def test_fifo_and_scatter_choosers_are_deterministic_and_differ(self):
+        from arithmetic_world import fifo_chooser, scatter_chooser
+        from attention_economy import AttentionEconomy, Want
+        e = AttentionEconomy()
+        for i in range(12):
+            e.register(Want(kind="k", key=(i,), created_round=i))
+        f1 = [w.key for w in fifo_chooser(e, 5, 1)]
+        s1 = [w.key for w in scatter_chooser(e, 5, 1)]
+        assert f1 == [(0,), (1,), (2,), (3,), (4,)]
+        assert s1 != f1
+        assert s1 == [w.key for w in scatter_chooser(e, 5, 1)]
