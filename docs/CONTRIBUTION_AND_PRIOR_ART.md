@@ -122,6 +122,121 @@ must cite) · **CANNOT DETERMINE**.
 
 ---
 
+## Concordances — the neighboring programs
+
+*(Added 2026-07-17, from the whole-of-Arisbe step-back. These are **concordances** — programs
+that arrived at structurally similar answers from independent starting points — not lineage
+claims and not prior art in the verdict-table sense: Arisbe did not derive from them, and none
+of them anticipates the correspondence invariant. They are recorded because each one names, in
+its own vocabulary, a part of what Arisbe builds — and because the differences are as
+instructive as the agreements. The design consequences live in
+[BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md).)*
+
+- **Pragmatist inquiry (Peirce, *The Fixation of Belief*; Dewey's pattern of inquiry).** The
+  ground, not a neighbor: doubt → inquiry → settled belief is the loop the automated game
+  mechanizes, and Dewey's "indeterminate situation" is the membrane's raw deliverance before
+  it becomes a legible proposal. Stated here only so the newer concordances below are read as
+  *corroborations of a Peircean design*, not as its sources.
+
+- **Neo-pragmatism (Rorty, *Philosophy and the Mirror of Nature*; *Consequences of
+  Pragmatism*; *Contingency, Irony, and Solidarity*).** The most philosophically pointed
+  concordance, because it cuts *both ways* — and because Rorty himself had little use for
+  Peirce (in *Consequences of Pragmatism* he credits Peirce chiefly with naming pragmatism
+  and stimulating James), so this is concordance of discipline, not lineage. Where Arisbe
+  agrees with Rorty: the **correspondence-not-truth floor** is anti-representationalism in
+  practice — the §3.3 invariant attests a correspondence between two of *our own* signs (the
+  drawn and the written form), never between sign and world, declining the Mirror of Nature
+  exactly where Rorty says it must be declined; **"progression, not progress"** and the
+  dissolved terminus (Departure I in
+  [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)) side with Rorty *against
+  Peirce's own* Final-Opinion convergence — the game is scored against no summit; and the
+  **ironist's** "radical and continuing doubts about the final vocabulary she is using" is
+  the validity discipline made syntax: M — the system's working vocabulary about its world —
+  resides only inside cuts, never asserted at the sheet level, so irony is an *invariant the
+  gate checks*, not a temperament the inquirer must sustain. Where Arisbe departs from
+  Rorty, both departures instructive: (i) the Fidelity examinations **concede the
+  mind-independent comparative efficacy-vector** (structural realism — "a genuinely better
+  instrument" is an ordinal fact the world settles, not merely better-by-our-lights), which
+  Rorty would refuse; and (ii) where Rorty deflates justification to conversation — solidarity
+  without a tribunal beyond one's peers — Arisbe keeps a **sound mechanical referee**: the
+  Endoporeutic Game is conversation *with an incorruptible referee*, a middle position
+  Rorty's dichotomy of solidarity-or-objectivity does not name — solidarity supplies the
+  warrant (in-context competence), the calculus supplies validity, and neither is asked to
+  do the other's work.
+
+- **Predictive processing / active inference (Friston; Clark, *Surfing Uncertainty*; Seth).**
+  The closest formal neighbor. The interpretant functioning as a *prediction*, doubt as
+  *prediction error*, and model revision as error-minimization is this literature's core loop —
+  and Arisbe's resolving membrane (forecast recorded before the outcome; the
+  `PredictionLedger`) implements the perception half of it. The Markov blanket and Arisbe's
+  *membrane* are independent coinages doing the same job: the boundary across which a model
+  meets what it models. Precision-weighting has a discrete cousin in the warrant gradient.
+  The honest differences: Arisbe's updates are **recorded, warranted, rule-licensed steps**
+  — a chain a reader can inspect — where free-energy minimization is a gradient flow that
+  keeps no such record; and Arisbe's three-valued verdict distinguishes *abstention* (Kleene
+  UNKNOWN, open-world) from *error*, a distinction a scalar surprisal collapses. What the
+  neighbor has that Arisbe lacks: the **action arm** (acting on the world to reduce expected
+  error), which is Arisbe's named, unbuilt "directed engagement."
+
+- **Cybernetics (Conant & Ashby; W. R. Ashby).** The good-regulator theorem — "every good
+  regulator of a system must be a model of that system" — is the one-line *external*
+  justification for M's existence: anything that is to cope with a world must carry a model
+  of it. And the law of requisite variety explains a design fact Arisbe reached empirically:
+  disuse-decay bounds M's variety to the *engaged* world-slice, because a model's variety
+  need only match the variety of what it actually regulates, not of the archive.
+
+- **Cellular automata (Conway's Game of Life).** The concordance that shaped the automated
+  loop's design directly, and the one whose *differences* are doctrine — the full analysis is
+  [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) §1, and this entry only
+  summarizes it. The analogy survives "at the level of *structure*: simple repeated step →
+  iterated over generations → emergent global behaviour nobody scripted." The instructive
+  breaks: a generation is a **round of the game**, and "its outcomes are **negotiable**, not
+  determined" — the rule that fires is a disposition chosen by agents, not a neighbour-count;
+  Life's *death* (its whole character) has no analogue in monotone materialization
+  ("growth-to-saturation is not emergence; it's closure") and reappears as **relinquishment
+  and disuse-decay**; and "the decisive structural difference is the plane" — Life's plane is
+  **bounded** and its boundary shapes the emergence, while the sheet of assertion is
+  **unbounded**, so the bounding force must be **selection from outside**, which is why the
+  membrane is the crux. In short: Life is a closed determinism bounded by its edge; the Agon
+  loop is an open negotiation bounded by the world. (Whether Life itself is worth encoding as
+  a closed CA-in-EG demo is a named backlog item there.)
+
+- **Evolutionary epistemology / falsificationism (Popper; Campbell's blind-variation-and-
+  selective-retention; Lakatos's research programmes).** Popper is already cited elsewhere in
+  this book; the finer concordance is Campbell's schema mapped onto the loop — proposer =
+  variation, peel = selection, decay = the bound on retention — and Lakatos mapped onto the
+  *development practice*: the run logs' pre-registered priors and disposed findings
+  (the `Pⁿ`/`Fⁿ` discipline of the run logs under `runs/`) are a research-programme record in
+  Lakatos's sense, kept mechanically honest. The difference to state: selection in Arisbe is
+  by a *sound referee* over a recorded game, not by survival alone.
+
+- **Biosemiotics / enaction (von Uexküll's Umwelt and functional circle; Hoffmeyer;
+  Maturana & Varela's autopoiesis and structural coupling).** The Peirce-*native* bridge —
+  biosemiotics is itself built on Peirce's sign theory, so the vocabulary transfers with
+  least distortion. The vocabulary-bounded horizon ("enough of M = what the proposal
+  touches," [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)) is an Umwelt: the world *as
+  addressable by this organism's sign-repertoire*, with an honest horizon beyond it.
+  Uexküll's functional circle (perceive → act → perceive) is exactly the circuit that
+  closes only when directed engagement is built; until then Arisbe has the perception arc
+  of the circle, not the action arc. Structural coupling names what a long-running live
+  membrane would become: model and source shaping each other's history.
+
+- **Belief revision & reason maintenance (AGM; Doyle's TMS; de Kleer's ATMS).** The
+  disposition taxonomy is Arisbe's answer to the problem AGM axiomatizes — how a rational
+  corpus absorbs a contradiction — with the difference that Arisbe's revisions are
+  *syntactic, drawn, and derivation-carrying* (each one a licensed rule application with its
+  recorded act) rather than postulate-constrained set operations. A transformation chain
+  whose steps carry their derivations is a truth-maintenance system whose justifications are
+  **sound rules**, not mere dependency links — the same relation to a TMS that the
+  [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) comparison table records for Git and Datomic:
+  the commit already validates.
+
+*Confidence note: the mappings above are the project's own readings (2026-07-17, assistant-
+drafted, author-reviewed), made at the level of structural role — no claim is made that any
+of these programs influenced Arisbe's design or vice versa.*
+
+---
+
 ## Does Arisbe materially improve the field?
 
 **Yes — modestly and specifically, as a systems/operationalization contribution, not as new logic.**
@@ -153,6 +268,21 @@ diagrammatic advantages; "only (DMN), (B), (5) new." See [MODALITY_WITHOUT_GAMMA
 & Commens "The Endoporeutic Method".
 **Iconicity:** Stjernfelt, *Diagrammatology* / operational iconicity · Shin, *The Iconic Logic of
 Peirce's Graphs* (2002) · Bellucci & Pietarinen, *Two Dogmas of Diagrammatic Reasoning*.
+**Concordances (added 2026-07-17):** Peirce, *The Fixation of Belief* (1877) & *Note on the
+Theory of the Economy of Research* (1879) · Dewey, *Logic: The Theory of Inquiry* (1938) ·
+Rorty, *Philosophy and the Mirror of Nature* (1979), *Consequences of Pragmatism* (1982) &
+*Contingency, Irony, and Solidarity* (1989); also *Solidarity or Objectivity?* (1985) ·
+Friston, *The free-energy principle* (Nat. Rev. Neurosci. 2010) · Clark, *Surfing Uncertainty*
+(2016) · Conant & Ashby, *Every good regulator of a system must be a model of that system*
+(Int. J. Systems Science 1970) · Ashby, *An Introduction to Cybernetics* (1956) · Gardner,
+*The fantastic combinations of John Conway's new solitaire game "life"* (Sci. Am. 1970) ·
+Campbell, *Evolutionary Epistemology* (1974) · Lakatos, *The Methodology of Scientific
+Research Programmes* · von Uexküll, *A Foray into the Worlds of Animals and Humans* (1934) ·
+Hoffmeyer, *Biosemiotics* (2008) · Maturana & Varela, *Autopoiesis and Cognition* (1980) ·
+Alchourrón, Gärdenfors & Makinson, *On the logic of theory change* (JSL 1985) · Doyle, *A
+Truth Maintenance System* (AIJ 1979) · de Kleer, *An Assumption-based TMS* (AIJ 1986) ·
+Schmidhuber, *Formal Theory of Creativity, Fun, and Intrinsic Motivation* (2010) · Oudeyer &
+Kaplan, *What is intrinsic motivation?* (2007).
 
 *Confidence note: "no prior art found" means absence in a focused web survey, not proof of
 nonexistence — particularly for unpublished or obscure tools. Treat the originality claims as

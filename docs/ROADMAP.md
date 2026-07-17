@@ -195,6 +195,15 @@ from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then 
 12. **Doctrine: Departure I reflexive-diagonal argument** — the one open joint held "at parity" in
     [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md). A standing intellectual thread, not a build.
 
+17. **Directed engagement (the action arm)** — DESIGNED 2026-07-17, staged in
+    [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3: rung 0
+    (irritation pole: tropism + docket) is built; **rung 1** = the economy-of-research ordering
+    of reaches (metalearning frontier → docket feedback; learning-progress scoring; musement
+    pole; horizon as retained register) awaits authorization post-RUN-12; **rung 2** (mutual
+    co-evolution — pushing back on the source) needs its own outward-facing ethics pass first.
+    Concordance survey (active inference, cybernetics, Game of Life, biosemiotics, AGM/TMS) in
+    [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
+
 ---
 
 ## Chosen next — tidy-up tracks (author-set 2026-06-29, paused before reference-node increment 2)

@@ -22,7 +22,10 @@ taxonomy), [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (M queried, the [pee
 [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) (given M, then G — choose, peel,
 decide), [EXEMPLARS.md](EXEMPLARS.md) §6 (the swan revision walk — *one hand-played round
 sequence of exactly this loop*), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the
-[warrant](GLOSSARY.md#warrant) floor: attest correspondence, not truth).
+[warrant](GLOSSARY.md#warrant) floor: attest correspondence, not truth),
+[BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) (2026-07-17:
+the loop mapped against the author's Minimal Predictive Automaton; design-of-record for the
+missing **action arm** — the staged path to directed engagement).
 
 > **One regime (updated 2026-07-16, sweep #2 — the second relocation).** The **live loop this
 > document designs** (`agon_evolution.run` and everything downstream) now plays over M resident

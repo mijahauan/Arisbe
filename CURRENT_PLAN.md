@@ -1,7 +1,16 @@
 # Current Plan
 
-**Last Updated**: 2026-07-17 — the NEXT SESSION block below was reviewed end-to-end this
-sitting: items 2/4/5 retired as done with their evidence, item 6's four pre-existing reds
+**Last Updated**: 2026-07-17 (second sitting) — the whole-of-Arisbe step-back: the author's
+bootstrap premise (doubt-driven chain of semiosis; the Minimal Predictive Automaton) mapped
+onto the codebase and answered in two new doc pieces — `docs/BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md`
+(design-of-record: the MPA is ~4/5 built; the missing fifth is the **action arm**, staged as
+directed-engagement rungs 0–2 with rung 1 = economy-of-research ordering, a RUN-13 candidate)
+and CONTRIBUTION_AND_PRIOR_ART §"Concordances" (active inference · cybernetics · Game of Life
+· evolutionary epistemology · biosemiotics · AGM/TMS — all previously uncited). "Arisbe as a
+proposition in a wider EPG" ruled doc-level: licensed by the FIDELITY corollary as a
+low-warrant posit (never derived, never worth), with the Pⁿ/Fⁿ run-log discipline named as
+the wider EPG already running. Earlier this sitting: the NEXT SESSION block reviewed
+end-to-end — items 2/4/5 retired as done with their evidence, item 6's four pre-existing reds
 confirmed green (full suite 3652 passed / 0 failed), item 1 (RUN 12) re-headed to its live
 leg 2, and item -5 written as the ▶ B-full prep. Items -4…0 are the completed record.
 
@@ -45,7 +54,11 @@ leg 2, and item -5 written as the ▶ B-full prep. Items -4…0 are the complete
       cost or for A3**: conservativity stops being a default-empty argument and becomes a
       real proof obligation across ν's every consumer. Core is **locked + CLEAN** (14
       protected modules; `.core_modification_authorized` absent) — a deliberate
-      re-authorization.
+      re-authorization. *Independent corroboration (2026-07-17, the graphify knowledge
+      graph):* the `RelationalGraphWithCuts` node has **degree 386 touching 77 of the
+      graph's communities** (edges overwhelmingly `uses`) — the hub-by-design measured
+      from the outside; the same blast radius the 52-module/252-site ν count names.
+      Disposed as *architecture, not anomaly* — no further chase warranted.
    3. **The author's own stated purpose has a cheaper path — call it "B-min+".** The
       mandate for crossing was *"to enable handling graphs about graphs."* The one thing
       B-min structurally refuses is **quotation-in-quotation** — and that refusal is

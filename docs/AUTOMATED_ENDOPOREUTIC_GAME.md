@@ -370,7 +370,8 @@ between the methodeutic surround and the calculus. And the outside storey is not
 `attention_brief` — a pre-move reading of M's thin spots that is *not itself a mark on the sheet* —
 is a **proto-tropism**, its irritation pole already built. The eventual directed-engagement piece
 implements the rest: the musement pole, the economy-of-research ordering of reaches, and the
-horizon as a first-class, retained register. Nothing here auto-promotes; *progression, not progress*
+horizon as a first-class, retained register — its design-of-record and staged rungs are now
+[BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3 (2026-07-17). Nothing here auto-promotes; *progression, not progress*
 (§7). *(Runs 1–2 converted this commitment into an empirically mandated build — the warm-set
 re-poll tropism, `src/tropism.py`; runs 2–3 in the Part III ledger.)*
 
