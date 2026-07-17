@@ -48,7 +48,8 @@ other names:
 | Remodeling (abduction) | `revise_with_disposition` — and the disposition taxonomy is a *structured, recorded, warranted* update rule, richer than a matrix overwrite: each revision carries its Peircean mode (induction/deduction/abduction/convention) and its executed derivation | BUILT |
 | Forgetting | Disuse-decay (`UsageLedger`, atom-level) — the MPA has no analogue; in Arisbe it is the only bound on the unbounded sheet (AUTOMATED_MODEL_DEVELOPMENT §"bounded only by selection-from-outside") | BUILT |
 | Doubt-directed attention | The irritation pole: `attention_brief` (M's thin spots), the warm-set tropism (`tropism.py`, runs 2–3), and the docket of doubts (`query_docket.py` — articulated doubt → probe) | BUILT (partially — see §2) |
-| **Action space *A*** | **Missing.** Arisbe predicts, probes, and revises — but it never *intervenes*: no reach is chosen by expected yield, and nothing pushes back on the source | NOT BUILT |
+| **Growth of *S* and *A* themselves** | *S* grows: open-vocabulary membranes, label resolution turning opaque ids legible, the horizon promoting the not-yet-legible; *A* grows: the crawl growing its own frontier, the docket's Q-tiers shrinking `inexpressible`; the **sign-space** grows: the alphabet widening under INS, hypostatic abstraction at B-min | PARTIAL (see §1.1) |
+| **Action space *A* (exercised)** | **Missing.** Arisbe predicts, probes, and revises — but it never *intervenes*: no reach is chosen by expected yield, and nothing pushes back on the source | NOT BUILT |
 
 Three places where Arisbe's shape is *deliberately richer* than the automaton, worth
 keeping: the three-valued verdict (UNKNOWN ≠ doubt — an open-world abstention the
@@ -60,6 +61,46 @@ disposition** ("outcomes are negotiable, not determined" —
 AUTOMATED_MODEL_DEVELOPMENT §1, which carries the full Game-of-Life correspondence and
 its instructive breaks: death = relinquishment/decay, and the bounded plane vs. the
 unbounded sheet bounded only by selection from outside).
+
+### 1.1 · Finite, not fixed — action changes the spaces themselves
+
+The author's clarification (2026-07-17, second sitting): the MPA's *S* and *A* are finite
+for practical sense, but **finite need not mean fixed** — and the interesting part of the
+bootstrap centers exactly there: **the automaton's action results in a change in both
+spaces.** A sketch whose *S* and *A* are frozen a-priori architecture can converge but
+cannot *develop*; a system whose acting wins it new distinctions to sense and new probes
+to make is the one whose chain of semiosis actually unfolds. This is the reflexive loop
+predictive processing calls **structure learning** (model *expansion*, not parameter
+update) — and it is Peirce before it is Friston: *symbols grow* — "they come into being
+by development out of other signs" (CP 2.302). A new sign is simultaneously a new sensor
+(a distinction the system can now register) and a new actuator (a probe it can now voice).
+
+Arisbe already grows all three spaces, each by a named mechanism, each **bounded by
+selection** rather than frozen:
+
+- ***S* grows** — the membranes are open-vocabulary by design (a required property of a
+  good membrane, AUTOMATED_ENDOPOREUTIC_GAME §4b); label resolution turns opaque ids into
+  legible names; and the **horizon** is precisely the staging area for sensor-space
+  growth — what came back not-yet-legible, retained until legibility improves (which is
+  why rung 1 makes it a first-class register: it is where tomorrow's *S* waits).
+- ***A* grows** — the crawl grows its own frontier from what it finds
+  (`RotatingWikidataSource.crawl`: entity-valued answers become new probeable entities);
+  the docket's Q2/Q3 tiers exist to shrink `inexpressible`, i.e. to make previously
+  unvoiceable wants voiceable — action-space growth as an explicit design goal.
+- **The sign-space grows** — the alphabet widens under lawful INS (a rule application can
+  introduce vocabulary); and the second-order crossing at B-min is sign-space growth in
+  its strongest form: **hypostatic abstraction turns yesterday's predicate into today's
+  subject** — a thing the system could only *say* becomes a thing it can *address, probe,
+  and quote*. The crossing is not a separate research thread from the bootstrap; it is
+  the bootstrap's third axis.
+
+**The guard, one level up.** Growing spaces re-create the unbounded-sheet problem for the
+spaces themselves, and the same answer applies: growth must be **selected, not merely
+accreted** — the frontier caps with drops *counted* (`frontier_cap`, `per_entity_cap`),
+the negative label cache, and disuse-decay are to *S* and *A* what decay is to M. A
+directed-engagement design (§3) that lets action enlarge the spaces must inherit this
+discipline: every growth channel carries a bound, and everything dropped at a bound is
+counted, never silently truncated.
 
 ## 2 · What the bootstrap still lacks — and the Peircean warrant for building it
 
@@ -129,7 +170,8 @@ mechanical priority with a cost/yield ordering, and widen what feeds it:
   to keep variation alive (the annealing/boredom-detector idea of
   AUTOMATED_ENDOPOREUTIC_GAME Part I §4 item 4).
 - Make the **horizon** a first-class, retained register (what came back not-yet-legible,
-  kept and re-attempted as legibility improves) rather than a per-poll report field.
+  kept and re-attempted as legibility improves — the sensor-space growth register of
+  §1.1) rather than a per-poll report field.
 
 **Rung 2 — mutual co-evolution (pushing back).** The full functional circle: M's contested
 frontier surfaced *to the source* — e.g. suggested edits / flagged inconsistencies offered
