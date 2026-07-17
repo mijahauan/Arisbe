@@ -29,10 +29,12 @@ arithmetic world is the falsifiable harness.
 Geometry-free, unprotected, no imports from web/layout.
 
 **`Want`** (dataclass): `kind: str` (e.g. `"docket"`, `"frontier"`, `"musement"`, or a
-world-specific kind like `"extend_range"`, `"counterexample_hunt"`, `"confirm_low"`,
-`"coin"`), `key: tuple` (identity for dedup), `payload: Any` (world-opaque), `cost: float`
-(declared by the source/world; default 1.0), `created_round: int`, `attempts: int`,
-`last_yield_round: Optional[int]`.
+world-specific kind like `"extend"`, `"hunt"`, `"confirm"`), `key: tuple` (identity for
+dedup), `payload: Any` (world-opaque), `cost: float` (declared by the source/world;
+default 1.0), `severity: float` (default 1.0 — the epistemic weight of the want's
+*shape*: testing a standing universal settles more than another particular, so the world
+declares e.g. severity 8.0 for law-instance hunts; the Peircean value-of-knowledge term
+in the economy of research), `created_round: int`, `attempts: int`.
 
 **`AttentionEconomy`**:
 - `register(want)` — dedup by `(kind, key)`; bounded register (`max_wants`, drops counted
@@ -47,7 +49,7 @@ world-specific kind like `"extend_range"`, `"counterexample_hunt"`, `"confirm_lo
     probe of that kind (decay factor `yield_decay`, default 0.8). Yield events (fed via
     `observe`): a refutation/counterexample, an M-changing disposition, a docket
     settlement attributable to the probe.
-  - Score = `(Y[kind] + prior) / want.cost`, `prior` small (default 0.05) so an unprobed
+  - Score = `severity * (Y[kind] + prior) / want.cost`, `prior` small (default 0.05) so an unprobed
     kind is explorable but cannot outrank a proven one. Per-want attempt penalty:
     score × `attempt_decay**attempts` (default 0.7) — a want re-probed without yield
     sinks (the noisy-TV guard at want granularity; `Y[kind]` decay is the guard at kind
