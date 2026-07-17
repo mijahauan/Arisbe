@@ -1,7 +1,7 @@
 {
   "Cut": [
     {
-      "id": "c_c68d7f2b"
+      "id": "c_6ab13130"
     },
     {
       "id": "c_if_inner_10"
@@ -43,10 +43,10 @@
       "id": "c_not_2"
     },
     {
-      "id": "cut_9bd4252b"
+      "id": "cut_11ce80c4"
     },
     {
-      "id": "cut_f7d7f220"
+      "id": "cut_be98cbe1"
     }
   ],
   "E": [
@@ -108,22 +108,19 @@
       "id": "e_broader_10"
     },
     {
+      "id": "e_broader_24"
+    },
+    {
       "id": "e_broader_25"
+    },
+    {
+      "id": "e_broader_27"
     },
     {
       "id": "e_broader_28"
     },
     {
-      "id": "e_broader_30"
-    },
-    {
       "id": "e_broader_31"
-    },
-    {
-      "id": "e_broader_32"
-    },
-    {
-      "id": "e_inScheme_24"
     },
     {
       "id": "e_inScheme_26"
@@ -132,10 +129,13 @@
       "id": "e_inScheme_29"
     },
     {
-      "id": "e_inScheme_33"
+      "id": "e_inScheme_30"
     },
     {
-      "id": "e_inScheme_34"
+      "id": "e_inScheme_32"
+    },
+    {
+      "id": "e_inScheme_33"
     },
     {
       "id": "e_related_12"
@@ -144,7 +144,7 @@
       "id": "e_related_13"
     },
     {
-      "id": "e_related_27"
+      "id": "e_related_34"
     },
     {
       "id": "e_related_8"
@@ -265,7 +265,7 @@
   ],
   "alphabet": null,
   "area": {
-    "c_c68d7f2b": [
+    "c_6ab13130": [
       "c_if_outer_11",
       "c_if_outer_3",
       "c_if_outer_5",
@@ -281,17 +281,17 @@
       "e_Concept_21",
       "e_Concept_22",
       "e_Concept_23",
+      "e_broader_24",
       "e_broader_25",
+      "e_broader_27",
       "e_broader_28",
-      "e_broader_30",
       "e_broader_31",
-      "e_broader_32",
-      "e_inScheme_24",
       "e_inScheme_26",
       "e_inScheme_29",
+      "e_inScheme_30",
+      "e_inScheme_32",
       "e_inScheme_33",
-      "e_inScheme_34",
-      "e_related_27",
+      "e_related_34",
       "v_Animal",
       "v_Carnivore",
       "v_Cat",
@@ -362,13 +362,13 @@
       "e_ConceptScheme_5",
       "v_x9"
     ],
-    "cut_9bd4252b": [],
-    "cut_f7d7f220": [
-      "c_c68d7f2b",
-      "cut_9bd4252b"
+    "cut_11ce80c4": [
+      "c_6ab13130",
+      "cut_be98cbe1"
     ],
-    "sheet_b679a64f": [
-      "cut_f7d7f220"
+    "cut_be98cbe1": [],
+    "sheet_722c627d": [
+      "cut_11ce80c4"
     ]
   },
   "nu": {
@@ -435,44 +435,44 @@
       "v_x12",
       "v_y12"
     ],
+    "e_broader_24": [
+      "v_Dog",
+      "v_Carnivore"
+    ],
     "e_broader_25": [
+      "v_Cat",
+      "v_Carnivore"
+    ],
+    "e_broader_27": [
       "v_Carnivore",
       "v_Mammal"
     ],
     "e_broader_28": [
-      "v_Wolf",
-      "v_Carnivore"
-    ],
-    "e_broader_30": [
       "v_Mammal",
       "v_Animal"
     ],
     "e_broader_31": [
-      "v_Cat",
+      "v_Wolf",
       "v_Carnivore"
-    ],
-    "e_broader_32": [
-      "v_Dog",
-      "v_Carnivore"
-    ],
-    "e_inScheme_24": [
-      "v_Dog",
-      "v_animals"
     ],
     "e_inScheme_26": [
-      "v_Cat",
+      "v_Carnivore",
       "v_animals"
     ],
     "e_inScheme_29": [
-      "v_Wolf",
+      "v_Dog",
       "v_animals"
     ],
-    "e_inScheme_33": [
+    "e_inScheme_30": [
+      "v_Cat",
+      "v_animals"
+    ],
+    "e_inScheme_32": [
       "v_Mammal",
       "v_animals"
     ],
-    "e_inScheme_34": [
-      "v_Carnivore",
+    "e_inScheme_33": [
+      "v_Wolf",
       "v_animals"
     ],
     "e_related_12": [
@@ -483,7 +483,7 @@
       "v_y13",
       "v_x13"
     ],
-    "e_related_27": [
+    "e_related_34": [
       "v_Dog",
       "v_Wolf"
     ],
@@ -520,23 +520,23 @@
     "e_broaderTransitive_16": "broaderTransitive",
     "e_broaderTransitive_6": "broaderTransitive",
     "e_broader_10": "broader",
+    "e_broader_24": "broader",
     "e_broader_25": "broader",
+    "e_broader_27": "broader",
     "e_broader_28": "broader",
-    "e_broader_30": "broader",
     "e_broader_31": "broader",
-    "e_broader_32": "broader",
-    "e_inScheme_24": "inScheme",
     "e_inScheme_26": "inScheme",
     "e_inScheme_29": "inScheme",
+    "e_inScheme_30": "inScheme",
+    "e_inScheme_32": "inScheme",
     "e_inScheme_33": "inScheme",
-    "e_inScheme_34": "inScheme",
     "e_related_12": "related",
     "e_related_13": "related",
-    "e_related_27": "related",
+    "e_related_34": "related",
     "e_related_8": "related",
     "e_semanticRelation_7": "semanticRelation",
     "e_semanticRelation_9": "semanticRelation"
   },
   "rho": {},
-  "sheet": "sheet_b679a64f"
+  "sheet": "sheet_722c627d"
 }

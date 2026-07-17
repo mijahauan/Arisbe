@@ -1,0 +1,19 @@
+{
+  "uod_id": "episode_discharge",
+  "uod_type": "historical",
+  "name": "An EPG episode, entertained and discharged in ink",
+  "description": "The Endoporeutic Game episode conducted wholly as licensed rule applications inside the standing residence (M_RESIDENCE \u00a710). ENTERTAIN builds the premise 'if M then P' as ink \u2014 DC+ in M's even area (the episode theorem: an EPG episode requires its DC+ in an even context at depth \u2265 2 \u2014 an odd area gives no arena, and at depth 0 the discharge is unreachable by rule), IT+ of M (identity-preserved premise), INS of ~[P] \u2014 with the empty inner cut as the vacuity rider, so the contingent conditional stands forceless while contested. A recorded PEEL confirms P against the materialized M. DISCHARGE_TO_M is drawn modus ponens \u2014 IT\u2212 of the premise copies, IT\u2212 of the rider against the standing hold, DC\u2212 \u2014 landing P in the agreed content, derived, never inserted. Because the standing hold is \u22a5 in scope (the \u22a5-door), this sequence is licensed whether or not the episode was confirmed \u2014 so under ruling (b) the discharge step must CITE its confirming peel, and the polarity gate re-asserts the citation and refuses any silent M-change (the m_view tripwire). The chain reads THEOREMATIC: scribing the candidate is Peirce's auxiliary line.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

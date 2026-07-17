@@ -213,3 +213,86 @@ class TestTrajectory:
             subgraph_egif=LAW)
         r2 = peel_step(pc, PROPOSAL, closed=True)
         assert r2.verdict.value == "false"
+
+
+class TestEpisodeSteps:
+    """The episode step vocabulary (M_RESIDENCE §10, ruling (b)): ENTERTAIN /
+    DISCHARGE_TO_M / ABANDON_EPISODE — the calculus licenses, the citation
+    earns."""
+
+    M0 = '(dog "Rex") ~[ (dog *x) ~[ (mammal x) ] ]'
+    P = '(mammal "Rex")'
+
+    def _chain(self):
+        wrapped, _ = wrap_m(parse_egif(self.M0))
+        return ProofChain(wrapped)
+
+    def test_entertain_records_the_exhibit(self):
+        from m_steps import entertain_step
+        pc = self._chain()
+        entertain_step(pc, self.P)
+        step = pc.to_chain().steps[-1]
+        assert step.rule_name == "ENTERTAIN"
+        assert step.parameters["act"] == "episode_entertained"
+        d = step.parameters["derivation"]
+        assert d[0] == "DC+" and d[-1] == "INS"
+        # the exhibit is forceless: the standing verdict of P is unchanged
+        # (m_view carries the vacuous ink; the materializer skips it)
+
+    def test_discharge_refuses_without_a_confirming_peel(self):
+        from m_steps import discharge_step, entertain_step
+        pc = self._chain()
+        entertain_step(pc, self.P)
+        with pytest.raises(ValueError, match="refuses"):
+            discharge_step(pc, self.P)
+
+    def test_discharge_cites_the_peel_and_lands_p(self):
+        from egif_generator_dau import generate_egif
+        from m_steps import discharge_step, entertain_step
+        pc = self._chain()
+        entertain_step(pc, self.P)
+        peel_step(pc, self.P, closed=True)
+        peel_id = pc.to_chain().steps[-1].step_id
+        discharge_step(pc, self.P)
+        step = pc.to_chain().steps[-1]
+        assert step.rule_name == "DISCHARGE_TO_M"
+        assert step.parameters["act"] == "m_discharge"
+        assert step.parameters["confirmed_by"] == peel_id
+        assert step.parameters["derivation"][-1] == "DC-"
+        view = parse_egif(generate_egif(m_view(pc.current)))
+        assert nav.same_graph(view, parse_egif(f'{self.M0} {self.P}'))
+        # the discharged fact STANDS: an unmaterialized peel now reads true
+        r = peel_step(pc, self.P, closed=True, materialize=False)
+        assert r.verdict.value == "true"
+
+    def test_discharge_refuses_a_false_or_mismatched_citation(self):
+        from m_steps import discharge_step, entertain_step
+        pc = self._chain()
+        entertain_step(pc, self.P)
+        peel_step(pc, '(dog "Rex")', closed=True)      # true, but a DIFFERENT proposal
+        with pytest.raises(ValueError, match="refuses"):
+            discharge_step(pc, self.P)
+
+    def test_discharged_chain_reads_theorematic(self):
+        """ENTERTAIN scribes the candidate — Peirce's auxiliary line — so the
+        chain is theorematic deduction, never opaque and never ampliative."""
+        from m_steps import discharge_step, entertain_step
+        pc = self._chain()
+        entertain_step(pc, self.P)
+        peel_step(pc, self.P, closed=True)
+        discharge_step(pc, self.P)
+        ch = character_of_chain(pc.to_chain())
+        assert ch.character == "theorematic"
+        assert not ch.opaque_steps
+
+    def test_abandon_records_one_era(self):
+        from egif_generator_dau import generate_egif
+        from m_steps import abandon_step, entertain_step
+        pc = self._chain()
+        entertain_step(pc, '(mammal "Nemo")')
+        abandon_step(pc, '(mammal "Nemo")', reason="refuted")
+        step = pc.to_chain().steps[-1]
+        assert step.rule_name == "ABANDON_EPISODE"
+        assert step.parameters["derivation"] == ["ERA"]
+        assert nav.same_graph(
+            parse_egif(generate_egif(m_view(pc.current))), parse_egif(self.M0))

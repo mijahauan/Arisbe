@@ -114,9 +114,10 @@ def test_m_resides_in_a_standing_world_scroll(tomos, uod_id):
 # 2 · explicit steps for M-modification                                        #
 # --------------------------------------------------------------------------- #
 
-M_ACTS = ("m_enlargement", "m_retraction", "m_revision", "world_withdrawal")
+M_ACTS = ("m_enlargement", "m_retraction", "m_revision", "world_withdrawal",
+          "m_discharge", "episode_entertained", "episode_abandoned", "m_refold")
 M_RULES = ("REVISE_M", "REVISE_M(sibling)", "ADMIT_TO_M", "RETRACT_FROM_M",
-           "DECAY")
+           "DECAY", "ENTERTAIN", "DISCHARGE_TO_M", "ABANDON_EPISODE")
 
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
@@ -142,6 +143,16 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
         if p.get("act") == "world_withdrawal":
             assert p.get("derivation") == ["ERA", "DC+", "INS"], (
                 f"{uod_id}/{step.step_id}: withdrawal without the executed triple")
+        if p.get("act") == "episode_entertained":
+            d = p.get("derivation")
+            assert d and d[0] == "DC+" and d[-1] == "INS", (
+                f"{uod_id}/{step.step_id}: entertain without its executed "
+                f"DC+·IT+·INS derivation — got {d!r}")
+        if p.get("act") == "m_discharge":
+            d = p.get("derivation")
+            assert d and d[-1] == "DC-" and set(d[:-1]) == {"IT-"}, (
+                f"{uod_id}/{step.step_id}: discharge without its executed "
+                f"IT-·…·DC- derivation — got {d!r}")
         if step.rule_name in M_RULES and p.get("act") not in M_ACTS:
             pytest.fail(f"{uod_id}/{step.step_id}: an M-change with no act record")
 
@@ -164,6 +175,89 @@ def test_declared_audit_proposals_have_recorded_peel_steps(tomos, uod_id):
     assert peels or loop_rounds, (
         f"{uod_id} declares an audit-proposal but records neither PEEL steps "
         f"nor loop-round proposals")
+
+
+@pytest.mark.parametrize("uod_id", _m_bearing_ids())
+def test_discharges_cite_a_confirming_peel(tomos, uod_id):
+    """Ruling (b), M_RESIDENCE §10 — the ⊥-door discipline: the calculus
+    licenses a discharge unconditionally, so the *earning* rides on the record.
+    Every ``m_discharge`` step must cite an earlier PEEL of the same proposal
+    in its own chain whose recorded verdict is *true* (and every recorded peel
+    already recomputes — test 3 below)."""
+    from eg_navigation import same_graph
+    chain, _ = _chain_states(tomos, uod_id)
+    if chain is None:
+        pytest.skip("static board with no chain")
+    discharges = [s for s in chain.steps
+                  if (s.parameters or {}).get("act") == "m_discharge"]
+    if not discharges:
+        pytest.skip("no discharge steps")
+    by_id = {s.step_id: (i, s) for i, s in enumerate(chain.steps)}
+    for step in discharges:
+        p = step.parameters
+        cite_id = p.get("confirmed_by")
+        assert cite_id and cite_id in by_id, (
+            f"{uod_id}/{step.step_id}: a discharge with no confirming citation")
+        cite_idx, cite = by_id[cite_id]
+        cp = cite.parameters or {}
+        assert cite_idx < by_id[step.step_id][0], (
+            f"{uod_id}/{step.step_id}: the citation does not precede the discharge")
+        assert cp.get("act") == "peel" and cp.get("verdict") == "true", (
+            f"{uod_id}/{step.step_id}: the cited step is not a confirming peel")
+        assert same_graph(parse_egif(cp["proposal_egif"]),
+                          parse_egif(p["proposal_egif"])), (
+            f"{uod_id}/{step.step_id}: the cited peel confirms a DIFFERENT proposal")
+
+
+@pytest.mark.parametrize("uod_id", _m_bearing_ids())
+def test_m_content_never_changes_silently(tomos, uod_id):
+    """The m_view tripwire (M_RESIDENCE §10, ruling (b)): any chain step that
+    changes M's content — ``m_view`` before vs after — must be an acknowledged
+    act. This is what keeps the ⊥-door visible: the licence alone can put
+    arbitrary ink into the agreed context, so an *unrecorded* M-change is
+    refused at the gate, whatever rules produced it."""
+    from eg_navigation import same_graph
+    chain, _ = _chain_states(tomos, uod_id)
+    if chain is None:
+        pytest.skip("static board with no chain")
+    for step in chain.steps:
+        before = chain.states.get(step.from_state_id)
+        after = chain.states.get(step.to_state_id)
+        if before is None or after is None:
+            continue
+        if same_graph(m_view(before), m_view(after)):
+            continue
+        act = (step.parameters or {}).get("act")
+        assert act in M_ACTS, (
+            f"{uod_id}/{step.step_id}: M's content changed with no acknowledged "
+            f"act (rule {step.rule_name!r}, act {act!r}) — a silent M-change")
+
+
+def test_the_tripwire_bites_on_a_silent_m_change():
+    """The falsifier that earns the tripwire: a chain that changes M's content
+    through the ⊥-door (or any raw rule path) WITHOUT an acknowledged act is
+    exactly what the gate refuses. Built by hand; must be flagged."""
+    from eg_navigation import same_graph
+    from proof_authoring import ProofChain, apply_rule
+    from world_scroll import _fresh_double_cut, wrap_m
+
+    def bottom_door(g):
+        scroll = find_world_scroll(g)
+        g, outer, rider = _fresh_double_cut(g, scroll.cell_ids[0])
+        g = apply_rule("INS", g, egif='~[ (unicorn "Q") ]', target=outer)
+        g = apply_rule("IT-", g, selection=[rider])
+        return apply_rule("DC-", g, selection=[outer])
+
+    pc = ProofChain(wrap_m(parse_egif('(dog "Rex")'))[0])
+    pc.apply_derived("NOODLE", bottom_door, note="a silent, licensed M-change")
+    chain = pc.to_chain()
+    flagged = [
+        s for s in chain.steps
+        if not same_graph(m_view(chain.states[s.from_state_id]),
+                          m_view(chain.states[s.to_state_id]))
+        and (s.parameters or {}).get("act") not in M_ACTS
+    ]
+    assert flagged, "the tripwire failed to flag a silent M-change"
 
 
 # --------------------------------------------------------------------------- #

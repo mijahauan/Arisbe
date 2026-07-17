@@ -62,6 +62,10 @@ def _uod(uod_id: str, name: str, description: str, egif: str):
                   "the negative arena, the content lands at even depth "
                   "(in-context agreement), and nothing contingent stands at "
                   "depth 0.")
+    # the supply is the initial admission — acknowledged as an act (the gate's
+    # m_view tripwire refuses silent M-changes)
+    pc.to_chain().steps[-1].parameters.update(
+        {"act": "m_enlargement", "earned": True, "derivation": ["INS"]})
     return pc.to_uod(uod_id=uod_id, name=name, description=description,
                      category=UoDCategory.DOMAIN_MODEL, created=_WHEN)
 

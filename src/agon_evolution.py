@@ -639,6 +639,10 @@ def run(
                           "is sound in the negative arena, and the content "
                           "lands at even depth where retraction is a "
                           "licensed ERA.")
+            # the supply is the initial admission — acknowledged as an act so
+            # the gate's m_view tripwire never reads it as a silent M-change
+            pc.to_chain().steps[-1].parameters.update(
+                {"act": "m_enlargement", "earned": True, "derivation": ["INS"]})
     else:
         pc = ProofChain.from_egif(model_egif)
     mat = materializer if materializer is not None else IncrementalMaterializer()

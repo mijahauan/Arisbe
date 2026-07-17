@@ -95,6 +95,16 @@ AMPLIATIVE_RULES = frozenset({
 # scribing one is an act, not an inference.
 NEUTRAL_RULES = frozenset({"PEEL", "QUOTE"})
 
+# Derived episode steps whose expansions ARE visible (M_RESIDENCE §10, the
+# episode lifecycle in ink — each records its executed derivation):
+# ENTERTAIN scribes the candidate into the exhibit (its recorded expansion
+# contains the INS) — Peirce's auxiliary line, so it counts as an insertion
+# and a discharged chain reads THEOREMATIC, exactly right for "experiment
+# upon the diagram". DISCHARGE_TO_M (IT-·IT-·DC-) and ABANDON_EPISODE (ERA)
+# expand to content-preserving moves only — transparent, never opaque.
+THEOREMATIC_RULES = frozenset({"ENTERTAIN"})
+TRANSPARENT_DERIVED = frozenset({"DISCHARGE_TO_M", "ABANDON_EPISODE"})
+
 COROLLARIAL = "corollarial"
 THEOREMATIC = "theorematic"
 AMPLIATIVE = "ampliative"
@@ -172,8 +182,12 @@ def character_of(steps: Sequence) -> ProofCharacter:
         if rule in AMPLIATIVE_RULES:
             # Not deduction at all — the model was CHANGED, not unfolded.
             ampliative.append(sid)
-        elif rule in CONTENT_ADDING:
+        elif rule in THEOREMATIC_RULES or rule in CONTENT_ADDING:
             insertions.append(sid)
+        elif rule in TRANSPARENT_DERIVED:
+            # A derived step whose recorded expansion is wholly
+            # content-preserving (IT-/DC-/ERA) — visible, never opaque.
+            continue
         elif rule not in CONTENT_PRESERVING or _is_derived(s):
             # A derived/composite step (or an unknown rule) may expand into
             # primitives we cannot see — including an insertion. Never assume.
@@ -203,4 +217,5 @@ __all__ = [
     "ProofCharacter", "character_of", "character_of_chain",
     "COROLLARIAL", "THEOREMATIC", "AMPLIATIVE",
     "CONTENT_ADDING", "CONTENT_PRESERVING", "AMPLIATIVE_RULES", "NEUTRAL_RULES",
+    "THEOREMATIC_RULES", "TRANSPARENT_DERIVED",
 ]

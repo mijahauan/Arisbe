@@ -352,3 +352,82 @@ class TestLayoutAndAttestation:
         revised, _ = retract_from_m(bigger, relation="black")  # scar stands
         dto = ELKLayoutEngine().generate_layout(revised, load_default_style())
         attest_correspondence(revised, dto)
+
+
+class TestEpisode:
+    """The EPG episode lifecycle in ink (M_RESIDENCE §10): entertain (DC+ ·
+    IT+ · INS behind the vacuity rider), discharge (drawn modus ponens —
+    IT− · IT− · DC−), abandon (one ERA). And the episode theorem: the DC+
+    must land in an even context at depth ≥ 2 — at depth 0 the discharge is
+    unreachable by rule."""
+
+    M0 = '(dog "Rex") ~[ (dog *x) ~[ (mammal x) ] ]'
+    P = '(mammal "Rex")'
+
+    def _entertained(self):
+        from world_scroll import entertain_episode
+        g, _ = wrap_m(parse_egif(self.M0))
+        g, derivation = entertain_episode(g, self.P)
+        return g, derivation
+
+    def test_entertain_builds_the_vacuous_exhibit(self):
+        g, derivation = self._entertained()
+        assert derivation[0] == "DC+" and derivation[-1] == "INS"
+        assert all(d == "IT+" for d in derivation[1:-1]) and len(derivation) >= 3
+        scroll = find_world_scroll(g)
+        assert scroll is not None and is_ligature_closed(g, scroll)
+
+    def test_discharge_is_drawn_modus_ponens(self):
+        from world_scroll import discharge_episode
+        g, _ = self._entertained()
+        g, derivation = discharge_episode(g, self.P)
+        assert derivation[-1] == "DC-"
+        assert all(d == "IT-" for d in derivation[:-1])
+        # P stands at the level of the original M (round-trip unifies the
+        # discharged constant's fresh vertex with the standing one)
+        view = parse_egif(generate_egif(m_view(g)))
+        assert nav.same_graph(view, parse_egif(f'{self.M0} {self.P}'))
+
+    def test_abandon_is_one_era_and_m_unchanged(self):
+        from world_scroll import abandon_episode
+        g, _ = self._entertained()
+        g, derivation = abandon_episode(g, self.P)
+        assert derivation == ["ERA"]
+        assert nav.same_graph(parse_egif(generate_egif(m_view(g))),
+                              parse_egif(self.M0))
+
+    def test_discharge_refuses_without_an_exhibit(self):
+        from world_scroll import discharge_episode
+        g, _ = wrap_m(parse_egif(self.M0))
+        with pytest.raises(ValueError, match="entertain it first"):
+            discharge_episode(g, self.P)
+
+    def test_the_bottom_door_is_licensed_but_visible(self):
+        """The ⊥-door (M_RESIDENCE §10): with the standing hold in scope, four
+        licensed moves scribe ARBITRARY content into M — which is exactly why
+        ruling (b) puts the earning in the record (the gate's m_view tripwire
+        and discharge citation), never in the licence."""
+        from proof_authoring import apply_rule
+        from world_scroll import _fresh_double_cut
+        g, scroll = wrap_m(parse_egif(self.M0))
+        cell = scroll.cell_ids[0]
+        g, outer, rider = _fresh_double_cut(g, cell)          # DC+
+        g = apply_rule("INS", g, egif='~[ (unicorn "Q") ]', target=outer)
+        g = apply_rule("IT-", g, selection=[rider])           # rider ⇠ hold
+        g = apply_rule("DC-", g, selection=[outer])
+        view = parse_egif(generate_egif(m_view(g)))
+        assert nav.same_graph(
+            view, parse_egif(f'{self.M0} (unicorn "Q")'))     # licensed, uncontested
+
+    def test_the_episode_theorem_depth_zero_discharge_is_unreachable(self):
+        """At depth 0 (the sheet — even, but outside the residence) the arena's
+        vacuity rider has NO standing empty cut in an enclosing area, so its
+        deiteration is refused and the discharge can never fire: 'no
+        unconditioned posit' enforced by rule-reachability (M_RESIDENCE §10)."""
+        from proof_authoring import apply_rule
+        from world_scroll import _fresh_double_cut
+        g, _ = wrap_m(parse_egif(self.M0))
+        g, outer, rider = _fresh_double_cut(g, g.sheet)       # sheet-level arena
+        g = apply_rule("INS", g, egif='~[ (unicorn "Q") ]', target=outer)
+        with pytest.raises(AssertionError):
+            apply_rule("IT-", g, selection=[rider])           # nothing licenses it

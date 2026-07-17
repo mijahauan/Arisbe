@@ -1,6 +1,35 @@
 # Current Plan
 
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+-4. **✅ BUILT 2026-07-16 (same sitting as sweep #2) — THE EPISODE LIFECYCLE IN
+   INK + RULING (b) (M_RESIDENCE §10; the author's construction).** An EPG
+   episode conducted wholly as licensed rules inside the residence:
+   `ENTERTAIN` ("if M then P" = DC+ in M's even area · IT+ of M · INS of
+   `~[P]`, the empty inner cut = the VACUITY RIDER keeping the exhibit
+   forceless) → a recorded PEEL confirms → `DISCHARGE_TO_M` (the author's
+   outbound path = drawn modus ponens: IT− the M′ copies · IT− the rider
+   against the standing hold · DC− — P lands in M *derived, never inserted*;
+   FIDELITY §3b corollary 3 realized) · `ABANDON_EPISODE` (one ERA) for the
+   refuted case. **The episode theorem** (the author's conjecture, confirmed +
+   machine-checked): an EPG episode requires its DC+ in an even context at
+   depth ≥ 2 — parity gives the arena only from even areas; IT+ identifies M
+   only within M's area; and at depth 0 the discharge is UNREACHABLE (no
+   standing empty cut encloses a sheet-level arena — soundness forbids ⊥ at
+   the world's level: "no unconditioned posit" enforced by rule-reachability;
+   falsifier test pins the engine's refusal). **The ⊥-door named**: the hold
+   is ⊥ in scope, so four licensed moves scribe ARBITRARY content into M —
+   licence ≠ certification. **Author's ruling (b): keep the calculus pure;
+   the earning rides on the record** — `discharge_step` refuses without a
+   confirming PEEL to cite; the gate re-asserts every citation AND gained the
+   **m_view tripwire** (any chain step changing M's content must carry an
+   acknowledged act; silent-⊥-door falsifier bites); all m_view-changing
+   supply steps corpus-wide tagged `act` (builders + the loop's entry INS).
+   proof_character: ENTERTAIN = a known insertion (the auxiliary line —
+   discharged chains read THEOREMATIC), DISCHARGE/ABANDON transparent-derived.
+   Exemplar `episode_discharge` (absent → derived-only → STANDING; the
+   materializer's ephemeral closure vs the registered theorem). Declined
+   knowingly: closing the door mechanically (hold opaque to IT±) — special
+   notation by rule, against D3/§7b.
 -3. **✅ BUILT 2026-07-16 (sixth sitting) — SWEEP #2, THE SECOND RELOCATION OF M
    (M_RESIDENCE §9, verdicts D1–D6; §9's status note carries the full record).**
    M's elements now reside in per-admission cells at even depth beside the hold

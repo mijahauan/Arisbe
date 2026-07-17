@@ -460,6 +460,160 @@ def retract_from_m(
     return g, derivation
 
 
+def _fresh_double_cut(egi: RelationalGraphWithCuts, area: ElementID
+                      ) -> Tuple[RelationalGraphWithCuts, ElementID, ElementID]:
+    """DC+ into ``area``; returns (graph, outer_cut_id, inner_cut_id)."""
+    from presentation_ops import cut_parents
+    before = {c.id for c in egi.Cut}
+    g = apply_rule("DC+", egi, target=area)
+    fresh = [c.id for c in g.Cut if c.id not in before]
+    parents = cut_parents(g)
+    outer = next(c for c in fresh if parents.get(c) == area)
+    inner = next(c for c in fresh if c != outer)
+    return g, outer, inner
+
+
+def _find_exhibit(
+    egi: RelationalGraphWithCuts,
+    scroll: WorldScroll,
+    proposal_egif: str,
+) -> Tuple[ElementID, ElementID, ElementID, List[ElementID]]:
+    """Locate a standing episode exhibit for ``proposal_egif``: a cut in some
+    cell's area whose own area holds an empty cut (the rider), a cut whose
+    subtree is ``same_graph`` to ``~[ proposal ]`` (the entertained candidate),
+    and (possibly) the iterated M′ copies. Returns
+    ``(host_cell, outer, rider, copy_ids)`` or raises ``ValueError``."""
+    def _matches(c: ElementID, shape) -> bool:
+        # a cut whose subtree is not self-contained (an iterated copy's line
+        # of identity reaching an outside vertex) simply never matches — the
+        # same guard as quotation_overlay.find_cut_matching
+        try:
+            return nav.same_graph(_lift_cut(egi, c), shape)
+        except Exception:
+            return False
+
+    shape = parse_egif(f"~[ {proposal_egif.strip()} ]")
+    for cell in scroll.cell_ids:
+        for outer in nav.child_cuts(egi, cell):
+            inner_cuts = nav.child_cuts(egi, outer)
+            riders = [c for c in inner_cuts if not egi.get_area(c)]
+            cands = [c for c in inner_cuts
+                     if egi.get_area(c) and _matches(c, shape)]
+            if not riders or not cands:
+                continue
+            rider, cand = riders[0], cands[0]
+            copies = [x for x in egi.get_area(outer)
+                      if x not in (rider, cand)
+                      and x not in {v.id for v in egi.V}]
+            return cell, outer, rider, sorted(copies)
+    raise ValueError(
+        f"no standing episode exhibit for {proposal_egif!r} — entertain it first")
+
+
+def entertain_episode(
+    egi: RelationalGraphWithCuts, proposal_egif: str, *,
+    cell: Optional[ElementID] = None,
+) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """**Entertain "if M then P" as ink** (M_RESIDENCE §10): inside the agreed
+    context (a cell's area, even depth) build the episode exhibit
+
+        ~[  M′  ~[ P ]  ~[ ]  ]
+
+    by three licensed moves — **DC+** (the arena, odd, + the empty inner cut),
+    **IT+** of the host cell's content into the arena (inward — the premise is
+    M's own ink, identity-preserved), **INS** of ``~[ P ]`` into the negative
+    arena. The empty inner cut is the **vacuity rider**: it keeps the pending
+    exhibit vacuously true, so the contingent conditional is *entertained*,
+    drawn and contestable, while the standing structure asserts nothing.
+
+    Returns the new graph and the executed derivation
+    ``["DC+", "IT+"×k, "INS"]``. ``cell`` picks the host (default: the first
+    cell); under per-admission cells the iterated premise is the *host cell's*
+    content — the episode names which agreed batch it draws on."""
+    scroll = find_world_scroll(egi)
+    if scroll is None:
+        raise ValueError("no standing world-scroll — M is not resident")
+    if not scroll.cell_ids:
+        raise ValueError("the residence has no cells — nothing to entertain against")
+    host = cell if cell is not None else sorted(scroll.cell_ids)[0]
+    if host not in scroll.cell_ids:
+        raise ValueError(f"{host!r} is not a cell of the residence")
+
+    g, outer, _inner = _fresh_double_cut(egi, host)
+    derivation = ["DC+"]
+    # Iterate the host cell's top-level edges and cuts into the arena (vertices
+    # ride with their edges — lines of identity extend inward; an isolated
+    # vertex is iterated explicitly).
+    vertex_ids = {v.id for v in g.V}
+    used = {v for inc in g.nu.values() for v in inc}
+    for eid in sorted(set(g.get_area(host)) - {outer}):
+        if eid in vertex_ids and eid in used:
+            continue
+        g = apply_rule("IT+", g, selection=[eid], target=outer)
+        derivation.append("IT+")
+    g = apply_rule("INS", g, egif=f"~[ {proposal_egif.strip()} ]", target=outer)
+    derivation.append("INS")
+    assert find_world_scroll(g) is not None
+    return g, derivation
+
+
+def discharge_episode(
+    egi: RelationalGraphWithCuts, proposal_egif: str, *,
+    cell: Optional[ElementID] = None,
+) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """**Discharge a confirmed episode** — drawn modus ponens (M_RESIDENCE §10;
+    FIDELITY §3b corollary 3: a fact reaches an even area *derived, never
+    inserted*): **IT−** the iterated M′ copies (the warrant emptied against the
+    original one level up), **IT−** the vacuity rider (licensed against the
+    residence's standing hold — an identical empty cut in an enclosing area),
+    **DC−** the now-clean double cut — P's ink lands at the level of the
+    original M, in the agreed context.
+
+    LICENSE IS NOT CERTIFICATION (the ⊥-door, §10): the standing hold is ⊥
+    among W's conjuncts, so this sequence is licensed whether or not the
+    episode was confirmed — under ruling (b) the calculus stays pure and the
+    *earning* rides on the record: ``m_steps.discharge_step`` refuses to record
+    a discharge without a confirming PEEL to cite, and the polarity gate
+    re-asserts the citation. Returns ``(graph, executed derivation)``."""
+    scroll = find_world_scroll(egi)
+    if scroll is None:
+        raise ValueError("no standing world-scroll — M is not resident")
+    host, outer, rider, copies = _find_exhibit(egi, scroll, proposal_egif)
+    if cell is not None and host != cell:
+        raise ValueError(f"the exhibit for {proposal_egif!r} stands in {host!r}, "
+                         f"not {cell!r}")
+    g = egi
+    derivation: List[str] = []
+    for eid in sorted(copies, reverse=True):
+        g = apply_rule("IT-", g, selection=[eid])
+        derivation.append("IT-")
+    g = apply_rule("IT-", g, selection=[rider])
+    derivation.append("IT-")
+    g = apply_rule("DC-", g, selection=[outer])
+    derivation.append("DC-")
+    assert find_world_scroll(g) is not None
+    return g, derivation
+
+
+def abandon_episode(
+    egi: RelationalGraphWithCuts, proposal_egif: str, *,
+    cell: Optional[ElementID] = None,
+) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """**Abandon a refuted (or withdrawn) episode**: ERA the whole exhibit cut —
+    it stands in a cell's area (even, positive), so erasure is one licensed
+    move. The DAG keeps the entertained state; ERA never denies the utterance."""
+    scroll = find_world_scroll(egi)
+    if scroll is None:
+        raise ValueError("no standing world-scroll — M is not resident")
+    host, outer, _rider, _copies = _find_exhibit(egi, scroll, proposal_egif)
+    if cell is not None and host != cell:
+        raise ValueError(f"the exhibit for {proposal_egif!r} stands in {host!r}, "
+                         f"not {cell!r}")
+    g = apply_rule("ERA", egi, selection=[outer])
+    assert find_world_scroll(g) is not None
+    return g, ["ERA"]
+
+
 def withdraw_and_resupply(
     egi: RelationalGraphWithCuts, new_m_egif: str
 ) -> Tuple[RelationalGraphWithCuts, List[str]]:
@@ -490,5 +644,6 @@ __all__ = [
     "WorldScroll", "find_world_scroll", "is_ligature_closed",
     "m_area", "m_element_ids", "m_view",
     "wrap_m", "wrap_state", "enlarge_m", "retract_from_m",
+    "entertain_episode", "discharge_episode", "abandon_episode",
     "withdraw_and_resupply",
 ]

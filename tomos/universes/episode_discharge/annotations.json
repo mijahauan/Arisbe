@@ -1,0 +1,49 @@
+{
+  "annotations": [
+    {
+      "id": "ann_5d485459",
+      "scope": "uod",
+      "text": "(mammal \"Rex\")",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_be9f5951",
+      "scope": "uod",
+      "text": "The EPG episode in ink: entertain (DC+ \u00b7 IT+ \u00b7 INS behind the vacuity rider), confirm (a recorded PEEL), discharge (drawn modus ponens \u2014 IT\u2212 \u00b7 IT\u2212 \u00b7 DC\u2212, citing the peel). Watch the audited proposal (mammal Rex) move: absent \u2192 derived-only \u2192 STANDING.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "demonstration",
+        "episode",
+        "discharge",
+        "theorem-registration",
+        "world-scroll"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_69c72f41",
+      "scope": "chain",
+      "text": "The episode theorem (M_RESIDENCE \u00a710): an EPG episode requires its DC+ in an even context at depth \u2265 2. Parity: only a cut opened in an even area has a negative arena. Reach: IT+ carries M only into areas M's own area encloses. Results: the discharge needs the vacuity rider deiterated against a standing empty cut in an enclosing area \u2014 available exactly inside W (the hold), and NEVER at depth 0, where soundness forbids a standing \u22a5: 'no unconditioned posit' enforced by rule-reachability.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "episode-theorem",
+        "vacuity-rider",
+        "bottom-door"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

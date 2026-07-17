@@ -177,6 +177,7 @@ def build_numeral_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
               "from zero'. The abbreviation is conservative — unfolding returns the "
               "same graph (same_graph), so the numeral adds no content, only a name."),
         params={"definition": "three", "body": pa.NUMERAL_DEFINITIONS["three"],
+                "act": "m_refold", "earned": True,
                 "derivation": ["definition.fold"]},
     )
     return pc.to_uod(

@@ -7,7 +7,9 @@ Peirce. The verdict of §6 is the memo's headline: **this is not a new
 departure — it is Departure II** (FIDELITY_AND_DEPARTURES §3, "nothing
 contingent can be *said* at level 0"), re-derived from the mechanics, completed
 operationally, and strengthened by the assertive-graphs literature the author
-raised. Nothing here is built; §8 lists the implications awaiting direction.
+raised. Build status: §8's corpus half BUILT 2026-07-15; §9 (the second
+relocation, cells at even depth) and §10 (the episode lifecycle + ruling (b))
+BUILT 2026-07-16.
 
 Companion memos: FORCING_AND_THE_GAMMA_CROSSING (the first decision-B nominee),
 SECOND_ORDER_CORE_OPENING (decision B itself), LEVEL_ZERO_AND_THE_REGISTERS
@@ -701,6 +703,9 @@ memory.
 
 ### 9.10 The verdicts (the author, 2026-07-16 — all six as recommended)
 
+*(§10 follows after these verdicts — the episode lifecycle under the cells
+residence, proposed and ruled the same day.)*
+
 1. **D1 — ADOPTED.** M-as-in-context-agreement: the model's elements reside
    in cells at even depth beside the hold; recorded as a corollary of
    Departure II. §§3–4's mechanics stand; their gloss amends (§9.4); §5
@@ -726,3 +731,133 @@ memory.
    UoDs prune only by deliberate act. DAG tiering is an operations knob;
    **recall-is-a-licensed-quotation** (one's own archive = attested
    provenance, not low-warrant import) is doctrine.
+
+## 10. The episode under the cells residence: entertain, confirm, discharge (the author, 2026-07-16 — BUILT the same sitting)
+
+The author's construction, closing the loop the residence opened: how an
+episode of the EPG — *given M, then P* — is conducted **wholly in ink**, and
+how its result reaches M *derived, never inserted* (the outbound path §2b's
+corollary 3 promised).
+
+### 10.1 The lifecycle
+
+With M's content standing at even depth *m* (the agreed context):
+
+1. **ENTERTAIN** — in depth *m*, perform **DC+** (the outer cut's area is
+   *m*+1, odd — the arena; its empty inner cut will be the **vacuity
+   rider**); **IT+** M into the arena (inward — licensed; and because it is
+   *iteration*, the premise is M's own ink, identity-preserved, not a
+   lookalike supposition); **INS** `~[P]` into the arena (negative —
+   unconditionally sound). The arena holds `{ M′, ~[P], ~[ ] }`: the scroll
+   "if M then P", standing **vacuously** — the rider keeps the contingent
+   conditional forceless while contested. (The naked scroll `~[ M′ ~[P] ]`
+   cannot be built at even depth by rules at all — P cannot be INS'd into an
+   even area — so the riderized form is the *only* rule-reachable episode
+   ink: force never enters by rule.)
+2. **Confirm** — the episode plays: the recorded **PEEL** (the semantic
+   register), or the hot-seat contest / the reductio exhibit (derive P beside
+   `~[P]`, deiterate — the `revision_episode` path). Either way a *recorded
+   verdict*.
+3. **DISCHARGE_TO_M** — drawn modus ponens: **IT−** the M′ copies (the
+   warrant emptied against the original one level up), **IT−** the rider
+   (licensed against the residence's standing hold — an identical empty cut
+   in an enclosing area), **DC−** the now-clean double cut. **P's ink lands
+   at the level of the original M**, in the agreed content. A refuted or
+   withdrawn episode instead ends by **ABANDON** — one licensed ERA of the
+   whole exhibit (it stands at even depth); the DAG keeps the entertained
+   state.
+
+Machinery: `world_scroll.entertain_episode` / `discharge_episode` /
+`abandon_episode`; recorded by `m_steps.entertain_step` / `discharge_step` /
+`abandon_step` (rules `ENTERTAIN` / `DISCHARGE_TO_M` / `ABANDON_EPISODE`).
+Exemplar: `episode_discharge` (`tools/build_episode_discharge_demo.py`) — the
+audited proposal moves *absent → derived-only → standing*.
+
+### 10.2 The episode theorem
+
+> **An EPG episode — entertain a proposal, identify its M, and handle the
+> result — requires its DC+ in an even context at depth ≥ 2.**
+
+Three clauses, with their epistemic status:
+
+- **Parity (strict).** INS is licensed only in negative areas; a cut opened
+  in an odd area has a *positive* interior — no arena. Only an even context
+  yields the arena. A consequence of Dau's insertion rule and parity
+  arithmetic alone.
+- **Identifying M (relative to the residence).** Iteration carries ink only
+  *inward* — into areas enclosed by the source's context. M's ink stands in
+  the cells (even, depth ≥ 2), so an arena can receive *M itself* (identity
+  of ink, which is what distinguishes IT+ from a lookalike INS) only if it is
+  opened within M's area. A sheet-level arena can entertain a supposition
+  contest, but never identify an M by rule.
+- **Handling the result (strict — a corollary of soundness).** The discharge
+  needs the vacuity rider deiterated against a standing empty cut in an
+  *enclosing* area. Inside W the hold provides it. At depth 0 nothing can:
+  a bare empty cut standing at the sheet's level is ⊥ asserted at the
+  world's level, which **soundness forbids from ever arising** in a graph
+  reachable from the blank sheet. So at depth 0 the DC− is unreachable and P
+  can never land there — *"no unconditioned posit" enforced by
+  rule-reachability, not vigilance.* (Machine-checked:
+  `test_world_scroll.py::TestEpisode::test_the_episode_theorem_depth_zero_discharge_is_unreachable`
+  — the engine refuses the rider's deiteration in a sheet-level arena.)
+
+The theorem is a *meta*-theorem about the calculus (the register of Dau's
+soundness results), demonstrated here as executable refusals rather than a
+hand proof. "At least 2" also licenses nested episodes at deeper even
+registers — an episode entertained inside an episode's exhibit — the
+"greater contextual depth" of §9.1, recursively.
+
+### 10.3 The ⊥-door, and ruling (b)
+
+The same hold-deiteration that completes the discharge opens a door: the
+standing hold is ⊥ among W's conjuncts, and ⊥ in scope trivializes local
+consequence — **four licensed moves scribe arbitrary content into M with no
+episode at all** (DC+ · INS `~[Q]` · IT− rider ⇠ hold · DC−). Ex falso
+quodlibet, drawn: the structural price of the vacuity device. The calculus is
+being honest — a context whose content includes ⊥ *has* trivial internal
+consequence; that is exactly why the residence asserts nothing. And the door
+is fenced by the very vacuity that creates it (§10.2's third clause): what
+enters through it never gains force at the world's level.
+
+So the discharge cannot certify the episode *by licence alone* — the
+IT−·IT−·DC− sequence runs identically whether P was confirmed or refuted.
+**The author's ruling (2026-07-16): keep the calculus pure; the earning rides
+on the record.** Enacted three ways:
+
+1. **`discharge_step` refuses to record** a discharge without a confirming
+   `PEEL` of the same proposal (verdict *true*) in the chain to cite; the
+   citation rides in `params["confirmed_by"]`.
+2. **The gate re-asserts the citation** corpus-wide
+   (`test_corpus_polarity_discipline.py::test_discharges_cite_a_confirming_peel`)
+   — and every recorded peel already recomputes.
+3. **The m_view tripwire**: any chain step that changes M's content
+   (`m_view` before ≠ after) must carry an acknowledged act
+   (`test_m_content_never_changes_silently`) — so no one reaches M through
+   the ⊥-door *unrecorded*, whatever rules produced the change. The
+   falsifier is in the gate: a hand-built silent ⊥-door chain is flagged.
+
+The alternative — closing the door mechanically by making the hold opaque to
+IT± (the quotation-boundary precedent) — was declined: it would give an empty
+cut special behavior by rule, against D3 and the no-special-notation
+principle (§7b). The house doctrine stands: *the licence makes the move
+sound, never obligatory; the warrant rides on the step; §3.3 attests
+correspondence, not truth.*
+
+### 10.4 Character, and the registers
+
+`proof_character` reads the lifecycle exactly as Peirce would: **ENTERTAIN is
+the auxiliary line** (scribing the candidate into the exhibit is the
+insertion that marks *theorematic* deduction — "experiment upon the
+diagram"), and the discharge is its content-preserving follow-through — so a
+discharged chain is **theorematic**, never ampliative (the whole point:
+derived, not inserted) and never opaque (the executed derivations are
+recorded). The semantic register (the peel over `m_view`) and the
+demonstrative register (this lifecycle) are the two faces of one episode —
+Level Zero's `cut[ M cut[P] ]`, finally structural, with every move licensed.
+
+Under D2 (per-admission cells) the iterated premise is the **host cell's**
+content: the episode names which agreed batch it draws on. Sibling-cell
+content enters an episode only as fresh supposition (INS — same ink, identity
+carried by the record, not the rule) or through the cell-blind semantic
+register. And a discharge grows the *host* area rather than minting a new
+cell — this admission's audit lives in the chain, accepted knowingly.

@@ -85,7 +85,8 @@ def build_episode_chain() -> Tuple[TransformationChain, UniverseOfDiscourse]:
               "settled: the supposition now says two incompatible things, and the "
               "doubt is real — fenced by the scroll it lives in."),
         params={"beat": ep.PROPOSE, "observation": OBSERVATION,
-                "derivation": ["INS"], "earned": True})
+                "act": "m_enlargement", "disposition": "abductive_hypothesis",
+                "mode": "abduction", "derivation": ["INS"], "earned": True})
 
     # ---- beat 2 · EXHIBIT ---------------------------------------------------
     # The conflict is DERIVED on an iterated working copy — six Dau rules to the

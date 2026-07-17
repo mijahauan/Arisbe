@@ -285,6 +285,30 @@ Tests for all of this: [tests/test_modal_and_dialog.py](../tests/test_modal_and_
 (the modules + exemplars) and [tests/test_organon_routes.py](../tests/test_organon_routes.py)
 / [tests/test_organon_lenses_e2e.py](../tests/test_organon_lenses_e2e.py) (the lenses).
 
+### The episode discharged in ink — `episode_discharge`
+
+The EPG episode conducted wholly as licensed rule applications, and its result
+reaching M *derived, never inserted*
+([tools/build_episode_discharge_demo.py](../tools/build_episode_discharge_demo.py);
+M-residence memo §10). **ENTERTAIN** builds the premise "if M then (mammal Rex)"
+as ink inside the agreed context — DC+ in M's even area (the **episode
+theorem**: an EPG episode requires its DC+ in an even context at depth ≥ 2 — an
+odd area gives no arena, and at depth 0 the discharge is unreachable by
+soundness itself), IT+ of M (the premise is M's own ink), INS of `~[P]`, the
+empty inner cut standing as the **vacuity rider** so the contingent conditional
+is entertained without force. A recorded **PEEL** confirms P (the law fires
+under materialization). **DISCHARGE_TO_M** is drawn modus ponens — IT− of the
+premise copies, IT− of the rider against the standing hold, DC− — and P lands
+in the agreed content. The audited proposal moves **absent → derived-only →
+standing**: before, `(mammal Rex)` was true only through the materializer's
+ephemeral forward chaining; after, it stands in M itself — `theorem_registration`,
+drawn. Because the standing hold is ⊥ in scope (**the ⊥-door**: four licensed
+moves could scribe *anything* into M), the discharge step must **cite its
+confirming peel** — ruling (b): the calculus stays pure, the earning rides on
+the record — and the polarity gate re-asserts every citation and refuses any
+silent M-change (the m_view tripwire). `proof_character` reads the chain
+**theorematic**: scribing the candidate is Peirce's auxiliary line.
+
 ## 7. The second-order quotation exemplars (stages ⓪ and ① of the crossing)
 
 The crossing verdicts of 2026-07-16

@@ -125,6 +125,10 @@ def _uod(uod_id: str, name: str, description: str, egif: str,
                   "is sound in the negative arena, and the content lands at "
                   "even depth (in-context agreement), where retraction is a "
                   "licensed ERA: nothing contingent stands at depth 0.")
+    # the supply is the initial admission — acknowledged as an act (the gate's
+    # m_view tripwire refuses silent M-changes)
+    pc.to_chain().steps[-1].parameters.update(
+        {"act": "m_enlargement", "earned": True, "derivation": ["INS"]})
     _check_residence(pc.current, m if m is not None else parse_egif(egif))
     uod = UniverseOfDiscourse(metadata=_meta(uod_id, name, description, created),
                               current_egi=pc.current)

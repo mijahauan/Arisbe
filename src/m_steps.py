@@ -50,7 +50,10 @@ from model_materialization import materialize_egi
 from proof_authoring import ProofChain
 from semantic_game import SemanticResult, evaluate
 from world_scroll import (
+    abandon_episode,
+    discharge_episode,
     enlarge_m,
+    entertain_episode,
     find_world_scroll,
     retract_from_m,
     withdraw_and_resupply,
@@ -60,6 +63,9 @@ PEEL = "PEEL"
 ADMIT_TO_M = "ADMIT_TO_M"
 RETRACT_FROM_M = "RETRACT_FROM_M"
 REVISE_M = "REVISE_M"
+ENTERTAIN = "ENTERTAIN"
+DISCHARGE_TO_M = "DISCHARGE_TO_M"
+ABANDON_EPISODE = "ABANDON_EPISODE"
 
 
 def peel_step(
@@ -256,6 +262,152 @@ def challenge_step(
     return pc
 
 
+def entertain_step(
+    pc: ProofChain,
+    proposal_egif: str,
+    *,
+    cell=None,
+    note: Optional[str] = None,
+    branch: Optional[str] = None,
+) -> ProofChain:
+    """Entertain "if M then P" as ink — the episode exhibit built inside the
+    agreed context by licensed moves (``world_scroll.entertain_episode``:
+    DC+ · IT+×k · INS, the vacuity rider keeping it forceless) — recorded as an
+    explicit ``ENTERTAIN`` step. Registered as a *known insertion* in
+    ``proof_character``: scribing the candidate is Peirce's auxiliary line, so
+    a discharged chain reads theorematic."""
+    scroll = find_world_scroll(pc.current)
+    if scroll is None:
+        raise ValueError("entertain_step needs a standing world-scroll")
+
+    _, expected = entertain_episode(pc.current, proposal_egif, cell=cell)
+
+    derivation_seen: List[str] = []
+
+    def transform(g):
+        out, derivation = entertain_episode(g, proposal_egif, cell=cell)
+        derivation_seen.extend(derivation)
+        return out
+
+    params = {
+        "act": "episode_entertained",
+        "earned": True,
+        "derivation": list(expected),
+        "proposal_egif": proposal_egif,
+    }
+    pc.apply_derived(ENTERTAIN, transform, note=note, params=params,
+                     branch=branch)
+    assert derivation_seen == list(expected), "entertain not executed as recorded"
+    return pc
+
+
+def discharge_step(
+    pc: ProofChain,
+    proposal_egif: str,
+    *,
+    confirmed_by: Optional[str] = None,
+    cell=None,
+    note: Optional[str] = None,
+    branch: Optional[str] = None,
+) -> ProofChain:
+    """Discharge a **confirmed** episode — drawn modus ponens (IT−×k of the
+    M′ copies · IT− of the rider against the standing hold · DC−), P landing
+    at the level of the original M — recorded as an explicit
+    ``DISCHARGE_TO_M`` step.
+
+    **Ruling (b), M_RESIDENCE §10 — the earning rides on the record:** the
+    calculus licenses this sequence unconditionally (the ⊥-door), so this
+    recorder REFUSES to record a discharge without a confirming ``PEEL`` in
+    the chain to cite. ``confirmed_by`` names the peel step; omitted, the most
+    recent PEEL of this proposal with verdict *true* is found. The citation
+    rides in ``params["confirmed_by"]`` and the polarity gate re-asserts it."""
+    scroll = find_world_scroll(pc.current)
+    if scroll is None:
+        raise ValueError("discharge_step needs a standing world-scroll")
+
+    # The (b) discipline, enacted at record time: find/verify the citation.
+    from eg_navigation import same_graph
+    shape = parse_egif(proposal_egif)
+    steps = pc.to_chain().steps
+    cite = None
+    for s in reversed(steps):
+        p = s.parameters or {}
+        if p.get("act") != "peel":
+            continue
+        if confirmed_by is not None and s.step_id != confirmed_by:
+            continue
+        if p.get("verdict") == "true" and same_graph(
+                parse_egif(p.get("proposal_egif", "")), shape):
+            cite = s
+            break
+    if cite is None:
+        raise ValueError(
+            "discharge_step refuses: no confirming PEEL of this proposal "
+            "(verdict true) stands in the chain to cite — the licence makes "
+            "the move sound, the citation makes it earned (M_RESIDENCE §10, "
+            "ruling (b))")
+
+    _, expected = discharge_episode(pc.current, proposal_egif, cell=cell)
+
+    derivation_seen: List[str] = []
+
+    def transform(g):
+        out, derivation = discharge_episode(g, proposal_egif, cell=cell)
+        derivation_seen.extend(derivation)
+        return out
+
+    params = {
+        "act": "m_discharge",
+        "earned": True,
+        "derivation": list(expected),
+        "proposal_egif": proposal_egif,
+        "confirmed_by": cite.step_id,
+        "disposition": "theorem_registration",
+        "mode": "deduction",
+    }
+    pc.apply_derived(DISCHARGE_TO_M, transform, note=note, params=params,
+                     branch=branch)
+    assert derivation_seen == list(expected), "discharge not executed as recorded"
+    return pc
+
+
+def abandon_step(
+    pc: ProofChain,
+    proposal_egif: str,
+    *,
+    cell=None,
+    reason: Optional[str] = None,
+    note: Optional[str] = None,
+    branch: Optional[str] = None,
+) -> ProofChain:
+    """Abandon a refuted/withdrawn episode — one licensed ERA of the whole
+    exhibit (it stands at even depth) — recorded as an explicit
+    ``ABANDON_EPISODE`` step. The DAG keeps the entertained state."""
+    scroll = find_world_scroll(pc.current)
+    if scroll is None:
+        raise ValueError("abandon_step needs a standing world-scroll")
+
+    derivation_seen: List[str] = []
+
+    def transform(g):
+        out, derivation = abandon_episode(g, proposal_egif, cell=cell)
+        derivation_seen.extend(derivation)
+        return out
+
+    params = {
+        "act": "episode_abandoned",
+        "earned": True,
+        "derivation": ["ERA"],
+        "proposal_egif": proposal_egif,
+    }
+    if reason:
+        params["reason"] = reason
+    pc.apply_derived(ABANDON_EPISODE, transform, note=note, params=params,
+                     branch=branch)
+    assert derivation_seen == ["ERA"], "abandon not executed as recorded"
+    return pc
+
+
 def revise_step(
     pc: ProofChain,
     new_m_egif: str,
@@ -306,5 +458,7 @@ def revise_step(
 
 
 __all__ = ["PEEL", "ADMIT_TO_M", "RETRACT_FROM_M", "REVISE_M",
+           "ENTERTAIN", "DISCHARGE_TO_M", "ABANDON_EPISODE",
            "peel_step", "admit_step", "retract_step", "challenge_step",
+           "entertain_step", "discharge_step", "abandon_step",
            "revise_step"]

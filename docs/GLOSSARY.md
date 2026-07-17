@@ -190,7 +190,7 @@ core move), yielding a three-valued verdict plus a witness or counterexample. Th
 **Sowa**: *"Graphist and Grapheus would take turns **peeling off** negations and mapping subgraphs
 of g to M"* (Sowa 2011, *From Existential Graphs to Conceptual Graphs*). (Not, as far as we can
 verify, Peirce's own word.) In the corpus every recorded verdict is an explicit, forever-recomputable
-`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-retract_from_m-revise_m).
+`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-retract_from_m-revise_m-and-the-episode-steps).
 
 ### Episode
 **Episode** — one play of the Endoporeutic Game: *given a model M, then a proposition G* (peel →
@@ -253,19 +253,29 @@ reader reaches M's content through `m_view` (the union of the cells' interiors; 
 bare sheet-level fixture). See
 [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9.
 
-### The explicit M-steps: PEEL, ADMIT_TO_M, RETRACT_FROM_M, REVISE_M
-**PEEL / ADMIT_TO_M / RETRACT_FROM_M / REVISE_M** — the explicit chain-step vocabulary
-(`src/m_steps.py`) by which the corpus (and, since sweep #2, the live loops) records verdicts and
-M-modification, each step *earned at record time* (the transform runs real Dau rules or a real
-evaluation; the parameters say what happened, never merely assert it). **PEEL** records a peel
-actually run against the current state — proposal, three-valued verdict, witness/counterexample —
-recomputable forever. **ADMIT_TO_M** is enlargement: a genuine INS of a closed cell into the
-[world-scroll](#world-scroll), the warrant riding on the step, not the ink. **RETRACT_FROM_M** is
-retraction: one licensed ERA inside a cell, its `flavor` field distinguishing surprise from
-entropy (`pruned:disuse` — the *faded* tense-flavor). **REVISE_M** is the challenge composite
-(ONE step: the executed ERA of the impugned law + the INS of the anomaly's cell) or, in its rare
-world-withdrawal form, the executed ERA · DC+ · INS triple. Guarded corpus-wide by the standing
-gate `tests/test_corpus_polarity_discipline.py`, which recomputes every recorded verdict.
+### The explicit M-steps: PEEL, ADMIT_TO_M, RETRACT_FROM_M, REVISE_M, and the episode steps
+**PEEL / ADMIT_TO_M / RETRACT_FROM_M / REVISE_M / ENTERTAIN / DISCHARGE_TO_M / ABANDON_EPISODE**
+— the explicit chain-step vocabulary (`src/m_steps.py`) by which the corpus (and, since sweep #2,
+the live loops) records verdicts and M-modification, each step *earned at record time* (the
+transform runs real Dau rules or a real evaluation; the parameters say what happened, never merely
+assert it). **PEEL** records a peel actually run against the current state — proposal,
+three-valued verdict, witness/counterexample — recomputable forever. **ADMIT_TO_M** is
+enlargement: a genuine INS of a closed cell into the [world-scroll](#world-scroll), the warrant
+riding on the step, not the ink. **RETRACT_FROM_M** is retraction: one licensed ERA inside a
+cell, its `flavor` field distinguishing surprise from entropy (`pruned:disuse` — the *faded*
+tense-flavor). **REVISE_M** is the challenge composite (ONE step: the executed ERA of the
+impugned law + the INS of the anomaly's cell) or, in its rare world-withdrawal form, the executed
+ERA · DC+ · INS triple. The **episode steps** (M-residence memo §10) conduct an EPG episode
+wholly in ink: **ENTERTAIN** builds "if M then P" inside the agreed context (DC+ · IT+ of M ·
+INS of `~[P]`, the empty inner cut — the *vacuity rider* — keeping the exhibit forceless; the
+episode theorem: the DC+ must land in an even context at depth ≥ 2); **DISCHARGE_TO_M** is drawn
+modus ponens (IT− of the premise copies · IT− of the rider against the standing hold · DC− — P
+lands in M *derived, never inserted*), and under ruling (b) it **refuses to record without a
+confirming PEEL to cite** (the ⊥-door makes the licence unconditional, so the earning rides on
+the record); **ABANDON_EPISODE** is one licensed ERA of the whole exhibit. Guarded corpus-wide by
+the standing gate `tests/test_corpus_polarity_discipline.py`, which recomputes every recorded
+verdict, re-asserts every discharge citation, and refuses any silent M-change (the m_view
+tripwire).
 
 ### Scribe
 **Scribe** (verb) — to draw/assert a graph on the sheet (Peirce's term for inscribing a graph).
