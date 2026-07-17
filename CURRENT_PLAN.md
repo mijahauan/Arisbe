@@ -1,5 +1,10 @@
 # Current Plan
 
+**Last Updated**: 2026-07-17 — the NEXT SESSION block below was reviewed end-to-end this
+sitting: items 2/4/5 retired as done with their evidence, item 6's four pre-existing reds
+confirmed green (full suite 3652 passed / 0 failed), item 1 (RUN 12) re-headed to its live
+leg 2, and item -5 written as the ▶ B-full prep. Items -4…0 are the completed record.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was
