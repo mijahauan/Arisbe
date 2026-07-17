@@ -250,33 +250,29 @@
    ("planning" → done), version bump. **Author's calls:** §8.1 loop migration OUT at tag
    time (held on run 12; can land on the release branch later as tidying); run 12 decoupled
    (noted in-flight in the notes). Then: cut branch, bump, tag, let release.yml attest.
-1. **▶ RUN 12 = SPORTS: RESUME TONIGHT (the author's; TIME-CRITICAL — the window
-   closes 2026-07-18 ~05:35Z).** The first leg (2026-07-13 07:30 → 07-17 03:14) ran
-   its cap **inside the All-Star break** — the author's hypothesis, confirmed against
-   the run's own state: **all 75 pending claims are dated 2026-07-17**, the resumption
-   day, first pitch `17:35Z`, and the run stopped **~14 h before those games started**.
-   Not a bug, an empty world (`unresolved_dropped=0`, `postponed_dropped=0` — nothing
-   was lost; the picks are still pending). The `schedule:12` fetch errors are a
-   **startup artifact** (already 12 at segment 1, never incrementing after — carried
-   from the two false starts at 06:02/06:16 before the real 07:30 start); this log's
-   first draft called them a persistent fault and had the inference backwards.
-   **The move: `--resume`, NOT a fresh `--regenerate` start.** Resume harvests the 75
-   pending claims as tonight's games go Final (~20:30Z onward) — **≈75 resolutions,
-   15× the whole first leg** — and keeps the learned cut (225) + the 81-entry ledger,
-   all of which a restart discards. `grace_hours=12` drops a pending claim at
-   `start + 12h`, so **resume before 2026-07-18 ~05:35Z** or the 75 are counted into
-   `unresolved_dropped` and wasted. **Verified against the real state (2026-07-17):**
-   the carried `model_egif` is flat (pre-sweep-#2) and meets the new residence code
-   cleanly — ensure-residence wraps it (1 cell), `m_view` is `same_graph` to the flat
-   M, and the **81 atom keys are identical before/after re-housing**, so the ledger and
-   its decay clock survive exactly; the resumed chain opens `DC+ · INS`. Confound to
-   note in the write-up: leg 1 played the sheet-level regime, leg 2 plays cells.
-   Then: dispose F1¹²…, replay `runs/run12/items.jsonl` as the determinism canary, and
-   re-run the P4¹² literature check (home ≈53–54 %) on the real sample.
-   *Standing totals from leg 1 (RUN_12_LOG): 9 segments · 85 rounds · 144 polls ·
-   |M|≈90 · cut 50→225 · 7 re-generalizations · 5 laws standing · poise one absorbed
-   stumble. **P1¹²/P5¹² evidenced** (the floor held); **P3¹²/P4¹² + the ledger half of
-   P2¹² UNDISPOSED** — never given data.*
+1. **▶ RUN 12 = SPORTS: LEG 2 IS RUNNING (launched by the author 2026-07-17 07:52
+   local; 3-day cap → ~07-20, or `touch runs/run12/STOP`). WATCH + DISPOSE — the
+   author's.** **Leg 1** (07-13 07:30 → 07-17 03:14) ran its whole cap **inside the
+   All-Star break** — the author's hypothesis, confirmed against the run's own state:
+   all 75 pending claims were dated `2026-07-17` (the resumption day, first pitch
+   `17:35Z`) and the run stopped **~14 h before those games started**. Not a bug, an
+   empty world (`unresolved_dropped=0`, `postponed_dropped=0`). The `schedule:12`
+   fetch errors were a **startup artifact** carried in state from the two false starts
+   (06:02/06:16) — leg 2 shows `fetch_errors=0`, independently confirming it; this
+   log's first draft called them a persistent fault and had the inference backwards.
+   **Leg 2 started FRESH** (the launch omitted `--resume`), which **cost nothing
+   evidential and bought a cleaner run**: it re-raised the identical 75 picks (the same
+   15 games × 5 arms sit inside the 18 h horizon either way), so tonight's resolutions
+   land ~20:30Z as planned; the discarded cut (225→50) had been *stepping mechanically*
+   (+25/segment on ~1 resolution — noise, and arm B re-learns it from real outcomes),
+   and the discarded ledger was 0h/5m on one game. The **gain: the regime confound is
+   gone** — leg 2 is a clean single-regime run wholly under sweep #2's cells, instead
+   of a chain that changes residence mid-run. **Leg 2 is the leg that tests
+   P2¹²/P3¹²/P4¹².** Then: dispose F1¹²…, replay `runs/run12/items.jsonl` as the
+   determinism canary, and run the P4¹² literature check (home ≈53–54 %) on the real
+   sample. *Leg 1 evidenced **P1¹²/P5¹²** (the floor held: 9 checkpoints §3.3-attested,
+   crash-free to the cap, decay bounding |M|, poise legible with one absorbed stumble);
+   **P3¹²/P4¹² + the ledger half of P2¹² stayed UNDISPOSED** — never given data.*
 2. **✅ TAKEN 2026-07-16 — THE TWO CROSSING DECISIONS** (CROSSING_DECISION_BRIEFS):
    A1–A4 affirmed as written (predicative floor = doctrine; stratified formation /
    K3-partial evaluation; **conservativity over the Dau core = the standing crossing

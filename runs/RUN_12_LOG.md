@@ -197,13 +197,24 @@ state from the run's two false starts (`run start` lines at 06:02 and 06:16 on 0
 real 07:30 start that added the odds rival). Twelve errors at the beginning, zero thereafter. The
 earlier reading ("never moves ⇒ persistent fault") had the inference exactly backwards.
 
-**Disposition — RESUME, do not restart (recommended 2026-07-17 12:33Z; the author's call).** The
-state holds **75 pending claims on tonight's resumption slate** (first pitch 17:35Z). `--resume`
-harvests them as the games go Final (~20:30Z onward) — **~75 resolutions, 15× the entire first
-leg**, and it keeps the learned cut (225) and the 81-entry disuse ledger. A fresh `--regenerate`
-start would discard all three. **Time-critical:** `grace_hours=12` drops a pending claim once
-`now > start + 12 h`, so the 75 expire at **2026-07-18 ~05:35Z**; resume before then or they are
-counted into `unresolved_dropped` and wasted.
+**Disposition — LEG 2 LAUNCHED 2026-07-17 07:52 local (the author), as a FRESH start.** The
+recommendation had been `--resume` (to inherit the 75 pending claims + the learned cut + the
+ledger); the launched command omitted `--resume`, so `SportsSource` started clean and
+`sports_state.json` was overwritten at 07:53. **Verified 13:08Z: this cost nothing evidential,
+and bought a cleaner run.** The fresh source **re-raised the same 75 picks** — the identical
+resumption slate (75 pending, all `2026-07-17`, earliest `17:35:00Z`), because those games sit
+inside the 18 h horizon either way — so tonight's resolutions land as planned (~20:30Z onward).
+What was discarded: (a) the learned cut 225→50 — but leg 1's cut was **stepping mechanically**
+(50→75→…→225, one +25 per segment) on ~1 resolution, so it encoded noise, and arm B re-learns it
+from real outcomes now; (b) leg 1's ledger (0h/5m on a single game) — noise; (c) the 81-entry
+disuse ledger — moot, M is rebuilt from tonight's picks. What was gained: **`fetch_errors=0`**
+(independently confirming the `schedule:12` were a stale startup artifact carried in state, not a
+live fault), and — the real prize — **the regime confound is gone**: leg 2 is a clean, single-regime
+run wholly under sweep #2's cells, rather than a chain that changes residence mid-run.
+
+**Leg 2 (running):** `--runs-dir runs/run12 --regenerate --max-seconds 259200`, started
+2026-07-17 07:52 local; 75 picks raised across 15 games × 5 arms; cut re-seeded at 50; stop via
+the 3-day cap or `touch runs/run12/STOP`. **This is the leg that tests P2¹²/P3¹²/P4¹².**
 
 **Resume verified against this state (2026-07-17):** the carried `model_egif` is *flat*
 (pre-sweep-#2), so it meets the new residence code — tested directly: `run()`'s ensure-residence
