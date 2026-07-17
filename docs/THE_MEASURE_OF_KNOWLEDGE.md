@@ -125,10 +125,14 @@ discipline, which natural fractals lack.
 
 **The author's prompt:** explore *"the broader ethical implications of Doubt 4 and what
 the resultant system means for a just society, perhaps corresponding to John Rawls."*
-**Open question (§6 decision 1):** "Doubt 4" admits two readings — (a) level 4 of §3,
-the *mechanism* level, which is the ethically loaded one (whose resolution mechanisms
-count as reliable; who gets believed); or (b) the doubt-driven system as a whole. Both
-are treated below; the author should say which was meant.
+**The referent (resolved by the author, 2026-07-17): Doubt 4 of
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) — "Ladders of worth: who gets
+to play, and who plays well."** That doubt's surviving position is the ground this whole
+section stands on: *gate the claim by the method, on its content — never the agent by
+identity or worth; ranking people by worth-as-inquirers swaps a method-gate (which tracks
+the truth) for an identity-gate (which tracks who's in the club); and every claim is owed
+its uptake.* The question this section answers is therefore: **what does a society built
+on Doubt 4's resolution look like, and how far does Rawls map onto it?**
 
 **Where the system and Rawls genuinely concord** *(assistant's readings, flagged)*:
 
@@ -167,11 +171,13 @@ are treated below; the author should say which was meant.
   yield the difference principle, primary goods, or distributive justice; Rawls needs
   premises this system does not supply, and importing them silently would be the exact
   smuggling the examinations forbid.
-- **The load-bearing bridge is Fricker, not Rawls.** The duty of uptake — test a claim
-  on its content before dismissing it by its author — is the corrective to testimonial
-  injustice (Fricker's *Epistemic Injustice*, 2007): identity-gating claims *is* the
-  paradigm epistemic injustice, and the method-gate is its structural remedy. That is
-  the ethical content the system actually carries, and it is strong.
+- **The load-bearing bridge is Fricker, not Rawls — and it is Doubt 4's own.** The duty
+  of uptake — test a claim on its content before dismissing it by its author — is the
+  corrective to testimonial injustice (Fricker's *Epistemic Injustice*, 2007), and
+  FIDELITY_A_PLAIN_ACCOUNT's Doubt 4 already names it: refusing uptake *is* epistemic
+  injustice, "the wrong of not even hearing someone out because of who they are."
+  Identity-gating claims is the paradigm case, and the method-gate is its structural
+  remedy. That is the ethical content the system actually carries, and it is strong.
 - **Level 4 is where the politics lives.** The mechanism level (§3) learns *which
   resolution mechanisms produce durable knowledge* — and any deployment of that learning
   (whose sources count as reliable, whose consensus is discounted) allocates epistemic
@@ -245,8 +251,11 @@ Socratic elenchus — doubt-induction as the oldest teaching method on record.
 
 ## 6 · Named decisions (the author's)
 
-1. **"Doubt 4"** — which reading (§4): the mechanism level, or the doubt-system as a
-   whole?
+1. **"Doubt 4"** — ✅ RESOLVED 2026-07-17: Doubt 4 of
+   [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) ("Ladders of worth").
+   §4 is re-grounded on it. A consequence for decision 3: the vector-not-scalar guard
+   is now literally **Doubt 4's enforcement clause inside the measure** — an aggregate
+   knowledge-score over agents would be the worth-ladder rebuilt by arithmetic.
 2. **The four-component measure** (§2) — ratify or amend; and authorize the small K3
    build (the materialization ratio)?
 3. **The vector-not-scalar guard** (§2, guard 3) — ratify as doctrine: components are
