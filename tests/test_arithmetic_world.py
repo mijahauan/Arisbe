@@ -224,3 +224,14 @@ class TestDeterminism:
         assert replay_choices(feed_a.journal) == replay_choices(feed_b.journal)
         assert [o.disposition for o in a.outcomes] == [o.disposition for o in b.outcomes]
         assert refutation_round(a) == refutation_round(b)
+
+
+class TestPersistence:
+    def test_s5_trajectory_persists_and_attests(self, tmp_path):
+        from tomos_service import TomosService
+        res, _ = TestCriteria()._arm(rounds=30)
+        service = TomosService(tmp_path)
+        service.save_uod_with_chain(res.uod, res.chain)   # §3.3 fires before disk write
+        reloaded = service.load_chain("rung1_arm")
+        assert reloaded is not None
+        assert len(reloaded.steps) == len(res.chain.steps)
