@@ -152,16 +152,41 @@ P1¹²–P5¹² below stand as pre-registered, unmodified by the build.
 
 | field | value |
 |---|---|
-| date / operator | built 2026-07-12 (Claude, this session) · launch _(pending — the author's; play resumes 07-16)_ |
+| date / operator | built 2026-07-12 (Claude) · **executed 2026-07-14 → 07-17 by the author** (PID 28386, `--max-seconds 259200`, ran to its cap) |
 | source · arms | MLB Stats API (statsapi.mlb.com) + The Odds API (h2h consensus, keyed) · A naive-home / B calibrated win-pct cut / C rivals home·win-pct·**odds** + select_best / D optional induction (not built) |
-| stops | _(pending launch — recommended `--max-seconds 259200`, STOP file)_ |
-| code version (git SHA) | the "Run 12 built" commit, 2026-07-12 |
+| stops | `--max-seconds 259200` → **stopped: max_seconds** (the 3-day cap, as launched) |
+| code version (git SHA) | the "Run 12 built" commit, 2026-07-12 (pre-sweep-#2: the run played the level-1 residence regime) |
 
-**Totals:** _(pending)_
+**Totals (recorded 2026-07-17 from `runs/run12/console.txt` + `state.json`; disposal below is
+the author's):** 9 segments · 85 rounds · 144 polls · final |M| ≈ 90 atoms · dispositions
+`{new_fact: 85}` (no challenge/retraction fired) · learned cut 225 (seeded 50) ·
+re-generalizations 7 · 5 laws standing (one per arm) · poise per segment `● ● ✕ ● ● ● ● ● ●`
+(one stumble, absorbed).
+
+**Ledger — and the honest caveat that governs every prior below:** picks **raised=80**,
+**resolved=5**, dropped_unresolved=0, postponed=0, odds_skipped=0, **fetch_errors=12
+(schedule:12)**. So the whole run produced **one resolution per arm** — net −1, accuracy 0.000
+for all five arms, `select_best` "choosing" naive on a 5-way tie at −1. The run is
+**evidentially thin**: the raise path worked (80 picks, laws re-generalized, |M| bounded, poise
+read), but the *resolution* path — the world's teeth — barely engaged.
 
 ## Findings (dated, disposed)
 
-_(pending execution)_
+**F0¹² — the run is evidentially thin; the priors cannot be disposed on it (2026-07-17,
+recorded by Claude; disposition the author's).** 80 raised : 5 resolved, with 12 schedule-endpoint
+fetch errors standing at every segment. The three priors that need resolutions —
+**P3¹²** (select_best discriminates between arms), **P4¹²** (home-win rate ≈53–54 % vs the
+literature; measured **0.000 over 1** decided home-rival bet), and the ledger half of **P2¹²** —
+are **UNDISPOSED**: they were never given data, so neither confirmed nor refuted. What *is*
+evidenced: **P1¹²/P5¹²** (the floor held — 9 segments checkpointed and §3.3-attested, crash-free
+to the cap, the cut learned and carried, decay bounded |M|, poise legible with one absorbed
+stumble). The candidate root causes, in the order worth checking: (a) the `schedule:12` fetch
+errors — a persistent endpoint/params fault, not a transient, since the count never moves across
+segments; (b) resolution-window vs cap — MLB games resolving after the pick's grace window, so
+the run ends before its own bets settle; (c) the pacing/poll ratio (144 polls → 85 rounds → 5
+resolutions). **The author's calls:** whether to re-run (fixing the schedule fetch first, and
+sizing the cap to the resolution latency) or to dispose the sports arc as-is on P1¹²/P5¹² and
+carry P3¹²/P4¹² to a source whose outcomes land faster.
 
 ---
 

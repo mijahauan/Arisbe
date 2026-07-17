@@ -1,6 +1,96 @@
 # Current Plan
 
-**▶▶▶ NEXT SESSION (consolidated 2026-07-15 wrap — supersedes the two older ▶▶▶ blocks below).**
+**▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
+
+-5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was
+   discharged at B-min, so B-full's marginal value needs the author's ruling before
+   the core is opened.** (Prep only; nothing built. Sources: CROSSING_DECISION_BRIEFS
+   brief B · SECOND_ORDER_CORE_OPENING §1/§3/§4/§7 · ROADMAP §"② B-full".)
+
+   **What B-full is, per the record:** "a native graph-valued element kind whose value
+   *is* a `RelationalGraphWithCuts`, with **ν able to hook a predicate blank to it**
+   (P3′)" + committed render conventions (P5′) — "the one Peirce's dotted oval most
+   literally is." Verdict B5 (amended 2026-07-16) = B-full **follows** B-min (no longer
+   "waits for a demonstrated need").
+
+   **Where B-min actually left things (verified in code this sitting):**
+   `sort: vertex_id → "proposition"|"abstraction"` and `quotation: cut_id → vertex_id`
+   are **parallel default-empty frozendicts** on the core; **`ν: E → VertexSequence` was
+   never touched**, which is exactly why a first-order graph is bit-identical and the
+   A3 gate's tier-1 invisibility holds. A quotation today = a *sorted name* (a vertex)
+   + a *graph-valued area* (a cut holding the quoted ink), tied by the map.
+
+   **Three findings the author should weigh before authorizing the core edit:**
+   1. **The stated hinge is already discharged.** SECOND_ORDER_CORE_OPENING §4 is
+      unambiguous — *"the hinge is S3, and only S3… the entire overlay-vs-native
+      decision reduces to one question"* — and **B-min flipped S3 to CHECKED** on the
+      swan + forcing exemplars (`second_order_reader.py`; the drawing carries the sort
+      and the oval reads back its quoted graph). So the argument that justified the
+      whole B ladder has been *paid out at the cheaper rung*. B-full therefore needs a
+      **fresh, stated marginal value** — which is also what A4 demands of any climb
+      ("a demonstrated need and re-proof of A3").
+   2. **B-min→B-full is NOT the same kind of step as A→B-min.** B-min was *additive*:
+      default-empty parallel maps, nothing else in the codebase had to notice. B-full
+      **widens ν's codomain** from `VertexSequence` to (vertices ∪ graph-valued
+      elements) — and **52 modules / 252 sites read `ν`** (measured this sitting;
+      `.Cut`-enumerating sites cluster in `egi_core_dau` 28, `formal_transformation_rules`
+      15, `syntactic_equivalence_checker` 11, `presentation_ops` 9, the engines/renderer/
+      IO/canonical-signature/linear generators beyond). The ladder's "strict prefix"
+      property still holds for *artifacts* (nothing built is thrown away), but **not for
+      cost or for A3**: conservativity stops being a default-empty argument and becomes a
+      real proof obligation across ν's every consumer. Core is **locked + CLEAN** (14
+      protected modules; `.core_modification_authorized` absent) — a deliberate
+      re-authorization.
+   3. **The author's own stated purpose has a cheaper path — call it "B-min+".** The
+      mandate for crossing was *"to enable handling graphs about graphs."* The one thing
+      B-min structurally refuses is **quotation-in-quotation** — and that refusal is
+      **a validation choice, not a model limit**: `_validate_second_order`
+      (`egi_core_dau.py` ~L384) raises on a quotation cut nested inside a quotation
+      area, while the `cut → vertex` shape expresses nesting perfectly well. **Lifting
+      that limit delivers graphs-about-graphs-about-graphs without touching ν** — the
+      work is the reader, the rules' opacity, and A3 re-proof; not 252 sites.
+
+   **And a Peircean argument worth putting against B-full's literalism:** hypostatic
+   abstraction turns a predicate into a **subject** ("hard" → "hardness"), and in EG a
+   subject is a *line of identity*. B-min's shape — a sorted **name** (a vertex, which ν
+   hooks like any subject) tied to a drawn oval — is arguably *more* faithful to the
+   abstraction Peirce actually performs than "the graph **is** the node ν hooks."
+   B-full's claim to be "what the dotted oval literally is" deserves testing against
+   this: the oval is the *exhibit*; the spot on it is the *subject*. (Assistant's
+   reading, flagged as such — CATEGORIES_AND_THE_THREE_PARTS §"hypostatic abstraction"
+   is the standing text.)
+
+   **The decisions to take (the author's):**
+   - **B-full-1 — the marginal value.** State what B-full buys that B-min does not, now
+     that S3 is checked. Candidates: (a) quotation-in-quotation / unbounded ascent;
+     (b) ν-hooks-the-graph iconicity (P3′ literalism); (c) something the exemplars will
+     want that we have not yet met. If the answer is only (a), **B-min+ is the cheaper
+     and more conservative route** and B-full may be the wrong next rung.
+   - **B-full-2 — ν or not ν.** Widen `ν: E → (V ∪ G)*` (the real B-full) vs. keep ν
+     first-order and carry second-orderness in parallel maps (the B-min line, extended).
+     This is the whole cost/A3 question in one line.
+   - **B-full-3 — the exemplar that forces it.** Per the exemplar-first mandate: which
+     *fitting case* cannot be drawn at B-min/B-min+? The three blessed exemplars all
+     work at B-min today. A nested-quotation case (`(superseded ⌜(superseded ⌜M⌝ …)⌝ …)`
+     — criticism of a criticism) would exercise (a); nothing on the slate yet exercises (b).
+   - **B-full-4 — the linear-form limit** (`SecondOrderNotInLinearForm`): stays named, or
+     gets syntax? Orthogonal to B-full (it needs notation, not a data model) — but it is
+     the other standing B-min gap and worth ruling while the frontier is open.
+
+   **If B-full is authorized, the build order** (each rung green before the next):
+   ① re-authorize + widen the core type with a default that keeps first-order
+   bit-identical; ② `_rebuild_graph` + the six rules (`formal_transformation_rules`,
+   ~15 `.Cut` sites + `_refuse_quotation_boundary`); ③ the ν-consumer sweep, in
+   dependency order — `eg_navigation` / `presentation_ops` / `correspondence_attestation`
+   / `natural_layout` first (they gate §3.3), then the engines + `simple_svg_renderer`
+   (P5′), then `egi_io` / `canonical_signature` / the linear generators (which should
+   *refuse*, per B-min's precedent); ④ the reader (`second_order_reader`, `eg_reader`);
+   ⑤ **A3 re-proof** (`test_second_order_conservativity`, all three tiers) — the standing
+   crossing invariant, and the gate that says the climb was earned; ⑥ the exemplars
+   re-expressed natively + corpus rebuild; ⑦ docs.
+   **Deferred and named (from sweep #2, unrelated to B-full):** D5 dusty rooms
+   (designation-by-record) · D6 room-granularity pruning.
+
 -4. **✅ BUILT 2026-07-16 (same sitting as sweep #2) — THE EPISODE LIFECYCLE IN
    INK + RULING (b) (M_RESIDENCE §10; the author's construction).** An EPG
    episode conducted wholly as licensed rules inside the residence:
@@ -160,16 +250,30 @@
    ("planning" → done), version bump. **Author's calls:** §8.1 loop migration OUT at tag
    time (held on run 12; can land on the release branch later as tidying); run 12 decoupled
    (noted in-flight in the notes). Then: cut branch, bump, tag, let release.yml attest.
-1. **RUN 12 = SPORTS: LAUNCH + DISPOSE (the author's; standing).** Affirm P1¹²–P5¹² + the
-   build decisions (RUN_12_LOG), take (a) odds-arm key / (b) duration, launch
-   `uv run python tools/run_live_sports.py --runs-dir runs/run12 --regenerate --max-seconds 259200`
-   (play resumed 07-16/17); then watch/dispose F1¹²–…, replay `runs/run12/items.jsonl` as the
-   determinism canary, run the P4¹² literature check (home ≈53–54 %).
-2. **THE TWO CROSSING DECISIONS (author's; gate the 2nd-order frontier):** A. comprehension
-   floor (predicative-with-enclosure-escape is the harness default) · B. how much to open the
-   core (two nominees: `(forces s φ)`, `(superseded ⌜M⌝)`). Both now have a categorial footing
-   (CATEGORIES_AND_THE_THREE_PARTS: A = the honest bootstrap drawn as cuts; B = hypostatic
-   abstraction of a graph; Henkin = the Peircean choice).
+1. **RUN 12 = SPORTS: EXECUTED 2026-07-14→17, ran to its 3-day cap — DISPOSAL IS THE
+   AUTHOR'S, and the run came back EVIDENTIALLY THIN.** Totals recorded in RUN_12_LOG
+   (9 segments · 85 rounds · 144 polls · |M|≈90 · cut 225 from a seed of 50 · 7
+   re-generalizations · 5 laws standing · poise `● ● ✕ ● ● ● ● ● ●`, one absorbed
+   stumble). **The catch (F0¹², recorded not disposed): picks raised=80 but
+   resolved=5** — one per arm — with **`fetch_errors=12 (schedule:12)` standing
+   unchanged at every segment. So `select_best` "chose" naive on a five-way tie at
+   net −1, and the P4¹² literature check reads home-win 0.000 over ONE decided bet
+   (vs the documented ≈53–54 %). **P3¹²/P4¹² + the ledger half of P2¹² are UNDISPOSED
+   — never given data, so neither confirmed nor refuted;** P1¹²/P5¹² *are* evidenced
+   (the floor held: 9 checkpoints §3.3-attested, crash-free to the cap, cut learned +
+   carried, decay bounded |M|, poise legible). Candidate root causes in order:
+   (a) the persistent schedule-endpoint fault (never a transient — the count never
+   moves); (b) resolution latency vs the cap (bets settling after the run ends);
+   (c) the poll→round→resolution ratio (144 → 85 → 5). **The author's calls:** re-run
+   (fix the schedule fetch first, size the cap to resolution latency) vs. dispose the
+   sports arc on P1¹²/P5¹² and carry P3¹²/P4¹² to a faster-settling source. Also
+   pending: replay `runs/run12/items.jsonl` as the determinism canary.
+2. **✅ TAKEN 2026-07-16 — THE TWO CROSSING DECISIONS** (CROSSING_DECISION_BRIEFS):
+   A1–A4 affirmed as written (predicative floor = doctrine; stratified formation /
+   K3-partial evaluation; **conservativity over the Dau core = the standing crossing
+   invariant**; the ladder named for measured climbs). B affirmed, amended: cross now,
+   **exemplar-first**; B4 = **both nominees**; B5 = B-full **follows** B-min. Stages ⓪
+   (overlay) + ① (B-min) both BUILT 2026-07-15/16. See item -5 for what remains.
 3. **✅ DONE 2026-07-15 (second sitting) — TARGETED DOC SWEEP for the polarity
    re-orientation.** See the ▶▶ entry below. The grep survey found the stale set *smaller*
    than feared: GETTING_STARTED + MATH_FIXTURES (and MATHEMATICS_FROM_THE_SHEET) were
@@ -182,21 +286,26 @@
    loop docs got the standing **two-regimes note** (corpus = scroll discipline; loops =
    legacy sheet regime pending §8.1). Quarto render-check passed (42/42; anchors +
    `_devlinks` GitHub routing verified; BOOK set unchanged — no new chapters).
-4. **§8.1's OPEN HALF (author decision, ordered against #2):** migrate the live loops —
-   `agon_evolution.run` / `live_runner` / membranes move off `assert_fact`/`assert_into` onto
-   the world-scroll forms (`enlarge_m` / `withdraw_and_resupply` / discharge); then unwrap
-   `agon_evolution_swan`'s post-hoc adapter into a native chain.
-5. **Phase-2 ontology wrap (builder-only; the read path is already m_view-aware):** wrap the
-   7 T-box ontologies via `tools/build_ontologies.py` + import pipelines; shrink the gate's
-   allowlist to empty.
-6. **Pre-existing reds to dispose (all proven failing at HEAD, none from the sweep):**
-   (a) **skos_core's ELK layout is order-dependent** (passes alone ×5, fails mid-corpus-sweep
-   — cross-call state in the ELK path; a determinism wrinkle that deserves its own
-   investigation, it touches the reproducibility story); (b) `arithmetic_from_two_laws`
-   fails the *clockwise-ordered* read (ternary `sum` atoms — the colore_between-shaped
-   frontier; either extend `_reader_frontier` with the honest rationale or teach the
-   clockwise override the case; numbered/structure/§3.3 all pass); (c) challenge/define
-   e2e ×4; (d) perf memory_stability = load flake (passes alone).
+4. **✅ DONE 2026-07-16 (folded into sweep #2 per verdict D4) — §8.1's OPEN HALF.** The
+   live loops migrated straight to cells: `agon_evolution.run` opens every chain with
+   genuine DC+ · INS residence steps and stamps act/derivation; `revise_with_disposition`
+   is residence-aware (one dispatcher migrated agon_evolution + agon_llm + siblings);
+   `live_runner` counts/decays/reseeds through the residence; `agon_evolution_swan` is a
+   native chain (post-hoc adapter deleted). See item -3.
+5. **✅ DONE 2026-07-15 — Phase-2 ontology wrap.** All 7 T-box ontologies reside in the
+   standing world-scroll (five by the rule-licensed DC+·INS chain, two — `bfo_core`,
+   `colore_field` — by the id-preserving structural adapter, recorded in their
+   annotations); the gate's allowlist is **empty** and self-checking. (Re-built into the
+   cells shape by sweep #2.)
+6. **Pre-existing reds — ALL GREEN as of 2026-07-16/17 (full suite: 3652 passed, 137
+   skipped, 1 xfailed, 0 failed; browser e2e 3/3 separately).** The named four are no
+   longer failing: (a) **skos_core's ELK order-dependence** — passes in the full
+   corpus sweep now; the *root cause was never found*, so treat it as **latent, not
+   fixed** (if it returns, it is cross-call state in the ELK path and it touches the
+   reproducibility story); (b) `arithmetic_from_two_laws` clockwise-ordered read —
+   passes (not in `_reader_frontier`; likely healed by sweep #2's rebuild + the
+   oval label-headroom fix); (c) challenge/define e2e ×4 — pass; (d) perf
+   memory_stability — passes. **Nothing to dispose; keep (a) on the watch list.**
 7. **Optional, standing:** #9 layout-at-scale (ontologist ceiling), FOPL panel display
    nuance, R4 accessibility polish, F1⁵ global-label root fix.
 

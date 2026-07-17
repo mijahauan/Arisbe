@@ -264,3 +264,51 @@ what it would be exercised on.
 > syntax; no quotation-in-quotation; no IT± of exhibits; cross-UoD mention
 > S3 = sort-half only. Next rung: ② **B-full** (native graph-valued element
 > kind, ν-hookable blank, P3′/P5′), which follows B-min per verdict B5.
+
+## 8. Before B-full: the hinge was discharged at B-min (prep note, 2026-07-17)
+
+A finding recorded while preparing the ② B-full session, for the author's ruling
+rather than as doctrine. **§4 of this memo says the decision reduces to one
+question — "the hinge is S3, and only S3."** B-min answered it: `second_order_reader`
+recovers `(sort, quoted)` off the drawing and **S3 is CHECKED** on the swan and
+forcing exemplars. So the argument that justified the *whole* B ladder has been paid
+out at the cheaper rung, and B-full — per the ladder's own discipline (brief A's A4:
+a climb needs "a demonstrated need and re-proof of A3") — now needs a **freshly stated
+marginal value**. Verdict B5 orders B-full to *follow* B-min; it does not say what
+B-full is *for* once S3 is checked.
+
+Three things the record should carry into that ruling:
+
+1. **The step is not additive the way B-min was.** B-min added default-empty parallel
+   maps (`sort`, `quotation`) and **left `ν: E → VertexSequence` untouched** — which is
+   precisely why first-order graphs are bit-identical and A3's tier-1 invisibility is a
+   near-tautology. B-full widens ν's codomain to admit a graph-valued hook target.
+   Measured 2026-07-17: **52 modules, 252 sites** read `ν`; `.Cut`-enumerating sites
+   concentrate in `egi_core_dau` (28), `formal_transformation_rules` (15),
+   `syntactic_equivalence_checker` (11), `presentation_ops` (9), with the engines,
+   renderer, IO, canonical signature and linear generators beyond. The ladder stays a
+   **strict prefix in artifacts** (nothing built is discarded) but **not in cost or in
+   A3**: conservativity stops being a default-empty argument and becomes a real
+   obligation at every ν consumer.
+2. **"Graphs about graphs" — the crossing's stated mandate — has a cheaper route.**
+   The one thing B-min structurally refuses is **quotation-in-quotation**, and that
+   refusal is **a validation choice, not a model limit**: `_validate_second_order`
+   raises on a quotation cut nested in a quotation area, while the `quotation:
+   cut → vertex` shape expresses nesting without complaint. Lifting the limit
+   ("B-min+") buys unbounded ascent — criticism of a criticism — for the price of the
+   reader, the rules' opacity discipline, and A3 re-proof; **not for the price of ν**.
+3. **A Peircean argument against B-full's literalism** (the assistant's reading,
+   flagged as such; the standing text is CATEGORIES_AND_THE_THREE_PARTS on hypostatic
+   abstraction). Abstraction turns a predicate into a **subject** — "hard" → "hardness"
+   — and in EG a subject is a *line of identity*. B-min's shape (a sorted **name**,
+   which ν hooks like any other subject, tied to a drawn oval) may be *more* faithful
+   to the abstraction Peirce actually performs than "the graph **is** the node ν hooks."
+   B-full's claim to be "what the dotted oval most literally is" is worth testing
+   against the alternative reading: **the oval is the exhibit; the spot on it is the
+   subject.**
+
+**The open questions**, carried in CURRENT_PLAN as B-full-1…4: the marginal value
+now that S3 is checked; ν-widening vs. the parallel-map line; **which fitting
+exemplar cannot be drawn at B-min/B-min+** (all three blessed exemplars work at B-min
+today, and a nested-quotation case would exercise only the cheaper route); and whether
+the linear-form limit gets syntax or stays named.

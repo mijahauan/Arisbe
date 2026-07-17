@@ -272,7 +272,13 @@ few things first:
     the second-order reader that recovers S3 off the drawing — CHECKED on the drawn exemplars) both
     shipped 2026-07-15/16 (SECOND_ORDER_CORE_OPENING §7's build notes). What remains on this ladder
     is **② B-full**: a native graph-valued element kind (ν hooks a blank, P3′) with committed render
-    conventions (P5′), following B-min per verdict B5.
+    conventions (P5′), following B-min per verdict B5 — **but see SECOND_ORDER_CORE_OPENING §8
+    (prep, 2026-07-17): the memo's stated hinge ("the hinge is S3, and only S3") was *discharged at
+    B-min*, so B-full awaits a freshly stated marginal value. The prep also finds that B-full is not
+    additive the way B-min was (it widens ν — 52 modules / 252 sites — so A3 stops being a
+    default-empty argument), and that the crossing's own mandate, "graphs about graphs", has a
+    cheaper route: quotation-in-quotation is a *validation* choice, not a model limit. Four open
+    questions (B-full-1…4) carried in CURRENT_PLAN item -5.**
 
 ---
 
