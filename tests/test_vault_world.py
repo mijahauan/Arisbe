@@ -123,3 +123,16 @@ class TestFeed:
         rid = w.note_id("rootnote.md")
         assert peel(res.uod.current_egi, f'(note "{rid}")').verdict is Verdict3.TRUE
         assert feed.refused == 0
+
+
+class TestDeterminism:
+    def test_identical_fixture_identical_trajectories(self):
+        from probe_feed import replay_choices
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultWorld, VaultFeed
+        def drive():
+            feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+            res = run('(even "0")', feed, rounds=20, uod_id="vfx", name="vfx")
+            return replay_choices(feed.journal), [o.disposition for o in res.outcomes]
+        assert drive() == drive()
