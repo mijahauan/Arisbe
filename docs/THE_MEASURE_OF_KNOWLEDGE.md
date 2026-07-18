@@ -121,6 +121,36 @@ about knowledge — with the A3 conservativity gate (the standing crossing invar
 the guarantee that no level corrupts the one beneath it. The recursion has a floor and a
 discipline, which natural fractals lack.
 
+**Three further senses (the author's, 2026-07-18).** The author extended the reading in
+three directions the level-ladder alone doesn't capture:
+
+1. **The Endoporeutic Game is itself recursive** — the peel plays *sub-EPGs* as it
+   traverses the proposed graph, one game per nested context, outside-in: the syntax
+   recursion (cuts within cuts) and the game recursion (games within games) are the
+   same descent. The fractal is not only *between* levels; it is *inside* a single
+   evaluation.
+2. **The diachronic DAG's branches are parallel chains of semiosis** — each root→leaf
+   path a self-similar trajectory of the same doubt-cycle, diverging where dispositions
+   disagreed (the branch-on-disagreement machinery) and sometimes reconverging: the
+   fractal in *time*, not just in scale.
+3. **Communities of Arisbes** — the horizontal dimension: multiple instances
+   collaborating in modeling each other and the world around them, each an
+   author-according-to-the-other at the system grain, playing the same game between
+   themselves that each plays with its membranes. Unbuilt; named here as the fractal's
+   social axis.
+
+And the closure condition, in the author's words: *"When Arisbe models its own modeling,
+rather than you and I doing so, the semiotic loop may truly close."* Today levels 4–5
+(the mechanism findings, the run-log discipline) are held **outside** the system — by the
+author and the assistant, in docs and logs. The loop closes when that model becomes an
+**M inside Arisbe** — doubt-driven, peeled, revised, and decayed like any other — which
+is the strongest standing argument for eventually operationalizing the deferred
+reflexive Universe of Discourse (BOOTSTRAP_AND_DIRECTED_ENGAGEMENT §4). The author also
+notes the evidence is already on hand: *the history of Arisbe's own development — the
+documentation and commits — carries the author's hand, interests, values, and
+directives*, a dated, disposed, membrane-ready record of both the project and its
+author.
+
 ## 4 · Ethical corollaries — the doubt-driven system and a just society
 
 **The author's prompt:** explore *"the broader ethical implications of Doubt 4 and what

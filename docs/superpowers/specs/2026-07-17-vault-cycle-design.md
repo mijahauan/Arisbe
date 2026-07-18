@@ -106,6 +106,21 @@ inquiry goes live (does this passage read as the author's voice or a clipping?).
 Dis-quotation only by episode. LLM roles optional and staged (mechanical panel
 first, per the standing pattern).
 
+**V1 design notes (added 2026-07-18, from the author's prompts):**
+- **Community detection as meso-scale attention** (the author's graphify observation):
+  the author runs `graphify --update` as "spatial memory" over the code repo; the same
+  move serves the loop — communities over the vault's wikilink graph give the docket
+  *region-level* wants (a thin, doubt-worthy cluster is `attention_brief` writ large),
+  computed locally and deterministically. The loop's existing spatial memory (`m_view`,
+  the hierarchical index, canonical signatures) is element-level; graph communities are
+  its missing meso-scale.
+- **The Arisbe repo as a second evidence source about the author** (the author's
+  observation): the project's own docs, commits, and run logs carry the author's hand,
+  interests, values, and directives — already dated, sourced, and disposed, i.e.
+  membrane-shaped without NL parsing (commit metadata + doc structure are V0-grade;
+  doc content is V1-grade). A candidate leg after the vault, feeding both this cycle's
+  M and the eventual reflexive Universe of Discourse.
+
 ## Stage V2 — the oracle (the interactive loop; open items below)
 
 Forecast-before-ask (the resolving shape): Arisbe predicts the author's answer,
