@@ -21,6 +21,14 @@ measure this cycle's M is scored by) · the author's rulings of 2026-07-17 (belo
 4. **Vault:** `/Users/mjh/Documents/Vorago`. Recon (2026-07-17, metadata only): 1,014
    md notes · ~1.06M words · 3,457 wikilinks · 161 frontmatter notes · mtimes 2024-03
    → 2026-07 · 73 PDFs · ~1,400 images · 59 canvas files · `Clippings/` present.
+   **The journal (the author's clarification, 2026-07-17):**
+   `Personal/Journal-20230228/Journal.md` — 23,233 lines / ~418k words, **1,583
+   date-headed entries spanning 1930 → 2023-11** (per-decade: 1930s 2 · 1950s 1 ·
+   1960s 3 · 1970s 38 · 1980s 271 · 1990s 112 · 2000s 131 · 2010s 601 · 2020s 422;
+   2 malformed date-lines to be flagged, never silently mis-dated). Sequential entry
+   was the author's main recording method before Obsidian — this file, not the
+   Obsidian mtimes, is the **longitudinal spine**: the diachronic record is ~50 years
+   of writing, not 27 months.
 5. **Provenance is inquiry, not precondition** (the author's insight): whether a note
    or part of its content originates elsewhere is itself a subject of Arisbe's study
    of the author — `(authored ...)` vs `(collected ...)` are *hypotheses* carrying
@@ -60,6 +68,14 @@ the vault **without leaving the machine**:
   `(tagged "n" "t")` · `(modified "n" "YYYY-MM")` (frontmatter date when present,
   mtime fallback — the diachrony) · `(kind "n" "md|pdf|canvas|image")` ·
   `(collected_prior "n")` for `Clippings/` (a *prior*, not a verdict — feeds ruling 5).
+- **The journal reader (entry-level; still metadata):** split `Journal.md` on its
+  date-line convention (`^YYYY-MM[-DD]`) into entries →
+  `(journal_entry "j/1983-07-04")` · `(entry_date "j/…" "1983-07")` · entry length.
+  **Two timelines, held apart:** the date-line is an **event-time claim**; the
+  **writing-time** is a *hypothesis* (contemporaneous vs retrospective entry — the
+  pre-birth 1930s entries prove the distinction; which periods were written live vs
+  reconstructed is itself a discriminating question about the author, prime oracle
+  material for V2). Malformed date-lines → flagged to the horizon, counted.
 - **Probes** (the `ProbeDirectedFeed` pattern, feed-seeding extracted per the
   carried-to-vault list): `scan_folder` (cheap) · `read_note_metadata` ·
   `follow_links(n)` (the crawl shape) · `date_window(period)` (diachronic slices) ·
@@ -103,7 +119,9 @@ from day one (recommended: yes, as its own stream).
 
 - **P1¹³ (retrodiction):** trained on notes through month *m*, the model's forecasts
   about month *m+1*'s activity (which clusters grow, which notes get revisited) beat
-  a frequency baseline on a held-out slice.
+  a frequency baseline on a held-out slice — and, at the journal's scale, trained
+  through year *y*, forecasts about year *y+1*'s entry rhythm and recurring themes
+  beat the same baseline across at least two decades of held-out spans.
 - **P2¹³ (legible questions):** the docket generates questions about the author that
   the author rates non-trivial at better than a stated base rate (author-judged
   sample per segment).
@@ -114,7 +132,10 @@ from day one (recommended: yes, as its own stream).
   truth about the author), with `Clippings/` recovered without being told its
   meaning.
 - **P5¹³ (diachrony legible):** a topic's treatment-over-time reads correctly in the
-  audit lens for at least one exemplar topic the author picks.
+  audit lens for at least one exemplar topic the author picks — with the journal's
+  50-year span as the K2 showcase: at least one **disposition** (a habit standing
+  across decades) and one **mood** (a state that faded) legibly separated by the
+  decay clock.
 
 ## Out of scope this cycle
 
