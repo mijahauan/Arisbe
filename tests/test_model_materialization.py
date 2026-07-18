@@ -203,3 +203,38 @@ def test_incremental_peel_verdicts_match_the_uncached_peel():
     for proposal in ['(mortal "Socrates")', '(mortal "Plato")', '(man "Socrates")']:
         assert (peel(m, proposal, materializer=mat).verdict
                 is peel(m, proposal).verdict)
+
+
+# ---------------------------------------------------------------------------
+# K3 — the materialization ratio (THE_MEASURE_OF_KNOWLEDGE §2, authorized
+# 2026-07-17): compression = derived atoms per law, with non-Horn laws counted
+# in the denominator (no compression credit without evaluable evidence).
+# ---------------------------------------------------------------------------
+
+def test_k3_syllogism_ratio():
+    from model_materialization import materialization_ratio
+    M = parse_egif('(man "Socrates") (man "Plato") '
+                   '~[ (man *x) ~[ (mortal x) ] ]')
+    k3 = materialization_ratio(M)
+    assert k3.explicit == 2
+    assert k3.derived == 2          # mortal(Socrates), mortal(Plato)
+    assert k3.horn_laws == 1 and k3.skipped_laws == 0
+    assert k3.ratio == 2.0
+
+def test_k3_no_laws_is_zero_not_error():
+    from model_materialization import materialization_ratio
+    k3 = materialization_ratio(parse_egif('(bird "Tweety")'))
+    assert k3.derived == 0 and k3.horn_laws == 0
+    assert k3.ratio == 0.0
+
+def test_k3_non_horn_law_weighs_the_denominator():
+    from model_materialization import materialization_ratio
+    # one productive Horn law + one non-Horn shape (disjunctive head — skipped):
+    # the skipped law earns no credit but still counts as a law M carries.
+    M = parse_egif('(man "Socrates") '
+                   '~[ (man *x) ~[ (mortal x) ] ] '
+                   '~[ (animal *y) ~[ ~[ (cat y) ] ~[ (dog y) ] ] ]')
+    k3 = materialization_ratio(M)
+    assert k3.horn_laws == 1 and k3.skipped_laws >= 1
+    assert k3.ratio == k3.derived / (k3.horn_laws + k3.skipped_laws)
+    assert k3.ratio < k3.derived / k3.horn_laws   # the skip genuinely weighs

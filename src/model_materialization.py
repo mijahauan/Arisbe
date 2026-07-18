@@ -434,3 +434,42 @@ class _FactsBuilder:
 def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
     """Build a facts-only EGI from the materialized atom set (all ground)."""
     return _FactsBuilder().add(facts)
+
+
+# --------------------------------------------------------------------------- #
+# K3 — the materialization ratio                                              #
+# (THE_MEASURE_OF_KNOWLEDGE §2; the compression component of the knowledge    #
+# measure, authorized 2026-07-17.)                                            #
+# --------------------------------------------------------------------------- #
+
+@dataclass(frozen=True)
+class KnowledgeCompression:
+    """K3: how much of M's ground extension its laws derive, per law.
+
+    ``ratio`` = derived ÷ (horn_laws + skipped_laws). A law materialization
+    cannot evaluate (non-Horn, reported in ``skipped``) earns no compression
+    credit but still weighs the denominator — no credit without evaluable
+    evidence, the measure's earned-record discipline applied to itself. A
+    model with no laws compresses nothing: ratio 0.0, never an error."""
+
+    explicit: int
+    derived: int
+    horn_laws: int
+    skipped_laws: int
+
+    @property
+    def ratio(self) -> float:
+        laws = self.horn_laws + self.skipped_laws
+        return self.derived / laws if laws else 0.0
+
+
+def materialization_ratio(egi: RelationalGraphWithCuts) -> KnowledgeCompression:
+    """Compute K3 for ``egi`` (resident or bare M — reading via ``m_view``
+    inside :func:`materialize_egi`'s shared extraction)."""
+    _, report = materialize_egi(egi)
+    return KnowledgeCompression(
+        explicit=report.base_facts,
+        derived=report.derived_facts,
+        horn_laws=report.rules_applied,
+        skipped_laws=len(report.skipped),
+    )

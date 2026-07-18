@@ -256,15 +256,23 @@ Socratic elenchus — doubt-induction as the oldest teaching method on record.
    §4 is re-grounded on it. A consequence for decision 3: the vector-not-scalar guard
    is now literally **Doubt 4's enforcement clause inside the measure** — an aggregate
    knowledge-score over agents would be the worth-ladder rebuilt by arithmetic.
-2. **The four-component measure** (§2) — ratify or amend; and authorize the small K3
-   build (the materialization ratio)?
-3. **The vector-not-scalar guard** (§2, guard 3) — ratify as doctrine: components are
-   never aggregated into a single ranking of inquirers.
-4. **The Rawls thread's shape** (§4) — adopt the procedural-epistemic-fairness reading
-   with the Fricker bridge as the load-bearing ethical content; accept or strike the
-   maximin-docket gloss.
-5. **The tutor loop** (§5) — authorize a design pass (learner-ledger + challenge
-   selection through the attention socket), or hold?
-6. **Placement** — this doc stays dev-only for now; decide later whether §1–§3 graduate
-   toward the book (a natural extension of CONTRIBUTION_AND_PRIOR_ART §"Concordances")
-   and §5 toward GETTING_STARTED's orbit.
+2. **The four-component measure** (§2) — ✅ RATIFIED 2026-07-17, and K3 authorized +
+   **BUILT same day**: `model_materialization.materialization_ratio` →
+   `KnowledgeCompression` (derived ÷ all laws, with non-Horn skipped laws weighing the
+   denominator — no compression credit without evaluable evidence; a lawless M reads
+   0.0, never an error). Three tests in `tests/test_model_materialization.py`. All four
+   components now instrumented.
+3. **The vector-not-scalar guard** (§2, guard 3) — ✅ RATIFIED 2026-07-17 as doctrine:
+   components are never aggregated into a single ranking of inquirers (Doubt 4's
+   enforcement clause inside the measure).
+4. **The Rawls thread's shape** (§4) — ✅ RULED 2026-07-17: (a) the
+   procedural-epistemic-fairness reading with the Fricker/uptake bridge ADOPTED;
+   (b) the maximin-docket gloss ACCEPTED (a modest structural fact about attention,
+   not a grand claim).
+5. **The tutor loop** (§5) — ✅ DESIGN AUTHORIZED 2026-07-17; the design pass is
+   [TUTOR_LOOP.md](TUTOR_LOOP.md) (design-of-record; nothing built — the build is a
+   separate authorization).
+6. **Placement** — HOLD until K3 exists and the measure is ratified (the author's
+   condition, 2026-07-17). *Note: both preconditions were met the same day (decisions
+   2's ratification + K3's build), so placement now simply awaits the author's word —
+   it does not execute automatically.*

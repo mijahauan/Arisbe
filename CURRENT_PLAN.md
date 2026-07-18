@@ -38,6 +38,17 @@ load-bearing bridge); and pedagogy (weight-bearing scaffold = the measure read d
 the EPG as tutorial protocol; the **tutor loop** = the named build candidate). Six author
 decisions open in that doc's §6 — including the "Doubt 4" clarification.
 
+**The rulings landed same sitting (2026-07-17):** Doubt 4 = FIDELITY_A_PLAIN_ACCOUNT's
+"Ladders of worth" (§4 re-grounded; the vector-not-scalar guard recognized as Doubt 4's
+enforcement clause in the measure). Then all five remaining decisions ruled: the K1–K4
+measure RATIFIED and **K3 BUILT** (`model_materialization.materialization_ratio` →
+`KnowledgeCompression`; skipped non-Horn laws weigh the denominator; 3 tests, file at 18
+passed); the vector-not-scalar guard RATIFIED; the Rawls shape ADOPTED (procedural
+epistemic fairness + Fricker bridge) with the maximin-docket gloss ACCEPTED; the tutor
+loop's design pass AUTHORIZED and written (`docs/TUTOR_LOOP.md` — learner-ledger, economy
+mapping, EPG-as-tutorial, T0–T2 staging with pre-registered TS1–TS5; build not
+authorized); placement HOLD noted as precondition-met, awaiting the author's word.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was
