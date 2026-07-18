@@ -44,6 +44,12 @@ class TestReader:
         assert any(r.endswith("sketch.canvas") for r in refs)
         assert all(i.reason == "binary" for i in items)
 
+    def test_root_level_notes_have_a_real_bucket(self):
+        w = VaultWorld(FIX)
+        assert "rootnote.md" in w.notes()
+        assert any(d == "(root)" for d in w.top_dirs())
+        assert '(in_folder ' in w.note_facts("rootnote.md")
+
 
 class TestJournal:
     def test_entries_split_on_valid_datelines_only(self):
@@ -106,3 +112,14 @@ class TestFeed:
         m = parse_egif('(even "0")')
         emissions = [feed.propose(m, r) for r in range(1, 26)]
         assert all("SENTINELBODY" not in (e or "") for e in emissions)
+
+    def test_root_level_note_is_discovered_and_read(self):
+        from egif_parser_dau import parse_egif
+        from agon_evolution import run, peel
+        from semantic_game import Verdict3
+        feed, w, h = self._feed()
+        res = run('(even "0")', feed, rounds=25, uod_id="vault_root",
+                  name="root discovery")
+        rid = w.note_id("rootnote.md")
+        assert peel(res.uod.current_egi, f'(note "{rid}")').verdict is Verdict3.TRUE
+        assert feed.refused == 0

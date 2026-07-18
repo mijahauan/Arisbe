@@ -49,6 +49,13 @@ _FRONTMATTER_DATE_RE = re.compile(r"^date:\s*(.+?)\s*$", re.MULTILINE)
 _FRONTMATTER_TAGS_INLINE_RE = re.compile(r"^tags:\s*\[([^\]]*)\]\s*$", re.MULTILINE)
 _MD_EXT = ".md"
 
+# A root-level note (no containing folder) still needs a real scan-unit bucket —
+# "" is falsy and was silently filtered out of top_dirs(), so root notes were never
+# scanned, never read, never horizoned: a silent drop. ROOT_BUCKET gives them a
+# genuine (non-empty) bucket name that flows uniformly through every _top_dir
+# consumer (top_dirs/_seed/_refill/_execute/folder_listing_facts/note_facts).
+ROOT_BUCKET = "(root)"
+
 # -- journal date-lines --------------------------------------------------------------
 # Shape per the vault spec's two-timeline rule: a bare date-line is an event-time
 # claim (year, month, optional day). Year is deliberately NOT range-checked (a
@@ -149,14 +156,16 @@ class VaultWorld:
 
     def _top_dir(self, relpath: str) -> str:
         parts = Path(relpath).parts
-        return parts[0] if len(parts) > 1 else ""
+        return parts[0] if len(parts) > 1 else ROOT_BUCKET
 
     def top_dirs(self) -> List[str]:
         """Sorted top-level directories that actually hold notes — the vault's
         scan units. An attachment-only directory (e.g. ``attachments/``) has
         nothing to list here; its files reach the horizon via
-        ``attachment_items`` instead, never a scan want of their own."""
-        return sorted({self._top_dir(n) for n in self.notes() if self._top_dir(n)})
+        ``attachment_items`` instead, never a scan want of their own. Root-level
+        notes get the real ``ROOT_BUCKET`` sentinel, not a falsy "" that would
+        silently drop out of this set."""
+        return sorted({self._top_dir(n) for n in self.notes()})
 
     def note_facts(self, relpath: str) -> str:
         path = self.root / relpath
@@ -167,8 +176,7 @@ class VaultWorld:
         atoms: List[str] = [f'(note "{nid}")']
 
         top = self._top_dir(relpath)
-        if top:
-            atoms.append(f'(in_folder "{nid}" "{_const(top)}")')
+        atoms.append(f'(in_folder "{nid}" "{_const(top)}")')
 
         atoms.append(f'(kind "{nid}" "md")')
 
