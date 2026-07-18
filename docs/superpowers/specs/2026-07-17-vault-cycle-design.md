@@ -121,14 +121,44 @@ first, per the standing pattern).
   doc content is V1-grade). A candidate leg after the vault, feeding both this cycle's
   M and the eventual reflexive Universe of Discourse.
 
-## Stage V2 — the oracle (the interactive loop; open items below)
+## Stage V2 — the oracle (V2a RULED 2026-07-18: the Obsidian-native surface)
 
 Forecast-before-ask (the resolving shape): Arisbe predicts the author's answer,
 asks, scores the miss. The docket's wants become questions; the economy's cost unit
-is **the author's time**. *Open, the author's:* the interruption budget and surface
-(batched docket panel in Organon vs conversation here vs both), and whether the
-reflexive stream ("how the author changes by interacting with Arisbe") is annotated
-from day one (recommended: yes, as its own stream).
+is **the author's time**. **The author ratified all four V2a recommendations
+(2026-07-18):**
+
+1. **Surface = the vault itself.** Arisbe writes questions notes into exactly ONE
+   folder (`Arisbe/`), each with `authored_by: arisbe` frontmatter; the next poll
+   reads answers back **through the same membrane**. Arisbe-ink is excluded from
+   author-evidence by provenance; the author's `**A:**` text enters M as quoted
+   attributed cells (`(asserted "author" ⌜…⌝)`, provenance `oracle-answer`) —
+   banked unparsed via the quotation machinery (mention-not-use), so V2a needs no
+   API; interpretation is V1's explicit-episode job. This is the first true
+   action-arm act: Arisbe writing into the world it models, under standing consent,
+   contained to one folder. A deleted questions note = a wave-off, honest. (The web
+   docket panel is V2b, later, for quick confirms.)
+2. **Budget = per-note, pull-only**: ≤5 questions per note, ≤1 reflective; tiers
+   quick-confirm / short-answer / reflective, severity must justify tier; a new note
+   only when the prior is substantially answered or waved off; **the knob lives in
+   the note's frontmatter** (`budget: {max: 5, reflective: 1}`, author-editable).
+   No push, ever.
+3. **Seal-then-reveal**: the forecast's plaintext lives in the gitignored side-store;
+   only its SHA-256 commitment appears in the question block; the next note's
+   `## Reveals` section prints plaintext + hash + hit/miss after the answer is read —
+   the seal is *checkable*, not promised. Ask-time and answer-time held apart (the
+   two-timeline discipline, third appearance).
+4. **Decline/silence are first-class**: `declined` = veridical data, its want decays
+   (no re-asking); silence ages the want; a question-kind repeatedly yielding silence
+   decays as a kind (the noisy-TV guard turned inward). Counted-never-dropped
+   throughout. **Reflexive stream from day one**: the whole exchange lives in
+   `Arisbe/`, so "how the author changes by interacting with Arisbe" accumulates in
+   the corpus automatically, provenance-marked.
+
+**V2a build list** (small, offline, deterministic): question-renderer (docket wants →
+markdown note), answer-parser (`**A:**` + declined/ignored states), hash-commitment
+seal + reveal, the provenance-exclusion rule in the reader, ledger wiring
+(forecast-vs-answer → the author-model's K1).
 
 ## RUN 13 — pre-registered priors (draft for the author's amendment before launch)
 
