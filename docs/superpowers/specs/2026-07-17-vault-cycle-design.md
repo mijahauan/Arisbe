@@ -148,3 +148,64 @@ metadata-level).
 1. Third-party folders: keep metadata-only, or widen consent?
 2. V2 interruption budget + surface.
 3. P-priors: amend/replace before launch.
+
+## V0 build record (2026-07-18)
+
+Stage V0 (the metadata membrane) built via subagent-driven execution, eight TDD tasks,
+per-task adversarial review, commits `402ab0e..c792a07`. **Modules:** `src/probe_feed.py`
+(the socket base extracted from the rung-1 arithmetic feed — the drain-refill propose
+loop, model-delta yield reading via `m_view`, the FIFO/scatter baseline choosers,
+`replay_choices`, and the **count-or-refuse dispatch rule** — a chosen want the feed
+cannot voice is refused and counted in `self.refused`, never silently dropped, now live);
+`src/vault_world.py` — `VaultWorld` (the reader: `notes`/`note_facts`/`folder_listing_facts`/
+`attachment_items`/`probe_cost`, structure-only per the custody constraint — path, folder,
+frontmatter date/tags, wikilinks, size/mtime, never body content) + the journal reader
+(`journal_paths`/`journal_entries`/`journal_facts`/`journal_horizon_items`, the two
+timelines held apart — event-time a claim, writing-time absent by design, malformed
+date-lines flagged to the horizon rather than mis-dated) + `VaultFeed` (the socket's
+fourth `Proposer` consumer, the journal seeded at severity 8.0 so the author's own
+datelined voice outranks a folder scan). The **horizon register** (designed in Task 2,
+deferred to this stage by the spec above) is live: attachments (PDF/image/canvas) and
+malformed journal date-lines register as `HorizonItem`s at seed time, retained/counted/
+re-attemptable, nothing silently dropped. **The root-bucket fix:** Task 5's adversarial
+review caught that `_top_dir` returned `""` for a root-level note, and `""` is falsy —
+`top_dirs()` built `{self._top_dir(n) for n in self.notes()}` and a falsy top silently
+dropped out of that set, so root-level notes were never scanned, never read, never
+horizoned. Fixed by `ROOT_BUCKET = "(root)"`, a genuine non-empty bucket name flowing
+uniformly through every `_top_dir` consumer (commit `3f98c6c`, same-session fix-loop —
+the bug found and closed inside Task 5, not carried to a later task).
+
+**Custody** verified adversarially in review, not merely asserted: the `SENTINELBODY`
+sentinel word planted in the fixture's note bodies and journal entries is asserted
+absent from every emission across the Task 3/4/5 review diffs; the driver's only
+`print` (Task 7) was grepped line-by-line to confirm its digest carries counts and
+kind/reason-keyed tallies only, never a note id, title, or path; `git check-ignore -v`
+confirmed `runs/run13/` (and everything under it) matches the whole-directory
+`.gitignore` rule; and this task independently re-checked `git log --all` for
+`runs/run13/*` and for the `SENTINELBODY` sentinel across all of `runs/*` history —
+both empty, nothing vault-derived has ever been tracked.
+
+**Test counts:** `test_vault_world.py` 13 · `test_probe_feed.py` 2 · (carried, unchanged)
+`test_attention_economy.py` 19 · `test_arithmetic_world.py` 20. Full suite (2026-07-18):
+**3712 passed, 137 skipped, 1 xfailed, 0 failed** (1325.98s / 0:22:05) — no regressions
+from the arithmetic-stage baseline.
+
+**Carried-forward Minors** (none blocking, none silently swallowing data):
+- The `_refill` outstanding-read cap of 5 is correctly wired (verified in isolation) but
+  never exercised end-to-end by the fixture drive — the fixture's whole note set fits
+  under the cap in one scan pass, so the severity-2.0 linked-note boost never fires
+  against a full window. Will bite on a vault where discovery outpaces the cap.
+- The journal file is also a plain `.md` note, so `Personal/.../Journal.md` is scanned
+  and read as an ordinary note *in addition to* being probed via its dedicated `journal`
+  want — a double-want by design of the existing reader API, not a bug (no double-refusal
+  risk; both executions succeed independently).
+- `tools/run_vault_v0.py`'s literal `TomosService(runs_dir / "universes")` composed with
+  `TomosService`'s own `<root>/universes/<uod_id>/` layout double-nests as
+  `runs/run13/universes/universes/vault_v0_seg1/...` — still lands under the custody
+  boundary, cosmetic only.
+- `Horizon.register`'s dedup-vs-cap ordering is tested at "dedup while under cap" and
+  "new ref while at cap" but not at "duplicate ref submitted after the horizon is
+  already full" — untested, not known-broken.
+
+**RUN 13 awaits the author's launch:**
+`uv run python tools/run_vault_v0.py --rounds 200 --segments 3`

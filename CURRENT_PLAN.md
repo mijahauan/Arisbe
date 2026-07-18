@@ -49,6 +49,23 @@ loop's design pass AUTHORIZED and written (`docs/TUTOR_LOOP.md` — learner-ledg
 mapping, EPG-as-tutorial, T0–T2 staging with pre-registered TS1–TS5; build not
 authorized); placement HOLD noted as precondition-met, awaiting the author's word.
 
+**Vault V0 built (2026-07-18):** the metadata membrane over World #2 (the vault cycle's
+Stage V0), subagent-driven execution across 8 tasks with per-task adversarial review
+(commits `402ab0e..c792a07`) — `src/probe_feed.py` (the socket base extracted from the
+rung-1 arithmetic feed, count-or-refuse dispatch) + `src/vault_world.py` (`VaultWorld`
+the structure-only reader + the journal's two-timeline reader + `VaultFeed`, the socket's
+fourth `Proposer`) + the `Horizon` register now live in `attention_economy.py`. One
+Important review catch mid-build: Task 5's root-level-note invisibility (a falsy `""`
+top-dir bucket silently dropped root notes from every scan), fixed same-task via
+`ROOT_BUCKET`. Fixture-verified: `test_vault_world.py` 13 + `test_probe_feed.py` 2 new,
+custody checked adversarially (SENTINELBODY leak tests, digest-only driver stdout,
+`git check-ignore` + `git log --all` both confirming nothing under `runs/run13/` is ever
+tracked). Full suite: **3712 passed, 137 skipped, 1 xfailed, 0 failed** (1325.98s). Record:
+`docs/superpowers/specs/2026-07-17-vault-cycle-design.md` "V0 build record". **RUN 13
+awaits the author's own launch** against the real vault
+(`uv run python tools/run_vault_v0.py --rounds 200 --segments 3`) — not something CI or
+an agent does; priors pre-registered in `runs/RUN_13_LOG.md`.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was

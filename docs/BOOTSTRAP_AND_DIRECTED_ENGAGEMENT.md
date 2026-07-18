@@ -192,7 +192,8 @@ mechanical priority with a cost/yield ordering, and widen what feeds it:
   AUTOMATED_ENDOPOREUTIC_GAME Part I §4 item 4).
 - Make the **horizon** a first-class, retained register (what came back not-yet-legible,
   kept and re-attempted as legibility improves — the sensor-space growth register of
-  §1.1) rather than a per-poll report field.
+  §1.1) rather than a per-poll report field. Built 2026-07-18 at the vault stage
+  (`attention_economy.Horizon`), as designed.
 
 **Rung 2 — mutual co-evolution (pushing back).** The full functional circle: M's contested
 frontier surfaced *to the source* — e.g. suggested edits / flagged inconsistencies offered
