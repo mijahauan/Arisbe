@@ -218,3 +218,11 @@ runs/*/items.jsonl
 runs/*/weather_state.json
 runs/*/asks.jsonl
 runs/*/STOP
+
+# RUN 13 (the vault cycle) — custody boundary: everything the driver writes
+# against the real vault (UoDs/chains/journals) is model-derived from the
+# author's own filesystem and never enters git. The whole directory is
+# ignored (not just checkpoint subpaths, as above) because every artifact
+# under it is custody-sensitive; only the author-reviewed aggregate in
+# runs/RUN_13_LOG.md (tracked, at the top level) is ever committed.
+runs/run13/
