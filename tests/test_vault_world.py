@@ -68,3 +68,41 @@ class TestJournal:
         [j] = w.journal_paths()
         items = w.journal_horizon_items(round_idx=1)
         assert len(items) == 1 and items[0].reason == "malformed_date_line"
+
+
+class TestFeed:
+    def _feed(self):
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultWorld, VaultFeed
+        w = VaultWorld(FIX)
+        h = Horizon()
+        return VaultFeed(w, AttentionEconomy(), horizon=h), w, h
+
+    def test_journal_outranks_scans_and_lands_first(self):
+        from egif_parser_dau import parse_egif
+        feed, w, h = self._feed()
+        first = feed.propose(parse_egif('(even "0")'), 1)
+        assert "(journal_entry" in first        # severity 8 wins round 1
+
+    def test_full_drive_discovers_reads_and_horizons(self):
+        from egif_parser_dau import parse_egif
+        from agon_evolution import run
+        feed, w, h = self._feed()
+        res = run('(even "0")', feed, rounds=25, uod_id="vault_fix",
+                  name="vault fixture drive")
+        final = res.uod.current_egi
+        from agon_evolution import peel
+        from semantic_game import Verdict3
+        a = w.note_id("Ideas/alpha.md")
+        assert peel(final, f'(note "{a}")').verdict is Verdict3.TRUE
+        assert peel(final, f'(collected_prior "{w.note_id("Clippings/saved page.md")}")').verdict is Verdict3.TRUE
+        assert peel(final, '(entry_date "j:L1" "1930-05")').verdict is not Verdict3.FALSE
+        assert h.snapshot()["open"] >= 3        # pdf + canvas + malformed dateline
+        assert feed.refused == 0
+
+    def test_metadata_only_end_to_end(self):
+        from egif_parser_dau import parse_egif
+        feed, w, h = self._feed()
+        m = parse_egif('(even "0")')
+        emissions = [feed.propose(m, r) for r in range(1, 26)]
+        assert all("SENTINELBODY" not in (e or "") for e in emissions)

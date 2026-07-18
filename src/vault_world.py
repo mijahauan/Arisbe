@@ -25,7 +25,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-from attention_economy import HorizonItem
+from attention_economy import AttentionEconomy, Horizon, HorizonItem, Want
+from probe_feed import ProbeDirectedFeedBase
 
 # -- id sanitizing -----------------------------------------------------------------
 # Credited to wikidata_source._const's precedent: strip quotes/backslashes so the
@@ -150,6 +151,13 @@ class VaultWorld:
         parts = Path(relpath).parts
         return parts[0] if len(parts) > 1 else ""
 
+    def top_dirs(self) -> List[str]:
+        """Sorted top-level directories that actually hold notes — the vault's
+        scan units. An attachment-only directory (e.g. ``attachments/``) has
+        nothing to list here; its files reach the horizon via
+        ``attachment_items`` instead, never a scan want of their own."""
+        return sorted({self._top_dir(n) for n in self.notes() if self._top_dir(n)})
+
     def note_facts(self, relpath: str) -> str:
         path = self.root / relpath
         text = _read_text(path)
@@ -190,6 +198,18 @@ class VaultWorld:
         if top == "Clippings":
             atoms.append(f'(collected_prior "{nid}")')
 
+        return " ".join(atoms)
+
+    def folder_listing_facts(self, top_dir: str) -> str:
+        """The discovery-only facts a folder scan yields: which notes live here,
+        nothing about their content — one ``(note "id") (in_folder "id" top)``
+        pair per note, batched in one conjunction (the ``scan`` want's payload)."""
+        atoms: List[str] = []
+        for n in self.notes():
+            if self._top_dir(n) == top_dir:
+                nid = self.note_id(n)
+                atoms.append(f'(note "{nid}")')
+                atoms.append(f'(in_folder "{nid}" "{_const(top_dir)}")')
         return " ".join(atoms)
 
     # -- attachments (non-md files) -> horizon ----------------------------------
@@ -298,4 +318,94 @@ class VaultWorld:
         return out
 
 
-__all__ = ["VaultWorld"]
+# --------------------------------------------------------------------------- #
+# The feed (Task 5) — the socket's fourth consumer. Generic drain-refill      #
+# mechanics (AttentionEconomy + chooser/journal + the round loop) live in     #
+# probe_feed.ProbeDirectedFeedBase; VaultFeed supplies only the              #
+# vault-specific seeding/refill/dispatch, with the journal as the severity   #
+# spine: a journal want's severity 8.0 outranks a folder scan's default 1.0, #
+# so the author's own datelined voice lands before generic listing.          #
+# --------------------------------------------------------------------------- #
+
+_LINKS_FACT_RE = re.compile(r'\(links "[^"]*" "([^"]*)"\)')
+
+
+class VaultFeed(ProbeDirectedFeedBase):
+    """agon_evolution.Proposer over the vault's metadata membrane. Every vault
+    want settles on execution (``persistent_kinds`` is empty) — a note is
+    re-read only if a later stage's decay pressure re-wants it, not by this
+    feed re-proposing it itself."""
+
+    persistent_kinds: frozenset = frozenset()
+
+    def __init__(self, world: VaultWorld, economy: AttentionEconomy, *,
+                 horizon: Optional[Horizon] = None, chooser=None,
+                 probe_budget: int = 1, journal=None):
+        super().__init__(economy, chooser=chooser, probe_budget=probe_budget,
+                          journal=journal)
+        self._world = world
+        self._horizon = horizon if horizon is not None else Horizon()
+        self._scanned_dirs: set = set()   # top dirs whose scan want has executed
+        self._read_notes: set = set()     # relpaths whose read want has executed
+        self._link_targets: set = set()   # note ids seen as a `links` target so far
+
+    # -- intake -----------------------------------------------------------------
+    def _seed(self, round_idx: int):
+        for top in self._world.top_dirs():
+            self._economy.register(Want(
+                kind="scan", key=("scan", top), payload=top,
+                cost=1.0, created_round=round_idx))
+        for relpath in self._world.journal_paths():
+            self._economy.register(Want(
+                kind="journal", key=("journal", relpath), payload=relpath,
+                cost=self._world.probe_cost(relpath), severity=8.0,
+                created_round=round_idx))
+        # Attachments and malformed journal date-lines never become facts —
+        # they're registered to the horizon once, at seed time, where they
+        # wait to be re-attempted as legibility improves in a later stage.
+        for item in self._world.attachment_items(round_idx):
+            self._horizon.register(item)
+        for item in self._world.journal_horizon_items(round_idx):
+            self._horizon.register(item)
+
+    def _refill(self, round_idx: int):
+        outstanding = sum(1 for w in self._economy.wants() if w.kind == "read")
+        candidates = [
+            n for n in self._world.notes()
+            if self._world._top_dir(n) in self._scanned_dirs
+            and n not in self._read_notes
+        ]
+        for relpath in candidates:            # bounded scan — finite discovered set
+            if outstanding >= 5:
+                break
+            severity = 2.0 if self._world.note_id(relpath) in self._link_targets else 1.0
+            before = self._economy.dropped
+            registered = self._economy.register(Want(
+                kind="read", key=("read", relpath), payload=relpath,
+                cost=self._world.probe_cost(relpath), severity=severity,
+                created_round=round_idx))
+            if registered:
+                outstanding += 1
+            elif self._economy.dropped > before:
+                break                          # pool at cap; the drop is counted
+
+    # -- emission dispatch --------------------------------------------------------
+    def _execute(self, w: Want):
+        if w.kind == "scan":
+            top = w.payload
+            facts = self._world.folder_listing_facts(top)
+            self._scanned_dirs.add(top)
+            return facts or None
+        elif w.kind == "read":
+            relpath = w.payload
+            facts = self._world.note_facts(relpath)
+            self._read_notes.add(relpath)
+            self._link_targets.update(_LINKS_FACT_RE.findall(facts))
+            return facts or None
+        elif w.kind == "journal":
+            return self._world.journal_facts(w.payload) or None
+        else:
+            return None
+
+
+__all__ = ["VaultWorld", "VaultFeed"]
