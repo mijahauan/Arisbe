@@ -57,9 +57,14 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
     a second atom walk. No id/title/path ever appears in the return value."""
     atoms, cuts = _model_signature(model_egi)
     tally = Counter(rel for rel, _labels in atoms)
+    # F1¹³ invariant, observable: the longest constant that actually entered M
+    # (must stay ≤ vault_world._MAX_CONST or the layout occlusions return).
+    max_const = max(
+        (len(lab) for _rel, labels in atoms for lab in labels if lab), default=0)
     return {
         "m_atoms": len(atoms),
         "m_cuts": cuts,
+        "max_const_len": max_const,
         "notes_seen": tally.get("note", 0),
         "journal_entries": tally.get("journal_entry", 0),
         "entries_per_decade": _decade_counts(atoms),
@@ -69,7 +74,7 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
 
 
 def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
-                  model_egif: str) -> tuple[dict, str]:
+                  model_egif: str, ttl: int) -> tuple[dict, str]:
     world = VaultWorld(root)
     economy = AttentionEconomy()
     horizon = Horizon()
@@ -81,11 +86,25 @@ def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
         name=f"Vault V0 segment {seg_idx}",
         description="Vault V0 metadata-membrane drive (RUN 13); "
                      "see docs/superpowers/specs/2026-07-17-vault-cycle-design.md.",
+        ttl=ttl if ttl > 0 else None,
     )
 
     TomosService(runs_dir).save_uod_with_chain(res.uod, res.chain)
 
+    # Custody sidecar (F1¹³): the id → original decode map for every constant
+    # the bound digested — gitignored beside the UoDs; the originals never
+    # enter M or stdout.
+    if world.long_labels:
+        import json
+        sidecar = runs_dir / "labels.json"
+        existing = {}
+        if sidecar.exists():
+            existing = json.loads(sidecar.read_text())
+        existing.update(world.long_labels)
+        sidecar.write_text(json.dumps(existing, indent=1, sort_keys=True))
+
     digest = _digest(res.uod.current_egi, horizon, economy)
+    digest["digested_labels"] = len(world.long_labels)
     next_model_egif = generate_egif(res.uod.current_egi)
     return digest, next_model_egif
 
@@ -104,6 +123,11 @@ def main(argv=None) -> int:
     ap.add_argument("--fixture", action="store_true",
                      help="drive the synthetic test fixture (tests/fixtures/vorago_fixture) "
                           "instead of --root — the smoke path; never the real vault")
+    ap.add_argument("--ttl", type=int, default=120,
+                     help="disuse-decay ttl in rounds (F1¹³: bounds |M| so the "
+                          "segment-save layout stays tractable; 0 disables — "
+                          "unbounded M at vault scale makes the save-time layout "
+                          "take tens of minutes and risks label occlusion)")
     args = ap.parse_args(argv)
 
     root = FIXTURE_ROOT if args.fixture else Path(args.root)
@@ -112,7 +136,8 @@ def main(argv=None) -> int:
 
     model_egif = ""
     for seg in range(1, args.segments + 1):
-        digest, model_egif = _run_segment(root, args.rounds, seg, runs_dir, model_egif)
+        digest, model_egif = _run_segment(root, args.rounds, seg, runs_dir,
+                                          model_egif, args.ttl)
         print(f"[segment {seg}/{args.segments}] {digest}")
 
     return 0

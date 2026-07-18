@@ -43,6 +43,22 @@ def _const(value: str) -> str:
     return cleaned.strip() or "?"
 
 
+# The bound below is the RUN 13 F1¹³ fix (2026-07-18): at real-vault scale,
+# constants of 60–142 chars (links_out targets, long filenames, journal eids)
+# produced label boxes wider than their residence cells — 53 §3.3 occlusion
+# failures at the segment save. The invariant: NO emitted constant exceeds
+# _MAX_CONST chars. A longer value becomes an opaque digest id ("x" + 10 hex,
+# deterministic) and its original is registered in the world's ``long_labels``
+# (the custody-safe decode map the driver writes to the gitignored side-store —
+# the original never enters M).
+_MAX_CONST = 40
+
+
+def _digest_id(value: str) -> str:
+    import hashlib
+    return "x" + hashlib.sha1(value.encode("utf-8")).hexdigest()[:10]
+
+
 _WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
 _TAG_RE = re.compile(r"(?<!\S)#([A-Za-z][\w/-]*)")
 _FRONTMATTER_DATE_RE = re.compile(r"^date:\s*(.+?)\s*$", re.MULTILINE)
@@ -131,6 +147,21 @@ class VaultWorld:
 
     def __init__(self, root: Path):
         self.root = Path(root)
+        # id → original for every constant that had to be digested to hold the
+        # _MAX_CONST bound (F1¹³). Custody: originals live here (and in the
+        # driver's gitignored sidecar), never in M.
+        self.long_labels: Dict[str, str] = {}
+
+    def _bounded(self, value: str) -> str:
+        """An EGIF constant guaranteed ≤ _MAX_CONST chars — the F1¹³ invariant.
+        Short values pass through ``_const`` unchanged (fixture-legible); long
+        ones become opaque digest ids, originals registered in ``long_labels``."""
+        c = _const(value)
+        if len(c) <= _MAX_CONST:
+            return c
+        d = _digest_id(value)
+        self.long_labels[d] = value
+        return d
 
     # -- notes -----------------------------------------------------------------
     def notes(self) -> List[str]:
@@ -149,7 +180,7 @@ class VaultWorld:
         return out
 
     def note_id(self, relpath: str) -> str:
-        return _const(relpath)
+        return self._bounded(relpath)
 
     def labels(self) -> Dict[str, str]:
         return {self.note_id(n): n for n in self.notes()}
@@ -176,7 +207,7 @@ class VaultWorld:
         atoms: List[str] = [f'(note "{nid}")']
 
         top = self._top_dir(relpath)
-        atoms.append(f'(in_folder "{nid}" "{_const(top)}")')
+        atoms.append(f'(in_folder "{nid}" "{self._bounded(top)}")')
 
         atoms.append(f'(kind "{nid}" "md")')
 
@@ -195,13 +226,13 @@ class VaultWorld:
                 tid = self.note_id(target_relpath)
                 atoms.append(f'(links "{nid}" "{tid}")')
             else:
-                atoms.append(f'(links_out "{nid}" "{_const(target)}")')
+                atoms.append(f'(links_out "{nid}" "{self._bounded(target)}")')
 
         tags = set(_TAG_RE.findall(body))
         if fm:
             tags.update(_frontmatter_tags(fm))
         for tag in sorted(tags):
-            atoms.append(f'(tagged "{nid}" "{_const(tag)}")')
+            atoms.append(f'(tagged "{nid}" "{self._bounded(tag)}")')
 
         if top == "Clippings":
             atoms.append(f'(collected_prior "{nid}")')
@@ -310,9 +341,8 @@ class VaultWorld:
     def journal_facts(self, relpath: str) -> str:
         entries, _flagged = self.journal_entries(relpath)
         atoms: List[str] = []
-        base = _const(relpath)
         for event_date, line_no, n_lines in entries:
-            eid = f"{base}#L{line_no}"
+            eid = self._bounded(f"{relpath}#L{line_no}")
             atoms.append(f'(journal_entry "{eid}")')
             atoms.append(f'(entry_date "{eid}" "{event_date}")')
             atoms.append(f'(entry_lines "{eid}" "{n_lines}")')

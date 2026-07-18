@@ -173,3 +173,61 @@ class TestDeterminism:
             res = run('(even "0")', feed, rounds=20, uod_id="vfx", name="vfx")
             return replay_choices(feed.journal), [o.disposition for o in res.outcomes]
         assert drive() == drive()
+
+
+class TestConstantBound:
+    """F1¹³ (RUN 13's first finding): at real-vault scale, constants of 60–142
+    chars overflowed their residence cells — 53 §3.3 occlusion failures at the
+    segment save. The invariant: no emitted constant exceeds _MAX_CONST; long
+    originals live only in ``long_labels`` (and the driver's gitignored
+    sidecar), never in M."""
+
+    LONG = ("Deep/A Very Long Folder Name For Bound Testing/"
+            "An Extremely Long Note Name That Certainly Exceeds "
+            "The Forty Character Bound.md")
+
+    def test_no_emitted_constant_exceeds_the_bound(self):
+        import re
+        from vault_world import VaultWorld, _MAX_CONST
+        w = VaultWorld(FIX)
+        emissions = [w.note_facts(n) for n in w.notes()]
+        emissions += [w.journal_facts(j) for j in w.journal_paths()]
+        emissions += [w.folder_listing_facts(d) for d in w.top_dirs()]
+        for egif in emissions:
+            for const in re.findall(r'"([^"]*)"', egif):
+                assert len(const) <= _MAX_CONST, f"over-bound constant ({len(const)} chars)"
+
+    def test_long_constants_digest_and_register(self):
+        from egif_parser_dau import parse_egif
+        from vault_world import VaultWorld
+        w = VaultWorld(FIX)
+        nid = w.note_id(self.LONG)
+        assert nid.startswith("x") and len(nid) == 11
+        assert w.long_labels[nid] == self.LONG
+        egif = w.note_facts(self.LONG)
+        parse_egif(egif)
+        # the long wikilink target and the long tag digested too
+        assert self.LONG not in egif
+        assert "Truly Excessive" not in egif
+        assert sum(1 for k in w.long_labels) >= 3   # note id + link target + tag
+
+    def test_short_ids_pass_through_unchanged(self):
+        from vault_world import VaultWorld
+        w = VaultWorld(FIX)
+        assert w.note_id("Ideas/alpha.md") == "Ideas/alpha.md"
+
+    def test_segment_save_attests_at_fixture_scale(self, tmp_path):
+        # the missing V0 end-to-end: run → save_uod_with_chain (§3.3 fires
+        # before any disk write) → reload. Pins the exact path RUN 13 crashed on.
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from tomos_service import TomosService
+        from vault_world import VaultWorld, VaultFeed
+        feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+        res = run("", feed, rounds=25, uod_id="vault_attest",
+                  name="fixture attest drive")
+        service = TomosService(tmp_path)
+        service.save_uod_with_chain(res.uod, res.chain)
+        reloaded = service.load_chain("vault_attest")
+        assert reloaded is not None
+        assert len(reloaded.steps) == len(res.chain.steps)
