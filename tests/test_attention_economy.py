@@ -164,3 +164,33 @@ class TestAdapters:
         ws = wants_from_docket(FakeDocket(), round_idx=5)
         assert ws[0].created_round == 2   # 5 - age 3: older doubts win ties
         assert ws[0].attempts == 2        # a barren docket want sinks here too
+
+
+class TestHorizon:
+    def test_register_dedups_and_counts_cap_drops(self):
+        from attention_economy import Horizon, HorizonItem
+        h = Horizon(max_items=2)
+        assert h.register(HorizonItem("pdf", "a.pdf", 100, "binary", 1))
+        assert h.register(HorizonItem("pdf", "a.pdf", 100, "binary", 1)) is False
+        assert h.dropped == 0
+        assert h.register(HorizonItem("img", "b.png", 5, "binary", 1))
+        assert h.register(HorizonItem("img", "c.png", 5, "binary", 2)) is False
+        assert h.dropped == 1
+
+    def test_reattempt_is_oldest_first_and_counts_attempts(self):
+        from attention_economy import Horizon, HorizonItem
+        h = Horizon()
+        h.register(HorizonItem("canvas", "new.canvas", 1, "drawn", 5))
+        h.register(HorizonItem("pdf", "old.pdf", 1, "binary", 1))
+        first = h.reattempt(round_idx=9, k=1)
+        assert [i.ref for i in first] == ["old.pdf"]
+        assert first[0].attempts == 1
+        h.settle("old.pdf")
+        assert [i.ref for i in h.open_items()] == ["new.canvas"]
+
+    def test_snapshot_counts_by_kind_and_reason(self):
+        from attention_economy import Horizon, HorizonItem
+        h = Horizon()
+        h.register(HorizonItem("date", "j:L12", 1, "malformed_date_line", 1))
+        s = h.snapshot()
+        assert s["by_reason"]["malformed_date_line"] == 1 and s["open"] == 1

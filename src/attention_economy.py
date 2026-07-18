@@ -133,6 +133,61 @@ class AttentionEconomy:
         }
 
 
+@dataclass
+class HorizonItem:
+    """One not-yet-legible thing: retained, counted, re-attemptable."""
+    kind: str
+    ref: str
+    size: int
+    reason: str
+    registered_round: int
+    attempts: int = 0
+
+
+class Horizon:
+    """The horizon register (BOOTSTRAP_AND_DIRECTED_ENGAGEMENT §3, built at the
+    vault stage where illegibility is real): what came back not-yet-legible,
+    kept with counted size and re-attempted as legibility improves — where
+    tomorrow's sensor space waits. Bounded, dedup'd by ref, drops counted."""
+
+    def __init__(self, max_items: int = 2000):
+        self._max = max_items
+        self._items: Dict[str, HorizonItem] = {}
+        self.dropped = 0
+
+    def register(self, item: HorizonItem) -> bool:
+        if item.ref in self._items:
+            return False
+        if len(self._items) >= self._max:
+            self.dropped += 1
+            return False
+        self._items[item.ref] = item
+        return True
+
+    def open_items(self) -> List[HorizonItem]:
+        return sorted(self._items.values(),
+                      key=lambda i: (i.attempts, i.registered_round, i.ref))
+
+    def reattempt(self, round_idx: int, k: int = 1) -> List[HorizonItem]:
+        out = self.open_items()[:k]
+        for i in out:
+            i.attempts += 1
+        return out
+
+    def settle(self, ref: str) -> None:
+        self._items.pop(ref, None)
+
+    def snapshot(self) -> dict:
+        by_kind: Dict[str, int] = {}
+        by_reason: Dict[str, int] = {}
+        for i in self._items.values():
+            by_kind[i.kind] = by_kind.get(i.kind, 0) + 1
+            by_reason[i.reason] = by_reason.get(i.reason, 0) + 1
+        return {"open": len(self._items), "dropped": self.dropped,
+                "by_kind": dict(sorted(by_kind.items())),
+                "by_reason": dict(sorted(by_reason.items()))}
+
+
 # --------------------------------------------------------------------------- #
 # Intake adapters — the docket and the meta-learning frontier become wants.    #
 # Non-invasive: QueryDocket and agon_metalearning are read, never modified.    #
@@ -164,4 +219,5 @@ def wants_from_frontier(episodes, *, round_idx: int = 0, cost: float = 1.0,
     ]
 
 
-__all__ = ["Want", "AttentionEconomy", "wants_from_docket", "wants_from_frontier"]
+__all__ = ["Want", "AttentionEconomy", "wants_from_docket", "wants_from_frontier",
+           "Horizon", "HorizonItem"]
