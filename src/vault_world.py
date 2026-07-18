@@ -221,10 +221,15 @@ class VaultWorld:
         return " ".join(atoms)
 
     # -- attachments (non-md files) -> horizon ----------------------------------
+    # The exclusion is case-SENSITIVE (only the exact ".md" suffix is a note) so
+    # a case-variant markdown file (e.g. "Note.MD") — invisible to notes()'s
+    # rglob("*.md"), which is itself case-sensitive on a case-sensitive
+    # filesystem — still lands somewhere: on the horizon, counted, never
+    # silently absent from both registers at once.
     def _attachment_paths(self) -> List[Path]:
         return sorted(
             (p for p in self.root.rglob("*")
-             if p.is_file() and p.suffix.lower() != _MD_EXT),
+             if p.is_file() and p.suffix != _MD_EXT),
             key=lambda p: str(p.relative_to(self.root)),
         )
 
@@ -233,11 +238,12 @@ class VaultWorld:
         for p in self._attachment_paths():
             relpath = str(p.relative_to(self.root))
             size = p.stat().st_size
+            is_case_variant_md = p.suffix.lower() == _MD_EXT
             out.append(HorizonItem(
                 kind="extension",
                 ref=relpath,
                 size=size,
-                reason="binary",
+                reason="case_variant_md" if is_case_variant_md else "binary",
                 registered_round=round_idx,
             ))
         return out
@@ -304,8 +310,9 @@ class VaultWorld:
     def journal_facts(self, relpath: str) -> str:
         entries, _flagged = self.journal_entries(relpath)
         atoms: List[str] = []
+        base = _const(relpath)
         for event_date, line_no, n_lines in entries:
-            eid = f"j:L{line_no}"
+            eid = f"{base}#L{line_no}"
             atoms.append(f'(journal_entry "{eid}")')
             atoms.append(f'(entry_date "{eid}" "{event_date}")')
             atoms.append(f'(entry_lines "{eid}" "{n_lines}")')
@@ -318,7 +325,7 @@ class VaultWorld:
             for line_no, raw in flagged:
                 out.append(HorizonItem(
                     kind="date",
-                    ref=f"{relpath}#L{line_no}",
+                    ref=f"{_const(relpath)}#L{line_no}",
                     size=len(raw),
                     reason="malformed_date_line",
                     registered_round=round_idx,

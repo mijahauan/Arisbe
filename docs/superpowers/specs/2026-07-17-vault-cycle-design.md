@@ -199,13 +199,34 @@ from the arithmetic-stage baseline.
   and read as an ordinary note *in addition to* being probed via its dedicated `journal`
   want — a double-want by design of the existing reader API, not a bug (no double-refusal
   risk; both executions succeed independently).
-- `tools/run_vault_v0.py`'s literal `TomosService(runs_dir / "universes")` composed with
-  `TomosService`'s own `<root>/universes/<uod_id>/` layout double-nests as
-  `runs/run13/universes/universes/vault_v0_seg1/...` — still lands under the custody
-  boundary, cosmetic only.
 - `Horizon.register`'s dedup-vs-cap ordering is tested at "dedup while under cap" and
   "new ref while at cap" but not at "duplicate ref submitted after the horizon is
   already full" — untested, not known-broken.
+
+**Post-review fixes (2026-07-18)** — the final whole-branch review (one Important +
+two riders), applied in one commit:
+- **Journal entry ids namespaced per file** (Important): `journal_facts` built
+  `eid = f"j:L{line_no}"` with no file component, while `journal_paths()` globs
+  `Journal*.md` vault-wide — a second Journal-prefixed file would silently merge its
+  `j:L1` with the main journal's, conflating timelines. Fixed:
+  `eid = f"{_const(relpath)}#L{line_no}"` (e.g.
+  `Personal/Journal-x/Journal.md#L1`); `journal_horizon_items`'s refs carry the same
+  convention. A second fixture journal (`Personal/Journal-x/Journal-old.md`) proves the
+  two files' entry ids are disjoint (`test_journal_ids_namespaced_per_file`).
+- **Case-variant `.MD` files no longer invisible** (rider): `_attachment_paths`'s
+  `.md` exclusion is now case-SENSITIVE (`p.suffix != ".md"`, was `.lower() != ".md"`),
+  so a file like `Note.MD` — already invisible to `notes()`'s case-sensitive
+  `rglob("*.md")` — now reaches the horizon instead of being dropped by both registers
+  at once (`reason="case_variant_md"`, distinguished from ordinary binaries). Fixture:
+  `attachments/ODD.MD` (`test_case_variant_md_reaches_the_horizon`).
+- **Driver double-nesting retired** (rider, formerly a carried Minor above):
+  `tools/run_vault_v0.py` now constructs `TomosService(runs_dir)` directly —
+  `TomosService` already appends its own `universes/` layer, so the old
+  `TomosService(runs_dir / "universes")` produced `universes/universes/...`. Verified
+  by a fresh `--fixture --rounds 10` smoke run: single `universes/` level, digest
+  printed, exit 0.
+
+`test_vault_world.py` is now 15 (13 + 2 new, both above).
 
 **RUN 13 awaits the author's launch:**
 `uv run python tools/run_vault_v0.py --rounds 200 --segments 3`

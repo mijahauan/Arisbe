@@ -83,7 +83,7 @@ def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
                      "see docs/superpowers/specs/2026-07-17-vault-cycle-design.md.",
     )
 
-    TomosService(runs_dir / "universes").save_uod_with_chain(res.uod, res.chain)
+    TomosService(runs_dir).save_uod_with_chain(res.uod, res.chain)
 
     digest = _digest(res.uod.current_egi, horizon, economy)
     next_model_egif = generate_egif(res.uod.current_egi)

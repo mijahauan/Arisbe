@@ -1,6 +1,7 @@
 """Vault V0 — the metadata membrane's reader, against the synthetic fixture
 (spec: docs/superpowers/specs/2026-07-17-vault-cycle-design.md). Metadata
 only: no note body text ever appears in an emission."""
+import re
 from pathlib import Path
 from egif_parser_dau import parse_egif
 from vault_world import VaultWorld
@@ -42,7 +43,20 @@ class TestReader:
         refs = {i.ref for i in items}
         assert any(r.endswith("scan.pdf") for r in refs)
         assert any(r.endswith("sketch.canvas") for r in refs)
-        assert all(i.reason == "binary" for i in items)
+        truly_binary = [i for i in items if not i.ref.endswith(".MD")]
+        assert truly_binary
+        assert all(i.reason == "binary" for i in truly_binary)
+
+    def test_case_variant_md_reaches_the_horizon(self):
+        # Note.MD-style case-variant markdown is invisible to notes()'s
+        # case-sensitive rglob("*.md") — it must not ALSO be invisible to the
+        # attachment horizon (that would be a silent double-drop).
+        w = VaultWorld(FIX)
+        assert not any(n.endswith("ODD.MD") for n in w.notes())
+        items = w.attachment_items(round_idx=1)
+        odd = [i for i in items if i.ref.endswith("ODD.MD")]
+        assert len(odd) == 1
+        assert odd[0].reason == "case_variant_md"
 
     def test_root_level_notes_have_a_real_bucket(self):
         w = VaultWorld(FIX)
@@ -52,18 +66,19 @@ class TestReader:
 
 
 class TestJournal:
+    MAIN = "Personal/Journal-x/Journal.md"
+    OLD = "Personal/Journal-x/Journal-old.md"
+
     def test_entries_split_on_valid_datelines_only(self):
         w = VaultWorld(FIX)
-        [j] = w.journal_paths()
-        entries, flagged = w.journal_entries(j)
+        entries, flagged = w.journal_entries(self.MAIN)
         dates = [e[0] for e in entries]
         assert dates == ["1930-05", "1973-11", "1983-07", "2023-11"]
         assert len(flagged) == 1                     # 2115-21: month 21 invalid
 
     def test_journal_facts_are_event_time_claims_without_content(self):
         w = VaultWorld(FIX)
-        [j] = w.journal_paths()
-        egif = w.journal_facts(j)
+        egif = w.journal_facts(self.MAIN)
         parse_egif(egif)
         assert '(entry_date ' in egif and '"1930-05"' in egif
         assert "SENTINELBODY" not in egif            # content never leaks
@@ -71,9 +86,31 @@ class TestJournal:
 
     def test_malformed_datelines_reach_the_horizon_counted(self):
         w = VaultWorld(FIX)
-        [j] = w.journal_paths()
         items = w.journal_horizon_items(round_idx=1)
+        # only Journal.md carries the malformed 2115-21 line; Journal-old.md
+        # (added for the namespacing test below) contributes none.
         assert len(items) == 1 and items[0].reason == "malformed_date_line"
+
+    def test_journal_ids_namespaced_per_file(self):
+        # A second Journal-prefixed file (journal_paths() globs "Journal*.md"
+        # vault-wide) must not collide eids with the main journal — each
+        # entry id is namespaced by its sanitized relpath, not just "j:L<n>".
+        w = VaultWorld(FIX)
+        paths = w.journal_paths()
+        assert self.MAIN in paths
+        assert self.OLD in paths
+
+        main_egif = w.journal_facts(self.MAIN)
+        old_egif = w.journal_facts(self.OLD)
+        parse_egif(main_egif)
+        parse_egif(old_egif)
+
+        main_ids = set(re.findall(r'\(journal_entry "([^"]+)"\)', main_egif))
+        old_ids = set(re.findall(r'\(journal_entry "([^"]+)"\)', old_egif))
+        assert main_ids and old_ids
+        assert main_ids.isdisjoint(old_ids)           # no shared eid across files
+        assert f"{self.MAIN}#L1" in main_ids
+        assert f"{self.OLD}#L1" in old_ids
 
 
 class TestFeed:
@@ -102,7 +139,7 @@ class TestFeed:
         a = w.note_id("Ideas/alpha.md")
         assert peel(final, f'(note "{a}")').verdict is Verdict3.TRUE
         assert peel(final, f'(collected_prior "{w.note_id("Clippings/saved page.md")}")').verdict is Verdict3.TRUE
-        assert peel(final, '(entry_date "j:L1" "1930-05")').verdict is not Verdict3.FALSE
+        assert peel(final, '(entry_date "Personal/Journal-x/Journal.md#L1" "1930-05")').verdict is not Verdict3.FALSE
         assert h.snapshot()["open"] >= 3        # pdf + canvas + malformed dateline
         assert feed.refused == 0
 
