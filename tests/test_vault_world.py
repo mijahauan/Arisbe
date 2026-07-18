@@ -43,3 +43,28 @@ class TestReader:
         assert any(r.endswith("scan.pdf") for r in refs)
         assert any(r.endswith("sketch.canvas") for r in refs)
         assert all(i.reason == "binary" for i in items)
+
+
+class TestJournal:
+    def test_entries_split_on_valid_datelines_only(self):
+        w = VaultWorld(FIX)
+        [j] = w.journal_paths()
+        entries, flagged = w.journal_entries(j)
+        dates = [e[0] for e in entries]
+        assert dates == ["1930-05", "1973-11", "1983-07", "2023-11"]
+        assert len(flagged) == 1                     # 2115-21: month 21 invalid
+
+    def test_journal_facts_are_event_time_claims_without_content(self):
+        w = VaultWorld(FIX)
+        [j] = w.journal_paths()
+        egif = w.journal_facts(j)
+        parse_egif(egif)
+        assert '(entry_date ' in egif and '"1930-05"' in egif
+        assert "SENTINELBODY" not in egif            # content never leaks
+        assert "writing" not in egif                 # writing-time absent by design
+
+    def test_malformed_datelines_reach_the_horizon_counted(self):
+        w = VaultWorld(FIX)
+        [j] = w.journal_paths()
+        items = w.journal_horizon_items(round_idx=1)
+        assert len(items) == 1 and items[0].reason == "malformed_date_line"

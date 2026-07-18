@@ -48,6 +48,28 @@ _FRONTMATTER_DATE_RE = re.compile(r"^date:\s*(.+?)\s*$", re.MULTILINE)
 _FRONTMATTER_TAGS_INLINE_RE = re.compile(r"^tags:\s*\[([^\]]*)\]\s*$", re.MULTILINE)
 _MD_EXT = ".md"
 
+# -- journal date-lines --------------------------------------------------------------
+# Shape per the vault spec's two-timeline rule: a bare date-line is an event-time
+# claim (year, month, optional day). Year is deliberately NOT range-checked (a
+# pre-birth family record with year 1930 is a legitimate entry); month/day ARE
+# range-checked, so a shape-matching but out-of-range line (e.g. "2115-21") is
+# malformed and goes to the horizon rather than becoming a fact.
+_DATE_LINE_SHAPE_RE = re.compile(r"^\d{4}([-/.]\d{1,2}){1,2}$")
+_DATE_SPLIT_RE = re.compile(r"[-/.]")
+
+
+def _parse_date_line(line: str) -> Optional[Tuple[str, bool]]:
+    """``None`` if ``line`` doesn't even match the date-line shape. Otherwise
+    ``(normalized, valid)`` where ``normalized`` is ``"YYYY-MM"`` (meaningful only
+    when ``valid`` is True) and ``valid`` reflects the month/day range check."""
+    if not _DATE_LINE_SHAPE_RE.match(line):
+        return None
+    parts = _DATE_SPLIT_RE.split(line)
+    year, month = parts[0], int(parts[1])
+    day = int(parts[2]) if len(parts) > 2 else None
+    valid = 1 <= month <= 12 and (day is None or 1 <= day <= 31)
+    return f"{year}-{month:02d}", valid
+
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
@@ -195,6 +217,85 @@ class VaultWorld:
     def probe_cost(self, relpath: str) -> float:
         size = (self.root / relpath).stat().st_size
         return 1.0 + size / 20_000
+
+    # -- journal (two timelines held apart) -------------------------------------
+    # A journal is a flat file of bare date-lines followed by free-text entry
+    # bodies. Only the date-line is a fact-bearing claim, and only about
+    # EVENT time — when the entry says it happened. Writing time (when the
+    # words were actually typed) is deliberately absent from V0's facts; it's
+    # a hypothesis for a later stage, not something this reader can observe
+    # from the text alone. Entry bodies are never read into an emission
+    # (custody constraint), only counted (`entry_lines`).
+
+    def journal_paths(self) -> List[str]:
+        return sorted(
+            str(p.relative_to(self.root))
+            for p in self.root.rglob("Journal*" + _MD_EXT)
+            if p.is_file()
+        )
+
+    def journal_entries(
+        self, relpath: str
+    ) -> Tuple[List[Tuple[str, int, int]], List[Tuple[int, str]]]:
+        """Splits the file into ``(event_date, line_no, n_lines)`` entries at each
+        VALID date-line. A shape-matching but out-of-range date-line (flagged) does
+        NOT start a new entry — its line (and any following body text) stays part
+        of whichever entry is currently open, and its ``(line_no, raw)`` — the
+        date-line's shape only, never surrounding content — is returned as a
+        second list."""
+        path = self.root / relpath
+        raw_lines = _read_text(path).split("\n")
+        if raw_lines and raw_lines[-1] == "":
+            raw_lines = raw_lines[:-1]  # trailing blank from the final newline
+
+        entries: List[Tuple[str, int, int]] = []
+        flagged: List[Tuple[int, str]] = []
+        cur_date: Optional[str] = None
+        cur_line_no = 0
+        cur_n = 0
+
+        for i, raw in enumerate(raw_lines, start=1):
+            line = raw.strip()
+            parsed = _parse_date_line(line) if line else None
+            if parsed is not None:
+                norm, valid = parsed
+                if valid:
+                    if cur_date is not None:
+                        entries.append((cur_date, cur_line_no, cur_n))
+                    cur_date, cur_line_no, cur_n = norm, i, 0
+                    continue
+                flagged.append((i, line))
+            if cur_date is not None:
+                cur_n += 1
+
+        if cur_date is not None:
+            entries.append((cur_date, cur_line_no, cur_n))
+
+        return entries, flagged
+
+    def journal_facts(self, relpath: str) -> str:
+        entries, _flagged = self.journal_entries(relpath)
+        atoms: List[str] = []
+        for event_date, line_no, n_lines in entries:
+            eid = f"j:L{line_no}"
+            atoms.append(f'(journal_entry "{eid}")')
+            atoms.append(f'(entry_date "{eid}" "{event_date}")')
+            atoms.append(f'(entry_lines "{eid}" "{n_lines}")')
+        return " ".join(atoms)
+
+    def journal_horizon_items(self, round_idx: int) -> List[HorizonItem]:
+        out: List[HorizonItem] = []
+        for relpath in self.journal_paths():
+            _entries, flagged = self.journal_entries(relpath)
+            for line_no, raw in flagged:
+                out.append(HorizonItem(
+                    kind="date",
+                    ref=f"{relpath}#L{line_no}",
+                    size=len(raw),
+                    reason="malformed_date_line",
+                    registered_round=round_idx,
+                ))
+        return out
 
 
 __all__ = ["VaultWorld"]
