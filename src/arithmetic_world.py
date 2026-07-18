@@ -93,85 +93,32 @@ class ArithmeticWorld:
 
 # --------------------------------------------------------------------------- #
 # The socket — a Proposer whose next item is chosen by the attention layer.    #
-# The reusable part is the socket itself: AttentionEconomy + the chooser/      #
-# journal pattern below. The vault (world #2) brings its own seeding and its   #
-# own feed built on that same socket, not this feed verbatim.                  #
+# The generic drain-refill mechanics (AttentionEconomy + the chooser/journal   #
+# pattern + the round loop) live in probe_feed.ProbeDirectedFeedBase; this     #
+# feed supplies only the arithmetic-specific seeding/refill/dispatch.          #
 # --------------------------------------------------------------------------- #
-import hashlib                                        # noqa: E402
-
 from attention_economy import AttentionEconomy, Want  # noqa: E402
-from egif_parser_dau import parse_egif                # noqa: E402
-from eg_navigation import area_of, child_cuts         # noqa: E402
-from world_scroll import m_view                       # noqa: E402
+from probe_feed import ProbeDirectedFeedBase           # noqa: E402
 
 
-def _labels_of(g, eid):
-    """ν sequence → vertex labels (None for generics) — the idiom
-    ``ContradictionAgent``/``_labels`` use in agon_evolution.py, copied so the
-    feed's reading of standing atoms matches the panel's."""
-    return tuple(g.get_vertex(v).label for v in g.nu.get(eid, ()))
-
-
-def _model_signature(model) -> tuple:
-    """(frozenset of sheet atoms, count of sheet cuts) via m_view — the feed's only
-    lawful window onto what the loop did with its proposals."""
-    g = m_view(model)
-    atoms = frozenset(
-        (g.rel[e.id], _labels_of(g, e.id))
-        for e in g.E
-        if e.id in g.rel and area_of(g, e.id) == g.sheet
-    )
-    ncuts = len(child_cuts(g, g.sheet))
-    return (atoms, ncuts)
-
-
-def fifo_chooser(economy: AttentionEconomy, k: int, round_idx: int):
-    ws = sorted(economy.wants(), key=lambda w: (w.created_round, w.kind, repr(w.key)))
-    chosen = ws[:k]
-    for w in chosen:
-        w.attempts += 1
-    return chosen
-
-
-def scatter_chooser(economy: AttentionEconomy, k: int, round_idx: int):
-    """The deterministic 'random' arm: order by a stable digest of (key, round) —
-    no RNG, and no ``hash()`` (salted per-process, so it would vary run to run)."""
-    def _digest(key) -> int:
-        h = hashlib.sha1(f"{key}{round_idx}".encode()).hexdigest()[:8]
-        return int(h, 16) % 997
-
-    ws = sorted(economy.wants(), key=lambda w: (_digest(repr(w.key)), repr(w.key)))
-    chosen = ws[:k]
-    for w in chosen:
-        w.attempts += 1
-    return chosen
-
-
-class ProbeDirectedFeed:
+class ProbeDirectedFeed(ProbeDirectedFeedBase):
     """agon_evolution.Proposer: one EGIF per propose(); probes chosen by attention."""
+
+    persistent_kinds = frozenset({"confirm"})   # confirms persist — the cheap trap
 
     def __init__(self, world: ArithmeticWorld, economy: AttentionEconomy, *,
                  chooser=None, probe_budget: int = 1, laws=(FERMAT_LAW,),
                  confirm_lattice: int = 60, musement: bool = True, journal=None):
+        super().__init__(economy, chooser=chooser, probe_budget=probe_budget,
+                          journal=journal)
         self._world = world
-        self._economy = economy
-        self._chooser = chooser
-        self._budget = probe_budget
         self._laws = tuple(laws)
         self._lattice = confirm_lattice
         self._musement = musement
-        self._queue: list[str] = []
-        self._last_chosen: list[Want] = []
-        self._prev_sig = None
-        self._seeded = False
         self._extend_next = 0
-        self.journal: list[dict] = [] if journal is None else journal
 
     # -- intake ---------------------------------------------------------------
-    def _seed_wants(self, round_idx: int):
-        if self._seeded:
-            return
-        self._seeded = True
+    def _seed(self, round_idx: int):
         for n in range(0, self._lattice):
             self._economy.register(Want(
                 kind="confirm", key=("confirm", n), payload=n,
@@ -187,7 +134,7 @@ class ProbeDirectedFeed:
                 kind="musement", key=("law", MUSEMENT_LAW), payload=("law", MUSEMENT_LAW),
                 cost=0.5, created_round=round_idx))
 
-    def _refill_extends(self, round_idx: int):
+    def _refill(self, round_idx: int):
         outstanding = sum(1 for w in self._economy.wants() if w.kind == "extend")
         n = self._extend_next
         for _ in range(64):                      # bounded scan — never spins
@@ -204,50 +151,18 @@ class ProbeDirectedFeed:
             n += 1
         self._extend_next = n
 
-    # -- the round loop -------------------------------------------------------
-    def propose(self, model, round_idx: int):
-        sig = _model_signature(model)
-        if self._prev_sig is not None and self._last_chosen:
-            prev_atoms, prev_cuts = self._prev_sig
-            atoms, cuts = sig
-            events = len(atoms ^ prev_atoms) + abs(cuts - prev_cuts)
-            # the whole round's model delta is credited to *every* chosen want's
-            # kind (round-granular attribution): exact at probe_budget=1 (one want
-            # chosen per round), but double-counts once several wants share a round
-            # — the vault cycle must revisit this before raising the budget.
-            self._economy.observe(round_idx, [(w, events) for w in self._last_chosen])
-            self._last_chosen = []
-        self._prev_sig = sig
-
-        if not self._queue:
-            self._seed_wants(round_idx)
-            self._refill_extends(round_idx)
-            choose = self._chooser or (lambda e, k, r: e.choose(k, r))
-            chosen = choose(self._economy, self._budget, round_idx)
-            self._last_chosen = list(chosen)
-            self.journal.append({
-                "round": round_idx,
-                "chosen": [(w.kind, repr(w.key)) for w in chosen],
-                "snapshot": self._economy.snapshot(),
-            })
-            for w in chosen:
-                if w.kind in ("extend", "confirm"):
-                    egif = self._world.atoms_for(w.payload)
-                elif w.kind == "hunt":
-                    _, n = w.payload
-                    egif = self._world.atoms_for(n)
-                elif w.kind == "musement":
-                    egif = w.payload[1]
-                else:                      # docket/frontier kinds: payload is EGIF-ish
-                    egif = w.payload if isinstance(w.payload, str) else ""
-                if egif:
-                    self._queue.append(egif)
-                if w.kind != "confirm":    # confirms persist — the cheap trap
-                    self._economy.settle(w.kind, w.key)
-
-        return self._queue.pop(0) if self._queue else None
+    # -- emission dispatch ------------------------------------------------------
+    def _execute(self, w: Want):
+        if w.kind in ("extend", "confirm"):
+            return self._world.atoms_for(w.payload)
+        elif w.kind == "hunt":
+            _, n = w.payload
+            return self._world.atoms_for(n)
+        elif w.kind == "musement":
+            return w.payload[1]
+        else:                      # docket/frontier kinds: payload is EGIF-ish
+            return w.payload if isinstance(w.payload, str) else ""
 
 
-def replay_choices(journal):
-    """The determinism canary's reading of a journal: the choice sequence alone."""
-    return [j["chosen"] for j in journal]
+# Stable import surface for the rung-1 tests (moved into probe_feed.py).
+from probe_feed import fifo_chooser, scatter_chooser, replay_choices, _model_signature  # noqa: F401,E402
