@@ -159,12 +159,41 @@ class TestP213Instrument:
         assert "random" not in text.lower()
         assert "arm" not in text.lower()
 
+        # Review finding (2026-07-19): a per-arm parenthetical reason was a
+        # real leak (an author could partition all four questions by
+        # phrasing alone). Assert the stronger, template-level guarantee:
+        # strip each candidate's concrete backtick-quoted subject and the
+        # remaining text must be IDENTICAL across every P2^13 candidate,
+        # regardless of arm.
+        templated = {re.sub(r"`[^`]*`", "`REF`", c.text) for c in p213}
+        assert len(templated) == 1, (
+            "docket-arm and random-arm question text must be template-"
+            f"identical once the concrete subject is stripped; got {templated}")
+
         # seeded order: a fresh call with the SAME seed reproduces the same
         # question order (the shuffle is deterministic, not the arm).
         cands2 = candidates_from_run(world, None, [], {},
                                       docket=docket, rng=random.Random(42))
         p213_2 = [c for c in cands2 if c.arm in ("docket", "random")]
         assert [c.qid for c in p213] == [c.qid for c in p213_2]
+
+    def test_random_arm_excludes_arisbe_authored_notes(self):
+        """Minor 1 (review, 2026-07-19): a self-authored note (e.g. a prior
+        oracle Questions-*.md) must never enter the random arm's pool — it
+        reads as trivial almost by construction, biasing the docket-vs-random
+        margin toward a false PASS."""
+        class _WorldWithArisbeNote(_FakeWorld):
+            def is_arisbe_note(self, relpath):
+                return relpath == "Arisbe/Questions-2026-07-01.md"
+
+        world = _WorldWithArisbeNote(["Arisbe/Questions-2026-07-01.md", "a.md"])
+        docket = _FakeDocket([])   # empty docket -> random arm draws from all
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=docket, rng=random.Random(0))
+        random_refs = [c.qid.split(":", 1)[1] for c in cands
+                       if c.arm == "random"]
+        assert random_refs == ["a.md"]
+        assert "Arisbe/Questions-2026-07-01.md" not in random_refs
 
     def test_docket_none_is_unaffected_backward_compatible(self):
         # the existing V2a.1 default path — untouched by this docket item.
@@ -558,7 +587,14 @@ class TestEndToEnd:
     ``--fixture`` (the read-only synthetic vault under
     ``tests/fixtures/vorago_fixture``) with ``--runs-dir`` pointed at a tmp
     dir — the custody boundary under test: nothing lands anywhere but
-    ``runs_dir``, and the checked-in fixture tree is never mutated."""
+    ``runs_dir``, and the checked-in fixture tree is never mutated.
+
+    Docket item 10, review finding (2026-07-19): ``--p213`` now defaults ON
+    (the pre-registered RUN 13 launch command carries no flag at all, so an
+    off-by-default instrument would never run). Every test in this class
+    that exercises the ORIGINAL V2a.1 provenance/journal/horizon mix (all of
+    them, below) passes ``--no-p213`` explicitly to keep testing that mix;
+    ``TestP213DefaultOn`` (further down) covers the new no-flag default."""
 
     @staticmethod
     def _main():
@@ -593,7 +629,7 @@ class TestEndToEnd:
         orig_fixture_note = (
             FIX / "Arisbe" / "Questions-2026-07-01.md").read_text(encoding="utf-8")
 
-        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
         assert rc == 0
         out1 = capsys.readouterr().out
@@ -614,7 +650,7 @@ class TestEndToEnd:
         # qids[3], qids[4] left blank -> ignored (silence)
         note1.write_text(text, encoding="utf-8")
 
-        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
         assert rc == 0
         out2 = capsys.readouterr().out
@@ -666,7 +702,7 @@ class TestEndToEnd:
                              budget={"max": 2, "reflective": 1}, reveals=None)
         (oracle_dir / "Questions-2026-07-01.md").write_text(seed, encoding="utf-8")
 
-        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-10"])
         assert rc == 0
         out1 = capsys.readouterr().out
@@ -682,7 +718,7 @@ class TestEndToEnd:
         text1 = self._answer(text1, qids1[1], "declined")
         note1.write_text(text1, encoding="utf-8")
 
-        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-14"])
         assert rc == 0
         out2 = capsys.readouterr().out
@@ -712,7 +748,7 @@ class TestEndToEnd:
             encoding="utf-8",
         )
 
-        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-17"])
         assert rc == 0
         out = capsys.readouterr().out
@@ -729,7 +765,7 @@ class TestEndToEnd:
         mod = self._main()
         runs_dir = tmp_path / "runs"
 
-        rc1 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc1 = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                         "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
         assert rc1 == 0
         out1 = capsys.readouterr().out
@@ -749,7 +785,7 @@ class TestEndToEnd:
         answered_bytes = note1.read_bytes()
 
         # second invocation, SAME note-date: must not overwrite
-        rc2 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc2 = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                         "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
         assert rc2 == 0
         out2 = capsys.readouterr().out
@@ -758,7 +794,7 @@ class TestEndToEnd:
 
         # third invocation, SAME note-date again: still untouched, and the
         # ledger stayed idempotent across both re-polls (no duplicate rows)
-        rc3 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+        rc3 = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                         "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
         assert rc3 == 0
         out3 = capsys.readouterr().out
@@ -776,3 +812,68 @@ class TestEndToEnd:
 
         # exactly one note on disk for this date
         assert sorted((runs_dir / "arisbe_notes").glob("Questions-*.md")) == [note1]
+
+
+class TestP213DefaultOn:
+    """Review finding (2026-07-19), CRITICAL: the pre-registered RUN 13
+    launch command (``--rounds 200 --segments 3``, no flag at all) must
+    actually drive the P2^13 instrument — an off-by-default flag would let
+    the criterion go silently unanswered again, the exact charge item ⑩
+    exists to fix. These tests call ``main`` with NO ``--p213``/
+    ``--no-p213`` flag at all — the real launch shape."""
+
+    @staticmethod
+    def _main():
+        if str(TOOLS_DIR) not in sys.path:
+            sys.path.insert(0, str(TOOLS_DIR))
+        import run_vault_v0
+        return run_vault_v0
+
+    def test_no_flag_drives_the_p213_instrument_by_default(self, tmp_path, capsys):
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        out = capsys.readouterr().out
+        assert "questions_written" in out
+
+        note = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        assert qids   # never a zero-question note
+
+        # the V2a.1 provenance/journal/horizon sources are NOT in play —
+        # every non-reflective qid is P2^13-instrument-shaped.
+        non_reflective = [q for q in qids if q != "journal-timelines"]
+        assert non_reflective   # at least the random arm always has candidates
+        assert all(q.startswith("p213:") for q in non_reflective)
+        assert not any(q.startswith(("prov:", "journal:", "horizon:"))
+                        for q in qids)
+
+        # blinding: no arm word anywhere in the rendered note.
+        assert "docket" not in text.lower()
+        assert "random" not in text.lower()
+        assert "arm" not in text.lower()
+
+        # Minor 1: Arisbe's own pre-existing fixture note never becomes a
+        # question subject (the random arm must exclude authored_by: arisbe).
+        assert "Questions-2026-07-01.md" not in text
+
+    def test_no_p213_flag_still_restores_v2a1_mix(self, tmp_path, capsys):
+        """The escape hatch: ``--no-p213`` must still work exactly as the
+        (renamed) opt-out — this is what the four ``TestEndToEnd`` tests
+        rely on."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30",
+                       "--segments", "1", "--runs-dir", str(runs_dir),
+                       "--note-date", "2026-07-18"])
+        assert rc == 0
+        note = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        qids = re.findall(r"<!-- qid: (.+?) -->",
+                           note.read_text(encoding="utf-8"))
+        assert any(q.startswith("prov:") for q in qids)
+        assert not any(q.startswith("p213:") for q in qids)

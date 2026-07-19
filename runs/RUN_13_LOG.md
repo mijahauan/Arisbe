@@ -26,6 +26,18 @@ own act, not something CI or an agent does.
   > ≥2 segments. Ceiling canary: if the author rates ≥90% of all questions non-trivial in
   > a segment, that segment is declared uninformative for P2¹³. All parts
   > deterministic/offline except the author's marks.
+  >
+  > **Operator note (2026-07-19, review fix).** `tools/run_vault_v0.py`'s P2¹³ instrument
+  > is **ON BY DEFAULT** — the pre-registered launch command below carries no flag, so
+  > defaulting off would have left the criterion silently unanswered again. A P2¹³-mode
+  > note carries the 2+2 comparator questions **in place of**, not alongside, the standard
+  > provenance/journal/horizon question mix for that note; `--no-p213` restores the V2a.1
+  > mix instead. Scheduling tension, named honestly rather than resolved here: a single
+  > note cannot exercise both P2¹³ and the standard sources at once, so a run that wants
+  > both P2¹³ (this criterion) and P4¹³ (provenance inquiry, which needs the V2a.1
+  > provenance questions) must alternate `--no-p213` on some invocations — which segments
+  > run which mode is the author's call at launch, not something this driver decides for
+  > them.
 - **P3¹³ (bounds hold):** decay bounds |M| with per-round cost flat across the full
   vault scale; horizon counted, never silently dropped.
 - **P4¹³ (provenance inquiry works):** the loop's authored-vs-collected verdicts

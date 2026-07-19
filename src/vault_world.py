@@ -222,6 +222,16 @@ class VaultWorld:
         fm, _body = _split_frontmatter(_read_text(self.root / relpath))
         return _frontmatter_authored_by(fm) == "arisbe"
 
+    def is_arisbe_note(self, relpath: str) -> bool:
+        """Public wrapper over :meth:`_is_arisbe_note` (docket item 10,
+        oracle_notes' P2^13 random arm): a self-authored note (e.g. a prior
+        ``Questions-*.md``) must never enter the random-arm sampling pool —
+        it reads as trivial almost by construction, which would bias the
+        docket-vs-random margin toward a PASS for the wrong reason. A
+        module outside ``vault_world`` asking this question deserves a
+        public name, not a reach into a private one."""
+        return self._is_arisbe_note(relpath)
+
     def labels(self) -> Dict[str, str]:
         return {self.note_id(n): n for n in self.notes()}
 

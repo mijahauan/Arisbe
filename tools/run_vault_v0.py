@@ -215,11 +215,19 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     P2^13 falsifiability instrument (``EconomyDocket`` wrapping ``economy``,
     the just-finished segment's ranked want pool) instead of the V2a.1
     provenance/journal/horizon sources, and records each parsed ``**R:**``
-    rating into the ledger. Defaults ``False`` — an ordinary invocation's
-    behavior (and every existing test's expectations) is unchanged; a real
-    run opts in explicitly (``--p213`` at the CLI). ``rng`` is the injectable
-    seeded ``random.Random`` the random arm and the seeded shuffle both use
-    (``None`` real-default -> a fresh, unseeded ``random.Random()``).
+    rating into the ledger. This function's OWN keyword default is ``False``
+    (an explicit, library-style default for direct callers/tests); ``main``'s
+    ``--p213`` CLI flag defaults to ``True`` instead (review finding
+    2026-07-19: the pre-registered RUN 13 launch command carries no flag at
+    all, so an off-by-default instrument would never actually run — exactly
+    the silent-absence charge item ⑩ answers). Pass ``--no-p213`` at the CLI
+    to fall back to the V2a.1 mix for a given invocation; a P2^13 note does
+    NOT also carry the V2a.1 questions for that cycle (they compete for the
+    same budget slots, and the instrument mode replaces rather than merges) —
+    alternating ``--no-p213`` runs is how to get both over time. ``rng`` is
+    the injectable seeded ``random.Random`` the random arm and the seeded
+    shuffle both use (``None`` real-default -> a fresh, unseeded
+    ``random.Random()``).
 
     Numbers-only stdout throughout: the only path ever printed is the note's
     vault-relative name, never a filesystem path (which in fixture mode lives
@@ -329,13 +337,20 @@ def main(argv=None) -> int:
                           "(V2a.1); defaults to today — the single sanctioned "
                           "wall-clock read in this driver. Pass explicitly for "
                           "deterministic/test invocations.")
-    ap.add_argument("--p213", action="store_true",
+    ap.add_argument("--p213", action=argparse.BooleanOptionalAction, default=True,
                      help="drive the P2^13 falsifiability instrument (docket "
                           "item 10) instead of the V2a.1 provenance/journal/"
                           "horizon question sources: 2 docket-ranked + 2 "
                           "random notes per segment, unlabeled, rated "
-                          "trivial/non-trivial by the author. Off by "
-                          "default — an ordinary run is unaffected.")
+                          "trivial/non-trivial by the author. ON BY DEFAULT "
+                          "(review finding 2026-07-19: the pre-registered "
+                          "launch command has no flag, so an off-by-default "
+                          "instrument would never actually run against the "
+                          "real vault) — pass --no-p213 to restore the "
+                          "V2a.1 provenance/journal/horizon mix instead. A "
+                          "P2^13 note does NOT also exercise the V2a.1 "
+                          "sources for that cycle; alternate --no-p213 runs "
+                          "if you want both.")
     args = ap.parse_args(argv)
 
     root = FIXTURE_ROOT if args.fixture else Path(args.root)

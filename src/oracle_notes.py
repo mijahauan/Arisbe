@@ -29,23 +29,23 @@ operational form built here: when a ``docket`` (an ``AttentionEconomy``-
 ranked want pool, wrapped to the shape ``attention_economy.wants_from_docket``
 reads) is supplied, ``candidates_from_run`` switches to the P2^13 instrument
 mode — exactly ``N`` docket-selected (``arm="docket"``) and ``N`` template-
-random (``arm="random"``) questions, SAME question template, in a seeded
-random order — instead of the V2a.1 provenance/journal/horizon sources
-(``docket=None``, the default, is fully backward-compatible with those). The
-``arm`` never reaches the rendered note (only ``forecasts.jsonl``, via
-``OracleLedger.record_asked``'s ``arm``/``segment`` fields); each question
-block also gains a ``**R:**`` prompt the author marks
+random (``arm="random"``) questions, rendered through the SAME identical
+question template (:func:`_p213_question` — no per-arm wording of any kind),
+in a seeded random order — instead of the V2a.1 provenance/journal/horizon
+sources (``docket=None``, the default, is fully backward-compatible with
+those). The ``arm`` never reaches the rendered note (only
+``forecasts.jsonl``, via ``OracleLedger.record_asked``'s ``arm``/``segment``
+fields); each question block also gains a ``**R:**`` prompt the author marks
 ``trivial``/``non-trivial``, recovered by ``parse_note`` and persisted via
 ``OracleLedger.record_rating`` to ``ratings.jsonl``. ``p2_13_report`` reads
 both ledgers back into the pass/fail/ceiling verdict
-(``runs/RUN_13_LOG.md``'s P2^13 amendment has the exact rule). Honesty limit,
-stated once here rather than reasserted at every call site: the two arms'
-question text is NOT perfectly indistinguishable by content (the docket
-arm's "why it's flagged" phrasing differs from the random arm's "sampled for
-this round" phrasing) — a careful author could infer the mechanism by
-pattern over many notes. What IS guaranteed is the floor this docket item
-actually charges: no arm label, no seal, no ledger content of any kind is
-ever printed into the note.
+(``runs/RUN_13_LOG.md``'s P2^13 amendment has the exact rule). Blinding is
+now a template-level guarantee: strip the concrete backtick-quoted subject
+from any P2^13 question and the two arms' remaining text is byte-identical
+(``tests/test_oracle_notes.py``'s blinding test checks exactly this) — an
+earlier version put a per-arm reason into the text and was a real,
+reviewer-caught leak, fixed here by dropping the reason from the rendered
+text entirely (see the P2^13 instrument section below).
 
 **Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
 question block prints only the hash, never the plaintext. The plaintext lives
@@ -237,31 +237,52 @@ def _writing_time_candidate() -> QuestionCandidate:
 
 # -- the P2^13 instrument (docket item 10) --------------------------------------
 #
-# Two arms, same question template, so the only thing that differs between
-# them is WHICH note gets asked about — not how the question reads. The
-# ``docket`` argument is deliberately generic: anything exposing
-# ``.open_entries`` (each entry carrying ``.key``/``.age``/``.attempts``, the
-# shape ``attention_economy.wants_from_docket`` reads, plus a ``.payload``
-# that is itself a ``(ref, reason)`` pair) qualifies — a real ``QueryDocket``,
-# or (the vault loop's actual case, since Q1 entity-reach is a Wikidata-shaped
-# vocabulary that doesn't fit a vault's note/journal/scan wants) the driver's
-# ``EconomyDocket`` adapter wrapping an ``AttentionEconomy``'s own ranked want
-# pool. This module never re-implements docket ranking — it calls the real
-# ``wants_from_docket`` and takes the top ``n`` in whatever order the docket
-# already offers them.
+# Two arms, ONE question template (identical text, not just "similarly
+# shaped") so the only thing that differs between them is WHICH note gets
+# asked about — never how the question reads. Review finding (2026-07-19):
+# an earlier version put a per-arm parenthetical reason into the question
+# text ("flagged for a closer read" vs "sampled for this round's check"),
+# which is a fixed tell — an author reading even one note could partition
+# all four questions by phrasing alone, confounding the ratings. Fixed by
+# dropping the reason from the rendered text entirely; the arm lives
+# out-of-band, in ``forecasts.jsonl``, never in the note. The ``docket``
+# argument is deliberately generic: anything exposing ``.open_entries``
+# (each entry carrying ``.key``/``.age``/``.attempts``, the shape
+# ``attention_economy.wants_from_docket`` reads, plus a ``.payload`` that is
+# itself a ``(ref, reason)`` pair — ``reason`` kept in the payload for a
+# future audit trail even though it no longer reaches the question text)
+# qualifies — a real ``QueryDocket``, or (the vault loop's actual case,
+# since Q1 entity-reach is a Wikidata-shaped vocabulary that doesn't fit a
+# vault's note/journal/scan wants) the driver's ``EconomyDocket`` adapter
+# wrapping an ``AttentionEconomy``'s own ranked want pool. This module never
+# re-implements docket ranking — it calls the real ``wants_from_docket`` and
+# takes the top ``n`` in whatever order the docket already offers them.
 
 _P213_WHY = "this round's attention pass flagged it for a closer look"
 _P213_SETTLES = "what this item actually is, in the author's own words"
 
 
+def _p213_question(qid: str, ref: str, arm: str) -> QuestionCandidate:
+    """The ONE template both arms render through — identical text shape for
+    every P2^13 candidate regardless of arm; only ``ref`` (the concrete
+    subject) and the out-of-band ``arm`` differ."""
+    return QuestionCandidate(
+        qid=qid, tier="quick",
+        text=f"What is `{ref}`? One line is plenty.",
+        why=_P213_WHY, settles=_P213_SETTLES,
+        forecast="unknown", severity=2.5, arm=arm,
+    )
+
+
 def _docket_candidates(
         docket, n: int = 2) -> List[Tuple[QuestionCandidate, str]]:
     """The docket arm: the top ``n`` entries the docket offers, each turned
-    into one concrete "what is this?" question. Docket item 10's
-    falsifiability requirement (d) — a docket want's key must be traceable
-    from the candidate it produced — is met by folding ``entry.key`` into the
-    qid, so a real ``AttentionEconomy`` want (or a test double) that reached
-    the docket is verifiably the thing this candidate asked about. Returns
+    into one concrete "what is this?" question via the shared
+    :func:`_p213_question` template. Docket item 10's falsifiability
+    requirement (d) — a docket want's key must be traceable from the
+    candidate it produced — is met by folding ``entry.key`` into the qid, so
+    a real ``AttentionEconomy`` want (or a test double) that reached the
+    docket is verifiably the thing this candidate asked about. Returns
     ``(candidate, ref)`` pairs — ``ref`` (the human-legible subject, e.g. a
     note relpath) is what the random arm needs to exclude so the two arms
     never both ask about the same thing; it isn't otherwise recoverable from
@@ -271,15 +292,9 @@ def _docket_candidates(
     out: List[Tuple[QuestionCandidate, str]] = []
     for dw in wants_from_docket(docket, round_idx=0)[:n]:
         entry = dw.payload
-        ref, reason = entry.payload
+        ref, _reason = entry.payload   # reason kept for provenance, not shown
         key_str = ":".join(str(part) for part in entry.key)
-        cand = QuestionCandidate(
-            qid=f"p213:{key_str}",
-            tier="quick",
-            text=f"What is `{ref}` ({reason})? One line is plenty.",
-            why=_P213_WHY, settles=_P213_SETTLES,
-            forecast="unknown", severity=2.5, arm="docket",
-        )
+        cand = _p213_question(qid=f"p213:{key_str}", ref=ref, arm="docket")
         out.append((cand, ref))
     return out
 
@@ -290,23 +305,22 @@ def _random_candidates(world, rng, exclude: Set[str],
     never the docket's ranking) from the notes the docket arm did NOT already
     pick (``exclude`` — keeps the comparator honest: a note that happened to
     be both docket-ranked and randomly drawn would double-count, and the two
-    arms would no longer be disjoint samples). Same question template as the
-    docket arm."""
-    pool = [n_ for n_ in world.notes() if n_ not in exclude]
+    arms would no longer be disjoint samples), and never from a note
+    ``authored_by: arisbe`` (a self-authored note — e.g. a prior
+    ``Questions-*.md``) — reviewer's Minor 1: such a note reads as trivial
+    almost by construction, which would inflate the docket-vs-random margin
+    in the PASS direction, the wrong bias for a falsifiability instrument.
+    Uses ``world.is_arisbe_note`` when the world exposes it (the real
+    ``VaultWorld`` does); a world that doesn't (a test double) simply skips
+    that filter rather than raising. Same template as the docket arm."""
+    is_arisbe = getattr(world, "is_arisbe_note", None)
+    pool = [n_ for n_ in world.notes()
+            if n_ not in exclude and not (is_arisbe and is_arisbe(n_))]
     if not pool:
         return []
     chosen = rng.sample(pool, k=min(n, len(pool)))
-    out: List[QuestionCandidate] = []
-    for relpath in chosen:
-        out.append(QuestionCandidate(
-            qid=f"p213:{relpath}",
-            tier="quick",
-            text=f"What is `{relpath}` (sampled for this round's check)? "
-                 f"One line is plenty.",
-            why=_P213_WHY, settles=_P213_SETTLES,
-            forecast="unknown", severity=2.5, arm="random",
-        ))
-    return out
+    return [_p213_question(qid=f"p213:{relpath}", ref=relpath, arm="random")
+            for relpath in chosen]
 
 
 def _p213_candidates(world, docket, rng, n: int = 2) -> List[QuestionCandidate]:
@@ -315,7 +329,15 @@ def _p213_candidates(world, docket, rng, n: int = 2) -> List[QuestionCandidate]:
     severity (2.5) and ``select_within_budget``'s stable sort, this shuffle
     IS the note's final question order, so a fixed seed reproduces a fixed
     order and a fresh seed varies it, but the arm is never recoverable from
-    position alone."""
+    position alone.
+
+    Uneven arms (reviewer's Minor 3): all ``2n`` candidates share severity
+    2.5, so a caller-supplied ``budget.max`` below ``2n`` (e.g. 3, vs. the
+    default 4 for both arms plus 1 reflective) can select an uneven split
+    between arms (2 docket + 1 random, or vice versa — whichever the shuffle
+    happened to order first) rather than refusing outright; ``p2_13_report``
+    already reads rates (non-trivial ÷ rated total per arm), which tolerate
+    unequal ``n`` between arms and even between segments."""
     docket_pairs = _docket_candidates(docket, n=n)
     docket_cands = [c for c, _ref in docket_pairs]
     taken = {ref for _c, ref in docket_pairs}
