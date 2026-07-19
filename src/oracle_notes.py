@@ -145,12 +145,33 @@ def _multi_journal_candidates(world, decode: Dict[str, str]) -> List[QuestionCan
     return out
 
 
+def _consent_filtered(items):
+    """The consent boundary (docket item 9) binds the question generator
+    exactly as `vault_world`'s docstring binds the reader: an item whose ref
+    sits under `People/`, `Kith_Kin/`, or `Household/` never becomes question
+    text — it is still ON the horizon (registered, still counted in
+    `horizon.snapshot()`); only its promotion here is suppressed. A
+    root-level ref (`Path(ref).parts` of length 1, no folder component) has
+    nothing to filter on and passes through untouched."""
+    from vault_world import METADATA_ONLY_DIRS
+    out = []
+    for item in items:
+        parts = Path(item.ref).parts
+        if len(parts) > 1 and parts[0] in METADATA_ONLY_DIRS:
+            continue
+        out.append(item)
+    return out
+
+
 def _horizon_candidates(horizon, decode: Dict[str, str]) -> List[QuestionCandidate]:
     """Up to 2 largest open horizon items (biggest first, ref as the
-    deterministic tie-break): what is this not-yet-legible thing?"""
+    deterministic tie-break) that also clear the consent boundary
+    (`_consent_filtered` — People/Kith_Kin/Household never asked about):
+    what is this not-yet-legible thing?"""
     if horizon is None:
         return []
-    items = sorted(horizon.open_items(), key=lambda i: (-i.size, i.ref))[:2]
+    eligible = _consent_filtered(horizon.open_items())
+    items = sorted(eligible, key=lambda i: (-i.size, i.ref))[:2]
     out: List[QuestionCandidate] = []
     for item in items:
         ref = _decode(decode, item.ref, item.ref)

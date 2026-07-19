@@ -44,6 +44,38 @@ class TestCandidates:
         assert [c.qid for c in refl] == ["journal-timelines"]
 
 
+class TestConsentBoundary:
+    """Docket item 9 — the People/Kith_Kin/Household consent boundary
+    (vault_world.py's docstring only, until now) must bind the question
+    generator: a horizon item under one of those folders is registered and
+    counted like any other, but never promoted to question text."""
+
+    def test_people_folder_never_yields_a_question_candidate(self):
+        from attention_economy import Horizon, HorizonItem
+        from oracle_notes import _horizon_candidates
+        h = Horizon()
+        # People/x.pdf is the larger item, so an unfiltered top-2 cut would
+        # pick it first — the filter must exclude it regardless of size.
+        h.register(HorizonItem(kind="extension", ref="People/x.pdf", size=9000,
+                                reason="binary", registered_round=1))
+        h.register(HorizonItem(kind="extension", ref="Clippings/y.pdf", size=100,
+                                reason="binary", registered_round=1))
+        cands = _horizon_candidates(h, {})
+        assert [c.qid for c in cands] == ["horizon:Clippings/y.pdf"]
+        # never dropped: still registered, still counted on the horizon.
+        assert {i.ref for i in h.open_items()} == {"People/x.pdf", "Clippings/y.pdf"}
+        assert h.snapshot()["open"] == 2
+
+    def test_root_level_ref_is_not_filtered_and_does_not_crash(self):
+        from attention_economy import Horizon, HorizonItem
+        from oracle_notes import _horizon_candidates
+        h = Horizon()
+        h.register(HorizonItem(kind="extension", ref="root.pdf", size=500,
+                                reason="binary", registered_round=1))
+        cands = _horizon_candidates(h, {})
+        assert [c.qid for c in cands] == ["horizon:root.pdf"]
+
+
 class TestRender:
     def test_note_shape_and_budget(self):
         cands = [QuestionCandidate(f"q{i}", "quick", f"Question {i}?", "w", "s",

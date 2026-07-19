@@ -72,6 +72,17 @@ _FRONTMATTER_DATE_RE = re.compile(r"^date:\s*(.+?)\s*$", re.MULTILINE)
 _FRONTMATTER_TAGS_INLINE_RE = re.compile(r"^tags:\s*\[([^\]]*)\]\s*$", re.MULTILINE)
 _MD_EXT = ".md"
 
+# The consent boundary (docket item 9): these top-level folders are
+# metadata-only by the vault spec's own scope wrinkle (this module's
+# docstring above) — never read into an emission. Until now that boundary
+# lived ONLY in prose; nothing executable enforced it at the question
+# generator, so a `People/x.pdf` horizon item could still become question
+# text soliciting, as an answer the ledger keeps, content about a third
+# party the reader itself is barred from reading. Exported so
+# `oracle_notes._horizon_candidates` can bind the question generator to the
+# same boundary the reader observes.
+METADATA_ONLY_DIRS = frozenset({"People", "Kith_Kin", "Household"})
+
 # A root-level note (no containing folder) still needs a real scan-unit bucket —
 # "" is falsy and was silently filtered out of top_dirs(), so root notes were never
 # scanned, never read, never horizoned: a silent drop. ROOT_BUCKET gives them a
@@ -560,4 +571,4 @@ class VaultFeed(ProbeDirectedFeedBase):
             return None
 
 
-__all__ = ["VaultWorld", "VaultFeed"]
+__all__ = ["VaultWorld", "VaultFeed", "METADATA_ONLY_DIRS"]
