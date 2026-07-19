@@ -807,6 +807,14 @@ def _structural_retract_atom(
     ``area_of(model, e.id) == model.sheet`` scoping is exactly wrong for a
     cell atom — it would report "no such fact" on every resident M).
 
+    **Side-store-only accommodation.** The decay step this produces carries
+    derivation ``[]`` — a corpus chain carrying it would rightly be REFUSED by
+    the polarity gate's ERA check (``test_corpus_polarity_discipline``: an
+    ``m_retraction`` must derive by ERA). That refusal would be the gate
+    working. The fallback exists for the drivers' round-tripped segment
+    carries, whose chains live in the gitignored runs side-store, never the
+    corpus.
+
     Needed because the licensed per-cell erasure (``world_scroll.
     retract_from_m`` → a real Dau ERA) can legitimately refuse here. RUN 13's
     crash, reproduced: a segment carry round-trips M through
