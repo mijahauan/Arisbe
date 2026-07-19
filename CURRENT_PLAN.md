@@ -66,6 +66,28 @@ awaits the author's own launch** against the real vault
 (`uv run python tools/run_vault_v0.py --rounds 200 --segments 3`) — not something CI or
 an agent does; priors pre-registered in `runs/RUN_13_LOG.md`.
 
+**V2a.1 built (2026-07-18): the oracle notes loop.** The author's V2a ruling (surface =
+`Arisbe/`, budget = per-note pull-only, seal-then-reveal, decline/silence first-class)
+implemented end-to-end via subagent-driven execution across 4 TDD tasks — new module
+`src/oracle_notes.py` (candidates from four deterministic sources → budget-enforced
+markdown rendering with sealed forecasts → the author's edits parsed back → an
+append-only JSONL ledger → reveals) + the reader-exclusion twin in `src/vault_world.py`
+(`authored_by: arisbe` → marker-only, never author-evidence) + driver wiring in
+`tools/run_vault_v0.py` (`_run_oracle`, once after the last segment; two review-mandated
+guards — never a zero-question note, an unparsable budget knob is announced not guessed).
+The end-to-end test, driving the real fixture through the actual driver twice, caught a
+real defect the synthetic-qid unit tests couldn't: a vault path with a space in it
+(`Clippings/saved page.md`) broke the parser's qid regex — fixed, regression-pinned. Also
+recorded: `docs/superpowers/specs/2026-07-17-vault-cycle-design.md`'s "The oracle doctrine
+— five author theses" (the reservoir-not-queue, recomputed landscape, latency-indifference,
+the bilateral loop + rate economy, and the interlocutor criterion, the author's own words
+quoted). `test_oracle_notes.py` 18, `test_vault_world.py` 22, both green with
+`test_attention_economy.py`/`test_probe_feed.py`. Full suite run once at Task 4's close
+(see the commit for the verbatim tally). Deferred to V2a.2, named: banking an answer into
+M as a quoted attributed cell, multi-paragraph answers, real NL interpretation of an
+answer's content. The next real RUN 13 launch may write the first actual
+`Arisbe/Questions-<date>.md` into the vault.
+
 **▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was

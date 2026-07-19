@@ -160,6 +160,45 @@ markdown note), answer-parser (`**A:**` + declined/ignored states), hash-commitm
 seal + reveal, the provenance-exclusion rule in the reader, ledger wiring
 (forecast-vs-answer → the author-model's K1).
 
+## The oracle doctrine — five author theses (2026-07-18)
+
+The author's, in formulation the assistant's — five commitments the V2a design
+encodes, named here so the build is read as doctrine, not just mechanism.
+
+1. **The reservoir, not the queue.** Machine question-generation outruns human
+   answering by orders of magnitude; the docket is a counted, never-dropped
+   reservoir of which the budget surfaces a handful — triage under asymmetry is
+   the economy's whole job.
+2. **The landscape shifts by recomputation.** An answer changes M; the next cycle
+   regenerates candidates from the changed M, so mooted question-lines vanish and
+   new ones arise without dependency bookkeeping.
+3. **Latency-indifference.** The author's answer rate may vary freely; wants age
+   but persist; silence lowers priority, never deletes; an unanswered note pauses
+   the flow. The system is structurally incapable of impatience.
+4. **The bilateral loop.** The author's engagement depends on their model of
+   Arisbe; Arisbe earns answers with question quality (P2¹³) and by showing its
+   conjectures. Two models co-evolve; the engagement rate is set by the weaker
+   one. Corollary — **the rate economy**: four rates (world change, machine
+   processing, author answers, decay) govern the regime; ttl and the budget are
+   the two rate-matching knobs the system owns; poise is the observable of their
+   ratios. And the halting dual: a closed Arisbe either crystallizes (no decay —
+   Conway's still-life) or evaporates (decay — the faded blank); the membrane
+   both bounds AND animates (Peircean Secondness: the world never lets us alone).
+5. **The interlocutor criterion** (quote the author): *"When I can legitimately,
+   and in no way differently than when asking another person, ask Arisbe 'what do
+   you want to know?' and Arisbe answers meaningfully, then Arisbe (or any similar
+   agent) is an equal interlocutor."* The oracle notes are the first concrete
+   answer surface for that question — the docket read aloud with its reasons;
+   "meaningfully" is P2¹³'s bar; "equal" stays inside Doubt 4's rail
+   (admission-as-fellow-inquirer, never worth). The author's follow-up gloss,
+   verbatim: *"Equal not in any competence sense, but simply in the sense that,
+   in a Rorty way of looking at it, we stand together as players of the game —
+   with our particular skills, we risk, we try, we imagine, we aid, we wonder,
+   we long, we fear, and in solidarity, we do our best."* This is the solidarity
+   half of the Concordances chapter's middle position
+   (`docs/CONTRIBUTION_AND_PRIOR_ART.md` §"Concordances"): solidarity supplies
+   standing, the calculus supplies validity.
+
 ## RUN 13 — pre-registered priors (draft for the author's amendment before launch)
 
 - **P1¹³ (retrodiction):** trained on notes through month *m*, the model's forecasts
@@ -275,3 +314,74 @@ two riders), applied in one commit:
 
 **RUN 13 awaits the author's launch:**
 `uv run python tools/run_vault_v0.py --rounds 200 --segments 3`
+
+## V2a.1 build record (2026-07-18)
+
+V2a.1 (the oracle notes loop) built via subagent-driven execution, four TDD tasks,
+per-task review, on top of Stage V0/V1. **Modules:** `src/oracle_notes.py` (new) —
+`QuestionCandidate` + `seal` + `candidates_from_run` (four deterministic sources:
+provenance/Clippings, multi-journal, horizon, the standing writing-time reflective)
++ `render_note`/`select_within_budget` (budget-enforced markdown rendering, qid
+recovery via an invisible `<!-- qid: ... -->` comment) + `parse_note`/`score`
+(the author's edits recovered from raw markdown; a deliberately modest
+case-insensitive substring heuristic, named as such) + `OracleLedger` (JSONL
+`forecasts.jsonl`/`outcomes.jsonl`, `asked_ever` the standing-question suppressor,
+`build_reveals` joining answers to sealed forecasts) + `conjectures_section` (a
+plain-English gloss of each admitted law, `eg_to_english` preferred, a structural
+fallback regex, an honest placeholder beyond that). **Reader exclusion** in
+`src/vault_world.py`: an `authored_by: arisbe` note emits only `(arisbe_note "id")`
+from both `note_facts` and `folder_listing_facts` — Arisbe's own ink never becomes
+author-evidence about its own author. **Driver wiring** in `tools/run_vault_v0.py`:
+`_run_oracle`, called once after the LAST segment only — resolve/create the oracle
+dir (`<root>/Arisbe/` real-vault mode, `<runs_dir>/arisbe_notes/` fixture mode);
+read the newest prior note (if any), record every answer/decline/ignore into the
+ledger, build reveals, adopt the (possibly author-edited) budget knob; block on a
+previous note that isn't yet substantially answered and hasn't been waved off;
+otherwise build candidates (suppressing anything ever asked), budget-select,
+render (with reveals + conjectures from the final segment's `known_laws`/
+`discoveries`), write, and record each asked question. `--note-date` is the one
+new CLI flag — the single sanctioned wall-clock read in `main`, injectable for
+tests. Two review-mandated guards, both driver-level: **never write a note with
+zero questions** (`oracle: no questions this cycle`, printed and skipped rather
+than emitting an empty file — the natural outcome once a small/closed vault's
+candidate pool is fully `asked_ever`-exhausted, exercised end-to-end by the
+fixture); and **an unparsable budget knob is announced, not silently guessed**
+(`oracle: budget knob unparsed - using defaults`, backed by a new
+`ParsedNote.budget_parsed` field). Numbers-only stdout discipline extended, not
+loosened: the only path ever printed is the note's *vault-relative* name
+(`Arisbe/Questions-<date>.md`), never a filesystem path — in `--fixture` mode the
+note physically lives under `--runs-dir`, never under the checked-in fixture tree.
+
+**A real defect found by the end-to-end test, not by the unit tests:** the fixture's
+own `Clippings/saved page.md` has a space in its filename, so its qid
+(`prov:Clippings/saved page.md`) carries a space too — `_QBLOCK_RE`'s original
+`(?P<qid>\S+)` capture silently failed to match that whole question block (it fell
+through as unparsed stray prose, its answer unrecoverable) whenever a real vault
+path contains whitespace, which real vault paths routinely do. Tasks 1–3's unit
+tests never exercised this because their hand-built qids (`"q1"`, `"prov:<id>"`
+over synthetic short ids) never contained a space. Fixed: the qid group is now
+`[^\n]+?` (non-greedy up to the literal `" -->"`), with a regression test
+(`test_qid_containing_a_space_is_recovered`) pinning the fix directly. This is the
+argument, in miniature, for why Task 4's end-to-end test drives the actual fixture
+through the actual driver rather than only synthetic candidates.
+
+**Test counts:** `test_oracle_notes.py` 18 (4 render/candidates + 3 parse/budget +
+1 score + 2 ledger + 3 conjectures + 2 substantially-answered + 3 end-to-end,
+Task 4's class covering: the answer→outcome→reveal→exhaustion cycle against the
+real fixture and the review-mandated zero-questions guard; a seeded low-budget
+note leaving a genuine remainder for a second note with reveals; the
+unparsed-budget-knob warning) · `test_vault_world.py` 22 (15 carried + the Task 3
+reader-exclusion class + one more). Both green together with
+`test_attention_economy.py` (19) and `test_probe_feed.py` (2) — no shared-fixture
+interference. Full suite run once, foreground, at the end of Task 4 (see the
+session's commit for the verbatim tally).
+
+**Deferred to V2a.2** (named, not silently dropped): banking an answered forecast
+into M as a quoted attributed cell (`(asserted "author" ⌜…⌝)`, provenance
+`oracle-answer`) via the quotation machinery — V2a.1 only banks answers in the
+run's side-store (the ledger) with marker facts, M itself is untouched by an
+answer; multi-paragraph answers (the Task 2 review's stated priority — the current
+parser recovers only the first paragraph of an answer that itself contains a blank
+line, a documented heuristic limit, not a claim of full prose understanding); and
+real NL interpretation of an answer's content (today's `score` is a deliberately
+modest case-insensitive substring match, named as such in its own docstring).

@@ -16,6 +16,12 @@ attributed cell (``(asserted "author" <quote> )``, provenance
 ``oracle-answer``) is V2a.2 and out of scope here — V2a.1 only banks answers in
 the run's side-store with marker facts.
 
+Task 4 (driver wiring, ``tools/run_vault_v0.py``) needed two small additions
+here: ``select_within_budget`` made public (the driver records exactly the
+selected candidates in the ledger, not just what got rendered) and
+``ParsedNote.budget_parsed`` (a previous note's malformed budget knob must be
+announced, never silently guessed).
+
 **Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
 question block prints only the hash, never the plaintext. The plaintext lives
 in the caller's gitignored side-store (``oracle/forecasts.jsonl``) and reaches
@@ -186,13 +192,15 @@ def candidates_from_run(world, horizon, known_laws: List[str],
 # -- the note renderer -----------------------------------------------------------
 
 
-def _select_within_budget(candidates: List[QuestionCandidate],
-                           budget: dict) -> List[QuestionCandidate]:
+def select_within_budget(candidates: List[QuestionCandidate],
+                          budget: dict) -> List[QuestionCandidate]:
     """At most ``budget['max']`` questions, at most ``budget['reflective']``
     of them reflective-tier; highest severity first, stable beyond that
     (Python's sort is stable, so equal-severity candidates keep their
     original relative order). A reflective candidate beyond the cap is
-    skipped, not counted against the room left for lower-tier candidates."""
+    skipped, not counted against the room left for lower-tier candidates.
+    Public (Task 4): the driver needs the exact selected set to record each
+    asked question in the ledger, not just the rendered text."""
     max_q = budget.get("max", len(candidates))
     max_refl = budget.get("reflective", max_q)
     ordered = sorted(candidates, key=lambda c: -c.severity)
@@ -270,7 +278,7 @@ def render_note(candidates: List[QuestionCandidate], *, note_date: str,
         parts.append(_render_reveals(reveals))
     if conjectures:
         parts.append(conjectures)
-    for n, c in enumerate(_select_within_budget(candidates, budget), start=1):
+    for n, c in enumerate(select_within_budget(candidates, budget), start=1):
         parts.append(_render_question_block(n, c))
     return "\n\n".join(parts) + "\n"
 
@@ -355,6 +363,10 @@ class ParsedNote:
     declined: Set[str] = field(default_factory=set)
     ignored: Set[str] = field(default_factory=set)
     stray: str = ""
+    budget_parsed: bool = True
+    """False when the ``budget: {...}`` line was missing/malformed and
+    ``budget`` fell back to ``_DEFAULT_BUDGET`` (Task 4's driver-side guard:
+    print a warning rather than silently adopting defaults)."""
 
 
 _DEFAULT_BUDGET = {"max": 5, "reflective": 1}
@@ -364,7 +376,10 @@ _FRONTMATTER_RE = re.compile(r"\A---\n.*?\n---", re.DOTALL)
 _REVEALS_RE = re.compile(r"## Reveals\n.*?(?=\n\n## |\Z)", re.DOTALL)
 _QBLOCK_RE = re.compile(
     r"## Q\d+ · \S+ — \S+\n"
-    r"<!-- qid: (?P<qid>\S+) -->\n"
+    # qid is NOT \S+: a real vault path (this fixture's own "Clippings/saved
+    # page.md") can carry a space, so the id must be matched non-greedily up
+    # to the literal " -->" rather than stopping at the first whitespace.
+    r"<!-- qid: (?P<qid>[^\n]+?) -->\n"
     r"(?P<body>.*?)"
     r"\*\*A:\*\*"
     r"(?P<answer>.*?)(?=\n\n|\n## |\Z)",
@@ -383,6 +398,7 @@ def parse_note(text: str) -> ParsedNote:
     m = _BUDGET_RE.search(text)
     budget = ({"max": int(m.group(1)), "reflective": int(m.group(2))}
               if m else dict(_DEFAULT_BUDGET))
+    budget_parsed = m is not None
 
     answers: Dict[str, str] = {}
     declined: Set[str] = set()
@@ -420,7 +436,7 @@ def parse_note(text: str) -> ParsedNote:
     stray = "\n".join(p.strip() for p in stray_parts if p.strip()).strip()
 
     return ParsedNote(budget=budget, answers=answers, declined=declined,
-                       ignored=ignored, stray=stray)
+                       ignored=ignored, stray=stray, budget_parsed=budget_parsed)
 
 
 def score(forecast_plain: str, answer: str) -> str:
@@ -541,6 +557,6 @@ class OracleLedger:
 
 __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
-    "ParsedNote", "parse_note", "score", "note_substantially_answered",
-    "OracleLedger", "conjectures_section",
+    "select_within_budget", "ParsedNote", "parse_note", "score",
+    "note_substantially_answered", "OracleLedger", "conjectures_section",
 ]

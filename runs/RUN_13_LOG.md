@@ -32,7 +32,11 @@ own act, not something CI or an agent does.
 
 ## Findings
 
-*(none yet — this section fills in only after a real-vault run the author has reviewed.)*
+**V2a.1 oracle loop landed (2026-07-18)** — `src/oracle_notes.py` +
+`tools/run_vault_v0.py`'s `_run_oracle` wiring; the next real run may write
+`Arisbe/Questions-<date>.md` into the vault.
+
+*(no other findings yet — this section fills in only after a real-vault run the author has reviewed.)*
 
 ## Custody note
 

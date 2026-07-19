@@ -1,6 +1,9 @@
 """V2a.1 — the Obsidian oracle notes (spec: docs/superpowers/specs/
 2026-07-17-vault-cycle-design.md, Stage V2). Render/seal half (Task 1) +
-parse/score/ledger half (Task 2) + Conjectures section (Task 3)."""
+parse/score/ledger half (Task 2) + Conjectures section (Task 3) + driver
+wiring end-to-end (Task 4)."""
+import re
+import sys
 from pathlib import Path
 from oracle_notes import (
     OracleLedger, ParsedNote, QuestionCandidate, candidates_from_run,
@@ -9,6 +12,7 @@ from oracle_notes import (
 )
 
 FIX = Path(__file__).parent / "fixtures" / "vorago_fixture"
+TOOLS_DIR = Path(__file__).resolve().parent.parent / "tools"
 
 
 def _world():
@@ -115,6 +119,28 @@ class TestParse:
         assert parsed.declined == {"q2"}
         assert parsed.ignored == {"q3"}
         assert "Unrelated musings" in parsed.stray
+        assert parsed.budget_parsed is True
+
+    def test_budget_parsed_false_when_knob_missing(self):
+        text = _three_question_note()
+        text = text.replace("budget: {max: 5, reflective: 1}", "budget: (mangled)")
+        parsed = parse_note(text)
+        assert parsed.budget_parsed is False
+        assert parsed.budget == {"max": 5, "reflective": 1}  # the honest default
+
+    def test_qid_containing_a_space_is_recovered(self):
+        # A real vault path can carry a space ("Clippings/saved page.md") —
+        # the qid built from it ("prov:Clippings/saved page.md") must not
+        # break the parser (discovered via the fixture in Task 4's e2e test).
+        cand = QuestionCandidate("prov:Clippings/saved page.md", "quick",
+                                  "Is this yours?", "w", "s", forecast="collected")
+        text = render_note([cand], note_date="2026-07-18", run_id="r", segment=1,
+                            budget={"max": 5, "reflective": 1}, reveals=None)
+        text = text.replace("**A:**", "**A:** yes, collected from a talk")
+        parsed = parse_note(text)
+        assert parsed.answers == {
+            "prov:Clippings/saved page.md": "yes, collected from a talk"}
+        assert parsed.stray == ""
 
 
 class TestScore:
@@ -202,3 +228,171 @@ class TestSubstantiallyAnswered:
         parsed = ParsedNote(budget={}, answers={"q1": "x"},
                              ignored={"q2", "q3", "q4"})
         assert note_substantially_answered(parsed) is False  # 1 of 4
+
+
+class TestEndToEnd:
+    """Task 4 — the driver wiring (``tools/run_vault_v0.py``), exercised
+    through ``main`` exactly as a real invocation would call it. Always
+    ``--fixture`` (the read-only synthetic vault under
+    ``tests/fixtures/vorago_fixture``) with ``--runs-dir`` pointed at a tmp
+    dir — the custody boundary under test: nothing lands anywhere but
+    ``runs_dir``, and the checked-in fixture tree is never mutated."""
+
+    @staticmethod
+    def _main():
+        if str(TOOLS_DIR) not in sys.path:
+            sys.path.insert(0, str(TOOLS_DIR))
+        import run_vault_v0
+        return run_vault_v0
+
+    @staticmethod
+    def _answer(text: str, qid: str, answer: str) -> str:
+        """Insert ``answer`` right after the given qid's ``**A:**`` marker —
+        qid-anchored (via the invisible ``<!-- qid: ... -->`` comment), so it
+        doesn't depend on exact question wording."""
+        pattern = re.compile(
+            rf"(<!-- qid: {re.escape(qid)} -->.*?\*\*A:\*\*)", re.DOTALL)
+        new_text, n = pattern.subn(lambda m: m.group(1) + " " + answer, text, count=1)
+        assert n == 1, f"qid {qid} not found in note"
+        return new_text
+
+    def test_two_invocations_answer_cycle_then_exhaustion(self, tmp_path, capsys):
+        """Invocation 1 writes the note — the fixture's whole V2a.1 candidate
+        pool is exactly 5 (prov + journal + 2 horizon + the standing
+        reflective), which is also the default budget cap, so all 5 are
+        asked at once. We simulate the author answering/declining/ignoring a
+        mix, then invocation 2 must: record every outcome, compute reveals
+        for the genuine answers (hit + unscored), and — because every one of
+        those 5 qids is now ``asked_ever`` (the suppressor) and this closed
+        fixture offers no others — hit the review-mandated zero-questions
+        guard rather than write an empty note."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        orig_fixture_note = (
+            FIX / "Arisbe" / "Questions-2026-07-01.md").read_text(encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+        assert "questions_written: 5 → Arisbe/Questions-2026-07-18.md" in out1
+
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        assert note1.exists()
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        assert len(qids) == 5
+
+        # qids[0] = prov (forecast "collected") -> a genuine hit
+        text = self._answer(text, qids[0], "yes, I collected it from a talk")
+        # qids[1] = journal (forecast "fragment") -> declined, no reveal
+        text = self._answer(text, qids[1], "declined")
+        # qids[2] = the first horizon item (forecast "unknown") -> unscored
+        text = self._answer(text, qids[2], "it's an old conference scan")
+        # qids[3], qids[4] left blank -> ignored (silence)
+        note1.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0
+        out2 = capsys.readouterr().out
+        assert "oracle: no questions this cycle" in out2
+        assert "questions_written" not in out2.split("oracle:")[0]  # no stray write
+
+        # exactly one note on disk — no second file materialized
+        assert sorted((runs_dir / "arisbe_notes").glob("Questions-*.md")) == [note1]
+
+        ledger = OracleLedger(runs_dir / "oracle")
+        outs = ledger.outcomes()
+        assert len(outs) == 5
+        by_qid = {o["qid"]: o["status"] for o in outs}
+        assert by_qid[qids[0]] == "answered"
+        assert by_qid[qids[1]] == "declined"
+        assert by_qid[qids[2]] == "answered"
+        assert by_qid[qids[3]] == "ignored"
+        assert by_qid[qids[4]] == "ignored"
+
+        parsed = parse_note(text)
+        reveals = ledger.build_reveals(parsed)
+        verdicts = {r["qid"]: r["verdict"] for r in reveals}
+        assert verdicts == {qids[0]: "hit", qids[2]: "unscored"}
+
+        # custody: nothing touched outside runs_dir — the checked-in fixture
+        # (including its own pre-existing synthetic Arisbe/ note, used by
+        # test_vault_world.py's reader-exclusion tests) is byte-identical.
+        assert not (FIX / "Arisbe" / "Questions-2026-07-18.md").exists()
+        assert not (FIX / "Arisbe" / "Questions-2026-07-25.md").exists()
+        assert (FIX / "Arisbe" / "Questions-2026-07-01.md").read_text(
+            encoding="utf-8") == orig_fixture_note
+
+    def test_seeded_low_budget_leaves_a_remainder_for_a_genuine_second_note(
+            self, tmp_path, capsys):
+        """The zero-questions guard above is the *exhaustion* edge; this test
+        exercises the ordinary, expected path where the previous note's
+        (author-editable) budget knob really does leave candidates
+        unasked, so a second real invocation both reveals the first note's
+        answers AND writes a genuine new note. We seed a seed note with a
+        low budget (max 2) and zero questions of its own (vacuously
+        "substantially answered", so it never blocks) — the standard
+        ``render_note`` shape, not hand-rolled markup."""
+        from oracle_notes import render_note as _render_note
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        oracle_dir = runs_dir / "arisbe_notes"
+        oracle_dir.mkdir(parents=True)
+        seed = _render_note([], note_date="2026-07-01", run_id="seed", segment=0,
+                             budget={"max": 2, "reflective": 1}, reveals=None)
+        (oracle_dir / "Questions-2026-07-01.md").write_text(seed, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-10"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+        assert "questions_written: 2 → Arisbe/Questions-2026-07-10.md" in out1
+
+        note1 = oracle_dir / "Questions-2026-07-10.md"
+        text1 = note1.read_text(encoding="utf-8")
+        qids1 = re.findall(r"<!-- qid: (.+?) -->", text1)
+        assert qids1 == ["prov:Clippings/saved page.md",
+                          "journal:Personal/Journal-x/Journal.md"]  # top-severity two
+
+        text1 = self._answer(text1, qids1[0], "yes, collected from a talk")
+        text1 = self._answer(text1, qids1[1], "declined")
+        note1.write_text(text1, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-14"])
+        assert rc == 0
+        out2 = capsys.readouterr().out
+        assert "questions_written: 2 → Arisbe/Questions-2026-07-14.md" in out2
+
+        note2 = oracle_dir / "Questions-2026-07-14.md"
+        assert note2.exists()
+        text2 = note2.read_text(encoding="utf-8")
+        assert "## Reveals" in text2 and "collected" in text2  # the hit, revealed
+        qids2 = re.findall(r"<!-- qid: (.+?) -->", text2)
+        assert set(qids2).isdisjoint(qids1)   # genuinely new questions
+        assert all(q.startswith("horizon:") for q in qids2)  # the leftover source
+
+    def test_budget_knob_unparsed_prints_warning_and_falls_back(
+            self, tmp_path, capsys):
+        """Guard 2: a previous note whose budget line was mangled by hand
+        (or an older format) must not fail silently — the driver prints the
+        warning and proceeds on the honest default, never a fabricated
+        guess."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        oracle_dir = runs_dir / "arisbe_notes"
+        oracle_dir.mkdir(parents=True)
+        (oracle_dir / "Questions-2026-07-10.md").write_text(
+            "---\nauthored_by: arisbe\nrun: r\nsegment: 1\ndate: 2026-07-10\n"
+            "budget: (mangled)\n---\n",
+            encoding="utf-8",
+        )
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-17"])
+        assert rc == 0
+        out = capsys.readouterr().out
+        assert "oracle: budget knob unparsed - using defaults" in out
+        assert "questions_written: 5 → Arisbe/Questions-2026-07-17.md" in out

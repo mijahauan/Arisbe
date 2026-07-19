@@ -22,16 +22,27 @@ from __future__ import annotations
 import argparse
 import sys
 from collections import Counter
+from datetime import date
 from pathlib import Path
+from typing import List
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from agon_evolution import run                      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from egif_generator_dau import generate_egif         # noqa: E402
+from oracle_notes import (                           # noqa: E402
+    OracleLedger, candidates_from_run, conjectures_section,
+    note_substantially_answered, parse_note, render_note, seal,
+    select_within_budget,
+)
 from probe_feed import _model_signature              # noqa: E402
 from tomos_service import TomosService               # noqa: E402
 from vault_world import VaultFeed, VaultWorld         # noqa: E402
+
+# V2a.1 ruling: ≤5 questions per note, ≤1 reflective — the first-ever note's
+# budget (no prior note to read an edited knob from).
+_ORACLE_DEFAULT_BUDGET = {"max": 5, "reflective": 1}
 
 FIXTURE_ROOT = (
     Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "vorago_fixture"
@@ -74,7 +85,7 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
 
 
 def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
-                  model_egif: str, ttl: int) -> tuple[dict, str]:
+                  model_egif: str, ttl: int):
     world = VaultWorld(root)
     economy = AttentionEconomy()
     horizon = Horizon()
@@ -106,7 +117,86 @@ def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
     digest = _digest(res.uod.current_egi, horizon, economy)
     digest["digested_labels"] = len(world.long_labels)
     next_model_egif = generate_egif(res.uod.current_egi)
-    return digest, next_model_egif
+    # world/horizon/res carried out too — the oracle cycle (last segment only)
+    # needs the actual objects the round loop drove, not fresh ones.
+    return digest, next_model_egif, world, horizon, res
+
+
+def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
+                 run_id: str, segment: int, world: VaultWorld, horizon: Horizon,
+                 res) -> dict:
+    """The V2a.1 oracle cycle (docs/superpowers/plans/2026-07-18-v2a-oracle-notes.md,
+    Task 4), run once after the LAST segment only:
+
+    1. Resolve + create the oracle dir: real-vault mode -> ``<root>/Arisbe/``;
+       ``--fixture``/test mode -> ``<runs_dir>/arisbe_notes/`` (the fixture
+       tree under ``tests/fixtures`` is never written to).
+    2. Parse the newest prior ``Questions-*.md`` there, if any: record each
+       answer/decline/ignore into the ledger, build reveals, adopt the
+       (possibly author-edited) budget knob. A previous note that is not yet
+       substantially answered (and hasn't been waved off by deletion) blocks
+       a new note this cycle.
+    3. Build candidates (suppressing anything the ledger has ever asked),
+       budget-select, render, write, and record each asked question.
+
+    Numbers-only stdout throughout: the only path ever printed is the note's
+    vault-relative name, never a filesystem path (which in fixture mode lives
+    under ``runs_dir``, not any real vault)."""
+    oracle_dir = (runs_dir / "arisbe_notes") if fixture else (root / "Arisbe")
+    oracle_dir.mkdir(parents=True, exist_ok=True)
+    ledger = OracleLedger(runs_dir / "oracle")
+
+    budget = dict(_ORACLE_DEFAULT_BUDGET)
+    reveals: List[dict] = []
+    answers_recorded = 0
+
+    prior = sorted(oracle_dir.glob("Questions-*.md"))
+    if prior:
+        text = prior[-1].read_text(encoding="utf-8")
+        parsed = parse_note(text)
+        if not parsed.budget_parsed:
+            print("oracle: budget knob unparsed - using defaults")
+        budget = parsed.budget
+
+        for qid, answer in parsed.answers.items():
+            ledger.record_outcome(qid, "answered", answer, note_date)
+            answers_recorded += 1
+        for qid in parsed.declined:
+            ledger.record_outcome(qid, "declined", "declined", note_date)
+            answers_recorded += 1
+        for qid in parsed.ignored:
+            ledger.record_outcome(qid, "ignored", "", note_date)
+
+        reveals = ledger.build_reveals(parsed)
+
+        if not note_substantially_answered(parsed):
+            print("oracle: previous note awaits answers — no new note")
+            return {"questions_written": 0, "reveals": len(reveals),
+                    "answers_recorded": answers_recorded}
+
+    candidates = candidates_from_run(world, horizon, list(res.known_laws),
+                                      world.labels())
+    candidates = [c for c in candidates if not ledger.asked_ever(c.qid)]
+    selected = select_within_budget(candidates, budget)
+
+    if not selected:
+        # Review-mandated guard: never write a note with zero questions.
+        print("oracle: no questions this cycle")
+        return {"questions_written": 0, "reveals": len(reveals),
+                "answers_recorded": answers_recorded}
+
+    conjectures = conjectures_section(list(res.known_laws), res.discoveries)
+    text = render_note(selected, note_date=note_date, run_id=run_id,
+                        segment=segment, budget=budget,
+                        reveals=reveals or None, conjectures=conjectures)
+    note_path = oracle_dir / f"Questions-{note_date}.md"
+    note_path.write_text(text, encoding="utf-8")
+    for c in selected:
+        ledger.record_asked(note_date, c.qid, c.tier, c.forecast, seal(c.forecast))
+
+    print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
+    return {"questions_written": len(selected), "reveals": len(reveals),
+            "answers_recorded": answers_recorded}
 
 
 def main(argv=None) -> int:
@@ -128,16 +218,28 @@ def main(argv=None) -> int:
                           "segment-save layout stays tractable; 0 disables — "
                           "unbounded M at vault scale makes the save-time layout "
                           "take tens of minutes and risks label occlusion)")
+    ap.add_argument("--note-date", default=None,
+                     help="ISO date for the oracle note's filename/frontmatter "
+                          "(V2a.1); defaults to today — the single sanctioned "
+                          "wall-clock read in this driver. Pass explicitly for "
+                          "deterministic/test invocations.")
     args = ap.parse_args(argv)
 
     root = FIXTURE_ROOT if args.fixture else Path(args.root)
     runs_dir = Path(args.runs_dir)
     runs_dir.mkdir(parents=True, exist_ok=True)
+    note_date = args.note_date or date.today().isoformat()
 
     model_egif = ""
+    digest: dict = {}
     for seg in range(1, args.segments + 1):
-        digest, model_egif = _run_segment(root, args.rounds, seg, runs_dir,
-                                          model_egif, args.ttl)
+        digest, model_egif, world, horizon, res = _run_segment(
+            root, args.rounds, seg, runs_dir, model_egif, args.ttl)
+        if seg == args.segments:
+            digest["oracle"] = _run_oracle(
+                root, runs_dir, args.fixture, note_date,
+                run_id=f"vault_v0_seg{seg}", segment=seg,
+                world=world, horizon=horizon, res=res)
         print(f"[segment {seg}/{args.segments}] {digest}")
 
     return 0
