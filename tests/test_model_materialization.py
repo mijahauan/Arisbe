@@ -219,22 +219,37 @@ def test_k3_syllogism_ratio():
     assert k3.explicit == 2
     assert k3.derived == 2          # mortal(Socrates), mortal(Plato)
     assert k3.horn_laws == 1 and k3.skipped_laws == 0
-    assert k3.ratio == 2.0
+    assert k3.ratio == 0.5          # derived / (explicit + derived) = 2/4, bounded in [0,1)
+    assert k3.yield_per_law == 2.0  # the old derived/laws number, honestly renamed
 
 def test_k3_no_laws_is_zero_not_error():
     from model_materialization import materialization_ratio
     k3 = materialization_ratio(parse_egif('(bird "Tweety")'))
     assert k3.derived == 0 and k3.horn_laws == 0
     assert k3.ratio == 0.0
+    assert k3.yield_per_law == 0.0
 
 def test_k3_non_horn_law_weighs_the_denominator():
     from model_materialization import materialization_ratio
     # one productive Horn law + one non-Horn shape (disjunctive head — skipped):
-    # the skipped law earns no credit but still counts as a law M carries.
+    # the skipped law earns no credit but still counts as a law M carries —
+    # now against yield_per_law's denominator (ratio's denominator is the
+    # extent-based explicit+derived count, untouched by law count).
     M = parse_egif('(man "Socrates") '
                    '~[ (man *x) ~[ (mortal x) ] ] '
                    '~[ (animal *y) ~[ ~[ (cat y) ] ~[ (dog y) ] ] ]')
     k3 = materialization_ratio(M)
     assert k3.horn_laws == 1 and k3.skipped_laws >= 1
-    assert k3.ratio == k3.derived / (k3.horn_laws + k3.skipped_laws)
-    assert k3.ratio < k3.derived / k3.horn_laws   # the skip genuinely weighs
+    assert k3.yield_per_law == k3.derived / (k3.horn_laws + k3.skipped_laws)
+    assert k3.yield_per_law < k3.derived / k3.horn_laws   # the skip genuinely weighs
+
+def test_k3_ratio_is_extent_invariant():
+    from model_materialization import materialization_ratio
+    LAW = '~[ (man *x) ~[ (mortal x) ] ]'
+    small = parse_egif(f'(man "S1") (man "S2") {LAW}')
+    names = " ".join(f'(man "S{i}")' for i in range(1, 21))
+    large = parse_egif(f'{names} {LAW}')
+    k3_small, k3_large = materialization_ratio(small), materialization_ratio(large)
+    assert k3_small.ratio == k3_large.ratio == 0.5           # extent-invariant
+    assert k3_small.yield_per_law == 2.0
+    assert k3_large.yield_per_law == 20.0                    # yield still scales with N

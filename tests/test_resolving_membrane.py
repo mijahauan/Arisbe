@@ -55,6 +55,50 @@ def test_ground_truth_defaults():
 
 
 # --------------------------------------------------------------------------- #
+# K1 — the severity join (THE_MEASURE_OF_KNOWLEDGE §2; docket item 12a)        #
+# --------------------------------------------------------------------------- #
+
+def test_k1_severity_join_separates_equal_counts():
+    # two ledgers, identical hit/miss counts (1 hit, 1 miss each); one's hit
+    # carries severity 8.0, the other's 1.0 — k1_score must differ 8:1 while
+    # net_score (count-only) still ties.
+    high = PredictionLedger()
+    high.record(ResolvingItem("(a)", True), "true", 1, severity=8.0)    # hit, sev 8
+    high.record(ResolvingItem("(b)", False), "true", 2, severity=1.0)   # miss, sev 1
+
+    low = PredictionLedger()
+    low.record(ResolvingItem("(a)", True), "true", 1, severity=1.0)     # hit, sev 1
+    low.record(ResolvingItem("(b)", False), "true", 2, severity=1.0)    # miss, sev 1
+
+    assert high.net_score == low.net_score == 0
+    assert high.k1_score == 8.0 - 1.0
+    assert low.k1_score == 1.0 - 1.0
+    assert high.k1_score != low.k1_score
+
+
+def test_k1_ordering_invariant_under_positive_scaling():
+    a = PredictionLedger()
+    a.record(ResolvingItem("(a)", True), "true", 1, severity=5.0)       # hit
+    a.record(ResolvingItem("(b)", False), "true", 2, severity=2.0)      # miss
+
+    b = PredictionLedger()
+    b.record(ResolvingItem("(a)", True), "true", 1, severity=2.0)       # hit
+    b.record(ResolvingItem("(b)", False), "true", 2, severity=1.0)      # miss
+
+    assert a.k1_score > b.k1_score       # (5-2)=3 > (2-1)=1
+
+    a3 = PredictionLedger()
+    a3.record(ResolvingItem("(a)", True), "true", 1, severity=15.0)
+    a3.record(ResolvingItem("(b)", False), "true", 2, severity=6.0)
+
+    b3 = PredictionLedger()
+    b3.record(ResolvingItem("(a)", True), "true", 1, severity=6.0)
+    b3.record(ResolvingItem("(b)", False), "true", 2, severity=3.0)
+
+    assert (a3.k1_score > b3.k1_score) == (a.k1_score > b.k1_score)
+
+
+# --------------------------------------------------------------------------- #
 # The feed drives the loop; the world resolves                                 #
 # --------------------------------------------------------------------------- #
 

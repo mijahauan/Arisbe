@@ -444,13 +444,27 @@ def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
 
 @dataclass(frozen=True)
 class KnowledgeCompression:
-    """K3: how much of M's ground extension its laws derive, per law.
+    """K3: how much of M's ground extension is *derived* rather than asserted.
 
-    ``ratio`` = derived ÷ (horn_laws + skipped_laws). A law materialization
-    cannot evaluate (non-Horn, reported in ``skipped``) earns no compression
-    credit but still weighs the denominator — no credit without evaluable
-    evidence, the measure's earned-record discipline applied to itself. A
-    model with no laws compresses nothing: ratio 0.0, never an error."""
+    ``ratio`` = derived ÷ (explicit + derived), bounded in ``[0, 1)`` (0.0 when
+    the denominator is 0 — a model with no facts at all compresses nothing,
+    never an error). This is **extent-invariant**: the identical law applied
+    over 2 individuals or 200 reads the same ``ratio`` (both derive exactly
+    one fact per explicit fact here), because the denominator is the model's
+    own extent, not its law count. The prior formulation (``derived ÷ laws``)
+    confounded compression with domain size — the same law over 2/20/200
+    individuals read 2.0/20.0/200.0, an unbounded number that grows with N
+    rather than measuring how much of the extension is *derived*, so it is
+    kept below as ``yield_per_law``, not as ``ratio``.
+
+    ``yield_per_law`` = derived ÷ (horn_laws + skipped_laws) — the mean
+    derivational yield per law M carries. It is NOT compression: it scales
+    with domain extent (a law over 200 individuals yields 200, the same law
+    over 2 yields 2), so it answers "how productive is a law" rather than
+    "how much of the model is derived." A law materialization cannot
+    evaluate (non-Horn, reported in ``skipped``) earns no yield credit but
+    still weighs this denominator — no credit without evaluable evidence,
+    the measure's earned-record discipline applied to itself."""
 
     explicit: int
     derived: int
@@ -459,6 +473,14 @@ class KnowledgeCompression:
 
     @property
     def ratio(self) -> float:
+        """K3, extent-invariant: derived ÷ (explicit + derived), in [0, 1)."""
+        total = self.explicit + self.derived
+        return self.derived / total if total else 0.0
+
+    @property
+    def yield_per_law(self) -> float:
+        """Mean derivational yield per law (explicit+skipped-weighted denominator);
+        scales with domain extent — NOT a compression measure."""
         laws = self.horn_laws + self.skipped_laws
         return self.derived / laws if laws else 0.0
 

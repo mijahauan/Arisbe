@@ -82,6 +82,7 @@ class ScoreEntry:
     predicted: str        # M's open-world forecast: true / false / unknown
     happened: bool
     result: str           # hit / miss / abstain
+    severity: float = 1.0  # K1: the claim's declared weight (default = uniform, i.e. count-only)
 
 
 @dataclass
@@ -89,9 +90,11 @@ class PredictionLedger:
     """M's empirical track record — the world's selection signal on a theory."""
     entries: List[ScoreEntry] = field(default_factory=list)
 
-    def record(self, item: ResolvingItem, predicted: str, round_idx: int) -> ScoreEntry:
+    def record(self, item: ResolvingItem, predicted: str, round_idx: int,
+               severity: float = 1.0) -> ScoreEntry:
         entry = ScoreEntry(round_idx, item.claim_egif, predicted,
-                           item.happened, classify(predicted, item.happened))
+                           item.happened, classify(predicted, item.happened),
+                           severity)
         self.entries.append(entry)
         return entry
 
@@ -112,6 +115,23 @@ class PredictionLedger:
         """Net correct forecasts (``hits − misses``) — the selection key. A theory that never
         bets wrong stays at 0; an over-general one that gets falsified goes negative."""
         return self.hits - self.misses
+
+    @property
+    def k1_score(self) -> float:
+        """K1, the severity-weighted track record (THE_MEASURE_OF_KNOWLEDGE §2): ``Σ(severity
+        of hits) − Σ(severity of misses)``; abstentions weigh neither side. The join between
+        the ledger and a claim's ``severity`` — declared here as **linear weights**
+        (``w(sev) = sev``), not a derived quantity: the anchors' operational definition of
+        severity (measured refutation-power) stays an OPEN obligation. What IS provable under
+        linear weights: uniformly rescaling every entry's severity by a positive constant
+        preserves the ordering between two ledgers (see
+        ``test_k1_ordering_invariant_under_positive_scaling``); the fuller monotone-rescale
+        invariance (any monotone, not just linear, transform of severity) is a doc-carried
+        concession, not something this property proves. When every ``severity`` is left at its
+        default (1.0), ``k1_score == net_score`` — the join is additive over ``net_score``, not
+        a replacement for it."""
+        return (sum(e.severity for e in self.entries if e.result == "hit")
+                - sum(e.severity for e in self.entries if e.result == "miss"))
 
     @property
     def accuracy(self) -> Optional[float]:
@@ -151,7 +171,13 @@ def select_best(arms: Sequence[Tuple[str, PredictionLedger]]) -> Optional[str]:
     """Rank competing theories (DAG branches / ablation arms) by their empirical track record
     and return the winner's label — *the world selecting against the over-general theory*.
     Order: higher net score, then higher accuracy, then fewer bets (parsimony). ``None`` for an
-    empty field."""
+    empty field.
+
+    Ranks by ``net_score`` (count-only, behavior-preserving default — every ``ScoreEntry``'s
+    ``severity`` defaults to 1.0, so this is unaffected by the K1 join). Callers who want the
+    severity-aware ranking should sort/rank their arms by each ledger's ``k1_score`` instead
+    (e.g. ``max(arms, key=lambda a: a[1].k1_score)``); this function does not do so itself so
+    existing callers keep their current selection unchanged."""
     if not arms:
         return None
 
