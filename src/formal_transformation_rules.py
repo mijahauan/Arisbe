@@ -87,6 +87,22 @@ def _rebuild_graph(
     c_ids = {c.id for c in cuts}
     base_sort = source.sort if sort is None else sort
     new_rho = frozendict({k: v for k, v in source.rho.items() if k in v_ids})
+    # A quotation unit (flagged cut, quoting name) is erased whole or not at
+    # all. If only one half survives the reconstruction, the surviving half
+    # would stand unflagged/dangling — a mention silently demoted to an
+    # assertion. Refuse the split rather than pruning it away quietly.
+    surviving_quotation = {}
+    for k, v in source.quotation.items():
+        cut_alive, name_alive = k in c_ids, v in v_ids
+        if cut_alive and name_alive:
+            surviving_quotation[k] = v
+        elif cut_alive or name_alive:
+            raise ValueError(
+                f"quotation unit split by reconstruction: cut {k} "
+                f"{'survives' if cut_alive else 'gone'}, name {v} "
+                f"{'survives' if name_alive else 'gone'} — a quotation is "
+                "erased whole or not at all"
+            )
     return RelationalGraphWithCuts(
         V=V,
         E=E,
@@ -98,13 +114,7 @@ def _rebuild_graph(
         alphabet=_extended_alphabet(source.alphabet, rel, nu, new_rho),
         rho=new_rho,
         sort=frozendict({k: v for k, v in base_sort.items() if k in v_ids}),
-        quotation=frozendict(
-            {
-                k: v
-                for k, v in source.quotation.items()
-                if k in c_ids and v in v_ids
-            }
-        ),
+        quotation=frozendict(surviving_quotation),
     )
 
 

@@ -47,6 +47,7 @@ from egi_io import from_dict, to_dict
 from eg_navigation import same_graph
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
+from formal_transformation_rules import _rebuild_graph
 
 
 # --------------------------------------------------------------------------- #
@@ -328,3 +329,62 @@ class TestSignature:
         )
         _, _, csig_oval = compute_canonical_signatures(with_oval)
         assert csig_plain[cut.id] != csig_oval[cut.id]
+
+
+# --------------------------------------------------------------------------- #
+# 6. Docket item (2): _rebuild_graph pruning invariant                        #
+# --------------------------------------------------------------------------- #
+
+
+class TestRebuildPruningInvariant:
+    """Docket item 2: a quotation entry dies whole or not at all.
+
+    ``_rebuild_graph`` prunes ``quotation`` to the surviving cuts/vertices.
+    If only one half of a (cut, name) pair survives a reconstruction, the
+    other half silently disappears and the surviving cut stands unflagged —
+    a mention demoted to an unflagged (asserted) cut. Every reconstruction
+    path must refuse that split, not just the rule call sites that happen to
+    guard it upstream."""
+
+    def test_cut_survives_name_gone_raises(self):
+        egi, name_id, cut_id, _inner_v_id = quoted_host()
+        with pytest.raises(ValueError, match="quotation"):
+            _rebuild_graph(
+                egi,
+                V=frozenset(v for v in egi.V if v.id != name_id),
+                E=egi.E,
+                nu=egi.nu,
+                cuts=egi.Cut,
+                area=frozendict(
+                    {a: c - {name_id} for a, c in egi.area.items()}
+                ),
+                rel=egi.rel,
+            )
+
+    def test_name_survives_cut_gone_raises(self):
+        egi, name_id, cut_id, _inner_v_id = quoted_host()
+        interior = egi.area.get(cut_id, frozenset())
+        with pytest.raises(ValueError, match="quotation"):
+            _rebuild_graph(
+                egi,
+                V=frozenset(v for v in egi.V if v.id not in interior),
+                E=frozenset(e for e in egi.E if e.id not in interior),
+                nu=egi.nu,
+                cuts=frozenset(c for c in egi.Cut if c.id != cut_id),
+                area=frozendict(
+                    {
+                        a: c - {cut_id}
+                        for a, c in egi.area.items()
+                        if a != cut_id
+                    }
+                ),
+                rel=egi.rel,
+            )
+
+    def test_both_gone_prunes_cleanly_and_both_kept_survive(self):
+        egi, name_id, cut_id, _inner_v_id = quoted_host()
+        rebuilt = _rebuild_graph(
+            egi, V=egi.V, E=egi.E, nu=egi.nu, cuts=egi.Cut,
+            area=egi.area, rel=egi.rel,
+        )
+        assert dict(rebuilt.quotation) == dict(egi.quotation)
