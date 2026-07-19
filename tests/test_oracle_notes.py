@@ -6,9 +6,9 @@ import re
 import sys
 from pathlib import Path
 from oracle_notes import (
-    OracleLedger, ParsedNote, QuestionCandidate, candidates_from_run,
-    conjectures_section, note_substantially_answered, parse_note, render_note,
-    score, seal,
+    DEFAULT_BUDGET, OracleLedger, ParsedNote, QuestionCandidate,
+    candidates_from_run, conjectures_section, note_substantially_answered,
+    parse_note, render_note, score, seal,
 )
 
 FIX = Path(__file__).parent / "fixtures" / "vorago_fixture"
@@ -127,6 +127,8 @@ class TestParse:
         parsed = parse_note(text)
         assert parsed.budget_parsed is False
         assert parsed.budget == {"max": 5, "reflective": 1}  # the honest default
+        # one source of truth: parse_note's fallback IS oracle_notes.DEFAULT_BUDGET
+        assert parsed.budget == DEFAULT_BUDGET
 
     def test_qid_containing_a_space_is_recovered(self):
         # A real vault path can carry a space ("Clippings/saved page.md") —
@@ -192,6 +194,32 @@ class TestLedger:
         verdicts = {r["qid"]: r["verdict"] for r in reveals}
         assert verdicts == {"q1": "hit", "q2": "miss", "q3": "unscored"}
         assert all(r["forecast_hash"] for r in reveals)  # the seal, joined in
+
+    def test_record_outcome_once_is_idempotent_under_repolling(self, tmp_path):
+        """Driver-style double-recording: a note that sits partially answered
+        gets re-polled on every invocation. Recording the SAME outcome twice
+        must not append a duplicate row (repeated polling would otherwise
+        pollute the ledger); a CHANGED answer for the same qid must still
+        append (progress is kept, only exact duplicates are not)."""
+        ledger = OracleLedger(tmp_path)
+
+        # first poll: records the outcome, appends
+        assert ledger.record_outcome_once(
+            "q1", "answered", "yes, collected from a talk", "2026-07-18") is True
+        # second poll (re-run while the note is still sitting there,
+        # identical answer): must be skipped
+        assert ledger.record_outcome_once(
+            "q1", "answered", "yes, collected from a talk", "2026-07-18") is False
+        outs = ledger.outcomes()
+        assert len(outs) == 1
+
+        # third poll: the author CHANGED their answer for the same qid —
+        # this must append a new row, not be swallowed as a duplicate
+        assert ledger.record_outcome_once(
+            "q1", "answered", "actually, it's my own writing", "2026-07-19") is True
+        outs = ledger.outcomes()
+        assert len(outs) == 2
+        assert outs[-1]["answer_text"] == "actually, it's my own writing"
 
 
 class TestConjectures:
@@ -396,3 +424,61 @@ class TestEndToEnd:
         out = capsys.readouterr().out
         assert "oracle: budget knob unparsed - using defaults" in out
         assert "questions_written: 5 → Arisbe/Questions-2026-07-17.md" in out
+
+    def test_same_day_repoll_never_clobbers_the_note(self, tmp_path, capsys):
+        """Guard 3: once a note for a given date is substantially answered, a
+        re-poll on THAT SAME date (the driver invoked again before the day
+        rolls over) must never overwrite it — only a later date's poll
+        produces a new note. Three invocations at the same ``--note-date``:
+        the first writes, the second (after the note is answered) and the
+        third both hit the clobber guard and leave the file byte-unchanged."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc1 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc1 == 0
+        out1 = capsys.readouterr().out
+        assert "questions_written: 5 → Arisbe/Questions-2026-07-18.md" in out1
+
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        assert len(qids) == 5
+
+        # answer/decline enough (3 of 5) to be "substantially answered", so a
+        # same-date re-poll would otherwise fall through to a write
+        text = self._answer(text, qids[0], "yes, I collected it from a talk")
+        text = self._answer(text, qids[1], "declined")
+        text = self._answer(text, qids[2], "it's an old conference scan")
+        note1.write_text(text, encoding="utf-8")
+        answered_bytes = note1.read_bytes()
+
+        # second invocation, SAME note-date: must not overwrite
+        rc2 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc2 == 0
+        out2 = capsys.readouterr().out
+        assert "oracle: today's note already exists - not overwriting" in out2
+        assert note1.read_bytes() == answered_bytes
+
+        # third invocation, SAME note-date again: still untouched, and the
+        # ledger stayed idempotent across both re-polls (no duplicate rows)
+        rc3 = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc3 == 0
+        out3 = capsys.readouterr().out
+        assert "oracle: today's note already exists - not overwriting" in out3
+        assert note1.read_bytes() == answered_bytes
+
+        # both re-polls parse the SAME answered note as "prior" and record
+        # its 5 outcomes (3 answered/declined + 2 ignored); the second
+        # re-poll's rows are identical to the first's, so record_outcome_once
+        # skips them all — one row per qid, never duplicated across polls
+        ledger = OracleLedger(runs_dir / "oracle")
+        outs = ledger.outcomes()
+        assert len(outs) == 5
+        assert len({(o["qid"], o["status"], o["answer_text"]) for o in outs}) == 5
+
+        # exactly one note on disk for this date
+        assert sorted((runs_dir / "arisbe_notes").glob("Questions-*.md")) == [note1]

@@ -148,9 +148,13 @@ class Horizon:
     """The horizon register (BOOTSTRAP_AND_DIRECTED_ENGAGEMENT §3, built at the
     vault stage where illegibility is real): what came back not-yet-legible,
     kept with counted size and re-attempted as legibility improves — where
-    tomorrow's sensor space waits. Bounded, dedup'd by ref, drops counted."""
+    tomorrow's sensor space waits. Bounded, dedup'd by ref, drops counted.
+    ``max_items`` defaults to 20000 (raised from 2000 after RUN 13's real
+    digest showed ``horizon: open 2000, dropped 7100`` — the old default was
+    under-sized for a real vault's ~1,400 images + clips; a register of
+    tuples is cheap enough to hold the larger bound)."""
 
-    def __init__(self, max_items: int = 2000):
+    def __init__(self, max_items: int = 20000):
         self._max = max_items
         self._items: Dict[str, HorizonItem] = {}
         self.dropped = 0

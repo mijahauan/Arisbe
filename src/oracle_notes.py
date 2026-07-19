@@ -365,11 +365,16 @@ class ParsedNote:
     stray: str = ""
     budget_parsed: bool = True
     """False when the ``budget: {...}`` line was missing/malformed and
-    ``budget`` fell back to ``_DEFAULT_BUDGET`` (Task 4's driver-side guard:
+    ``budget`` fell back to ``DEFAULT_BUDGET`` (Task 4's driver-side guard:
     print a warning rather than silently adopting defaults)."""
 
 
-_DEFAULT_BUDGET = {"max": 5, "reflective": 1}
+DEFAULT_BUDGET = {"max": 5, "reflective": 1}
+"""The V2a ruling: at most 5 questions per note, at most 1 reflective — the
+one source of truth for the ruled budget. Both ``parse_note``'s fallback
+(below, when the prior note's budget knob is missing/malformed) and the
+driver's first-ever note (no prior note to read an edited knob from) use this
+same constant, so the ruled number lives in exactly one place."""
 
 _BUDGET_RE = re.compile(r"budget:\s*\{max:\s*(\d+),\s*reflective:\s*(\d+)\}")
 _FRONTMATTER_RE = re.compile(r"\A---\n.*?\n---", re.DOTALL)
@@ -397,7 +402,7 @@ def parse_note(text: str) -> ParsedNote:
     — kept verbatim as evidence, not interpreted."""
     m = _BUDGET_RE.search(text)
     budget = ({"max": int(m.group(1)), "reflective": int(m.group(2))}
-              if m else dict(_DEFAULT_BUDGET))
+              if m else dict(DEFAULT_BUDGET))
     budget_parsed = m is not None
 
     answers: Dict[str, str] = {}
@@ -515,6 +520,27 @@ class OracleLedger:
             "answered_note_date": answered_note_date,
         })
 
+    def record_outcome_once(self, qid: str, status: str, answer_text: str,
+                             answered_note_date: str) -> bool:
+        """Idempotent ``record_outcome``: a note that sits partially answered
+        gets re-polled by the driver on every invocation, and the append-only
+        JSONL log has no dedup of its own — without this, every re-poll
+        re-appends the same answer/decline/ignore row and pollutes the
+        eventual K1 ledger. Reads the qid's latest recorded outcome; if its
+        ``(status, answer_text)`` already matches, skips the append and
+        returns ``False`` (nothing new happened). Otherwise appends (a
+        genuinely CHANGED answer for the same qid — the author edited their
+        reply — still lands as a new row, so progress is kept) and returns
+        ``True``."""
+        existing = [r for r in self._read_all(self._outcomes_path)
+                    if r["qid"] == qid]
+        if existing:
+            latest = existing[-1]
+            if latest["status"] == status and latest["answer_text"] == answer_text:
+                return False
+        self.record_outcome(qid, status, answer_text, answered_note_date)
+        return True
+
     def asked_ever(self, qid: str) -> bool:
         """The standing-question suppressor: has this qid ever been asked
         (in any note, any run)? Callers use this to drop a question — most
@@ -557,6 +583,7 @@ class OracleLedger:
 
 __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
-    "select_within_budget", "ParsedNote", "parse_note", "score",
-    "note_substantially_answered", "OracleLedger", "conjectures_section",
+    "select_within_budget", "DEFAULT_BUDGET", "ParsedNote", "parse_note",
+    "score", "note_substantially_answered", "OracleLedger",
+    "conjectures_section",
 ]

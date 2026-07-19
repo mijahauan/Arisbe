@@ -24,25 +24,21 @@ import sys
 from collections import Counter
 from datetime import date
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from agon_evolution import run                      # noqa: E402
+from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from egif_generator_dau import generate_egif         # noqa: E402
 from oracle_notes import (                           # noqa: E402
-    OracleLedger, candidates_from_run, conjectures_section,
+    DEFAULT_BUDGET, OracleLedger, candidates_from_run, conjectures_section,
     note_substantially_answered, parse_note, render_note, seal,
     select_within_budget,
 )
 from probe_feed import _model_signature              # noqa: E402
 from tomos_service import TomosService               # noqa: E402
 from vault_world import VaultFeed, VaultWorld         # noqa: E402
-
-# V2a.1 ruling: ≤5 questions per note, ≤1 reflective — the first-ever note's
-# budget (no prior note to read an edited knob from).
-_ORACLE_DEFAULT_BUDGET = {"max": 5, "reflective": 1}
 
 FIXTURE_ROOT = (
     Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "vorago_fixture"
@@ -84,8 +80,10 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
     }
 
 
-def _run_segment(root: Path, rounds: int, seg_idx: int, runs_dir: Path,
-                  model_egif: str, ttl: int):
+def _run_segment(
+    root: Path, rounds: int, seg_idx: int, runs_dir: Path, model_egif: str,
+    ttl: int,
+) -> Tuple[dict, str, VaultWorld, Horizon, EvolutionResult]:
     world = VaultWorld(root)
     economy = AttentionEconomy()
     horizon = Horizon()
@@ -146,7 +144,7 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     oracle_dir.mkdir(parents=True, exist_ok=True)
     ledger = OracleLedger(runs_dir / "oracle")
 
-    budget = dict(_ORACLE_DEFAULT_BUDGET)
+    budget = dict(DEFAULT_BUDGET)
     reveals: List[dict] = []
     answers_recorded = 0
 
@@ -158,14 +156,18 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
             print("oracle: budget knob unparsed - using defaults")
         budget = parsed.budget
 
+        # record_outcome_once (not record_outcome): a note that sits
+        # partially answered gets re-polled on every invocation, and without
+        # dedup each re-poll would re-append the same row and pollute the
+        # ledger — see oracle_notes.OracleLedger.record_outcome_once.
         for qid, answer in parsed.answers.items():
-            ledger.record_outcome(qid, "answered", answer, note_date)
-            answers_recorded += 1
+            if ledger.record_outcome_once(qid, "answered", answer, note_date):
+                answers_recorded += 1
         for qid in parsed.declined:
-            ledger.record_outcome(qid, "declined", "declined", note_date)
-            answers_recorded += 1
+            if ledger.record_outcome_once(qid, "declined", "declined", note_date):
+                answers_recorded += 1
         for qid in parsed.ignored:
-            ledger.record_outcome(qid, "ignored", "", note_date)
+            ledger.record_outcome_once(qid, "ignored", "", note_date)
 
         reveals = ledger.build_reveals(parsed)
 
@@ -173,6 +175,15 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
             print("oracle: previous note awaits answers — no new note")
             return {"questions_written": 0, "reveals": len(reveals),
                     "answers_recorded": answers_recorded}
+
+    note_path = oracle_dir / f"Questions-{note_date}.md"
+    if note_path.exists():
+        # Same-day clobber guard: a re-poll on a date that already has a
+        # note (whether still blank or already answered) must never
+        # overwrite it — the ledger stays untouched for this skipped write.
+        print("oracle: today's note already exists - not overwriting")
+        return {"questions_written": 0, "reveals": len(reveals),
+                "answers_recorded": answers_recorded}
 
     candidates = candidates_from_run(world, horizon, list(res.known_laws),
                                       world.labels())
@@ -189,7 +200,6 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     text = render_note(selected, note_date=note_date, run_id=run_id,
                         segment=segment, budget=budget,
                         reveals=reveals or None, conjectures=conjectures)
-    note_path = oracle_dir / f"Questions-{note_date}.md"
     note_path.write_text(text, encoding="utf-8")
     for c in selected:
         ledger.record_asked(note_date, c.qid, c.tier, c.forecast, seal(c.forecast))
