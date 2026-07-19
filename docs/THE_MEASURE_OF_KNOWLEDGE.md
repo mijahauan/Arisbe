@@ -132,7 +132,11 @@ three directions the level-ladder alone doesn't capture:
 2. **The diachronic DAG's branches are parallel chains of semiosis** — each root→leaf
    path a self-similar trajectory of the same doubt-cycle, diverging where dispositions
    disagreed (the branch-on-disagreement machinery) and sometimes reconverging: the
-   fractal in *time*, not just in scale.
+   fractal in *time*, not just in scale. **Modal K2 BUILT 2026-07-19:**
+   `modal_query.durability_modality` reads K2 along this branching sense —
+   "necessary" (K2□, durable on every reachable trajectory), "possible" (K2◇,
+   durable on some but not all), or "absent" — composing the module's existing
+   `possibly`/`necessarily` over the diachronic DAG rather than a single line.
 3. **Communities of Arisbes** — the horizontal dimension: multiple instances
    collaborating in modeling each other and the world around them, each an
    author-according-to-the-other at the system grain, playing the same game between

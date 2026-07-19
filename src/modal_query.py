@@ -262,3 +262,39 @@ def equals_graph(egif: str) -> Predicate:
 def is_blank() -> Predicate:
     """φ = 'the blank sheet' — nothing scribed (the one unconditioned world)."""
     return lambda egi: not egi.E and not egi.Cut and not egi.V
+
+
+# --------------------------------------------------------------------------- #
+# K2 (durability) — trajectory-relative, off the branching DAG                  #
+# --------------------------------------------------------------------------- #
+
+def durability_modality(
+    history_or_uod: TransformationChain,
+    relation: str,
+    *,
+    over: str = "leaves",
+) -> str:
+    """K2's modal reading (THE_MEASURE_OF_KNOWLEDGE §3, the DAG sense): where does
+    a relation's knowledge STAND across the branching futures?
+
+    On a single (non-branching) line, K2 durability is read off one trajectory —
+    a fact either survives to the end or it doesn't. On a *branching* diachronic
+    DAG that reading is ambiguous: a relation may survive on some continuations
+    and be relinquished on others. This composes the existing ◇/□ machinery
+    (:func:`possibly`, :func:`necessarily`) to name the three cases:
+
+        "necessary"  —  □: scribed on every reachable sheet/leaf (K2-box —
+                        durable on every legal trajectory)
+        "possible"   —  ◇ holds but □ doesn't: scribed on some but not all
+                        (K2-diamond — durable somewhere, not everywhere)
+        "absent"     —  ¬◇: scribed nowhere reachable
+
+    Pure reader over ``possibly``/``necessarily``; adds no correspondence
+    obligation (geometry-free, like the rest of this module).
+    """
+    predicate = scribes_relation(relation)
+    if necessarily(history_or_uod, predicate, over=over).holds:
+        return "necessary"
+    if possibly(history_or_uod, predicate, over=over).holds:
+        return "possible"
+    return "absent"

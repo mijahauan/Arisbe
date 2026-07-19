@@ -76,6 +76,30 @@ def test_equals_graph_and_is_blank_predicates(modal_chain):
 
 
 # --------------------------------------------------------------------------- #
+# durability_modality — K2 read off the branching DAG                          #
+# --------------------------------------------------------------------------- #
+
+def test_durability_necessary_on_every_leaf(modal_chain):
+    """(cold) is on the sole reachable leaf (both lines converge there) — K2-box."""
+    assert mq.durability_modality(modal_chain, "cold") == "necessary"
+    assert mq.durability_modality(modal_chain, "cold", over="states") == "necessary"
+
+
+def test_durability_possible_over_states_not_leaves(modal_chain):
+    """(cloudy) survives on some but not all reachable *states* — K2-diamond —
+    but never survives to the single trajectory endpoint, so it reads absent
+    there: the two ``over`` readings genuinely differ."""
+    assert mq.durability_modality(modal_chain, "cloudy", over="states") == "possible"
+    assert mq.durability_modality(modal_chain, "cloudy", over="leaves") == "absent"
+
+
+def test_durability_absent_relation_nowhere_scribed(modal_chain):
+    """A relation never scribed on this history is absent under either reading."""
+    assert mq.durability_modality(modal_chain, "sunny") == "absent"
+    assert mq.durability_modality(modal_chain, "sunny", over="states") == "absent"
+
+
+# --------------------------------------------------------------------------- #
 # settlement — the forcing three-case table as a named reading                 #
 # (docs/FORCING_AND_THE_GAMMA_CROSSING.md §2/§6)                              #
 # --------------------------------------------------------------------------- #
