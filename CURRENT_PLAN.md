@@ -1,6 +1,12 @@
 # Current Plan
 
-**Last Updated**: 2026-07-17 (second sitting) — the whole-of-Arisbe step-back: the author's
+**Last Updated**: 2026-07-19 — **EXAMINATION IV executed** (see item -7 in the NEXT
+SESSION block: five independent panels over the doctrine sprint; the record is in
+ADVERSARIAL_EXAMINATION.md "Examination IV"; the 12-item defect docket awaits the
+author's rulings, with pre-RUN-13 riders and the V2a.2 block flagged). Earlier
+sittings' record follows.
+
+**2026-07-17 (second sitting)** — the whole-of-Arisbe step-back: the author's
 bootstrap premise (doubt-driven chain of semiosis; the Minimal Predictive Automaton) mapped
 onto the codebase and answered in two new doc pieces — `docs/BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md`
 (design-of-record: the MPA is ~4/5 built; the missing fifth is the **action arm**, staged as
@@ -88,10 +94,51 @@ M as a quoted attributed cell, multi-paragraph answers, real NL interpretation o
 answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
-**▶▶▶ NEXT SESSION (re-headed 2026-07-19: EXAMINATION IV — the author's mandate).**
+**▶▶▶ NEXT SESSION (re-headed 2026-07-19, second sitting: EXAMINATION IV EXECUTED —
+the defect docket awaits the author's rulings).**
 
--6. **▶ EXAMINATION IV — the skeptical review of the doctrine sprint (the author's
-   mandate, 2026-07-19).** The author: untested-even-if-not-unreasonable assumptions
+-7. **✅ EXAMINATION IV EXECUTED (2026-07-19, same day chartered).** Five independent
+   skeptic panels (measurement theorist+complexity scientist · ablation methodologist ·
+   testimony philosopher+security reviewer · proof-theorist · historian of ideas), none
+   shown another's brief; 12 pre-registered suspects + 11 panel-added; **every decisive
+   charge independently re-executed before entry** (ablation arms, K3 ratio, poise
+   classifier, the ERA counterexample, every charged doc sentence). Record:
+   **ADVERSARIAL_EXAMINATION.md "Examination IV"**; full briefs + pilot harness:
+   `runs/EXAMINATION_IV_BRIEFS/`. Headlines: **(1) a demonstrated A3 break** — direct-
+   engine ERA of host ink on `swan_third_tense` silently demotes the quotation oval to
+   an asserted negation (guard checks the selection *before* closure expansion; the
+   blessed path survives by one caller's ordering accident); Chapter 16 strips the
+   B-min maps at six raw-construction sites; the polarity gate verifies annotations,
+   not executions (PEEL recomputes; derivations don't). **(2) S1 re-attributed by
+   ablation** — severity-greedy with *no learning* ties the economy exactly (6=6);
+   severity-flattened economy *never* refutes in 300 rounds (worse than random); the
+   literal pre-registered S1 stands, the "economy design bought it" generalization
+   falls (0.92). **(3) One flat factual error in the concordances** — Conway's Life is
+   on the infinite lattice ℤ², not "a bounded plane" (repeated in 3 docs, elevated to
+   doctrine; the true closed-rule-vs-open-negotiation contrast was already in the same
+   paragraph); + requisite-variety inverted (lower bound used as upper), + "free energy
+   *is* doubt" overstating CONTRIBUTION's own "≈". Also absorbed: K1's severity×ledger
+   join doesn't exist in code (KYTOS §5 lists K1–K4 "Built" vs MEASURE §2's own
+   "weighting a small join" — the honesty ledger inflating within 48h); K3 = N-confound
+   (ratio 2.0/20.0/200.0 for the identical law, reproduced); poise's `_window_reading`
+   labels >1 *absorbed* stumbles "thrash" (the instrument punishes the doctrine's own
+   picture of competence); the oracle seal is an unsalted SHA-256 over a 4-word public
+   vocabulary (hiding fails — dictionary-readable at ask time); P2¹³ has no stated base
+   rate, no ratings instrument, and isn't wired to the docket it names; the People/
+   consent boundary binds the reader but not the question generator. **Withstood:**
+   literal S1; F2¹³ quarantine (no side-store→corpus path); the KYTOS/West self-flags;
+   the concordance frame; Rorty facts; A3 at tested scale on the blessed path.
+   **▶ AWAITING THE AUTHOR: the 12-item defect docket** (Examination IV §"defect
+   docket") — items ①–③ are protected-core (ERA closure-guard re-run + `_rebuild_graph`
+   pruning invariant + Ch.16 map-forwarding: need `.core_modification_authorized`);
+   ⑧–⑩ are **pre-RUN-13 riders** (salted seal, People/ filter, P2¹³ operational form —
+   before the first real questions note); **V2a.2 is blocked** on ①–④ + its three
+   composition tests (the EGIF carry raises `SecondOrderNotInLinearForm` on the first
+   banked cell; decay over a banked cell crashes or corrupts; `"quotation"` ∉ `M_ACTS`).
+   Doc amendments are paste-ready in the briefs, proposed not applied, per precedent.
+
+-6. **EXAMINATION IV — the skeptical review of the doctrine sprint (the author's
+   mandate, 2026-07-19). ✅ EXECUTED — see -7 above; charter retained below.** The author: untested-even-if-not-unreasonable assumptions
    and associations have likely crept into the recent development (2026-07-17→19: the
    measure, the fractal/kytos, the oracle doctrine, the person-model, the
    concordances) — *"I want these identified, examined, and addressed/answered —

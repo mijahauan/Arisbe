@@ -7,7 +7,9 @@
 > **[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)**. The examinations
 > below run in order: **Departures I–III** (the first panel), then **Examination II**
 > (the larger game / the common sheet), then **Examination III** (fair access and
-> the worth-ladder's footing — the most recent).
+> the worth-ladder's footing), then **Examination IV** (the doctrine sprint of
+> 2026-07-17→19 — the measure, the kytos, the oracle loop, the rung-1 empirics, the
+> one-regime residue, and the concordances — the most recent).
 
 ## Preface
 
@@ -1127,3 +1129,586 @@ break.*
 *Produced by a three-opponent panel, 2026-06-22. The author proposed "fair access"; the examination converted
 it — by his own preferred standard, a position improved by good arguments — into the stronger, derivable form
 recorded above. This is the resting place.*
+
+---
+
+# Examination IV — The Doctrine Sprint Examined
+
+## Preface
+
+The author's mandate (2026-07-19): untested-even-if-not-unreasonable assumptions and
+associations have likely crept into the development of 2026-07-17→19 — the measure of
+knowledge, the fractal/kytos doctrine, the oracle doctrine and person-model, the
+concordances — *"I want these identified, examined, and addressed/answered — where
+possible with sound, logical proofs or, better, with evidence."*
+
+**Method** (the Examination II/III precedent, extended): five independent skeptic
+panels, one per cluster, each charged to *refute, not flatter*, none shown another's
+brief — a measurement theorist with a complexity scientist (the measure + kytos); an
+ablation-and-baselines methodologist (the rung-1 empirics); a philosopher of testimony
+with a security reviewer (the oracle loop + person-model); a proof-theorist (the
+one-regime discipline + the A3 conservativity claim); a historian of ideas (the
+concordances). Twelve pre-registered suspects were assigned; the panels added eleven
+of their own. **Every decisive empirical or executable charge was then independently
+re-executed by the recording examiner before entering this record**: the ablation arms
+re-run, the K3 ratio recomputed at three domain sizes, the poise classifier read in
+code, the erasure counterexample re-executed against the live engine on the blessed
+corpus exemplar, and every charged doc sentence located verbatim. The full panel
+briefs, with their complete charge sheets and file:line citations, are filed at
+`runs/EXAMINATION_IV_BRIEFS/` (including the runnable pilot harness).
+
+**Notation.** MEASURE = [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md);
+KYTOS = [THE_KYTOS.md](THE_KYTOS.md); BOOTSTRAP =
+[BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md);
+CONTRIBUTION = [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md); "the
+vault spec" = `docs/superpowers/specs/2026-07-17-vault-cycle-design.md`. §3.3 is the
+correspondence check (LINEAR_GRAPHICAL_CORRESPONDENCE §3.3); A3 is the second-order
+conservativity invariant ("quoted content licenses nothing"); K1–K4 are the measure's
+four components; S1–S5 and P2¹³/F1¹³/F2¹³ are pre-registered criteria and run
+findings per the run-log discipline (GLOSSARY, "Notation & reference numbers").
+
+**Headline result.** The sprint's honesty devices largely *worked*: where the docs
+flagged their own limits (THE_KYTOS §5's levels-5–7 concession, the West "conjecture
+until measured" label, the FIFO-degeneracy concession, the S2/S3 disclosure notes, the
+"concordances not lineage" frame, the F2¹³ debt-recording), the panels repeatedly found
+the flags correctly scoped and the naive charges dying on them. What falls is where
+doctrine outran instrument — and in three places the failure is not rhetorical but
+demonstrated: **(1)** a live A3 break, executed twice (once by the panel, once by the
+recording examiner): a direct-engine erasure of ordinary host ink silently demotes a
+quotation oval to an asserted negation — mention promoted to use; **(2)** the rung-1 S1
+headline re-attributed by ablation: a two-line severity-label sort with no learning ties
+the shipped economy exactly (round 6 = round 6), while the economy with severity
+flattened *never* refutes in 300 rounds — the pre-registered S1 stands, the circulating
+generalization ("the economy design bought the refutation") falls; **(3)** one flat
+factual error in the concordances, repeated across three docs and elevated to doctrine:
+Conway's Life does not run on a bounded plane (it is canonically defined on the infinite
+lattice ℤ²) — the true contrast (closed fixed-rule dynamics vs open negotiated
+selection) was already sitting in the same paragraph.
+
+Verdict vocabulary, per the mandate: **withstood** (the charge fails; the claim stands
+as written), **narrowed** (the claim survives only in a smaller, explicitly restated
+form), **absorbed** (the charge is correct; the record concedes and carries the exact
+amendment). Confidences are the panels', sustained or adjusted by the verification.
+
+---
+
+## Cluster A — The measure and the kytos (suspects 1, 2, 7, 12 + two added)
+
+### Suspect 1 — K1–K4 completeness; K1 as an instrument. **ABSORBED (K1, K3) / NARROWED (completeness).**
+
+Verified by the recording examiner: `PredictionLedger` (`resolving_membrane.py`)
+carries **no severity field** and no key joining a `ScoreEntry` to a `Want` — the "×"
+in MEASURE §2's K1 row has no defined aggregation semantics anywhere in docs or code.
+So "all four components now instrumented" (§6 decision 2) is false for K1 as defined:
+what exists is an unweighted record plus a severity term used for a *different*
+construct (attention allocation). The S1 result validates severity as an attention
+heuristic, not as a scoring weight — transporting that validation is itself an untested
+assumption. Worse, and verified: **KYTOS §5 lists "K1–K4 instruments" under Built**
+while MEASURE §2's own row says the weighting is a join yet to be made — the honesty
+ledger overstating an instrument's status within 48 hours of its ratification, exactly
+the drift the mandate names, inside the device meant to prevent it.
+
+**K3 is confounded with domain size — reproduced:** `materialization_ratio` on the
+identical law `~[ (man *x) ~[ (mortal x) ] ]` over N individuals returns ratio = N
+exactly (2.0 / 20.0 / 200.0 at N = 2 / 20 / 200). K3 measures *derivational yield per
+law* (extension), not compression; no information-theoretic compression measure behaves
+this way. MEASURE §5 transmits the confound into pedagogy ("measure a lesson by its
+materialization ratio").
+
+Completeness: the seed definition's own clause — knowledge as reliably *acting* — is
+outside K1–K4 (the action arm, conceded in BOOTSTRAP but not carried as a caveat in
+MEASURE §2); calibration, coherence, coverage, and evidential independence are
+undiscussed candidate components; K2/K4 distinctness is unargued (decay couples them).
+
+**Amendments owed:**
+- MEASURE §2, K1 row: *"K1 is a design: no join between severity and the ledger exists
+  in code, and no aggregation formula has been stated; the S1 result validates severity
+  as an attention heuristic only."* KYTOS §5: move K1 from **Built** to **Partially
+  evidenced**.
+- K3: either rename ("K3 = derivational yield per law," dropping *compression*) or
+  re-derive (K3′ = derived/(explicit+derived) ∈ [0,1)) and re-pin the three tests. The
+  ratio = N reproduction stands as the deciding evidence either way.
+- MEASURE §2: *"Sufficiency is not claimed: the four components cover the assertoric
+  fragment of the seed definition; 'acts that work' awaits the action arm; calibration,
+  coherence, coverage, and evidential independence are named non-components until
+  argued in or out."*
+- The eventual K1 join owes the invariance obligation: its induced ordering invariant
+  under monotone rescaling of the severity anchors, OR an operational (ratio-scaled)
+  definition of severity.
+
+Confidence sustained: 0.85 (K1 as instrument) / 0.9 (K3-as-compression) / 0.7
+(completeness as ratified).
+
+### Suspect 2 — Fractal transportability. **NARROWED.**
+
+The §5 self-flag on levels 5–7 is genuine and correctly scoped — the naive charge dies
+on it. What falls is the *residue*: "instrumented at levels 1–4" conflates *some
+instrument per level* with *the same measure transporting*. The panel's 4×7 audit: the
+full K-vector is computed at **one** level (model); atom, law, and mechanism each carry
+one-to-two components; and the decay-vs-refutation distinction — the discipline the
+project fought hardest to engineer at the law level (`stuck=None` on decay) — **has no
+mechanism-level counterpart** (a superseded `MechanismPrinciple` is recomputed away,
+unrecorded). No level-transition map is stated anywhere, so "one ledger shape at every
+level" is a table of analogies, not a claim with truth conditions.
+
+**Amendment owed (KYTOS §5, "Partially evidenced"):** *"measure transportability — the
+full K-vector is computed only at the model level; levels 1, 2, and 4 each carry one to
+two components; the decay-vs-refutation distinction, load-bearing at the law level, has
+no mechanism-level counterpart; levels 5–7 asserted."* The formal disposal remains
+open and named: state the transition map T for one adjacent pair (law → mechanism)
+under which the K-functionals commute — even one rigorous instance converts the table
+from metaphor to claim. Confidence sustained: 0.75.
+
+### Suspect 7 — Poise as the observable of the rate ratios. **ABSORBED (with a repair-or-concede fork).**
+
+Verified in code: `_window_reading` (`agon_metalearning.py`) marks a window failed
+toward **"thrash"** whenever `stumbles > max_stumbles` (default 1) — *even with zero
+thrash situations, even when every stumble was cleanly absorbed*. The instrument
+punishes the doctrine's own picture of competence ("stumbles keep arriving AND keep
+being absorbed"); a higher world-change rate mechanically produces more stumbles per
+window, so poise readings are confounded with the very rate they are claimed to
+observe, in the wrong direction. No rate enters the instrument as an input; the
+thresholds "belong to the observer" by the docstring's own words; digest-poise cannot
+compute thrash at all — two instruments under one name. The doctrine sentence ("poise
+is the observable their ratios produce," KYTOS §1/§3 + the vault spec) is a definite
+description and a causal verb with no linkage run behind them.
+
+**Amendments owed:**
+- Repair `_window_reading` so "thrash" requires `thrash_situations > 0` (absorbed
+  stumbles beyond the threshold becoming an honestly-named third reading, e.g.
+  "storm: absorbing at rate"), and re-pin the digest test — **or** carry: *"the
+  instrument reads any window with more than max_stumbles irritations as failed,
+  whatever their disposal; poise readings therefore penalize high-tempo membranes, and
+  digest-poise and trace-poise are different instruments."*
+- KYTOS §1/§3 + vault spec: replace "the observable their ratios produce" with *"a
+  trace-reading we conjecture responds to the rate ratios; the linkage is unmeasured."*
+  Move the rate-linkage to §5 **Conjectured** — unless the pre-registered linkage
+  experiment (ttl × tempo grid, poise response monotone and robust under window ∈
+  {4,8,16}) is run and sustains it. That experiment is fully specified in the panel
+  brief, deterministic and offline. Confidence sustained: 0.8.
+
+### Suspect 12 — The West scaling conjecture. **NARROWED (the label withstood; the capability claim absorbed).**
+
+The conjecture *qua conjecture* is honestly labeled twice — withstood. What falls is
+§4's one operative claim, "empirical questions the run corpus **can already ask**":
+the runs clamp |M| at ≈ttl by design (the regressor is a knob, spanning barely one
+decade); both poles of the city/company dichotomy hold *by construction* (closed pools
+exhaust; open feeds are clamped) — a measurement that cannot fail is worse than none;
+and the named "K3 exponent" is chase arithmetic, analytically determined by rule shape
+(and further poisoned by the Suspect-1 K3 confound). **Amendment owed (KYTOS §4):**
+*"Empirical questions a future, designed run corpus could ask — today's runs clamp |M|
+by ttl and close over finite pools, so both poles of the dichotomy hold by
+construction, and the K3 exponent is analytically determined by rule shape; a
+measurement design (range ≥ 2.5 decades, nulls, alternative models, refutation
+conditions) is owed before any fit counts."* The null-model experiment (synthetic Ms
+at three rule shapes × four decades of N; expect the analytically predicted exponents)
+is the pre-condition for any future fit. Confidence: 0.65 as blended by the panel.
+
+### Added A-a — The vector-not-scalar guard has no tripwire. **ABSORBED (as an enforcement gap).**
+
+Nothing in code distinguishes a person-model from any other M; `select_best` is a
+scalar ranking two lines away from ranking persons-as-modeled. The house pattern is
+guards-get-gates (§3.3, polarity, A3); the measure's flagship ethical guard got a
+sentence. **Amendment:** either the standing refusal test (a person-model-marked UoD
+refused by `select_best`-class comparators — the marking itself is the missing
+prerequisite, natural carrier V2a.2's attributed cell) or the concession: *"the
+vector-not-scalar guard is unenforced doctrine; enforcement awaits a person-model
+marking."* Confidence: 0.7.
+
+### Added A-b — Modal K2's evidence base. **ABSORBED (one sentence).**
+
+`durability_modality` discriminates only on branched histories; every mechanical-loop
+history is linear, where it reduces to plain K2. **Amendment (MEASURE §3):** *"Modal K2
+discriminates only on branched histories; all mechanical-loop histories are linear,
+where it reduces to plain K2 — its evidence base today is the hand-built branching
+exemplars."* Confidence: 0.6.
+
+---
+
+## Cluster B — The rung-1 empirics (suspects 3, 11 + three added)
+
+*The panel did not argue from the armchair: it built a deterministic pilot harness
+against the shipped modules (filed with the briefs) and the recording examiner re-ran
+it. All arms reproduce exactly.*
+
+### Suspect 3 — The S1 headline's robustness. **NARROWED, by demonstration — the sharpest result of the examination.**
+
+| Arm | Refutation round (90-round budget) |
+|---|---|
+| Economy (shipped) | **6** |
+| Severity-greedy — sort by (−severity, cost), **no learning at all** | **6 — identical** |
+| Economy with severity flattened to 1.0 | **never** (nor at 300; worse than random) |
+| Round-robin FIFO (fewest-attempts-first) | 67 |
+| Scatter at `confirm_lattice=6` | 7 |
+| Scatter at shipped `confirm_lattice=60` | 127 (at 300) |
+
+The mechanics: the six Fermat hunts are seeded at severity 8.0 against 60 confirms at
+1.0; the hunts win from round 1 on the label alone, in cost order; round 6 is the
+length of the seed list. The severity label carries 100 % of the result — *against*
+the drag of the learned yield term, which locks onto early-delivering kinds and starves
+the hunts when the label is removed. The economy-vs-scatter margin is a direct function
+of `confirm_lattice`, an author-set dial the spec pre-licensed turning against the
+baseline. And "under budget" was never a budget: cost is a ranking denominator; no
+purse is charged, no arm stops for spending.
+
+**What withstands:** the literal pre-registered S1 (economy beats FIFO and scatter at
+the shipped lattice) reproduces — 0.05 that it falls. The narrow "severity 8.0 tuned
+to win" charge also fails: any hunt severity ≳ 1.1 gives the same trajectory; the value
+is not load-bearing. **What is absorbed:** the circulating generalization — CLAUDE.md's
+"refuted … under budget only by the economy arm," BOOTSTRAP §5.1's implicit reading —
+must be re-attributed. *"Severity bought the Fermat refutation"* is literally what
+§5.1 already says; the consequence must now be drawn: **S1 evidences the authored
+severity-label channel, not the learned economy design; the design's learned machinery
+contributes nothing on this world and is counterproductive alone.**
+
+**Amendments owed:** re-head the S1 record in BOOTSTRAP §3 and the `arithmetic_world`
+docstring with the re-attribution; run the pre-registered discriminating-world
+experiment (the false law whose counterexample lives in a severity-1 kind — the one
+arm on which the yield term could genuinely earn its keep) and the cost-purse arms
+before any further "economy of research" claim; the full protocol is in the brief,
+< 10 minutes, offline. Confidence (headline-as-generalization falls): 0.92, sustained
+by reproduction.
+
+### Suspect 11 — Yield attribution. **Mechanism ABSORBED; "success rides on it" WITHSTOOD.**
+
+The bias is real and demonstrated: the yield signal is symmetric-difference *churn* —
+an atom *leaving* M (decay) credits the chosen kind exactly like an admission (a
+shrinking model hands a barren kind yield 0.8); at probe-budget > 1 the first
+proposal's delta smears to all chosen kinds while later proposals' outcomes are never
+observed (rich-get-richer, favoring incumbents); and the built metric contradicts
+BOOTSTRAP §2c's own "learning progress, never raw error" rule. But the charge that the
+economy's *success* rides on the bias fails by the Suspect-3 result itself: S1 rides on
+severity, decay was off, budget was 1 — the bias is latent everywhere **except RUN 13's
+live vault runs**, where decay is on (F1¹³) and its effect is unmeasured. **Amendments
+owed:** pin both mechanisms as tests; run the churn-pump experiment (the *real*
+noisy-TV test — genuinely open whether attempt-decay rescues it); split
+`added`/`removed` counters into the digest before the next real-vault launch.
+Confidence: bias-exists 0.97; success-rides-on-it falls 0.12.
+
+### Added B-x1/x2/x3 — S2, S3, "under budget." **ALL NARROWED.**
+
+S2 as registered was unfalsifiable (no `coin` probe-kind exists to decay); the
+substituted evidence shows *pool exhaustion* (a dead TV), not noise-resistance — the
+honest disclosure is in the record, but "S2 HELD" should read "S2 not testable as
+registered; a weaker claim held" (0.85). S3's musement is a population-of-one
+hard-coded payload — the criterion repair was sound (verified), but what it assays is
+reservation plumbing, not a musement mechanism; the generated-candidates arm is the
+real test (0.8). "Under budget" should be reworded to round-budget, or one cost-purse
+arm run (0.75 — the pilot's arithmetic suggests the economy would win a cost-budgeted
+rerun, so this is likely repairable).
+
+---
+
+## Cluster C — The oracle loop and the person-model (suspects 4, 5, 8 + four added)
+
+### Suspect 4 — "Answers are ground truth about the author." **NARROWED.**
+
+The quotation reading — veridical about the *act* of answering — survives and is the
+doctrine's real content. What falls is the unguarded form: (i) the guarantee's
+machinery (quoted attributed cells) is explicitly deferred to V2a.2, so "by
+construction" is presently "will be by construction"; (ii) the code's actual uses are
+Role-2 — `score` spends the answer as a gold *label* on content, where deception,
+cryptomnesia (the textbook failure for exactly the authored-vs-collected question the
+oracle asks), performativity, and drift all bite; (iii) nothing authenticates the
+asserter of an `**A:**` edit in a synced, plugin-hosting, multi-device vault; (iv)
+`asked_ever` suppresses every asked question forever — an answer given once stands as
+the permanent fact, so drift is unmeasurable *by design*, which contradicts the
+doctrine's own K2 half ("what survives decay is trait"). **Amendments owed:** the
+concession sentence — *"an answer is ground truth about the act of answering, never
+about its content; where an answer is used as a scoring standard it is a fallible
+label — revisable, re-askable, datable"* — plus an expiry/re-ask parameter on
+`asked_ever` and the RUN 13 rider: re-ask one early question verbatim after ≥ 2
+segments; a changed answer is a **drift datum**, not an overwrite. Confidence: 0.75.
+
+### Suspect 5 — "Predict, never pre-empt." **ABSORBED (as a guard-that-is-a-promise).**
+
+No enforcement mechanism, no test, no violation-detector exists; the method-gate's
+blindness to identity is today an accident of the missing channel (proposals carry no
+author field) — and V2a.2's banked `(asserted "author" ⌜P⌝)` cells will create the
+channel inside M itself, readable by every M-scanning agent. The panel's sharper
+finding: pre-emption **already operates one level down** — the oracle's question
+*selection* (severity ordering, `asked_ever` suppression, kind decay) forecloses lines
+of the author's own self-account, outside the guard's stated scope; and the question
+templates embed the forecast as the first-listed option, priming the predicted answer
+and inflating K1. **Amendments owed:** the invariance test (`test_predict_never_preempt`
+— fixture M with and without author-model cells; disposition of a fixed proposal must
+be byte-identical), the scope sentence (*"pre-emption includes selection: what the
+author-model suppresses from being asked is recorded — counted, inspectable"*), and the
+seeded option-order neutrality rider. Also recorded: the shipped oracle already acts
+outside Arisbe's own polls (it writes into the real vault), which sits in visible
+tension with the rung-2 "ethics pass before any outward act" fence — consent alone is
+currently carrying that weight, and the record should say so. Confidence: 0.85.
+
+### Suspect 8 — The interlocutor criterion's operationalization (P2¹³). **ABSORBED.**
+
+P2¹³ is unfalsifiable as registered: the "stated base rate" is never stated anywhere;
+no ratings instrument exists (no `**R:**` parsing, no ratings file); and the criterion
+is not wired to its named object — `candidates_from_run` never touches the docket or
+the `AttentionEconomy` (`wants_from_docket` exists and is unused; `known_laws` is
+accepted and explicitly "reserved, not wired"), so even a clean pass would evidence
+template instantiation, not the docket speaking. Personal salience (anything about
+one's own 50-year journal is salient) mimics question quality perfectly absent a
+comparator arm. And thesis 3 ("wants age but persist; silence never deletes") is
+contradicted by `asked_ever`'s permanent deletion. **Amendments owed, all before the
+first real questions note:** the operational form with a number and comparator (N
+docket-selected + N template-random questions, unlabeled, seeded order; pass iff
+docket non-trivial rate exceeds random by ≥ 25 points over ≥ 2 segments; ceiling-effect
+canary at 90 %), the `**R:**` instrument, the docket wiring, and the thesis-3/`asked_ever`
+reconciliation. Confidence: 0.9 (against the operationalization; the criterion as
+scoped doctrine survives).
+
+### Added C-a — The seal that doesn't seal. **ABSORBED (arithmetic, not interpretation).**
+
+Verified in code: `seal(forecast) = SHA256(forecast)`, no salt, no nonce — over a
+four-word public vocabulary (`collected`/`fragment`/`unknown`/`reconstructed`). The
+commitment is dictionary-readable at ask time; hiding fails exactly for the forecasts
+in use; a K1 "hit" may be an author echoing a readable forecast. And `build_reveals`
+never recomputes the hash — tamper-evidence is manual. **Fix is one line + one test:**
+per-question nonce stored in the ledger, revealed with the plaintext; reveals recompute
+and mark mismatches `seal-broken`. This must land **before RUN 13's first real
+questions note** — K1's evidential value against the author's vault depends on it.
+Confidence: 0.95.
+
+### Added C-b — "Declined/silence first-class." **NARROWED.**
+
+The statuses exist; the mechanics don't: exact-match `declined` only ("I'd rather not"
+is banked as an *answer*, its wording retained and reprinted — the opposite of what a
+refusal asks); the promised differential decay is unbuilt; a decline is itself banked
+as author-data (and on the V2a.2 path into M) — meta-data the author was never told a
+refusal generates. **Amendments:** the concession sentence in the spec; a refusal
+synonym set or `**A:** —` convention; a test that a decline's text never reappears.
+Confidence: 0.8.
+
+### Added C-c — Consent laundering through the question channel. **ABSORBED.**
+
+The metadata-only folder boundary (`People/`, `Kith_Kin/`, `Household/`) binds the
+*reader*; `attachment_items` registers every non-md file vault-wide to the horizon, and
+`_horizon_candidates` asks about the two largest — so the oracle can solicit from the
+author, as answer-text, content about third parties it is barred from reading. **Fix
+is one filter + one test:** horizon items whose top dir is metadata-only are excluded
+from question candidates (retained on the horizon, counted); doc sentence: *"consent
+boundaries bind the question generator as they bind the reader: Arisbe never asks the
+author to voice what it may not read."* Before RUN 13. Confidence: 0.85.
+
+### Added C-d — The inspection asymmetry. **NARROWED (an omission, not a doctrine error).**
+
+The subject of the person-model sees ≤ 5 questions plus a conjectures gloss of
+`known_laws` only — a thin projection of the held M; custody-local-first answers
+possession, not legibility. **Disposal (mostly existing parts):** an "About-you"
+rendering of M's author-facts through `eg_to_english` each cycle, pre-registerable as a
+RUN 13 rider (author confirms/corrects ≥ 1 model claim per segment — which also feeds
+Suspect 4's drift instrument). Confidence: 0.6.
+
+---
+
+## Cluster D — The one-regime discipline and A3 (suspects 9, 10 + two added)
+
+### Suspect 9 — The F2¹³ accommodation + m_view constant-sharing. **NARROWED, in four parts.**
+
+The debt-recording itself is the project at its best — named, honest (`derivation: []`),
+quarantined (no mechanical promotion path from `runs/` to the corpus exists; verified)
+— and the narrow defense ("a corpus chain carrying it would rightly be refused")
+**withstands**. What the accommodation concealed:
+
+1. **The root cause is a correspondence failure, not an ERA boundary case.** For a
+   resident M with a constant shared across cells, `parse_egif(generate_egif(M))` is
+   **not `same_graph`** to M — the parser merges the per-cell vertices into one, homed
+   in whichever cell it meets first. The central invariant — linear and drawn form
+   denoting the same mathematical object — fails on the residence shape at every
+   segment carry, and the sprint accommodated the symptom (m_view's two-pass copy; the
+   fallback) rather than the breach.
+2. **The seam is invisible to the gate.** The polarity gate's four checks quantify over
+   steps *within* a chain; the segment carry lives *between* chains (old chain dropped,
+   new chain seeded from parsed text) — an M-normalization once per segment,
+   acknowledged nowhere, though by the discipline's own "structural, never
+   annotational" criterion M changed.
+3. **The gate verifies annotations, not executions.** Derivations are read from
+   recorder-written params and never replayed (PEEL verdicts *are* recomputed — the
+   asymmetry is the finding). The F2¹³ defense is true only against an honest writer.
+4. **The fallback overreaches its advertisement:** `_structural_retract_atom` matches
+   all of `g.E` with no area filter — a decay of a standing atom also guts a
+   label-identical atom inside a denial cell (leaving ⊥ standing, silently, where the
+   peel never looks) or inside an entertained exhibit.
+
+**Amendments owed:** the structural-carry fix (carry `to_dict(egi)`, not EGIF text —
+the checkpoint machinery already exists; this makes F2¹³'s trigger unreachable and the
+fallback deletable) or the exact concession sentence in the brief; the gate
+derivation-replay extension (the peel-recomputation pattern applied to derivations);
+the fallback area-scoping test. Confidences: one-regime-as-universal falls 0.85;
+lawful-boundary-case 0.6; side-store-reaches-corpus-undetected 0.35 (withstood — no
+mechanical path found).
+
+### Suspect 10 — "A3 guarantees quoted content licenses nothing." **NARROWED — and the narrowing was earned by counterexample.**
+
+What the tiers actually prove (verified): tier 1 is corpus-universal but only for the
+*unused* case (invisibility, not opacity); tier 2's licensing heart was tested at a
+maximum of 3 quotation cells / 9 vertices; tier 3 is three chains and one refusal. The
+guard `_refuse_quotation_boundary` is genuinely structural at the six-rule level (called
+in all seven rule classes; verified) — but the guarantee is **enumerative at the
+interpreter level** (exactly three explicit opacity checks exist; `theory_query`,
+`m_render`, and the loops are safe by accident of area-scoping) and **false at the
+closure layer**:
+
+**The executed counterexample (panel-run, then independently re-executed for this
+record):** on `swan_third_tense`, a direct-engine `ErasureRule` application to the
+`(superseded …)` edge — ordinary host ink in a positive area — passes preconditions,
+succeeds, and leaves `quotation: {}` with the formerly-quoted cut surviving as a
+**plain asserted negation** and the quoting name erased. Mechanism: the guard inspects
+the selection *before* the for-erasure closure expansion; the expansion pulls in the
+quoting name (the edge's private argument vertex); the erasure acts on the expanded
+set without re-running the guard; `_rebuild_graph` prunes the map entry because the
+name vanished while the cut survived. The blessed path (`proof_authoring` →
+`rule_interaction`) refuses the same move — but only because that one caller happens to
+pre-expand the closure before the rule sees it. **The invariant survives on the blessed
+path by an ordering accident of one caller, not by construction.** Had the quoted ink
+been Horn-shaped, the materializer would fire it as a law: mention promoted to use.
+
+Further, by inspection: **Chapter 16** (`ligature_manipulation_rules`,
+`vertex_splitting_merging_rules` — protected core) rebuilds graphs raw at six sites
+with zero sort/quotation forwarding — the exact kwarg-omission wart `_rebuild_graph`'s
+docstring records as repaired for the six rules, still live one chapter over. And the
+**V2a.2 composition** (quotation-cell banking, authorized 2026-07-19) is inconsistent
+with the loop that would carry it in three provable places: the EGIF carry raises
+`SecondOrderNotInLinearForm` on the first banked cell (loud — the house's preferred
+failure); decay over a banked cell crashes or corrupts (no third outcome as built);
+and `"quotation"` is not in the gate's `M_ACTS` — the tripwire refuses the very act
+the spec authorizes.
+
+**Amendments owed (the defect docket below, items 1–3 and the V2a.2 block):** the
+closure-guard re-run in `ErasureRule.check_preconditions` (and the `DeiterationRule`
+audit) + regression pin of the executed construction; the `_rebuild_graph` pruning
+invariant (drop a quotation entry only when *both* cut and name are gone; exactly one
+surviving raises — making the demotion unrepresentable on every reconstruction path);
+the Chapter 16 routing-or-refusal; the generative tier-2′ scale test; the three V2a.2
+composition tests *before* that build. Until then the record carries: *"A3 is proven
+for the corpus as it stands and for the blessed application path; it is not yet a
+guarantee by construction — a direct engine call or a Chapter-16 ligature move can
+demote a mention to an assertion, and the banking V2a.2 authorizes cannot yet survive
+the loop that would carry it."* Confidence (as a scale/construction claim): 0.9,
+sustained by independent re-execution. Honestly recorded alongside: at the tested
+scale, on the blessed path, the claim held every probe the panel threw at it.
+
+### Added D-bis — `quote_step`'s derivation vocabulary. **ABSORBED (minor).**
+
+A constructor records `derivation: ["with_quotation_binding"]` — non-rule transforms
+should carry a distinct key (`construction:`) so a derivation list always names
+licensed moves. Harmless today (QUOTE is neutral); erodes trust in the vocabulary.
+
+---
+
+## Cluster E — The concordances as intellectual history (suspect 6, decomposed)
+
+The concordance *frame* ("concordances, not lineage claims") did exactly the honest
+work it was built to do — nearly every "X anticipated Y" charge dies on it. What the
+frame does not protect is a wrong fact stated *inside* a concordance. Three of those,
+plus two lineage slips; the rest withstood.
+
+**Falls — mandatory fix (verified verbatim in the docs):**
+
+1. **Conway's Life "runs on a bounded plane"** (AUTOMATED_MODEL_DEVELOPMENT §1;
+   CONTRIBUTION §Concordances; leaned on in THE_KYTOS §3). Factually wrong: Life is
+   canonically defined on the infinite lattice ℤ²; bounded grids are implementation
+   approximations. The error is load-bearing ("the decisive structural difference"),
+   repeated across three docs, elevated to doctrine — and *unnecessary*: the true
+   contrast (Life's growth is bounded *by its fixed rule*; the sheet's only by
+   *selection from outside*) already sits in the same paragraph. The panel's
+   replacement text is in the brief. Confidence 0.85.
+2. **Requisite variety inverted** (CONTRIBUTION: "a model's variety need only match…").
+   Ashby's law is a **lower** bound ("at least"); the doc uses it for an upper bound.
+   The upper bound is an *economy* argument and should be attributed there. 0.45.
+3. **"Free energy *is* doubt"** (BOOTSTRAP §1). Free energy is a tractable *bound* on
+   surprisal, not identical to it — and the flat identity contradicts CONTRIBUTION's
+   own careful "≈" and its stated scalar-surprisal departure two sentences later. Use
+   "bounds surprisal, and minimizing it plays doubt's functional role." 0.45.
+
+**One-line fixes:** "active learning" → "optimal experiment design / value of
+information (Lindley 1956), of which pool-based active learning is one modern
+instance" (0.3); "when the TD error is zero" → "when the **expected** TD error is
+zero (the update's fixed point)" in both docs (0.3).
+
+**Add-a-clause slips:** von Uexküll was not himself Peircean — modern biosemiotics
+(Sebeok, Hoffmeyer) reads his Umwelt *through* Peirce (0.35); Maturana/Varela's
+anti-representationalism should be filed as an instructive break, not a clean transfer
+— autopoiesis rejects exactly the model-of-the-world framing M reinstates (0.3); the
+"noisy-TV" *term* is Burda et al. 2018, the concept Schmidhuber/Oudeyer (0.25).
+
+**Withstood as marked:** the Rorty facts (quotes and paraphrase accurate; soften "a
+middle position Rorty's dichotomy does not name" to the straddle formulation — Rorty
+would file the calculus-supplies-validity half under his objectivity horn, the one he
+rejects; and note the ironist was a deliberately *private* figure); Rawls-maximin
+("maximin-flavored" is exactly the right hedge); Fricker; West's facts; the
+good-regulator theorem; AGM/TMS. One watch-item: the Gettier/apt-performance gloss in
+MEASURE §1 is flagged as assistant's reading and should not harden without an
+epistemologist's check.
+
+---
+
+## The defect docket (the examination's actionable residue)
+
+Code obligations, ordered by consequence; ①–③ touch the **protected core** and need
+the author's authorization ritual; ④–⑦ are unprotected; ⑧–⑫ are pre-RUN-13 riders.
+
+1. **ERA/IT− closure-guard re-run** (`formal_transformation_rules`): re-run
+   `_refuse_quotation_boundary` on the *expanded* closure in
+   `ErasureRule.check_preconditions` (audit `DeiterationRule` identically);
+   regression-pin the executed swan counterexample. *The demonstrated A3 break.*
+2. **`_rebuild_graph` pruning invariant**: quotation entry dropped only when both cut
+   and name are gone; exactly one surviving raises. Makes the demotion unrepresentable.
+3. **Chapter 16 map-forwarding**: route `ligature_manipulation_rules` /
+   `vertex_splitting_merging_rules` through `_rebuild_graph` or refuse
+   quotation-bearing graphs; add the preservation-or-refusal test.
+4. **Structural M carry**: carry `to_dict(egi)` across segments, not EGIF text —
+   restores `same_graph` round-trip on resident Ms, makes F2¹³'s trigger unreachable,
+   deletes the fallback. (Or carry the concession sentence, Cluster D.)
+5. **Gate derivation-replay**: re-execute recorded derivations from `from_state` and
+   assert `same_graph` with `to_state` — the peel-recomputation pattern, applied.
+6. **Fallback area-scoping** (interim, until ④): `_structural_retract_atom` must not
+   reach inside denial cells / exhibits; pin with the denial-cell test.
+7. **Poise repair-or-concede** (`_window_reading`): thrash requires thrash; absorbed
+   stumbles beyond threshold get an honest third reading; re-pin the digest test.
+8. **Salted seal + verified reveals** (`oracle_notes`): per-question nonce; reveals
+   recompute; `seal-broken` verdict. *Before RUN 13's first questions note.*
+9. **People/-filter on question candidates** (`oracle_notes`): metadata-only folders
+   never yield question candidates. *Before RUN 13.*
+10. **P2¹³ operational form**: the number, the comparator arm, the `**R:**` instrument,
+    the docket wiring, the ceiling canary. *Before RUN 13's first questions note.*
+11. **`asked_ever` expiry + drift re-ask rider; decline synonym set;
+    predict-never-pre-empt invariance test; digest added/removed split.**
+12. **K1 join formula + invariance obligation; K3 rename-or-re-derive; attribution
+    pins + churn-pump experiment; discriminating-world + cost-purse ablation arms.**
+
+V2a.2 (quotation-cell banking) is **blocked** on ①–④ plus its three composition tests
+(carry, decay, `M_ACTS` vocabulary) — building it first would mass-produce exactly the
+shapes the executed counterexample needs.
+
+## What the examination did not bring down
+
+For the record, charges that **withstood** in their strong forms: the literal
+pre-registered S1; the F2¹³ quarantine's narrow defense (no mechanical side-store →
+corpus path); "severity 8.0 was tuned to win" (any ≳ 1.1 works); the KYTOS levels-5–7
+and West-conjecture self-flags (correctly scoped); the concordance frame itself; the
+Rorty facts; Rawls, Fricker, West, Conant–Ashby, AGM as glossed; A3 at the tested
+scale on the blessed path (every probe held); and the interlocutor criterion *as
+doctrine* (only its operationalization fell). The oracle doctrine's two best moves —
+"carry no warrant about the world except what testing earns" and the reflexive stream
+converting performativity into an object of study — were judged genuine answers by the
+panel charged to refute them.
+
+## Closing note: firmest and most exposed
+
+Firmest, after examination: the corpus-level gates that recompute what they assert
+(§3.3, the PEEL recomputation, tier-1 conservativity) — everywhere the record is
+re-derived rather than trusted, the panels found nothing. Most exposed: the seams
+where a guarantee's *wording* outruns its *mechanism* — a gate that reads annotations
+it does not replay, a guard whose protection depends on which caller expands a
+closure, a measure ratified with an undefined join, an observable with no input from
+the thing it observes, a criterion with no stated bar. The pattern across all five
+clusters is one pattern: **the sprint's discipline was applied rigorously to data flow
+and almost not at all to its own newest sentences.** Every disposal above is the
+existing discipline pointed at the layer it skipped; none requires new doctrine.
+
+*Produced by five independent panels, 2026-07-19, under the author's Examination IV
+mandate; every decisive charge independently re-executed by the recording examiner
+before entry. Full briefs: `runs/EXAMINATION_IV_BRIEFS/`. The verdicts await the
+author's rulings on the defect docket; the doc amendments are paste-ready in the
+briefs and proposed, not yet applied — per the house precedent.*
