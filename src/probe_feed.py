@@ -71,7 +71,7 @@ class ProbeDirectedFeedBase:
     persistent_kinds: frozenset = frozenset()
 
     def __init__(self, economy: AttentionEconomy, *, chooser=None,
-                 probe_budget: int = 1, journal=None):
+                 probe_budget: int = 1, journal=None, purse: Optional[float] = None):
         self._economy = economy
         self._chooser = chooser
         self._budget = probe_budget
@@ -81,6 +81,16 @@ class ProbeDirectedFeedBase:
         self._seeded = False
         self.refused = 0            # count-or-refuse: an unvoiceable want, counted not dropped
         self.journal: list = [] if journal is None else journal
+        # Opt-in cost-purse accounting (Examination IV, panel B 3(d)/x3 — "under
+        # budget" is currently only a round count, never a charged resource).
+        # ``purse`` is a real cumulative-cost cap: each round's *chosen* wants'
+        # ``cost`` is spent immediately (whether or not the probe pays off),
+        # and once the purse is spent ``propose`` returns ``None`` — the same
+        # "membrane exhausted" signal ``agon_evolution.run`` already reads to
+        # stop the game. Default ``None`` leaves every existing caller (a bare
+        # round budget) byte-identical.
+        self._purse = purse
+        self.spent: float = 0.0
 
     # -- world hooks ---------------------------------------------------------
     def _seed(self, round_idx: int) -> None: ...
@@ -89,6 +99,8 @@ class ProbeDirectedFeedBase:
 
     # -- the round loop -------------------------------------------------------
     def propose(self, model, round_idx: int):
+        if self._purse is not None and self.spent >= self._purse:
+            return None      # the purse is spent — the membrane is exhausted
         sig = _model_signature(model)
         if self._prev_sig is not None and self._last_chosen:
             prev_atoms, prev_cuts = self._prev_sig
@@ -107,6 +119,8 @@ class ProbeDirectedFeedBase:
             choose = self._chooser or (lambda e, k, r: e.choose(k, r))
             chosen = choose(self._economy, self._budget, round_idx)
             self._last_chosen = list(chosen)
+            if self._purse is not None:
+                self.spent += sum(w.cost for w in chosen)
             self.journal.append({
                 "round": round_idx,
                 "chosen": [(w.kind, repr(w.key)) for w in chosen],

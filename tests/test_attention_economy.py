@@ -1,4 +1,6 @@
 """Rung 1 — the attention economy (spec: docs/superpowers/specs/2026-07-17-rung1-attention-economy-design.md)."""
+import pytest
+
 from attention_economy import Want, AttentionEconomy
 
 
@@ -164,6 +166,103 @@ class TestAdapters:
         ws = wants_from_docket(FakeDocket(), round_idx=5)
         assert ws[0].created_round == 2   # 5 - age 3: older doubts win ties
         assert ws[0].attempts == 2        # a barren docket want sinks here too
+
+
+class TestAttributionPins:
+    """Examination IV, panel B (Suspect 11) — pins documenting the yield-
+    attribution mechanism AS SHIPPED. Both tests PASS because the defects are
+    real, not despite it: they are pinned DEFECTS, not blessed behavior. The
+    fix (distinguishing growth from shrinkage; per-want sequential credit) is
+    tracked as docket item (12)c and is out of scope for this task."""
+
+    def test_pin_shrinking_model_credits_a_barren_kind(self):
+        # DEFECT PIN (⑫c: "shrinking-model-credits-a-barren-kind"). probe_feed.py's
+        # ``events = len(atoms ^ prev_atoms) + abs(cuts - prev_cuts)`` is a
+        # symmetric difference: it cannot tell an atom ENTERING M from one
+        # LEAVING it (disuse-decay's erasure). A model that only SHRINKS
+        # between two propose() calls still credits the chosen kind with
+        # positive "yield", exactly as if something had been learned. Dormant
+        # while ttl/decay is off (the arithmetic S1-S5 arms); live once ttl
+        # decay is wired (RUN 13's vault segments).
+        from probe_feed import ProbeDirectedFeedBase
+        from egif_parser_dau import parse_egif
+
+        class _ShrinkFeed(ProbeDirectedFeedBase):
+            def _seed(self, round_idx):
+                self._economy.register(Want(kind="barren", key=("b",)))
+
+            def _refill(self, round_idx):
+                pass
+
+            def _execute(self, want):
+                return '(noop "0")'   # anything legal keeps the drain-refill loop moving
+
+        e = AttentionEconomy()
+        feed = _ShrinkFeed(e)
+        big = parse_egif('(atomA "1") (atomB "2") (atomC "3") (atomD "4")')
+        small = parse_egif('(atomA "1")')       # the model SHRANK by 3 atoms
+
+        feed.propose(big, 1)     # round 1: seeds + chooses "barren"; no prior sig to diff
+        feed.propose(small, 2)   # round 2: credits "barren" for the *shrinkage*
+
+        assert e.kind_yield("barren") > 0, (
+            "PINNED DEFECT: a model that only lost atoms between rounds still "
+            "credited positive yield to the chosen (barren) kind")
+
+    def test_pin_budget_two_smears_first_delta_and_drops_second(self):
+        # DEFECT PIN (⑫c: "budget-2-smears-first-delta-and-drops-second"). At
+        # probe_budget=2 the drain-refill loop (probe_feed.py ~91-124)
+        # observes exactly once per refill cycle: the FIRST queued proposal's
+        # model delta is credited to EVERY chosen want's kind (a smear), and
+        # the SECOND proposal's own delta — once it is popped and played by
+        # the outer loop — is never observed by anyone (an omission, not a
+        # double-count: BOOTSTRAP §3's carry note misdescribes this).
+        from probe_feed import ProbeDirectedFeedBase
+        from egif_parser_dau import parse_egif
+
+        alpha = Want(kind="alpha", key=("a",))
+        beta = Want(kind="beta", key=("b",))
+
+        class _TwoWantFeed(ProbeDirectedFeedBase):
+            def _seed(self, round_idx):
+                self._economy.register(alpha)
+                self._economy.register(beta)
+
+            def _refill(self, round_idx):
+                pass
+
+            def _execute(self, want):
+                return '(noop "0")'
+
+        def two_chooser(economy, k, round_idx):
+            chosen = [alpha, beta][:k]
+            for w in chosen:
+                w.attempts += 1
+            return chosen
+
+        e = AttentionEconomy()
+        feed = _TwoWantFeed(e, chooser=two_chooser, probe_budget=2)
+
+        m1 = parse_egif('(seedAtom "0")')
+        # +3 atoms: the effect of playing alpha's proposal (round 1's egif)
+        m2 = parse_egif('(seedAtom "0") (xAtom "1") (xAtom "2") (xAtom "3")')
+        # +10 more atoms: the effect of playing beta's proposal (round 2's egif)
+        m3 = parse_egif(
+            '(seedAtom "0") (xAtom "1") (xAtom "2") (xAtom "3") '
+            '(yAtom "4") (yAtom "5") (yAtom "6") (yAtom "7") (yAtom "8") '
+            '(yAtom "9") (yAtom "10") (yAtom "11") (yAtom "12") (yAtom "13")')
+
+        feed.propose(m1, 1)   # seeds + chooses [alpha, beta]; queues both egifs
+        feed.propose(m2, 2)   # smear: BOTH alpha and beta credited with the +3 delta
+        feed.propose(m3, 3)   # omission: the +10 delta (beta's own effect) reaches no one
+
+        assert e.kind_yield("alpha") > 0 and e.kind_yield("beta") > 0
+        assert e.kind_yield("alpha") == pytest.approx(e.kind_yield("beta")), (
+            "PINNED DEFECT: both kinds smeared identically with only the "
+            "first proposal's delta")
+        assert e.kind_yield("alpha") == pytest.approx(0.6), (
+            "PINNED DEFECT: yield reflects only the +3 delta (0.8*0 + 0.2*3 "
+            "events = 0.6) — the +10 delta from beta's own proposal never lands")
 
 
 class TestHorizon:

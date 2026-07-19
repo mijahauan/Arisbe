@@ -17,14 +17,31 @@ FERMATS = (3, 5, 17, 257, 65537, 4294967297)
 FERMAT_LAW = '~[ (fermat_number *x) ~[ (prime x) ] ]'
 MUSEMENT_LAW = '~[ (fermat_number *x) ~[ (odd x) ] ]'
 
+# The discriminating-world false law (Examination IV, panel B, 3(d)): unlike
+# FERMAT_LAW its counterexample is NOT pre-labeled with a severity-8 hunt want
+# anywhere in the feed — reaching n=9 (the first odd perfect square) is only
+# possible through the severity-1.0 confirm/extend probes every world already
+# runs. This is what makes the discriminating-world arm actually discriminate
+# "the economy learns where yield is" from "the economy obeys a hand-authored
+# label" (panel B, Suspect 3).
+SQUARE_LAW = '~[ (square *x) ~[ (even x) ] ]'
+
 _KNUTH = 2654435761  # Knuth's multiplicative-hash constant — the coin's grist
 
 
 class ArithmeticWorld:
-    def __init__(self, *, range_cap: int = 200):
+    def __init__(self, *, range_cap: int = 200, deny_odd_squares: bool = False):
         self._range_cap = range_cap
         self.probed: set[int] = set()
         self.dropped = 0
+        # Opt-in, default off: mirrors the FERMATS composite-denial treatment
+        # below but for SQUARE_LAW's counterexample — an odd perfect square
+        # carries the *denial* of evenness, the world resolving the law's own
+        # instance (``_refuted_law`` in agon_evolution.py needs the negation
+        # scribed in the very proposal that carries the positive body atom;
+        # it never infers it from ``(odd n)`` alone). Off by default so every
+        # existing arm/world/test is bit-identical.
+        self._deny_odd_squares = deny_odd_squares
 
     # -- number facts ---------------------------------------------------------
     def is_prime(self, n: int) -> bool:
@@ -65,6 +82,8 @@ class ArithmeticWorld:
             parts.append(f'(prime {q})')
         elif n in FERMATS:
             parts.append(f'~[ (prime {q}) ]')
+        if self._deny_odd_squares and n % 2 == 1 and math.isqrt(n) ** 2 == n:
+            parts.append(f'~[ (even {q}) ]')
         return " ".join(parts)
 
     # -- law instances --------------------------------------------------------
@@ -108,9 +127,10 @@ class ProbeDirectedFeed(ProbeDirectedFeedBase):
 
     def __init__(self, world: ArithmeticWorld, economy: AttentionEconomy, *,
                  chooser=None, probe_budget: int = 1, laws=(FERMAT_LAW,),
-                 confirm_lattice: int = 60, musement: bool = True, journal=None):
+                 confirm_lattice: int = 60, musement: bool = True, journal=None,
+                 purse: Optional[float] = None):
         super().__init__(economy, chooser=chooser, probe_budget=probe_budget,
-                          journal=journal)
+                          journal=journal, purse=purse)
         self._world = world
         self._laws = tuple(laws)
         self._lattice = confirm_lattice
