@@ -553,14 +553,16 @@ class Stumble:
 @dataclass
 class PoiseWindow:
     """One window's reading. ``failure`` names the pole a non-poised window fails toward —
-    ``rigidity`` (no engagement) or ``thrash`` (engagement without settlement)."""
+    ``rigidity`` (no engagement), ``thrash`` (engagement without settlement), or ``storm``
+    (stumbles arriving faster than ``max_stumbles`` but each one absorbed — no situation
+    disposed inconsistently; a high tempo, not a pathology)."""
     start_round: int
     end_round: int
     engagement: float               # revising rounds / rounds
     thrash_situations: int          # situations disposed inconsistently within the window
     stumbles: int
     poised: bool
-    failure: Optional[str]          # rigidity | thrash | None
+    failure: Optional[str]          # rigidity | thrash | storm | None
 
 
 @dataclass
@@ -582,8 +584,10 @@ def _window_reading(eps: Sequence[EpisodeRecord], *, max_stumbles: int) -> Poise
     stumbles = sum(1 for e in eps if _stumble_kind(e))
     if engagement == 0.0:
         poised, failure = False, "rigidity"
-    elif thrash > 0 or stumbles > max_stumbles:
+    elif thrash > 0:
         poised, failure = False, "thrash"
+    elif stumbles > max_stumbles:
+        poised, failure = False, "storm"     # absorbing at rate — every situation held, not thrash
     else:
         poised, failure = True, None
     return PoiseWindow(
@@ -645,10 +649,11 @@ def poise_report(episodes: Sequence[EpisodeRecord], *, window: int = 8,
 def poise_from_digests(segments: Sequence, *, max_stumbles: int = 1) -> List[PoiseWindow]:
     """The live monitoring surface: one coarse poise reading per ``SegmentDigest`` (a segment
     is the natural window of a live run). Engagement = revising rounds / rounds; stumbles =
-    relinquishing dispositions + branches; thrash is not computable from a digest (no
-    per-situation record), so a segment fails toward thrash only on cascading stumbles. Watch
-    the stream: poised segments with stumbles arriving *and* being absorbed is the shape of
-    competence; a wall of rigidity or of thrash is a run to intervene on."""
+    relinquishing dispositions + branches; thrash is never claimed here — a digest carries no
+    per-situation record, so "the same situation disposed differently" is not computable from
+    it — a segment with stumbles beyond threshold reads ``storm`` (absorbing at rate), never
+    ``thrash``. Watch the stream: poised segments with stumbles arriving *and* being absorbed
+    is the shape of competence; a wall of rigidity or of storm is a run to intervene on."""
     out: List[PoiseWindow] = []
     for d in segments:
         revising = sum(d.dispositions.values())
@@ -657,7 +662,7 @@ def poise_from_digests(segments: Sequence, *, max_stumbles: int = 1) -> List[Poi
         if engagement == 0.0:
             poised, failure = False, "rigidity"
         elif stumbles > max_stumbles:
-            poised, failure = False, "thrash"
+            poised, failure = False, "storm"
         else:
             poised, failure = True, None
         out.append(PoiseWindow(

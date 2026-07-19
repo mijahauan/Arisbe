@@ -271,6 +271,19 @@ def test_stumble_recovery_is_measured_in_rounds():
     assert rep.mean_recovery == 1.0 and rep.unrecovered == 0
 
 
+def test_two_absorbed_stumbles_read_storm_not_thrash():
+    """Docket ⑦: two stumbles, each its own situation (so thrash_situations == 0 —
+    every situation disposed consistently) still exceed max_stumbles=1. That is
+    absorbing-at-rate, not the thrash that never happened."""
+    eps = ([_ep(i, f"false:ground{i}", "retract_fact") for i in (1, 2)]
+           + [_ep(i, f"false:ground{i}", "new_fact") for i in range(3, 9)])
+    rep = poise_report(eps, window=8)
+    assert rep.windows[0].thrash_situations == 0
+    assert rep.windows[0].stumbles == 2
+    assert rep.windows[0].poised is False
+    assert rep.windows[0].failure == "storm"
+
+
 def test_poise_from_digests_reads_the_live_stream():
     from live_runner import SegmentDigest
     calm = SegmentDigest(1, 25, 25, 20, {"new_fact": 25}, 0, 0, 0.5, None)
@@ -281,7 +294,9 @@ def test_poise_from_digests_reads_the_live_stream():
     readings = poise_from_digests([calm, dead, storm])
     assert readings[0].poised
     assert readings[1].failure == "rigidity"
-    assert readings[2].failure == "thrash" and readings[2].stumbles == 4
+    # thrash is not computable from a digest (no per-situation record) — 4 absorbed
+    # stumbles read storm, never a thrash claim the digest can't back.
+    assert readings[2].failure == "storm" and readings[2].stumbles == 4
 
 
 # --------------------------------------------------------------------------- #
