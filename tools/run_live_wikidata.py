@@ -287,7 +287,8 @@ def main(argv=None) -> int:
     for d in res.segments:
         print(f"  segment {d.segment}: rounds={d.rounds} |M|={d.m_relations} atoms={d.m_atoms} "
               f"dispositions={d.dispositions} decayed={d.decayed} "
-              f"decay_skipped={d.decay_skipped} ({d.elapsed_s:.1f}s)")
+              f"decay_skipped={d.decay_skipped} "
+              f"linear_form_skipped={d.linear_form_skipped} ({d.elapsed_s:.1f}s)")
     if tropism:
         print(f"tropism: warm_emitted={tropism.emitted} injected={source.injected} "
               f"ambiguous_skipped={tropism.ambiguous_skipped} "

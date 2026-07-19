@@ -579,6 +579,50 @@ def test_a_second_order_M_skips_the_linear_form_strata_instead_of_crashing():
     assert _Tropism.consulted == 0         # the stratum really was skipped
 
 
+def test_linear_form_skip_is_surfaced_in_the_segment_digest():
+    """IMPORTANT 1 (re-review): ``_linear_form``'s docstring claims the skip
+    "shows up in the digest" — before this fix that was false:
+    ``linear_form_skipped`` was a runner attribute only, never carried on
+    ``SegmentDigest`` (unlike ``decay_skipped``), and the driver never printed
+    it. A run whose M cannot be linearized must report the skip on the
+    per-segment digest, not just on an attribute nobody but the runner itself
+    reads."""
+    from egif_parser_dau import parse_egif
+    from egi_io import to_dict
+    from quotation_overlay import scribe_quotation
+    from world_scroll import find_world_scroll
+
+    m = _two_cell_M()
+    cell = find_world_scroll(m).cell_ids[0]
+    m, _mark, _cut = scribe_quotation(m, "phi", parse_egif('(pen "Opus")'),
+                                      context_id=cell)
+
+    class _InjectableReplay(ReplaySource):
+        def inject(self, ids):
+            pass
+
+    class _Tropism:
+        def reaches(self, model_egif, ledger=None, k=None):
+            return []
+
+    runner = LiveRunner(to_dict(m), _InjectableReplay(_fact_batches(2)),
+                        DiscourseFeed, LiveRunConfig(ttl=None, checkpoint=False),
+                        tropism=_Tropism(), clock=_zero_clock)
+    r = runner.run()
+    assert [d.segment for d in r.segments] == [1, 2]
+    # the digest — not just the runner attribute — now carries the skip. The
+    # per-segment sum need not equal the runner total to the unit: a poll that
+    # both skips the linear form and finds the source exhausted ends the run
+    # before any further segment can carry it (see SegmentDigest.linear_form_
+    # skipped's comment) — but it must be non-zero and bounded by the total,
+    # which is exactly what was false before this fix (zero, always).
+    digest_total = sum(d.linear_form_skipped for d in r.segments)
+    assert 0 < digest_total <= runner.linear_form_skipped
+    # and each segment that actually consulted the linear-form seam counts it
+    # locally (not just as one lump on the final segment)
+    assert all(d.linear_form_skipped > 0 for d in r.segments)
+
+
 def test_a_refused_decay_is_counted_once_across_segments():
     """``decay_skipped`` is a count of refused **atoms**, not of refusal events.
 
@@ -606,3 +650,34 @@ def test_a_refused_decay_is_counted_once_across_segments():
     assert sum(d.decay_skipped for d in r.segments) == 1   # the atom, once
     # and it still stands: a refusal is a skip, never unlicensed surgery
     assert '(white "Rex")' in r.final_model_egif
+
+
+def test_decay_refused_exemption_does_not_outlive_the_atom():
+    """MINOR 3 (re-review): ``atom_key`` is content-keyed (relation + labels),
+    not element identity. If a refused atom is later legitimately retracted
+    and the same fact is re-admitted afterward, the NEW atom must not inherit
+    the old exemption — ``_decay_refused`` is pruned to the keys still
+    standing in M at the top of every ``_decay`` call."""
+    from agon_evolution import atom_key
+    from egif_parser_dau import parse_egif
+    from egi_io import to_dict
+    from world_scroll import enlarge_m, retract_from_m, wrap_m
+
+    g, _scroll = wrap_m(parse_egif('(bird "Rex")'))
+    g = enlarge_m(g, '(white "Rex")')
+    key = atom_key("white", ["Rex"])
+
+    runner = LiveRunner(to_dict(g), ReplaySource([]), DiscourseFeed,
+                        LiveRunConfig(ttl=1, checkpoint=False), clock=_zero_clock)
+    runner._decay_refused.add(key)          # simulate an earlier refusal
+
+    # the atom leaves M by a legitimate (non-decay) route
+    g = retract_from_m(g, relation="white", labels=["Rex"])[0]
+    g, _dropped, _skipped = runner._decay(g, set())
+    assert key not in runner._decay_refused    # the exemption did not survive the atom leaving
+
+    # the SAME fact is re-admitted — a fresh atom, same key
+    g = enlarge_m(g, '(white "Rex")')
+    runner._round += 5                         # well past ttl=1, so it is stale if tracked
+    g, dropped, _skipped = runner._decay(g, set())
+    assert key in dropped                      # decay applies normally — no longer exempt

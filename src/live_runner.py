@@ -155,6 +155,20 @@ class SegmentDigest:
                                               # wall-clock tracks atoms × hub degree, not names)
     decay_skipped: int = 0                    # decays the licensed ERA refused — the atom stands
                                               # and the refusal is counted, never unlicensed surgery
+    linear_form_skipped: int = 0              # tropism/docket/reseed consults skipped THIS segment
+                                              # because M has no linear form (a quotation-bearing
+                                              # cell) — mirrors decay_skipped's carry so the docket's
+                                              # whole settle/age/harvest tick going dark (not merely
+                                              # steering going unguided, see _linear_form) shows up
+                                              # here rather than needing a runner-attribute read.
+                                              # One narrow tail case is NOT attributable here: a poll
+                                              # that both skips the linear form and finds the source
+                                              # exhausted ends the run before any further segment
+                                              # forms to carry it, so it counts only on the runner's
+                                              # ``linear_form_skipped`` total. That total is
+                                              # therefore the authority; the per-segment sum can be
+                                              # a strict undercount by that tail (a ReplaySource-only
+                                              # edge — a genuinely live source never exhausts).
 
 
 @dataclass
@@ -292,7 +306,11 @@ class LiveRunner:
         self._round = 0
         self._poll_idx = 0                      # polls made — the habit clock when ttl_unit="polls"
         self.checkpoints_refused = 0            # §3.3 refusals skipped (checkpoint_refusal="skip")
-        self.linear_form_skipped = 0            # tropism/docket consults skipped: M has no linear form
+        self.linear_form_skipped = 0            # tropism/docket/reseed consults skipped: M has no
+                                                 # linear form — the run-total; ``_lfs_pending``
+                                                 # below is the same count since the last segment
+                                                 # digest was built, so it can be attributed there
+        self._lfs_pending = 0
         self._pending: List = []                # fetched items awaiting a segment (never dropped)
         self._polled = False
         self._episodes: List = []               # cross-segment meta-learning records
@@ -460,7 +478,17 @@ class LiveRunner:
                 if find_world_scroll(model) is not None:
                     model = enlarge_m(model, _law)
                 else:                          # legacy sheet-level carry
-                    model = parse_egif(f"{generate_egif(model)} {_law}".strip())
+                    m_egif = self._linear_form(model)
+                    if m_egif is None:
+                        # can't linearize this non-resident M (guarded like the
+                        # tropism/docket seams — see _linear_form): this one
+                        # reseed attempt is skipped and counted rather than
+                        # crashing on an unguarded generate_egif. ``_law`` is
+                        # left off ``self._laws``, so it is not falsely marked
+                        # re-supplied; whether it is retried depends on the
+                        # evaluate hook proposing it again in a later segment.
+                        continue
+                    model = parse_egif(f"{m_egif} {_law}".strip())
                 if _law not in self._laws:
                     self._laws.append(_law)
             if hasattr(feed, "episodes"):       # accumulate the meta-learning records
@@ -492,6 +520,19 @@ class LiveRunner:
                                      (parse_atom_key(k) for k in dropped)}
                     mark_decayed_atoms(self._episodes, dropped_atoms)
 
+            if self._docket is not None:
+                # One docket tick per segment against the carried (post-decay) M:
+                # settle answered wants, age the rest, harvest fresh thin spots.
+                # Skipped (and counted via _linear_form) once M carries a
+                # quotation — that loses the WHOLE tick, not just steering
+                # (settling/aging/harvesting all stop while ``reaches`` keeps
+                # re-injecting the same already-open asks); see _linear_form's
+                # docstring for the full consequence and why it differs from
+                # the tropism's degradation.
+                m_egif = self._linear_form(model)
+                if m_egif is not None:
+                    self._docket.observe(m_egif)
+
             segments.append(SegmentDigest(
                 segment=seg_idx,
                 rounds=rounds_done,
@@ -505,13 +546,9 @@ class LiveRunner:
                 checkpoint_uod=checkpoint_uod,
                 extra=extra,
                 decay_skipped=len(skipped),
+                linear_form_skipped=self._lfs_pending,
             ))
-            if self._docket is not None:
-                # One docket tick per segment against the carried (post-decay) M:
-                # settle answered wants, age the rest, harvest fresh thin spots.
-                m_egif = self._linear_form(model)
-                if m_egif is not None:
-                    self._docket.observe(m_egif)
+            self._lfs_pending = 0
             # persist the post-decay carried state — what LiveRunner.resume restores
             self._save_state(seg_idx, total_rounds, to_dict(model))
 
@@ -534,23 +571,45 @@ class LiveRunner:
         return None
 
     def _linear_form(self, g) -> Optional[str]:
-        """M as EGIF for the two strata whose published contract is a string (the
-        tropism's warm re-reach, the docket's thin-spot harvest) — or ``None``
-        when M has no linear form.
+        """M as EGIF for the three seams whose published contract is a string —
+        the tropism's warm re-reach, the docket's settle/age/harvest tick
+        (``QueryDocket.observe``), and the legacy sheet-level reseed branch
+        below — or ``None`` when M has no linear form.
 
         Once V2a.2 banks a quoted attributed cell, M carries a quotation and the
         three linear generators raise the named limit
         (``SecondOrderNotInLinearForm``). Following ``_quarantine``'s precedent
-        the limit is **honoured, not hidden**: that poll's stratum is skipped
-        (M still develops; only the *direction* of the next reach goes unguided)
-        and the skip is counted on ``linear_form_skipped``, so a run silently
-        losing its steering shows up in the digest rather than crashing on the
-        first banked quotation."""
+        the limit is **honoured, not hidden**: the calling stratum's use of M
+        for that poll/segment is skipped rather than crashing, and the skip is
+        counted on ``self.linear_form_skipped`` (the run total) *and*
+        ``SegmentDigest.linear_form_skipped`` (the per-segment carry the
+        driver prints), so a run losing a stratum shows up in the digest
+        rather than only in an attribute nobody reads.
+
+        The three call sites do **not** degrade equally — that is the point of
+        naming them here rather than in one shared inline comment:
+
+        * the **tropism** loses only *direction*: M still develops from the
+          fresh/random stream, just without this poll's warm steering;
+        * the **docket** loses its *whole tick*: ``observe`` is what settles
+          answered wants, ages the rest, and harvests fresh thin spots.
+          Skipping it freezes the entry set — ``resolved`` stops
+          incrementing, nothing ages out — while ``reaches`` is still called
+          every poll and keeps re-injecting the same already-open asks.
+          Nothing in this loop ever removes a quotation from M once V2a.2
+          banks one, so the FIRST banked quotation freezes the docket for the
+          rest of the run, not for one poll;
+        * the **legacy reseed branch** loses that one law's re-supply for this
+          round; the law is left off ``self._laws`` (not falsely marked
+          re-applied), so a later segment can still pick it up if the
+          ``evaluate`` hook proposes it again.
+        """
         from second_order_limits import SecondOrderNotInLinearForm
         try:
             return generate_egif(g)
         except SecondOrderNotInLinearForm:
             self.linear_form_skipped += 1
+            self._lfs_pending += 1
             return None
 
     def _decay(self, g, used: set) -> tuple:
@@ -566,21 +625,36 @@ class LiveRunner:
         A retraction the licensed rule refuses is **skipped and counted**, never
         performed unlicensed: no Dau rule permits erasing M's ink by hand, and
         erasing by relation + labels alone would reach into denial cells and
-        episode exhibits. The refused atom is then held aside for the rest of
-        the run (``_decay_refused``): it is dropped from the ledger *and*
-        withheld from the newcomer seeding, so it is never re-registered,
-        never goes stale again, and is never refused a second time. Hence
-        ``decay_skipped`` counts refused **atoms**, not refusal events — and
-        such an atom stands permanently, no longer bounded by decay (the
-        population is small: the refusal is reachable only on a legacy EGIF
-        carry). The set is checkpointed, so a resume does not recount.
+        episode exhibits. This refusal is not confined to a legacy EGIF
+        checkpoint: the same cross-cell-constant-merge condition arises the
+        moment :func:`agon_evolution.run` houses a *non-resident* seed via its
+        own ``generate_egif``-round-trip ensure-residence step (that
+        function's docstring names the identical merge) — i.e. it can also
+        happen on the very first segment of a run started from a plain
+        sheet-level M, not only on a resumed legacy state file.
+
+        The refused atom is then held aside (``_decay_refused``): dropped from
+        the ledger *and* withheld from the newcomer seeding, so it is never
+        re-registered, never goes stale again, and is never refused a second
+        time — hence ``decay_skipped`` counts refused **atoms**, not refusal
+        events. The exemption is content-keyed (``atom_key`` = relation +
+        labels, not element identity), so it must not outlive the atom it was
+        granted to: at the top of every call, ``_decay_refused`` is **pruned**
+        to the keys still standing in M. If a refused atom is later
+        legitimately retracted by some other path and the same fact is
+        re-admitted afterward, that re-admission is a fresh atom — the prune
+        has already dropped the stale key, so decay applies to the new atom
+        normally rather than inheriting the old exemption. The set is
+        checkpointed, so a resume does not recount.
         Returns ``(new_graph, dropped_atom_keys, skipped)``."""
         if self._ledger is None:
             return g, set(), []
         # The habit clock: global rounds, or polls (RUN_5 F2⁵ — once rounds are ~free, "idle N
         # rounds" is a ~2 s memory; "idle N polls" counts engagement opportunities instead).
         now = self._poll_idx if self._cfg.ttl_unit == "polls" else self._round
-        present = sheet_atom_keys(g) - self._decay_refused
+        all_present = sheet_atom_keys(g)
+        self._decay_refused &= all_present        # MINOR 3: the exemption must not outlive the atom
+        present = all_present - self._decay_refused
         self._ledger.seed(present, now)          # register any newcomers
         self._ledger.touch(used & present, now)  # mark this segment's re-deliveries
         dropped = set()
