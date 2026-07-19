@@ -425,7 +425,9 @@ def revise_step(
     under cells, the *rare* full-replacement path (husk removal / wholesale
     resupply); piecemeal relinquishment is :func:`retract_step`.
     ``subgraph_egif`` names what was relinquished, ``fact_egif`` what the
-    amended world newly carries (the audit lens reads both)."""
+    amended world newly carries (the audit lens reads both); ``new_m_egif``
+    is recorded verbatim so the polarity gate can re-execute the withdrawal
+    from the step's own state."""
     scroll = find_world_scroll(pc.current)
     if scroll is None:
         raise ValueError("revise_step needs a standing world-scroll to withdraw")
@@ -442,6 +444,7 @@ def revise_step(
         "earned": True,
         "derivation": ["ERA", "DC+", "INS"],
         "withdrawn_scroll": scroll.cut_id,
+        "new_m_egif": new_m_egif,
         "disposition": disposition,
         "mode": mode,
     }
