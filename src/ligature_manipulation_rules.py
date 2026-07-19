@@ -14,6 +14,8 @@ from formal_transformation_rules import (
     FormalTransformationRule,
     TransformationContext,
     TransformationResult,
+    _rebuild_graph,
+    _refuse_quotation_boundary,
 )
 
 
@@ -32,6 +34,19 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         """
         Requires two vertices on the same ligature in the same context.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) != 2:
             return False, "Must select exactly two vertices for branch moving"
 
@@ -96,14 +111,9 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
             old_sequence[hook_position] = vb_id
             new_nu[edge_to_modify] = tuple(old_sequence)
 
-            result_egi = RelationalGraphWithCuts(
-                V=egi.V,
-                E=egi.E,
+            result_egi = _rebuild_graph(
+                egi,
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=egi.Cut,
-                area=egi.area,
-                rel=egi.rel,
             )
 
             return TransformationResult(
@@ -207,6 +217,19 @@ class ExtendRestrictLigatureRule(FormalTransformationRule):
         """
         Requires a vertex on an existing ligature and specification of new identity network.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) != 1:
             return False, "Must select exactly one vertex for ligature extension"
 
@@ -286,12 +309,11 @@ class ExtendRestrictLigatureRule(FormalTransformationRule):
                 ]
             )
 
-            result_egi = RelationalGraphWithCuts(
+            result_egi = _rebuild_graph(
+                egi,
                 V=new_vertices,
                 E=new_edges,
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=egi.Cut,
                 area=frozendict(new_area_mapping),
                 rel=frozendict(new_rel),
             )
@@ -340,6 +362,19 @@ class RetractLigatureRule(FormalTransformationRule):
         """
         Requires selection of ligature vertices and specification of target vertex.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) < 2:
             return (
                 False,
@@ -446,12 +481,11 @@ class RetractLigatureRule(FormalTransformationRule):
                     new_contents.discard(edge_id)
                 new_area_mapping[area_id] = frozenset(new_contents)
 
-            result_egi = RelationalGraphWithCuts(
+            result_egi = _rebuild_graph(
+                egi,
                 V=frozenset(new_vertices),
                 E=frozenset(new_edges),
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=egi.Cut,
                 area=frozendict(new_area_mapping),
                 rel=frozendict(new_rel),
             )
@@ -533,6 +567,19 @@ class LigatureRearrangementRule(FormalTransformationRule):
         """
         Requires selection of ligature vertices and specification of new structure.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) < 2:
             return (
                 False,
@@ -650,12 +697,10 @@ class LigatureRearrangementRule(FormalTransformationRule):
             ctx_contents |= set(new_edge_pairs.keys())
             new_area[ligature_context] = frozenset(ctx_contents)
 
-            result_egi = RelationalGraphWithCuts(
-                V=egi.V,
+            result_egi = _rebuild_graph(
+                egi,
                 E=frozenset(new_E),
                 nu=frozendict(new_nu),
-                sheet=egi.sheet,
-                Cut=egi.Cut,
                 area=frozendict(new_area),
                 rel=frozendict(new_rel),
             )

@@ -72,11 +72,14 @@ def _rebuild_graph(
     forwarding ``alphabet``/``rho``/``sort``/``quotation`` pruned to the
     surviving elements.
 
-    This is the single reconstruction path for every rule. It also repairs
-    the historical kwarg-omission wart: DC-/ERA/IT+/IT- used to construct
-    the result graph without ``alphabet``/``rho``, silently dropping
-    constants metadata on rho-bearing graphs (author-ratified fix,
-    2026-07-16)."""
+    This is the single reconstruction path for every rule — the six Dau
+    rules here (DC-/ERA/IT+/IT-/…) and, since docket item ③ (2026-07-19),
+    the Chapter 16 ligature/vertex-splitting rules
+    (``ligature_manipulation_rules.py``, ``vertex_splitting_merging_rules.py``)
+    as well. It also repairs the historical kwarg-omission wart: those
+    modules used to construct the result graph without ``alphabet``/``rho``,
+    silently dropping constants metadata on rho-bearing graphs (author-
+    ratified fix, 2026-07-16)."""
     V = source.V if V is None else V
     E = source.E if E is None else E
     nu = source.nu if nu is None else nu

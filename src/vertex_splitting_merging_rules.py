@@ -13,6 +13,8 @@ from formal_transformation_rules import (
     FormalTransformationRule,
     TransformationContext,
     TransformationResult,
+    _rebuild_graph,
+    _refuse_quotation_boundary,
 )
 
 
@@ -41,6 +43,19 @@ class VertexSplittingRule(FormalTransformationRule):
         """
         Requires selection of a single vertex and specification of target context.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) != 1:
             return False, "Must select exactly one vertex for splitting"
 
@@ -174,12 +189,11 @@ class VertexSplittingRule(FormalTransformationRule):
                 [split_spec.new_vertex_id, identity_edge_id]
             )
 
-        return RelationalGraphWithCuts(
+        return _rebuild_graph(
+            egi,
             V=frozenset(new_vertices),
             E=frozenset(new_edges),
             nu=frozendict(new_nu),
-            sheet=egi.sheet,
-            Cut=egi.Cut,
             area=frozendict(new_area_mapping),
             rel=frozendict(new_rel),
         )
@@ -300,6 +314,19 @@ class VertexMergingRule(FormalTransformationRule):
         """
         Requires selection of exactly two vertices connected by identity edge.
         """
+        # B-min: this rule re-plumbs identity; a selection touching the
+        # quotation apparatus is refused entirely (deep=True, same
+        # discipline as IT+/IT-'s guard).
+        refusal = _refuse_quotation_boundary(
+            context.source_egi,
+            context.target_area,
+            context.selected_subgraph,
+            allow_whole_unit=False,
+            deep=True,
+        )
+        if refusal:
+            return False, refusal
+
         if len(context.selected_subgraph) != 2:
             return False, "Must select exactly two vertices for merging"
 
@@ -421,12 +448,11 @@ class VertexMergingRule(FormalTransformationRule):
             new_contents.discard(identity_edge_id)
             new_area_mapping[area_id] = frozenset(new_contents)
 
-        return RelationalGraphWithCuts(
+        return _rebuild_graph(
+            egi,
             V=frozenset(new_vertices),
             E=frozenset(new_edges),
             nu=frozendict(new_nu),
-            sheet=egi.sheet,
-            Cut=egi.Cut,
             area=frozendict(new_area_mapping),
             rel=frozendict(new_rel),
         )

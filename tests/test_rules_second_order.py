@@ -31,8 +31,14 @@ from frozendict import frozendict
 from egi_core_dau import SORT_PROPOSITION, create_cut, create_vertex
 from egif_parser_dau import parse_egif
 from eg_navigation import same_graph
-from formal_transformation_rules import FormalTransformationEngine
+from formal_transformation_rules import (
+    AreaPolarity,
+    FormalTransformationEngine,
+    TransformationContext,
+)
+from ligature_manipulation_rules import ExtendRestrictLigatureRule
 from rule_interaction import insert_from_egif
+from vertex_splitting_merging_rules import VertexMergingRule
 
 ENGINE = FormalTransformationEngine()
 
@@ -335,3 +341,89 @@ class TestOpacity:
         p_edge = next(e.id for e in egi.E if egi.rel[e.id] == "P")
         r = ENGINE.apply_rule("ERA", egi, egi.sheet, frozenset({p_edge}))
         assert r.success
+
+
+# --------------------------------------------------------------------------- #
+# Chapter 16 map-forwarding (docket item ③)                                   #
+# --------------------------------------------------------------------------- #
+
+
+def _quotation_bearing_host_with_spare_ligature():
+    """Quotation apparatus (flagged cut + quoting name) beside an unrelated
+    ligature the Chapter 16 rules can operate on, untouched by quotation.
+    Returns the bare egi (name/spare-ligature ids recovered structurally by
+    the helpers below, matching the host's own labeling convention)."""
+    from egi_core_dau import Edge
+
+    egi = parse_egif('(superseded "M_law")')
+    name_id = next(v.id for v in egi.V if v.label == "M_law")
+    cut = create_cut()
+    egi = egi.with_cut(cut)
+    w = create_vertex()
+    egi = egi.with_vertex_in_context(w, cut.id)
+    egi = egi.with_edge(Edge(id="e_white"), (w.id,), "white", cut.id)
+    egi = egi.with_quotation_binding(name_id, cut.id, sort_name=SORT_PROPOSITION)
+
+    # spare ligature: two generic vertices on the sheet connected by an
+    # identity edge, entirely unrelated to the quotation apparatus
+    va = create_vertex()
+    vb = create_vertex()
+    egi = egi.with_vertex_in_context(va, egi.sheet)
+    egi = egi.with_vertex_in_context(vb, egi.sheet)
+    egi = egi.with_edge(Edge(id="id_spare"), (va.id, vb.id), "=", egi.sheet)
+
+    # a genuine identity edge FROM the quoting name to a fresh vertex, so a
+    # merge attempt targeting the name has a real edge to work with — the
+    # refusal below must come from the quotation guard, not merely "no
+    # identity edge to merge along"
+    vc = create_vertex()
+    egi = egi.with_vertex_in_context(vc, egi.sheet)
+    egi = egi.with_edge(Edge(id="id_name_vc"), (name_id, vc.id), "=", egi.sheet)
+    return egi
+
+
+def _apply_extend_restrict_on_the_unrelated_ligature(egi):
+    va_id = egi.nu["id_spare"][0]
+    rule = ExtendRestrictLigatureRule()
+    context = TransformationContext(
+        source_egi=egi,
+        target_area=egi.sheet,
+        selected_subgraph=frozenset({va_id}),
+        area_polarity=AreaPolarity.POSITIVE,
+        nesting_depth=0,
+    )
+    return rule.apply_transformation(context)
+
+
+def _apply_vertex_merge_on_the_quoting_name(egi):
+    name_id = next(v.id for v in egi.V if v.label == "M_law")
+    vc_id = egi.nu["id_name_vc"][1]
+    rule = VertexMergingRule()
+    context = TransformationContext(
+        source_egi=egi,
+        target_area=egi.sheet,
+        selected_subgraph=frozenset({name_id, vc_id}),
+        area_polarity=AreaPolarity.POSITIVE,
+        nesting_depth=0,
+    )
+    return rule.apply_transformation(context)
+
+
+class TestChapter16MapForwarding:
+    """Docket ③: preservation-or-refusal for the ligature/vertex modules."""
+
+    def test_ligature_move_on_quotation_bearing_graph_preserves_maps_or_refuses(self):
+        g = _quotation_bearing_host_with_spare_ligature()  # apparatus + unrelated ligature
+        result = _apply_extend_restrict_on_the_unrelated_ligature(g)
+        if result.success:
+            assert dict(result.result_egi.quotation) == dict(g.quotation)
+            assert dict(result.result_egi.sort) == dict(g.sort)
+            assert dict(result.result_egi.rho) == dict(g.rho)
+            assert result.result_egi.alphabet == g.alphabet
+        else:
+            assert "quotation" in (result.error_message or "").lower()
+
+    def test_vertex_merge_targeting_the_quoting_name_refuses(self):
+        g = _quotation_bearing_host_with_spare_ligature()
+        result = _apply_vertex_merge_on_the_quoting_name(g)
+        assert not result.success
