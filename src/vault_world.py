@@ -12,6 +12,13 @@ This is the READER half only (Task 3): ``notes``/``note_id``/``note_facts``/
 (``journal_paths``/``journal_entries``/``journal_facts``/``journal_horizon_items``).
 The feed (``VaultSource``, a ``ProbeDirectedFeedBase`` subclass) is Task 5.
 
+**Reader exclusion** (docs/superpowers/plans/2026-07-18-v2a-oracle-notes.md,
+Task 3): a note whose frontmatter declares ``authored_by: arisbe`` — Arisbe's
+own oracle notes, written into ``Arisbe/`` by ``oracle_notes.render_note`` —
+emits only ``(arisbe_note "id")`` from both ``note_facts`` and
+``folder_listing_facts``: no links/tags/modified/collected/in_folder.
+Arisbe-ink must never become author-evidence about its own author.
+
 Every emission is an EGIF conjunction of ground atoms and must parse under
 ``parse_egif``; constants are sanitized by ``_const`` (below), mirroring
 ``wikidata_source._const`` — quotes/backslashes stripped, non-printables blanked —
@@ -127,6 +134,19 @@ def _frontmatter_date(fm: str) -> Optional[str]:
     return f"{dm.group(1)}-{int(dm.group(2)):02d}"
 
 
+_FRONTMATTER_AUTHORED_BY_RE = re.compile(r"^authored_by:\s*(.+?)\s*$", re.MULTILINE)
+
+
+def _frontmatter_authored_by(fm: Optional[str]) -> Optional[str]:
+    """The frontmatter's ``authored_by:`` value, or ``None`` if absent/no
+    frontmatter — the reader-exclusion test (``== "arisbe"``, case-sensitive:
+    the note renderer always writes the literal lowercase token)."""
+    if not fm:
+        return None
+    m = _FRONTMATTER_AUTHORED_BY_RE.search(fm)
+    return m.group(1) if m else None
+
+
 def _frontmatter_tags(fm: str) -> List[str]:
     """Inline ``tags: [a, b]`` form (the only form required by the fixture)."""
     m = _FRONTMATTER_TAGS_INLINE_RE.search(fm)
@@ -182,6 +202,15 @@ class VaultWorld:
     def note_id(self, relpath: str) -> str:
         return self._bounded(relpath)
 
+    def _is_arisbe_note(self, relpath: str) -> bool:
+        """True when ``relpath``'s frontmatter declares ``authored_by: arisbe``
+        — the reader-exclusion test (docs/superpowers/plans/
+        2026-07-18-v2a-oracle-notes.md, Task 3): Arisbe's own oracle notes must
+        never become author-evidence (a link/tag/modified-date reader would
+        otherwise happily read Arisbe's own ink back as the author's)."""
+        fm, _body = _split_frontmatter(_read_text(self.root / relpath))
+        return _frontmatter_authored_by(fm) == "arisbe"
+
     def labels(self) -> Dict[str, str]:
         return {self.note_id(n): n for n in self.notes()}
 
@@ -204,6 +233,13 @@ class VaultWorld:
         fm, body = _split_frontmatter(text)
 
         nid = self.note_id(relpath)
+
+        # Reader exclusion (Task 3): a note Arisbe itself authored (the oracle
+        # notes it writes into Arisbe/) must never become author-evidence —
+        # no links/tags/modified/collected/in_folder, only the marker fact.
+        if _frontmatter_authored_by(fm) == "arisbe":
+            return f'(arisbe_note "{nid}")'
+
         atoms: List[str] = [f'(note "{nid}")']
 
         top = self._top_dir(relpath)
@@ -242,11 +278,16 @@ class VaultWorld:
     def folder_listing_facts(self, top_dir: str) -> str:
         """The discovery-only facts a folder scan yields: which notes live here,
         nothing about their content — one ``(note "id") (in_folder "id" top)``
-        pair per note, batched in one conjunction (the ``scan`` want's payload)."""
+        pair per note, batched in one conjunction (the ``scan`` want's payload).
+        An Arisbe-authored note (Task 3's reader exclusion) lists only as
+        ``(arisbe_note "id")`` — it is discovered, never folder-evidenced."""
         atoms: List[str] = []
         for n in self.notes():
             if self._top_dir(n) == top_dir:
                 nid = self.note_id(n)
+                if self._is_arisbe_note(n):
+                    atoms.append(f'(arisbe_note "{nid}")')
+                    continue
                 atoms.append(f'(note "{nid}")')
                 atoms.append(f'(in_folder "{nid}" "{_const(top_dir)}")')
         return " ".join(atoms)

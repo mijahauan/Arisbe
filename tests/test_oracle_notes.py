@@ -1,10 +1,11 @@
 """V2a.1 — the Obsidian oracle notes (spec: docs/superpowers/specs/
 2026-07-17-vault-cycle-design.md, Stage V2). Render/seal half (Task 1) +
-parse/score/ledger half (Task 2)."""
+parse/score/ledger half (Task 2) + Conjectures section (Task 3)."""
 from pathlib import Path
 from oracle_notes import (
     OracleLedger, ParsedNote, QuestionCandidate, candidates_from_run,
-    note_substantially_answered, parse_note, render_note, score, seal,
+    conjectures_section, note_substantially_answered, parse_note, render_note,
+    score, seal,
 )
 
 FIX = Path(__file__).parent / "fixtures" / "vorago_fixture"
@@ -165,6 +166,30 @@ class TestLedger:
         verdicts = {r["qid"]: r["verdict"] for r in reveals}
         assert verdicts == {"q1": "hit", "q2": "miss", "q3": "unscored"}
         assert all(r["forecast_hash"] for r in reveals)  # the seal, joined in
+
+
+class TestConjectures:
+    def test_admitted_law_renders_gloss_and_egif(self):
+        law = "~[ (Bird *x) ~[ (Flies x) ] ]"
+        text = conjectures_section([law], [])
+        assert "## Conjectures" in text
+        assert f"`{law}`" in text
+        assert "Bird" in text and "Flies" in text  # the gloss, not just the ink
+
+    def test_empty_when_no_laws(self):
+        assert conjectures_section([], []) == ""
+
+    def test_wired_into_render_note(self):
+        law = "~[ (Bird *x) ~[ (Flies x) ] ]"
+        conj = conjectures_section([law], [])
+        text = render_note([], note_date="2026-07-18", run_id="r", segment=1,
+                            budget={"max": 5, "reflective": 1}, reveals=None,
+                            conjectures=conj)
+        assert "## Conjectures" in text and law in text
+        # default (no conjectures passed) omits the section entirely
+        bare = render_note([], note_date="2026-07-18", run_id="r", segment=1,
+                            budget={"max": 5, "reflective": 1}, reveals=None)
+        assert "## Conjectures" not in bare
 
 
 class TestSubstantiallyAnswered:

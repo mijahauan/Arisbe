@@ -162,6 +162,44 @@ class TestFeed:
         assert feed.refused == 0
 
 
+class TestArisbeNoteExclusion:
+    """Task 3's reader exclusion: a note Arisbe itself authored (frontmatter
+    ``authored_by: arisbe`` — the shape ``oracle_notes.render_note`` writes)
+    must never become author-evidence. The fixture's
+    ``Arisbe/Questions-2026-07-01.md`` is a synthetic oracle note in the full
+    rendered shape (frontmatter + one answered question block)."""
+
+    NOTE = "Arisbe/Questions-2026-07-01.md"
+    _EXCLUDED = ("links", "tagged", "modified", "collected_prior", "in_folder")
+
+    def test_note_facts_emit_only_the_marker(self):
+        w = VaultWorld(FIX)
+        nid = w.note_id(self.NOTE)
+        facts = w.note_facts(self.NOTE)
+        parse_egif(facts)
+        assert f'(arisbe_note "{nid}")' in facts
+        for kw in self._EXCLUDED:
+            assert f"({kw} " not in facts
+
+    def test_folder_listing_facts_emit_only_the_marker(self):
+        w = VaultWorld(FIX)
+        nid = w.note_id(self.NOTE)
+        facts = w.folder_listing_facts(w._top_dir(self.NOTE))
+        parse_egif(facts)
+        assert f'(arisbe_note "{nid}")' in facts
+        for kw in self._EXCLUDED:
+            assert f"({kw} " not in facts
+
+    def test_full_drive_still_refuses_zero_with_the_arisbe_note_present(self):
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultFeed
+        feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+        run('(even "0")', feed, rounds=25, uod_id="vault_arisbe_note",
+            name="arisbe-note exclusion drive")
+        assert feed.refused == 0
+
+
 class TestDeterminism:
     def test_identical_fixture_identical_trajectories(self):
         from probe_feed import replay_choices

@@ -5,13 +5,16 @@ answers back through the same membrane.
 
 **Stage split:** Task 1 built candidates, the seal, and the note renderer, all
 offline and deterministic (no wall-clock/RNG; ``note_date`` is caller-supplied).
-This task (Task 2) adds the other half of the loop: ``parse_note`` (recovering
-the author's edits from the raw markdown), ``score`` (the forecast-vs-answer
+Task 2 added the other half of the loop: ``parse_note`` (recovering the
+author's edits from the raw markdown), ``score`` (the forecast-vs-answer
 heuristic), and ``OracleLedger`` (JSONL persistence joining asked forecasts to
-recorded outcomes). Banking an answered forecast into M as a quoted attributed
-cell (``(asserted "author" <quote> )``, provenance ``oracle-answer``) is V2a.2
-and out of scope here — V2a.1 only banks answers in the run's side-store with
-marker facts.
+recorded outcomes). This task (Task 3) adds ``conjectures_section`` (a plain-
+English gloss of each law the automated model-development loop has admitted,
+so the author reads what Arisbe currently believes, not just ink) and wires it
+into ``render_note``. Banking an answered forecast into M as a quoted
+attributed cell (``(asserted "author" <quote> )``, provenance
+``oracle-answer``) is V2a.2 and out of scope here — V2a.1 only banks answers in
+the run's side-store with marker facts.
 
 **Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
 question block prints only the hash, never the plaintext. The plaintext lives
@@ -254,17 +257,71 @@ def _render_question_block(n: int, c: QuestionCandidate) -> str:
 
 def render_note(candidates: List[QuestionCandidate], *, note_date: str,
                  run_id: str, segment: int, budget: dict,
-                 reveals: Optional[List[dict]]) -> str:
+                 reveals: Optional[List[dict]],
+                 conjectures: Optional[str] = None) -> str:
     """The note's markdown: frontmatter, an optional ``## Reveals`` section
-    (the previous note's scored answers), a Conjectures section (Task 3, not
-    yet wired here), then one block per budgeted question. Forecasts never
-    appear as plaintext — only their seal."""
+    (the previous note's scored answers), an optional ``## Conjectures``
+    section (Task 3 — the caller passes the already-rendered string from
+    ``conjectures_section``, or ``None``/``""`` to omit it), then one block
+    per budgeted question. Forecasts never appear as plaintext — only their
+    seal."""
     parts: List[str] = [_frontmatter(note_date, run_id, segment, budget)]
     if reveals:
         parts.append(_render_reveals(reveals))
+    if conjectures:
+        parts.append(conjectures)
     for n, c in enumerate(_select_within_budget(candidates, budget), start=1):
         parts.append(_render_question_block(n, c))
     return "\n\n".join(parts) + "\n"
+
+
+# -- the conjectures section (Task 3) --------------------------------------------
+#
+# A conjecture, here, is a law the automated model-development loop *admitted*
+# (``EvolutionResult.known_laws`` — currently-standing generalizations, already
+# pruned of anything a later challenge relinquished) — surfaced so the author
+# can read what Arisbe has come to believe, in English, not just as ink. The
+# gloss prefers ``eg_to_english.idiomatic_reading`` (it takes a real EGI and
+# reads any admitted-law shape, not just the unary-subsumption one); a law
+# that fails to parse or read falls back to a structural gloss keyed off the
+# same unary-subsumption pattern ``arithmetic_world.test_law_instance`` uses
+# (``~[ (P *x) ~[ (Q x) ] ]``), and anything stranger still gets the honest
+# placeholder "a standing law" rather than a fabricated reading.
+
+_LAW_RE = re.compile(r'~\[\s*\((\w+) \*x\)\s*~\[\s*\((\w+) x\)\s*\]\s*\]')
+
+
+def _law_gloss(law_egif: str) -> str:
+    try:
+        from egif_parser_dau import parse_egif
+        from eg_to_english import idiomatic_reading
+        gloss = idiomatic_reading(parse_egif(law_egif))
+        if gloss:
+            return gloss
+    except Exception:
+        pass
+    m = _LAW_RE.match(law_egif.strip())
+    if m:
+        p, q = m.group(1), m.group(2)
+        return f"whenever ({p} x) holds, ({q} x) follows"
+    return "a standing law"
+
+
+def conjectures_section(known_laws: List[str], discoveries) -> str:
+    """``"## Conjectures"`` — one bullet per currently admitted law
+    (``known_laws``): a plain-English gloss (:func:`_law_gloss`) followed by
+    the law's own EGIF in a code span. ``discoveries`` (an
+    ``EvolutionResult.discoveries`` list) is accepted for interface symmetry
+    with the run result the driver holds — a future pass may use it to
+    annotate *when* a law was admitted or superseded — but has no V2a.1
+    rendering use yet. Empty string (nothing to show) when ``known_laws`` is
+    empty."""
+    if not known_laws:
+        return ""
+    lines = ["## Conjectures", ""]
+    for law in known_laws:
+        lines.append(f"- {_law_gloss(law)} — the graph: `{law}`")
+    return "\n".join(lines)
 
 
 # -- the parser (Task 2) --------------------------------------------------------
@@ -485,5 +542,5 @@ class OracleLedger:
 __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
     "ParsedNote", "parse_note", "score", "note_substantially_answered",
-    "OracleLedger",
+    "OracleLedger", "conjectures_section",
 ]
