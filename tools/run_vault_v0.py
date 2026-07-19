@@ -20,12 +20,14 @@ agents drive only ``--fixture`` (the synthetic fixture vault under
 from __future__ import annotations
 
 import argparse
+import random
 import secrets
 import sys
 from collections import Counter
+from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -39,6 +41,64 @@ from oracle_notes import (                           # noqa: E402
 from probe_feed import _model_signature              # noqa: E402
 from tomos_service import TomosService               # noqa: E402
 from vault_world import VaultFeed, VaultWorld         # noqa: E402
+
+
+# -- the P2^13 instrument's docket adapter (docket item 10) ------------------------
+#
+# The vault loop has no ``QueryDocket`` (Q1 entity-reach is a Wikidata-shaped
+# vocabulary — labels reversing to Q-ids — that doesn't fit a vault's
+# note/journal/scan wants). Its actual "docket" IS the ``AttentionEconomy``'s
+# own ranked want pool from the just-finished segment. ``EconomyDocket``
+# wraps that pool to the shape ``oracle_notes``/``attention_economy.
+# wants_from_docket`` read (``.open_entries``, each entry's ``.payload`` a
+# ``(ref, reason)`` pair) — the minimal honest wiring, not a re-derived
+# ranking: ``economy.choose`` (the economy's real scoring) decides the
+# order, this class only describes each chosen want in one legible line.
+
+
+@dataclass
+class _EconomyEntry:
+    key: tuple
+    age: int
+    attempts: int
+    payload: tuple   # (ref, reason)
+
+
+def _describe_want(w) -> Tuple[str, str]:
+    """(ref, reason) for one ``AttentionEconomy`` ``Want`` — legible enough
+    to ask "what is this?" about, without leaking which arm asked (the
+    caller controls that separately)."""
+    if w.kind == "scan":
+        return w.payload, "a folder scan the attention economy has queued"
+    if w.kind == "read":
+        return w.payload, "flagged for a closer read"
+    if w.kind == "journal":
+        relpath, idx = w.payload
+        return f"{relpath} (batch {idx})", "a journal batch queued for reading"
+    return str(w.payload), "flagged by the attention economy"
+
+
+class EconomyDocket:
+    """Docket item 10's ``docket=`` argument for ``candidates_from_run``:
+    the segment's ``AttentionEconomy``, wrapped. ``economy.choose`` is
+    called ONCE, for every want the economy holds (``len(economy.wants())``
+    — nothing is cut before ``wants_from_docket`` gets to see it), which
+    DOES increment ``.attempts`` on the underlying wants; that side effect
+    is harmless here because this ``economy`` is discarded once the oracle
+    cycle finishes (the driver never reuses it for another round)."""
+
+    def __init__(self, economy: AttentionEconomy):
+        ranked = economy.choose(len(economy.wants()), 0)
+        self._entries = [
+            _EconomyEntry(key=w.key, age=0, attempts=w.attempts,
+                          payload=_describe_want(w))
+            for w in ranked
+        ]
+
+    @property
+    def open_entries(self) -> List[_EconomyEntry]:
+        return self._entries
+
 
 FIXTURE_ROOT = (
     Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "vorago_fixture"
@@ -83,7 +143,7 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
 def _run_segment(
     root: Path, rounds: int, seg_idx: int, runs_dir: Path, model,
     ttl: int,
-) -> Tuple[dict, object, VaultWorld, Horizon, EvolutionResult]:
+) -> Tuple[dict, object, VaultWorld, Horizon, EvolutionResult, AttentionEconomy]:
     world = VaultWorld(root)
     economy = AttentionEconomy()
     horizon = Horizon()
@@ -117,14 +177,17 @@ def _run_segment(
     # M carries between segments as the graph itself (docket ④): EGIF cannot
     # express per-cell vertex privacy or a banked quotation's sort, so a text
     # carry would merge constants shared across sibling cells.
-    # world/horizon/res carried out too — the oracle cycle (last segment only)
-    # needs the actual objects the round loop drove, not fresh ones.
-    return digest, res.uod.current_egi, world, horizon, res
+    # world/horizon/res/economy carried out too — the oracle cycle (last
+    # segment only) needs the actual objects the round loop drove, not fresh
+    # ones (docket item 10: the economy IS the P2^13 instrument's docket).
+    return digest, res.uod.current_egi, world, horizon, res, economy
 
 
 def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                  run_id: str, segment: int, world: VaultWorld, horizon: Horizon,
-                 res, nonce_factory: Callable[[], str] = lambda: secrets.token_hex(8)
+                 res, nonce_factory: Callable[[], str] = lambda: secrets.token_hex(8),
+                 p213: bool = False, economy: Optional[AttentionEconomy] = None,
+                 rng: Optional[random.Random] = None,
                  ) -> dict:
     """The V2a.1 oracle cycle (docs/superpowers/plans/2026-07-18-v2a-oracle-notes.md,
     Task 4), run once after the LAST segment only:
@@ -147,6 +210,16 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     stored ``forecast_hash`` — the one coupling that must not drift, since
     the note-seal and the ledger-seal need to agree for a later reveal to
     verify at all.
+
+    Docket item 10 (``p213=True``): switches the candidate build to the
+    P2^13 falsifiability instrument (``EconomyDocket`` wrapping ``economy``,
+    the just-finished segment's ranked want pool) instead of the V2a.1
+    provenance/journal/horizon sources, and records each parsed ``**R:**``
+    rating into the ledger. Defaults ``False`` — an ordinary invocation's
+    behavior (and every existing test's expectations) is unchanged; a real
+    run opts in explicitly (``--p213`` at the CLI). ``rng`` is the injectable
+    seeded ``random.Random`` the random arm and the seeded shuffle both use
+    (``None`` real-default -> a fresh, unseeded ``random.Random()``).
 
     Numbers-only stdout throughout: the only path ever printed is the note's
     vault-relative name, never a filesystem path (which in fixture mode lives
@@ -179,6 +252,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                 answers_recorded += 1
         for qid in parsed.ignored:
             ledger.record_outcome_once(qid, "ignored", "", note_date)
+        for qid, rating in parsed.ratings.items():
+            ledger.record_rating_once(qid, rating, note_date)
 
         reveals = ledger.build_reveals(parsed)
 
@@ -196,8 +271,13 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         return {"questions_written": 0, "reveals": len(reveals),
                 "answers_recorded": answers_recorded}
 
-    candidates = candidates_from_run(world, horizon, list(res.known_laws),
-                                      world.labels())
+    if p213:
+        docket = EconomyDocket(economy) if economy is not None else None
+        candidates = candidates_from_run(world, horizon, list(res.known_laws),
+                                          world.labels(), docket=docket, rng=rng)
+    else:
+        candidates = candidates_from_run(world, horizon, list(res.known_laws),
+                                          world.labels())
     candidates = [c for c in candidates if not ledger.asked_ever(c.qid)]
     selected = select_within_budget(candidates, budget)
 
@@ -217,7 +297,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     for c in selected:
         nonce = nonces[c.qid]
         ledger.record_asked(note_date, c.qid, c.tier, c.forecast,
-                             seal(c.forecast, nonce), nonce=nonce)
+                             seal(c.forecast, nonce), nonce=nonce,
+                             arm=c.arm, segment=segment)
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
     return {"questions_written": len(selected), "reveals": len(reveals),
@@ -248,6 +329,13 @@ def main(argv=None) -> int:
                           "(V2a.1); defaults to today — the single sanctioned "
                           "wall-clock read in this driver. Pass explicitly for "
                           "deterministic/test invocations.")
+    ap.add_argument("--p213", action="store_true",
+                     help="drive the P2^13 falsifiability instrument (docket "
+                          "item 10) instead of the V2a.1 provenance/journal/"
+                          "horizon question sources: 2 docket-ranked + 2 "
+                          "random notes per segment, unlabeled, rated "
+                          "trivial/non-trivial by the author. Off by "
+                          "default — an ordinary run is unaffected.")
     args = ap.parse_args(argv)
 
     root = FIXTURE_ROOT if args.fixture else Path(args.root)
@@ -258,13 +346,14 @@ def main(argv=None) -> int:
     model = ""
     digest: dict = {}
     for seg in range(1, args.segments + 1):
-        digest, model, world, horizon, res = _run_segment(
+        digest, model, world, horizon, res, economy = _run_segment(
             root, args.rounds, seg, runs_dir, model, args.ttl)
         if seg == args.segments:
             digest["oracle"] = _run_oracle(
                 root, runs_dir, args.fixture, note_date,
                 run_id=f"vault_v0_seg{seg}", segment=seg,
-                world=world, horizon=horizon, res=res)
+                world=world, horizon=horizon, res=res,
+                p213=args.p213, economy=economy)
         print(f"[segment {seg}/{args.segments}] {digest}")
 
     return 0

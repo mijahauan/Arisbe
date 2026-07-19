@@ -18,6 +18,14 @@ own act, not something CI or an agent does.
 - **P2¹³ (legible questions):** the docket generates questions about the author that
   the author rates non-trivial at better than a stated base rate (author-judged
   sample per segment).
+
+  > **P2¹³ operational form (amended 2026-07-19, pre-first-note).** Per segment the note
+  > carries N docket-selected and N template-random questions in seeded random order,
+  > unlabeled; the author marks each `**R:** trivial|non-trivial`; pass iff the
+  > docket-selected non-trivial rate exceeds the template-random rate by ≥25 points over
+  > ≥2 segments. Ceiling canary: if the author rates ≥90% of all questions non-trivial in
+  > a segment, that segment is declared uninformative for P2¹³. All parts
+  > deterministic/offline except the author's marks.
 - **P3¹³ (bounds hold):** decay bounds |M| with per-round cost flat across the full
   vault scale; horizon counted, never silently dropped.
 - **P4¹³ (provenance inquiry works):** the loop's authored-vs-collected verdicts

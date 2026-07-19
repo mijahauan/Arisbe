@@ -22,6 +22,31 @@ selected candidates in the ledger, not just what got rendered) and
 ``ParsedNote.budget_parsed`` (a previous note's malformed budget knob must be
 announced, never silently guessed).
 
+**Docket item 10 (P2^13 made falsifiable, this task):** the charge as
+registered had no base rate, no rating instrument, and no comparator — a
+docket that reads the author's own journal would pass vacuously. The
+operational form built here: when a ``docket`` (an ``AttentionEconomy``-
+ranked want pool, wrapped to the shape ``attention_economy.wants_from_docket``
+reads) is supplied, ``candidates_from_run`` switches to the P2^13 instrument
+mode — exactly ``N`` docket-selected (``arm="docket"``) and ``N`` template-
+random (``arm="random"``) questions, SAME question template, in a seeded
+random order — instead of the V2a.1 provenance/journal/horizon sources
+(``docket=None``, the default, is fully backward-compatible with those). The
+``arm`` never reaches the rendered note (only ``forecasts.jsonl``, via
+``OracleLedger.record_asked``'s ``arm``/``segment`` fields); each question
+block also gains a ``**R:**`` prompt the author marks
+``trivial``/``non-trivial``, recovered by ``parse_note`` and persisted via
+``OracleLedger.record_rating`` to ``ratings.jsonl``. ``p2_13_report`` reads
+both ledgers back into the pass/fail/ceiling verdict
+(``runs/RUN_13_LOG.md``'s P2^13 amendment has the exact rule). Honesty limit,
+stated once here rather than reasserted at every call site: the two arms'
+question text is NOT perfectly indistinguishable by content (the docket
+arm's "why it's flagged" phrasing differs from the random arm's "sampled for
+this round" phrasing) — a careful author could infer the mechanism by
+pattern over many notes. What IS guaranteed is the floor this docket item
+actually charges: no arm label, no seal, no ledger content of any kind is
+ever printed into the note.
+
 **Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
 question block prints only the hash, never the plaintext. The plaintext lives
 in the caller's gitignored side-store (``oracle/forecasts.jsonl``) and reaches
@@ -41,7 +66,7 @@ import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional, Set, Tuple
 
 
 # -- the candidate -------------------------------------------------------------
@@ -60,6 +85,11 @@ class QuestionCandidate:
     settles: str
     forecast: str
     severity: float = 1.0
+    arm: Optional[str] = None
+    """``"docket"`` / ``"random"`` for a P2^13 instrument candidate (docket
+    item 10), ``None`` for every other source. Carried on the object only —
+    ``render_note`` never prints it; it reaches persistence solely through
+    ``OracleLedger.record_asked``'s ``arm`` argument."""
 
 
 def seal(forecast: str, nonce: str = "") -> str:
@@ -205,15 +235,120 @@ def _writing_time_candidate() -> QuestionCandidate:
     )
 
 
-def candidates_from_run(world, horizon, known_laws: List[str],
-                         labels: dict) -> List[QuestionCandidate]:
-    """The V2a.1 candidate list, in the fixed source order above. Tolerates
-    ``horizon=None`` (skip horizon questions entirely — no crash)."""
+# -- the P2^13 instrument (docket item 10) --------------------------------------
+#
+# Two arms, same question template, so the only thing that differs between
+# them is WHICH note gets asked about — not how the question reads. The
+# ``docket`` argument is deliberately generic: anything exposing
+# ``.open_entries`` (each entry carrying ``.key``/``.age``/``.attempts``, the
+# shape ``attention_economy.wants_from_docket`` reads, plus a ``.payload``
+# that is itself a ``(ref, reason)`` pair) qualifies — a real ``QueryDocket``,
+# or (the vault loop's actual case, since Q1 entity-reach is a Wikidata-shaped
+# vocabulary that doesn't fit a vault's note/journal/scan wants) the driver's
+# ``EconomyDocket`` adapter wrapping an ``AttentionEconomy``'s own ranked want
+# pool. This module never re-implements docket ranking — it calls the real
+# ``wants_from_docket`` and takes the top ``n`` in whatever order the docket
+# already offers them.
+
+_P213_WHY = "this round's attention pass flagged it for a closer look"
+_P213_SETTLES = "what this item actually is, in the author's own words"
+
+
+def _docket_candidates(
+        docket, n: int = 2) -> List[Tuple[QuestionCandidate, str]]:
+    """The docket arm: the top ``n`` entries the docket offers, each turned
+    into one concrete "what is this?" question. Docket item 10's
+    falsifiability requirement (d) — a docket want's key must be traceable
+    from the candidate it produced — is met by folding ``entry.key`` into the
+    qid, so a real ``AttentionEconomy`` want (or a test double) that reached
+    the docket is verifiably the thing this candidate asked about. Returns
+    ``(candidate, ref)`` pairs — ``ref`` (the human-legible subject, e.g. a
+    note relpath) is what the random arm needs to exclude so the two arms
+    never both ask about the same thing; it isn't otherwise recoverable from
+    the candidate (the qid carries the want's *key*, not its ref, so
+    provenance and the excludable subject are kept genuinely distinct)."""
+    from attention_economy import wants_from_docket
+    out: List[Tuple[QuestionCandidate, str]] = []
+    for dw in wants_from_docket(docket, round_idx=0)[:n]:
+        entry = dw.payload
+        ref, reason = entry.payload
+        key_str = ":".join(str(part) for part in entry.key)
+        cand = QuestionCandidate(
+            qid=f"p213:{key_str}",
+            tier="quick",
+            text=f"What is `{ref}` ({reason})? One line is plenty.",
+            why=_P213_WHY, settles=_P213_SETTLES,
+            forecast="unknown", severity=2.5, arm="docket",
+        )
+        out.append((cand, ref))
+    return out
+
+
+def _random_candidates(world, rng, exclude: Set[str],
+                        n: int = 2) -> List[QuestionCandidate]:
+    """The random arm: ``n`` notes drawn uniformly (via the injected ``rng``,
+    never the docket's ranking) from the notes the docket arm did NOT already
+    pick (``exclude`` — keeps the comparator honest: a note that happened to
+    be both docket-ranked and randomly drawn would double-count, and the two
+    arms would no longer be disjoint samples). Same question template as the
+    docket arm."""
+    pool = [n_ for n_ in world.notes() if n_ not in exclude]
+    if not pool:
+        return []
+    chosen = rng.sample(pool, k=min(n, len(pool)))
+    out: List[QuestionCandidate] = []
+    for relpath in chosen:
+        out.append(QuestionCandidate(
+            qid=f"p213:{relpath}",
+            tier="quick",
+            text=f"What is `{relpath}` (sampled for this round's check)? "
+                 f"One line is plenty.",
+            why=_P213_WHY, settles=_P213_SETTLES,
+            forecast="unknown", severity=2.5, arm="random",
+        ))
+    return out
+
+
+def _p213_candidates(world, docket, rng, n: int = 2) -> List[QuestionCandidate]:
+    """Both arms combined, then shuffled in place with the injected ``rng``
+    — the "seeded random order" the operational form requires: with equal
+    severity (2.5) and ``select_within_budget``'s stable sort, this shuffle
+    IS the note's final question order, so a fixed seed reproduces a fixed
+    order and a fresh seed varies it, but the arm is never recoverable from
+    position alone."""
+    docket_pairs = _docket_candidates(docket, n=n)
+    docket_cands = [c for c, _ref in docket_pairs]
+    taken = {ref for _c, ref in docket_pairs}
+    combined = docket_cands + _random_candidates(world, rng, taken, n=n)
+    rng.shuffle(combined)
+    return combined
+
+
+def candidates_from_run(world, horizon, known_laws: List[str], labels: dict,
+                         *, docket=None, rng=None) -> List[QuestionCandidate]:
+    """The candidate list. With ``docket=None`` (the default), this is the
+    V2a.1 list in the fixed source order above — fully backward-compatible.
+    With a ``docket`` supplied, it switches to the P2^13 instrument mode
+    (docket item 10): exactly the two-arm question set from
+    ``_p213_candidates`` (default 2+2, matching the ruled 5-question budget
+    with the standing reflective) REPLACES the provenance/journal/horizon
+    sources for that cycle — the note becomes the falsifiability instrument,
+    not a mixed bag competing for budget slots against it. The standing
+    reflective question is offered either way. Tolerates ``horizon=None``
+    (skip horizon questions entirely — no crash) in the non-docket path.
+    ``rng`` is the injectable seeded ``random.Random`` (deterministic tests);
+    ``None`` with a docket present falls back to a fresh, unseeded
+    ``random.Random()`` — the real (non-test) default."""
     decode = _decode_map(world, labels)
     out: List[QuestionCandidate] = []
-    out.extend(_provenance_candidates(world, decode))
-    out.extend(_multi_journal_candidates(world, decode))
-    out.extend(_horizon_candidates(horizon, decode))
+    if docket is not None:
+        import random as _random_mod
+        r = rng if rng is not None else _random_mod.Random()
+        out.extend(_p213_candidates(world, docket, r))
+    else:
+        out.extend(_provenance_candidates(world, decode))
+        out.extend(_multi_journal_candidates(world, decode))
+        out.extend(_horizon_candidates(horizon, decode))
     out.append(_writing_time_candidate())
     return out
 
@@ -288,6 +423,7 @@ def _render_question_block(n: int, c: QuestionCandidate, nonce: str = "") -> str
         f"*Would settle:* {c.settles}",
         f"*Forecast (sealed):* `sha256:{seal(c.forecast, nonce)}`",
         "**A:**",
+        "**R:** (trivial | non-trivial)",
     ]
     return "\n".join(lines)
 
@@ -386,6 +522,13 @@ def conjectures_section(known_laws: List[str], discoveries) -> str:
 #    multi-paragraph answer that itself contains a blank line will only have
 #    its first paragraph recovered — a documented limit of this heuristic
 #    parser, not a claim of full prose understanding.
+#  - immediately after the answer region, a block ALSO carries a ``**R:**``
+#    line (docket item 10) the author marks ``trivial``/``non-trivial``; the
+#    answer capture stops there too (before it would ever have reached the
+#    blank-line/next-header boundary), so an edited answer and an edited
+#    rating never bleed into each other. An unedited ``**R:**`` line (still
+#    the rendered placeholder ``(trivial | non-trivial)``) reads as no rating
+#    at all — silence is first-class here exactly as it is for ``**A:**``.
 
 
 @dataclass
@@ -396,6 +539,11 @@ class ParsedNote:
     answers: Dict[str, str] = field(default_factory=dict)
     declined: Set[str] = field(default_factory=set)
     ignored: Set[str] = field(default_factory=set)
+    ratings: Dict[str, str] = field(default_factory=dict)
+    """qid -> ``"trivial"``/``"non-trivial"``, recovered from that block's
+    ``**R:**`` line (docket item 10). A qid with no recognized rating
+    (blank, still the placeholder, or anything else) is simply absent —
+    unrated is first-class, not an error."""
     stray: str = ""
     budget_parsed: bool = True
     """False when the ``budget: {...}`` line was missing/malformed and
@@ -421,9 +569,22 @@ _QBLOCK_RE = re.compile(
     r"<!-- qid: (?P<qid>[^\n]+?) -->\n"
     r"(?P<body>.*?)"
     r"\*\*A:\*\*"
-    r"(?P<answer>.*?)(?=\n\n|\n## |\Z)",
+    r"(?P<answer>.*?)"
+    # The rating line is OPTIONAL (older-format notes, or a caller-built
+    # ``ParsedNote``-adjacent fixture, may not carry one) — when present it
+    # must immediately follow the answer region (a single ``\n``, no blank
+    # line between), so the non-greedy answer capture stops there rather
+    # than swallowing the rating line as more "answer".
+    r"(?:\n\*\*R:\*\*(?P<rating>[^\n]*))?"
+    # The final block in a note has nothing after it but render_note's own
+    # single trailing "\n" (no blank line, no next header) — ``\n\Z`` covers
+    # that case; without it the rating line (or, pre-Task-10, the trailing
+    # newline alone) has no reachable stopping point and gets pulled into
+    # the answer/rating capture instead.
+    r"(?=\n\n|\n## |\n\Z|\Z)",
     re.DOTALL,
 )
+_RATING_VALUES = {"trivial", "non-trivial"}
 
 
 def parse_note(text: str) -> ParsedNote:
@@ -431,9 +592,12 @@ def parse_note(text: str) -> ParsedNote:
     markdown: the (possibly edited) budget knob, each question's answer text
     (non-empty), the set of declined qids (an ``**A:**`` line whose content,
     stripped, reads ``declined`` case-insensitively), the set of ignored
-    qids (an ``**A:**`` line left empty), and any stray text the author wrote
-    outside every recognized block (frontmatter / Reveals / question blocks)
-    — kept verbatim as evidence, not interpreted."""
+    qids (an ``**A:**`` line left empty), each qid's ``**R:**`` rating
+    (docket item 10 — only ``trivial``/``non-trivial`` count; anything else,
+    including the unedited placeholder, is unrated and simply absent from
+    ``ratings``), and any stray text the author wrote outside every
+    recognized block (frontmatter / Reveals / question blocks) — kept
+    verbatim as evidence, not interpreted."""
     m = _BUDGET_RE.search(text)
     budget = ({"max": int(m.group(1)), "reflective": int(m.group(2))}
               if m else dict(DEFAULT_BUDGET))
@@ -442,6 +606,7 @@ def parse_note(text: str) -> ParsedNote:
     answers: Dict[str, str] = {}
     declined: Set[str] = set()
     ignored: Set[str] = set()
+    ratings: Dict[str, str] = {}
     consumed: List[tuple] = []
 
     fm = _FRONTMATTER_RE.search(text)
@@ -462,6 +627,9 @@ def parse_note(text: str) -> ParsedNote:
             declined.add(qid)
         else:
             answers[qid] = answer
+        rating = (qm.group("rating") or "").strip().lower()
+        if rating in _RATING_VALUES:
+            ratings[qid] = rating
 
     consumed.sort()
     stray_parts: List[str] = []
@@ -475,7 +643,8 @@ def parse_note(text: str) -> ParsedNote:
     stray = "\n".join(p.strip() for p in stray_parts if p.strip()).strip()
 
     return ParsedNote(budget=budget, answers=answers, declined=declined,
-                       ignored=ignored, stray=stray, budget_parsed=budget_parsed)
+                       ignored=ignored, ratings=ratings, stray=stray,
+                       budget_parsed=budget_parsed)
 
 
 def score(forecast_plain: str, answer: str) -> str:
@@ -509,11 +678,14 @@ def note_substantially_answered(parsed: ParsedNote) -> bool:
 
 class OracleLedger:
     """Append-only JSONL persistence for the ask/answer loop, under
-    ``dir_path`` (created if absent). Two files, one concern each:
+    ``dir_path`` (created if absent). Three files, one concern each:
     ``forecasts.jsonl`` (one record per asked question — this is where the
     forecast plaintext actually lives; the note itself only ever carries the
-    seal) and ``outcomes.jsonl`` (one record per parsed answer/decline/
-    ignore). Nothing is cached in memory — each read re-scans its file, so a
+    seal — plus, since docket item 10, the ``arm``/``segment`` a P2^13
+    instrument candidate was asked under), ``outcomes.jsonl`` (one record
+    per parsed answer/decline/ignore), and ``ratings.jsonl`` (one record per
+    parsed ``**R:**`` triviality rating — docket item 10's instrument
+    output). Nothing is cached in memory — each read re-scans its file, so a
     ledger opened fresh in a later process (a later run) sees everything an
     earlier one wrote."""
 
@@ -522,6 +694,7 @@ class OracleLedger:
         self.dir_path.mkdir(parents=True, exist_ok=True)
         self._forecasts_path = self.dir_path / "forecasts.jsonl"
         self._outcomes_path = self.dir_path / "outcomes.jsonl"
+        self._ratings_path = self.dir_path / "ratings.jsonl"
 
     @staticmethod
     def _append(path: Path, record: dict) -> None:
@@ -542,11 +715,17 @@ class OracleLedger:
 
     def record_asked(self, note_date: str, qid: str, tier: str,
                       forecast_plain: str, forecast_hash: str,
-                      nonce: str = "") -> None:
+                      nonce: str = "", arm: Optional[str] = None,
+                      segment: Optional[int] = None) -> None:
+        """``arm``/``segment`` (docket item 10): the P2^13 instrument's arm
+        (``"docket"``/``"random"``) and the segment the question was asked
+        in — recorded ONLY here, never in the note itself. Both default
+        ``None`` for every non-instrument candidate (existing call sites
+        need change nothing)."""
         self._append(self._forecasts_path, {
             "note_date": note_date, "qid": qid, "tier": tier,
             "forecast_plain": forecast_plain, "forecast_hash": forecast_hash,
-            "nonce": nonce,
+            "nonce": nonce, "arm": arm, "segment": segment,
         })
 
     def record_outcome(self, qid: str, status: str, answer_text: str,
@@ -576,6 +755,31 @@ class OracleLedger:
                 return False
         self.record_outcome(qid, status, answer_text, answered_note_date)
         return True
+
+    def record_rating(self, qid: str, rating: str, note_date: str) -> None:
+        """Docket item 10: append one ``**R:**`` triviality rating
+        (``"trivial"``/``"non-trivial"`` — ``parse_note`` already refuses
+        anything else) to ``ratings.jsonl``."""
+        self._append(self._ratings_path, {
+            "qid": qid, "rating": rating, "note_date": note_date,
+        })
+
+    def record_rating_once(self, qid: str, rating: str, note_date: str) -> bool:
+        """Idempotent ``record_rating`` — the same re-poll-pollution guard
+        ``record_outcome_once`` gives outcomes, needed for the same reason:
+        a partially-answered note is re-parsed on every driver invocation."""
+        existing = [r for r in self._read_all(self._ratings_path)
+                    if r["qid"] == qid]
+        if existing and existing[-1]["rating"] == rating:
+            return False
+        self.record_rating(qid, rating, note_date)
+        return True
+
+    def forecasts(self) -> List[dict]:
+        return self._read_all(self._forecasts_path)
+
+    def ratings(self) -> List[dict]:
+        return self._read_all(self._ratings_path)
 
     def asked_ever(self, qid: str) -> bool:
         """The standing-question suppressor: has this qid ever been asked
@@ -627,9 +831,91 @@ class OracleLedger:
         return reveals
 
 
+# -- the P2^13 verdict (docket item 10) -------------------------------------------
+
+
+def p2_13_report(ledger: OracleLedger) -> dict:
+    """The P2^13 falsifiability instrument's verdict, read entirely off the
+    ledger — ``forecasts.jsonl`` (which segment/arm each qid was asked
+    under) joined to ``ratings.jsonl`` (the author's ``**R:**`` marks) by
+    qid. A qid rated more than once keeps its LATEST rating (a correction
+    supersedes, exactly like ``build_reveals``' latest-forecast join).
+
+    Per segment: the docket-arm and random-arm non-trivial RATE (rated
+    non-trivial ÷ rated total for that arm in that segment). An arm with
+    zero ratings that segment reads ``None`` — an honest "no data", never a
+    fabricated 0.0. **Ceiling canary:** a segment where >=90% of ALL its
+    rated questions (either arm — the instrument's own discriminating power
+    is what's in question, not one arm alone) are marked non-trivial is
+    flagged ``"uninformative"`` and excluded from the pass/fail tally
+    entirely — it can't speak for or against P2^13 either way, because the
+    rating channel itself isn't discriminating that segment.
+
+    Verdict: ``"pass"`` iff the docket rate exceeds the random rate by
+    ``>= 0.25`` (25 points) in ``>= 2`` non-ceiling segments that have BOTH
+    arms rated; ``"insufficient_data"`` when no segment qualifies to be
+    compared at all; ``"fail"`` otherwise — this is the reading
+    ``runs/RUN_13_LOG.md``'s P2^13 amendment names as the pre-registered
+    rule."""
+    forecasts = {f["qid"]: f for f in ledger.forecasts()}
+    latest_rating: Dict[str, str] = {}
+    for r in ledger.ratings():
+        latest_rating[r["qid"]] = r["rating"]
+
+    buckets: Dict[Optional[int], dict] = {}
+    for qid, rating in latest_rating.items():
+        fc = forecasts.get(qid)
+        if fc is None:
+            continue
+        seg = fc.get("segment")
+        arm = fc.get("arm")
+        b = buckets.setdefault(seg, {
+            "all_total": 0, "all_non_trivial": 0,
+            "docket_total": 0, "docket_non_trivial": 0,
+            "random_total": 0, "random_non_trivial": 0,
+        })
+        is_nt = rating == "non-trivial"
+        b["all_total"] += 1
+        b["all_non_trivial"] += int(is_nt)
+        if arm in ("docket", "random"):
+            b[f"{arm}_total"] += 1
+            b[f"{arm}_non_trivial"] += int(is_nt)
+
+    segments: Dict[Optional[int], dict] = {}
+    informative_segments = 0
+    hits = 0
+    for seg, b in sorted(buckets.items(), key=lambda kv: (kv[0] is None, kv[0])):
+        uninformative = (b["all_total"] > 0
+                          and b["all_non_trivial"] / b["all_total"] >= 0.9)
+        docket_rate = (b["docket_non_trivial"] / b["docket_total"]
+                       if b["docket_total"] else None)
+        random_rate = (b["random_non_trivial"] / b["random_total"]
+                       if b["random_total"] else None)
+        segments[seg] = {
+            "docket_rate": docket_rate, "docket_n": b["docket_total"],
+            "random_rate": random_rate, "random_n": b["random_total"],
+            "uninformative": uninformative,
+        }
+        if (not uninformative and docket_rate is not None
+                and random_rate is not None):
+            informative_segments += 1
+            if docket_rate - random_rate >= 0.25:
+                hits += 1
+
+    if informative_segments == 0:
+        verdict = "insufficient_data"
+    elif hits >= 2:
+        verdict = "pass"
+    else:
+        verdict = "fail"
+
+    return {"segments": segments, "verdict": verdict,
+            "informative_segments": informative_segments, "hits": hits}
+
+
 __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
     "select_within_budget", "DEFAULT_BUDGET", "ParsedNote", "parse_note",
-    "score", "note_substantially_answered", "OracleLedger",
+    "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
     "conjectures_section",
 ]

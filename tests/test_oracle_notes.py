@@ -5,13 +5,16 @@ wiring end-to-end (Task 4) + salted seal / verified reveals (docket item
 8, Task 8)."""
 import hashlib
 import json
+import random
 import re
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import List, Tuple
 from oracle_notes import (
     DEFAULT_BUDGET, OracleLedger, ParsedNote, QuestionCandidate,
     candidates_from_run, conjectures_section, note_substantially_answered,
-    parse_note, render_note, score, seal,
+    p2_13_report, parse_note, render_note, score, seal,
 )
 
 FIX = Path(__file__).parent / "fixtures" / "vorago_fixture"
@@ -74,6 +77,196 @@ class TestConsentBoundary:
                                 reason="binary", registered_round=1))
         cands = _horizon_candidates(h, {})
         assert [c.qid for c in cands] == ["horizon:root.pdf"]
+
+
+@dataclass
+class _FakeEntry:
+    """A hand-built docket entry — the shape ``wants_from_docket`` reads
+    (``.key``/``.age``/``.attempts``) plus the ``(ref, reason)`` payload
+    ``oracle_notes._docket_candidates`` reads. Standing in for a real
+    ``run_vault_v0.EconomyDocket`` entry so this test doesn't need a live
+    ``AttentionEconomy``."""
+    key: Tuple
+    payload: Tuple[str, str]
+    age: int = 0
+    attempts: int = 0
+
+
+class _FakeDocket:
+    def __init__(self, entries: List[_FakeEntry]):
+        self._entries = entries
+
+    @property
+    def open_entries(self) -> List[_FakeEntry]:
+        return self._entries
+
+
+class _FakeWorld:
+    """A minimal ``VaultWorld`` double: just enough surface for
+    ``candidates_from_run`` (``notes``/``_top_dir``/``journal_paths``/
+    ``note_id``/``long_labels``) with no Clippings/journal content of its
+    own, so the P2^13 instrument's candidates are the only ones produced."""
+
+    def __init__(self, notes: List[str]):
+        self._notes = notes
+        self.long_labels = {}
+
+    def notes(self) -> List[str]:
+        return list(self._notes)
+
+    def _top_dir(self, relpath: str) -> str:
+        return "(root)"
+
+    def journal_paths(self) -> List[str]:
+        return []
+
+    def note_id(self, relpath: str) -> str:
+        return relpath
+
+
+class TestP213Instrument:
+    """Docket item 10 — P2^13 made falsifiable: a docket arm + a
+    template-random arm, blinded in the note, rated by the author, verdict
+    read off the ledger by ``p2_13_report``."""
+
+    def _docket(self):
+        return _FakeDocket([
+            _FakeEntry(key=("read", "Journal/foo.md"),
+                       payload=("Journal/foo.md", "flagged for reading")),
+            _FakeEntry(key=("scan", "Ideas"),
+                       payload=("Ideas", "a folder scan the attention "
+                                         "economy has queued")),
+        ])
+
+    def test_docket_present_yields_blinded_two_plus_two_in_seeded_order(self):
+        world = _FakeWorld(["a.md", "b.md", "c.md", "d.md"])
+        docket = self._docket()
+
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=docket, rng=random.Random(42))
+        p213 = [c for c in cands if c.arm in ("docket", "random")]
+        assert len(p213) == 4
+        assert sum(1 for c in p213 if c.arm == "docket") == 2
+        assert sum(1 for c in p213 if c.arm == "random") == 2
+
+        text = render_note(p213, note_date="2026-07-18", run_id="r",
+                            segment=1, budget={"max": 4, "reflective": 0},
+                            reveals=None)
+        assert text.count("## Q") == 4
+        # the blinding floor this docket item actually charges: no arm word
+        # anywhere in the rendered markdown.
+        assert "docket" not in text.lower()
+        assert "random" not in text.lower()
+        assert "arm" not in text.lower()
+
+        # seeded order: a fresh call with the SAME seed reproduces the same
+        # question order (the shuffle is deterministic, not the arm).
+        cands2 = candidates_from_run(world, None, [], {},
+                                      docket=docket, rng=random.Random(42))
+        p213_2 = [c for c in cands2 if c.arm in ("docket", "random")]
+        assert [c.qid for c in p213] == [c.qid for c in p213_2]
+
+    def test_docket_none_is_unaffected_backward_compatible(self):
+        # the existing V2a.1 default path — untouched by this docket item.
+        cands = candidates_from_run(_world(), None, known_laws=[], labels={})
+        assert all(c.arm is None for c in cands)
+
+    def test_rating_recovered_from_R_line(self):
+        text = _three_question_note()
+        text = text.replace(
+            f"*Forecast (sealed):* `sha256:{seal('collected')}`\n"
+            "**A:**\n**R:** (trivial | non-trivial)",
+            f"*Forecast (sealed):* `sha256:{seal('collected')}`\n"
+            "**A:** yes\n**R:** non-trivial",
+        )
+        text = text.replace(
+            f"*Forecast (sealed):* `sha256:{seal('fragment')}`\n"
+            "**A:**\n**R:** (trivial | non-trivial)",
+            f"*Forecast (sealed):* `sha256:{seal('fragment')}`\n"
+            "**A:** no\n**R:** trivial",
+        )
+        # q3's **R:** line left as the unedited placeholder -> unrated
+
+        parsed = parse_note(text)
+        assert parsed.ratings == {"q1": "non-trivial", "q2": "trivial"}
+        assert "q3" not in parsed.ratings
+        # the answer capture must not have swallowed the rating line
+        assert parsed.answers == {"q1": "yes", "q2": "no"}
+        assert "declined" not in parsed.answers.get("q2", "")
+
+    def test_wants_from_docket_is_called_and_key_traceable(self):
+        docket = _FakeDocket([
+            _FakeEntry(key=("read", "Journal/unique-marker.md"),
+                       payload=("Journal/unique-marker.md",
+                                "flagged for reading")),
+        ])
+        world = _FakeWorld(["a.md", "b.md"])
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=docket, rng=random.Random(1))
+        docket_cands = [c for c in cands if c.arm == "docket"]
+        assert len(docket_cands) == 1
+        assert "read" in docket_cands[0].qid
+        assert "Journal/unique-marker.md" in docket_cands[0].qid
+
+
+class TestP213Report:
+    """``p2_13_report`` — the pass/fail/ceiling verdict read off the
+    ledger."""
+
+    def test_pass_with_25_point_margin_over_two_segments(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        for seg in (1, 2):
+            for i in range(2):     # docket arm: both non-trivial -> rate 1.0
+                qid = f"d{seg}_{i}"
+                ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                     seal("unknown"), arm="docket", segment=seg)
+                ledger.record_rating(qid, "non-trivial", "2026-07-01")
+            for i, rating in enumerate(["non-trivial", "trivial"]):
+                qid = f"r{seg}_{i}"     # random arm: one hit -> rate 0.5
+                ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                     seal("unknown"), arm="random", segment=seg)
+                ledger.record_rating(qid, rating, "2026-07-01")
+
+        report = p2_13_report(ledger)
+        assert report["verdict"] == "pass"
+        assert report["hits"] == 2
+        for seg in (1, 2):
+            assert report["segments"][seg]["docket_rate"] == 1.0
+            assert report["segments"][seg]["random_rate"] == 0.5
+            assert report["segments"][seg]["uninformative"] is False
+
+    def test_fails_under_25_points(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        for seg in (1, 2):
+            for arm, ratings in (("docket", ["non-trivial", "trivial"]),
+                                 ("random", ["non-trivial", "trivial"])):
+                for i, rating in enumerate(ratings):
+                    qid = f"{arm}{seg}_{i}"
+                    ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                         seal("unknown"), arm=arm, segment=seg)
+                    ledger.record_rating(qid, rating, "2026-07-01")
+
+        report = p2_13_report(ledger)
+        assert report["verdict"] == "fail"
+        assert report["hits"] == 0
+        for seg in (1, 2):
+            assert report["segments"][seg]["docket_rate"] == 0.5
+            assert report["segments"][seg]["random_rate"] == 0.5
+
+    def test_ceiling_segment_flagged_uninformative(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        for i in range(4):
+            arm = "docket" if i < 2 else "random"
+            qid = f"c_{i}"
+            ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                 seal("unknown"), arm=arm, segment=1)
+            ledger.record_rating(qid, "non-trivial", "2026-07-01")
+
+        report = p2_13_report(ledger)
+        assert report["segments"][1]["uninformative"] is True
+        # the only segment is uninformative -> nothing to compare
+        assert report["verdict"] == "insufficient_data"
+        assert report["informative_segments"] == 0
 
 
 class TestRender:
