@@ -1,7 +1,10 @@
 """V2a.1 — the Obsidian oracle notes (spec: docs/superpowers/specs/
 2026-07-17-vault-cycle-design.md, Stage V2). Render/seal half (Task 1) +
 parse/score/ledger half (Task 2) + Conjectures section (Task 3) + driver
-wiring end-to-end (Task 4)."""
+wiring end-to-end (Task 4) + salted seal / verified reveals (docket item
+8, Task 8)."""
+import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -152,6 +155,72 @@ class TestScore:
         assert score("unknown", "it's an old sketch I never finished") == "unscored"
         # case-insensitive
         assert score("Fragment", "this is a FRAGMENT of the main journal") == "hit"
+
+
+class TestSeal:
+    def test_salted_seal_differs_from_dictionary_hash(self):
+        assert seal("collected", "ab12") != seal("collected")
+        assert seal("collected", "ab12") == hashlib.sha256(
+            b"ab12collected").hexdigest()
+
+    def test_reveals_recompute_and_flag_a_doctored_row(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-18", "q1", "quick", "collected",
+                             seal("collected", "nonce1"), nonce="nonce1")
+
+        # doctor the stored row: swap the plaintext without updating the
+        # hash (exactly what a tampered forecasts.jsonl would look like).
+        path = tmp_path / "forecasts.jsonl"
+        rows = [json.loads(line) for line in path.read_text().splitlines()]
+        rows[0]["forecast_plain"] = "fragment"
+        path.write_text("\n".join(json.dumps(r) for r in rows) + "\n")
+
+        parsed = ParsedNote(
+            budget={"max": 5, "reflective": 1},
+            answers={"q1": "yes, I collected it from a talk"},
+        )
+        reveals = ledger.build_reveals(parsed)
+        assert reveals[0]["verdict"] == "seal-broken"
+
+    def test_intact_row_reveals_hit_or_miss_as_before(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-18", "q1", "quick", "collected",
+                             seal("collected", "nonce1"), nonce="nonce1")
+        ledger.record_asked("2026-07-18", "q2", "quick", "fragment",
+                             seal("fragment", "nonce2"), nonce="nonce2")
+
+        parsed = ParsedNote(
+            budget={"max": 5, "reflective": 1},
+            answers={
+                "q1": "yes, I collected it from a talk",
+                "q2": "no, it's my own original writing",
+            },
+        )
+        reveals = ledger.build_reveals(parsed)
+        verdicts = {r["qid"]: r["verdict"] for r in reveals}
+        assert verdicts == {"q1": "hit", "q2": "miss"}
+
+        # a legacy row (no nonce field at all — the pre-Task-8 shape) still
+        # verifies: seal(plain, "") recovers the unsalted legacy value.
+        legacy = OracleLedger(tmp_path.parent / "legacy")
+        legacy.record_asked("2026-07-18", "q3", "quick", "collected",
+                             seal("collected"))  # no nonce arg -> legacy shape
+        legacy_parsed = ParsedNote(
+            budget={"max": 5, "reflective": 1},
+            answers={"q3": "yes, I collected it from a talk"},
+        )
+        legacy_reveals = legacy.build_reveals(legacy_parsed)
+        assert legacy_reveals[0]["verdict"] == "hit"
+
+    def test_note_never_contains_nonce_or_plaintext(self):
+        cand = QuestionCandidate("q1", "quick", "Is this yours?", "w", "s",
+                                  forecast="collected")
+        text = render_note([cand], note_date="2026-07-18", run_id="r",
+                            segment=1, budget={"max": 5, "reflective": 1},
+                            reveals=None, nonces={"q1": "deadbeef12345678"})
+        assert "deadbeef12345678" not in text
+        assert "\ncollected\n" not in text
+        assert f"sha256:{seal('collected', 'deadbeef12345678')}" in text
 
 
 class TestLedger:

@@ -62,10 +62,18 @@ class QuestionCandidate:
     severity: float = 1.0
 
 
-def seal(forecast: str) -> str:
-    """The forecast's commitment: a SHA-256 hex digest of its UTF-8 bytes.
-    Checkable later (recompute and compare), never itself revealing."""
-    return hashlib.sha256(forecast.encode("utf-8")).hexdigest()
+def seal(forecast: str, nonce: str = "") -> str:
+    """The forecast's commitment: ``sha256(nonce + forecast)`` hex digest.
+    Checkable later (recompute the same nonce+forecast and compare against
+    the stored hash — see ``OracleLedger.build_reveals``). The forecast
+    vocabulary is closed and small (``"collected"``, ``"fragment"``,
+    ``"unknown"``, ``"reconstructed"``, …), so an UNSALTED hash is a
+    precomputable four-entry dictionary — it hides nothing. A caller-supplied
+    per-question ``nonce`` is what actually makes the seal non-dictionary-
+    attackable; the default empty nonce recovers the legacy (unsalted,
+    dictionary-guessable) value so pre-existing ``forecasts.jsonl`` rows
+    written before this nonce was introduced still verify."""
+    return hashlib.sha256((nonce + forecast).encode("utf-8")).hexdigest()
 
 
 # -- candidate sources (V2a.1) --------------------------------------------------
@@ -248,7 +256,7 @@ def _render_reveals(reveals: List[dict]) -> str:
     return "\n".join(lines)
 
 
-def _render_question_block(n: int, c: QuestionCandidate) -> str:
+def _render_question_block(n: int, c: QuestionCandidate, nonce: str = "") -> str:
     lines = [
         f"## Q{n} · {c.tier} — {_topic(c.qid)}",
         f"<!-- qid: {c.qid} -->",
@@ -257,7 +265,7 @@ def _render_question_block(n: int, c: QuestionCandidate) -> str:
         "",
         f"*Why asked:* {c.why}",
         f"*Would settle:* {c.settles}",
-        f"*Forecast (sealed):* `sha256:{seal(c.forecast)}`",
+        f"*Forecast (sealed):* `sha256:{seal(c.forecast, nonce)}`",
         "**A:**",
     ]
     return "\n".join(lines)
@@ -266,20 +274,25 @@ def _render_question_block(n: int, c: QuestionCandidate) -> str:
 def render_note(candidates: List[QuestionCandidate], *, note_date: str,
                  run_id: str, segment: int, budget: dict,
                  reveals: Optional[List[dict]],
-                 conjectures: Optional[str] = None) -> str:
+                 conjectures: Optional[str] = None,
+                 nonces: Optional[Dict[str, str]] = None) -> str:
     """The note's markdown: frontmatter, an optional ``## Reveals`` section
     (the previous note's scored answers), an optional ``## Conjectures``
     section (Task 3 — the caller passes the already-rendered string from
     ``conjectures_section``, or ``None``/``""`` to omit it), then one block
     per budgeted question. Forecasts never appear as plaintext — only their
-    seal."""
+    seal. ``nonces`` maps qid -> the per-question nonce the caller generated
+    at candidate-selection time (the SAME nonce must reach ``record_asked``,
+    so the note's printed seal and the ledger's stored seal agree); a missing
+    qid or an absent ``nonces`` falls back to the empty-nonce legacy seal."""
+    nonces = nonces or {}
     parts: List[str] = [_frontmatter(note_date, run_id, segment, budget)]
     if reveals:
         parts.append(_render_reveals(reveals))
     if conjectures:
         parts.append(conjectures)
     for n, c in enumerate(select_within_budget(candidates, budget), start=1):
-        parts.append(_render_question_block(n, c))
+        parts.append(_render_question_block(n, c, nonces.get(c.qid, "")))
     return "\n\n".join(parts) + "\n"
 
 
@@ -507,10 +520,12 @@ class OracleLedger:
         return out
 
     def record_asked(self, note_date: str, qid: str, tier: str,
-                      forecast_plain: str, forecast_hash: str) -> None:
+                      forecast_plain: str, forecast_hash: str,
+                      nonce: str = "") -> None:
         self._append(self._forecasts_path, {
             "note_date": note_date, "qid": qid, "tier": tier,
             "forecast_plain": forecast_plain, "forecast_hash": forecast_hash,
+            "nonce": nonce,
         })
 
     def record_outcome(self, qid: str, status: str, answer_text: str,
@@ -564,19 +579,29 @@ class OracleLedger:
         Task 1's renderer already knows how to print (``qid``,
         ``forecast_plain``, ``forecast_hash``, ``answer``, ``verdict``). A
         qid with no recorded forecast (asked outside this ledger, or never
-        asked) is silently skipped — nothing to reveal against."""
+        asked) is silently skipped — nothing to reveal against.
+
+        Docket item 8: the stored hash is RECOMPUTED from the stored
+        plaintext + nonce (``forecast.get("nonce", "")`` — an empty string
+        for a legacy pre-nonce row) and compared to ``forecast_hash`` before
+        scoring. A row doctored after the fact (plaintext swapped without
+        updating the hash) fails that comparison and reveals as
+        ``"seal-broken"`` instead of a silently-trusted score."""
         reveals: List[dict] = []
         for qid in sorted(parsed.answers):
             forecast = self._latest_forecast(qid)
             if forecast is None:
                 continue
             answer = parsed.answers[qid]
+            expected = seal(forecast["forecast_plain"], forecast.get("nonce", ""))
+            verdict = ("seal-broken" if expected != forecast["forecast_hash"]
+                       else score(forecast["forecast_plain"], answer))
             reveals.append({
                 "qid": qid,
                 "forecast_plain": forecast["forecast_plain"],
                 "forecast_hash": forecast["forecast_hash"],
                 "answer": answer,
-                "verdict": score(forecast["forecast_plain"], answer),
+                "verdict": verdict,
             })
         return reveals
 

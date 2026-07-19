@@ -20,11 +20,12 @@ agents drive only ``--fixture`` (the synthetic fixture vault under
 from __future__ import annotations
 
 import argparse
+import secrets
 import sys
 from collections import Counter
 from datetime import date
 from pathlib import Path
-from typing import List, Tuple
+from typing import Callable, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
@@ -123,7 +124,8 @@ def _run_segment(
 
 def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                  run_id: str, segment: int, world: VaultWorld, horizon: Horizon,
-                 res) -> dict:
+                 res, nonce_factory: Callable[[], str] = lambda: secrets.token_hex(8)
+                 ) -> dict:
     """The V2a.1 oracle cycle (docs/superpowers/plans/2026-07-18-v2a-oracle-notes.md,
     Task 4), run once after the LAST segment only:
 
@@ -137,6 +139,14 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
        a new note this cycle.
     3. Build candidates (suppressing anything the ledger has ever asked),
        budget-select, render, write, and record each asked question.
+
+    Docket item 8: a per-question nonce is generated once, at
+    candidate-selection time (``nonce_factory``, injectable for deterministic
+    tests; the real default is a fresh ``secrets.token_hex(8)`` per
+    question), and threaded to BOTH the rendered note's seal and the ledger's
+    stored ``forecast_hash`` — the one coupling that must not drift, since
+    the note-seal and the ledger-seal need to agree for a later reveal to
+    verify at all.
 
     Numbers-only stdout throughout: the only path ever printed is the note's
     vault-relative name, never a filesystem path (which in fixture mode lives
@@ -198,12 +208,16 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                 "answers_recorded": answers_recorded}
 
     conjectures = conjectures_section(list(res.known_laws), res.discoveries)
+    nonces = {c.qid: nonce_factory() for c in selected}
     text = render_note(selected, note_date=note_date, run_id=run_id,
                         segment=segment, budget=budget,
-                        reveals=reveals or None, conjectures=conjectures)
+                        reveals=reveals or None, conjectures=conjectures,
+                        nonces=nonces)
     note_path.write_text(text, encoding="utf-8")
     for c in selected:
-        ledger.record_asked(note_date, c.qid, c.tier, c.forecast, seal(c.forecast))
+        nonce = nonces[c.qid]
+        ledger.record_asked(note_date, c.qid, c.tier, c.forecast,
+                             seal(c.forecast, nonce), nonce=nonce)
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
     return {"questions_written": len(selected), "reveals": len(reveals),
