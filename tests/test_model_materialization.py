@@ -219,7 +219,7 @@ def test_k3_syllogism_ratio():
     assert k3.explicit == 2
     assert k3.derived == 2          # mortal(Socrates), mortal(Plato)
     assert k3.horn_laws == 1 and k3.skipped_laws == 0
-    assert k3.ratio == 0.5          # derived / (explicit + derived) = 2/4, bounded in [0,1)
+    assert k3.ratio == 0.5          # derived / (explicit + derived) = 2/4, bounded in [0,1]
     assert k3.yield_per_law == 2.0  # the old derived/laws number, honestly renamed
 
 def test_k3_no_laws_is_zero_not_error():
@@ -253,3 +253,18 @@ def test_k3_ratio_is_extent_invariant():
     assert k3_small.ratio == k3_large.ratio == 0.5           # extent-invariant
     assert k3_small.yield_per_law == 2.0
     assert k3_large.yield_per_law == 20.0                    # yield still scales with N
+
+def test_k3_ratio_one_when_all_derived_no_explicit():
+    # Review finding (post-Task-12 self-review correction): the [0,1] bound's
+    # upper end is REACHED, not merely approached — a range-restricted
+    # empty-body Horn rule (an unconditional `~[ ~[ H ] ]` head, seeded first
+    # per `_chase`'s own docstring) derives a fact with zero explicit facts
+    # behind it. This test pins that boundary so the docstring's claimed
+    # range can never silently drift back to a false "[0,1)"; the behavior
+    # already exists (this is not a red-then-green TDD test — it documents
+    # and locks in what `materialize_egi` already does).
+    from model_materialization import materialization_ratio
+    k3 = materialization_ratio(parse_egif('~[ ~[ (man "Socrates") ] ]'))
+    assert k3.explicit == 0
+    assert k3.derived == 1
+    assert k3.ratio == 1.0

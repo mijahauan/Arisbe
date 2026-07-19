@@ -446,16 +446,20 @@ def _facts_to_egi(facts: Set[Fact]) -> RelationalGraphWithCuts:
 class KnowledgeCompression:
     """K3: how much of M's ground extension is *derived* rather than asserted.
 
-    ``ratio`` = derived ÷ (explicit + derived), bounded in ``[0, 1)`` (0.0 when
+    ``ratio`` = derived ÷ (explicit + derived), bounded in ``[0, 1]`` (0.0 when
     the denominator is 0 — a model with no facts at all compresses nothing,
-    never an error). This is **extent-invariant**: the identical law applied
-    over 2 individuals or 200 reads the same ``ratio`` (both derive exactly
-    one fact per explicit fact here), because the denominator is the model's
-    own extent, not its law count. The prior formulation (``derived ÷ laws``)
-    confounded compression with domain size — the same law over 2/20/200
-    individuals read 2.0/20.0/200.0, an unbounded number that grows with N
-    rather than measuring how much of the extension is *derived*, so it is
-    kept below as ``yield_per_law``, not as ``ratio``.
+    never an error; 1.0 exactly when every ground fact is derived and none is
+    explicit — a model that is pure unconditional law, e.g. a range-restricted
+    empty-body rule like ``~[ ~[ (man "Socrates") ] ]``, see
+    ``test_k3_ratio_one_when_all_derived_no_explicit``). This is
+    **extent-invariant**: the identical law applied over 2 individuals or 200
+    reads the same ``ratio`` (both derive exactly one fact per explicit fact
+    here), because the denominator is the model's own extent, not its law
+    count. The prior formulation (``derived ÷ laws``) confounded compression
+    with domain size — the same law over 2/20/200 individuals read
+    2.0/20.0/200.0, an unbounded number that grows with N rather than
+    measuring how much of the extension is *derived*, so it is kept below as
+    ``yield_per_law``, not as ``ratio``.
 
     ``yield_per_law`` = derived ÷ (horn_laws + skipped_laws) — the mean
     derivational yield per law M carries. It is NOT compression: it scales
@@ -473,7 +477,10 @@ class KnowledgeCompression:
 
     @property
     def ratio(self) -> float:
-        """K3, extent-invariant: derived ÷ (explicit + derived), in [0, 1)."""
+        """K3, extent-invariant: derived ÷ (explicit + derived), in [0, 1].
+        1.0 is reachable (not just approached) when explicit == 0 and
+        derived > 0 — a model consisting entirely of unconditional-law
+        derivations, e.g. a range-restricted empty-body rule."""
         total = self.explicit + self.derived
         return self.derived / total if total else 0.0
 
