@@ -30,7 +30,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
-from egif_generator_dau import generate_egif         # noqa: E402
 from oracle_notes import (                           # noqa: E402
     DEFAULT_BUDGET, OracleLedger, candidates_from_run, conjectures_section,
     note_substantially_answered, parse_note, render_note, seal,
@@ -81,9 +80,9 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
 
 
 def _run_segment(
-    root: Path, rounds: int, seg_idx: int, runs_dir: Path, model_egif: str,
+    root: Path, rounds: int, seg_idx: int, runs_dir: Path, model,
     ttl: int,
-) -> Tuple[dict, str, VaultWorld, Horizon, EvolutionResult]:
+) -> Tuple[dict, object, VaultWorld, Horizon, EvolutionResult]:
     world = VaultWorld(root)
     economy = AttentionEconomy()
     horizon = Horizon()
@@ -91,7 +90,7 @@ def _run_segment(
 
     uod_id = f"vault_v0_seg{seg_idx}"
     res = run(
-        model_egif, feed, rounds=rounds, uod_id=uod_id,
+        model, feed, rounds=rounds, uod_id=uod_id,
         name=f"Vault V0 segment {seg_idx}",
         description="Vault V0 metadata-membrane drive (RUN 13); "
                      "see docs/superpowers/specs/2026-07-17-vault-cycle-design.md.",
@@ -114,10 +113,12 @@ def _run_segment(
 
     digest = _digest(res.uod.current_egi, horizon, economy)
     digest["digested_labels"] = len(world.long_labels)
-    next_model_egif = generate_egif(res.uod.current_egi)
+    # M carries between segments as the graph itself (docket ④): EGIF cannot
+    # express per-cell vertex privacy or a banked quotation's sort, so a text
+    # carry would merge constants shared across sibling cells.
     # world/horizon/res carried out too — the oracle cycle (last segment only)
     # needs the actual objects the round loop drove, not fresh ones.
-    return digest, next_model_egif, world, horizon, res
+    return digest, res.uod.current_egi, world, horizon, res
 
 
 def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
@@ -240,11 +241,11 @@ def main(argv=None) -> int:
     runs_dir.mkdir(parents=True, exist_ok=True)
     note_date = args.note_date or date.today().isoformat()
 
-    model_egif = ""
+    model = ""
     digest: dict = {}
     for seg in range(1, args.segments + 1):
-        digest, model_egif, world, horizon, res = _run_segment(
-            root, args.rounds, seg, runs_dir, model_egif, args.ttl)
+        digest, model, world, horizon, res = _run_segment(
+            root, args.rounds, seg, runs_dir, model, args.ttl)
         if seg == args.segments:
             digest["oracle"] = _run_oracle(
                 root, runs_dir, args.fixture, note_date,

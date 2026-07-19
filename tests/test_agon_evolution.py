@@ -215,19 +215,41 @@ def test_decay_records_the_faded_flavor():
         assert s.parameters["derivation"] == ["ERA"]
 
 
-def test_decay_falls_back_honestly_on_a_round_tripped_resident_model():
-    """F2¹³ (RUN 13, segment 2): the real driver's segment carry round-trips M
-    through ``generate_egif``/``parse_egif`` between segments. Per
-    ``world_scroll``'s own documented accommodation, that round-trip shares an
-    identical constant across sibling cells into ONE vertex — here "Rex",
-    argument of both ``(bird "Rex")`` (its own cell) and ``(white "Rex")`` (a
-    sibling cell). Decaying ``bird`` first leaves the shared vertex orphaned
-    in a cell with no edge left in it; decaying ``white`` next used to raise
-    ``AssertionError`` out of the licensed per-cell ERA (``world_scroll.
-    retract_from_m`` → ``proof_authoring.apply_rule``) — RUN 13's crash. The
-    fix falls back to an honest unlicensed structural erasure
-    (``derivation: []``) instead of crashing the run."""
+def test_decay_never_reaches_denial_cells(tmp_path):
+    """Docket ⑥ pin: licensed disuse-decay is **cell-scoped**. An atom standing
+    in a cell is a habit and fades; an identical atom sitting inside a *denial*
+    cell (``~[ (nests "Ara" "Oak") ]``) is not a standing habit at all, and no
+    decay pass may touch it. The deleted ``_structural_retract_atom`` fallback
+    matched by relation + labels over the whole of ``g.E``, so it erased both."""
+    from world_scroll import wrap_m, enlarge_m
+    from agon_evolution import sheet_atom_keys
+
+    seed, _ = wrap_m(parse_egif('(nests "Ara" "Oak")'))
+    seed = enlarge_m(seed, '~[ (nests "Ara" "Oak") ]')
+
+    res = run(generate_egif(seed), CorpusProposer(['(rumor "Q")']), rounds=1,
+              ttl=1, uod_id="denial", name="denial")
+
+    final = res.uod.current_egi
+    # the standing habit faded ...
+    assert atom_key("nests", ["Ara", "Oak"]) not in sheet_atom_keys(final)
+    # ... while the denied atom, never a habit, still stands inside its cut
+    assert sum(1 for e in final.E if final.rel.get(e.id) == "nests") == 1
+
+
+def test_decay_skip_is_counted_never_structural():
+    """Docket ④/⑥: what the licensed rule refuses is **skipped and counted**,
+    never erased by unlicensed structural surgery.
+
+    The refusal is reachable only on a legacy EGIF carry: a text round-trip
+    shares an identical constant across sibling cells into ONE vertex — here
+    "Rex", argument of both ``(bird "Rex")`` (its own cell) and
+    ``(white "Rex")`` (a sibling cell). Decaying ``bird`` first leaves that
+    vertex orphaned in a cell it has no edge left in; the licensed per-cell ERA
+    then rightly refuses to decay ``white``, because erasing it would reach
+    into a different area."""
     from world_scroll import wrap_m, enlarge_m, find_world_scroll
+    from agon_evolution import sheet_atom_keys
 
     seed, _ = wrap_m(parse_egif('(bird "Rex")'))
     seed = enlarge_m(seed, '(white "Rex")')
@@ -250,21 +272,30 @@ def test_decay_falls_back_honestly_on_a_round_tripped_resident_model():
     # round 1 — sorted decay order retracts "bird" before "white" (lexical),
     # reproducing the exact failing sequence.
     res = run(seed_egif, CorpusProposer(['(rumor "Q")']), rounds=1, ttl=1,
-              uod_id="f2_13", name="f2-13")
+              uod_id="skip", name="skip")
 
     decayed = {k for o in res.outcomes for k in o.decayed}
     assert atom_key("bird", ["Rex"]) in decayed
-    assert atom_key("white", ["Rex"]) in decayed
+    assert atom_key("white", ["Rex"]) not in decayed          # refused, so not erased
 
+    # the refusal is recorded, never silent
+    skipped = {k for o in res.outcomes for k, _reason in o.decay_skipped}
+    assert skipped == {atom_key("white", ["Rex"])}
+
+    # the atom STANDS — no unlicensed surgery took it
+    assert atom_key("white", ["Rex"]) in sheet_atom_keys(res.uod.current_egi)
+
+    # and every recorded decay step is a real licensed ERA (no empty derivation)
     decay_steps = [s for s in res.chain.steps if s.rule_name == "DECAY"]
-    assert len(decay_steps) == 2
-    # every decay step carries an acknowledged act (the m_view tripwire) ...
-    for s in decay_steps:
-        assert s.parameters.get("act") == "m_retraction"
-    # ... and at least one used the honest unlicensed fallback (F2¹³).
-    derivations = [s.parameters.get("derivation") for s in decay_steps]
-    assert ["ERA"] in derivations
-    assert [] in derivations
+    assert [s.parameters.get("derivation") for s in decay_steps] == [["ERA"]]
+    assert all(s.parameters.get("act") == "m_retraction" for s in decay_steps)
+
+
+def test_the_unlicensed_structural_fallback_is_gone():
+    """Docket ⑥: the F2¹³ accommodation is deleted, not merely unused — nothing
+    in the loop may erase M's ink without a rule licensing the move."""
+    import agon_evolution
+    assert not hasattr(agon_evolution, "_structural_retract_atom")
 
 
 def test_mutation_membrane_finds_supported_subsumptions_only():

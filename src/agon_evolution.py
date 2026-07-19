@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Protocol, Sequence, Set, Tuple, Union
 
 from egif_parser_dau import parse_egif
 from egif_generator_dau import generate_egif
@@ -568,6 +568,9 @@ class RoundOutcome:
     standing_verdict: Optional[str] # the audited proposal's verdict after the round
     changed: bool
     branched: List[str] = field(default_factory=list)  # dispositions forked as DAG siblings
+    decay_skipped: List[Tuple[str, str]] = field(default_factory=list)
+    """``(atom_key, reason)`` for each decay the licensed ERA refused. The atom
+    stands; nothing erases it unlicensed. Counted so a refusal is never silent."""
 
 
 @dataclass
@@ -587,7 +590,7 @@ class EvolutionResult:
 
 
 def run(
-    model_egif: str,
+    model_egif: Union[str, RelationalGraphWithCuts],
     proposer: Proposer,
     *,
     rounds: int,
@@ -600,7 +603,11 @@ def run(
     seed_laws: Optional[Sequence[str]] = None,
     materializer: Optional[IncrementalMaterializer] = None,
 ) -> EvolutionResult:
-    """Play ``rounds`` automated game rounds, developing M from ``model_egif``.
+    """Play ``rounds`` automated game rounds, developing M from ``model_egif``
+    — given either as EGIF text or as a graph. A caller carrying M *between*
+    runs (the ``LiveRunner``'s segments) must pass the graph: EGIF cannot
+    express per-cell vertex privacy or the second-order sort, so a text carry
+    silently merges a constant shared across sibling cells.
 
     Returns the trajectory as a ``TransformationChain`` + a ``DOMAIN_MODEL`` UoD
     (ready for ``TomosService.save_uod_with_chain``), the per-round outcomes, and
@@ -625,15 +632,17 @@ def run(
     # asserts nothing) and INS supplies the seed as one closed cell — so the
     # chain is rule-licensed from its first move (no post-hoc adapter). An
     # already-resident seed (a later segment's carry) continues as-is.
-    if find_world_scroll(parse_egif(model_egif)) is None:
+    seed = parse_egif(model_egif) if isinstance(model_egif, str) else model_egif
+    if find_world_scroll(seed) is None:
+        seed_egif = generate_egif(seed) if not isinstance(model_egif, str) else model_egif
         pc = ProofChain.from_blank()
         pc.apply("DC+", into=lambda g: g.sheet,
                  note="Open the standing residence: an empty double cut "
                       "asserts nothing, and until it exists there is nowhere "
                       "to hold a model that is not an assertion at the "
                       "world's level.")
-        if model_egif.strip():
-            pc.apply("INS", insert=f"~[ {model_egif} ]",
+        if seed_egif.strip():
+            pc.apply("INS", insert=f"~[ {seed_egif} ]",
                      into=lambda g: child_cuts(g, g.sheet)[0],
                      note="Supply the seed M as one closed cell — insertion "
                           "is sound in the negative arena, and the content "
@@ -644,7 +653,7 @@ def run(
             pc.to_chain().steps[-1].parameters.update(
                 {"act": "m_enlargement", "earned": True, "derivation": ["INS"]})
     else:
-        pc = ProofChain.from_egif(model_egif)
+        pc = ProofChain(seed)
     mat = materializer if materializer is not None else IncrementalMaterializer()
     ledger: Optional[UsageLedger] = None
     if ttl:
@@ -674,12 +683,14 @@ def run(
             ledger.touch(delivered_atom_keys(g_egif), r)
 
         if winner is None:
-            decayed = _apply_decay(pc, ledger, r) if ledger is not None else []
+            decayed, skipped = (_apply_decay(pc, ledger, r)
+                                if ledger is not None else ([], []))
             outcomes.append(RoundOutcome(
                 r, g_egif, result.verdict.value, None, None,
                 "no agent moved — recorded judgment, M untouched.",
                 slate, decayed,
                 _verdict_or_none(pc.current, standing_proposal, mat), bool(decayed),
+                decay_skipped=skipped,
             ))
             continue
 
@@ -701,7 +712,8 @@ def run(
         )
         _update_known_laws(known_laws, winner)
 
-        decayed = _apply_decay(pc, ledger, r) if ledger is not None else []
+        decayed, skipped = (_apply_decay(pc, ledger, r)
+                            if ledger is not None else ([], []))
 
         # ⑤b — irreducible disagreement: fork the DAG (Stage 3). A judge (e.g. the LLM
         # Agonothetes) may name dissenting votes to carry forward as siblings; each is applied
@@ -713,6 +725,7 @@ def run(
             r, g_egif, result.verdict.value, winner.disposition, spec["mode"],
             winner.rationale, slate, decayed,
             _verdict_or_none(pc.current, standing_proposal, mat), True, branched,
+            decay_skipped=skipped,
         ))
 
     chain, uod = pc.to_uod(
@@ -797,62 +810,9 @@ def _update_known_laws(known_laws: List[str], winner: Vote) -> None:
             ]
 
 
-def _structural_retract_atom(
-    g: RelationalGraphWithCuts, relation: str, labels: List[Optional[str]]
-) -> RelationalGraphWithCuts:
-    """**F2¹³'s honest unlicensed fallback** — erase one atom by direct
-    structural surgery (``without_element``): the same move as
-    ``model_revision.retract_atom``, generalized from *the sheet* to *any*
-    area so it still finds the atom when M is resident (``retract_atom``'s
-    ``area_of(model, e.id) == model.sheet`` scoping is exactly wrong for a
-    cell atom — it would report "no such fact" on every resident M).
-
-    **Side-store-only accommodation.** The decay step this produces carries
-    derivation ``[]`` — a corpus chain carrying it would rightly be REFUSED by
-    the polarity gate's ERA check (``test_corpus_polarity_discipline``: an
-    ``m_retraction`` must derive by ERA). That refusal would be the gate
-    working. The fallback exists for the drivers' round-tripped segment
-    carries, whose chains live in the gitignored runs side-store, never the
-    corpus.
-
-    Needed because the licensed per-cell erasure (``world_scroll.
-    retract_from_m`` → a real Dau ERA) can legitimately refuse here. RUN 13's
-    crash, reproduced: a segment carry round-trips M through
-    ``generate_egif``/``parse_egif``, which — per ``world_scroll``'s own
-    documented accommodation ("an EGIF-round-trip-shared constant in a
-    sibling cell copies totally") — merges an identical constant shared by
-    two cells into ONE vertex, homed in whichever cell's atom the parser
-    meets first. Decay one of that constant's atoms and the vertex is still
-    "semi-free" (its sibling atom keeps it connected) so the licensed ERA
-    succeeds; decay the *other* atom next and the vertex is now orphaned in
-    a cell it has no edge left in — erasing it pulls that orphaned vertex
-    into the closure from a *different* area, and ``ErasureRule``'s
-    precondition check (rightly strict for the ordinary case) refuses it as
-    "Selected subgraph contains elements not in target area" — an
-    ``AssertionError`` out of ``proof_authoring.apply_rule``, not a silent
-    corruption. This mirrors the ``live_runner`` precedent (``retract_from_m``,
-    fallback ``retract_atom``) for the one shape that precedent didn't
-    anticipate (a resident M whose round-trip already broke per-cell vertex
-    privacy). No rule licenses this move — the caller records
-    ``derivation: []``, honestly."""
-    want = tuple(labels)
-    matches = [
-        e for e in g.E
-        if g.rel.get(e.id) == relation and tuple(_labels(g, e.id)) == want
-    ]
-    if not matches:
-        raise ValueError(
-            f"no fact {relation}{want} to retract (structural fallback)")
-    for e in matches:
-        args = list(dict.fromkeys(g.nu.get(e.id, ())))
-        g = g.without_element(e.id)
-        for vid in args:
-            if not any(vid in incident for incident in g.nu.values()):
-                g = g.without_element(vid)   # orphaned by the retraction — prune
-    return g
-
-
-def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[str]:
+def _apply_decay(
+    pc: ProofChain, ledger: UsageLedger, round_idx: int
+) -> Tuple[List[str], List[Tuple[str, str]]]:
     """⑤b — erase each standing **atom** idle past ttl (atom-level decay: the habit
     is the fact, not the name). Under the residence the fading of a habit through
     disuse is a **licensed ERA at even depth** — the same move as refutation-driven
@@ -862,14 +822,20 @@ def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[st
     any standing law cut. An atom already gone — retracted by a game move — is
     simply forgotten.
 
-    **F2¹³:** the licensed path can refuse a round-tripped resident M (a
-    shared constant across sibling cells — see ``_structural_retract_atom``);
-    on that refusal this falls back to direct structural erasure, recording
-    the honest empty derivation rather than crashing the run."""
+    Returns ``(decayed_keys, skipped)``. A retraction the licensed rule
+    **refuses** is skipped and counted, never performed by structural surgery:
+    no Dau rule licenses erasing M's ink by hand, and a fallback that matched
+    by relation + labels over the whole graph reached into denial cells and
+    episode exhibits. The refusal is reachable only on a legacy EGIF carry,
+    whose text round-trip merges a constant shared across sibling cells and so
+    orphans a vertex in a cell its atom no longer sits in. The skipped atom is
+    forgotten rather than retried, so one refusal is counted once and does not
+    accumulate a per-round refusal every round thereafter."""
     stale = ledger.stale(round_idx)
     if not stale:
-        return []
+        return [], []
     decayed: List[str] = []
+    skipped: List[Tuple[str, str]] = []
     standing = sheet_atom_keys(pc.current)
     for key in stale:
         if key not in standing:
@@ -879,24 +845,17 @@ def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[st
         try:
             _, derivation = revise_with_disposition_recorded(
                 pc.current, DISPOSITION_RETRACT, relation=rel, labels=list(labels))
-            transform = lambda g, _r=rel, _l=labels: revise_with_disposition(
-                g, DISPOSITION_RETRACT, relation=_r, labels=list(_l))
-            fallback_note = ""
-        except (AssertionError, ValueError):
-            # The licensed per-cell ERA refused (F2¹³) — fall back to the
-            # unlicensed structural erasure. derivation=[] is honest: no Dau
-            # rule licensed this move.
-            derivation = []
-            transform = lambda g, _r=rel, _l=labels: _structural_retract_atom(
-                g, _r, list(_l))
-            fallback_note = " (structural fallback — F2¹³: round-tripped " \
-                            "shared constant defeated the licensed ERA)"
+        except (AssertionError, ValueError) as exc:
+            skipped.append((key, str(exc)))
+            ledger.forget(key)
+            continue                        # the atom stands; the skip is recorded
         pc.apply_derived(
             "DECAY",
-            transform,
+            lambda g, _r=rel, _l=labels: revise_with_disposition(
+                g, DISPOSITION_RETRACT, relation=_r, labels=list(_l)),
             label=f"{round_idx}·decay",
             note=f"({rel} {' '.join(repr(l) for l in labels)}) fell from use — "
-                 f"erased (disuse-decay).{fallback_note}",
+                 f"erased (disuse-decay).",
             params={"disposition": "retract_fact", "mode": "none",
                     "act": "m_retraction", "derivation": derivation,
                     "flavor": "pruned:disuse", "earned": True,
@@ -904,7 +863,7 @@ def _apply_decay(pc: ProofChain, ledger: UsageLedger, round_idx: int) -> List[st
         )
         decayed.append(key)
         ledger.forget(key)
-    return decayed
+    return decayed, skipped
 
 
 def _verdict_or_none(

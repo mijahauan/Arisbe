@@ -39,6 +39,7 @@ from typing import Callable, Dict, List, Optional, Protocol, Sequence
 
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
+from egi_io import from_dict, to_dict
 from eg_navigation import area_of
 from agon_evolution import (
     EvolutionResult, Proposer, UsageLedger, run,
@@ -152,6 +153,8 @@ class SegmentDigest:
     m_atoms: int = 0                          # sheet ATOMS after the segment — the honest unit
                                               # (RUN_3 F1″: names stay flat while atoms grow; attest
                                               # wall-clock tracks atoms × hub degree, not names)
+    decay_skipped: int = 0                    # decays the licensed ERA refused — the atom stands
+                                              # and the refusal is counted, never unlicensed surgery
 
 
 @dataclass
@@ -160,12 +163,20 @@ class LiveResult:
     (when the membrane supports ``.episodes``), with runner-level disuse-decay already
     retro-marked (``agon_metalearning.mark_decayed``) — the honest long-run input to
     ``mechanism_principles`` and friends. Per-segment ``extra`` payloads are computed *before*
-    that segment's decay; this list is the decay-aware aggregate."""
+    that segment's decay; this list is the decay-aware aggregate.
+
+    ``final_model_json`` is M itself (the structural carry); ``final_model_egif``
+    is its linear reading, which a second-order M has none of — asking for it
+    then raises ``SecondOrderNotInLinearForm``, the named limit."""
     segments: List[SegmentDigest]
     total_rounds: int
-    final_model_egif: str
+    final_model_json: Dict
     stopped_because: str
     episodes: List = field(default_factory=list)
+
+    @property
+    def final_model_egif(self) -> str:
+        return generate_egif(from_dict(self.final_model_json))
 
 
 # --------------------------------------------------------------------------- #
@@ -195,8 +206,22 @@ def _sheet_atom_count(egi) -> int:
 
 
 def _relations_of(egif: str) -> set:
-    g = parse_egif(egif)
+    return _relations_of_egi(parse_egif(egif))
+
+
+def _relations_of_egi(g) -> set:
     return {g.rel[e.id] for e in g.E if e.id in g.rel}
+
+
+def _as_model_state(model) -> Dict:
+    """M as the structural carry: a graph, its ``egi_io`` dict, or EGIF text.
+    Text is accepted for the constructor's callers and legacy checkpoints only —
+    it is parsed once here and never re-serialized on the carry path."""
+    if isinstance(model, dict):
+        return model
+    if isinstance(model, str):
+        return to_dict(parse_egif(model))
+    return to_dict(model)
 
 
 class LiveRunner:
@@ -206,7 +231,7 @@ class LiveRunner:
 
     def __init__(
         self,
-        model_egif: str,
+        model,                                 # M as EGIF text, an egi_io dict, or a graph
         source: LiveSource,
         feed_factory: Callable[[Sequence], Proposer],
         config: Optional[LiveRunConfig] = None,
@@ -221,7 +246,7 @@ class LiveRunner:
         clock: Callable[[], float] = None,
         sleep: Callable[[float], None] = None,
     ):
-        self._model_egif = model_egif
+        self._model_state = _as_model_state(model)
         self._source = source
         self._feed_factory = feed_factory
         self._cfg = config or LiveRunConfig()
@@ -255,7 +280,7 @@ class LiveRunner:
         # ATOM-LEVEL (rulebook 2026-07-03): the ledger keys are atom keys, not relation names.
         self._ledger: Optional[UsageLedger] = UsageLedger(self._cfg.ttl) if self._cfg.ttl else None
         if self._ledger is not None:
-            self._ledger.seed(delivered_atom_keys(model_egif) if model_egif else set())
+            self._ledger.seed(sheet_atom_keys(from_dict(self._model_state)))
         # One materializer for the whole run (F2⁗ semi-naive rider): each segment's peels
         # extend the previous closure instead of rebuilding M from scratch every round.
         # Public so a driver can report its counters (rebuilds ≈ decaying segments).
@@ -285,14 +310,22 @@ class LiveRunner:
         carries M as *flat* sheet-level EGIF — ``agon_evolution.run``'s
         ensure-residence houses it in the standing world-scroll on the first
         resumed segment (two recorded rule steps). The ledger/docket are keyed
-        by content (``atom_key``), so they survive the re-housing unchanged."""
+        by content (``atom_key``), so they survive the re-housing unchanged.
+
+        A pre-④ state file carries M as ``model_egif`` text instead of
+        ``model_json``; it is parsed once here and carried structurally from
+        then on. That one parse is where the text round-trip's constant-merge
+        can still bite, so such a run may see a decay skipped and counted."""
         import json
         with open(state_path, "r", encoding="utf-8") as fh:
             state = json.load(fh)
         config = config or LiveRunConfig()
         if config.state_path is None:
             config.state_path = state_path
-        runner = cls(state["model_egif"], source, feed_factory, config,
+        model = state.get("model_json")
+        if model is None:
+            model = state["model_egif"]              # legacy checkpoint
+        runner = cls(model, source, feed_factory, config,
                      seed_laws=state.get("laws"), **kwargs)
         runner._round = state.get("round", 0)
         runner._poll_idx = state.get("poll", 0)
@@ -304,18 +337,18 @@ class LiveRunner:
             runner._docket.restore(state["docket"])
         return runner
 
-    def _save_state(self, seg_idx: int, total_rounds: int, model_egif: str) -> None:
+    def _save_state(self, seg_idx: int, total_rounds: int, model_state: Dict) -> None:
         if not self._cfg.state_path:
             return
         import json
         import os
         state = {
-            "version": 1,
+            "version": 2,               # 2: M as structural JSON, not EGIF text
             "segment": seg_idx,
             "round": self._round,
             "poll": self._poll_idx,
             "total_rounds": total_rounds,
-            "model_egif": model_egif,
+            "model_json": model_state,
             "laws": list(self._laws),
             "ledger": self._ledger.snapshot() if self._ledger is not None else None,
             # 2a.1 (RUN_6 F1⁶): the docket register survives a resume like the ledger —
@@ -332,13 +365,18 @@ class LiveRunner:
         start = self._clock()
         segments: List[SegmentDigest] = []
         total_rounds = self._total0
-        model_egif = self._model_egif
+        # M is carried between segments STRUCTURALLY (docket ④): EGIF cannot
+        # express per-cell vertex privacy or the second-order sort, so a text
+        # carry merges a constant shared across sibling cells (which defeats
+        # the licensed cell-scoped ERA) and cannot represent a quotation at all.
+        model = from_dict(self._model_state)
         seg_idx = self._seg0
 
         while True:
-            stop = self._should_stop(start, total_rounds, model_egif)
+            stop = self._should_stop(start, total_rounds, model)
             if stop:
-                return LiveResult(segments, total_rounds, model_egif, stop, self._episodes)
+                return LiveResult(segments, total_rounds, to_dict(model),
+                                  stop, self._episodes)
 
             # A batch larger than segment_cap is queued, not truncated — the remainder becomes
             # the next segment(s). Poll the source only when the queue is empty.
@@ -350,7 +388,9 @@ class LiveRunner:
                     # Injected ids ride front-of-queue, so this poll's chunk = warm + fresh.
                     # Note an injection can revive an exhausted frontier — the configured stop
                     # conditions, not exhaustion, then end the run.
-                    warm = self._tropism.reaches(model_egif, self._ledger)
+                    # the tropism/docket strata read M as EGIF; generate only
+                    # when one is configured (a second-order M has no linear form)
+                    warm = self._tropism.reaches(generate_egif(model), self._ledger)
                     if warm:
                         self._source.inject(warm)
                 if self._docket is not None:
@@ -365,7 +405,7 @@ class LiveRunner:
                 self._poll_idx += 1             # a poll = one engagement opportunity (ttl_unit="polls")
                 if not self._pending:
                     if self._source.exhausted():
-                        return LiveResult(segments, total_rounds, model_egif,
+                        return LiveResult(segments, total_rounds, to_dict(model),
                                           "source_exhausted", self._episodes)
                     continue                    # nothing new yet — poll again (paced above)
 
@@ -376,7 +416,7 @@ class LiveRunner:
             feed = self._feed_factory(items)
             # ttl=None here: decay is applied by the runner across global rounds (below), not
             # per-segment (which would reset every segment and never bound |M|).
-            res = run(model_egif, feed, rounds=len(items),
+            res = run(model, feed, rounds=len(items),
                       uod_id=f"{self._uod_id}_seg{seg_idx}", name=f"{self._uod_id} segment {seg_idx}",
                       ttl=None, seed_laws=self._laws, panel=self._panel,
                       materializer=self.materializer)
@@ -390,7 +430,7 @@ class LiveRunner:
             # revising or not — a redundant warm re-delivery refreshes exactly its own atoms.
             used = set().union(*(delivered_atom_keys(o.proposal_egif) for o in res.outcomes)) \
                 if res.outcomes else set()
-            model_egif = generate_egif(res.uod.current_egi)   # carry M forward as EGIF
+            model = res.uod.current_egi                       # carry M forward structurally
             laws_before, self._laws = self._laws, list(res.known_laws)
             extra = self._evaluate(feed, res) if self._evaluate else {}
             # Re-generalization hook (generic): an evaluate() may return
@@ -405,16 +445,13 @@ class LiveRunner:
             # would put a second cut at sheet level and silently defeat
             # recognition (m_view identity → counters and oracle reading chrome).
             reseeds = (extra or {}).get("reseed_laws", []) or []
-            if reseeds:
-                g = parse_egif(model_egif)
-                for _law in reseeds:
-                    if find_world_scroll(g) is not None:
-                        g = enlarge_m(g, _law)
-                    else:                      # legacy sheet-level carry
-                        g = parse_egif(f"{generate_egif(g)} {_law}".strip())
-                    if _law not in self._laws:
-                        self._laws.append(_law)
-                model_egif = generate_egif(g)
+            for _law in reseeds:
+                if find_world_scroll(model) is not None:
+                    model = enlarge_m(model, _law)
+                else:                          # legacy sheet-level carry
+                    model = parse_egif(f"{generate_egif(model)} {_law}".strip())
+                if _law not in self._laws:
+                    self._laws.append(_law)
             if hasattr(feed, "episodes"):       # accumulate the meta-learning records
                 if self._episodes:
                     # a relinquishment in THIS segment of content admitted in an EARLIER one is
@@ -430,10 +467,10 @@ class LiveRunner:
             # Cross-segment disuse-decay: bound |M| (and thus per-round cost + disk) over the long
             # run. Atoms re-delivered this segment stay; those idle past ttl are erased from M
             # (atom-level — one warm atom no longer keeps its name-siblings alive).
-            names_before = _relations_of(model_egif)
-            model_egif, dropped = self._decay(model_egif, used)
+            names_before = _relations_of_egi(model)
+            model, dropped, skipped = self._decay(model, used)
             if dropped:
-                names_gone = names_before - _relations_of(model_egif)
+                names_gone = names_before - _relations_of_egi(model)
                 if names_gone:
                     # a law only falls with its vocabulary — when a relation's last atom decays
                     self._laws = [l for l in self._laws if not (_relations_of(l) & names_gone)]
@@ -444,29 +481,29 @@ class LiveRunner:
                                      (parse_atom_key(k) for k in dropped)}
                     mark_decayed_atoms(self._episodes, dropped_atoms)
 
-            carried = parse_egif(model_egif)
             segments.append(SegmentDigest(
                 segment=seg_idx,
                 rounds=rounds_done,
                 total_rounds=total_rounds,
-                m_relations=_sheet_relation_count(carried),
-                m_atoms=_sheet_atom_count(carried),
+                m_relations=_sheet_relation_count(model),
+                m_atoms=_sheet_atom_count(model),
                 dispositions=dispositions,
                 decayed=len(dropped),
                 branched=branched,
                 elapsed_s=self._clock() - seg_start,
                 checkpoint_uod=checkpoint_uod,
                 extra=extra,
+                decay_skipped=len(skipped),
             ))
             if self._docket is not None:
                 # One docket tick per segment against the carried (post-decay) M:
                 # settle answered wants, age the rest, harvest fresh thin spots.
-                self._docket.observe(model_egif)
+                self._docket.observe(generate_egif(model))
             # persist the post-decay carried state — what LiveRunner.resume restores
-            self._save_state(seg_idx, total_rounds, model_egif)
+            self._save_state(seg_idx, total_rounds, to_dict(model))
 
     # -- stop conditions -------------------------------------------------------
-    def _should_stop(self, start: float, total_rounds: int, model_egif: str) -> Optional[str]:
+    def _should_stop(self, start: float, total_rounds: int, model) -> Optional[str]:
         cfg = self._cfg
         if cfg.max_rounds is not None and total_rounds >= cfg.max_rounds:
             return "max_rounds"
@@ -476,47 +513,54 @@ class LiveRunner:
             import os
             if os.path.exists(cfg.stop_file):
                 return "stop_file"
-        if cfg.max_m_relations is not None or cfg.max_m_atoms is not None:
-            from egif_parser_dau import parse_egif
-            g = parse_egif(model_egif)
-            if cfg.max_m_relations is not None and _sheet_relation_count(g) > cfg.max_m_relations:
-                return "max_m_relations"
-            if cfg.max_m_atoms is not None and _sheet_atom_count(g) > cfg.max_m_atoms:
-                return "max_m_atoms"
+        if cfg.max_m_relations is not None and \
+                _sheet_relation_count(model) > cfg.max_m_relations:
+            return "max_m_relations"
+        if cfg.max_m_atoms is not None and _sheet_atom_count(model) > cfg.max_m_atoms:
+            return "max_m_atoms"
         return None
 
-    def _decay(self, model_egif: str, used: set) -> tuple:
+    def _decay(self, g, used: set) -> tuple:
         """Erase **atoms** idle past ``ttl`` global rounds — the only bound on the unbounded
         sheet, applied across segments so |M| (and per-round cost, memory, disk) stays flat.
         Atom-level (the rulebook decision, 2026-07-03): the ledger and the erasure both work
         in :func:`agon_evolution.atom_key` units. Under the residence (sweep #2) the
         erasure is the licensed ERA-in-cell (``retract_from_m``) — the *faded* tense,
         the same move as refutation, D6's ``pruned:disuse`` economy — falling back to
-        the structural ``retract_atom`` on a legacy sheet-level carry; either way other
-        atoms of the same name and any standing law cut survive. Returns
-        ``(new_model_egif, dropped_atom_keys)``."""
+        the sheet-scoped ``retract_atom`` on a legacy sheet-level carry; either way other
+        atoms of the same name and any standing law cut survive.
+
+        A retraction the licensed rule refuses is **skipped and counted**, never
+        performed unlicensed: no Dau rule permits erasing M's ink by hand, and
+        erasing by relation + labels alone would reach into denial cells and
+        episode exhibits. The skipped atom is forgotten rather than retried, so
+        one refusal is counted once. Returns
+        ``(new_graph, dropped_atom_keys, skipped)``."""
         if self._ledger is None:
-            return model_egif, set()
+            return g, set(), []
         # The habit clock: global rounds, or polls (RUN_5 F2⁵ — once rounds are ~free, "idle N
         # rounds" is a ~2 s memory; "idle N polls" counts engagement opportunities instead).
         now = self._poll_idx if self._cfg.ttl_unit == "polls" else self._round
-        g = parse_egif(model_egif)
         present = sheet_atom_keys(g)
         self._ledger.seed(present, now)          # register any newcomers
         self._ledger.touch(used & present, now)  # mark this segment's re-deliveries
         dropped = set()
+        skipped: List[tuple] = []
         for key in self._ledger.stale(now):
             if key in present:
                 rel, labels = parse_atom_key(key)
-                if find_world_scroll(g) is not None:
-                    g = retract_from_m(g, relation=rel, labels=labels)[0]
-                else:
-                    g = retract_atom(g, rel, labels)
+                try:
+                    if find_world_scroll(g) is not None:
+                        g = retract_from_m(g, relation=rel, labels=labels)[0]
+                    else:
+                        g = retract_atom(g, rel, labels)
+                except (AssertionError, ValueError) as exc:
+                    skipped.append((key, str(exc)))
+                    self._ledger.forget(key)
+                    continue                     # the atom stands; the skip is counted
                 dropped.add(key)
             self._ledger.forget(key)
-        if dropped:
-            model_egif = generate_egif(g)
-        return model_egif, dropped
+        return g, dropped, skipped
 
     def _checkpoint(self, res: EvolutionResult, seg_idx: int) -> Optional[str]:
         if not (self._cfg.checkpoint and self._service is not None):
@@ -541,19 +585,27 @@ class LiveRunner:
         return res.uod.metadata.uod_id
 
     def _quarantine(self, res: EvolutionResult, seg_idx: int, exc: Exception) -> None:
-        """Write the refused segment's M (EGIF) + the refusal text beside the state file —
-        the honest record of a skipped checkpoint (RUN_5 F1⁵ disposal (b))."""
+        """Write the refused segment's M + the refusal text beside the state file — the
+        honest record of a skipped checkpoint (RUN_5 F1⁵ disposal (b)). ``model_json``
+        is the record; ``model_egif`` rides along for human legibility, and is null for
+        an M that has no linear form."""
         if not self._cfg.state_path:
             return
         import json
         import os
         path = os.path.join(os.path.dirname(self._cfg.state_path) or ".",
                             f"refused_seg{seg_idx}.json")
+        from second_order_limits import SecondOrderNotInLinearForm
+        try:
+            legible = generate_egif(res.uod.current_egi)
+        except SecondOrderNotInLinearForm:
+            legible = None
         with open(path, "w", encoding="utf-8") as fh:
             json.dump({"segment": seg_idx,
                        "uod_id": res.uod.metadata.uod_id,
                        "error": str(exc),
-                       "model_egif": generate_egif(res.uod.current_egi)}, fh, indent=1)
+                       "model_egif": legible,
+                       "model_json": to_dict(res.uod.current_egi)}, fh, indent=1)
 
 
 __all__ = [

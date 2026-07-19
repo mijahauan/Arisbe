@@ -422,3 +422,104 @@ def test_checkpoint_every_default_keeps_the_old_behavior():
                      LiveRunConfig(ttl=None, checkpoint=True),
                      service=svc, clock=_zero_clock).run()
     assert svc.saved == ["live_seg1", "live_seg2"]                  # every segment
+
+
+# --------------------------------------------------------------------------- #
+# Docket ④ — M is carried between segments STRUCTURALLY, not as EGIF text      #
+# --------------------------------------------------------------------------- #
+
+def _two_cell_M():
+    """A resident M whose two admission cells each mention the constant "Opus".
+    Per-cell vertex privacy is what is at stake: EGIF has no way to say "two
+    distinct vertices, same label, different cells", so a *text* carry merges
+    them (world_scroll's documented round-trip accommodation) — which is what
+    defeated the licensed cell-scoped ERA and forced the F2¹³ fallback."""
+    from egif_parser_dau import parse_egif
+    from world_scroll import enlarge_m, wrap_m
+    g, _scroll = wrap_m(parse_egif('(pen "Opus")'))
+    return enlarge_m(g, '(quill "Opus")')
+
+
+def _carried(result):
+    from egi_io import from_dict
+    return from_dict(result.final_model_json)
+
+
+def test_carry_preserves_resident_M_structurally():
+    """Docket ④: a constant shared across two cells survives the segment carry."""
+    from eg_navigation import same_graph
+    from egi_io import to_dict
+    from world_scroll import enlarge_m
+
+    m = _two_cell_M()
+    r = LiveRunner(to_dict(m), ReplaySource(_fact_batches(1)), DiscourseFeed,
+                   LiveRunConfig(ttl=None, checkpoint=False), clock=_zero_clock).run()
+    carried = _carried(r)
+    # each cell keeps its own "Opus" vertex — under the EGIF carry this reads 1
+    assert len([v for v in carried.V if v.label == "Opus"]) == 2
+    # and the carry is total: M is exactly the seed plus the admitted fact
+    assert same_graph(carried, enlarge_m(m, '(topic0 "X")'))
+
+
+def test_carry_preserves_quotation_bearing_cell():
+    """V2a.2 composition gate: a banked quotation cell survives the carry.
+    The EGIF carry cannot even express such an M — there is no linear syntax
+    for the sort, so ``generate_egif`` raises the named limit."""
+    import pytest
+    from eg_navigation import same_graph
+    from egif_generator_dau import generate_egif
+    from egif_parser_dau import parse_egif
+    from egi_io import to_dict
+    from quotation_overlay import scribe_quotation
+    from second_order_limits import SecondOrderNotInLinearForm
+    from world_scroll import enlarge_m, find_world_scroll
+
+    m = _two_cell_M()
+    cell = find_world_scroll(m).cell_ids[0]
+    m, _mark, _cut = scribe_quotation(m, "phi", parse_egif('(pen "Opus")'),
+                                      context_id=cell)
+    with pytest.raises(SecondOrderNotInLinearForm):
+        generate_egif(m)
+
+    r = LiveRunner(to_dict(m), ReplaySource(_fact_batches(1)), DiscourseFeed,
+                   LiveRunConfig(ttl=None, checkpoint=False), clock=_zero_clock).run()
+    carried = _carried(r)
+    assert dict(carried.quotation) == dict(m.quotation)   # the device is intact
+    assert dict(carried.sort) == dict(m.sort)
+    assert same_graph(carried, enlarge_m(m, '(topic0 "X")'))
+
+
+def test_state_file_carries_the_structural_model(tmp_path):
+    """The checkpoint carries the same structural M the run carries — a resumed
+    run inherits per-cell privacy rather than a re-merged text reading."""
+    import json as _json
+    from egi_io import from_dict, to_dict
+
+    sp = str(tmp_path / "state.json")
+    LiveRunner(to_dict(_two_cell_M()), ReplaySource(_fact_batches(1)), DiscourseFeed,
+               LiveRunConfig(ttl=None, checkpoint=False, state_path=sp),
+               clock=_zero_clock).run()
+    with open(sp) as fh:
+        state = _json.load(fh)
+    assert "model_egif" not in state
+    assert len([v for v in from_dict(state["model_json"]).V
+                if v.label == "Opus"]) == 2
+
+
+def test_resume_reads_a_legacy_egif_checkpoint(tmp_path):
+    """An old-shape state file (pre-④, M as ``model_egif`` text) still resumes:
+    it is parsed once and carried structurally thereafter."""
+    import json as _json
+
+    sp = str(tmp_path / "state.json")
+    with open(sp, "w") as fh:
+        _json.dump({"version": 1, "segment": 2, "round": 2, "poll": 2,
+                    "total_rounds": 2, "laws": [], "ledger": None,
+                    "model_egif": '~[ ~[ ] ~[ (topic0 "X") ] ]'}, fh)
+    r = LiveRunner.resume(sp, ReplaySource(_fact_batches(1)), DiscourseFeed,
+                          LiveRunConfig(ttl=None, checkpoint=False),
+                          clock=_zero_clock).run()
+    assert [d.segment for d in r.segments] == [3]         # numbering continues
+    assert '(topic0 "X")' in r.final_model_egif           # the legacy M was carried
+    with open(sp) as fh:
+        assert "model_json" in _json.load(fh)             # rewritten in the new shape
