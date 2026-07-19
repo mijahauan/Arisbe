@@ -38,6 +38,9 @@ from eg_navigation import same_graph
 from egi_io import from_dict, to_dict
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
+from formal_transformation_rules import (
+    AreaPolarity, DeiterationRule, ErasureRule, TransformationContext,
+)
 from model_materialization import materialize_egi
 from quotation_overlay import project_first_order, scribe_quotation
 from semantic_game import evaluate
@@ -227,3 +230,43 @@ class TestTier3RulesRestraint:
         # a first-order graph's payload carries no limit note
         plain = linear_forms(parse_egif("(P *x)"))
         assert "second_order_limit" not in plain
+
+
+class TestClosureGuardOnExpandedSet:
+    """Docket ①: the guard must see what will actually be erased (Examination IV).
+
+    A direct-engine ERA of ordinary host ink (the ``superseded`` edge on
+    ``swan_third_tense``) closes over the quoting name — the for-erasure
+    expansion pulls a vertex argument into the erasure set from outside the
+    raw selection, without pulling in the vertex's oval. Left unrefused, the
+    oval survives with its quoting-name entry silently pruned: a mention
+    demoted to an asserted negation."""
+
+    def test_direct_engine_era_of_host_ink_refuses_via_expanded_closure(self, tomos):
+        uod = tomos.load_uod("swan_third_tense", attest=False)
+        egi = uod.current_egi
+        superseded = next(e for e in egi.E if egi.rel.get(e.id) == "superseded")
+        ctx = TransformationContext(
+            source_egi=egi,
+            target_area=egi.get_context(superseded.id),
+            selected_subgraph=frozenset({superseded.id}),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
+        )
+        result = ErasureRule().apply_transformation(ctx)
+        assert not result.success
+        assert "quotation" in (result.error_message or "").lower()
+
+    def test_deiteration_delegating_path_cannot_demote_the_oval(self, tomos):
+        uod = tomos.load_uod("swan_third_tense", attest=False)
+        egi = uod.current_egi
+        superseded = next(e for e in egi.E if egi.rel.get(e.id) == "superseded")
+        ctx = TransformationContext(
+            source_egi=egi,
+            target_area=egi.get_context(superseded.id),
+            selected_subgraph=frozenset({superseded.id}),
+            area_polarity=AreaPolarity.POSITIVE,
+            nesting_depth=0,
+        )
+        result = DeiterationRule().apply_transformation(ctx)
+        assert not result.success

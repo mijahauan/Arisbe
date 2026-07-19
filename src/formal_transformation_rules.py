@@ -835,6 +835,29 @@ class ErasureRule(FormalTransformationRule):
             if hasattr(context, '__dict__'):
                 context.__dict__['expanded_subgraph'] = analysis.closed_subgraph
 
+            # Examination IV docket ①: the for-erasure expansion above can pull
+            # the quotation apparatus (quoting name / oval / quoted ink) into
+            # the erasure set from OUTSIDE the raw selection. The guard must
+            # judge the set that will actually be erased, not the selection.
+            # A legitimate whole-unit erasure also pulls a selected oval's own
+            # interior into the closure — that interior is not "reaching into"
+            # a foreign quotation, so it is excluded before re-checking.
+            closed = set(analysis.closed_subgraph)
+            unit_interiors = {
+                elem
+                for cut_id in closed
+                if cut_id in egi.quotation
+                for elem in egi.get_full_context(cut_id)
+            }
+            refusal = _refuse_quotation_boundary(
+                egi,
+                context.target_area,
+                frozenset(closed - unit_interiors),
+                allow_whole_unit=True,
+            )
+            if refusal:
+                return False, refusal
+
         return True, None
 
     def apply_transformation(
