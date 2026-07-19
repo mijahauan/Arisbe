@@ -180,6 +180,16 @@ answer's content. The next real RUN 13 launch may write the first actual
    ⑤ **A3 re-proof** (`test_second_order_conservativity`, all three tiers) — the standing
    crossing invariant, and the gate that says the climb was earned; ⑥ the exemplars
    re-expressed natively + corpus rebuild; ⑦ docs.
+   **▶ RULED 2026-07-19 (the author, working the docket): B-FULL IS DORMANT,
+   EXEMPLAR-GATED.** B-full-1: no stated marginal value survives S3's discharge at
+   B-min — and the vault cycle's person-model (quoted attributed cells,
+   mention-not-use) runs on B-min without strain, fresh evidence the cheaper rung
+   suffices. B-full-2: ν stays first-order; second-orderness stays in the parallel
+   maps. B-full-3: **the gate, named** — B-full wakes only if an exemplar arrives
+   that B-min+ (lifting the quotation-nesting validation) cannot draw; likeliest
+   future sources: V2a.2's quotation-cell banking at scale, or sign-space growth
+   (BOOTSTRAP_AND_DIRECTED_ENGAGEMENT §1.1's third axis). B-full-4: the linear-form
+   limit stays named (`SecondOrderNotInLinearForm`); no syntax work.
    **Deferred and named (from sweep #2, unrelated to B-full):** D5 dusty rooms
    (designation-by-record) · D6 room-granularity pruning.
 

@@ -306,7 +306,9 @@ Socratic elenchus — doubt-induction as the oldest teaching method on record.
 5. **The tutor loop** (§5) — ✅ DESIGN AUTHORIZED 2026-07-17; the design pass is
    [TUTOR_LOOP.md](TUTOR_LOOP.md) (design-of-record; nothing built — the build is a
    separate authorization).
-6. **Placement** — HOLD until K3 exists and the measure is ratified (the author's
-   condition, 2026-07-17). *Note: both preconditions were met the same day (decisions
-   2's ratification + K3's build), so placement now simply awaits the author's word —
-   it does not execute automatically.*
+6. **Placement** — ✅ RULED 2026-07-19: **§§1–3 graduate to the book** (a "From
+   concordance to measure" section extending CONTRIBUTION_AND_PRIOR_ART, executed same
+   day); **§5 awaits machinery** — the pedagogy section graduates only once the tutor
+   loop is at least T0-built. Also ruled the same sitting: **Umwelt stays a
+   well-described concordance**, not a glossary loanword — the native naming effort
+   for the membrane-and-loop unit is its own thread (candidates under review).

@@ -127,14 +127,13 @@ offer.
 - **T2 — a real neophyte**, only after T1's findings are disposed, with §2's consent
   and custody preconditions in force.
 
-## 7 · Open decisions (the author's)
+## 7 · Decisions — ✅ ALL RULED 2026-07-19 (the author, working the docket)
 
-1. **Ledger shape** — side-store JSON first (recommended) vs. UoD from the start.
-2. **The skill-atom inventory** — adopt `legible_diff`'s finding categories + the
-   dragons as the seed set, or curate a finer decomposition first?
-3. **T0's misconception model** — which planted misconceptions make the best first
-   trio? (Cut parity; defining-vs-bound label misuse; argument-order misreading are
-   the assistant's nominees.)
-4. **Build authorization** — T0 is a rung-1-shaped build (two modules, a scripted
-   world, the same socket); authorize when the vault cycle's socket experience is in,
-   or before?
+1. **Ledger shape** — side-store JSON first. RULED.
+2. **The skill-atom inventory** — `legible_diff`'s finding categories + the dragons
+   as the seed set. RULED.
+3. **T0's misconception trio** — cut parity at depth ≥ 2; defining-vs-bound label
+   misuse; argument-order misreading. RULED.
+4. **Build timing** — T0 builds **after** the vault cycle's oracle loop has run one
+   real round with the author (the learner-ledger is a person-model sibling and
+   inherits what that round teaches about answer handling). RULED.

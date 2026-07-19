@@ -385,3 +385,11 @@ parser recovers only the first paragraph of an answer that itself contains a bla
 line, a documented heuristic limit, not a claim of full prose understanding); and
 real NL interpretation of an answer's content (today's `score` is a deliberately
 modest case-insensitive substring match, named as such in its own docstring).
+
+**V2a.2 — ✅ AUTHORIZED 2026-07-19 (the author), in this order:** (1) multi-paragraph
+answers (the review's priority — the author's reflective answers will be
+multi-paragraph); (2) quotation-cell banking of answers into M (the B-min use case —
+and one of the two named wake-sources for the B-full gate); (3) answer
+NL-interpretation by explicit episode. **Timing:** the build starts after RUN 13
+produces its first real questions note and the author has answered once — one real
+round informs the parser fix.

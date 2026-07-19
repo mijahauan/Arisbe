@@ -219,6 +219,24 @@ instructive as the agreements. The design consequences live in
   loop is an open negotiation bounded by the world. (Whether Life itself is worth encoding as
   a closed CA-in-EG demo is a named backlog item there.)
 
+- **Scaling science (Geoffrey West, *Scale*; Kleiber; Bettencourt).** The author's
+  pointer, and the one that makes the fractal reading *quantitative*: West's program
+  analyses systems that aggregate, interact, and distribute resources through
+  space-filling hierarchical networks, and finds discoverable **scaling exponents**
+  (quarter-power metabolic laws; cities superlinear in innovation, companies sublinear
+  and mortal). The mapping: deliverance throughput is the system's metabolism, the
+  membrane hierarchy its distribution network, decay its cellular turnover — so the
+  measure's components should themselves *scale lawfully*, and the exponents are
+  empirical questions the run corpus can already ask (how do derived atoms scale with
+  explicit atoms — K3's exponent; how does question-yield scale with |M|). The most
+  striking correspondence: West's **companies die, cities don't** — bounded closed
+  systems scale sublinearly toward stagnation while open-networked ones scale
+  superlinearly — is the halting-duals thesis with fifty years of data behind it: a
+  closed Arisbe crystallizes or evaporates; an open-membraned one with growing sensor
+  and action spaces is city-shaped. The honest differentiator: West's laws emerge from
+  energy optimization under physical network constraints; whether *semiotic* networks
+  obey analogous constraints is a conjecture Arisbe is positioned to test, not assume.
+
 - **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
   Schmidhuber; Oudeyer & Kaplan).** The machine-learning face of the same loop. The **TD
   error** — the delta between expected and experienced — is the doubt-delta exactly, and
@@ -266,6 +284,58 @@ instructive as the agreements. The design consequences live in
 *Confidence note: the mappings above are the project's own readings (2026-07-17, assistant-
 drafted, author-reviewed), made at the level of structural role — no claim is made that any
 of these programs influenced Arisbe's design or vice versa.*
+
+---
+
+## From concordance to measure — knowledge quantified
+
+*(Graduated from the design-of-record 2026-07-19, by the author's ruling; drafted by the
+assistant from the author's seeds and ratified 2026-07-17/19. Everything below is
+checkable against running instruments — the section makes no claim an instrument cannot
+compute.)*
+
+The concordances above converge on one operational definition, seeded by the author's
+own earlier formulation — *"knowledge exists when someone reliably does something
+(thinks, speaks, acts) that works"* — revised into Arisbe's vocabulary as: **knowledge
+is the resident content of a model M whose habits reliably mediate its membrane's
+deliverances, always indexed to the horizon within which the record was earned.** It is
+quantified as a four-component vector, each component with a running instrument:
+
+- **K1 — severity-weighted track record**: reliable success on tests that could have
+  refuted (`PredictionLedger` × the attention economy's severity term). The worked case:
+  Fermat's conjecture, five confirmations deep, was never knowledge — it had not been
+  tested where it could fail, and at F5 it died (the rung-1 exemplar, Euler 1732
+  recapitulated by attention in six rounds).
+- **K2 — durability** under continued revision pressure (the meta-learning stick-rates,
+  decay-aware) — with a **modal reading** off the branching history: K2□ (durable on
+  every reachable trajectory) vs K2◇ (durable on some), computed by
+  `modal_query.durability_modality`.
+- **K3 — compression**: how much of the deliverance stream the laws derive
+  (`model_materialization.materialization_ratio`, with unevaluable laws weighing the
+  denominator — no credit without evaluable evidence).
+- **K4 — use**: the habit exercised (atom-level disuse-decay — the operational form of
+  "knowledge exists only while it works").
+
+Three guards are part of the measure's definition, not afterthoughts: **never truth**
+(the record self-certifies warranted reliability in context — the same posture as the
+correspondence invariant, which attests correspondence, not truth); **never a target**
+(a knowledge-score optimized directly Goodharts; it is an instrument); and **never a
+scalar over agents** (the components stay a vector over knowledge-items and models —
+an aggregate ranking of *inquirers* would rebuild the worth-ladder the project's
+Fidelity examinations dissolved; competence ≠ worth is a category-fact).
+
+The measure is **scale-transportable**, which cashes out the author's observation that
+knowledge has a fractal structure: the same doubt → test → dispose → decay cycle runs
+at the level of the atom, the law, the model, the mechanism (knowledge about
+knowledge-formation, with its own stick-rates), and the project itself (the
+pre-registered-priors run discipline) — one ledger shape at every scale, with the drawn
+syntax mirroring it (cuts within cuts, cells within the world-scroll, quotation ovals
+within cells) and the conservativity gate guaranteeing no level corrupts the one
+beneath. The recursion runs *inside* a single evaluation too (the endoporeutic game
+plays sub-games at every nested context), *across time* (the history's branches are
+parallel chains of the same cycle), and — prospectively — *socially* (communities of
+such systems modeling each other). A recursion with a floor and a discipline, which
+natural fractals lack.
 
 ---
 
@@ -317,7 +387,7 @@ Research Programmes* · von Uexküll, *A Foray into the Worlds of Animals and Hu
 Hoffmeyer, *Biosemiotics* (2008) · Maturana & Varela, *Autopoiesis and Cognition* (1980) ·
 Alchourrón, Gärdenfors & Makinson, *On the logic of theory change* (JSL 1985) · Doyle, *A
 Truth Maintenance System* (AIJ 1979) · de Kleer, *An Assumption-based TMS* (AIJ 1986) ·
-Schmidhuber, *Formal Theory of Creativity, Fun, and Intrinsic Motivation* (2010) · Oudeyer &
+West, *Scale* (2017) · Bettencourt et al., *Growth, innovation, scaling, and the pace of life in cities* (PNAS 2007) · Schmidhuber, *Formal Theory of Creativity, Fun, and Intrinsic Motivation* (2010) · Oudeyer &
 Kaplan, *What is intrinsic motivation?* (2007).
 
 *Confidence note: "no prior art found" means absence in a focused web survey, not proof of

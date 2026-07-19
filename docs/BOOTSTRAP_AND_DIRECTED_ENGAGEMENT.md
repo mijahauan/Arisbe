@@ -321,16 +321,17 @@ exemplar earns it.
 
 ## 5 · Named decisions for the author
 
-1. **Ratify or amend the economy-of-research framing** (§2b) as the design spine for
-   action selection — it is the assistant's reading of how Peirce 1879 maps onto active
-   learning, and it will steer rung 1's scoring rule.
+1. **The economy-of-research framing** (§2b) — ✅ RATIFIED 2026-07-19 (and evidenced:
+   rung 1's S1 result is the framing doing its work — severity bought the Fermat
+   refutation).
 2. **Rung-1 authorization** — after RUN 12 disposes (the frontier-feedback edge would
    naturally be evidenced by a run; a RUN 13 candidate).
 3. **Rung 2's outward-facing ethics** — pushing back on a shared source needs its own
    design pass before any build; decide when (if ever) to open that file.
-4. **Glossary loanwords** — whether Umwelt / functional circle (the biosemiotic reading
-   of the membrane and the loop, see
-   [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances") enter
-   [GLOSSARY.md](GLOSSARY.md), or stay confined to the concordance chapter.
+4. **Glossary loanwords** — ✅ RULED 2026-07-19: Umwelt / functional circle stay
+   well-described **concordances** (light-shedding, not house vocabulary). Instead,
+   the membrane-and-loop unit gets a **native name and description carrying the
+   fractal understanding** (it recurs in semiotic processes at many levels) — the
+   naming thread is open, candidates under the author's review.
 5. **The reflexive UoD** (§4, deferred) — revisit once rung 1 or the next run gives the
    posit something new to be tested against.
