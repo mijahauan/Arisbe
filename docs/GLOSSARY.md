@@ -235,7 +235,7 @@ registered, a model revised, a hypothesis held).
 assertion.
 
 ### Kytos (the semiotic cell)
-**Kytos** (κύτος, *vessel* — the root of "cell"; plural *kytoi*) — the recurring unit of
+**Kytos** (κύτος, *vessel* — the root of "cell"; plural **kytē** (κύτη, third-declension neuter — as pathos → pathē)) — the recurring unit of
 doubt-driven semiosis: a membrane (which both bounds and animates), an interior model M, the
 doubt→probe→test→dispose→decay loop, a horizon of the not-yet-legible, and a budget with its
 rates. One anatomy at many scales — atom, law, model, mechanism, project, person-model,

@@ -49,7 +49,7 @@ every sign). The kytos is the anatomy; the quasi-mind is the inhabitant.
 view — but the monad is *windowless*, and the kytos is all windows: nothing in it
 exists except by traffic across its membrane. The kytos is the anti-monad.
 
-## 2 · Kytoi all the way up — the fractal instantiation
+## 2 · Kytē all the way up — the fractal instantiation
 
 One anatomy, many scales; each level already met in the record:
 
@@ -84,12 +84,12 @@ blank. Only the membrane keeps it alive — Peircean Secondness institutionalize
 
 ## 4 · The quantitative frontier (West)
 
-If kytoi share one anatomy across scales, their aggregates should exhibit
+If kytē share one anatomy across scales, their aggregates should exhibit
 **discoverable scaling relations** (the author's *Scale* pointer): deliverance
 throughput as metabolism, the membrane hierarchy as the distribution network, decay as
 turnover. Empirical questions the run corpus can already ask, none yet answered: the
 K3 exponent (derived atoms vs explicit atoms across runs); question-yield vs |M|;
-whether open-membraned kytoi scale superlinearly (city-shaped) while closed
+whether open-membraned kytē scale superlinearly (city-shaped) while closed
 configurations stagnate (company-shaped, mortal — West's companies-die-cities-don't
 as the halting theorems with data). Conjecture until measured — see §5.
 
