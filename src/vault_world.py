@@ -380,6 +380,17 @@ class VaultWorld:
         return entries, flagged
 
     def journal_facts(self, relpath: str) -> str:
+        """**Whole-file journal reader** — every entry in one conjunction.
+
+        Kept as a compatibility reader (existing tests, one-shot inspection);
+        at real-vault scale it is unaffordable AND unwieldy (F3¹³, RUN 13): a
+        1,583-entry journal (~2.4MB) priced its single want at ``probe_cost``
+        ≈120 — no round's attention budget ever chose it next to any 1-cost
+        scan want, so the journal never got read — and one 1,583-entry
+        conjunction is a bad layout unit regardless. The feed path is
+        :meth:`journal_facts_batches` (via :meth:`_journal_entry_batches`),
+        one affordable want per ≤40-entry batch.
+        """
         entries, _flagged = self.journal_entries(relpath)
         atoms: List[str] = []
         for event_date, line_no, n_lines in entries:
@@ -388,6 +399,44 @@ class VaultWorld:
             atoms.append(f'(entry_date "{eid}" "{event_date}")')
             atoms.append(f'(entry_lines "{eid}" "{n_lines}")')
         return " ".join(atoms)
+
+    def _journal_entry_batches(
+        self, relpath: str, batch_size: int = 40
+    ) -> List[Tuple[str, int]]:
+        """Groups ``relpath``'s entries into batches of at most ``batch_size``,
+        each rendered to its own parseable EGIF conjunction (the batch's
+        ``journal_entry``/``entry_date``/``entry_lines`` atoms) alongside its
+        **line-span** (the last line the batch's entries cover minus the
+        first) — the feed's affordable per-batch cost proxy (F3¹³), the same
+        shape as :meth:`probe_cost`'s byte-based formula but for a batch that
+        has no file size of its own. One call to :meth:`journal_entries`
+        (one file read) regardless of how many batches result; batches cover
+        every entry exactly once, in file order."""
+        entries, _flagged = self.journal_entries(relpath)
+        out: List[Tuple[str, int]] = []
+        for i in range(0, len(entries), batch_size):
+            group = entries[i:i + batch_size]
+            atoms: List[str] = []
+            for event_date, line_no, n_lines in group:
+                eid = self._bounded(f"{relpath}#L{line_no}")
+                atoms.append(f'(journal_entry "{eid}")')
+                atoms.append(f'(entry_date "{eid}" "{event_date}")')
+                atoms.append(f'(entry_lines "{eid}" "{n_lines}")')
+            first_line = group[0][1]
+            last_date, last_line_no, last_n = group[-1]
+            span = (last_line_no + last_n) - first_line
+            out.append((" ".join(atoms), span))
+        return out
+
+    def journal_facts_batches(self, relpath: str, batch_size: int = 40) -> List[str]:
+        """**Batched journal reader** (F3¹³, RUN 13): ``relpath``'s entries
+        split into groups of at most ``batch_size``, each its own parseable
+        EGIF conjunction — batches cover every entry exactly once, in file
+        order. Where :meth:`journal_facts` prices and emits the whole file as
+        one unaffordable, unwieldy unit, this is what the feed wants
+        instead: one small, affordable want per batch (see
+        :meth:`VaultFeed._seed`)."""
+        return [text for text, _span in self._journal_entry_batches(relpath, batch_size)]
 
     def journal_horizon_items(self, round_idx: int) -> List[HorizonItem]:
         out: List[HorizonItem] = []
@@ -434,6 +483,9 @@ class VaultFeed(ProbeDirectedFeedBase):
         self._scanned_dirs: set = set()   # top dirs whose scan want has executed
         self._read_notes: set = set()     # relpaths whose read want has executed
         self._link_targets: set = set()   # note ids seen as a `links` target so far
+        # relpath -> batch texts, computed once at seed time (F3¹³) so each
+        # journal want's _execute is a plain lookup, not a re-read/re-split.
+        self._journal_batches: Dict[str, List[str]] = {}
 
     # -- intake -----------------------------------------------------------------
     def _seed(self, round_idx: int):
@@ -441,11 +493,22 @@ class VaultFeed(ProbeDirectedFeedBase):
             self._economy.register(Want(
                 kind="scan", key=("scan", top), payload=top,
                 cost=1.0, created_round=round_idx))
+        # F3¹³ (RUN 13): one journal want per BATCH, not per file — a real
+        # journal (~1,583 entries, ~2.4MB) priced as a single want costs
+        # ~120, unaffordable next to any 1-cost scan want, so it never got
+        # read; batching also keeps each want's emission a reasonable layout
+        # unit. Batches are computed once here (one file read); severity
+        # stays 8.0 so the author's own datelined voice still outranks
+        # generic listing, batch by batch.
         for relpath in self._world.journal_paths():
-            self._economy.register(Want(
-                kind="journal", key=("journal", relpath), payload=relpath,
-                cost=self._world.probe_cost(relpath), severity=8.0,
-                created_round=round_idx))
+            batches = self._world._journal_entry_batches(relpath)
+            self._journal_batches[relpath] = [text for text, _span in batches]
+            for idx, (_text, span) in enumerate(batches):
+                self._economy.register(Want(
+                    kind="journal", key=("journal", relpath, idx),
+                    payload=(relpath, idx),
+                    cost=1.0 + span / 20_000, severity=8.0,
+                    created_round=round_idx))
         # Attachments and malformed journal date-lines never become facts —
         # they're registered to the horizon once, at seed time, where they
         # wait to be re-attempted as legibility improves in a later stage.
@@ -489,7 +552,10 @@ class VaultFeed(ProbeDirectedFeedBase):
             self._link_targets.update(_LINKS_FACT_RE.findall(facts))
             return facts or None
         elif w.kind == "journal":
-            return self._world.journal_facts(w.payload) or None
+            relpath, idx = w.payload
+            batch = self._journal_batches.get(relpath, [])
+            text = batch[idx] if 0 <= idx < len(batch) else None
+            return text or None
         else:
             return None
 

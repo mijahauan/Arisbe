@@ -113,6 +113,93 @@ class TestJournal:
         assert f"{self.OLD}#L1" in old_ids
 
 
+class TestJournalBatching:
+    """F3¹³ (RUN 13's third finding): the real journal (~1,583 entries,
+    ~2.4MB) priced as ONE want costs ``probe_cost`` ≈120 — no round's budget
+    ever chose it next to any 1-cost scan want, so ``journal_entries: 0`` on
+    the real vault. And one 1,583-entry conjunction is a bad layout unit
+    regardless. Fix: batch the journal into ≤40-entry conjunctions, one
+    affordable want per batch."""
+
+    def _make_journal(self, tmp_path, n_entries, lines_per_entry=3):
+        lines = []
+        for i in range(n_entries):
+            year = 2000 + (i % 90)
+            month = (i % 12) + 1
+            day = (i % 28) + 1
+            lines.append(f"{year:04d}-{month:02d}-{day:02d}")
+            for j in range(lines_per_entry):
+                lines.append(f"entry body line {j}")
+        text = "\n".join(lines) + "\n"
+        d = tmp_path / "Personal"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "Journal.md").write_text(text)
+        return "Personal/Journal.md"
+
+    def test_batches_parse_and_cover_every_entry_exactly_once(self, tmp_path):
+        relpath = self._make_journal(tmp_path, 97)
+        w = VaultWorld(tmp_path)
+        whole_entries, _flagged = w.journal_entries(relpath)
+        batches = w.journal_facts_batches(relpath, batch_size=40)
+        assert len(batches) == 3   # 40 + 40 + 17
+
+        seen = []
+        for b in batches:
+            parse_egif(b)          # every batch is independently parseable
+            seen += re.findall(r'\(journal_entry "([^"]+)"\)', b)
+        assert len(whole_entries) == 97
+        assert len(seen) == 97
+        assert len(set(seen)) == 97       # no duplicates, none missing
+
+    def test_small_journal_batches_to_a_single_batch(self):
+        # the vault fixture's journal (4 entries) fits in one batch — the
+        # batched and whole-file readers agree on content.
+        w = VaultWorld(FIX)
+        batches = w.journal_facts_batches(TestJournal.MAIN)
+        assert len(batches) == 1
+        whole = w.journal_facts(TestJournal.MAIN)
+        parse_egif(batches[0])
+        eids_batch = set(re.findall(r'\(journal_entry "([^"]+)"\)', batches[0]))
+        eids_whole = set(re.findall(r'\(journal_entry "([^"]+)"\)', whole))
+        assert eids_batch == eids_whole
+
+    def test_per_batch_cost_is_affordable(self, tmp_path):
+        # the real fixture journal (tiny) ...
+        w = VaultWorld(FIX)
+        for _text, span in w._journal_entry_batches(TestJournal.MAIN):
+            assert 1.0 + span / 20_000 < 10
+        # ... and a synthetic ~200-line journal.
+        relpath = self._make_journal(tmp_path, 60, lines_per_entry=2)
+        w2 = VaultWorld(tmp_path)
+        for _text, span in w2._journal_entry_batches(relpath):
+            assert 1.0 + span / 20_000 < 10
+
+    def test_feed_registers_one_affordable_want_per_batch(self, tmp_path):
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultFeed
+        relpath = self._make_journal(tmp_path, 97)
+        w = VaultWorld(tmp_path)
+        feed = VaultFeed(w, AttentionEconomy(), horizon=Horizon())
+        feed._seed(1)
+        journal_wants = [w2 for w2 in feed._economy.wants() if w2.kind == "journal"]
+        assert len(journal_wants) == 3
+        assert all(want.cost < 10 for want in journal_wants)
+        assert all(want.severity == 8.0 for want in journal_wants)
+        assert {want.key[2] for want in journal_wants} == {0, 1, 2}   # batch_idx
+
+    def test_fixture_drive_reads_journal_within_first_rounds(self):
+        from probe_feed import _model_signature
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultFeed
+        feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+        res = run('(even "0")', feed, rounds=10, uod_id="vault_journal_batch",
+                  name="journal batching drive")
+        atoms, _ncuts = _model_signature(res.uod.current_egi)
+        journal_entries = sum(1 for rel, _labels in atoms if rel == "journal_entry")
+        assert journal_entries > 0
+
+
 class TestFeed:
     def _feed(self):
         from attention_economy import AttentionEconomy, Horizon

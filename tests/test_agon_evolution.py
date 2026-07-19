@@ -9,7 +9,8 @@ fed its own proposals it *reproduces the hand-played swan trajectory*
 import pytest
 
 from egif_parser_dau import parse_egif
-from eg_navigation import same_graph
+from egif_generator_dau import generate_egif
+from eg_navigation import area_of, same_graph
 from semantic_game import Verdict3
 
 from agon_evolution import (
@@ -212,6 +213,58 @@ def test_decay_records_the_faded_flavor():
     for s in decay_steps:
         assert s.parameters["flavor"] == "pruned:disuse"
         assert s.parameters["derivation"] == ["ERA"]
+
+
+def test_decay_falls_back_honestly_on_a_round_tripped_resident_model():
+    """F2¹³ (RUN 13, segment 2): the real driver's segment carry round-trips M
+    through ``generate_egif``/``parse_egif`` between segments. Per
+    ``world_scroll``'s own documented accommodation, that round-trip shares an
+    identical constant across sibling cells into ONE vertex — here "Rex",
+    argument of both ``(bird "Rex")`` (its own cell) and ``(white "Rex")`` (a
+    sibling cell). Decaying ``bird`` first leaves the shared vertex orphaned
+    in a cell with no edge left in it; decaying ``white`` next used to raise
+    ``AssertionError`` out of the licensed per-cell ERA (``world_scroll.
+    retract_from_m`` → ``proof_authoring.apply_rule``) — RUN 13's crash. The
+    fix falls back to an honest unlicensed structural erasure
+    (``derivation: []``) instead of crashing the run."""
+    from world_scroll import wrap_m, enlarge_m, find_world_scroll
+
+    seed, _ = wrap_m(parse_egif('(bird "Rex")'))
+    seed = enlarge_m(seed, '(white "Rex")')
+    seed_egif = generate_egif(seed)
+    round_tripped = parse_egif(seed_egif)
+
+    # Confirm the shared-constant condition the round-trip induces: the two
+    # atoms' argument vertex is literally the same vertex, but the atoms sit
+    # in two different (sibling) cells.
+    scroll = find_world_scroll(round_tripped)
+    assert len(scroll.cell_ids) == 2
+    bird_edge = next(e for e in round_tripped.E
+                      if round_tripped.rel.get(e.id) == "bird")
+    white_edge = next(e for e in round_tripped.E
+                       if round_tripped.rel.get(e.id) == "white")
+    assert round_tripped.nu[bird_edge.id] == round_tripped.nu[white_edge.id]
+    assert area_of(round_tripped, bird_edge.id) != area_of(round_tripped, white_edge.id)
+
+    # ttl=1 with a single unrelated proposal makes both seeded atoms stale in
+    # round 1 — sorted decay order retracts "bird" before "white" (lexical),
+    # reproducing the exact failing sequence.
+    res = run(seed_egif, CorpusProposer(['(rumor "Q")']), rounds=1, ttl=1,
+              uod_id="f2_13", name="f2-13")
+
+    decayed = {k for o in res.outcomes for k in o.decayed}
+    assert atom_key("bird", ["Rex"]) in decayed
+    assert atom_key("white", ["Rex"]) in decayed
+
+    decay_steps = [s for s in res.chain.steps if s.rule_name == "DECAY"]
+    assert len(decay_steps) == 2
+    # every decay step carries an acknowledged act (the m_view tripwire) ...
+    for s in decay_steps:
+        assert s.parameters.get("act") == "m_retraction"
+    # ... and at least one used the honest unlicensed fallback (F2¹³).
+    derivations = [s.parameters.get("derivation") for s in decay_steps]
+    assert ["ERA"] in derivations
+    assert [] in derivations
 
 
 def test_mutation_membrane_finds_supported_subsumptions_only():
