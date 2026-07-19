@@ -35,8 +35,8 @@ from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from oracle_notes import (                           # noqa: E402
     DEFAULT_BUDGET, OracleLedger, candidates_from_run, conjectures_section,
-    note_substantially_answered, parse_note, render_note, seal,
-    select_within_budget,
+    note_substantially_answered, parse_note, reask_candidate, render_note,
+    seal, select_within_budget,
 )
 from probe_feed import _model_signature              # noqa: E402
 from tomos_service import TomosService               # noqa: E402
@@ -104,6 +104,12 @@ FIXTURE_ROOT = (
     Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "vorago_fixture"
 )
 
+ASKED_WINDOW_NOTES = 6
+"""Docket item 11, charge 1: the driver's default ``asked_ever`` window — a
+question asked within the last 6 distinct note dates stays suppressed; older
+than that it becomes re-eligible (spec thesis 3: silence lowers priority,
+never deletes)."""
+
 
 def _decade_counts(atoms) -> dict:
     """``(entry_date "eid" "YYYY-MM")`` sheet atoms, bucketed by decade — counts
@@ -118,17 +124,21 @@ def _decade_counts(atoms) -> dict:
     return dict(sorted(counts.items()))
 
 
-def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
+def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy,
+            feed: Optional[VaultFeed] = None) -> dict:
     """Aggregate counts only — reused from ``probe_feed._model_signature`` (the
     same sheet-atom reading the round loop itself uses) rather than re-deriving
-    a second atom walk. No id/title/path ever appears in the return value."""
+    a second atom walk. No id/title/path ever appears in the return value.
+    Docket item 11, charge 4: ``m_added``/``m_removed`` (the feed's cumulative
+    added/removed atom split for this segment — churn under ttl decay, which
+    the standing totals alone hide) when a ``feed`` is passed."""
     atoms, cuts = _model_signature(model_egi)
     tally = Counter(rel for rel, _labels in atoms)
     # F1¹³ invariant, observable: the longest constant that actually entered M
     # (must stay ≤ vault_world._MAX_CONST or the layout occlusions return).
     max_const = max(
         (len(lab) for _rel, labels in atoms for lab in labels if lab), default=0)
-    return {
+    out = {
         "m_atoms": len(atoms),
         "m_cuts": cuts,
         "max_const_len": max_const,
@@ -138,6 +148,10 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy) -> dict:
         "horizon": horizon.snapshot(),
         "ledger": economy.snapshot(),
     }
+    if feed is not None:
+        out["m_added"] = feed.added
+        out["m_removed"] = feed.removed
+    return out
 
 
 def _run_segment(
@@ -172,7 +186,7 @@ def _run_segment(
         existing.update(world.long_labels)
         sidecar.write_text(json.dumps(existing, indent=1, sort_keys=True))
 
-    digest = _digest(res.uod.current_egi, horizon, economy)
+    digest = _digest(res.uod.current_egi, horizon, economy, feed=feed)
     digest["digested_labels"] = len(world.long_labels)
     # M carries between segments as the graph itself (docket ④): EGIF cannot
     # express per-cell vertex privacy or a banked quotation's sort, so a text
@@ -200,8 +214,13 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
        (possibly author-edited) budget knob. A previous note that is not yet
        substantially answered (and hasn't been waved off by deletion) blocks
        a new note this cycle.
-    3. Build candidates (suppressing anything the ledger has ever asked),
-       budget-select, render, write, and record each asked question.
+    3. Build candidates (suppressing anything the ledger asked within the
+       last ``ASKED_WINDOW_NOTES`` distinct note dates — docket item 11:
+       older questions become re-eligible, never deleted), append at most
+       one drift re-ask (``reask_candidate`` — an early answered question
+       repeated verbatim; a changed answer is counted as ``drift_data``),
+       budget-select, render, write, and record each asked question (text
+       included, so a later re-ask stays verbatim).
 
     Docket item 8: a per-question nonce is generated once, at
     candidate-selection time (``nonce_factory``, injectable for deterministic
@@ -239,6 +258,7 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     budget = dict(DEFAULT_BUDGET)
     reveals: List[dict] = []
     answers_recorded = 0
+    drift_data = 0
 
     prior = sorted(oracle_dir.glob("Questions-*.md"))
     if prior:
@@ -252,9 +272,18 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         # partially answered gets re-polled on every invocation, and without
         # dedup each re-poll would re-append the same row and pollute the
         # ledger — see oracle_notes.OracleLedger.record_outcome_once.
+        # Docket item 11 (drift): an answer that CHANGED from a previously
+        # recorded answer for the same qid (the drift re-ask's whole point,
+        # though any hand-edited answer counts too) appends a new row —
+        # counted here as drift_data; the first row stays intact.
         for qid, answer in parsed.answers.items():
+            had_prior_answer = any(
+                o["qid"] == qid and o["status"] == "answered"
+                for o in ledger.outcomes())
             if ledger.record_outcome_once(qid, "answered", answer, note_date):
                 answers_recorded += 1
+                if had_prior_answer:
+                    drift_data += 1
         for qid in parsed.declined:
             if ledger.record_outcome_once(qid, "declined", "declined", note_date):
                 answers_recorded += 1
@@ -268,7 +297,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         if not note_substantially_answered(parsed):
             print("oracle: previous note awaits answers — no new note")
             return {"questions_written": 0, "reveals": len(reveals),
-                    "answers_recorded": answers_recorded}
+                    "answers_recorded": answers_recorded,
+                    "drift_data": drift_data}
 
     note_path = oracle_dir / f"Questions-{note_date}.md"
     if note_path.exists():
@@ -277,23 +307,39 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         # overwrite it — the ledger stays untouched for this skipped write.
         print("oracle: today's note already exists - not overwriting")
         return {"questions_written": 0, "reveals": len(reveals),
-                "answers_recorded": answers_recorded}
+                "answers_recorded": answers_recorded,
+                "drift_data": drift_data}
 
+    # One rng for the whole cycle (injectable; fresh unseeded is the real
+    # default): the P2^13 shuffle AND the two-option order alternation
+    # (docket item 11, charge 3) both draw from it, so the live driver's
+    # question wording never carries the forecast as a fixed first option.
+    r = rng if rng is not None else random.Random()
     if p213:
         docket = EconomyDocket(economy) if economy is not None else None
         candidates = candidates_from_run(world, horizon, list(res.known_laws),
-                                          world.labels(), docket=docket, rng=rng)
+                                          world.labels(), docket=docket, rng=r)
     else:
         candidates = candidates_from_run(world, horizon, list(res.known_laws),
-                                          world.labels())
-    candidates = [c for c in candidates if not ledger.asked_ever(c.qid)]
+                                          world.labels(), rng=r)
+    # Docket item 11, charge 1: a 6-note window, not forever-suppression.
+    candidates = [c for c in candidates
+                  if not ledger.asked_ever(
+                      c.qid, within_last_n_notes=ASKED_WINDOW_NOTES)]
+    # The drift re-ask: at most ONE early answered question, verbatim from
+    # the ledger's stored text (reask_candidate caps and chooses); dedup by
+    # qid in case the window already made the same question re-eligible.
+    reask = reask_candidate(ledger)
+    if reask is not None and all(c.qid != reask.qid for c in candidates):
+        candidates.append(reask)
     selected = select_within_budget(candidates, budget)
 
     if not selected:
         # Review-mandated guard: never write a note with zero questions.
         print("oracle: no questions this cycle")
         return {"questions_written": 0, "reveals": len(reveals),
-                "answers_recorded": answers_recorded}
+                "answers_recorded": answers_recorded,
+                "drift_data": drift_data}
 
     conjectures = conjectures_section(list(res.known_laws), res.discoveries)
     nonces = {c.qid: nonce_factory() for c in selected}
@@ -306,11 +352,11 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         nonce = nonces[c.qid]
         ledger.record_asked(note_date, c.qid, c.tier, c.forecast,
                              seal(c.forecast, nonce), nonce=nonce,
-                             arm=c.arm, segment=segment)
+                             arm=c.arm, segment=segment, text=c.text)
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
     return {"questions_written": len(selected), "reveals": len(reveals),
-            "answers_recorded": answers_recorded}
+            "answers_recorded": answers_recorded, "drift_data": drift_data}
 
 
 def main(argv=None) -> int:

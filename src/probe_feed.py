@@ -97,6 +97,15 @@ class ProbeDirectedFeedBase:
         # above) is silently dropped rather than credited or refused.
         self._purse = purse
         self.spent: float = 0.0
+        # Docket item 11, charge 4: the added/removed split of the model
+        # delta. ``events`` (the economy's yield signal) is their sum plus
+        # the cut delta and is unchanged; these cumulative counters make the
+        # churn visible — under ttl decay atoms enter AND leave each segment
+        # while the standing total sits still. Counted on every observation
+        # (whether or not a want was chosen that round: decay is the loop's
+        # act, not the feed's).
+        self.added: int = 0     # atoms present now that were absent at the last observation
+        self.removed: int = 0   # atoms absent now that were present at the last observation
 
     # -- world hooks ---------------------------------------------------------
     def _seed(self, round_idx: int) -> None: ...
@@ -108,13 +117,22 @@ class ProbeDirectedFeedBase:
         if self._purse is not None and self.spent >= self._purse:
             return None      # the purse is spent — the membrane is exhausted
         sig = _model_signature(model)
-        if self._prev_sig is not None and self._last_chosen:
+        if self._prev_sig is not None:
             prev_atoms, prev_cuts = self._prev_sig
             atoms, cuts = sig
-            # round-granular: the full delta credits every chosen want's kind
-            events = len(atoms ^ prev_atoms) + abs(cuts - prev_cuts)
-            self._economy.observe(round_idx, [(w, events) for w in self._last_chosen])
-            self._last_chosen = []
+            added = len(atoms - prev_atoms)
+            removed = len(prev_atoms - atoms)
+            self.added += added
+            self.removed += removed
+            if self._last_chosen:
+                # round-granular: the full delta credits every chosen want's
+                # kind; added + removed == len(atoms ^ prev_atoms), so the
+                # economy's yield signal is byte-identical to the old
+                # symmetric diff.
+                events = added + removed + abs(cuts - prev_cuts)
+                self._economy.observe(round_idx,
+                                      [(w, events) for w in self._last_chosen])
+                self._last_chosen = []
         self._prev_sig = sig
 
         if not self._queue:

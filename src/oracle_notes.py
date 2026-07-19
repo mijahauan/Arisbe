@@ -130,17 +130,35 @@ def _decode(decode: Dict[str, str], key: str, fallback: str) -> str:
     return decode.get(key, fallback)
 
 
-def _provenance_candidates(world, decode: Dict[str, str]) -> List[QuestionCandidate]:
+def _two_options(first: str, second: str, rng) -> Tuple[str, str]:
+    """Docket item 11, charge 3 (the question-neutrality rider): a two-option
+    template used to embed the forecast as the FIRST-listed option — a
+    constant positional tell. With an injected ``rng`` the order is
+    seed-alternated (one ``rng.random()`` draw per question); ``rng=None``
+    keeps the historical canonical order, so direct library callers are
+    byte-identical."""
+    if rng is not None and rng.random() < 0.5:
+        return second, first
+    return first, second
+
+
+def _provenance_candidates(world, decode: Dict[str, str],
+                            rng=None) -> List[QuestionCandidate]:
     """Up to 3 notes bucketed ``collected_prior`` (top dir == ``Clippings``):
-    is this the author's own writing, or something collected from elsewhere?"""
+    is this the author's own writing, or something collected from elsewhere?
+    Option order seed-alternated via ``rng`` (:func:`_two_options`); the
+    forecast stays ``"collected"`` regardless of which option is listed
+    first."""
     out: List[QuestionCandidate] = []
     clippings = [n for n in world.notes() if world._top_dir(n) == "Clippings"][:3]
     for relpath in clippings:
         nid = world.note_id(relpath)
         path = _decode(decode, nid, relpath)
+        opt_a, opt_b = _two_options(
+            "collected from elsewhere", "your own writing", rng)
         out.append(QuestionCandidate(
             qid=f"prov:{nid}", tier="quick",
-            text=f"Is `{path}` collected from elsewhere, or your own writing?",
+            text=f"Is `{path}` {opt_a}, or {opt_b}?",
             why="its folder reads as a collected-prior bucket (Clippings), "
                 "worth confirming rather than assuming",
             settles="whether this note counts as the author's own authored "
@@ -150,9 +168,13 @@ def _provenance_candidates(world, decode: Dict[str, str]) -> List[QuestionCandid
     return out
 
 
-def _multi_journal_candidates(world, decode: Dict[str, str]) -> List[QuestionCandidate]:
+def _multi_journal_candidates(world, decode: Dict[str, str],
+                               rng=None) -> List[QuestionCandidate]:
     """When more than one journal-shaped file exists, one question per extra
-    file (up to 2, beyond the first/main): genuine journal, or a fragment/copy?"""
+    file (up to 2, beyond the first/main): genuine journal, or a fragment/copy?
+    Option order seed-alternated via ``rng`` (:func:`_two_options`); the
+    forecast stays ``"fragment"`` regardless of which option is listed
+    first."""
     paths = world.journal_paths()
     if len(paths) <= 1:
         return []
@@ -162,10 +184,11 @@ def _multi_journal_candidates(world, decode: Dict[str, str]) -> List[QuestionCan
     for relpath in paths[1:3]:
         nid = world.note_id(relpath)
         path = _decode(decode, nid, relpath)
+        opt_a, opt_b = _two_options(
+            "a genuine journal", f"a fragment/copy of `{main_decoded}`", rng)
         out.append(QuestionCandidate(
             qid=f"journal:{nid}", tier="quick",
-            text=f"Is `{path}` a genuine journal, or a fragment/copy of "
-                 f"`{main_decoded}`?",
+            text=f"Is `{path}` {opt_a}, or {opt_b}?",
             why="more than one journal-shaped file exists; only one should "
                 "carry the standing event-time record",
             settles="whether this file's entries double-count against the "
@@ -360,7 +383,11 @@ def candidates_from_run(world, horizon, known_laws: List[str], labels: dict,
     (skip horizon questions entirely — no crash) in the non-docket path.
     ``rng`` is the injectable seeded ``random.Random`` (deterministic tests);
     ``None`` with a docket present falls back to a fresh, unseeded
-    ``random.Random()`` — the real (non-test) default."""
+    ``random.Random()`` — the real (non-test) default. In the non-docket
+    (V2a.1) path, ``rng`` seed-alternates the two-option order of the
+    provenance/journal templates (docket item 11, charge 3 — the forecast
+    must not always sit first-listed); ``rng=None`` there keeps the
+    historical canonical order, byte-identical for existing callers."""
     decode = _decode_map(world, labels)
     out: List[QuestionCandidate] = []
     if docket is not None:
@@ -368,8 +395,8 @@ def candidates_from_run(world, horizon, known_laws: List[str], labels: dict,
         r = rng if rng is not None else _random_mod.Random()
         out.extend(_p213_candidates(world, docket, r))
     else:
-        out.extend(_provenance_candidates(world, decode))
-        out.extend(_multi_journal_candidates(world, decode))
+        out.extend(_provenance_candidates(world, decode, rng=rng))
+        out.extend(_multi_journal_candidates(world, decode, rng=rng))
         out.extend(_horizon_candidates(horizon, decode))
     out.append(_writing_time_candidate())
     return out
@@ -608,12 +635,24 @@ _QBLOCK_RE = re.compile(
 )
 _RATING_VALUES = {"trivial", "non-trivial"}
 
+_DECLINE_MARKERS = frozenset({
+    "declined", "decline", "pass", "—", "-", "rather not",
+    "prefer not to say",
+})
+"""Docket item 11, charge 2: the recognized decline synonyms. Matched after
+strip / ``rstrip(".")`` / casefold, so ``"Declined."``, ``"Pass."``, ``"—"``
+all read as a decline — a refusal's own wording must never be banked verbatim
+as an answer (and hence never reprinted in a later note's Reveals). A genuine
+answer that merely *contains* a marker word is untouched: the whole normalized
+answer must BE a marker, not include one."""
+
 
 def parse_note(text: str) -> ParsedNote:
     """Recover the author's edits from a rendered-then-edited note's raw
     markdown: the (possibly edited) budget knob, each question's answer text
     (non-empty), the set of declined qids (an ``**A:**`` line whose content,
-    stripped, reads ``declined`` case-insensitively), the set of ignored
+    after strip / ``rstrip(".")`` / casefold, is one of the
+    ``_DECLINE_MARKERS`` synonyms — never banked as answer text), the set of ignored
     qids (an ``**A:**`` line left empty), each qid's ``**R:**`` rating
     (docket item 10 — only ``trivial``/``non-trivial`` count; anything else,
     including the unedited placeholder, is unrated and simply absent from
@@ -645,7 +684,7 @@ def parse_note(text: str) -> ParsedNote:
         answer = qm.group("answer").strip()
         if not answer:
             ignored.add(qid)
-        elif answer.lower() == "declined":
+        elif answer.rstrip(".").casefold() in _DECLINE_MARKERS:
             declined.add(qid)
         else:
             answers[qid] = answer
@@ -738,16 +777,21 @@ class OracleLedger:
     def record_asked(self, note_date: str, qid: str, tier: str,
                       forecast_plain: str, forecast_hash: str,
                       nonce: str = "", arm: Optional[str] = None,
-                      segment: Optional[int] = None) -> None:
+                      segment: Optional[int] = None,
+                      text: str = "") -> None:
         """``arm``/``segment`` (docket item 10): the P2^13 instrument's arm
         (``"docket"``/``"random"``) and the segment the question was asked
         in — recorded ONLY here, never in the note itself. Both default
         ``None`` for every non-instrument candidate (existing call sites
-        need change nothing)."""
+        need change nothing). ``text`` (docket item 11): the question's
+        rendered wording, stored so a later drift re-ask
+        (:func:`reask_candidate`) can repeat it VERBATIM rather than
+        regenerate it; the empty default keeps legacy rows readable (a row
+        without text is simply never re-asked)."""
         self._append(self._forecasts_path, {
             "note_date": note_date, "qid": qid, "tier": tier,
             "forecast_plain": forecast_plain, "forecast_hash": forecast_hash,
-            "nonce": nonce, "arm": arm, "segment": segment,
+            "nonce": nonce, "arm": arm, "segment": segment, "text": text,
         })
 
     def record_outcome(self, qid: str, status: str, answer_text: str,
@@ -803,13 +847,30 @@ class OracleLedger:
     def ratings(self) -> List[dict]:
         return self._read_all(self._ratings_path)
 
-    def asked_ever(self, qid: str) -> bool:
-        """The standing-question suppressor: has this qid ever been asked
-        (in any note, any run)? Callers use this to drop a question — most
-        importantly the standing reflective one — from a fresh candidate
-        list once it has been asked at all, regardless of how it was
-        answered."""
-        return any(r["qid"] == qid for r in self._read_all(self._forecasts_path))
+    def asked_ever(self, qid: str,
+                    within_last_n_notes: Optional[int] = None) -> bool:
+        """The standing-question suppressor: has this qid been asked? With
+        ``within_last_n_notes=None`` (the default) the answer is the
+        historical forever-suppression — asked in any note, any run.
+
+        Docket item 11, charge 1: forever-suppression contradicted spec
+        thesis 3 ("wants age but persist; silence lowers priority, never
+        deletes") and made drift unmeasurable by design. An int ``N`` means
+        "asked within the last ``N`` **distinct note dates** recorded in
+        ``forecasts.jsonl``" — a qid whose LATEST asking sits in an older
+        note date reads ``False`` and becomes re-eligible. A qid never asked
+        at all is ``False`` either way."""
+        rows = [r for r in self._read_all(self._forecasts_path)
+                if r["qid"] == qid]
+        if not rows:
+            return False
+        if within_last_n_notes is None:
+            return True
+        all_dates = sorted({r["note_date"]
+                            for r in self._read_all(self._forecasts_path)})
+        window = set(all_dates[-within_last_n_notes:])
+        latest_asked = max(r["note_date"] for r in rows)
+        return latest_asked in window
 
     def outcomes(self) -> List[dict]:
         return self._read_all(self._outcomes_path)
@@ -851,6 +912,61 @@ class OracleLedger:
                 "verdict": verdict,
             })
         return reveals
+
+
+# -- the drift re-ask (docket item 11, charge 1) ----------------------------------
+
+
+def reask_candidate(ledger: "OracleLedger") -> Optional[QuestionCandidate]:
+    """Docket item 11's drift instrument: at most ONE early question re-asked
+    VERBATIM (the ``text`` stored in ``forecasts.jsonl`` when it was asked —
+    never regenerated from the world), so a changed answer becomes a measurable
+    drift datum (``record_outcome_once`` appends the changed answer as a new
+    outcome row; the first row stays intact).
+
+    Eligibility — all three must hold, or the qid is skipped:
+
+    * **aged**: at least 2 distinct note dates in ``forecasts.jsonl`` are
+      LATER than the qid's latest asking (so a re-ask resets its own clock —
+      the fresh forecasts row it produces makes the qid ineligible until two
+      more notes pass; the 1-per-note cap is this function returning at most
+      one candidate);
+    * **answered**: the qid has an ``"answered"`` outcome row (drift is a
+      *changed answer*; silence and declines have nothing to drift from);
+    * **verbatim-able**: the latest forecasts row stored a non-empty
+      ``text`` (a legacy pre-item-11 row did not — it is honestly skipped,
+      never reconstructed).
+
+    Among the eligible, the one whose latest asking is EARLIEST is chosen
+    ("one early question"), deterministic tie-break by qid. Returns ``None``
+    when nothing qualifies."""
+    forecasts = ledger.forecasts()
+    if not forecasts:
+        return None
+    all_dates = sorted({r["note_date"] for r in forecasts})
+    answered = {r["qid"] for r in ledger.outcomes()
+                if r["status"] == "answered"}
+    latest_row: Dict[str, dict] = {}
+    for r in forecasts:                      # file order; last write wins below
+        prev = latest_row.get(r["qid"])
+        if prev is None or r["note_date"] >= prev["note_date"]:
+            latest_row[r["qid"]] = r
+    eligible = [
+        r for r in latest_row.values()
+        if r["qid"] in answered
+        and r.get("text")
+        and len([d for d in all_dates if d > r["note_date"]]) >= 2
+    ]
+    if not eligible:
+        return None
+    row = min(eligible, key=lambda r: (r["note_date"], r["qid"]))
+    return QuestionCandidate(
+        qid=row["qid"], tier=row.get("tier", "quick"), text=row["text"],
+        why="asked before; re-asked verbatim to detect a changed answer "
+            "(drift)",
+        settles="whether the earlier answer still stands",
+        forecast=row["forecast_plain"], severity=3.5,
+    )
 
 
 # -- the P2^13 verdict (docket item 10) -------------------------------------------
@@ -939,5 +1055,5 @@ __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
     "select_within_budget", "DEFAULT_BUDGET", "ParsedNote", "parse_note",
     "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
-    "conjectures_section",
+    "conjectures_section", "reask_candidate",
 ]

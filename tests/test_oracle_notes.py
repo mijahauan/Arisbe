@@ -8,6 +8,8 @@ import json
 import random
 import re
 import sys
+
+import pytest
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Tuple
@@ -877,3 +879,295 @@ class TestP213DefaultOn:
                            note.read_text(encoding="utf-8"))
         assert any(q.startswith("prov:") for q in qids)
         assert not any(q.startswith("p213:") for q in qids)
+
+
+# --------------------------------------------------------------------------- #
+# Docket item 11 (Examination IV, panel C) — the oracle hardening quartet     #
+# --------------------------------------------------------------------------- #
+
+
+class TestAskedEverExpiry:
+    """Charge 1 (first half): ``asked_ever`` suppressed forever, contradicting
+    spec thesis 3 ("wants age but persist; silence lowers priority, never
+    deletes") and making drift unmeasurable BY DESIGN. The fix:
+    ``asked_ever(qid, within_last_n_notes=None)`` — ``None`` keeps the
+    forever-suppression; an int N means "asked within the last N distinct
+    note dates" (re-eligible after)."""
+
+    def test_default_none_keeps_forever_suppression(self, tmp_path):
+        # PIN of existing behavior: the bare call and the explicit None are
+        # the historical forever-suppressor, unchanged.
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-01-01", "q1", "quick", "collected",
+                            seal("collected"))
+        for i in range(2, 9):
+            ledger.record_asked(f"2026-01-0{i}", f"d{i}", "quick", "unknown",
+                                seal("unknown"))
+        assert ledger.asked_ever("q1") is True
+        assert ledger.asked_ever("q1", within_last_n_notes=None) is True
+
+    def test_expires_after_n_distinct_note_dates(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-01-01", "q1", "quick", "collected",
+                            seal("collected"))
+        for i in range(2, 5):   # three later distinct dates -> 4 total
+            ledger.record_asked(f"2026-01-0{i}", f"d{i}", "quick", "unknown",
+                                seal("unknown"))
+        assert ledger.asked_ever("q1", within_last_n_notes=4) is True
+        assert ledger.asked_ever("q1", within_last_n_notes=3) is False
+        assert ledger.asked_ever("never-asked", within_last_n_notes=3) is False
+
+    def test_window_reads_the_latest_asking(self, tmp_path):
+        # q1 asked at date 1 AND re-asked at date 3 of 4: a window of 2
+        # (covering dates 3-4) still sees it — the LATEST asking counts.
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-01-01", "q1", "quick", "collected",
+                            seal("collected"))
+        ledger.record_asked("2026-01-02", "d2", "quick", "unknown",
+                            seal("unknown"))
+        ledger.record_asked("2026-01-03", "q1", "quick", "collected",
+                            seal("collected"))
+        ledger.record_asked("2026-01-04", "d4", "quick", "unknown",
+                            seal("unknown"))
+        assert ledger.asked_ever("q1", within_last_n_notes=2) is True
+
+
+class TestDriftReask:
+    """Charge 1 (second half): the drift re-ask — ONE early answered question
+    re-asked verbatim once >= 2 distinct note dates have passed since it was
+    (last) asked. A changed answer lands as a NEW outcome row
+    (``record_outcome_once`` already appends on change — pinned below, not
+    re-implemented)."""
+
+    @staticmethod
+    def _seeded(tmp_path):
+        from oracle_notes import reask_candidate
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked(
+            "2026-07-01", "q1", "quick", "collected", seal("collected"),
+            text="Is `X` collected from elsewhere, or your own writing?")
+        ledger.record_outcome("q1", "answered", "collected from a talk",
+                              "2026-07-02")
+        ledger.record_asked("2026-07-02", "d2", "quick", "unknown",
+                            seal("unknown"), text="What is `d2`?")
+        ledger.record_asked("2026-07-03", "d3", "quick", "unknown",
+                            seal("unknown"), text="What is `d3`?")
+        return ledger, reask_candidate
+
+    def test_reask_is_the_early_answered_question_verbatim(self, tmp_path):
+        ledger, reask_candidate = self._seeded(tmp_path)
+        c = reask_candidate(ledger)
+        assert c is not None
+        assert c.qid == "q1"
+        assert c.text == "Is `X` collected from elsewhere, or your own writing?"
+        assert c.forecast == "collected"
+
+    def test_not_eligible_before_two_later_note_dates(self, tmp_path):
+        from oracle_notes import reask_candidate
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-01", "q1", "quick", "collected",
+                            seal("collected"), text="Is `X` collected?")
+        ledger.record_outcome("q1", "answered", "yes", "2026-07-02")
+        ledger.record_asked("2026-07-02", "d2", "quick", "unknown",
+                            seal("unknown"), text="What is `d2`?")
+        assert reask_candidate(ledger) is None   # only ONE later note date
+
+    def test_unanswered_question_is_never_reasked(self, tmp_path):
+        from oracle_notes import reask_candidate
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-01", "q1", "quick", "collected",
+                            seal("collected"), text="Is `X` collected?")
+        ledger.record_outcome("q1", "ignored", "", "2026-07-02")
+        ledger.record_asked("2026-07-02", "d2", "quick", "unknown",
+                            seal("unknown"), text="t2")
+        ledger.record_asked("2026-07-03", "d3", "quick", "unknown",
+                            seal("unknown"), text="t3")
+        assert reask_candidate(ledger) is None   # drift needs a prior answer
+
+    def test_legacy_row_without_text_is_skipped(self, tmp_path):
+        # A pre-item-11 forecasts row stored no question text; there is
+        # nothing to re-ask VERBATIM, so it is honestly skipped, never
+        # reconstructed.
+        from oracle_notes import reask_candidate
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-01", "q1", "quick", "collected",
+                            seal("collected"))          # no text
+        ledger.record_outcome("q1", "answered", "yes", "2026-07-02")
+        ledger.record_asked("2026-07-02", "d2", "quick", "unknown",
+                            seal("unknown"), text="t2")
+        ledger.record_asked("2026-07-03", "d3", "quick", "unknown",
+                            seal("unknown"), text="t3")
+        assert reask_candidate(ledger) is None
+
+    def test_reask_resets_its_own_clock(self, tmp_path):
+        # Once re-asked (a fresh forecasts row at a later date), the same
+        # question needs two MORE note dates before it is eligible again —
+        # the cap that keeps one question from being re-asked every note.
+        ledger, reask_candidate = self._seeded(tmp_path)
+        c = reask_candidate(ledger)
+        ledger.record_asked("2026-07-10", c.qid, c.tier, c.forecast,
+                            seal(c.forecast), text=c.text)
+        assert reask_candidate(ledger) is None
+
+    def test_changed_answer_appends_new_row_first_intact(self, tmp_path):
+        # PIN of existing behavior (record_outcome_once appends on change) —
+        # verified here because the drift measurement depends on it, NOT
+        # re-implemented.
+        ledger = OracleLedger(tmp_path)
+        assert ledger.record_outcome_once("q1", "answered", "old answer",
+                                          "2026-07-02") is True
+        assert ledger.record_outcome_once("q1", "answered", "old answer",
+                                          "2026-07-02") is False  # idempotent
+        assert ledger.record_outcome_once("q1", "answered", "new answer",
+                                          "2026-07-14") is True   # change appends
+        rows = [r for r in ledger.outcomes() if r["qid"] == "q1"]
+        assert [r["answer_text"] for r in rows] == ["old answer", "new answer"]
+
+
+class TestDeclineSynonyms:
+    """Charge 2: only exactly ``"declined"`` counted as a decline;
+    ``"Declined."``, ``"pass"``, ``"—"`` were banked VERBATIM as answers and
+    reprinted in the next note's Reveals — the refusal's own wording became
+    retained data. Fixed by a normalized synonym set matched after
+    strip / rstrip(".") / casefold."""
+
+    @staticmethod
+    def _note_with_answer(answer: str) -> str:
+        cand = QuestionCandidate(qid="q1", tier="quick", text="Is `X` yours?",
+                                 why="w", settles="s", forecast="collected")
+        text = render_note([cand], note_date="2026-07-18", run_id="r",
+                           segment=1, budget=dict(DEFAULT_BUDGET), reveals=None)
+        return text.replace("**A:**", f"**A:** {answer}", 1)
+
+    @pytest.mark.parametrize("marker", [
+        "declined", "Declined.", "DECLINE", "decline", "pass", "Pass.",
+        "—", "-", "rather not", "Rather not.", "prefer not to say",
+        "Prefer not to say.",
+    ])
+    def test_marker_reads_declined(self, marker):
+        parsed = parse_note(self._note_with_answer(marker))
+        assert parsed.declined == {"q1"}, marker
+        assert not parsed.answers
+
+    @pytest.mark.parametrize("genuine", [
+        "passing thoughts on this", "I pass it around sometimes",
+        "declined the invitation, but kept the notes",
+        "yes - collected from a talk",
+    ])
+    def test_genuine_answer_is_never_swallowed(self, genuine):
+        # Overmatch guard: a real answer merely CONTAINING a marker word
+        # stays an answer.
+        parsed = parse_note(self._note_with_answer(genuine))
+        assert parsed.answers == {"q1": genuine}
+        assert not parsed.declined
+
+    def test_declined_text_never_reaches_reveals(self, tmp_path):
+        # The named test: a declined answer's text NEVER appears in a
+        # subsequent note's Reveals — the refusal's wording is not data.
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-18", "q1", "quick", "collected",
+                            seal("collected"), text="Is `X` yours?")
+        parsed = parse_note(self._note_with_answer("Pass."))
+        assert parsed.declined == {"q1"}
+        reveals = ledger.build_reveals(parsed)
+        assert reveals == []           # a decline carries nothing to score
+        next_note = render_note(
+            [QuestionCandidate(qid="q2", tier="quick", text="Next?",
+                               why="w", settles="s", forecast="unknown")],
+            note_date="2026-07-25", run_id="r", segment=2,
+            budget=dict(DEFAULT_BUDGET), reveals=reveals or None)
+        assert "Pass" not in next_note
+
+
+class TestDocket11Driver:
+    """Charge 1 wired through the driver (``tools/run_vault_v0.py``): the
+    asked_ever window (default 6) makes an old question re-eligible; the
+    drift re-ask lands verbatim in a new note; a changed answer is counted
+    as ``drift_data`` in the oracle digest; and charge 4's ``m_added``/
+    ``m_removed`` appear in the per-segment digest."""
+
+    PROV_QID = "prov:Clippings/saved page.md"
+
+    @staticmethod
+    def _main():
+        if str(TOOLS_DIR) not in sys.path:
+            sys.path.insert(0, str(TOOLS_DIR))
+        import run_vault_v0
+        return run_vault_v0
+
+    @staticmethod
+    def _answer(text: str, qid: str, answer: str) -> str:
+        pattern = re.compile(
+            rf"(<!-- qid: {re.escape(qid)} -->.*?\*\*A:\*\*)", re.DOTALL)
+        new_text, n = pattern.subn(
+            lambda m: m.group(1) + " " + answer, text, count=1)
+        assert n == 1, f"qid {qid} not found in note"
+        return new_text
+
+    def test_expired_qid_reappears_through_the_driver_window(self, tmp_path):
+        # Asked 7 distinct note dates ago with a 6-note window: re-eligible,
+        # so the fixture's prov question is asked AGAIN (previously: never).
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        ledger = OracleLedger(runs_dir / "oracle")
+        ledger.record_asked("2026-06-01", self.PROV_QID, "quick", "collected",
+                            seal("collected"))
+        for i in range(2, 8):   # six later distinct dates
+            ledger.record_asked(f"2026-06-0{i}", f"dummy:{i}", "quick",
+                                "unknown", seal("unknown"))
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30",
+                       "--segments", "1", "--runs-dir", str(runs_dir),
+                       "--note-date", "2026-07-18"])
+        assert rc == 0
+        note = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        qids = re.findall(r"<!-- qid: (.+?) -->",
+                          note.read_text(encoding="utf-8"))
+        assert self.PROV_QID in qids
+
+    def test_drift_reask_verbatim_and_digest_counts(self, tmp_path, capsys):
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        marker_text = ("Is `Clippings/saved page.md` collected from "
+                       "elsewhere, or your own writing? [reask-verbatim]")
+        ledger = OracleLedger(runs_dir / "oracle")
+        ledger.record_asked("2026-07-01", self.PROV_QID, "quick", "collected",
+                            seal("collected"), text=marker_text)
+        ledger.record_outcome(self.PROV_QID, "answered",
+                              "collected from a talk", "2026-07-02")
+        ledger.record_asked("2026-07-02", "dummy:a", "quick", "unknown",
+                            seal("unknown"), text="What is `a`?")
+        ledger.record_asked("2026-07-03", "dummy:b", "quick", "unknown",
+                            seal("unknown"), text="What is `b`?")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30",
+                       "--segments", "1", "--runs-dir", str(runs_dir),
+                       "--note-date", "2026-07-10"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+        # charge 4's digest split, wired through the driver:
+        assert "'m_added'" in out1 and "'m_removed'" in out1
+
+        note = runs_dir / "arisbe_notes" / "Questions-2026-07-10.md"
+        text = note.read_text(encoding="utf-8")
+        # the re-ask is VERBATIM (the stored text, marker included — never
+        # regenerated from the world), capped at one:
+        assert marker_text in text
+        assert text.count(f"<!-- qid: {self.PROV_QID} -->") == 1
+
+        # the author's answer CHANGED since the first asking:
+        text = self._answer(text, self.PROV_QID,
+                            "actually it is my own writing")
+        note.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30",
+                       "--segments", "1", "--runs-dir", str(runs_dir),
+                       "--note-date", "2026-07-14"])
+        assert rc == 0
+        out2 = capsys.readouterr().out
+        assert "'drift_data': 1" in out2
+
+        rows = [r for r in ledger.outcomes()
+                if r["qid"] == self.PROV_QID and r["status"] == "answered"]
+        # a changed answer lands as a NEW row; the first row is intact:
+        assert [r["answer_text"] for r in rows] == [
+            "collected from a talk", "actually it is my own writing"]
