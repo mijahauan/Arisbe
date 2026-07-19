@@ -3,12 +3,14 @@
 questions notes into exactly one vault folder (``Arisbe/``); the next poll reads
 answers back through the same membrane.
 
-**Stage split:** this module is the V2a.1 build — candidates, the seal, and the
-note renderer, all offline and deterministic (no wall-clock/RNG; ``note_date``
-is caller-supplied). Answer-parsing, forecast-scoring, and the reveal ledger are
-Task 2; banking an answered forecast into M as a quoted attributed cell
-(``(asserted "author" <quote> )``, provenance ``oracle-answer``) is V2a.2 and
-out of scope here — V2a.1 only banks answers in the run's side-store with
+**Stage split:** Task 1 built candidates, the seal, and the note renderer, all
+offline and deterministic (no wall-clock/RNG; ``note_date`` is caller-supplied).
+This task (Task 2) adds the other half of the loop: ``parse_note`` (recovering
+the author's edits from the raw markdown), ``score`` (the forecast-vs-answer
+heuristic), and ``OracleLedger`` (JSONL persistence joining asked forecasts to
+recorded outcomes). Banking an answered forecast into M as a quoted attributed
+cell (``(asserted "author" <quote> )``, provenance ``oracle-answer``) is V2a.2
+and out of scope here — V2a.1 only banks answers in the run's side-store with
 marker facts.
 
 **Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
@@ -16,12 +18,21 @@ question block prints only the hash, never the plaintext. The plaintext lives
 in the caller's gitignored side-store (``oracle/forecasts.jsonl``) and reaches
 the note again only through a later ``## Reveals`` section, once the answer is
 in hand.
+
+**Qid recovery (Task 2):** each rendered question block carries an invisible
+``<!-- qid: ... -->`` HTML comment right under its header — Obsidian's preview
+renderer hides HTML comments, so the author never sees it, but ``parse_note``
+uses it to recover which question an ``**A:**`` line belongs to without relying
+on question text (which the author might reasonably edit or quote back).
 """
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass
-from typing import Dict, List, Optional
+import json
+import re
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Set
 
 
 # -- the candidate -------------------------------------------------------------
@@ -229,6 +240,7 @@ def _render_reveals(reveals: List[dict]) -> str:
 def _render_question_block(n: int, c: QuestionCandidate) -> str:
     lines = [
         f"## Q{n} · {c.tier} — {_topic(c.qid)}",
+        f"<!-- qid: {c.qid} -->",
         "",
         c.text,
         "",
@@ -255,4 +267,223 @@ def render_note(candidates: List[QuestionCandidate], *, note_date: str,
     return "\n\n".join(parts) + "\n"
 
 
-__all__ = ["QuestionCandidate", "seal", "candidates_from_run", "render_note"]
+# -- the parser (Task 2) --------------------------------------------------------
+#
+# The rendered shape guarantees three structural facts a modest regex parser
+# can lean on:
+#  - the frontmatter is a single ``---`` … ``---`` block at the very start;
+#  - an optional ``## Reveals`` section (if present) always precedes any
+#    question block;
+#  - each question block opens with ``## Q<n> · <tier> — <topic>`` followed
+#    immediately by the invisible ``<!-- qid: ... -->`` comment, and its
+#    answer region runs from ``**A:**`` to the FIRST of: a blank line (``\n\n``
+#    — the natural paragraph break, which is also exactly what separates one
+#    rendered block from the next), the next ``## `` header, or end of text.
+#    That boundary choice is what lets an author leave a question blank *and*
+#    append free-standing prose after it in the same edit: the blank line
+#    between "nothing typed" and "unrelated musings below" is the same blank
+#    line that already separates rendered blocks, so it reads as a genuine
+#    paragraph break rather than as more of the (absent) answer. A genuinely
+#    multi-paragraph answer that itself contains a blank line will only have
+#    its first paragraph recovered — a documented limit of this heuristic
+#    parser, not a claim of full prose understanding.
+
+
+@dataclass
+class ParsedNote:
+    """What `parse_note` recovers from one note's raw markdown, after the
+    author has (possibly) edited it in place."""
+    budget: dict
+    answers: Dict[str, str] = field(default_factory=dict)
+    declined: Set[str] = field(default_factory=set)
+    ignored: Set[str] = field(default_factory=set)
+    stray: str = ""
+
+
+_DEFAULT_BUDGET = {"max": 5, "reflective": 1}
+
+_BUDGET_RE = re.compile(r"budget:\s*\{max:\s*(\d+),\s*reflective:\s*(\d+)\}")
+_FRONTMATTER_RE = re.compile(r"\A---\n.*?\n---", re.DOTALL)
+_REVEALS_RE = re.compile(r"## Reveals\n.*?(?=\n\n## |\Z)", re.DOTALL)
+_QBLOCK_RE = re.compile(
+    r"## Q\d+ · \S+ — \S+\n"
+    r"<!-- qid: (?P<qid>\S+) -->\n"
+    r"(?P<body>.*?)"
+    r"\*\*A:\*\*"
+    r"(?P<answer>.*?)(?=\n\n|\n## |\Z)",
+    re.DOTALL,
+)
+
+
+def parse_note(text: str) -> ParsedNote:
+    """Recover the author's edits from a rendered-then-edited note's raw
+    markdown: the (possibly edited) budget knob, each question's answer text
+    (non-empty), the set of declined qids (an ``**A:**`` line whose content,
+    stripped, reads ``declined`` case-insensitively), the set of ignored
+    qids (an ``**A:**`` line left empty), and any stray text the author wrote
+    outside every recognized block (frontmatter / Reveals / question blocks)
+    — kept verbatim as evidence, not interpreted."""
+    m = _BUDGET_RE.search(text)
+    budget = ({"max": int(m.group(1)), "reflective": int(m.group(2))}
+              if m else dict(_DEFAULT_BUDGET))
+
+    answers: Dict[str, str] = {}
+    declined: Set[str] = set()
+    ignored: Set[str] = set()
+    consumed: List[tuple] = []
+
+    fm = _FRONTMATTER_RE.search(text)
+    if fm:
+        consumed.append(fm.span())
+
+    rv = _REVEALS_RE.search(text)
+    if rv:
+        consumed.append(rv.span())
+
+    for qm in _QBLOCK_RE.finditer(text):
+        consumed.append(qm.span())
+        qid = qm.group("qid")
+        answer = qm.group("answer").strip()
+        if not answer:
+            ignored.add(qid)
+        elif answer.lower() == "declined":
+            declined.add(qid)
+        else:
+            answers[qid] = answer
+
+    consumed.sort()
+    stray_parts: List[str] = []
+    cursor = 0
+    for start, end in consumed:
+        if start > cursor:
+            stray_parts.append(text[cursor:start])
+        cursor = max(cursor, end)
+    if cursor < len(text):
+        stray_parts.append(text[cursor:])
+    stray = "\n".join(p.strip() for p in stray_parts if p.strip()).strip()
+
+    return ParsedNote(budget=budget, answers=answers, declined=declined,
+                       ignored=ignored, stray=stray)
+
+
+def score(forecast_plain: str, answer: str) -> str:
+    """Score a forecast against the author's answer. Deliberately modest: a
+    case-insensitive substring test (does the forecast's own text appear
+    somewhere inside the answer?), nothing more — no NL understanding, no
+    negation handling, no paraphrase recognition. ``"unscored"`` when the
+    forecast itself was ``"unknown"`` (the horizon questions never forecast
+    an answer to check against, so there is nothing to score). V2a.2 is
+    named as the place a real interpretation step would replace this."""
+    if forecast_plain.strip().lower() == "unknown":
+        return "unscored"
+    return "hit" if forecast_plain.strip().lower() in answer.lower() else "miss"
+
+
+def note_substantially_answered(parsed: ParsedNote) -> bool:
+    """At least half of a note's questions were answered or declined
+    (silence — ``ignored`` — doesn't count). A note with zero questions
+    (e.g. every candidate was suppressed) is vacuously substantial; deciding
+    what to do with an absent note entirely is the driver's job, not this
+    predicate's."""
+    total = len(parsed.answers) + len(parsed.declined) + len(parsed.ignored)
+    if total == 0:
+        return True
+    resolved = len(parsed.answers) + len(parsed.declined)
+    return resolved * 2 >= total
+
+
+# -- the ledger (Task 2) ---------------------------------------------------------
+
+
+class OracleLedger:
+    """Append-only JSONL persistence for the ask/answer loop, under
+    ``dir_path`` (created if absent). Two files, one concern each:
+    ``forecasts.jsonl`` (one record per asked question — this is where the
+    forecast plaintext actually lives; the note itself only ever carries the
+    seal) and ``outcomes.jsonl`` (one record per parsed answer/decline/
+    ignore). Nothing is cached in memory — each read re-scans its file, so a
+    ledger opened fresh in a later process (a later run) sees everything an
+    earlier one wrote."""
+
+    def __init__(self, dir_path):
+        self.dir_path = Path(dir_path)
+        self.dir_path.mkdir(parents=True, exist_ok=True)
+        self._forecasts_path = self.dir_path / "forecasts.jsonl"
+        self._outcomes_path = self.dir_path / "outcomes.jsonl"
+
+    @staticmethod
+    def _append(path: Path, record: dict) -> None:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record) + "\n")
+
+    @staticmethod
+    def _read_all(path: Path) -> List[dict]:
+        if not path.exists():
+            return []
+        out: List[dict] = []
+        with open(path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    out.append(json.loads(line))
+        return out
+
+    def record_asked(self, note_date: str, qid: str, tier: str,
+                      forecast_plain: str, forecast_hash: str) -> None:
+        self._append(self._forecasts_path, {
+            "note_date": note_date, "qid": qid, "tier": tier,
+            "forecast_plain": forecast_plain, "forecast_hash": forecast_hash,
+        })
+
+    def record_outcome(self, qid: str, status: str, answer_text: str,
+                        answered_note_date: str) -> None:
+        self._append(self._outcomes_path, {
+            "qid": qid, "status": status, "answer_text": answer_text,
+            "answered_note_date": answered_note_date,
+        })
+
+    def asked_ever(self, qid: str) -> bool:
+        """The standing-question suppressor: has this qid ever been asked
+        (in any note, any run)? Callers use this to drop a question — most
+        importantly the standing reflective one — from a fresh candidate
+        list once it has been asked at all, regardless of how it was
+        answered."""
+        return any(r["qid"] == qid for r in self._read_all(self._forecasts_path))
+
+    def outcomes(self) -> List[dict]:
+        return self._read_all(self._outcomes_path)
+
+    def _latest_forecast(self, qid: str) -> Optional[dict]:
+        matches = [r for r in self._read_all(self._forecasts_path)
+                   if r["qid"] == qid]
+        return matches[-1] if matches else None
+
+    def build_reveals(self, parsed: ParsedNote) -> List[dict]:
+        """Join this note's genuine answers (``parsed.answers`` — declines
+        and silences carry no forecast to score) to the forecast this ledger
+        recorded when the question was asked, producing the reveal dicts
+        Task 1's renderer already knows how to print (``qid``,
+        ``forecast_plain``, ``forecast_hash``, ``answer``, ``verdict``). A
+        qid with no recorded forecast (asked outside this ledger, or never
+        asked) is silently skipped — nothing to reveal against."""
+        reveals: List[dict] = []
+        for qid in sorted(parsed.answers):
+            forecast = self._latest_forecast(qid)
+            if forecast is None:
+                continue
+            answer = parsed.answers[qid]
+            reveals.append({
+                "qid": qid,
+                "forecast_plain": forecast["forecast_plain"],
+                "forecast_hash": forecast["forecast_hash"],
+                "answer": answer,
+                "verdict": score(forecast["forecast_plain"], answer),
+            })
+        return reveals
+
+
+__all__ = [
+    "QuestionCandidate", "seal", "candidates_from_run", "render_note",
+    "ParsedNote", "parse_note", "score", "note_substantially_answered",
+    "OracleLedger",
+]
