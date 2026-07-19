@@ -88,7 +88,47 @@ M as a quoted attributed cell, multi-paragraph answers, real NL interpretation o
 answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
-**▶▶▶ NEXT SESSION (consolidated 2026-07-15; re-headed 2026-07-17 for B-full).**
+**▶▶▶ NEXT SESSION (re-headed 2026-07-19: EXAMINATION IV — the author's mandate).**
+
+-6. **▶ EXAMINATION IV — the skeptical review of the doctrine sprint (the author's
+   mandate, 2026-07-19).** The author: untested-even-if-not-unreasonable assumptions
+   and associations have likely crept into the recent development (2026-07-17→19: the
+   measure, the fractal/kytos, the oracle doctrine, the person-model, the
+   concordances) — *"I want these identified, examined, and addressed/answered —
+   where possible with sound, logical proofs or, better, with evidence."*
+   **Method** (the Examination II/III precedent): independent skeptic panels per
+   cluster; verdicts absorbed / narrowed / withstood; disposition by **proof** where
+   formal, by **pre-registered run evidence** where empirical, by honest **concession**
+   where neither. Deliverable: ADVERSARIAL_EXAMINATION.md "Examination IV" (or a
+   sibling doc), with every surviving claim's warrant named.
+   **Pre-registered suspect list** (the assistant's nominations — the skeptics remain
+   free to find more; several are already self-flagged in the docs):
+   1. The measure's completeness (are K1–K4 sufficient? the K1 severity-weighting is
+      a designed join, never validated as an instrument).
+   2. Fractal transportability — "one ledger shape at every level" is instrumented at
+      levels 1–4 and *asserted* at 5–7 (THE_KYTOS §5 flags this itself).
+   3. The rung-1 S1 headline's robustness (the FIFO arm is degenerate by design; was
+      severity 8.0 tuned to win? is economy-beats-scatter the only real margin?).
+   4. "Answers are ground truth about the author" under deception, self-
+      misunderstanding, or drift — the veridical-data claim's limits.
+   5. Predict-never-pre-empt: a guard with no enforcement mechanism yet.
+   6. The concordance glosses' accuracy as intellectual history (the Rorty reading;
+      economy-of-research ≟ active learning; TD-error-zero ≟ settled belief; the
+      Homeostat/free-energy castings).
+   7. Poise-as-the-observable-of-rate-ratios: asserted, not derived.
+   8. The interlocutor criterion's operationalization (is the docket-read-aloud
+      really "meaningful answering"? P2¹³ is a proxy, not a proof).
+   9. The F2¹³ side-store accommodation + m_view constant-sharing: a crack in the
+      one-regime discipline, or a lawful boundary case?
+   10. The quotation spine's scale claim ("A3 guarantees quoted content licenses
+      nothing" — proven at exemplar scale, untested at vault scale).
+   11. Yield attribution (round-granular kind-credit smearing) as a bias in the
+      economy's learning.
+   12. The West scaling conjecture (already flagged as conjecture — needs its
+      pre-registered measurement design, not just its label).
+   Runs 12/13's disposals feed 3, 11, 12 with evidence.
+
+**(Prior consolidated list, 2026-07-15/17:)**
 
 -5. **▶ NEXT BUILD = ② B-FULL — but read this first: the ladder's stated hinge was
    discharged at B-min, so B-full's marginal value needs the author's ruling before

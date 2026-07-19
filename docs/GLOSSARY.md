@@ -234,6 +234,18 @@ registered, a model revised, a hypothesis held).
 **Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
 assertion.
 
+### Kytos (the semiotic cell)
+**Kytos** (κύτος, *vessel* — the root of "cell"; plural *kytoi*) — the recurring unit of
+doubt-driven semiosis: a membrane (which both bounds and animates), an interior model M, the
+doubt→probe→test→dispose→decay loop, a horizon of the not-yet-legible, and a budget with its
+rates. One anatomy at many scales — atom, law, model, mechanism, project, person-model,
+community — with the knowledge measure transporting across them. What a kytos hosts at
+agentive levels is a **quasi-mind** (Peirce's *Prolegomena* term for any sufficiently unified
+sign-system); the instructive contrast is Leibniz's windowless monad — the kytos is all
+windows. Ratified 2026-07-19; design-of-record
+[THE_KYTOS.md](THE_KYTOS.md). Umwelt / functional circle / Markov blanket remain
+*concordances* (cited neighbors), never house vocabulary.
+
 ### World-scroll
 **World-scroll** — the standing structure in which a domain model M resides: since the second
 relocation (M-residence memo §9, ratified and built 2026-07-16), `~[ ~[cell] … ~[ ] ]` — M's
