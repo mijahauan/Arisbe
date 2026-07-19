@@ -215,8 +215,11 @@ def test_decay_records_the_faded_flavor():
         assert s.parameters["derivation"] == ["ERA"]
 
 
-def test_decay_never_reaches_denial_cells(tmp_path):
-    """Docket ⑥ pin: licensed disuse-decay is **cell-scoped**. An atom standing
+def test_denial_cell_interior_survives_licensed_decay(tmp_path):
+    # A green regression pin, NOT evidence the ⑥ fix bit: the licensed path
+    # succeeds throughout here, so the deleted fallback is never reached. The
+    # actual ⑥ evidence is test_the_unlicensed_structural_fallback_is_gone.
+    """Licensed disuse-decay is **cell-scoped**. An atom standing
     in a cell is a habit and fades; an identical atom sitting inside a *denial*
     cell (``~[ (nests "Ara" "Oak") ]``) is not a standing habit at all, and no
     decay pass may touch it. The deleted ``_structural_retract_atom`` fallback

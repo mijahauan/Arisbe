@@ -461,6 +461,26 @@ def test_carry_preserves_resident_M_structurally():
     assert same_graph(carried, enlarge_m(m, '(topic0 "X")'))
 
 
+def test_carry_preserves_resident_M_structurally_across_two_segments():
+    """The same guarantee at the seam it exists for: the loop-internal handoff
+    (``model = res.uod.current_egi`` feeding the *next* segment's ``run``). F2¹³
+    is by definition a between-segments defect, so the one-batch case alone
+    never exercises it."""
+    from eg_navigation import same_graph
+    from egi_io import to_dict
+    from world_scroll import enlarge_m
+
+    m = _two_cell_M()
+    r = LiveRunner(to_dict(m), ReplaySource(_fact_batches(2)), DiscourseFeed,
+                   LiveRunConfig(ttl=None, checkpoint=False), clock=_zero_clock).run()
+    assert [d.segment for d in r.segments] == [1, 2]
+    carried = _carried(r)
+    # per-cell privacy survived TWO handoffs, not just the final serialization
+    assert len([v for v in carried.V if v.label == "Opus"]) == 2
+    assert same_graph(carried, enlarge_m(enlarge_m(m, '(topic0 "X")'),
+                                         '(topic1 "X")'))
+
+
 def test_carry_preserves_quotation_bearing_cell():
     """V2a.2 composition gate: a banked quotation cell survives the carry.
     The EGIF carry cannot even express such an M — there is no linear syntax
@@ -523,3 +543,66 @@ def test_resume_reads_a_legacy_egif_checkpoint(tmp_path):
     assert '(topic0 "X")' in r.final_model_egif           # the legacy M was carried
     with open(sp) as fh:
         assert "model_json" in _json.load(fh)             # rewritten in the new shape
+
+
+def test_a_second_order_M_skips_the_linear_form_strata_instead_of_crashing():
+    """The tropism/docket seams read M as EGIF, which a quotation-bearing M has
+    no form of. V2a.2 banks quoted cells into M, so a docket-configured run
+    would otherwise crash on the first one. Following ``_quarantine``'s
+    precedent the stratum is skipped and the skip counted."""
+    from egif_parser_dau import parse_egif
+    from egi_io import to_dict
+    from quotation_overlay import scribe_quotation
+    from world_scroll import find_world_scroll
+
+    m = _two_cell_M()
+    cell = find_world_scroll(m).cell_ids[0]
+    m, _mark, _cut = scribe_quotation(m, "phi", parse_egif('(pen "Opus")'),
+                                      context_id=cell)
+
+    class _InjectableReplay(ReplaySource):
+        def inject(self, ids):
+            pass
+
+    class _Tropism:
+        consulted = 0
+        def reaches(self, model_egif, ledger=None, k=None):
+            type(self).consulted += 1
+            return []
+
+    runner = LiveRunner(to_dict(m), _InjectableReplay(_fact_batches(2)),
+                        DiscourseFeed, LiveRunConfig(ttl=None, checkpoint=False),
+                        tropism=_Tropism(), clock=_zero_clock)
+    r = runner.run()                       # under the unguarded seam this RAISES
+    assert [d.segment for d in r.segments] == [1, 2]
+    assert runner.linear_form_skipped > 0  # counted, not silent
+    assert _Tropism.consulted == 0         # the stratum really was skipped
+
+
+def test_a_refused_decay_is_counted_once_across_segments():
+    """``decay_skipped`` is a count of refused **atoms**, not of refusal events.
+
+    A refused atom is dropped from the ledger; without also holding it aside it
+    stands in ``present`` next segment, is re-registered as a newcomer, goes
+    stale again after ``ttl``, and is refused and re-counted for the rest of the
+    run — one cycling atom inflating the counter indefinitely. The run below
+    spans well over ``ttl`` rounds after the refusal, so a per-event counter
+    reads >1."""
+    from egif_generator_dau import generate_egif
+    from egif_parser_dau import parse_egif
+    from world_scroll import enlarge_m, wrap_m
+
+    # the legacy-EGIF-carry scenario in which the licensed cell-scoped ERA
+    # rightly refuses (see test_agon_evolution.test_decay_skip_is_counted_...):
+    # a text round-trip merges "Rex" across sibling cells.
+    seed, _ = wrap_m(parse_egif('(bird "Rex")'))
+    seed = enlarge_m(seed, '(white "Rex")')
+
+    r = LiveRunner(generate_egif(seed), ReplaySource(_fact_batches(6)),
+                   DiscourseFeed, LiveRunConfig(ttl=1, checkpoint=False),
+                   clock=_zero_clock).run()
+
+    assert sum(d.decayed for d in r.segments) > 0          # decay really ran
+    assert sum(d.decay_skipped for d in r.segments) == 1   # the atom, once
+    # and it still stands: a refusal is a skip, never unlicensed surgery
+    assert '(white "Rex")' in r.final_model_egif

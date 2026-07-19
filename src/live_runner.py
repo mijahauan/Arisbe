@@ -35,7 +35,7 @@ from __future__ import annotations
 
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Optional, Protocol, Sequence
+from typing import Callable, Dict, List, Optional, Protocol, Sequence, Set
 
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
@@ -279,6 +279,10 @@ class LiveRunner:
         # each per-segment run (whose ledger would reset every segment and never bound |M|).
         # ATOM-LEVEL (rulebook 2026-07-03): the ledger keys are atom keys, not relation names.
         self._ledger: Optional[UsageLedger] = UsageLedger(self._cfg.ttl) if self._cfg.ttl else None
+        # Atoms whose licensed retraction the rule refused: held aside so the decay pass
+        # neither re-registers nor re-refuses them (see _decay) — decay_skipped counts
+        # atoms, not events.
+        self._decay_refused: Set[str] = set()
         if self._ledger is not None:
             self._ledger.seed(sheet_atom_keys(from_dict(self._model_state)))
         # One materializer for the whole run (F2⁗ semi-naive rider): each segment's peels
@@ -288,6 +292,7 @@ class LiveRunner:
         self._round = 0
         self._poll_idx = 0                      # polls made — the habit clock when ttl_unit="polls"
         self.checkpoints_refused = 0            # §3.3 refusals skipped (checkpoint_refusal="skip")
+        self.linear_form_skipped = 0            # tropism/docket consults skipped: M has no linear form
         self._pending: List = []                # fetched items awaiting a segment (never dropped)
         self._polled = False
         self._episodes: List = []               # cross-segment meta-learning records
@@ -333,6 +338,7 @@ class LiveRunner:
         runner._total0 = state.get("total_rounds", 0)
         if runner._ledger is not None and state.get("ledger") is not None:
             runner._ledger.restore(state["ledger"])
+        runner._decay_refused = set(state.get("decay_refused") or ())
         if runner._docket is not None and state.get("docket") is not None:
             runner._docket.restore(state["docket"])
         return runner
@@ -351,6 +357,9 @@ class LiveRunner:
             "model_json": model_state,
             "laws": list(self._laws),
             "ledger": self._ledger.snapshot() if self._ledger is not None else None,
+            # the held-aside refusals ride along, so a resumed run does not re-refuse
+            # (and re-count) an atom this run already skipped
+            "decay_refused": sorted(self._decay_refused),
             # 2a.1 (RUN_6 F1⁶): the docket register survives a resume like the ledger —
             # a supervisor leg must not restart the wants (or the whole-run counters).
             "docket": self._docket.snapshot() if self._docket is not None else None,
@@ -390,7 +399,9 @@ class LiveRunner:
                     # conditions, not exhaustion, then end the run.
                     # the tropism/docket strata read M as EGIF; generate only
                     # when one is configured (a second-order M has no linear form)
-                    warm = self._tropism.reaches(generate_egif(model), self._ledger)
+                    m_egif = self._linear_form(model)
+                    warm = self._tropism.reaches(m_egif, self._ledger) \
+                        if m_egif is not None else []
                     if warm:
                         self._source.inject(warm)
                 if self._docket is not None:
@@ -498,7 +509,9 @@ class LiveRunner:
             if self._docket is not None:
                 # One docket tick per segment against the carried (post-decay) M:
                 # settle answered wants, age the rest, harvest fresh thin spots.
-                self._docket.observe(generate_egif(model))
+                m_egif = self._linear_form(model)
+                if m_egif is not None:
+                    self._docket.observe(m_egif)
             # persist the post-decay carried state — what LiveRunner.resume restores
             self._save_state(seg_idx, total_rounds, to_dict(model))
 
@@ -520,6 +533,26 @@ class LiveRunner:
             return "max_m_atoms"
         return None
 
+    def _linear_form(self, g) -> Optional[str]:
+        """M as EGIF for the two strata whose published contract is a string (the
+        tropism's warm re-reach, the docket's thin-spot harvest) — or ``None``
+        when M has no linear form.
+
+        Once V2a.2 banks a quoted attributed cell, M carries a quotation and the
+        three linear generators raise the named limit
+        (``SecondOrderNotInLinearForm``). Following ``_quarantine``'s precedent
+        the limit is **honoured, not hidden**: that poll's stratum is skipped
+        (M still develops; only the *direction* of the next reach goes unguided)
+        and the skip is counted on ``linear_form_skipped``, so a run silently
+        losing its steering shows up in the digest rather than crashing on the
+        first banked quotation."""
+        from second_order_limits import SecondOrderNotInLinearForm
+        try:
+            return generate_egif(g)
+        except SecondOrderNotInLinearForm:
+            self.linear_form_skipped += 1
+            return None
+
     def _decay(self, g, used: set) -> tuple:
         """Erase **atoms** idle past ``ttl`` global rounds — the only bound on the unbounded
         sheet, applied across segments so |M| (and per-round cost, memory, disk) stays flat.
@@ -533,15 +566,21 @@ class LiveRunner:
         A retraction the licensed rule refuses is **skipped and counted**, never
         performed unlicensed: no Dau rule permits erasing M's ink by hand, and
         erasing by relation + labels alone would reach into denial cells and
-        episode exhibits. The skipped atom is forgotten rather than retried, so
-        one refusal is counted once. Returns
-        ``(new_graph, dropped_atom_keys, skipped)``."""
+        episode exhibits. The refused atom is then held aside for the rest of
+        the run (``_decay_refused``): it is dropped from the ledger *and*
+        withheld from the newcomer seeding, so it is never re-registered,
+        never goes stale again, and is never refused a second time. Hence
+        ``decay_skipped`` counts refused **atoms**, not refusal events — and
+        such an atom stands permanently, no longer bounded by decay (the
+        population is small: the refusal is reachable only on a legacy EGIF
+        carry). The set is checkpointed, so a resume does not recount.
+        Returns ``(new_graph, dropped_atom_keys, skipped)``."""
         if self._ledger is None:
             return g, set(), []
         # The habit clock: global rounds, or polls (RUN_5 F2⁵ — once rounds are ~free, "idle N
         # rounds" is a ~2 s memory; "idle N polls" counts engagement opportunities instead).
         now = self._poll_idx if self._cfg.ttl_unit == "polls" else self._round
-        present = sheet_atom_keys(g)
+        present = sheet_atom_keys(g) - self._decay_refused
         self._ledger.seed(present, now)          # register any newcomers
         self._ledger.touch(used & present, now)  # mark this segment's re-deliveries
         dropped = set()
@@ -556,6 +595,7 @@ class LiveRunner:
                         g = retract_atom(g, rel, labels)
                 except (AssertionError, ValueError) as exc:
                     skipped.append((key, str(exc)))
+                    self._decay_refused.add(key)  # held aside: never re-seeded, so never re-counted
                     self._ledger.forget(key)
                     continue                     # the atom stands; the skip is counted
                 dropped.add(key)

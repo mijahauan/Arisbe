@@ -609,6 +609,13 @@ def run(
     express per-cell vertex privacy or the second-order sort, so a text carry
     silently merges a constant shared across sibling cells.
 
+    The structural guarantee is on the **resident** carry. A graph seed that is
+    *not* already resident in the standing world-scroll is housed below by a
+    text round-trip (``generate_egif`` → ``INS`` of one cell), so at that one
+    point a non-resident quotation-bearing seed raises the named limit
+    (``SecondOrderNotInLinearForm``) and a non-resident seed's cross-cell shared
+    constants merge. Once housed, every later carry is structural.
+
     Returns the trajectory as a ``TransformationChain`` + a ``DOMAIN_MODEL`` UoD
     (ready for ``TomosService.save_uod_with_chain``), the per-round outcomes, and
     a discovery digest. Deterministic given a deterministic proposer.
