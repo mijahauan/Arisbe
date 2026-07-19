@@ -317,7 +317,22 @@ def _sig_multisets(g):
 def _graphs_match(a, b) -> bool:
     """Structural equality: element counts, then the canonical-signature
     multiset (both fast); VF2 confirmation only when the graph is small enough
-    to be tractable. A replay that produces a different graph fails here."""
+    to be tractable. A replay that produces a different graph fails here.
+
+    Above ``_VF2_CUT_BOUND`` this is honestly NOT a full isomorphism test.
+    Counts + the canonical-signature multiset is a 1-WL-style invariant: it
+    WILL catch any replay that changes an element's depth, arity, relation
+    name, or the shape of what it's nested in (the ordinary way a mismatched
+    replay would show up — see ``test_graphs_match_detects_a_real_mismatch_
+    above_the_vf2_bound`` below). It will NOT catch a replay that swaps a
+    graph for a differently-CONNECTED but 1-WL-equivalent one (e.g. a 6-cycle
+    vs. two disjoint triangles among otherwise-identical generic vertices —
+    the textbook WL-1 collision) once that pair sits above the cut bound
+    where VF2 is skipped. That collision is constructed and pinned as a named
+    known limitation in ``test_graphs_match_known_collision_above_the_vf2_
+    bound`` — not hidden, not claimed away. No corpus replay above the bound
+    (only ``sumo_upper``'s one ``m_enlargement``) has ever been observed
+    anywhere near that pathology; below the bound VF2 confirms exactly."""
     if (len(a.V), len(a.E), len(a.Cut)) != (len(b.V), len(b.E), len(b.Cut)):
         return False
     if _sig_multisets(a) != _sig_multisets(b):
@@ -325,6 +340,82 @@ def _graphs_match(a, b) -> bool:
     if len(a.Cut) <= _VF2_CUT_BOUND:
         return same_graph(a, b)
     return True
+
+
+# --------------------------------------------------------------------------- #
+# 3b-i · the signature-only branch (>40 cuts, VF2 skipped) is itself tested,   #
+#        not merely assumed — a real falsifier plus an honest known limit     #
+# --------------------------------------------------------------------------- #
+
+def _padded(egif_body: str, n_pad: int) -> str:
+    """``egif_body`` plus ``n_pad`` empty sibling cuts, to push a fixture's
+    cut count above ``_VF2_CUT_BOUND`` while keeping it otherwise minimal."""
+    return egif_body + " " + " ".join("~[ ]" for _ in range(n_pad))
+
+
+def test_graphs_match_detects_a_real_mismatch_above_the_vf2_bound():
+    """The falsifier the signature-only branch was missing: two >40-cut
+    graphs, same element counts, but one atom sits one level deeper than the
+    other (moved enclosure, the ordinary shape a lying replay would take).
+    Depth is part of both the edge and cut signature, so the canonical-
+    signature multiset genuinely differs — ``_graphs_match`` must return
+    False WITHOUT ever reaching (or needing) VF2."""
+    a = parse_egif(_padded("~[ (rel *x) ~[ ] ]", 40))
+    b = parse_egif(_padded("~[ ~[ (rel *x) ] ]", 40))
+    assert len(a.Cut) > _VF2_CUT_BOUND and len(b.Cut) > _VF2_CUT_BOUND
+    assert (len(a.V), len(a.E), len(a.Cut)) == (len(b.V), len(b.E), len(b.Cut))
+    assert _sig_multisets(a) != _sig_multisets(b), (
+        "fixture bug: the relocated atom should change the signature multiset")
+    assert not _graphs_match(a, b), (
+        "the signature-only branch failed to catch a genuine relocation")
+
+
+def test_graphs_match_known_collision_above_the_vf2_bound():
+    """Honesty, not completeness: the textbook 1-WL collision (a 6-cycle vs.
+    two disjoint triangles, both 2-regular over generic vertices under one
+    relation name — the standard example 1-round Weisfeiler-Leman refinement
+    cannot separate) built above the cut bound. Counts match, the canonical-
+    signature multiset matches, so ``_graphs_match`` returns True — even
+    though the two are NOT isomorphic (confirmed directly below the bound,
+    where VF2 still runs, on the identical wiring with fewer padding cuts).
+
+    This is a KNOWN, NAMED LIMIT of the signature-only branch above
+    ``_VF2_CUT_BOUND`` (docstring on ``_graphs_match``), pinned here rather
+    than left to be discovered by a real corpus mismatch. It does not
+    contradict the falsifier above: that one shows the branch catches the
+    *ordinary* way a replay goes wrong (depth/arity/shape); this one shows
+    the specific pathology it cannot — a WL-1-equivalent rewiring — which no
+    corpus fixture has ever exhibited."""
+    hexagon = ("*v1 *v2 *v3 *v4 *v5 *v6 "
+               "(adj v1 v2) (adj v2 v3) (adj v3 v4) "
+               "(adj v4 v5) (adj v5 v6) (adj v6 v1)")
+    triangles = ("*v1 *v2 *v3 *v4 *v5 *v6 "
+                 "(adj v1 v2) (adj v2 v3) (adj v3 v1) "
+                 "(adj v4 v5) (adj v5 v6) (adj v6 v4)")
+
+    # Below the bound: VF2 still runs and correctly says NOT isomorphic —
+    # the wiring is genuinely different (one 6-cycle vs. two 3-cycles).
+    small_hex = parse_egif(_padded(hexagon, 3))
+    small_tri = parse_egif(_padded(triangles, 3))
+    assert len(small_hex.Cut) <= _VF2_CUT_BOUND
+    assert not same_graph(small_hex, small_tri), (
+        "fixture bug: the hexagon and the two triangles ARE isomorphic — "
+        "not the WL-collision pair intended")
+
+    # Above the bound: identical wiring, just padded past the VF2 skip line
+    # (the hexagon/triangle wiring itself contributes zero cuts, so the pad
+    # count alone must exceed the bound).
+    big_hex = parse_egif(_padded(hexagon, _VF2_CUT_BOUND + 1))
+    big_tri = parse_egif(_padded(triangles, _VF2_CUT_BOUND + 1))
+    assert len(big_hex.Cut) > _VF2_CUT_BOUND and len(big_tri.Cut) > _VF2_CUT_BOUND
+    assert (len(big_hex.V), len(big_hex.E), len(big_hex.Cut)) == (
+        len(big_tri.V), len(big_tri.E), len(big_tri.Cut))
+    assert _sig_multisets(big_hex) == _sig_multisets(big_tri), (
+        "fixture bug: expected the two to collide on the WL-style invariant")
+    assert _graphs_match(big_hex, big_tri), (
+        "expected the known collision to pass _graphs_match above the bound "
+        "(if this now fails, the limitation may be fixed — update the "
+        "docstring on _graphs_match and this test together)")
 
 
 def _enlargement_content(p):
@@ -367,7 +458,7 @@ def _replay_act(before, act, p):
             g = retract_from_m(g, subgraph_egif=p.get("subgraph_egif"),
                                relation=p.get("relation"),
                                labels=p.get("labels"))[0]
-        fact = p.get("fact_egif") or p.get("rule_egif")
+        fact = _enlargement_content(p)
         if fact:
             g = enlarge_m(g, fact)
         return g
@@ -386,10 +477,14 @@ def _replay_act(before, act, p):
 
 def _replay_derivations(chain):
     """Re-execute every replayable act in ``chain``; return
-    ``(replayed, skipped, mismatches)`` where ``mismatches`` names every step
-    whose replay did NOT reproduce its recorded ``to_state`` (a real finding)."""
+    ``(replayed, skipped, mismatches, by_act)`` where ``mismatches`` names
+    every step whose replay did NOT reproduce its recorded ``to_state`` (a
+    real finding), and ``by_act`` is a ``Counter`` of successfully-replayed
+    steps keyed by ``act`` (so a caller can hold each act type to its own
+    floor, not just the corpus-wide total)."""
     replayed = skipped = 0
     mismatches = []
+    by_act = Counter()
     for step in chain.steps:
         p = step.parameters or {}
         act, deriv = p.get("act"), p.get("derivation")
@@ -405,9 +500,10 @@ def _replay_derivations(chain):
             continue
         if _graphs_match(result, after):
             replayed += 1
+            by_act[act] += 1
         else:
             mismatches.append((step.step_id, act))
-    return replayed, skipped, mismatches
+    return replayed, skipped, mismatches, by_act
 
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
@@ -419,25 +515,47 @@ def test_recorded_derivations_replay_identically(tomos, uod_id):
     chain = tomos.load_chain(uod_id)
     if chain is None:
         pytest.skip("static board with no chain")
-    _, _, mismatches = _replay_derivations(chain)
+    _, _, mismatches, _ = _replay_derivations(chain)
     assert not mismatches, (
         f"{uod_id}: recorded derivation(s) do not replay to their to_state — "
         f"{mismatches} — the record is not earned")
 
 
+# Per-act-type floors, read off the corpus as of 2026-07-19 (31 m_enlargement,
+# 2 m_revision, 2 m_retraction replayed across the 15 M-bearing UoDs with
+# chains) with a small margin below m_enlargement (the corpus will grow) and
+# none below the two-instance acts (any drop there is already the whole
+# supply). `total > 0` alone would stay green if a future content-key rename
+# silently orphaned an entire act type (e.g. all 31 m_enlargement replays
+# going to `skipped`) as long as some other act still replayed — these floors
+# make that failure loud and name the act type that dropped.
+_REPLAY_FLOORS = {"m_enlargement": 25, "m_retraction": 2, "m_revision": 2}
+
+
 def test_the_replay_gate_bites_somewhere(tomos):
     """The gate must actually re-execute derivations across the corpus, not
-    silently skip everything (a gate that replays nothing proves nothing)."""
+    silently skip everything (a gate that replays nothing proves nothing) —
+    and it must keep re-executing EACH act type it has ever covered, not just
+    some total across all of them (see ``_REPLAY_FLOORS``)."""
     total = 0
+    by_act_total = Counter()
     for u in tomos.list_uods():
         if u.get("category") != "domain_model":
             continue
         chain = tomos.load_chain(u["uod_id"])
         if chain is None:
             continue
-        replayed, _, _ = _replay_derivations(chain)
+        replayed, _, _, by_act = _replay_derivations(chain)
         total += replayed
+        by_act_total += by_act
     assert total > 0, "the replay gate re-executed no derivation anywhere"
+    for act, floor in _REPLAY_FLOORS.items():
+        assert by_act_total.get(act, 0) >= floor, (
+            f"the replay gate's '{act}' coverage dropped to "
+            f"{by_act_total.get(act, 0)} (floor {floor}) — a content-key "
+            f"rename or similar may have silently orphaned this act type "
+            f"even though the corpus-wide total stayed positive "
+            f"(by_act={dict(by_act_total)!r})")
 
 
 def test_episode_acts_replay_on_the_worked_exemplar(tomos):
@@ -448,7 +566,7 @@ def test_episode_acts_replay_on_the_worked_exemplar(tomos):
     chain = tomos.load_chain("episode_discharge")
     if chain is None:
         pytest.skip("no episode_discharge chain")
-    replayed, _, mismatches = _replay_derivations(chain)
+    replayed, _, mismatches, _ = _replay_derivations(chain)
     assert not mismatches, (
         f"episode_discharge: {mismatches} do not replay to their to_state")
     assert replayed > 0, "episode_discharge replayed no episode derivation"
@@ -469,7 +587,7 @@ def test_the_replay_gate_bites_on_a_lying_derivation():
         params={"act": "m_retraction", "derivation": ["ERA"],
                 "relation": "dog"})
     chain = pc.to_chain()
-    _, _, mismatches = _replay_derivations(chain)
+    _, _, mismatches, _ = _replay_derivations(chain)
     assert mismatches, "the replay gate failed to detect a lying derivation"
 
 
