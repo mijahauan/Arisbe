@@ -220,23 +220,31 @@ def run_churn_pump(rounds: int = 120, ttl: int = 8):
 
     trajectory = [(j["round"], j["snapshot"]["kinds"].get("refresh", 0.0))
                   for j in feed.journal]
-    chosen_kinds = [j["chosen"][0][0] if j["chosen"] else None for j in feed.journal]
+    # (round, chosen-kind) pairs — the registered split is BY ROUND, at decay
+    # onset (round > ttl), not a bisection of the journal's length. A pure
+    # len//2 split silently stops approximating "before/after decay onset"
+    # the moment --rounds diverges from ttl*2, which would let the same code
+    # answer a differently-worded question without anyone noticing.
+    rounds_and_kinds = [(j["round"], j["chosen"][0][0] if j["chosen"] else None)
+                        for j in feed.journal]
 
-    def share(kinds):
+    def share(pairs):
+        kinds = [k for _, k in pairs]
         return (sum(1 for k in kinds if k == "refresh") / len(kinds)) if kinds else 0.0
 
-    half = max(1, len(chosen_kinds) // 2)
-    early_share = share(chosen_kinds[:half])
-    late_share = share(chosen_kinds[half:])
+    before_onset = [(r, k) for r, k in rounds_and_kinds if r <= ttl]
+    after_onset = [(r, k) for r, k in rounds_and_kinds if r > ttl]
+    before_share = share(before_onset)
+    after_share = share(after_onset)
 
     print(f"churn_pump: ttl={ttl} rounds={rounds} ({time.time()-t0:.1f}s)")
-    print(f"  refresh choice share: first half={early_share:.3f}  "
-          f"second half={late_share:.3f}")
+    print(f"  refresh choice share: before decay onset (round<={ttl})={before_share:.3f}  "
+          f"after decay onset (round>{ttl})={after_share:.3f}")
     print("  refresh kind_yield trajectory (round, y):")
     for rnd, y in trajectory:
         print(f"    r{rnd:>4d}  y={y:.4f}")
 
-    grows = late_share > early_share
+    grows = after_share > before_share
     stabilizes_positive = trajectory and trajectory[-1][1] > 0
     if stabilizes_positive and grows:
         print("  >>> READS AS REFUTING the noisy-TV guard claim: refresh's "

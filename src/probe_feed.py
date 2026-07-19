@@ -88,7 +88,13 @@ class ProbeDirectedFeedBase:
         # and once the purse is spent ``propose`` returns ``None`` — the same
         # "membrane exhausted" signal ``agon_evolution.run`` already reads to
         # stop the game. Default ``None`` leaves every existing caller (a bare
-        # round budget) byte-identical.
+        # round budget) byte-identical. Edge case: the round whose chosen
+        # wants exhaust the purse still executes and is played by the outer
+        # loop, but its OWN model delta is never observed — the next
+        # ``propose`` call short-circuits to ``None`` before reaching the
+        # top-of-call observe, so that final round's outcome (like a
+        # budget>1 batch's later proposals, the pinned Suspect-11 defect
+        # above) is silently dropped rather than credited or refused.
         self._purse = purse
         self.spent: float = 0.0
 

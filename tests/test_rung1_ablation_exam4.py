@@ -13,15 +13,21 @@ from tools.run_rung1_ablation_exam4 import (
 from arithmetic_world import scatter_chooser
 
 
-def test_a0_economy_runs_ten_rounds():
-    r, feed, res = arm("smoke_a0", rounds=10)
-    assert len(res.outcomes) <= 10
+def test_a0_economy_runs_ten_rounds_and_is_deterministic():
+    r1, f1, res1 = arm("smoke_a0", rounds=10)
+    r2, f2, res2 = arm("smoke_a0", rounds=10)
+    assert len(res1.outcomes) <= 10
+    assert replay_choices(f1.journal) == replay_choices(f2.journal)
+    assert r1 == r2
 
 
-def test_baseline_choosers_run_ten_rounds():
+def test_baseline_choosers_run_ten_rounds_and_are_deterministic():
     for chooser in (severity_greedy, round_robin, scatter_chooser):
-        r, feed, res = arm("smoke_baseline", chooser=chooser, rounds=10)
-        assert len(res.outcomes) <= 10
+        r1, f1, res1 = arm("smoke_baseline", chooser=chooser, rounds=10)
+        r2, f2, res2 = arm("smoke_baseline", chooser=chooser, rounds=10)
+        assert len(res1.outcomes) <= 10
+        assert replay_choices(f1.journal) == replay_choices(f2.journal)
+        assert r1 == r2
 
 
 def test_discriminating_arm_runs_ten_rounds_and_is_deterministic():
