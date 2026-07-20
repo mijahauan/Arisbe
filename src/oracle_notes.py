@@ -870,7 +870,13 @@ class OracleLedger:
     structurally valid row missing a key some read needed (``_keyed_rows``).
     Counted-never-dropped, the house rule throughout this codebase: a torn
     line or a hand-edited row must never poison every subsequent pass, but
-    it must also never vanish silently."""
+    it must also never vanish silently. It is a SKIP-EVENT count, not a
+    distinct-bad-row count: since nothing is cached, one still-present bad
+    row is re-counted on every read that rescans its file, so this number
+    can grow across calls on this instance far past the number of rows
+    actually damaged (review finding NEW-4, 2026-07-20 — see
+    ``run_vault_v0._run_oracle``'s ``ledger_skip_events`` digest key,
+    which surfaces this count as-is under a name that says so)."""
 
     def __init__(self, dir_path):
         self.dir_path = Path(dir_path)
@@ -882,21 +888,18 @@ class OracleLedger:
 
     @staticmethod
     def _append(path: Path, record: dict) -> None:
-        """One ``write()`` of the fully-formed line, flushed before the
-        file closes. This is append-only JSONL, not a whole-file
-        checkpoint — the write-temp-then-``os.replace`` idiom
-        ``live_runner``/``wikidata_source`` use for their state files
-        doesn't fit an append (renaming a temp file would clobber every
-        other line already on disk instead of adding to it). The fallback
-        NEW-1 authorizes for this shape: build the complete
-        ``json.dumps(...) + "\\n"`` string first so exactly one ``write()``
-        call ever reaches the file (never two writes a kill could land
-        between), and flush explicitly rather than relying on the
-        context manager's close-time flush. This doesn't make a
-        kill-mid-syscall torn line impossible, but it removes the
-        previously-real "half the line written, then killed before the
-        rest" failure mode; whatever torn tail can still occur is exactly
-        what ``_read_all``'s per-line guard below tolerates."""
+        """Append the fully-formed line and flush. This is append-only
+        JSONL, not a whole-file checkpoint — the write-temp-then-
+        ``os.replace`` idiom ``live_runner``/``wikidata_source`` use for
+        their state files doesn't fit an append (renaming a temp file
+        would clobber every other line already on disk instead of adding
+        to it). A kill mid-``write()`` can still tear the line (no
+        ``os.fsync``, and the explicit ``flush()`` here only forces the
+        same buffered data the context manager would flush at close
+        anyway — it buys no atomicity). The real tolerance for a torn
+        tail lives one level up, in ``_read_all``'s
+        ``json.JSONDecodeError`` guard: a partially-written line is
+        skipped and counted rather than poisoning every later read."""
         line = json.dumps(record) + "\n"
         with open(path, "a", encoding="utf-8") as f:
             f.write(line)

@@ -340,6 +340,17 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
        The return dict's ``"banked"`` (``"bank_skipped"`` on the defensive,
        should-never-happen no-residence path) is a COUNT only.
 
+    Every return path is funnelled through ``_finish`` (review finding
+    NEW-4, 2026-07-20), which also folds in ``"ledger_skip_events"`` — the
+    ledger's cumulative ``skipped_rows`` for this cycle, present only when
+    nonzero — so a malformed row this cycle's reads dropped from
+    ``forecasts.jsonl``/``outcomes.jsonl``/``ratings.jsonl`` shows up in the
+    digest even when it never touches ``bank_malformed`` (which only
+    catches rows malformed in a way that also breaks banking). It is a
+    SKIP-EVENT count, not a distinct-bad-row count: this cycle's several
+    reads of the same file each rescan it, so one bad line can be counted
+    more than once.
+
     Docket item 8: a per-question nonce is generated once, at
     candidate-selection time (``nonce_factory``, injectable for deterministic
     tests; the real default is a fresh ``secrets.token_hex(8)`` per
@@ -372,6 +383,23 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     oracle_dir = (runs_dir / "arisbe_notes") if fixture else (root / "Arisbe")
     oracle_dir.mkdir(parents=True, exist_ok=True)
     ledger = OracleLedger(runs_dir / "oracle")
+
+    def _finish(**base) -> dict:
+        """Merge the bank-model keys (as every return already did) plus,
+        review finding NEW-4 (2026-07-20): ``ledger_skip_events`` when this
+        cycle's reads skipped at least one malformed/unparseable row.
+        ``ledger.skipped_rows`` is a SKIP-EVENT count, not a distinct-row
+        count — the same bad line is re-counted on every ``_read_all`` scan
+        this cycle triggers (``outcomes()``/``forecasts()``/``ratings()``
+        each rescans their whole file), so it can jump by more than the
+        number of rows actually damaged. It is reported as-is, under a name
+        that says what it is, so a real run's silently-dropped rows finally
+        show up somewhere in the digest instead of only ``bank_malformed``
+        catching the ones that also break banking."""
+        out = {**base, **_bank_author_model(runs_dir, ledger, res)}
+        if ledger.skipped_rows:
+            out["ledger_skip_events"] = ledger.skipped_rows
+        return out
 
     budget = dict(DEFAULT_BUDGET)
     reveals: List[dict] = []
@@ -420,10 +448,9 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
 
         if not note_substantially_answered(parsed):
             print("oracle: previous note awaits answers — no new note")
-            return {"questions_written": 0, "reveals": len(reveals),
-                    "answers_recorded": answers_recorded,
-                    "drift_data": drift_data,
-                    **_bank_author_model(runs_dir, ledger, res)}
+            return _finish(questions_written=0, reveals=len(reveals),
+                            answers_recorded=answers_recorded,
+                            drift_data=drift_data)
 
     note_path = oracle_dir / f"Questions-{note_date}.md"
     if note_path.exists():
@@ -431,10 +458,9 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         # note (whether still blank or already answered) must never
         # overwrite it — the ledger stays untouched for this skipped write.
         print("oracle: today's note already exists - not overwriting")
-        return {"questions_written": 0, "reveals": len(reveals),
-                "answers_recorded": answers_recorded,
-                "drift_data": drift_data,
-                **_bank_author_model(runs_dir, ledger, res)}
+        return _finish(questions_written=0, reveals=len(reveals),
+                        answers_recorded=answers_recorded,
+                        drift_data=drift_data)
 
     # One rng for the whole cycle (injectable; fresh unseeded is the real
     # default): the P2^13 shuffle AND the two-option order alternation
@@ -463,10 +489,9 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     if not selected:
         # Review-mandated guard: never write a note with zero questions.
         print("oracle: no questions this cycle")
-        return {"questions_written": 0, "reveals": len(reveals),
-                "answers_recorded": answers_recorded,
-                "drift_data": drift_data,
-                **_bank_author_model(runs_dir, ledger, res)}
+        return _finish(questions_written=0, reveals=len(reveals),
+                        answers_recorded=answers_recorded,
+                        drift_data=drift_data)
 
     conjectures = conjectures_section(list(res.known_laws), res.discoveries)
     nonces = {c.qid: nonce_factory() for c in selected}
@@ -496,9 +521,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                              note_qid=note_qids[c.qid])
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
-    return {"questions_written": len(selected), "reveals": len(reveals),
-            "answers_recorded": answers_recorded, "drift_data": drift_data,
-            **_bank_author_model(runs_dir, ledger, res)}
+    return _finish(questions_written=len(selected), reveals=len(reveals),
+                    answers_recorded=answers_recorded, drift_data=drift_data)
 
 
 def main(argv=None) -> int:

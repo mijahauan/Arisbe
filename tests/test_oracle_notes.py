@@ -1256,6 +1256,65 @@ class TestEndToEnd:
         assert ledger.has_prior_answer("nonexistent-qid") is False
         assert ledger.skipped_rows >= 1
 
+    def test_ledger_skip_events_reach_the_digest(self, tmp_path, capsys):
+        """Review finding NEW-4 (2026-07-20): `_run_oracle`'s digest folds
+        in ``ledger_skip_events`` (``OracleLedger.skipped_rows`` for this
+        cycle), present only once at least one row was actually skipped,
+        so a malformed row shows up in the digest even when it never
+        touches ``bank_malformed`` (which only catches rows malformed in
+        a way that also breaks banking). It is a SKIP-EVENT count, not a
+        distinct-bad-row count: a single injected bad row is re-scanned by
+        several reads within this ONE cycle (outcomes()/has_prior_answer/
+        bankable_outcomes each rescan the whole file), so the reported
+        count is expected to exceed 1 even though exactly one row is
+        damaged — pinned below rather than asserted equal to the row
+        count, since it is not a "rows lost" total."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        out0 = capsys.readouterr().out
+        assert "ledger_skip_events" not in out0      # nothing malformed yet
+
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], "a genuine answer")
+        note1.write_text(text, encoding="utf-8")
+
+        # Same hand-injected qid-less row the crash reproduction above uses:
+        # exactly ONE malformed row.
+        ledger_dir = runs_dir / "oracle"
+        ledger_dir.mkdir(parents=True, exist_ok=True)
+        with open(ledger_dir / "outcomes.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "status": "answered", "answer_text": "orphaned",
+                "answered_note_date": "2026-07-01",
+            }) + "\n")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+        m1 = re.search(r"'ledger_skip_events': (\d+)", out1)
+        assert m1 is not None, out1
+        # more than the single damaged row: the recount-on-every-read
+        # behaviour, not a distinct-bad-row tally.
+        assert int(m1.group(1)) > 1
+
+        # a fresh ledger instance's OWN count for a single keyed scan is
+        # exactly 1 (one bad row, one skip) — confirms the digest's larger
+        # number came from repeated reads THIS cycle (`record_outcome_once`
+        # scans the whole file once per answered qid, `bankable_outcomes`
+        # scans it again, etc.), not from somehow finding more than one bad
+        # row on disk. (`outcomes()` itself is an unfiltered raw read and
+        # never increments this counter — only a keyed read does.)
+        ledger = OracleLedger(runs_dir / "oracle")
+        ledger.has_prior_answer("nonexistent-qid")
+        assert ledger.skipped_rows == 1
+
     def test_torn_jsonl_line_never_crashes_the_driver(self, tmp_path, capsys):
         """NEW-1: a torn/corrupt JSONL line (the failure mode a killed
         process mid-``_append`` could leave) must be skipped by
