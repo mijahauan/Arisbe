@@ -82,8 +82,8 @@ pictures of thought" over a weight update); and the update rule itself — the M
 Conway's Life, updates by a **fixed rule**, where Arisbe's remodeling is a **negotiated
 disposition** ("outcomes are negotiable, not determined" —
 AUTOMATED_MODEL_DEVELOPMENT §1, which carries the full Game-of-Life correspondence and
-its instructive breaks: death = relinquishment/decay, and the bounded plane vs. the
-unbounded sheet bounded only by selection from outside).
+its instructive breaks: death = relinquishment/decay, and closed dynamics on Life's
+infinite lattice vs. the open sheet bounded only by selection from outside).
 
 ### 1.1 · Finite, not fixed — action changes the spaces themselves
 
