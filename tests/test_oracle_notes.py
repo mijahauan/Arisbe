@@ -880,6 +880,21 @@ class TestEndToEnd:
         assert (FIX / "Arisbe" / "Questions-2026-07-01.md").read_text(
             encoding="utf-8") == orig_fixture_note
 
+        # Review finding (2026-07-19): the three early-return paths of
+        # ``_run_oracle`` bank exactly as the final ("note written") path
+        # does — invocation 2 above hit the "no questions this cycle" guard
+        # (a genuine early return, not the note-written branch covered by
+        # ``test_e2e_banks_answered_note_into_author_model`` below) yet still
+        # recorded two fresh "answered" rows (qids[0], qids[2]) into the
+        # ledger earlier in that same call. A regression that banks only on
+        # the final return would silently defer those two answers by a
+        # whole oracle pass; pin that it does not.
+        from tomos_service import TomosService
+        svc = TomosService(runs_dir)
+        uod = svc.load_uod("vault_v0_author_model")
+        assert uod is not None
+        assert len(uod.current_egi.quotation) == 2
+
     def test_e2e_banks_answered_note_into_author_model(self, tmp_path, capsys):
         """V2a.2 item (2), Task 5: run 1 writes a questions note; the author
         answers one question genuinely (declines two, ignores two — enough
@@ -930,6 +945,40 @@ class TestEndToEnd:
         # custody: the answer's prose is banked into the side-store (chain
         # params / UoD JSON) but must never reach stdout
         assert ANSWER not in out1 and ANSWER not in out2
+
+    def test_bank_skipped_when_world_scroll_missing(self, tmp_path, capsys, monkeypatch):
+        """MINOR review finding: the defensive ``bank_skipped`` branch of
+        ``_bank_author_model`` (a missing world-scroll — should never happen
+        against the live loop's already-resident M, but must never crash the
+        oracle pass over it) had zero test evidence. Force it by
+        monkeypatching ``find_world_scroll`` as imported into
+        ``tools/run_vault_v0`` so it reports "no residence" for every call,
+        then drive one oracle pass that would otherwise bank a genuine
+        answer — the pass must still complete (``rc == 0``) and the digest
+        must report the skip as a count, never a raise."""
+        mod = self._main()
+        monkeypatch.setattr(mod, "find_world_scroll", lambda egi: None)
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], "an answer that would otherwise bank")
+        note1.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0                      # never raises despite the missing residence
+        out2 = capsys.readouterr().out
+        assert "'banked': 0" in out2
+        assert "'bank_skipped': 1" in out2
+
+        from tomos_service import TomosService
+        # the skip path never reaches the save call at all
+        assert TomosService(runs_dir).load_uod("vault_v0_author_model") is None
 
     def test_seeded_low_budget_leaves_a_remainder_for_a_genuine_second_note(
             self, tmp_path, capsys):
