@@ -267,3 +267,31 @@ plausibly counted in the crashed segments' retries, worth one line in the dispos
 **Artifacts (on execution):** `runs/run12/console.txt` · `runs/run12/items.jsonl` (record/replay)
 · `runs/run12/checkpoints` · `runs/run12/state.json` + `sports_state.json`. See
 [runs/OPERATIONS.md](OPERATIONS.md) for the digest glossary.
+
+## Run ended — 2026-07-20 (author STOP, honored at the 14:42 poll boundary)
+
+The author touched `runs/run12/STOP` at 14:18; the runner exited cleanly at its next
+poll boundary (14:42) and wrote the full closing block to `console.txt`. Totals:
+**359 rounds, 16 crashes survived** (all the known pre-fix decay-refusal family —
+already fixed on `main` by Examination IV docket ④+⑥, so each crash was harmless
+confirmation), 300 picks raised · 215 resolved · 0 dropped · 10 postponed ·
+12 fetch_errors (all `schedule`).
+
+**Final per-arm standings (P3¹² answered — `select_best` discriminates):**
+
+| arm | net | acc | record |
+|---|---|---|---|
+| odds | +8 | 0.633 | 19h/11m/13a ◄ select_best |
+| home | +6 | 0.607 | 17h/11m/15a |
+| naive | +1 | 0.667 | 2h/1m/40a |
+| cal | −1 | 0.484 | 15h/16m/12a |
+| strong | −3 | 0.448 | 13h/16m/14a |
+
+The leader flipped home↔odds across the run rather than being fixed from the start.
+**P4¹²:** home-win rate over decided home-rival bets 0.607 over 28 (literature
+≈0.53–0.54) — small-n, interpretation the author's. **P2¹² (ledger half):** the
+calibrated arm walked its cut 50→300 with 33 re-generalizations and finished
+next-to-last. Run-level ledger (resolutions only): 66 hits · 55 misses ·
+94 abstentions · net 11 · accuracy 0.545. All five arm laws still standing at exit.
+
+Disposal of the F¹² findings against the pre-registered priors remains the author's.
