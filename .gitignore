@@ -219,10 +219,21 @@ runs/*/weather_state.json
 runs/*/asks.jsonl
 runs/*/STOP
 
-# RUN 13 (the vault cycle) — custody boundary: everything the driver writes
-# against the real vault (UoDs/chains/journals) is model-derived from the
-# author's own filesystem and never enters git. The whole directory is
-# ignored (not just checkpoint subpaths, as above) because every artifact
-# under it is custody-sensitive; only the author-reviewed aggregate in
-# runs/RUN_13_LOG.md (tracked, at the top level) is ever committed.
-runs/run13/
+# Live-run output directories (RUN 13, the vault cycle, and every numbered
+# run dir after it) — custody boundary: everything a live driver writes
+# against a real vault/source (UoDs/chains/journals/side-stores) is
+# model-derived from private material and never enters git. Whole-branch
+# review (2026-07-19, IMPORTANT 2): the literal `runs/run13/` rule only
+# covered one hardcoded number, but `--runs-dir` is a free argument and run
+# directories get renumbered across sessions (RUN 14, 15, ... already
+# routine) — a future run one `git add -A` away from committing verbatim
+# author prose. Generic glob instead: ANY `runs/run<N.../>` directory is
+# ignored wholesale (not just checkpoint subpaths, as above); only the
+# author-reviewed aggregate logs at the top level (`runs/RUN_*_LOG.md`,
+# `runs/OPERATIONS.md`, `runs/EXAMINATION_IV_BRIEFS/`) are ever committed —
+# none of those match this directory-only glob (uppercase `RUN_`, or not
+# shaped `run<digits...>` at all), and already-tracked files under earlier
+# `runs/runN/` directories (e.g. `runs/run3/filmstrip/*.svg`,
+# `runs/run10/console.txt`) are unaffected — .gitignore only screens
+# untracked paths, never untracks what git already knows about.
+runs/run*/

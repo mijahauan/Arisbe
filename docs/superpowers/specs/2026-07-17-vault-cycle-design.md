@@ -478,14 +478,45 @@ is called at all four of `_run_oracle`'s return points (the "no questions this
 cycle" / "today's note already exists" / "previous note awaits answers" early
 returns, and the normal write path) — every oracle pass, regardless of whether that
 pass also wrote a new note. It rebuilds the cumulative author-model UoD from
-`bankable_outcomes(ledger)` from scratch each time (one `BANK_TO_M` step per
-answered qid via a fresh `ProofChain`) and saves it as the side-store checkpoint
-`vault_v0_author_model` (`UoDCategory.DOMAIN_MODEL`) via `TomosService`. The ledger
-is the durable store; the author-model is a rebuilt view of it, never incrementally
+`bankable_outcomes(ledger)` each time (one `BANK_TO_M` step per answered qid via a
+fresh `ProofChain`) and saves it as the side-store checkpoint `vault_v0_author_model`
+(`UoDCategory.DOMAIN_MODEL`) via `TomosService`. The ledger is the durable store for
+the *answers*; the author-model is a rebuilt view of them, never incrementally
 mutated — so a same-day re-poll or an early-return cycle that only just recorded a
 fresh answer still banks it on that same pass, not the next. Digest keys `banked`
 (a count) / `bank_skipped` (the defensive, should-never-happen no-residence path);
 stdout stays numbers-only (custody — never a qid or answer text).
+
+**Honest reading of "recomputation" (whole-branch review, 2026-07-19, IMPORTANT
+3):** the rebuild is seeded by `ProofChain(res.uod.current_egi)` — this run's
+CURRENT vault M, the live object the round loop just finished driving (and which
+decays/grows pass to pass) — not a fixed base. So the checkpoint is **not** a pure
+function of the ledger alone: `ledger's answers ⊕ the run's current M`, where the
+second operand drifts. This is a defensible reading (the answers are read *in the
+context of* the vault M as it stood at banking time) and is kept as-is; what changed
+here is only the record — the UoD's own `description=` and this paragraph now say so
+plainly, where they previously read as ledger-determined. The alternative that
+*would* make the checkpoint ledger-reproducible — seeding `ProofChain` from a fixed
+bare `wrap_state(parse_egif(""))` base instead of `res.uod.current_egi` — is named
+here as the deferred option, not built: it would drop the "answers in context of the
+vault M" reading in exchange for reproducibility, and that trade is the author's
+call, not assumed by this fix.
+
+**Failure safety (whole-branch review, 2026-07-19, CRITICAL 1):** a banked answer's
+prose becomes a non-generic vertex label inside the quotation oval, and §3.3
+occlusion can refuse that label's box at save time once it grows past a few dozen
+characters (measured: ~52 chars passes, ~53 fails, independent of the surrounding
+M's size — the box-placement pass, not the graph, is what tightens). Because the
+ledger already recorded the answer before banking runs, an unguarded raise here
+would poison every future oracle pass permanently (the recomputation rebuild hits
+the same row every time) with no recourse but hand-editing the ledger. Fixed as a
+safety net only, prose representation unchanged: `_bank_author_model` catches any
+exception from the chain-build-or-save and reports it as a bare count
+(`bank_failed`) instead of raising; a row missing `qid`/`answer_text` (a hand-edited
+or legacy ledger line) is skipped individually and counted (`bank_malformed`) rather
+than aborting the whole rebuild. The representational fix an over-long answer
+actually wants — e.g. living in a gitignored sidecar the way `vault_world._bounded`
+handles over-long vault constants — remains the author's ruling, not made here.
 
 **Explicitly deferred, still.** Only the LATEST answer per qid is banked — an
 earlier, superseded answer for the same qid stays in the ledger's history but never

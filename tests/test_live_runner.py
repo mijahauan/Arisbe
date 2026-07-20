@@ -708,6 +708,9 @@ def test_carry_preserves_a_banked_quotation_cell_across_segments():
     r = LiveRunner(to_dict(m2), ReplaySource(_fact_batches(2)), DiscourseFeed,
                    LiveRunConfig(ttl=None, checkpoint=False),
                    clock=_zero_clock).run()
+    # Pinned so a future fixture change (e.g. an exhausted/short source)
+    # can't silently collapse this into a single-segment no-op carry test.
+    assert len(r.segments) == 2
     final = from_dict(r.final_model_json)
     assert len(final.quotation) == 1
     from quotation_overlay import lift_quotation

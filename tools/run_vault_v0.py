@@ -212,33 +212,90 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
     same-day re-poll, may still have just recorded a fresh answer into the
     ledger, and that answer belongs in the model on THIS pass, not the
     next). Each banked answer becomes one explicit, gate-replayable
-    ``BANK_TO_M`` chain step (``oracle_notes.bank_answer_step``).
+    ``BANK_TO_M`` chain step (``oracle_notes.bank_answer_step``). The
+    rebuild is seeded from ``res.uod.current_egi`` — this run's CURRENT
+    (live, decaying) M, not a fixed base — so the checkpoint is the
+    ledger's answers banked over a moving foundation; see the spec's
+    "Recomputation-thesis persistence" note for the honest reading and the
+    deferred fixed-base alternative.
 
-    Never crashes the oracle pass: ``res.uod.current_egi`` is already
-    resident (the loop opens residence before this ever runs), but a
-    missing world-scroll is handled defensively — banking is skipped and
-    counted rather than raising. Numbers-only return: a count, never a qid
-    or answer text (custody)."""
+    Never crashes the oracle pass (whole-branch review 2026-07-19,
+    CRITICAL 1): a missing world-scroll is handled defensively — banking is
+    skipped and counted (``bank_skipped``) rather than raising. A row
+    missing its ``qid``/``answer_text`` (a hand-edited or legacy ledger
+    row) is skipped individually and counted (``bank_malformed``) rather
+    than poisoning the whole rebuild. And because a banked answer's prose
+    becomes a vertex label whose box must clear §3.3 occlusion at save time
+    (an answer past a few dozen characters can straddle its cell — measured
+    threshold ~52/53 chars, independent of surrounding-M size — see
+    ``docs/superpowers/specs/2026-07-17-vault-cycle-design.md``), the whole
+    chain-build-and-save is wrapped: ANY exception there is caught, banking
+    for this pass is skipped entirely, and the failure is counted
+    (``bank_failed``) — never raised past this function. Without this, a
+    single long answer would crash every future oracle pass forever (the
+    recomputation thesis rebuilds and re-hits the same row every time),
+    fixable only by hand-editing the ledger. This fix is the safety net
+    only — it does not change how prose is represented; that
+    representational question (e.g. an over-long answer living in a
+    gitignored sidecar the way ``vault_world._bounded`` handles over-long
+    vault constants) is the author's ruling, not made here.
+
+    Numbers-only return throughout: every reported key is a bare count —
+    never a qid, never answer text, and never an exception's own message
+    (``CorrespondenceViolation``'s message carries only element/cut ids,
+    verified, but nothing here relies on that — the message is never
+    logged or returned regardless)."""
     rows = bankable_outcomes(ledger)
     if not rows:
         return {"banked": 0}
     if find_world_scroll(res.uod.current_egi) is None:
         return {"banked": 0, "bank_skipped": len(rows)}
-    pc = ProofChain(res.uod.current_egi)
+
+    usable: List[Tuple[dict, str, str]] = []
+    malformed = 0
     for row in rows:
-        pc = bank_answer_step(
-            pc, row["answer_text"], qid=row["qid"],
-            note_date=row.get("answered_note_date", ""))
-    chain, uod = pc.to_uod(
-        uod_id="vault_v0_author_model",
-        name="Vault author-model (V2a.2 banked answers)",
-        description="The cumulative author-model: every answered oracle "
-                     "question banked as a quoted attributed cell, rebuilt "
-                     "from the ledger each oracle pass (recomputation "
-                     "thesis). One BANK_TO_M step per answer.",
-        category=UoDCategory.DOMAIN_MODEL)
-    TomosService(runs_dir).save_uod_with_chain(uod, chain)
-    return {"banked": len(rows)}
+        qid = row.get("qid")
+        answer_text = row.get("answer_text")
+        if qid is None or answer_text is None:
+            malformed += 1
+            continue
+        usable.append((row, qid, answer_text))
+
+    out: dict = {}
+    if not usable:
+        out["banked"] = 0
+        if malformed:
+            out["bank_malformed"] = malformed
+        return out
+
+    try:
+        pc = ProofChain(res.uod.current_egi)
+        for row, qid, answer_text in usable:
+            pc = bank_answer_step(
+                pc, answer_text, qid=qid,
+                note_date=row.get("answered_note_date", ""))
+        chain, uod = pc.to_uod(
+            uod_id="vault_v0_author_model",
+            name="Vault author-model (V2a.2 banked answers)",
+            description="The cumulative author-model: every answered "
+                         "oracle question banked as a quoted attributed "
+                         "cell, rebuilt each oracle pass from the ledger's "
+                         "answers banked onto THIS RUN'S CURRENT M — not a "
+                         "pure function of the ledger alone; the base "
+                         "drifts with the live vault M's own decay/growth "
+                         "pass to pass (see the spec's "
+                         "'Recomputation-thesis persistence' note). One "
+                         "BANK_TO_M step per answer.",
+            category=UoDCategory.DOMAIN_MODEL)
+        TomosService(runs_dir).save_uod_with_chain(uod, chain)
+    except Exception:
+        out["banked"] = 0
+        out["bank_failed"] = len(usable)
+    else:
+        out["banked"] = len(usable)
+    if malformed:
+        out["bank_malformed"] = malformed
+    return out
 
 
 def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,

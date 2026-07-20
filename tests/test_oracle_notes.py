@@ -980,6 +980,52 @@ class TestEndToEnd:
         # the skip path never reaches the save call at all
         assert TomosService(runs_dir).load_uod("vault_v0_author_model") is None
 
+    def test_long_answer_bank_failure_is_caught_skipped_and_counted(
+            self, tmp_path, capsys):
+        """Whole-branch review, CRITICAL 1: a long, realistic answer bank
+        as a vertex label big enough to straddle its quotation cell's
+        drawn area — ``CorrespondenceViolation`` (occlusion) at the
+        ``save_uod_with_chain`` §3.3 boundary inside ``_bank_author_model``
+        (measured threshold ~52 chars passes / ~53 fails, scratch-script
+        binary search, independent of the surrounding M's size). Before
+        this fix that exception escaped all the way out of ``main``; now
+        it must be caught, banking skipped for this pass, and reported as
+        a bare count (``bank_failed``) — never crashing, and never leaking
+        the answer's prose to stdout."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        ANSWER = ("This one took a while to answer honestly — I mostly "
+                  "journal at night about what already happened that day, "
+                  "catching up rather than narrating live.")
+        assert len(ANSWER) > 100          # well past the measured ~53-char cliff
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], ANSWER)   # the one genuine answer
+        text = self._answer(text, qids[1], "declined")
+        text = self._answer(text, qids[2], "declined")
+        note1.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0                     # never crashes despite the occlusion
+        out2 = capsys.readouterr().out
+        assert "'banked': 0" in out2
+        assert "'bank_failed': 1" in out2
+
+        # custody: the answer's prose never reaches stdout, whichever pass
+        assert ANSWER not in out1 and ANSWER not in out2
+
+        # the failed save leaves no half-written checkpoint on disk
+        from tomos_service import TomosService
+        assert TomosService(runs_dir).load_uod("vault_v0_author_model") is None
+
     def test_seeded_low_budget_leaves_a_remainder_for_a_genuine_second_note(
             self, tmp_path, capsys):
         """The zero-questions guard above is the *exhaustion* edge; this test

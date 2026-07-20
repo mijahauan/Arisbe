@@ -1211,11 +1211,21 @@ def bankable_outcomes(ledger: "OracleLedger") -> List[dict]:
     Declines and ignores are never banked (spec ruling 4: a refusal is never
     banked back as answer-data — only a genuine answer is attributed
     content). Each row carries ``qid``/``status``/``answer_text``/
-    ``answered_note_date`` (``OracleLedger.record_outcome``'s own keys)."""
+    ``answered_note_date`` (``OracleLedger.record_outcome``'s own keys).
+
+    A row with no ``qid`` (a hand-edited or legacy ledger line) can't be
+    keyed at all and is skipped here — the same "one bad row must not
+    poison every pass" concern the caller (``run_vault_v0._bank_author_model``)
+    applies to a row missing ``answer_text``; that half of the guard lives
+    there since only the caller counts malformed rows toward its digest."""
     latest: Dict[str, dict] = {}
     for row in ledger.outcomes():
-        if row.get("status") == "answered":
-            latest[row["qid"]] = row       # file order — later rows win
+        if row.get("status") != "answered":
+            continue
+        qid = row.get("qid")
+        if qid is None:
+            continue
+        latest[qid] = row       # file order — later rows win
     return list(latest.values())
 
 
@@ -1225,7 +1235,8 @@ def bank_answer_step(pc, answer_text: str, *, qid: str, note_date: str,
     precedent: one act, the executed derivation list). Act ``"quotation"`` —
     the polarity gate's ``M_ACTS`` names it and its replayer re-executes
     ``bank_answer`` from these params (docket ⑤: the record is earned,
-    permanently)."""
+    permanently); gate acknowledgement additionally requires the
+    ``provenance`` key to read ``"oracle-answer"``, not the act name alone."""
     params = {
         "act": "quotation",
         "earned": True,
