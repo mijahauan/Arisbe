@@ -1204,6 +1204,21 @@ def _utterance_graph(prose: str):
 BANK_TO_M = "BANK_TO_M"
 
 
+def bankable_outcomes(ledger: "OracleLedger") -> List[dict]:
+    """The rows the author-model checkpoint banks: the LATEST ``answered``
+    outcome row per qid (a drift row — the author revising a previous
+    answer — supersedes; the earlier row remains ledger history, untouched).
+    Declines and ignores are never banked (spec ruling 4: a refusal is never
+    banked back as answer-data — only a genuine answer is attributed
+    content). Each row carries ``qid``/``status``/``answer_text``/
+    ``answered_note_date`` (``OracleLedger.record_outcome``'s own keys)."""
+    latest: Dict[str, dict] = {}
+    for row in ledger.outcomes():
+        if row.get("status") == "answered":
+            latest[row["qid"]] = row       # file order — later rows win
+    return list(latest.values())
+
+
 def bank_answer_step(pc, answer_text: str, *, qid: str, note_date: str,
                      note: str = None):
     """Record banking as ONE composite chain step (the ``challenge_step``
@@ -1259,5 +1274,5 @@ __all__ = [
     "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
     "conjectures_section", "reask_candidate", "opaque_note_qid",
     "resolve_note_qids", "bank_answer", "ATTRIBUTION_EGIF",
-    "bank_answer_step", "BANK_TO_M",
+    "bank_answer_step", "BANK_TO_M", "bankable_outcomes",
 ]

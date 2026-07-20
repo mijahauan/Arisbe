@@ -880,6 +880,57 @@ class TestEndToEnd:
         assert (FIX / "Arisbe" / "Questions-2026-07-01.md").read_text(
             encoding="utf-8") == orig_fixture_note
 
+    def test_e2e_banks_answered_note_into_author_model(self, tmp_path, capsys):
+        """V2a.2 item (2), Task 5: run 1 writes a questions note; the author
+        answers one question genuinely (declines two, ignores two — enough
+        to be "substantially answered"); run 2 reads it back AND banks the
+        one genuine answer into the cumulative author-model UoD
+        (``vault_v0_author_model``): exactly one quotation cell, one
+        gate-shaped ``BANK_TO_M`` step, the digest surfacing only a COUNT.
+        Custody: the answer's prose never reaches stdout."""
+        from tomos_service import TomosService
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        ANSWER = "Collected it from a conference talk in 2019."
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        out1 = capsys.readouterr().out
+        assert "questions_written: 5 → Arisbe/Questions-2026-07-18.md" in out1
+
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        assert len(qids) == 5
+
+        text = self._answer(text, qids[0], ANSWER)       # the one genuine answer
+        text = self._answer(text, qids[1], "declined")
+        text = self._answer(text, qids[2], "declined")
+        # qids[3], qids[4] left blank -> ignored
+        note1.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0
+        out2 = capsys.readouterr().out
+        assert "'banked': 1" in out2
+
+        svc = TomosService(runs_dir)
+        uod = svc.load_uod("vault_v0_author_model")
+        assert uod is not None
+        assert len(uod.current_egi.quotation) == 1
+
+        chain = svc.load_chain("vault_v0_author_model")
+        (step,) = [s for s in chain.steps
+                   if s.parameters.get("act") == "quotation"]
+        assert step.parameters["provenance"] == "oracle-answer"
+        assert step.parameters["qid"] == qids[0]
+
+        # custody: the answer's prose is banked into the side-store (chain
+        # params / UoD JSON) but must never reach stdout
+        assert ANSWER not in out1 and ANSWER not in out2
+
     def test_seeded_low_budget_leaves_a_remainder_for_a_genuine_second_note(
             self, tmp_path, capsys):
         """The zero-questions guard above is the *exhaustion* edge; this test
@@ -1532,3 +1583,29 @@ class TestBankAnswerStep:
         pc = bank_answer_step(pc, PROSE, qid="q1", note_date="2026-07-19")
         character = character_of_chain(pc.to_chain())
         assert character.character == "ampliative"
+
+
+# --------------------------------------------------------------------------- #
+# V2a.2 item (2), Task 5: bankable_outcomes — the latest-answered-per-qid read #
+# --------------------------------------------------------------------------- #
+
+
+class TestBankableOutcomes:
+    def test_latest_answer_per_qid_declines_and_ignores_excluded(self, tmp_path):
+        from oracle_notes import OracleLedger, bankable_outcomes
+        led = OracleLedger(tmp_path / "oracle")
+        led.record_outcome_once("q1", "answered", "first answer", "2026-07-01")
+        led.record_outcome("q1", "answered", "revised answer", "2026-07-10")  # drift row
+        led.record_outcome_once("q2", "declined", "declined", "2026-07-01")
+        led.record_outcome_once("q3", "ignored", "", "2026-07-01")
+        led.record_outcome_once("q4", "answered", "kept", "2026-07-05")
+        rows = bankable_outcomes(led)
+        by_qid = {r["qid"]: r for r in rows}
+        assert set(by_qid) == {"q1", "q4"}                        # no declines, no ignores
+        assert by_qid["q1"]["answer_text"] == "revised answer"    # latest per qid
+        assert by_qid["q1"]["answered_note_date"] == "2026-07-10"
+
+    def test_empty_ledger_yields_nothing(self, tmp_path):
+        from oracle_notes import OracleLedger, bankable_outcomes
+        led = OracleLedger(tmp_path / "oracle")
+        assert bankable_outcomes(led) == []

@@ -34,13 +34,17 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from oracle_notes import (                           # noqa: E402
-    DEFAULT_BUDGET, OracleLedger, candidates_from_run, conjectures_section,
-    note_substantially_answered, opaque_note_qid, parse_note, reask_candidate,
-    render_note, resolve_note_qids, seal, select_within_budget,
+    DEFAULT_BUDGET, OracleLedger, bank_answer_step, bankable_outcomes,
+    candidates_from_run, conjectures_section, note_substantially_answered,
+    opaque_note_qid, parse_note, reask_candidate, render_note,
+    resolve_note_qids, seal, select_within_budget,
 )
 from probe_feed import _model_signature              # noqa: E402
-from tomos_service import TomosService               # noqa: E402
+from proof_authoring import ProofChain                # noqa: E402
+from tomos_service import TomosService                # noqa: E402
+from universe_of_discourse import UoDCategory         # noqa: E402
 from vault_world import VaultFeed, VaultWorld         # noqa: E402
+from world_scroll import find_world_scroll            # noqa: E402
 
 
 # -- the P2^13 instrument's docket adapter (docket item 10) ------------------------
@@ -197,6 +201,46 @@ def _run_segment(
     return digest, res.uod.current_egi, world, horizon, res, economy
 
 
+def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
+    """V2a.2 item (2): rebuild the cumulative author-model UoD from the
+    ledger and save it as a side-store checkpoint.
+
+    The recomputation thesis: the ledger is the durable store; the
+    author-model is a REBUILT view of it, never incrementally mutated — so
+    this runs every oracle pass regardless of whether the pass also wrote a
+    new note (an early-return cycle, e.g. "no questions this cycle" or a
+    same-day re-poll, may still have just recorded a fresh answer into the
+    ledger, and that answer belongs in the model on THIS pass, not the
+    next). Each banked answer becomes one explicit, gate-replayable
+    ``BANK_TO_M`` chain step (``oracle_notes.bank_answer_step``).
+
+    Never crashes the oracle pass: ``res.uod.current_egi`` is already
+    resident (the loop opens residence before this ever runs), but a
+    missing world-scroll is handled defensively — banking is skipped and
+    counted rather than raising. Numbers-only return: a count, never a qid
+    or answer text (custody)."""
+    rows = bankable_outcomes(ledger)
+    if not rows:
+        return {"banked": 0}
+    if find_world_scroll(res.uod.current_egi) is None:
+        return {"banked": 0, "bank_skipped": len(rows)}
+    pc = ProofChain(res.uod.current_egi)
+    for row in rows:
+        pc = bank_answer_step(
+            pc, row["answer_text"], qid=row["qid"],
+            note_date=row.get("answered_note_date", ""))
+    chain, uod = pc.to_uod(
+        uod_id="vault_v0_author_model",
+        name="Vault author-model (V2a.2 banked answers)",
+        description="The cumulative author-model: every answered oracle "
+                     "question banked as a quoted attributed cell, rebuilt "
+                     "from the ledger each oracle pass (recomputation "
+                     "thesis). One BANK_TO_M step per answer.",
+        category=UoDCategory.DOMAIN_MODEL)
+    TomosService(runs_dir).save_uod_with_chain(uod, chain)
+    return {"banked": len(rows)}
+
+
 def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
                  run_id: str, segment: int, world: VaultWorld, horizon: Horizon,
                  res, nonce_factory: Callable[[], str] = lambda: secrets.token_hex(8),
@@ -221,6 +265,12 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
        repeated verbatim; a changed answer is counted as ``drift_data``),
        budget-select, render, write, and record each asked question (text
        included, so a later re-ask stays verbatim).
+    4. V2a.2 item (2): rebuild the cumulative ``vault_v0_author_model``
+       side-store UoD from the ledger's latest-answered-per-qid rows
+       (``_bank_author_model`` — the recomputation thesis) and save it —
+       every oracle pass, regardless of which step above returned early.
+       The return dict's ``"banked"`` (``"bank_skipped"`` on the defensive,
+       should-never-happen no-residence path) is a COUNT only.
 
     Docket item 8: a per-question nonce is generated once, at
     candidate-selection time (``nonce_factory``, injectable for deterministic
@@ -301,7 +351,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
             print("oracle: previous note awaits answers — no new note")
             return {"questions_written": 0, "reveals": len(reveals),
                     "answers_recorded": answers_recorded,
-                    "drift_data": drift_data}
+                    "drift_data": drift_data,
+                    **_bank_author_model(runs_dir, ledger, res)}
 
     note_path = oracle_dir / f"Questions-{note_date}.md"
     if note_path.exists():
@@ -311,7 +362,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         print("oracle: today's note already exists - not overwriting")
         return {"questions_written": 0, "reveals": len(reveals),
                 "answers_recorded": answers_recorded,
-                "drift_data": drift_data}
+                "drift_data": drift_data,
+                **_bank_author_model(runs_dir, ledger, res)}
 
     # One rng for the whole cycle (injectable; fresh unseeded is the real
     # default): the P2^13 shuffle AND the two-option order alternation
@@ -342,7 +394,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         print("oracle: no questions this cycle")
         return {"questions_written": 0, "reveals": len(reveals),
                 "answers_recorded": answers_recorded,
-                "drift_data": drift_data}
+                "drift_data": drift_data,
+                **_bank_author_model(runs_dir, ledger, res)}
 
     conjectures = conjectures_section(list(res.known_laws), res.discoveries)
     nonces = {c.qid: nonce_factory() for c in selected}
@@ -373,7 +426,8 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
     return {"questions_written": len(selected), "reveals": len(reveals),
-            "answers_recorded": answers_recorded, "drift_data": drift_data}
+            "answers_recorded": answers_recorded, "drift_data": drift_data,
+            **_bank_author_model(runs_dir, ledger, res)}
 
 
 def main(argv=None) -> int:
