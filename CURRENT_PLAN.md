@@ -145,8 +145,10 @@ answer's content. The next real RUN 13 launch may write the first actual
    open, nothing built).**
    **Q-A — a reduction theorem for mention-ascent.** Can we prove, in the vein of
    Peirce's reduction thesis (triads suffice; teridentity generates all n-ads), that
-   higher-level quoting *reduces* to our version of gamma — the one B-min quotation
-   device (proposition-sorted name tied to a graph-valued oval)? The claim would have
+   higher-level quoting *reduces* to the one B-min quotation device
+   (proposition-sorted name tied to a graph-valued oval) — the mechanism of
+   **mention-ascent** (the retired name was "the second-order crossing"; see
+   docs/GLOSSARY.md)? The claim would have
    the thesis's two halves: (i) **sufficiency under composition** — every
    S1-stratified mention structure of arbitrary depth composes from the single
    cut→vertex device; a structural-induction proof over the stratified formation

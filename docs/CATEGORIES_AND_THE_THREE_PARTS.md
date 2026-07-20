@@ -144,7 +144,7 @@ attested, read-back-checkable form) rather than living as an off-sheet instrumen
 
 (Side connection, recorded: Peirce held theorematic reasoning to require hypostatic
 abstraction, and the foundations memo of 2026-07-14 made the corollarial/theorematic
-distinction decidable from the chain. The second-order crossing is where the theorematic
+distinction decidable from the chain. Mention-ascent is where the theorematic
 machinery becomes native rather than borrowed.)
 
 ## §5 The landscape verdict *is* the categorial doctrine in mathematical dress

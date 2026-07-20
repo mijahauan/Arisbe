@@ -111,7 +111,7 @@ selection** rather than frozen:
   the docket's Q2/Q3 tiers exist to shrink `inexpressible`, i.e. to make previously
   unvoiceable wants voiceable — action-space growth as an explicit design goal.
 - **The sign-space grows** — the alphabet widens under lawful INS (a rule application can
-  introduce vocabulary); and the second-order crossing at B-min is sign-space growth in
+  introduce vocabulary); and mention-ascent at B-min is sign-space growth in
   its strongest form: **hypostatic abstraction turns yesterday's predicate into today's
   subject** — a thing the system could only *say* becomes a thing it can *address, probe,
   and quote*. The crossing is not a separate research thread from the bootstrap; it is

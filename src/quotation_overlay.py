@@ -1,4 +1,4 @@
-"""The quotation overlay — **Stage ⓪ of the second-order crossing**.
+"""The quotation overlay — **Stage ⓪ of mention-ascent**.
 
 **Additive. Touches no protected module.** Design of record:
 ``docs/SECOND_ORDER_CORE_OPENING.md`` §5 step 1 (the overlay stratum) under the

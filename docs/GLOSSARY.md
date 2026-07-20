@@ -305,6 +305,34 @@ treats Gamma-as-modality as out of scope — and demonstrates the modal work car
 the diachronic branching history, on Peirce's own figures
 ([GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md)).
 
+### Mention-ascent
+**Mention-ascent** (this term **retires the earlier name "the second-order crossing"**) —
+Arisbe's scoped slice of Peirce's **Gamma**: the step from *using* a graph (scribing it, with
+assertoric force) to *mentioning* one (naming it as an object another graph can talk about) —
+"graphs about graphs." It is realized by a single **B-min quotation device**: a
+proposition-sorted **name** drawn in the host, tied to a graph-valued **oval** holding the quoted
+ink (`egi_core_dau` `sort`/`quotation` maps; `quotation_overlay.py`; the oval is *mention*, never
+a negation). It is deliberately **not all of Gamma** — historical Gamma also bundles modality,
+which Arisbe carries *without* any modal mark, read off the diachronic branching DAG (see
+[Tincture](#tincture), [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)). The move is
+**conservative over the Dau core**: the quotation layer licenses no new first-order theorem (the
+A3 gate, `tests/test_second_order_conservativity.py`) — a quoted law is present *without force*
+("asserted derives, quoted doesn't"). Its faithful shape is Peircean:
+[hypostatic abstraction](#hypostatic-abstraction) turns a predicate into a subject, and in an EG
+a subject is a line of identity — so the sorted name (the subject) tied to its oval (the exhibit)
+reads truer than "the graph *is* the node." **Why the step is genuine, yet optional.** Dau's own
+system-extensions — constants and functions as labels, relation-graph *query* markers
+(*Mathematical Logic with Diagrams*, Ch. 23–25) — all stay **first-order** (Arisbe already
+carries the constants case verbatim, as `rho`; a function's content lives as uniqueness laws in a
+model M), so mention-ascent is the first move genuinely *past* them; and Ch. 26's reduction
+thesis (teridentity plus the algebraic operations construct every finitary relation) is the
+first-order result that makes the higher-order step **optional for expressiveness** — only
+*iconicity*, not power, motivates going further. The open **reduction theorem** (Q-A, in the vein
+of Peirce's [teridentity](#teridentity) result) would prove the dual: every stratified mention of
+arbitrary depth composes from this one cut→vertex device. See
+[SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md),
+[CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md).
+
 ### Broken cut
 **Broken cut** — Peirce's 1903 Gamma mark (a cut with "many little interruptions"): the graph on
 its area is *contingent* — ◇¬. Arisbe draws no such mark; the same four modal statuses are read

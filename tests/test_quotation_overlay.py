@@ -1,4 +1,4 @@
-"""The quotation overlay — Stage ⓪ of the second-order crossing
+"""The quotation overlay — Stage ⓪ of mention-ascent
 (``src/quotation_overlay.py``; docs/CROSSING_DECISION_BRIEFS.md verdicts,
 docs/SECOND_ORDER_CORE_OPENING.md §5 step 1).
 

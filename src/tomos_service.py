@@ -1063,8 +1063,8 @@ class TomosService:
     def save_quotations(
         self, uod: UniverseOfDiscourse, quotations: List[Dict[str, Any]]
     ) -> None:
-        """Persist the quotation overlay beside a UoD (Stage ⓪ of the
-        second-order crossing — ``src/quotation_overlay.py``).
+        """Persist the quotation overlay beside a UoD (Stage ⓪ of
+        mention-ascent — ``src/quotation_overlay.py``).
 
         Quotation marks are overlay records *about* elements of the graph —
         which lines name which quoted graphs — kept beside the UoD exactly as
