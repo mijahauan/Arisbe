@@ -1417,3 +1417,75 @@ class TestDocket11Driver:
         # a changed answer lands as a NEW row; the first row is intact:
         assert [r["answer_text"] for r in rows] == [
             "collected from a talk", "actually it is my own writing"]
+
+
+# --------------------------------------------------------------------------- #
+# V2a.2 item (2): quotation-cell banking — the pure construction               #
+# --------------------------------------------------------------------------- #
+
+PROSE = 'A multi-line answer.\nWith "quotes", ~[ brackets ], and a backslash \\.'
+
+
+def _resident_m():
+    from egif_parser_dau import parse_egif
+    from world_scroll import wrap_state
+    m, _scroll = wrap_state(parse_egif('(swan "Alba")'))
+    return m
+
+
+class TestBankAnswer:
+    def test_banked_shape_and_same_area_attachment(self):
+        from oracle_notes import bank_answer
+        from world_scroll import find_world_scroll
+        m2, cut_id = bank_answer(_resident_m(), PROSE, qid="q1",
+                                 note_date="2026-07-19")
+        assert len(m2.quotation) == 1 and cut_id in m2.quotation
+        name_vid = m2.quotation[cut_id]
+        # oval and quoting name share an area, inside a world-scroll cell
+        assert m2.get_context(cut_id) == m2.get_context(name_vid)
+        scroll = find_world_scroll(m2)
+        assert m2.get_context(name_vid) in scroll.cell_ids
+
+    def test_prose_banked_verbatim_and_lifted_back(self):
+        from oracle_notes import bank_answer
+        from quotation_overlay import lift_quotation
+        m2, cut_id = bank_answer(_resident_m(), PROSE, qid="q1",
+                                 note_date="2026-07-19")
+        lifted = lift_quotation(m2, cut_id)
+        labels = [v.label for v in lifted.V if v.label is not None]
+        assert labels == [PROSE]                       # verbatim, newline+quotes intact
+        assert [lifted.rel[e.id] for e in lifted.E] == ["utterance"]
+
+    def test_mention_not_use(self):
+        from oracle_notes import bank_answer
+        from agon_evolution import sheet_atom_keys, atom_key
+        m = _resident_m()
+        m2, _ = bank_answer(m, PROSE, qid="q1", note_date="2026-07-19")
+        keys = sheet_atom_keys(m2)
+        assert atom_key("asserted", ["author", None]) in keys   # the act, asserted
+        assert not any("utterance" in k for k in keys)          # the content, mentioned only
+        # the pre-existing standing ink is untouched
+        assert atom_key("swan", ["Alba"]) in keys
+
+    def test_structural_round_trip_preserves_banked_cell(self):
+        from oracle_notes import bank_answer
+        from quotation_overlay import lift_quotation
+        from egi_io import to_dict, from_dict
+        from eg_navigation import same_graph
+        m2, cut_id = bank_answer(_resident_m(), PROSE, qid="q1",
+                                 note_date="2026-07-19")
+        back = from_dict(to_dict(m2))
+        assert same_graph(m2, back)
+        assert len(back.quotation) == 1
+        (cut2,) = back.quotation
+        labels = [v.label for v in lift_quotation(back, cut2).V
+                  if v.label is not None]
+        assert labels == [PROSE]
+
+    def test_refuses_without_residence(self):
+        from oracle_notes import bank_answer
+        from egif_parser_dau import parse_egif
+        import pytest as _pytest
+        with _pytest.raises(ValueError):
+            bank_answer(parse_egif('(swan "Alba")'), PROSE,
+                        qid="q1", note_date="2026-07-19")

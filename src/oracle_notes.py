@@ -1174,10 +1174,61 @@ def p2_13_report(ledger: OracleLedger) -> dict:
             "informative_segments": informative_segments, "hits": hits}
 
 
+# --------------------------------------------------------------------------- #
+# V2a.2 item (2): quotation-cell banking (docs/superpowers/specs/              #
+# 2026-07-17-vault-cycle-design.md, "V2a.2 — AUTHORIZED", item 2).            #
+# An answer enters M as ``(asserted "author" <q>)`` with <q> a proposition-    #
+# sorted name whose quotation oval holds the VERBATIM prose as one            #
+# ``(utterance "<prose>")`` atom — banked unparsed, mention not use. The      #
+# only asserted ink is the attribution: truth about the act of answering,     #
+# never about its content (spec §"person-model", Examination IV Suspect 4).   #
+# --------------------------------------------------------------------------- #
+
+ATTRIBUTION_EGIF = '(asserted "author" *q)'
+
+
+def _utterance_graph(prose: str):
+    """The quoted ink: one constant vertex carrying ``prose`` verbatim, named
+    by one ``utterance`` atom. Built structurally — the prose never meets a
+    linear parser/generator, so newlines/quotes/brackets survive untouched."""
+    from uuid import uuid4
+    from egi_core_dau import create_empty_graph, Vertex, Edge
+    g = create_empty_graph()
+    vid, eid = f"v_bank_{uuid4().hex[:8]}", f"e_bank_{uuid4().hex[:8]}"
+    g = g.with_vertex_in_context(
+        Vertex(id=vid, label=prose, is_generic=False), g.sheet)
+    g = g.with_edge(Edge(id=eid), (vid,), "utterance", g.sheet)
+    return g
+
+
+def bank_answer(m, answer_text: str, *, qid: str, note_date: str):
+    """Bank one answered oracle question into the resident M: one licensed
+    INS-of-cell of ``ATTRIBUTION_EGIF`` (``enlarge_m``), then the fresh
+    generic name gains its quotation oval holding the verbatim prose
+    (``quote_existing_name`` — same-area attachment, inside the new cell).
+    Returns ``(new_graph, quotation_cut_id)``. Raises ``ValueError`` when
+    ``m`` carries no world-scroll (``enlarge_m``'s own refusal). ``qid`` and
+    ``note_date`` are accepted here for signature stability with the step
+    recorder and the gate's replayer, which re-executes from these params."""
+    from world_scroll import enlarge_m, find_world_scroll
+    from quotation_overlay import quote_existing_name
+    scroll = find_world_scroll(m)
+    before_cells = set(scroll.cell_ids) if scroll else set()
+    m2 = enlarge_m(m, ATTRIBUTION_EGIF)
+    scroll2 = find_world_scroll(m2)
+    (new_cell,) = set(scroll2.cell_ids) - before_cells
+    eid = next(e.id for e in m2.E
+               if m2.get_context(e.id) == new_cell
+               and m2.rel[e.id] == "asserted")
+    q_vid = m2.nu[eid][1]
+    m3, cut_id = quote_existing_name(m2, q_vid, _utterance_graph(answer_text))
+    return m3, cut_id
+
+
 __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
     "select_within_budget", "DEFAULT_BUDGET", "ParsedNote", "parse_note",
     "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
     "conjectures_section", "reask_candidate", "opaque_note_qid",
-    "resolve_note_qids",
+    "resolve_note_qids", "bank_answer", "ATTRIBUTION_EGIF",
 ]
