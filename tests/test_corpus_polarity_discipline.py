@@ -128,6 +128,23 @@ M_RULES = ("REVISE_M", "REVISE_M(sibling)", "ADMIT_TO_M", "RETRACT_FROM_M",
            "BANK_TO_M")
 
 
+def _acknowledged(act, params) -> bool:
+    """Is ``act`` (with its recorded ``params``) an act the gate actually
+    acknowledges? True iff ``act in M_ACTS`` — EXCEPT ``"quotation"``, which
+    additionally requires ``params.get("provenance") == "oracle-answer"``.
+
+    ``_replay_act`` only knows how to re-execute the oracle-answer banking
+    flavor of a ``"quotation"`` act (``bank_answer``); any other quotation act
+    (e.g. a bare ``quote_step``/``sort_step`` mention landing inside a
+    resident-M cell — ``src/quotation_overlay.py``'s builders stamp
+    ``act="quotation"`` with no ``provenance`` key at all) is unreplayable
+    from the record. Unreplayable means unearned: the gate must not let a
+    provenance-less quotation act ride through on the bare act name."""
+    if act == "quotation":
+        return (params or {}).get("provenance") == "oracle-answer"
+    return act in M_ACTS
+
+
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
 def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
     chain, _ = _chain_states(tomos, uod_id)
@@ -161,7 +178,7 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
             assert d and d[-1] == "DC-" and set(d[:-1]) == {"IT-"}, (
                 f"{uod_id}/{step.step_id}: discharge without its executed "
                 f"IT-·…·DC- derivation — got {d!r}")
-        if step.rule_name in M_RULES and p.get("act") not in M_ACTS:
+        if step.rule_name in M_RULES and not _acknowledged(p.get("act"), p):
             pytest.fail(f"{uod_id}/{step.step_id}: an M-change with no act record")
 
 
@@ -235,8 +252,9 @@ def test_m_content_never_changes_silently(tomos, uod_id):
             continue
         if same_graph(m_view(before), m_view(after)):
             continue
-        act = (step.parameters or {}).get("act")
-        assert act in M_ACTS, (
+        p = step.parameters or {}
+        act = p.get("act")
+        assert _acknowledged(act, p), (
             f"{uod_id}/{step.step_id}: M's content changed with no acknowledged "
             f"act (rule {step.rule_name!r}, act {act!r}) — a silent M-change")
 
@@ -289,6 +307,41 @@ def test_banked_chain_passes_the_gate_and_replays():
     replayed, skipped, mismatches, by_act = _replay_derivations(chain)
     assert mismatches == []
     assert by_act["quotation"] == 1
+
+
+def test_a_provenance_less_quotation_act_does_not_acknowledge_an_m_change():
+    """The finding this fix closes: bare ``"quotation"`` sits in ``M_ACTS``,
+    but ``_replay_act`` can only re-execute its oracle-answer banking flavor
+    (``provenance="oracle-answer"``). A step that changes ``m_view`` and
+    carries ``act="quotation"`` with NO provenance — the shape a future
+    ``quote_step``/``sort_step`` mention landing inside a resident-M cell
+    would take (``src/quotation_overlay.py``'s builders stamp
+    ``act="quotation"`` with no ``provenance`` key) — must still be caught by
+    the gate as unacknowledged, exactly like the bottom-door falsifier above."""
+    from eg_navigation import same_graph
+    from proof_authoring import ProofChain, apply_rule
+    from world_scroll import _fresh_double_cut, wrap_m
+
+    def bottom_door(g):
+        scroll = find_world_scroll(g)
+        g, outer, rider = _fresh_double_cut(g, scroll.cell_ids[0])
+        g = apply_rule("INS", g, egif='~[ (unicorn "Q") ]', target=outer)
+        g = apply_rule("IT-", g, selection=[rider])
+        return apply_rule("DC-", g, selection=[outer])
+
+    pc = ProofChain(wrap_m(parse_egif('(dog "Rex")'))[0])
+    pc.apply_derived("QUOTE", bottom_door,
+                      note="a mention with no provenance",
+                      params={"act": "quotation"})
+    chain = pc.to_chain()
+    (step,) = chain.steps
+    before = chain.states[step.from_state_id]
+    after = chain.states[step.to_state_id]
+    assert not same_graph(m_view(before), m_view(after)), (
+        "fixture bug: the step should change m_view")
+    assert not _acknowledged(step.parameters.get("act"), step.parameters), (
+        "a provenance-less quotation act must not be treated as an "
+        "acknowledged M-change")
 
 
 # --------------------------------------------------------------------------- #
