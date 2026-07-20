@@ -121,9 +121,11 @@ def test_m_resides_in_a_standing_world_scroll(tomos, uod_id):
 # --------------------------------------------------------------------------- #
 
 M_ACTS = ("m_enlargement", "m_retraction", "m_revision", "world_withdrawal",
-          "m_discharge", "episode_entertained", "episode_abandoned", "m_refold")
+          "m_discharge", "episode_entertained", "episode_abandoned", "m_refold",
+          "quotation")
 M_RULES = ("REVISE_M", "REVISE_M(sibling)", "ADMIT_TO_M", "RETRACT_FROM_M",
-           "DECAY", "ENTERTAIN", "DISCHARGE_TO_M", "ABANDON_EPISODE")
+           "DECAY", "ENTERTAIN", "DISCHARGE_TO_M", "ABANDON_EPISODE",
+           "BANK_TO_M")
 
 
 @pytest.mark.parametrize("uod_id", _m_bearing_ids())
@@ -264,6 +266,29 @@ def test_the_tripwire_bites_on_a_silent_m_change():
         and (s.parameters or {}).get("act") not in M_ACTS
     ]
     assert flagged, "the tripwire failed to flag a silent M-change"
+
+
+def test_banked_chain_passes_the_gate_and_replays():
+    """Gate (c) of Examination IV's V2a.2 blockers: a chain that banks an
+    oracle answer (act ``quotation``, rule ``BANK_TO_M``) satisfies the
+    explicit-step check, the m_view tripwire (the act is acknowledged), and
+    docket ⑤'s derivation replay (re-executing bank_answer from the recorded
+    params reproduces to_state up to isomorphism)."""
+    from egif_parser_dau import parse_egif
+    from world_scroll import wrap_state
+    from oracle_notes import bank_answer_step
+    from proof_authoring import ProofChain
+    m, _ = wrap_state(parse_egif('(swan "Alba")'))
+    pc = ProofChain(m)
+    pc = bank_answer_step(pc, 'An answer with a newline.\nAnd "quotes".',
+                          qid="q9", note_date="2026-07-19")
+    chain = pc.to_chain()
+    (step,) = chain.steps
+    assert step.parameters["act"] in M_ACTS
+    assert step.rule_name in M_RULES
+    replayed, skipped, mismatches, by_act = _replay_derivations(chain)
+    assert mismatches == []
+    assert by_act["quotation"] == 1
 
 
 # --------------------------------------------------------------------------- #
@@ -472,6 +497,11 @@ def _replay_act(before, act, p):
         if "new_m_egif" not in p:
             return None    # recorded before revise_step captured new_m_egif
         return withdraw_and_resupply(before, p["new_m_egif"])[0]
+    if act == "quotation" and p.get("provenance") == "oracle-answer":
+        from oracle_notes import bank_answer
+        return bank_answer(before, p["answer_text"],
+                           qid=p.get("qid", ""),
+                           note_date=p.get("note_date", ""))[0]
     return None            # a non-M act carrying a derivation — not replayed
 
 
