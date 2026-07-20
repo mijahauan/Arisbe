@@ -12,8 +12,10 @@
 >
 > Assistant-drafted from the author's seeds (each quoted where it enters); every reading
 > that is the assistant's is flagged; the decisions are named in §6 and remain the
-> author's. Nothing here is built; the one small build candidate (the compression ratio,
-> §2 K3) and the one design-pass candidate (the tutor loop, §5) are named, not authorized.
+> author's. Most of this doc is design; two builds have since landed (2026-07-19, under
+> the Examination IV docket): the §2 K3 compression ratio and the §2 K1 severity join —
+> each carrying, in the table below, exactly what remains open. The tutor loop (§5)
+> remains a design-pass candidate, named not authorized.
 >
 > **Companions:** [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md)
 > (the loop this doctrine reads from) ·
@@ -71,13 +73,13 @@ Sosa's apt performance (accurate *because* adroit — the ledger measures aptnes
 repetition, so luck washes out, which is why Gettier-style luck cases lose their grip on
 a record-based measure). *(Assistant's readings, flagged.)*
 
-## 2 · The measure — four components, three already instrumented
+## 2 · The measure — four components, all instrumented
 
 | # | Component | What it measures | The instrument |
 |---|---|---|---|
-| K1 | **Severity-weighted track record** | Reliable success on tests that could have refuted | `PredictionLedger` (hits/misses/abstains) × the severity term (`attention_economy.Want.severity`) — the ledger half BUILT, the weighting a small join |
+| K1 | **Severity-weighted track record** | Reliable success on tests that could have refuted | `PredictionLedger.k1_score` (`Σ severity of hits − Σ severity of misses`, `resolving_membrane`) — the ledger + severity join BUILT 2026-07-19 with **declared linear weights** (`w(sev)=sev`), ordering-invariant under positive rescaling of severity. Still a design in one respect: the anchors' operational definition (severity = measured refutation-power) is an OPEN obligation, and the S1 result validated severity as an *attention* heuristic only, not as a scoring weight |
 | K2 | **Durability** | Survival under continued revision pressure | `agon_metalearning` stickiness / `mechanism_principles` (decay-aware: a faded item reads `stuck=None`, not refuted) — BUILT |
-| K3 | **Compression** | How much of the deliverance stream the laws derive | The **materialization ratio**: derivable atoms ÷ laws, read off `model_materialization`'s closure — NOT built; a named ~ten-line addition |
+| K3 | **Compression** | What fraction of the deliverance stream the laws derive | The **materialization ratio** (`materialization_ratio` → `KnowledgeCompression.ratio` = derived ÷ (explicit + derived), bounded [0,1], extent-invariant), read off `model_materialization`'s closure — BUILT 2026-07-19. The old mean-derivational-yield number survives as `yield_per_law` (derived ÷ laws), which is *not* extent-invariant and is not K3 |
 | K4 | **Use** | The habit exercised — re-delivery | `UsageLedger` (atom-level); disuse-decay is the operational form of "knowledge exists only while it works" — the *faded* tense — BUILT |
 
 **Three guards, each already doctrine elsewhere, restated here as conditions on the
@@ -93,6 +95,11 @@ measure:**
    *inquirers*. An aggregate scalar would reinvent the worth-ladder the Fidelity
    examinations dissolved — competence ≠ worth is a category-fact. *(Assistant's
    proposed guard, §6 decision 3.)*
+
+**Sufficiency is not claimed:** the four components cover the *assertoric* fragment of
+the seed definition; "acts that work" awaits the action arm (BOOTSTRAP), and
+calibration, coherence, coverage, and evidential independence are named
+**non-components** until argued in or out. *(Examination IV, D1.4.)*
 
 ## 3 · The fractal structure
 
@@ -240,7 +247,9 @@ didactically.** A scaffold element bears weight for ongoing learning exactly ins
   instrument (what is earned against resistance outlasts what is accepted on consensus).
 - **K3 — it compresses.** The laws that derive many facts are the load-bearing beams;
   teach generative rules over enumerations, and measure a lesson by its materialization
-  ratio.
+  ratio (`ratio` = derived ÷ (explicit + derived), the extent-invariant form — so a
+  lesson about a *small* domain compresses no worse than the identical lesson about a
+  big one; the old size-confounded yield lives on only as `yield_per_law`).
 - **K4 — it stays in use.** Re-delivery is retention: the testing effect (retrieval
   practice) is the decay clock run deliberately; what the learner never re-derives,
   fades — and *should* be allowed to, if it bears no weight.
@@ -290,12 +299,16 @@ Socratic elenchus — doubt-induction as the oldest teaching method on record.
    §4 is re-grounded on it. A consequence for decision 3: the vector-not-scalar guard
    is now literally **Doubt 4's enforcement clause inside the measure** — an aggregate
    knowledge-score over agents would be the worth-ladder rebuilt by arithmetic.
-2. **The four-component measure** (§2) — ✅ RATIFIED 2026-07-17, and K3 authorized +
-   **BUILT same day**: `model_materialization.materialization_ratio` →
-   `KnowledgeCompression` (derived ÷ all laws, with non-Horn skipped laws weighing the
-   denominator — no compression credit without evaluable evidence; a lawless M reads
-   0.0, never an error). Three tests in `tests/test_model_materialization.py`. All four
-   components now instrumented.
+2. **The four-component measure** (§2) — ✅ RATIFIED 2026-07-17, K3 authorized +
+   **BUILT same day**, then **re-derived 2026-07-19** (Examination IV, D1.3) to remove
+   a domain-size confound: `model_materialization.materialization_ratio` →
+   `KnowledgeCompression.ratio` = derived ÷ (explicit + derived), bounded [0,1] and
+   extent-invariant (a lawless M reads 0.0, never an error). The earlier
+   derived-÷-all-laws number — the *mean derivational yield*, which scales with domain
+   size — survives as `yield_per_law`, not as K3. K1's severity join was **built the
+   same day** (`PredictionLedger.k1_score`), with the anchors' operational definition
+   carried as an open obligation (§2). Tests in `tests/test_model_materialization.py` and
+   `tests/test_resolving_membrane.py`. All four components now instrumented.
 3. **The vector-not-scalar guard** (§2, guard 3) — ✅ RATIFIED 2026-07-17 as doctrine:
    components are never aggregated into a single ranking of inquirers (Doubt 4's
    enforcement clause inside the measure).

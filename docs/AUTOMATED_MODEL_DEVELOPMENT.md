@@ -63,15 +63,17 @@ over generations → emergent global behaviour nobody scripted. The **step** is 
 the **rule that fires** is a disposition chosen by agents; the **death** is relinquishment
 (retraction), driven by disuse and by better explanations.
 
-**The decisive structural difference is the plane.** Conway's Life runs on a **bounded**
-plane: the boundary is itself a constraint — it makes the system finite and shapes the
-emergence (patterns die or reflect at the edge). The Agon's sheet of assertion is
-**unbounded** — it can always grow, there is no edge to push back. So the thing that
-substitutes for Life's boundary, the only force that bounds an unbounded plane and gives the
-dynamics their shape, is **selection from outside**: the test (②), the disposition (③), and
-disuse-decay (⑤). In Life the constraints are *internal rules + a boundary*; in the Agon they
-are *internal rules + outside selection*. That is precisely why the **membrane** (§5) is the
-crux — it is where the outside, which does all the bounding, makes contact.
+**The decisive structural difference is not the plane but the closure of the dynamics.**
+Conway's Life is canonically defined on the *infinite* lattice ℤ² — as unbounded as the
+sheet of assertion; bounded or toroidal grids are implementation approximations, not the
+object. Life advances by a *fixed* local rule whose outcome is determined by a
+neighbour-count, so its growth, though spatially unbounded, is bounded *by the rule*. The
+Agon's sheet of assertion has no such fixed rule: it can always grow, and its growth is
+bounded only by **selection from outside** — the test (②), the disposition (③), and
+disuse-decay (⑤). In Life the constraint is an *internal, fixed rule*; in the Agon it is
+*internal rules + outside selection*. Life is a closed determinism; the Agon loop is an
+open negotiation — which is precisely why the **membrane** (§5) is the crux, the place
+where the outside, which does all the bounding, makes contact.
 
 ## 2 · A generation is a round of the game
 

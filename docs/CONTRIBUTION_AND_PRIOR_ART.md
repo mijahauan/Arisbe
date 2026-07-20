@@ -199,9 +199,10 @@ instructive as the agreements. The design consequences live in
   good-regulator theorem (Conant & Ashby 1970) — "every good regulator of a system must be
   a model of that system" — is the one-line *external* justification for M's existence:
   anything that is to cope with a world must carry a model of it. And the law of requisite
-  variety explains a design fact Arisbe reached empirically: disuse-decay bounds M's
-  variety to the *engaged* world-slice, because a model's variety need only match the
-  variety of what it actually regulates, not of the archive.
+  variety states the regulator must carry **at least** the variety it regulates; the
+  *economy of research* supplies the complementary upper bound — carry **no more** than the
+  engaged slice — which is the design fact Arisbe reached empirically and disuse-decay
+  enforces (bounding M's variety to the engaged world-slice, not the archive).
 
 - **Cellular automata (Conway's Game of Life).** The concordance that shaped the automated
   loop's design directly, and the one whose *differences* are doctrine — the full analysis is
@@ -212,11 +213,12 @@ instructive as the agreements. The design consequences live in
   determined" — the rule that fires is a disposition chosen by agents, not a neighbour-count;
   Life's *death* (its whole character) has no analogue in monotone materialization
   ("growth-to-saturation is not emergence; it's closure") and reappears as **relinquishment
-  and disuse-decay**; and "the decisive structural difference is the plane" — Life's plane is
-  **bounded** and its boundary shapes the emergence, while the sheet of assertion is
-  **unbounded**, so the bounding force must be **selection from outside**, which is why the
-  membrane is the crux. In short: Life is a closed determinism bounded by its edge; the Agon
-  loop is an open negotiation bounded by the world. (Whether Life itself is worth encoding as
+  and disuse-decay**; and "the decisive structural difference is **closure of the
+  dynamics**" — Life is canonically defined on the *infinite* lattice ℤ² (as unbounded as the
+  sheet of assertion) but advances by a *fixed* local rule, so its growth is bounded *by the
+  rule*, while the sheet's is bounded only by **selection from outside**, which is why the
+  membrane is the crux. In short: Life is a closed determinism bounded by its fixed rule; the
+  Agon loop is an open negotiation bounded by the world. (Whether Life itself is worth encoding as
   a closed CA-in-EG demo is a named backlog item there.)
 
 - **Scaling science (Geoffrey West, *Scale*; Kleiber; Bettencourt).** The author's
@@ -240,8 +242,9 @@ instructive as the agreements. The design consequences live in
 - **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
   Schmidhuber; Oudeyer & Kaplan).** The machine-learning face of the same loop. The **TD
   error** — the delta between expected and experienced — is the doubt-delta exactly, and
-  its fixed point is Peircean: **when the TD error is zero the agent stops learning, which
-  is Peirce's settled belief** (a habit no longer irritated). Schmidhuber's artificial
+  its fixed point is Peircean: **when the expected TD error is zero (the update's fixed
+  point) the agent stops learning, which is Peirce's settled belief** (a habit no longer
+  irritated). Schmidhuber's artificial
   curiosity inverts the drive: reward = **compression progress**, so the agent *seeks out*
   what it cannot yet predict in order to resolve it — doubt-seeking, not merely
   doubt-resolving, which is what Arisbe's musement pole and docket of doubts implement in
@@ -262,14 +265,18 @@ instructive as the agreements. The design consequences live in
 
 - **Biosemiotics / enaction (von Uexküll's Umwelt and functional circle; Hoffmeyer;
   Maturana & Varela's autopoiesis and structural coupling).** The Peirce-*native* bridge —
-  biosemiotics is itself built on Peirce's sign theory, so the vocabulary transfers with
-  least distortion. The vocabulary-bounded horizon ("enough of M = what the proposal
+  modern biosemiotics (Sebeok, Hoffmeyer) is built on Peirce's sign theory and reads von
+  Uexküll's Umwelt *through* it (Uexküll himself, d. 1944, was not Peircean; the fit is
+  retrofitted, not original), so the vocabulary transfers with least distortion. The
+  vocabulary-bounded horizon ("enough of M = what the proposal
   touches," [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)) is an Umwelt: the world *as
   addressable by this organism's sign-repertoire*, with an honest horizon beyond it.
   Uexküll's functional circle (perceive → act → perceive) is exactly the circuit that
   closes only when directed engagement is built; until then Arisbe has the perception arc
   of the circle, not the action arc. Structural coupling names what a long-running live
-  membrane would become: model and source shaping each other's history.
+  membrane would become: model and source shaping each other's history — with the
+  instructive break that Maturana & Varela's autopoiesis is militantly
+  anti-representationalist, rejecting exactly the model-of-the-world framing M reinstates.
 
 - **Belief revision & reason maintenance (AGM; Doyle's TMS; de Kleer's ATMS).** The
   disposition taxonomy is Arisbe's answer to the problem AGM axiomatizes — how a rational

@@ -1584,7 +1584,13 @@ composition tests *before* that build. Until then the record carries: *"A3 is pr
 for the corpus as it stands and for the blessed application path; it is not yet a
 guarantee by construction — a direct engine call or a Chapter-16 ligature move can
 demote a mention to an assertion, and the banking V2a.2 authorizes cannot yet survive
-the loop that would carry it."* Confidence (as a scale/construction claim): 0.9,
+the loop that would carry it."* **— SUPERSEDED 2026-07-19 (see Disposition below): A3 is
+now guarded on the expanded for-erasure closure and the split-unit raise (`ErasureRule` /
+`DeiterationRule` re-run the guard post-expansion; `_rebuild_graph` refuses a split
+quotation unit), and the Chapter-16 routes now forward the maps or refuse a
+quotation-bearing graph. The construction gap the sentence named is closed for the
+demonstrated counterexample; V2a.2's composition tests (a) carry + (b) decay are pinned,
+(c) `M_ACTS` remains.** Confidence (as a scale/construction claim): 0.9,
 sustained by independent re-execution. Honestly recorded alongside: at the tested
 scale, on the blessed path, the claim held every probe the panel threw at it.
 
@@ -1680,6 +1686,75 @@ the author's authorization ritual; ④–⑦ are unprotected; ⑧–⑫ are pre-
 V2a.2 (quotation-cell banking) is **blocked** on ①–④ plus its three composition tests
 (carry, decay, `M_ACTS` vocabulary) — building it first would mass-produce exactly the
 shapes the executed counterexample needs.
+
+## Disposition (2026-07-19) — the docket executed
+
+The author authorized the full docket. Every item ①–⑫ landed on `main` this sitting; the
+doc amendments the panels wrote paste-ready were reconciled to the post-build state (a
+concession sentence written "X does not exist" is rewritten to what now holds, naming
+what remains open). Commits, by item:
+
+1. **① ERA/IT− closure-guard re-run** — `b6d918e`. The guard re-runs on the expanded
+   for-erasure closure in `ErasureRule.check_preconditions` (`DeiterationRule` audited);
+   the executed swan counterexample is regression-pinned. *The demonstrated A3 break is
+   closed.*
+2. **② `_rebuild_graph` pruning invariant** — `b08c42a`. A split quotation unit (exactly
+   one of cut/name surviving) now *raises*; the demotion is unrepresentable on every
+   reconstruction path.
+3. **③ Chapter 16 map-forwarding** — `d83f5d5`. `ligature_manipulation_rules` /
+   `vertex_splitting_merging_rules` route through `_rebuild_graph` (or refuse a
+   quotation-bearing graph); preservation-or-refusal test added.
+4. **④ Structural M carry** — `9fa6287` (+ fixes `549c386`, `71e0fcf`). The segment carry
+   is `to_dict(egi)` JSON, not EGIF text — `same_graph` round-trip restored on resident
+   Ms, F2¹³'s trigger unreachable, the fallback deleted (the structural-carry disjunct,
+   not the concession).
+5. **⑤ Gate derivation-replay** — `67862a2` (+ fix `d2e1e5b`). The polarity gate
+   re-executes recorded derivations from `from_state` and asserts `same_graph` with
+   `to_state` — the peel-recomputation pattern applied to derivations; per-act floors +
+   signature-branch falsifier.
+6. **⑥ Fallback area-scoping** — `9fa6287` (+ `549c386`). `_structural_retract_atom` no
+   longer reaches inside denial cells / exhibits; pinned with the denial-cell test.
+7. **⑦ Poise repair-or-concede** — `5c32b2f`. `_window_reading`: "thrash" now requires
+   `thrash_situations > 0`; absorbed stumbles beyond threshold read as a third honest
+   **storm** state; the digest test re-pinned. The doctrine claim ("poise is the
+   observable of the rate ratios") retreated to Conjectured in THE_KYTOS §1/§3/§5.
+8. **⑧ Salted seal + verified reveals** — `199cc0c`. Per-question nonce; `build_reveals`
+   recomputes `sha256(nonce‖plaintext)`; `seal-broken` verdict on mismatch.
+9. **⑨ People/-filter on question candidates** — `8d62e10`. Metadata-only folders
+   (`People/`, `Kith_Kin/`, `Household/`) yield no question candidates (remain on the
+   horizon, counted).
+10. **⑩ P2¹³ operational form** — `0c5dc98` (+ fix `b143c5b`). The number + comparator
+    arm (docket-selected vs template-random, seeded, unlabeled), the `**R:**` instrument,
+    `ratings.jsonl` + `p2_13_report`, the docket wiring (`wants_from_docket` live), the
+    ceiling canary; default-ON with `--no-p213` escape.
+11. **⑪ `asked_ever` expiry + drift + decline synonyms + preempt invariance + digest
+    split** — `8a71be2`. Windowed re-ask (distinct note-dates, default 6); drift re-ask
+    capped 1/note; decline synonym set with Reveals exclusion; the predict-never-pre-empt
+    invariance gate (`tests/test_predict_never_preempt.py`) with genuine falsifiers;
+    digest `m_added`/`m_removed` split.
+12. **⑫ K1 join + K3 re-derive + attribution pins + churn-pump + ablation arms** —
+    `024097b` (+ fix `fbb5aa5`) and `8f48655` (+ fix `2e07228`). K1 severity join
+    (`PredictionLedger.k1_score`, declared linear weights, anchors open, positive-rescale
+    ordering-invariance pinned); K3 re-derived to `ratio = derived ÷ (explicit + derived)`
+    ∈ [0,1] (`yield_per_law` keeps the old number honestly); the two attribution pins; the
+    A0–A5 ablation harness (economy 2 < sev-greedy 3 < scatter 6) + cost-purse + churn-pump
+    (SUSTAINS 0.750→0.089 at the pre-registered round>ttl split).
+
+The core window (items ①–③) opened under the authorization ritual and closed with the
+core subset green (994 passed / 88 skipped / 0 failed; core LOCKED + CLEAN).
+
+**The A3 concession is superseded** (see Cluster D, Suspect 10, marked inline): A3 is now
+guarded on the expanded closure and the split-unit raise, and the Chapter-16 routes
+forward the maps. **V2a.2** is thereby unblocked on ①–④; its composition gates (a) carry
+and (b) decay are pinned in `tests/test_live_runner.py`; gate (c) — the `"quotation"`
+entry in the polarity gate's `M_ACTS` vocabulary — remains for the V2a.2 build itself,
+since banking a quotation cell is that build's own act.
+
+**Two items surfaced for the author's ruling** (from the executing ledger, not disposed
+here): (i) whether the ⑪ drift re-ask should be *suppressed* while the P2¹³ instrument is
+on — an un-suppressed re-ask slightly dilutes the instrument; (ii) the **P2-vs-P4
+scheduling call** at RUN 13 launch (recorded in `RUN_13_LOG.md`) — which prior the first
+real questions note serves first.
 
 ## What the examination did not bring down
 

@@ -36,7 +36,7 @@ A **kytos** is the recurring unit of doubt-driven semiosis:
   tomorrow's sensor space waits;
 - a **budget and its rates** — the economy of research allocating scarce attention;
   four rates (world change, processing, answering, decay) fix the regime, and **poise**
-  is their observable;
+  is a trace-reading we conjecture responds to their ratios (the linkage is unmeasured);
 - **decay** — the turnover that keeps the interior sized to the *engaged* world, and
   the reason a closed kytos does not freeze but fades.
 
@@ -73,9 +73,12 @@ the one beneath.
 ## 3 · The vital signs
 
 A kytos is scored by the knowledge measure (K1 severity-weighted record · K2
-durability, with its modal reading K2□/K2◇ · K3 compression · K4 use), and its health
-is read as **poise** — the balance of engagement, settlement, and absorption that the
-rate ratios produce. The standing guards apply at every scale: bounded-and-counted
+durability, with its modal reading K2□/K2◇ · K3 compression, the extent-invariant
+materialization ratio · K4 use), and its health is read as **poise** — the balance of
+engagement, settlement, and absorption. Poise is a trace-reading we conjecture responds
+to the rate ratios, but the linkage is unmeasured (threshold-relative, untested against
+any rate variation; the storm reading — high-tempo absorption honestly named rather
+than mislabelled thrash — landed 2026-07-19). The standing guards apply at every scale: bounded-and-counted
 (nothing silently dropped at any membrane), vector-never-scalar (no kytos is reduced
 to a rank of its inhabitant), poise-an-instrument-never-a-target, correspondence not
 truth. Two halting theorems shape its life: sealed and undecaying, a kytos
@@ -96,16 +99,24 @@ as the halting theorems with data). Conjecture until measured — see §5.
 ## 5 · Honesty ledger — built, evidenced, conjectured
 
 - **Built:** the anatomy at levels 2–3 and 6 (laws/M: the loops, decay, residence;
-  person-model: the vault cycle + oracle notes); the horizon; the economy; K1–K4
-  instruments incl. modal K2; the recursion-in-evaluation (the peel).
+  person-model: the vault cycle + oracle notes); the horizon; the economy; the K2–K4
+  instruments incl. modal K2 and the extent-invariant K3 ratio; the K1 severity join
+  (built 2026-07-19; its status qualified below); the recursion-in-evaluation (the peel).
 - **Evidenced:** the halting duals (RUN histories; the closed-proposer saturations);
   rate-determinism (ttl tuned per membrane across RUNS 1–12; F3¹³'s priced-out journal
   as a rate mismatch caught live); the reservoir asymmetry (RUN 13's digests).
-- **Partially evidenced:** measure transportability across levels — instrumented at
-  levels 1–4, *asserted* at 5–7; the mechanism level has stick-rates but no K3/K4.
+- **Partially evidenced:** K1 as an *instrument* — the severity join now exists in code
+  (`Σ_hits sev − Σ_misses sev`, built 2026-07-19), but the anchors' operational
+  definition remains an open obligation and its ordering-invariance holds only under
+  positive linear rescaling of the severity weights (the S1 result validated severity as
+  an *attention* heuristic, not as a scoring weight); measure transportability across
+  levels — instrumented at levels 1–4, *asserted* at 5–7; the mechanism level has
+  stick-rates but no K3/K4.
 - **Conjectured, honestly:** the scaling exponents (§4); the community level entirely;
-  the claim that one ledger shape suffices at every level (a skeptic should attack
-  exactly here — flagged for the standing examination).
+  poise's rate-linkage — that the trace-reading responds systematically to the four
+  rates' ratios is a conjecture, not a measured relation (§1, §3); the claim that one
+  ledger shape suffices at every level (a skeptic should attack exactly here — flagged
+  for the standing examination).
 
 ## 6 · Vocabulary discipline
 

@@ -1,10 +1,12 @@
 # Current Plan
 
-**Last Updated**: 2026-07-19 — **EXAMINATION IV executed** (see item -7 in the NEXT
-SESSION block: five independent panels over the doctrine sprint; the record is in
-ADVERSARIAL_EXAMINATION.md "Examination IV"; the 12-item defect docket awaits the
-author's rulings, with pre-RUN-13 riders and the V2a.2 block flagged). Earlier
-sittings' record follows.
+**Last Updated**: 2026-07-19 — **EXAMINATION IV defect docket ①–⑫ executed** (see item
+-9 in the NEXT SESSION block: the author authorized the full docket; all twelve items
+landed on `main`, the panel doc amendments were applied+reconciled to the post-build
+state, and the record was closed with a dated Disposition block in
+ADVERSARIAL_EXAMINATION.md "Examination IV"). Remaining are author-side: RUN 12 disposal,
+RUN 13 launch (riders now in place), and the V2a.2 build (unblocked, unauthorized).
+Earlier sittings' record follows.
 
 **2026-07-17 (second sitting)** — the whole-of-Arisbe step-back: the author's
 bootstrap premise (doubt-driven chain of semiosis; the Minimal Predictive Automaton) mapped
@@ -94,8 +96,103 @@ M as a quoted attributed cell, multi-paragraph answers, real NL interpretation o
 answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
-**▶▶▶ NEXT SESSION (re-headed 2026-07-19, second sitting: EXAMINATION IV EXECUTED —
-the defect docket awaits the author's rulings).**
+**▶▶▶ NEXT SESSION (re-headed 2026-07-19, third sitting: EXAMINATION IV DEFECT DOCKET
+①–⑫ EXECUTED — docs amended, record closed, full suite verified).**
+
+-9. **✅ DEFECT DOCKET ①–⑫ COMPLETE (2026-07-19, author authorized the full docket).**
+   All twelve items landed on `main`; docs reconciled to the post-build state; the
+   examination record closed with a dated Disposition block (ADVERSARIAL_EXAMINATION.md).
+   By cluster:
+   - **Core (①–③, under the authorization ritual, window closed clean):** ERA/IT−
+     closure-guard re-run `b6d918e`; `_rebuild_graph` split-unit refusal `b08c42a`;
+     Chapter-16 map-forwarding `d83f5d5`. *The demonstrated A3 break is closed; A3 now
+     guarded on the expanded closure + split-unit raise; Ch.16 forwards the maps.*
+   - **Unprotected loop (④–⑦):** structural M carry `to_dict` (fallback deleted)
+     `9fa6287`+`549c386`+`71e0fcf`; gate derivation-replay `67862a2`+`d2e1e5b`; fallback
+     area-scoping `9fa6287`; poise storm reading `5c32b2f`.
+   - **Pre-RUN-13 riders (⑧–⑪):** salted seal + verified reveals `199cc0c`; People/ filter
+     `8d62e10`; P2¹³ operational form (default-on, comparator arm, `**R:**` instrument)
+     `0c5dc98`+`b143c5b`; `asked_ever` window + drift re-ask + decline synonyms + preempt
+     invariance + digest split `8a71be2`.
+   - **Measure + empirics (⑫):** K1 severity join + K3 re-derive `024097b`+`fbb5aa5`;
+     attribution pins + churn-pump + ablation harness `8f48655`+`2e07228`.
+   **Remaining — author-side:**
+   - **RUN 12 disposal** (MLB sports live run; watch/dispose F1¹²…, replay canary, P4¹²
+     literature check) — the author's.
+   - **RUN 13 launch** — the pre-RUN-13 riders are now in place (salted seal, People/
+     filter, P2¹³ default-on); the **P2-vs-P4 scheduling call** (RUN_13_LOG.md) is the
+     author's at launch, and the **⑪ drift-re-ask-vs-P2¹³-suppression** ruling (an
+     un-suppressed re-ask slightly dilutes the instrument) is owed.
+   - **V2a.2 (quotation-cell banking)** — now unblocked on ①–④; composition gates (a)
+     carry + (b) decay pinned in `test_live_runner.py`; gate (c) — `"quotation"` ∈ the
+     polarity gate's `M_ACTS` — remains for the V2a.2 build itself. Build unauthorized.
+
+-8. **TWO AUTHOR QUESTIONS FOR THE RECORD (2026-07-19, posed mid-docket-execution;
+   open, nothing built).**
+   **Q-A — a reduction theorem for mention-ascent.** Can we prove, in the vein of
+   Peirce's reduction thesis (triads suffice; teridentity generates all n-ads), that
+   higher-level quoting *reduces* to our version of gamma — the one B-min quotation
+   device (proposition-sorted name tied to a graph-valued oval)? The claim would have
+   the thesis's two halves: (i) **sufficiency under composition** — every
+   S1-stratified mention structure of arbitrary depth composes from the single
+   cut→vertex device; a structural-induction proof over the stratified formation
+   rules looks tractable, and is exactly what B-min+ (lifting the
+   quotation-in-quotation *validation* refusal — a validation choice, not a model
+   limit, per the B-full prep at item -5) would exercise; (ii) **irreducibility** —
+   the device does not reduce to first-order ink, which the A3 conservativity gate
+   (tier 2: asserted derives, quoted doesn't) and `SecondOrderNotInLinearForm`
+   already evidence mechanically — the analogue of "dyads cannot make triads."
+   Scope caveat: historical gamma bundles modality too; ours is the diachronic DAG
+   (MODALITY_WITHOUT_GAMMA), so the theorem should be scoped to *mention-ascent*,
+   not all of gamma. Consequence if proven: B-full-3's exemplar gate sharpens — no
+   exemplar could force B-full for *expressiveness*; only iconicity could.
+   **Q-B — the community of kytē searching the scaling landscape.** Can a community
+   of kytē find the optimum apportionment — each kytos getting what it *needs* (its
+   membrane diet: attention budget, model fragments, answered questions per cycle)
+   while the collective's production and viability hold — operationalizing West's
+   Scale in cognitive/semiotic terms? Reading: make **apportionment itself a move
+   in the game** — split/merge of kytē as licensed, recorded proposals adjudicated
+   by measured cost/K curves (a meta-Agon over partitions), rather than us comparing
+   two fixed arrangements. The coordination currency is the attributed-cell
+   (quotation) protocol — which ties Q-B to Q-A: cross-kytos mention IS the
+   quotation spine, so the reduction theorem would underwrite the federation
+   protocol. West operationalized = measure the exponents (round cost vs |M|; K3 vs
+   scale; coordination overhead vs kytē count), never assume the power laws; the
+   monolith's super-linear costs are already evidenced (F1¹³/F3¹³, the 36-min
+   layout), the federation's coherence tax is the counter-term, and "optimum
+   landscape" = the frontier where marginal coherence tax equals marginal metabolic
+   saving. Extends the standing apportionment-spectrum thread (first experiment
+   already sketched there: vault one-M vs per-folder kytē + coordinator) with the
+   new element: **endogenous search** — pre-register whether self-partitioning
+   converges and whether its cost curve bends below the monolith's at equal K1/K2.
+
+   **Q-C — the kytos as West's terminal unit (the author, same sitting, extending Q-B).**
+   *"If our kytos does fit West's terminal unit, then we might be able to parametrize and
+   model a variety of social/semiotic behaviors from murmurations of starlings or colonies
+   of ants, to human minds and cultures."* The claim's engine: West's exponents fall out of
+   a fractal supply network delivering to an **invariant terminal element** (capillary,
+   socket) — so if the kytos is the invariant endpoint, murmuration / colony / mind /
+   culture differ in *branching and coupling*, not in kind of unit, and one parametrized
+   model spans them. Few free parameters, each already measured somewhere in the codebase:
+   membrane permeability (what crosses per cycle), cycle rate, budget, decay rate, horizon
+   capacity, coupling topology. Dial settings would read: starlings/ants = minimal
+   interior-M + dense fast coupling; a mind = large interior-M + slow coupling; a culture =
+   large-M units + lossy high-latency coupling.
+   **The obligation this inherits (Examination IV, same day):** transportability is
+   *instrumented* at levels 1–4 and *asserted* at 5–7 (KYTOS §5's own flag); West's
+   exponents are conjecture-until-measured; poise-as-rate-observable was demoted for
+   asserting a linkage no instrument reads. This claim sits at a wider radius than all
+   three, and adds one more: **terminal-unit invariance is a testable proposition, not a
+   definition.** West's capillary invariance is an empirical fact; the analogue here is
+   falsifiable — *does a kytos's cost per doubt-cycle stay invariant as the surrounding
+   community grows?* If a starling-cycle and a scholar-cycle need different unit models,
+   the kytos is a family resemblance, not a terminal unit, and no exponent transfers.
+   **Cheapest first test, no biology required:** Q-B's federation experiment already varies
+   coupling topology and kytē count — measure whether per-kytos cycle cost stays flat while
+   collective production scales as a power law in kytē count. That is a terminal unit and an
+   exponent measured in Arisbe's own system, and it is the minimum evidence before the word
+   "murmuration" enters a doc. Assistant's reading of the obligation, flagged as such;
+   the claim itself is the author's and stands open.
 
 -7. **✅ EXAMINATION IV EXECUTED (2026-07-19, same day chartered).** Five independent
    skeptic panels (measurement theorist+complexity scientist · ablation methodologist ·
@@ -136,6 +233,8 @@ the defect docket awaits the author's rulings).**
    composition tests (the EGIF carry raises `SecondOrderNotInLinearForm` on the first
    banked cell; decay over a banked cell crashes or corrupts; `"quotation"` ∉ `M_ACTS`).
    Doc amendments are paste-ready in the briefs, proposed not applied, per precedent.
+   **— SUPERSEDED 2026-07-19: the author authorized the full docket; ①–⑫ executed and
+   the doc amendments applied+reconciled. See item -9 above.**
 
 -6. **EXAMINATION IV — the skeptical review of the doctrine sprint (the author's
    mandate, 2026-07-19). ✅ EXECUTED — see -7 above; charter retained below.** The author: untested-even-if-not-unreasonable assumptions

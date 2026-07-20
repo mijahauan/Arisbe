@@ -44,9 +44,15 @@ measure this cycle's M is scored by) · the author's rulings of 2026-07-17 (belo
   world-component is an **explicit episode** (entertain → test → discharge), never a
   silent slide from "said" to "so."
 - **Even the author's errors are veridical data**: `(asserted "author" ⌜P⌝)` stays
-  true-about-the-author regardless of P's fate. The author's answers are **ground
-  truth about the author by construction**; they carry no warrant about the world
-  except what testing earns.
+  true-about-the-author regardless of P's fate. An answer is **ground truth about the
+  *act of answering*, never about its content**; where an answer is used as a scoring
+  standard (K1 hits, P4¹³ provenance agreement) it is a **fallible label** — revisable,
+  re-askable, and datable — not ground truth (deception, self-misunderstanding,
+  performativity, and drift all bite the content). The quoted-attributed-cell machinery
+  that would carry the veridicality-of-the-act guarantee "by construction" is itself
+  **deferred to V2a.2**; in V2a.1 an answer is a raw string in the run's side-store, so
+  the guarantee is a design not yet constructed. They carry no warrant about the world
+  except what testing earns. *(Examination IV, Suspect 4.)*
 - **The measure reads as character**: K1 = the record of predicting the author; K2
   separates disposition from mood (what survives decay across 27 months is trait);
   K3 = compression — the few habits deriving many observations, the person's
@@ -56,7 +62,17 @@ measure this cycle's M is scored by) · the author's rulings of 2026-07-17 (belo
   4's clause — a person-model never condenses to a score of the person); custody
   local-first, the author's own; **predict, never pre-empt** (the new guard: the
   author-model may forecast the author's proposals but never pre-judge them — the
-  method-gate stays blind to identity, including the modeled author's).
+  method-gate stays blind to identity, including the modeled author's). Two riders
+  ruled in by Examination IV: (i) **pre-emption includes selection** — what the
+  author-model suppresses from being asked is recorded (counted, inspectable), so
+  foreclosed question-lines are data, not silence; (ii) **consent boundaries bind the
+  question generator as they bind the reader** — Arisbe never asks the author to voice
+  what it may not read (the `People/`/`Kith_Kin/`/`Household/` metadata-only folders
+  yield no question candidates; built 2026-07-19). The guard's own content — a
+  proposal's disposition is invariant to the presence of quoted author-model cells in M
+  — is now a standing gate (`tests/test_predict_never_preempt.py`, built 2026-07-19),
+  the way A3 became one; but that invariance bites only once V2a.2 banks such cells,
+  so today it guards a channel not yet open.
 
 ## Stage V0 — the metadata membrane (offline, deterministic, CI-safe; no API)
 
@@ -144,14 +160,23 @@ is **the author's time**. **The author ratified all four V2a recommendations
    the note's frontmatter** (`budget: {max: 5, reflective: 1}`, author-editable).
    No push, ever.
 3. **Seal-then-reveal**: the forecast's plaintext lives in the gitignored side-store;
-   only its SHA-256 commitment appears in the question block; the next note's
-   `## Reveals` section prints plaintext + hash + hit/miss after the answer is read —
-   the seal is *checkable*, not promised. Ask-time and answer-time held apart (the
-   two-timeline discipline, third appearance).
-4. **Decline/silence are first-class**: `declined` = veridical data, its want decays
-   (no re-asking); silence ages the want; a question-kind repeatedly yielding silence
-   decays as a kind (the noisy-TV guard turned inward). Counted-never-dropped
-   throughout. **Reflexive stream from day one**: the whole exchange lives in
+   only a **salted** SHA-256 commitment appears in the question block — a per-question
+   random nonce stored beside the plaintext, so the tiny forecast vocabulary is no
+   longer dictionary-checkable (built 2026-07-19); the next note's `## Reveals` section
+   **recomputes** `sha256(nonce‖plaintext)` and prints plaintext + hash + hit/miss after
+   the answer is read, marking any mismatch `seal-broken` — the seal is *checked in
+   code*, not merely promised. Ask-time and answer-time held apart (the two-timeline
+   discipline, third appearance).
+4. **Decline/silence are first-class**: `declined` = veridical data; a small **refusal
+   synonym set** now recognizes a decline beyond the bare word `declined`, and a
+   decline's own text is excluded from the next note's Reveals so a refusal is never
+   banked back as answer-data (both built 2026-07-19). Concession, still owed: the
+   *differential decay* the doctrine describes — declined → the want decays, silence →
+   it ages, a kind repeatedly yielding silence decays as a kind (the noisy-TV guard
+   turned inward) — is **not built**; `asked_ever` (windowed since 2026-07-19:
+   re-eligible after N distinct note-dates, default 6) suppresses on a date window, not
+   on a decline/silence signal, and no such signal yet reaches the `AttentionEconomy`.
+   Counted-never-dropped throughout. **Reflexive stream from day one**: the whole exchange lives in
    `Arisbe/`, so "how the author changes by interacting with Arisbe" accumulates in
    the corpus automatically, provenance-marked.
 

@@ -50,11 +50,13 @@ of the continuous perception–action loop (our actions dictate what stimuli we 
 environmental friction (ultrastability: out-of-bounds variables trigger re-randomized
 internal wiring until equilibrium returns — doubt as a voltage); **predictive processing**
 — Helmholtz's *unconscious inference* (1860s) through Friston's free-energy principle
-(2006–): free energy *is* doubt, minimized either by updating the model (perceptual
-inference) or by acting on the world (active inference — the action arm this doc stages);
+(2006–): free energy **bounds** surprisal, and minimizing it plays doubt's functional role
+— either by updating the model (perceptual inference) or by acting on the world (active
+inference — the action arm this doc stages);
 **machine learning** — Schmidhuber's artificial curiosity (reward = compression progress,
 the agent *seeking* doubt to resolve it) and temporal-difference learning, whose TD error
-is the doubt-delta exactly (and TD error = 0 is Peirce's settled belief). Full entries in
+is the doubt-delta exactly (and expected TD error = 0, the update's fixed point, is Peirce's
+settled belief). Full entries in
 [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
 
 Laid against the codebase, the automaton is about four-fifths built — scattered, under
@@ -137,8 +139,9 @@ register." This doc's §3 is the staged path onto that ground.
 make next — which entity to re-poll, which want on the docket to voice, which experiment
 to run — is the problem Peirce solved in outline in "Note on the Theory of the Economy of
 Research" (1879): allocate inquiry by **cost against expected reduction of doubt**. This
-is the 19th-century statement of what the machine-learning literature now calls active
-learning / optimal experiment design. The warrant for building the action arm is therefore
+is the 19th-century statement of what statistics and machine learning now call **optimal
+experiment design and the value of information** (Lindley 1956), of which pool-based active
+learning is one modern instance. The warrant for building the action arm is therefore
 *native to Peirce*, not imported from the predictive-processing neighbors — the neighbors
 corroborate; Peirce mandates. *(Assistant's reading, flagged; the author should ratify the
 framing before it hardens into the doc spine — see §5.)*
@@ -146,8 +149,8 @@ framing before it hardens into the doc spine — see §5.)*
 **(c) The noisy-TV guard.** Once actions are chosen by expected doubt-reduction, the
 target must be **learning progress** (the *rate of improvement* of prediction), never raw
 prediction error: a pure-noise source generates maximal error forever and would trap an
-error-seeking prober (the "noisy-TV problem" of the artificial-curiosity literature —
-Schmidhuber, Oudeyer). Arisbe already half-guards this: Kleene UNKNOWN abstains rather
+error-seeking prober (the learning-progress concept is Schmidhuber's and Oudeyer's; the
+"noisy-TV" *term* was popularized by Burda et al. 2018). Arisbe already half-guards this: Kleene UNKNOWN abstains rather
 than mis-predicting, decay expels what never re-delivers, and the standing rule that
 **poise must never become a target** (AUTOMATED_ENDOPOREUTIC_GAME §4d) is the same
 Goodhart instinct stated for the run as a whole. The design rule for §3: *order reaches by
