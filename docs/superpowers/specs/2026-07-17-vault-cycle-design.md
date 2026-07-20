@@ -426,12 +426,13 @@ execution, six TDD tasks, per-task review (commits `dd2aa7b..0177bca`), out of t
 docket's stated authorization order (item (2) was unblocked first; items (1) and (3)
 remain held on the timing rider below). **Modules:** `src/oracle_notes.py` gained
 `ATTRIBUTION_EGIF = '(asserted "author" *q)'` + `_utterance_graph` (the quoted ink
-built structurally — one constant vertex carrying the answer's prose verbatim, named
-by one `utterance` atom — so the prose never meets a linear parser/generator and
-newlines/quotes/brackets survive untouched) + `bank_answer(m, answer_text, *, qid,
+built structurally — one constant vertex carrying the answer's prose as its label
+(verbatim up to a bound — see the addendum below), named by one `utterance` atom —
+so the label never meets a linear parser/generator and newlines/quotes/brackets
+survive untouched) + `bank_answer(m, answer_text, *, qid,
 note_date) -> (graph, quotation_cut_id)` (one licensed INS-of-cell via `enlarge_m`
 of `ATTRIBUTION_EGIF`, then `quote_existing_name` gives the fresh generic name its
-own oval holding the verbatim prose — mention, not use: the banked content asserts
+own oval holding the label — mention, not use: the banked content asserts
 nothing about the world, only that the author said it) + `BANK_TO_M = "BANK_TO_M"`
 + `bank_answer_step(pc, answer_text, *, qid, note_date)` (records ONE composite
 chain step, act `"quotation"`, provenance `"oracle-answer"`, derivation `["INS",
@@ -509,14 +510,81 @@ characters (measured: ~52 chars passes, ~53 fails, independent of the surroundin
 M's size — the box-placement pass, not the graph, is what tightens). Because the
 ledger already recorded the answer before banking runs, an unguarded raise here
 would poison every future oracle pass permanently (the recomputation rebuild hits
-the same row every time) with no recourse but hand-editing the ledger. Fixed as a
-safety net only, prose representation unchanged: `_bank_author_model` catches any
-exception from the chain-build-or-save and reports it as a bare count
-(`bank_failed`) instead of raising; a row missing `qid`/`answer_text` (a hand-edited
-or legacy ledger line) is skipped individually and counted (`bank_malformed`) rather
-than aborting the whole rebuild. The representational fix an over-long answer
-actually wants — e.g. living in a gitignored sidecar the way `vault_world._bounded`
-handles over-long vault constants — remains the author's ruling, not made here.
+the same row every time) with no recourse but hand-editing the ledger. Fixed
+*first* as a safety net (this task): `_bank_author_model` catches any exception
+from the chain-build-or-save and reports it as a bare count (`bank_failed`)
+instead of raising; a row missing `qid`/`answer_text` (a hand-edited or legacy
+ledger line) is skipped individually and counted (`bank_malformed`) rather than
+aborting the whole rebuild. The representational fix an over-long answer actually
+wants was, at that point, still the author's ruling, not yet made — **it is now
+made; see the addendum immediately below.** The safety net itself is retained
+unchanged (belt-and-suspenders for whatever the representational fix doesn't
+anticipate — a disk-full, a permissions error, a genuine regression), but a mere
+long answer no longer reaches it.
+
+### Addendum — the long-answer label fix (2026-07-20)
+
+**Correction to the paragraph above and to the module docstrings this build
+record originally quoted:** prose is banked **verbatim only up to a bound**
+(`oracle_notes._MAX_ANSWER_LABEL = 40`, matching `vault_world._MAX_CONST`, with
+deliberate margin under the measured 52/53-char occlusion wall), never
+unconditionally verbatim as earlier phrasing in this section implied. The
+author's ruling on CRITICAL 1's still-open representational question, built
+this task: `oracle_notes.answer_label(answer_text) -> (label, sidecar)` mirrors
+the `vault_world._bounded`/`_digest_id`/`long_labels` precedent for exactly this
+shape of problem — an over-long constant threatening a drawn box. At or under
+the bound, `label == answer_text` and `sidecar` is empty (today's behavior,
+unchanged). Above it, `label` is a deterministic content-derived id
+(`"ans_" + sha256(answer_text)[:10]` — a PURE function of the text, never a
+counter/nonce/uuid/clock, because the standing polarity gate replays
+`bank_answer` from recorded chain params and requires the replay to reproduce
+the recorded state exactly) and `sidecar = {label: answer_text}`. `bank_answer`
+uses `answer_label` internally so its own return shape (`(graph, cut_id)`) is
+unchanged; `tools/run_vault_v0.py::_bank_author_model` computes the sidecar for
+each banked row and merges it into `<runs_dir>/labels.json` via the same
+read-merge-write idiom `_run_segment` already uses for `world.long_labels`
+(`_merge_labels_sidecar`, factored out so both call sites share one merge, not
+two hand-copies of the same logic) — merged only once the bank actually lands,
+since the ids are content-derived and a later re-merge of the same mapping is a
+no-op, never a clobber.
+
+**Custody, unchanged:** the verbatim prose still lives in the ledger
+(`forecasts.jsonl`/`outcomes.jsonl`) and now also in `labels.json` and the saved
+UoD's chain params — all three gitignored under `runs_dir` — and never reaches
+stdout (`tests/test_oracle_notes.py`'s custody assertions cover both the short-
+and long-answer paths).
+
+**Consequence for the paragraph above:** a realistic long answer no longer
+raises `CorrespondenceViolation` at all — it banks successfully, `banked: 1`,
+no `bank_failed`. The safety net is retained (see above) but is no longer
+reachable from any answer an author could actually type; `test_oracle_notes.py`
+exercises it instead via a monkeypatched save failure (an honest stand-in for a
+disk-full/permissions error), since no genuinely un-bankable *answer* remains.
+
+**The real target, named but not built here:** truncating or hashing prose out
+of the drawn label is a workaround, not the destination — an elided label
+*lies* (it hides content the author actually wrote), where a *shrunk* label
+merely draws it smaller. The right fix is **regime-3 per-label font scaling +
+wrapping**: let a banked quotation vertex's label shrink its font size and/or
+wrap across lines to fit its cell, showing the full prose rather than hiding
+any of it behind an id. This needs **no §3.3 change** — the occlusion check
+(`correspondence_attestation.py`'s clause (2)) only requires a label's drawn box
+to fit inside its own residence cut; it has no opinion on the font size or line
+count that produced that box, so a smaller/wrapped box that fits is exactly as
+attested as a short one. It is regime-3 work (`presentation_ops`/
+`_vertex_label_dims`/the renderer), not core-opening work, and is left for a
+later task.
+
+**Migration-free by the recomputation thesis:** because `_bank_author_model`
+never incrementally mutates the author-model UoD — it rebuilds it fresh from
+the ledger every oracle pass (`bankable_outcomes` seeded from
+`forecasts.jsonl`/`outcomes.jsonl`, which always keep the verbatim prose
+regardless of what any past label carried) — landing the font-scaling fix
+requires no migration of existing digested cells. The very next oracle pass
+after that fix ships simply re-derives every label through the new
+`answer_label` (or its successor), and a previously-digested long answer
+re-banks at full length with nothing to reconcile: the ledger, not the model,
+is the durable record, and the model is only ever a view of it.
 
 **Explicitly deferred, still.** Only the LATEST answer per qid is banked — an
 earlier, superseded answer for the same qid stays in the ledger's history but never

@@ -1031,18 +1031,27 @@ class TestEndToEnd:
         # the skip path never reaches the save call at all
         assert TomosService(runs_dir).load_uod("vault_v0_author_model") is None
 
-    def test_long_answer_bank_failure_is_caught_skipped_and_counted(
+    def test_long_answer_now_banks_successfully_via_content_derived_id(
             self, tmp_path, capsys):
-        """Whole-branch review, CRITICAL 1: a long, realistic answer bank
-        as a vertex label big enough to straddle its quotation cell's
+        """Was ``test_long_answer_bank_failure_is_caught_skipped_and_counted``
+        (whole-branch review, CRITICAL 1): a long, realistic answer used to
+        bank as a vertex label big enough to straddle its quotation cell's
         drawn area — ``CorrespondenceViolation`` (occlusion) at the
         ``save_uod_with_chain`` §3.3 boundary inside ``_bank_author_model``
         (measured threshold ~52 chars passes / ~53 fails, scratch-script
-        binary search, independent of the surrounding M's size). Before
-        this fix that exception escaped all the way out of ``main``; now
-        it must be caught, banking skipped for this pass, and reported as
-        a bare count (``bank_failed``) — never crashing, and never leaking
-        the answer's prose to stdout."""
+        binary search, independent of the surrounding M's size), caught and
+        counted as ``bank_failed`` rather than crashing.
+
+        The author's ruling fixes the underlying cause instead of only
+        catching it: ``oracle_notes.answer_label`` swaps a too-long answer's
+        verbatim prose for a short, deterministic, content-derived id before
+        it ever becomes a vertex label, so this exact input now BANKS
+        SUCCESSFULLY — ``banked: 1``, no ``bank_failed`` at all — and its
+        id -> original mapping lands in the gitignored ``labels.json``
+        sidecar (the ``vault_world.long_labels`` precedent). The
+        ``bank_failed`` safety net itself is retained (see
+        ``TestBankFailedSafetyNet`` below) for whatever this bound doesn't
+        anticipate; it is no longer reachable from a mere long answer."""
         mod = self._main()
         runs_dir = tmp_path / "runs"
         ANSWER = ("This one took a while to answer honestly — I mostly "
@@ -1065,22 +1074,71 @@ class TestEndToEnd:
 
         rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
                        "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
-        assert rc == 0                     # never crashes despite the occlusion
+        assert rc == 0
+        out2 = capsys.readouterr().out
+        assert "'banked': 1" in out2
+        assert "bank_failed" not in out2
+
+        from oracle_notes import answer_label
+        from tomos_service import TomosService
+        uod = TomosService(runs_dir).load_uod("vault_v0_author_model")
+        assert uod is not None
+        assert len(uod.current_egi.quotation) == 1
+
+        expected_label, expected_sidecar = answer_label(ANSWER)
+        assert expected_sidecar                       # ANSWER is over the bound
+        import json
+        sidecar = json.loads((runs_dir / "labels.json").read_text())
+        assert sidecar[expected_label] == ANSWER
+
+        # custody: the answer's prose never reaches stdout, whichever pass —
+        # unchanged even though it now lives in labels.json and the UoD too,
+        # both gitignored under runs_dir.
+        assert ANSWER not in out1 and ANSWER not in out2
+
+    def test_bank_failed_net_still_catches_a_genuine_save_exception(
+            self, tmp_path, capsys, monkeypatch):
+        """The ``bank_failed``/``bank_failed_kind`` safety net (whole-branch
+        review, CRITICAL 1) is retained for whatever the ``answer_label``
+        bound doesn't anticipate — but a long answer is no longer such a
+        case (see the test above), so there is no longer an INPUT any
+        author could type that reaches it. This exercises the net itself
+        via a monkeypatched failure at the save boundary (an honest stand-in
+        for a disk-full/permissions error) rather than fabricating a bogus
+        "un-bankable answer": the net must still catch, count, and report
+        the exception's class name, never crashing ``main``."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], "a perfectly ordinary short answer")
+        note1.write_text(text, encoding="utf-8")
+
+        from tomos_service import TomosService
+        real_save = TomosService.save_uod_with_chain
+
+        def _boom(self, uod, chain, *a, **kw):
+            # Only the author-model checkpoint save fails — the segment
+            # save (which runs first, every invocation) must go through
+            # untouched or this test would never reach _bank_author_model.
+            if uod.uod_id == "vault_v0_author_model":
+                raise IOError("simulated disk-full")
+            return real_save(self, uod, chain, *a, **kw)
+
+        monkeypatch.setattr(TomosService, "save_uod_with_chain", _boom)
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0                     # never crashes
         out2 = capsys.readouterr().out
         assert "'banked': 0" in out2
         assert "'bank_failed': 1" in out2
-        # ALSO (whole-branch re-review, 2026-07-20): the exception's own
-        # CLASS NAME rides alongside the count so a disk-full/permissions
-        # error is distinguishable from a real regression — never its
-        # message (which could carry more than a bare id).
-        assert "'bank_failed_kind': 'CorrespondenceViolation'" in out2
-
-        # custody: the answer's prose never reaches stdout, whichever pass
-        assert ANSWER not in out1 and ANSWER not in out2
-
-        # the failed save leaves no half-written checkpoint on disk
-        from tomos_service import TomosService
-        assert TomosService(runs_dir).load_uod("vault_v0_author_model") is None
+        assert "'bank_failed_kind': 'OSError'" in out2   # IOError is an OSError alias
 
     def test_seeded_low_budget_leaves_a_remainder_for_a_genuine_second_note(
             self, tmp_path, capsys):
@@ -1758,7 +1816,11 @@ class TestDocket11Driver:
 # V2a.2 item (2): quotation-cell banking — the pure construction               #
 # --------------------------------------------------------------------------- #
 
-PROSE = 'A multi-line answer.\nWith "quotes", ~[ brackets ], and a backslash \\.'
+PROSE = 'A line.\nWith "q", ~[ b ], and \\.'
+"""Kept at or under ``oracle_notes._MAX_ANSWER_LABEL`` (32 chars) — these
+tests exercise the VERBATIM banking path (newline/quotes/brackets/backslash
+survive untouched), not the long-answer digested-id path (see
+``TestBankAnswerLongProse`` below for that)."""
 
 
 def _resident_m():
@@ -1824,6 +1886,129 @@ class TestBankAnswer:
         with _pytest.raises(ValueError):
             bank_answer(parse_egif('(swan "Alba")'), PROSE,
                         qid="q1", note_date="2026-07-19")
+
+
+# --------------------------------------------------------------------------- #
+# The author's ruling: long prose banks a content-derived id, not verbatim,   #
+# with the original recorded in a sidecar the caller persists — the fix for  #
+# the §3.3 occlusion wall (measured 52 chars passes / 53 fails) that a raw    #
+# verbatim label past ~a few dozen characters could hit.                     #
+# --------------------------------------------------------------------------- #
+
+LONG_PROSE = ("This one took a while to answer honestly — I mostly journal "
+              "at night about what already happened that day, catching up "
+              "rather than narrating live.")
+
+
+class TestAnswerLabel:
+    def test_short_prose_is_verbatim_with_empty_sidecar(self):
+        from oracle_notes import answer_label
+        label, sidecar = answer_label(PROSE)
+        assert label == PROSE
+        assert sidecar == {}
+
+    def test_prose_at_exactly_the_bound_is_verbatim(self):
+        from oracle_notes import answer_label, _MAX_ANSWER_LABEL
+        prose = "x" * _MAX_ANSWER_LABEL
+        label, sidecar = answer_label(prose)
+        assert label == prose
+        assert sidecar == {}
+
+    def test_long_prose_gets_a_short_content_derived_id(self):
+        from oracle_notes import answer_label, _MAX_ANSWER_LABEL
+        label, sidecar = answer_label(LONG_PROSE)
+        assert label != LONG_PROSE
+        assert len(label) <= _MAX_ANSWER_LABEL
+        assert sidecar == {label: LONG_PROSE}
+
+    def test_deterministic_across_calls(self):
+        """The hard constraint: the id is a PURE function of the prose alone
+        — no counter, nonce, uuid, or clock — because the standing polarity
+        gate replays ``bank_answer`` from recorded chain params and requires
+        the replayed result to match the recorded state."""
+        from oracle_notes import answer_label
+        label1, sidecar1 = answer_label(LONG_PROSE)
+        label2, sidecar2 = answer_label(LONG_PROSE)
+        assert label1 == label2
+        assert sidecar1 == sidecar2
+
+    def test_different_prose_yields_different_ids(self):
+        from oracle_notes import answer_label
+        label1, _ = answer_label(LONG_PROSE)
+        label2, _ = answer_label(LONG_PROSE + " Slightly different this time.")
+        assert label1 != label2
+
+
+class TestBankAnswerLongProse:
+    """``bank_answer`` on prose past ``_MAX_ANSWER_LABEL``: the vertex label
+    is the content-derived id, never the verbatim prose — the mechanism
+    that keeps a real long answer from ever hitting the §3.3 occlusion
+    wall again (contrast the old ``bank_failed`` safety net, which caught
+    the crash after the fact rather than preventing it)."""
+
+    def test_banked_label_is_the_digest_not_verbatim(self):
+        from oracle_notes import bank_answer, answer_label
+        from quotation_overlay import lift_quotation
+        m2, cut_id = bank_answer(_resident_m(), LONG_PROSE, qid="q1",
+                                 note_date="2026-07-19")
+        lifted = lift_quotation(m2, cut_id)
+        labels = [v.label for v in lifted.V if v.label is not None]
+        expected_label, _sidecar = answer_label(LONG_PROSE)
+        assert labels == [expected_label]
+        assert labels != [LONG_PROSE]
+
+    def test_mention_not_use_still_holds(self):
+        from oracle_notes import bank_answer
+        from agon_evolution import sheet_atom_keys, atom_key
+        m2, _ = bank_answer(_resident_m(), LONG_PROSE, qid="q1",
+                            note_date="2026-07-19")
+        keys = sheet_atom_keys(m2)
+        assert atom_key("asserted", ["author", None]) in keys
+        assert not any("utterance" in k for k in keys)
+        assert atom_key("swan", ["Alba"]) in keys
+
+    def test_structural_round_trip_preserves_the_digested_cell(self):
+        from oracle_notes import bank_answer, answer_label
+        from quotation_overlay import lift_quotation
+        from egi_io import to_dict, from_dict
+        from eg_navigation import same_graph
+        m2, cut_id = bank_answer(_resident_m(), LONG_PROSE, qid="q1",
+                                 note_date="2026-07-19")
+        back = from_dict(to_dict(m2))
+        assert same_graph(m2, back)
+        (cut2,) = back.quotation
+        labels = [v.label for v in lift_quotation(back, cut2).V
+                  if v.label is not None]
+        expected_label, _sidecar = answer_label(LONG_PROSE)
+        assert labels == [expected_label]
+
+    def test_two_bankings_of_the_same_answer_are_isomorphic(self):
+        """Determinism end to end: banking the SAME long answer twice from
+        the same base M produces the same graph up to isomorphism — the
+        property the polarity gate's replay actually relies on."""
+        from oracle_notes import bank_answer
+        from eg_navigation import same_graph
+        m2a, _ = bank_answer(_resident_m(), LONG_PROSE, qid="q1",
+                             note_date="2026-07-19")
+        m2b, _ = bank_answer(_resident_m(), LONG_PROSE, qid="q1",
+                             note_date="2026-07-19")
+        assert same_graph(m2a, m2b)
+
+    def test_saves_and_attests_without_occlusion(self, tmp_path):
+        """The behavior change to prove: a long answer banks successfully
+        end to end, including the §3.3-attested save that used to raise
+        ``CorrespondenceViolation`` on this exact shape of input."""
+        from oracle_notes import bank_answer_step
+        from proof_authoring import ProofChain
+        from tomos_service import TomosService
+        from universe_of_discourse import UoDCategory
+        pc = ProofChain(_resident_m())
+        pc = bank_answer_step(pc, LONG_PROSE, qid="q1", note_date="2026-07-19")
+        chain, uod = pc.to_uod(
+            uod_id="test_long_answer_bank", name="long answer bank test",
+            description="test", category=UoDCategory.DOMAIN_MODEL)
+        TomosService(tmp_path).save_uod_with_chain(uod, chain)  # must not raise
+        assert TomosService(tmp_path).load_uod("test_long_answer_bank") is not None
 
 
 # --------------------------------------------------------------------------- #

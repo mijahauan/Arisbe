@@ -34,10 +34,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from oracle_notes import (                           # noqa: E402
-    DEFAULT_BUDGET, OracleLedger, bank_answer_step, bankable_outcomes,
-    candidates_from_run, conjectures_section, note_substantially_answered,
-    opaque_note_qid, parse_note, reask_candidate, render_note,
-    resolve_note_qids, seal, select_within_budget,
+    DEFAULT_BUDGET, OracleLedger, answer_label, bank_answer_step,
+    bankable_outcomes, candidates_from_run, conjectures_section,
+    note_substantially_answered, opaque_note_qid, parse_note, reask_candidate,
+    render_note, resolve_note_qids, seal, select_within_budget,
 )
 from probe_feed import _model_signature              # noqa: E402
 from proof_authoring import ProofChain                # noqa: E402
@@ -115,6 +115,26 @@ than that it becomes re-eligible (spec thesis 3: silence lowers priority,
 never deletes)."""
 
 
+def _merge_labels_sidecar(runs_dir: Path, entries: dict) -> None:
+    """Merge ``entries`` (id -> original) into ``<runs_dir>/labels.json``,
+    read-merge-write (never a blind overwrite of the whole file) — the F1¹³
+    custody idiom this driver already uses for ``world.long_labels``, shared
+    here so the V2a.2 long-answer sidecar (docket ruling: a banked answer
+    over ``oracle_notes._MAX_ANSWER_LABEL`` chars gets a content-derived id,
+    original recorded here) merges identically rather than reimplementing
+    the same read/update/write by hand a second time. A no-op when
+    ``entries`` is empty."""
+    if not entries:
+        return
+    import json
+    sidecar = runs_dir / "labels.json"
+    existing = {}
+    if sidecar.exists():
+        existing = json.loads(sidecar.read_text())
+    existing.update(entries)
+    sidecar.write_text(json.dumps(existing, indent=1, sort_keys=True))
+
+
 def _decade_counts(atoms) -> dict:
     """``(entry_date "eid" "YYYY-MM")`` sheet atoms, bucketed by decade — counts
     only; the date bucket is a number, never the entry id or its content."""
@@ -181,14 +201,7 @@ def _run_segment(
     # Custody sidecar (F1¹³): the id → original decode map for every constant
     # the bound digested — gitignored beside the UoDs; the originals never
     # enter M or stdout.
-    if world.long_labels:
-        import json
-        sidecar = runs_dir / "labels.json"
-        existing = {}
-        if sidecar.exists():
-            existing = json.loads(sidecar.read_text())
-        existing.update(world.long_labels)
-        sidecar.write_text(json.dumps(existing, indent=1, sort_keys=True))
+    _merge_labels_sidecar(runs_dir, world.long_labels)
 
     digest = _digest(res.uod.current_egi, horizon, economy, feed=feed)
     digest["digested_labels"] = len(world.long_labels)
@@ -226,24 +239,31 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
     NEW-2, 2026-07-19) or its ``answer_text`` (checked here — a row can
     clear the qid gate and still lack this) is skipped individually and
     counted (``bank_malformed``) rather than poisoning the whole rebuild.
-    And because a banked answer's prose becomes a vertex label whose box
-    must clear §3.3 occlusion at save time (an answer past a few dozen
-    characters can straddle its cell — measured threshold ~52/53 chars,
-    independent of surrounding-M size — see
-    ``docs/superpowers/specs/2026-07-17-vault-cycle-design.md``), the whole
-    chain-build-and-save is wrapped: ANY exception there is caught, banking
-    for this pass is skipped entirely, and the failure is counted
-    (``bank_failed``, with the exception's own CLASS NAME alongside it as
-    ``bank_failed_kind`` — never its message, which could carry more than a
-    bare id — so a disk-full, a permissions error, and a real regression
-    are distinguishable in the digest) — never raised past this function.
-    Without this, a single long answer would crash every future oracle pass
-    forever (the recomputation thesis rebuilds and re-hits the same row
-    every time), fixable only by hand-editing the ledger. This fix is the
-    safety net only — it does not change how prose is represented; that
-    representational question (e.g. an over-long answer living in a
-    gitignored sidecar the way ``vault_world._bounded`` handles over-long
-    vault constants) is the author's ruling, not made here.
+    A banked answer's prose becomes a vertex label, and a label's drawn box
+    must clear §3.3 occlusion at save time — the author's ruling (this
+    fix): ``oracle_notes.answer_label`` banks prose verbatim at or under
+    ``_MAX_ANSWER_LABEL`` chars (today's behavior) and a deterministic
+    content-derived id above it, the same shape as ``vault_world._bounded``'s
+    over-long-constant handling. That keeps ``bank_answer`` itself from ever
+    producing an oversized label, so the ``bank_failed`` catch below is now
+    a pure safety net (a real long answer no longer reaches it) rather than
+    the only thing standing between a long answer and a crashed future
+    pass — kept for whatever this bound doesn't anticipate (a disk-full, a
+    permissions error, a genuine regression): ANY exception from the
+    chain-build-and-save is caught, banking for this pass is skipped
+    entirely, and the failure is counted (``bank_failed``, with the
+    exception's own CLASS NAME alongside it as ``bank_failed_kind`` — never
+    its message, which could carry more than a bare id) — never raised past
+    this function.
+
+    Custody sidecar (mirrors ``_run_segment``'s ``world.long_labels``
+    handling): every id ``answer_label`` had to mint for an over-long answer
+    is merged into ``<runs_dir>/labels.json`` via
+    :func:`_merge_labels_sidecar` once banking actually succeeds — the
+    original prose already lives in the ledger regardless, so this sidecar
+    is a convenience decode map, not the custody boundary itself (the
+    ledger and the saved UoD's own quotation cell are both already
+    gitignored under ``runs_dir``).
 
     Numbers-only return throughout: every reported key is a bare count or
     a bare exception class name — never a qid, never answer text, and
@@ -278,9 +298,12 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
             out["bank_malformed"] = malformed
         return out
 
+    sidecar_entries: dict = {}
     try:
         pc = ProofChain(res.uod.current_egi)
         for row, qid, answer_text in usable:
+            _label, entries = answer_label(answer_text)
+            sidecar_entries.update(entries)
             pc = bank_answer_step(
                 pc, answer_text, qid=qid,
                 note_date=row.get("answered_note_date", ""))
@@ -304,6 +327,10 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
         out["bank_failed_kind"] = type(exc).__name__
     else:
         out["banked"] = len(usable)
+        # Custody sidecar (mirrors _run_segment's world.long_labels merge):
+        # only once the bank actually landed — the ids are content-derived
+        # so re-merging on a later pass is a no-op, never a clobber.
+        _merge_labels_sidecar(runs_dir, sidecar_entries)
     if malformed:
         out["bank_malformed"] = malformed
     return out

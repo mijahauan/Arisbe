@@ -309,6 +309,38 @@ def test_banked_chain_passes_the_gate_and_replays():
     assert by_act["quotation"] == 1
 
 
+def test_banked_long_answer_chain_replays_clean_through_the_gate():
+    """The author's ruling on the §3.3 occlusion wall (docket: a banked
+    answer over ``oracle_notes._MAX_ANSWER_LABEL`` chars banks a
+    deterministic content-derived id instead of the verbatim prose, never a
+    counter/nonce/uuid): a >53-char answer — long enough to have raised
+    ``CorrespondenceViolation`` before this fix — must still satisfy the
+    same gate a short answer does, in particular docket ⑤'s derivation
+    replay. This is the hard constraint from the ruling: the gate
+    RE-EXECUTES ``bank_answer`` from the recorded ``answer_text`` alone
+    (``_replay_act``), so the label choice inside ``bank_answer`` must be a
+    pure function of that text — a mismatch here would mean the same
+    recorded step reproduces a DIFFERENT graph on replay."""
+    from egif_parser_dau import parse_egif
+    from world_scroll import wrap_state
+    from oracle_notes import bank_answer_step
+    from proof_authoring import ProofChain
+    long_answer = ("This one took a while to answer honestly - I mostly "
+                   "journal at night about what already happened that day, "
+                   "catching up rather than narrating live.")
+    assert len(long_answer) > 53          # past the measured occlusion wall
+    m, _ = wrap_state(parse_egif('(swan "Alba")'))
+    pc = ProofChain(m)
+    pc = bank_answer_step(pc, long_answer, qid="q10", note_date="2026-07-20")
+    chain = pc.to_chain()
+    (step,) = chain.steps
+    assert step.parameters["act"] in M_ACTS
+    assert step.rule_name in M_RULES
+    replayed, skipped, mismatches, by_act = _replay_derivations(chain)
+    assert mismatches == []
+    assert by_act["quotation"] == 1
+
+
 def test_a_provenance_less_quotation_act_does_not_acknowledge_an_m_change():
     """The finding this fix closes: bare ``"quotation"`` sits in ``M_ACTS``,
     but ``_replay_act`` can only re-execute its oracle-answer banking flavor

@@ -1295,25 +1295,76 @@ def p2_13_report(ledger: OracleLedger) -> dict:
 # V2a.2 item (2): quotation-cell banking (docs/superpowers/specs/              #
 # 2026-07-17-vault-cycle-design.md, "V2a.2 — AUTHORIZED", item 2).            #
 # An answer enters M as ``(asserted "author" <q>)`` with <q> a proposition-    #
-# sorted name whose quotation oval holds the VERBATIM prose as one            #
-# ``(utterance "<prose>")`` atom — banked unparsed, mention not use. The      #
+# sorted name whose quotation oval holds the prose as one                     #
+# ``(utterance "<label>")`` atom — banked unparsed, mention not use. The      #
 # only asserted ink is the attribution: truth about the act of answering,     #
 # never about its content (spec §"person-model", Examination IV Suspect 4).   #
+#                                                                              #
+# The label bound (the author's ruling, docket item on long answers): a       #
+# vertex/constant label's drawn box width is                                  #
+# ``len(label) * font_size * _VERTEX_CHAR_W_RATIO``                           #
+# (``presentation_ops._vertex_label_dims``), so a raw-prose label wider than  #
+# its residence cell fails §3.3 occlusion at save time — measured precisely   #
+# (scratch-script binary search): 52 chars passes, 53 fails, independent of   #
+# the surrounding M's size. Mirrors the ``vault_world._bounded``/            #
+# ``_digest_id``/``long_labels`` precedent for the same shape of problem      #
+# (an over-long vault constant): prose at or under the bound banks verbatim;  #
+# longer prose banks a short, content-derived id instead, with the original  #
+# recorded in a sidecar the caller persists (never in M, never on stdout).    #
 # --------------------------------------------------------------------------- #
 
 ATTRIBUTION_EGIF = '(asserted "author" *q)'
 
+_MAX_ANSWER_LABEL = 40
+"""Cap on verbatim prose length in a banked quotation vertex's label — matches
+``vault_world._MAX_CONST``. The measured occlusion wall sits at 52/53 chars;
+40 leaves deliberate margin below that wall (font-size/ratio tuning, or a
+different renderer, could move the wall without warning — the cap should not
+be sitting right at its edge)."""
 
-def _utterance_graph(prose: str):
-    """The quoted ink: one constant vertex carrying ``prose`` verbatim, named
-    by one ``utterance`` atom. Built structurally — the prose never meets a
-    linear parser/generator, so newlines/quotes/brackets survive untouched."""
+
+def _answer_digest_id(answer_text: str) -> str:
+    """A short, deterministic, content-derived id for prose too long to bank
+    verbatim — the ``vault_world._digest_id`` idiom (truncated hash, not a
+    counter/nonce/uuid): the standing polarity gate REPLAYS ``bank_answer``
+    from recorded chain params (``tests/test_corpus_polarity_discipline.py``'s
+    ``_replay_act``), so the same ``answer_text`` must always yield the same
+    id, in any process, at any time."""
+    return "ans_" + hashlib.sha256(answer_text.encode("utf-8")).hexdigest()[:10]
+
+
+def answer_label(answer_text: str) -> Tuple[str, Dict[str, str]]:
+    """The label a banked answer's quotation vertex should carry, plus the
+    sidecar dict ``{id: original}`` the caller should fold into the
+    gitignored custody sidecar (the ``vault_world.long_labels`` precedent —
+    ``tools/run_vault_v0.py`` merges both into the same ``labels.json``).
+
+    At or under ``_MAX_ANSWER_LABEL`` chars, ``answer_text`` banks verbatim
+    (today's behavior, unchanged) and the sidecar is empty. Longer prose
+    gets :func:`_answer_digest_id` in its place — pure function of
+    ``answer_text`` alone, so two calls with the same prose always agree —
+    and the sidecar carries the one entry mapping that id back to the
+    original. The prose itself is never lost: it already lives in the
+    ledger (``forecasts.jsonl``/``outcomes.jsonl``), verbatim, regardless of
+    what the drawn label carries."""
+    if len(answer_text) <= _MAX_ANSWER_LABEL:
+        return answer_text, {}
+    label = _answer_digest_id(answer_text)
+    return label, {label: answer_text}
+
+
+def _utterance_graph(label: str):
+    """The quoted ink: one constant vertex carrying ``label`` verbatim, named
+    by one ``utterance`` atom. Built structurally — ``label`` never meets a
+    linear parser/generator, so newlines/quotes/brackets survive untouched.
+    ``label`` is whatever :func:`answer_label` decided to draw (the verbatim
+    answer, or its digest id) — this function has no opinion on the bound."""
     from uuid import uuid4
     from egi_core_dau import create_empty_graph, Vertex, Edge
     g = create_empty_graph()
     vid, eid = f"v_bank_{uuid4().hex[:8]}", f"e_bank_{uuid4().hex[:8]}"
     g = g.with_vertex_in_context(
-        Vertex(id=vid, label=prose, is_generic=False), g.sheet)
+        Vertex(id=vid, label=label, is_generic=False), g.sheet)
     g = g.with_edge(Edge(id=eid), (vid,), "utterance", g.sheet)
     return g
 
@@ -1388,12 +1439,21 @@ def bank_answer_step(pc, answer_text: str, *, qid: str, note_date: str,
 def bank_answer(m, answer_text: str, *, qid: str, note_date: str):
     """Bank one answered oracle question into the resident M: one licensed
     INS-of-cell of ``ATTRIBUTION_EGIF`` (``enlarge_m``), then the fresh
-    generic name gains its quotation oval holding the verbatim prose
+    generic name gains its quotation oval holding the prose — verbatim at or
+    under ``_MAX_ANSWER_LABEL`` chars, else a deterministic content-derived
+    id (:func:`answer_label`; the author's ruling on the §3.3 occlusion wall
+    measured in this module's docstring above) — as one ``utterance`` atom
     (``quote_existing_name`` — same-area attachment, inside the new cell).
     Returns ``(new_graph, quotation_cut_id)``. Raises ``ValueError`` when
     ``m`` carries no world-scroll (``enlarge_m``'s own refusal). ``qid`` and
     ``note_date`` are accepted here for signature stability with the step
-    recorder and the gate's replayer, which re-executes from these params."""
+    recorder and the gate's replayer, which re-executes from these params.
+    A pure function of ``answer_text`` alone (plus ``m``): no counter,
+    clock, or randomness enters the label choice, so a replay from recorded
+    chain params reproduces the identical graph. The sidecar entry (when
+    ``answer_text`` was long enough to need one) is NOT returned here — call
+    :func:`answer_label` directly for that; keeping this function's return
+    shape a stable 2-tuple is what the gate's replayer already depends on."""
     from world_scroll import enlarge_m, find_world_scroll
     from quotation_overlay import quote_existing_name
     scroll = find_world_scroll(m)
@@ -1405,7 +1465,8 @@ def bank_answer(m, answer_text: str, *, qid: str, note_date: str):
                if m2.get_context(e.id) == new_cell
                and m2.rel[e.id] == "asserted")
     q_vid = m2.nu[eid][1]
-    m3, cut_id = quote_existing_name(m2, q_vid, _utterance_graph(answer_text))
+    label, _sidecar = answer_label(answer_text)
+    m3, cut_id = quote_existing_name(m2, q_vid, _utterance_graph(label))
     return m3, cut_id
 
 
@@ -1416,4 +1477,5 @@ __all__ = [
     "conjectures_section", "reask_candidate", "opaque_note_qid",
     "resolve_note_qids", "bank_answer", "ATTRIBUTION_EGIF",
     "bank_answer_step", "BANK_TO_M", "bankable_outcomes",
+    "answer_label", "_MAX_ANSWER_LABEL",
 ]
