@@ -223,8 +223,20 @@ answer's content. The next real RUN 13 launch may write the first actual
    a vector of career statistics, a community = the joint distribution + cross-membrane
    career segments (Berger & Luckmann's externalization→objectivation→internalization
    made literal and measurable) — exactly the substrate Q-C's terminal-unit invariance
-   test needs. Memory: project_uod_world_career_sketch.md. Nothing built; the glossary
-   work and the two naming rulings are the author's.
+   test needs. Memory: project_uod_world_career_sketch.md. Nothing built.
+   **Rulings taken same sitting (the author):** (1) the UoD keeps the existing per-graph
+   *type* (`universe_of_discourse.py`'s synchronic-EGI + diachronic-DAG shape is right);
+   the change is cardinality/role — one instance holds exactly ONE UoD (Organon's
+   contents as one EGI + history); the current corpus "UoDs" get demoted and renamed
+   (documents / chains / exhibits — name TBD; touches code fields, tomos, the
+   /organon/uods routes). (2) "world" retains the Kripkean meaning; **"career" adopted**
+   for the remembered path. (3) One decision remains, clarified as: is the one
+   instance-EGI *physically* one stored graph (grows without bound; every whole-sheet
+   walk pays the measured super-linear costs), or *logically* one — stored documents
+   stitched by reference nodes + cross-UoD quotation, where resolution = co-assertion
+   (RESOLVE ≡ INLINED-AND-ATTESTED, already proven R1–R4) yields "one EGI" by
+   construction-on-demand, windowed for the correspondence check (§3.3) at render.
+   Assistant recommends the virtual/stitched form; awaiting the author's word.
 
 -7. **✅ EXAMINATION IV EXECUTED (2026-07-19, same day chartered).** Five independent
    skeptic panels (measurement theorist+complexity scientist · ablation methodologist ·
