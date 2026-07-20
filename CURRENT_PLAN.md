@@ -193,6 +193,38 @@ answer's content. The next real RUN 13 launch may write the first actual
    exponent measured in Arisbe's own system, and it is the minimum evidence before the word
    "murmuration" enters a doc. Assistant's reading of the obligation, flagged as such;
    the claim itself is the author's and stands open.
+   **Q-D — UoD, "world", and the career of a notion (the author, same sitting; a first
+   sketch).** The GLOSSARY under-defines "UoD" and "world". Sketch: **the contents of
+   Organon ARE the UoD for that instance of Arisbe** (the Peircean totality-of-discourse,
+   with iterated Arisbes in a society in mind); growth of Organon (importation,
+   exploration, received forms across the membrane) = **literal internalization**; all new
+   arrivals land first in a negative context by INS; the structure of contexts and the
+   path a notion takes to an evenly enclosed area **defines the warrant**; the remembered
+   path is (the author's word) a "world"; the EPG moves a notion to more-highly-warranted
+   contexts. Aim: concrete terms + a parametrized way to compare instances — quantifiable
+   descriptions of a kytos or community of kytē.
+   *Assistant's assessment (flagged):* converges with built doctrine — INS-into-odd /
+   stand-at-even IS the M-residence discipline generalized from M to the whole archive,
+   and path-defined warrant unifies `proof_character` + the ○/⛓/⚔ badge (a coarse
+   3-bucket projection of the path-metric) + the new derivation-replay gate, letting the
+   badge be *derived* rather than assigned. Two naming collisions need the author's
+   ruling: (1) "UoD" — `universe_of_discourse.py` names a per-graph entity; the sketch
+   makes UoD instance-level, so the per-graph things need renaming (documents / chains /
+   exhibits); (2) "world" — the settled modal reading (MODALITY_WITHOUT_GAMMA; the modal
+   lens; K2) has world = reachable state/sheet (Kripke); the path should get its own name
+   — **"career"** proposed (symbols grow; the career of a symbol through contexts):
+   career = the recorded trajectory of (context, polarity, licensing rule) events;
+   warrant = f(career); worlds = the states the career threads. Realization caution: one
+   literal instance-sheet hits the monolith's measured super-linear costs — the
+   realizable form is a *virtual* sheet stitched by reference nodes + cross-UoD quotation
+   (the federated form; ties to Q-B). Payoff: career statistics are the kytos-comparison
+   parametrization — depth-of-entry distribution, time-to-even-enclosure, internalization
+   yield, warrant mix (EPG-earned vs import-floor), career length before fade; a kytos =
+   a vector of career statistics, a community = the joint distribution + cross-membrane
+   career segments (Berger & Luckmann's externalization→objectivation→internalization
+   made literal and measurable) — exactly the substrate Q-C's terminal-unit invariance
+   test needs. Memory: project_uod_world_career_sketch.md. Nothing built; the glossary
+   work and the two naming rulings are the author's.
 
 -7. **✅ EXAMINATION IV EXECUTED (2026-07-19, same day chartered).** Five independent
    skeptic panels (measurement theorist+complexity scientist · ablation methodologist ·
