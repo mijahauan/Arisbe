@@ -225,6 +225,43 @@ note in any write-up: the run's first leg played the *pre*-sweep-#2 sheet-level 
 resumed leg plays cells — the M-content and the ledger are unaffected, but the residence regime
 changes mid-run.
 
+**Watch-note, leg 2 near its cap (2026-07-19 20:45 CDT; Claude's observation, not a
+disposal — the disposal remains the author's).** The run is alive (PID 11143, caps
+2026-07-20 07:52 local) and evidentially rich where leg 1 was thin: **225 raised / 210
+resolved / 0 dropped / 10 postponed-dropped**, run ledger net +10; the only pending picks
+are the 5 arms on one game (Yankees–Dodgers, started 23:20Z tonight), so the slate should
+finish before the cap. The three undisposed priors now have data on the record:
+**P3¹²** — `select_best` standings at resolved=210 spread cleanly (odds net=8 acc 0.633 ·
+home net=5 acc 0.593 · naive net=1 · strong/cal negative), with the leader having flipped
+home↔odds across segments; **P4¹²** — the home arm reads **16h/11m over 27 decided ≈ 0.593**
+vs the literature's ≈0.53–0.54 (small n; the author's read); **P2¹²** — the calibrated arm's
+cut walked 50→300→275 (first cut-*down* at seg with `acc_dog=0.42`) yet sits last or
+next-to-last on net, so the ledger half finally has something to say. **One operational
+finding to dispose: a supervisor crash-loop.** Eight crashes since 2026-07-18 ~19:00, each
+auto-resumed in 10 s from `sports_state.json` with nothing lost (resolved kept climbing
+145→210; `dropped=0` throughout; checkpoints seg18–seg25 all §3.3-saved). **Cause
+identified same evening (the author supplied the terminal scrollback; all 8 tracebacks
+are ONE bug):** `live_runner._decay` → `world_scroll.retract_from_m` → `ERA apply
+failed: Rule rejected: Selected subgraph contains elements not in target area` — the
+disuse-decay erasure refused by the licensed rule's target-area guard, and the pre-fix
+code let the `AssertionError` escape the segment loop. The condition is the known
+**EGIF-carry cross-cell constant merge** (F2¹³'s family): the leg's segment carry was
+EGIF text, whose round-trip re-scopes a constant shared across cells, so a stale atom's
+vertex sits outside the cell the ERA targets. **Already fixed on `main`, two days ahead
+of the live evidence, by Examination IV docket ④+⑥** (`9fa6287`+`549c386`+`71e0fcf`,
+2026-07-19): ④ makes the carry structural `to_dict` JSON (the trigger unreachable —
+`test_carry_preserves_resident_M_structurally*`), ⑥ makes a refused decay
+**skip-and-count** (`decay_skipped`, `_decay_refused` held aside and pruned —
+`test_a_refused_decay_is_counted_once_across_segments`). The running process predates
+those commits, so it keeps crashing harmlessly at each decay attempt until the cap;
+the supervisor absorbs each (max-crashes 50). This is live confirmation the docket
+items were load-bearing, worth one line in the disposal. Separately fixed forward in
+all three live drivers: crash tracebacks now go through the stdout tee into
+`console.txt` (`print_exc(file=sys.stdout)`) instead of bare stderr, which had left
+them only in the terminal scrollback. Also noted: leg 2's `fetch_errors` stepped 0→3→12
+(`schedule`), the 3 before crash #1 and the jump to 12 at crash #2's resume —
+plausibly counted in the crashed segments' retries, worth one line in the disposal.
+
 ---
 
 **Artifacts (on execution):** `runs/run12/console.txt` · `runs/run12/items.jsonl` (record/replay)

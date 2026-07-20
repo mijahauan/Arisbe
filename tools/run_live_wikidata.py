@@ -256,7 +256,9 @@ def main(argv=None) -> int:
             import traceback
             refused_total += runner.checkpoints_refused
             crashes += 1
-            traceback.print_exc()
+            # Through stdout so a `> console.txt`-style capture keeps the
+            # traceback with the digests — bare stderr dies with the terminal.
+            traceback.print_exc(file=sys.stdout)
             if crashes > args.max_crashes:
                 print(f"supervisor: crash budget exhausted ({crashes} crashes) — giving up",
                       flush=True)

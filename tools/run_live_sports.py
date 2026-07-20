@@ -309,7 +309,9 @@ def main(argv=None) -> int:
         except Exception:
             import traceback
             crashes += 1
-            traceback.print_exc()
+            # Through sys.stdout so the tee lands the traceback in console.txt —
+            # bare stderr dies with the terminal (RUN 12 lost 8 crash causes).
+            traceback.print_exc(file=sys.stdout)
             if crashes > args.max_crashes:
                 print(f"supervisor: crash budget exhausted ({crashes})", flush=True)
                 raise

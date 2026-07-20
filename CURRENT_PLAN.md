@@ -118,7 +118,13 @@ answer's content. The next real RUN 13 launch may write the first actual
      attribution pins + churn-pump + ablation harness `8f48655`+`2e07228`.
    **Remaining — author-side:**
    - **RUN 12 disposal** (MLB sports live run; watch/dispose F1¹²…, replay canary, P4¹²
-     literature check) — the author's.
+     literature check) — the author's. *Watch-note added 2026-07-19 (RUN_12_LOG.md):
+     leg 2 caps 2026-07-20 07:52 with 210/225 resolved, net +10, P2/P3/P4¹² all fed;
+     one operational finding — an 8-crash supervisor loop, no data lost; cause
+     identified from the author's scrollback: the pre-docket decay-ERA refusal
+     (EGIF-carry cross-cell merge), already closed on main by docket ④+⑥ — live
+     confirmation those items were load-bearing. The stderr→console gap is fixed
+     forward in all three live drivers.*
    - **RUN 13 launch** — the pre-RUN-13 riders are now in place (salted seal, People/
      filter, P2¹³ default-on); the **P2-vs-P4 scheduling call** (RUN_13_LOG.md) is the
      author's at launch. The **⑪ drift-re-ask-vs-P2¹³-suppression** ruling was TAKEN
