@@ -486,7 +486,8 @@ class KnowledgeCompression:
 
     @property
     def yield_per_law(self) -> float:
-        """Mean derivational yield per law (explicit+skipped-weighted denominator);
+        """Mean derivational yield per law (denominator = ``horn_laws +
+        skipped_laws``; a skipped law weighs it with no yield credit);
         scales with domain extent — NOT a compression measure."""
         laws = self.horn_laws + self.skipped_laws
         return self.derived / laws if laws else 0.0

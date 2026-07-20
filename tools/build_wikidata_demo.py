@@ -83,7 +83,15 @@ def main(argv=None) -> int:
         print(f"legibility tripwire (unresolved-id fraction per poll): "
               f"{['%.2f' % f for f in source.legibility]}"
               + ("   ⚠ labels degrading" if worst > 0.5 else ""))
-    print(f"final M: {res.final_model_egif}")
+    # A quotation-bearing (second-order) M has no linear reading — the
+    # property raises SecondOrderNotInLinearForm (live_runner._linear_form's
+    # precedent: say so honestly instead of crashing the demo).
+    from second_order_limits import SecondOrderNotInLinearForm
+    try:
+        print(f"final M: {res.final_model_egif}")
+    except SecondOrderNotInLinearForm:
+        print("final M: no linear form (second-order M) — the structural "
+              "carry lives in final_model_json")
     if res.episodes:
         from agon_metalearning import mechanism_principles
         print("\nmechanism principles (decay-aware, cross-segment):")

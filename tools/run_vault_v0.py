@@ -35,8 +35,8 @@ from agon_evolution import EvolutionResult, run      # noqa: E402
 from attention_economy import AttentionEconomy, Horizon  # noqa: E402
 from oracle_notes import (                           # noqa: E402
     DEFAULT_BUDGET, OracleLedger, candidates_from_run, conjectures_section,
-    note_substantially_answered, parse_note, reask_candidate, render_note,
-    seal, select_within_budget,
+    note_substantially_answered, opaque_note_qid, parse_note, reask_candidate,
+    render_note, resolve_note_qids, seal, select_within_budget,
 )
 from probe_feed import _model_signature              # noqa: E402
 from tomos_service import TomosService               # noqa: E402
@@ -263,7 +263,10 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
     prior = sorted(oracle_dir.glob("Questions-*.md"))
     if prior:
         text = prior[-1].read_text(encoding="utf-8")
-        parsed = parse_note(text)
+        # Blinding fix (2026-07-19): a P2^13 note prints opaque qid aliases;
+        # translate them back to the real qids the ledger keys everything by
+        # (identity on non-aliased/legacy notes).
+        parsed = resolve_note_qids(parse_note(text), ledger.note_qid_map())
         if not parsed.budget_parsed:
             print("oracle: budget knob unparsed - using defaults")
         budget = parsed.budget
@@ -343,16 +346,30 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
 
     conjectures = conjectures_section(list(res.known_laws), res.discoveries)
     nonces = {c.qid: nonce_factory() for c in selected}
+    # Blinding fix (whole-branch review 2026-07-19, IMPORTANT 3): a P2^13
+    # qid's own structure (p213:scan:... docket vs p213:<relpath> random)
+    # distinguishes the arms in source mode, where the author sees the
+    # <!-- qid --> comments. Every p213-shaped question — armed, or a later
+    # verbatim re-ask of one (arm=None but the qid keeps its shape) — gets
+    # an opaque note-facing alias; the ledger keeps the real qid, joined
+    # back through forecasts.jsonl's note_qid at the next parse.
+    note_qids = {
+        c.qid: (opaque_note_qid(c.qid, nonces[c.qid])
+                if (c.arm is not None or c.qid.startswith("p213:"))
+                else c.qid)
+        for c in selected
+    }
     text = render_note(selected, note_date=note_date, run_id=run_id,
                         segment=segment, budget=budget,
                         reveals=reveals or None, conjectures=conjectures,
-                        nonces=nonces)
+                        nonces=nonces, note_qids=note_qids)
     note_path.write_text(text, encoding="utf-8")
     for c in selected:
         nonce = nonces[c.qid]
         ledger.record_asked(note_date, c.qid, c.tier, c.forecast,
                              seal(c.forecast, nonce), nonce=nonce,
-                             arm=c.arm, segment=segment, text=c.text)
+                             arm=c.arm, segment=segment, text=c.text,
+                             note_qid=note_qids[c.qid])
 
     print(f"questions_written: {len(selected)} → Arisbe/Questions-{note_date}.md")
     return {"questions_written": len(selected), "reveals": len(reveals),

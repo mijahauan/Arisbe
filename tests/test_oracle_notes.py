@@ -80,6 +80,64 @@ class TestConsentBoundary:
         cands = _horizon_candidates(h, {})
         assert [c.qid for c in cands] == ["horizon:root.pdf"]
 
+    def test_docket_arm_never_voices_a_consented_ref(self):
+        """Whole-branch review CRITICAL 1 (2026-07-19): the P2^13 docket arm
+        bypassed the item-9 consent boundary — a ``("scan", "People")`` want
+        (ref = the bare folder) or a ``People/friend.md`` read want could be
+        voiced as a question on the default (``--p213``) path. Both must be
+        suppressed; the next-ranked eligible want takes the slot."""
+        docket = _FakeDocket([
+            _FakeEntry(key=("scan", "People"),
+                       payload=("People", "a folder scan the attention "
+                                          "economy has queued")),
+            _FakeEntry(key=("read", "People/friend.md"),
+                       payload=("People/friend.md", "flagged for a closer read")),
+            _FakeEntry(key=("read", "Clippings/ok.md"),
+                       payload=("Clippings/ok.md", "flagged for a closer read")),
+        ])
+        world = _FakeWorld(["a.md", "b.md"])
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=docket, rng=random.Random(0))
+        docket_cands = [c for c in cands if c.arm == "docket"]
+        assert len(docket_cands) == 1
+        assert "Clippings/ok.md" in docket_cands[0].qid
+        for c in cands:
+            assert "People" not in c.qid
+            assert "People" not in c.text
+
+    def test_random_arm_never_samples_a_consented_note(self):
+        """CRITICAL 1, the other arm: ``_random_candidates`` sampled
+        ``world.notes()`` unfiltered — a ``People/friend.md`` in the vault was
+        in the random arm's pool. Whatever the seed, only the eligible note
+        may be drawn."""
+        world = _FakeWorld(["People/friend.md", "Kith_Kin/aunt.md",
+                            "Household/bills.md", "a.md"])
+        docket = _FakeDocket([])
+        for seed in range(5):
+            cands = candidates_from_run(world, None, [], {},
+                                         docket=docket, rng=random.Random(seed))
+            refs = [c.qid.split(":", 1)[1] for c in cands if c.arm == "random"]
+            assert refs == ["a.md"], f"seed {seed} leaked a consented note"
+
+    def test_docket_arm_excludes_arisbe_authored_notes_like_the_random_arm(self):
+        """CRITICAL 1's fold-in (the deferred asymmetry): the random arm
+        already excluded ``authored_by: arisbe`` notes; the docket arm must
+        filter identically, or the two arms are different samples and the
+        margin is biased."""
+        class _W(_FakeWorld):
+            def is_arisbe_note(self, relpath):
+                return relpath == "Arisbe/Questions-2026-07-01.md"
+
+        world = _W(["Arisbe/Questions-2026-07-01.md", "a.md"])
+        docket = _FakeDocket([
+            _FakeEntry(key=("read", "Arisbe/Questions-2026-07-01.md"),
+                       payload=("Arisbe/Questions-2026-07-01.md",
+                                "flagged for a closer read")),
+        ])
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=docket, rng=random.Random(0))
+        assert [c for c in cands if c.arm == "docket"] == []
+
 
 @dataclass
 class _FakeEntry:
@@ -239,6 +297,84 @@ class TestP213Instrument:
         assert "read" in docket_cands[0].qid
         assert "Journal/unique-marker.md" in docket_cands[0].qid
 
+    def test_note_qid_structure_never_distinguishes_arms(self):
+        """Whole-branch review IMPORTANT 3 (2026-07-19): the note embeds
+        ``<!-- qid: ... -->`` and the REAL qids are structurally
+        distinguishable (``p213:scan:...`` docket vs ``p213:<relpath>``
+        random) — the author answers in source mode where comments are
+        visible. The note must render an OPAQUE alias; and once the alias
+        hash and the backticked subject are normalized, the full rendered
+        blocks (comments included) must be byte-identical across arms."""
+        from oracle_notes import opaque_note_qid
+        world = _FakeWorld(["a.md", "b.md", "c.md", "d.md"])
+        cands = candidates_from_run(world, None, [], {},
+                                     docket=self._docket(),
+                                     rng=random.Random(42))
+        p213 = [c for c in cands if c.arm in ("docket", "random")]
+        nonces = {c.qid: f"n{i}" for i, c in enumerate(p213)}
+        note_qids = {c.qid: opaque_note_qid(c.qid, nonces[c.qid])
+                     for c in p213}
+        text = render_note(p213, note_date="2026-07-18", run_id="r",
+                            segment=1, budget={"max": 4, "reflective": 0},
+                            reveals=None, nonces=nonces, note_qids=note_qids)
+        shown = re.findall(r"<!-- qid: (.+?) -->", text)
+        assert len(shown) == 4
+        assert all(re.fullmatch(r"p213:[0-9a-f]{12}", q) for q in shown)
+        for c in p213:
+            assert c.qid not in text        # the real qid never reaches ink
+
+        # the strengthened blinding assertion: whole blocks, comments included.
+        qblocks = [b for b in re.split(r"\n\n(?=## Q)", text)
+                   if b.startswith("## Q")]
+        normalized = set()
+        for i, b in enumerate(qblocks, start=1):
+            b = b.rstrip("\n")          # the note's own single trailing \n
+            b = b.replace(f"## Q{i}", "## QN")
+            b = re.sub(r"p213:[0-9a-f]{12}", "p213:HASH", b)
+            b = re.sub(r"`[^`]*`", "`X`", b)
+            normalized.add(b)
+        assert len(normalized) == 1, (
+            "docket-arm and random-arm blocks must be byte-identical once "
+            f"the opaque alias and the subject are normalized; got {normalized}")
+
+    def test_opaque_qid_roundtrip_through_ledger(self, tmp_path):
+        """IMPORTANT 3, the join: the LEDGER keeps the real qid; the note
+        carries only the alias (stored as ``note_qid`` in forecasts.jsonl);
+        parse -> ``resolve_note_qids`` -> outcomes/ratings/reveals all land
+        under the real qid, and a later note's Reveals prints the alias."""
+        from oracle_notes import opaque_note_qid, resolve_note_qids
+        ledger = OracleLedger(tmp_path)
+        real = "p213:scan:Ideas"
+        alias = opaque_note_qid(real, "n0")
+        cand = QuestionCandidate(qid=real, tier="quick",
+                                 text="What is `Ideas`? One line is plenty.",
+                                 why="w", settles="s", forecast="unknown",
+                                 arm="docket")
+        text = render_note([cand], note_date="2026-07-18", run_id="r",
+                            segment=1, budget={"max": 4, "reflective": 0},
+                            reveals=None, nonces={real: "n0"},
+                            note_qids={real: alias})
+        ledger.record_asked("2026-07-18", real, "quick", "unknown",
+                             seal("unknown", "n0"), nonce="n0", arm="docket",
+                             segment=1, text=cand.text, note_qid=alias)
+        assert f"<!-- qid: {alias} -->" in text
+        assert real not in text
+
+        answered = text.replace("**A:**", "**A:** a folder of drafts", 1)
+        answered = answered.replace("**R:** (trivial | non-trivial)",
+                                     "**R:** non-trivial", 1)
+        parsed = resolve_note_qids(parse_note(answered),
+                                    ledger.note_qid_map())
+        assert parsed.answers == {real: "a folder of drafts"}
+        assert parsed.ratings == {real: "non-trivial"}
+
+        reveals = ledger.build_reveals(parsed)
+        assert [r["qid"] for r in reveals] == [real]
+        nxt = render_note([], note_date="2026-07-25", run_id="r", segment=2,
+                           budget=dict(DEFAULT_BUDGET), reveals=reveals)
+        assert alias in nxt
+        assert real not in nxt              # Reveals must not leak it later
+
 
 class TestP213Report:
     """``p2_13_report`` — the pass/fail/ceiling verdict read off the
@@ -283,6 +419,65 @@ class TestP213Report:
         for seg in (1, 2):
             assert report["segments"][seg]["docket_rate"] == 0.5
             assert report["segments"][seg]["random_rate"] == 0.5
+
+    def test_reask_row_never_erases_the_arm(self, tmp_path):
+        """Whole-branch review IMPORTANT 2 (2026-07-19): the report's qid
+        join was last-write-wins over ``forecasts.jsonl`` — a drift re-ask
+        row (``arm=None``) for a formerly-armed qid erased its arm, dropping
+        it from both rates while its rating still counted elsewhere. The
+        join now reads each qid's EARLIEST ARMED row, so a re-ask can never
+        move or erase the original arm/segment attribution."""
+        ledger = OracleLedger(tmp_path)
+        for seg in (1, 2):
+            for i in range(2):     # docket arm: both non-trivial -> rate 1.0
+                qid = f"d{seg}_{i}"
+                ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                     seal("unknown"), arm="docket", segment=seg)
+                ledger.record_rating(qid, "non-trivial", "2026-07-01")
+            for i, rating in enumerate(["non-trivial", "trivial"]):
+                qid = f"r{seg}_{i}"     # random arm: one hit -> rate 0.5
+                ledger.record_asked("2026-07-01", qid, "quick", "unknown",
+                                     seal("unknown"), arm="random", segment=seg)
+                ledger.record_rating(qid, rating, "2026-07-01")
+        before = p2_13_report(ledger)
+
+        # the re-ask row: same qid, arm=None, a later segment — the exact
+        # shape the driver writes when reask_candidate repeats d1_0 verbatim.
+        ledger.record_asked("2026-07-20", "d1_0", "quick", "unknown",
+                             seal("unknown"), arm=None, segment=3,
+                             text="What is `X`? One line is plenty.")
+        after = p2_13_report(ledger)
+
+        assert after == before                       # neither rate moved
+        assert after["segments"][1]["docket_rate"] == 1.0
+        assert after["segments"][1]["docket_n"] == 2
+        assert 3 not in after["segments"]            # no phantom bucket
+
+    def test_rated_arm_none_rows_never_reach_the_ceiling(self, tmp_path):
+        """IMPORTANT 2, second half: a rated ``arm=None`` question (the
+        standing reflective, a re-ask) must not dilute — or trip — the
+        ceiling canary, which reads the instrument's own discriminating
+        power off the ARMED questions alone."""
+        ledger = OracleLedger(tmp_path)
+        ledger.record_asked("2026-07-01", "q_d", "quick", "unknown",
+                             seal("unknown"), arm="docket", segment=1)
+        ledger.record_rating("q_d", "non-trivial", "2026-07-01")
+        ledger.record_asked("2026-07-01", "q_r", "quick", "unknown",
+                             seal("unknown"), arm="random", segment=1)
+        ledger.record_rating("q_r", "trivial", "2026-07-01")
+        # eight rated arm-None rows in the same segment: under the old join
+        # they push all_non_trivial/all_total to 9/10 >= 0.9 -> uninformative.
+        for i in range(8):
+            qid = f"refl{i}"
+            ledger.record_asked("2026-07-01", qid, "reflective", "unknown",
+                                 seal("unknown"), arm=None, segment=1)
+            ledger.record_rating(qid, "non-trivial", "2026-07-01")
+
+        report = p2_13_report(ledger)
+        seg = report["segments"][1]
+        assert seg["uninformative"] is False
+        assert seg["docket_rate"] == 1.0 and seg["docket_n"] == 1
+        assert seg["random_rate"] == 0.0 and seg["random_n"] == 1
 
     def test_ceiling_segment_flagged_uninformative(self, tmp_path):
         ledger = OracleLedger(tmp_path)
@@ -859,9 +1054,60 @@ class TestP213DefaultOn:
         assert "random" not in text.lower()
         assert "arm" not in text.lower()
 
+        # IMPORTANT 3 (whole-branch review, 2026-07-19): qid structure must
+        # not distinguish arms either — every p213 comment qid is the opaque
+        # alias, never a want-key (p213:scan:...) or relpath (p213:x.md)
+        # shape the author could partition by in source mode.
+        assert all(re.fullmatch(r"p213:[0-9a-f]{12}", q)
+                   for q in non_reflective)
+
         # Minor 1: Arisbe's own pre-existing fixture note never becomes a
         # question subject (the random arm must exclude authored_by: arisbe).
         assert "Questions-2026-07-01.md" not in text
+
+    def test_answers_to_opaque_qids_land_under_real_qids(self, tmp_path, capsys):
+        """IMPORTANT 3, driver-wired: the author answers under the opaque
+        alias; a later invocation must record outcomes/ratings under the
+        REAL qid (translated through forecasts.jsonl's note_qid field), so
+        the ledger and p2_13_report keep working."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        capsys.readouterr()
+
+        note = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        # answer enough (>= half) to be substantially answered; rate one.
+        to_answer = qids[: (len(qids) + 1) // 2 + 1]
+        for q in to_answer:
+            pattern = re.compile(
+                rf"(<!-- qid: {re.escape(q)} -->.*?\*\*A:\*\*)", re.DOTALL)
+            text, n = pattern.subn(lambda m: m.group(1) + " a real answer",
+                                   text, count=1)
+            assert n == 1
+        text = text.replace("**R:** (trivial | non-trivial)",
+                             "**R:** non-trivial", 1)
+        note.write_text(text, encoding="utf-8")
+
+        rc = mod.main(["--fixture", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0
+        capsys.readouterr()
+
+        ledger = OracleLedger(runs_dir / "oracle")
+        real_qids = {f["qid"] for f in ledger.forecasts()}
+        outs = ledger.outcomes()
+        assert outs
+        for o in outs:
+            assert o["qid"] in real_qids
+            assert not re.fullmatch(r"p213:[0-9a-f]{12}", o["qid"]), (
+                "an outcome landed under the opaque alias, not the real qid")
+        for r in ledger.ratings():
+            assert r["qid"] in real_qids
+            assert not re.fullmatch(r"p213:[0-9a-f]{12}", r["qid"])
 
     def test_no_p213_flag_still_restores_v2a1_mix(self, tmp_path, capsys):
         """The escape hatch: ``--no-p213`` must still work exactly as the

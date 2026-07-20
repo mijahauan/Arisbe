@@ -1712,8 +1712,9 @@ what remains open). Commits, by item:
    re-executes recorded derivations from `from_state` and asserts `same_graph` with
    `to_state` — the peel-recomputation pattern applied to derivations; per-act floors +
    signature-branch falsifier.
-6. **⑥ Fallback area-scoping** — `9fa6287` (+ `549c386`). `_structural_retract_atom` no
-   longer reaches inside denial cells / exhibits; pinned with the denial-cell test.
+6. **⑥ Fallback area-scoping** — `9fa6287` (+ `549c386`). `_structural_retract_atom`
+   deleted; decay is skip-and-count, so nothing reaches inside denial cells / exhibits;
+   pinned with the denial-cell test.
 7. **⑦ Poise repair-or-concede** — `5c32b2f`. `_window_reading`: "thrash" now requires
    `thrash_situations > 0`; absorbed stumbles beyond threshold read as a third honest
    **storm** state; the digest test re-pinned. The doctrine claim ("poise is the

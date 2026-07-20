@@ -4,7 +4,11 @@ questions notes into exactly one vault folder (``Arisbe/``); the next poll reads
 answers back through the same membrane.
 
 **Stage split:** Task 1 built candidates, the seal, and the note renderer, all
-offline and deterministic (no wall-clock/RNG; ``note_date`` is caller-supplied).
+offline and deterministic given the caller's inputs (``note_date`` is
+caller-supplied; every random draw — the P2^13 shuffle and random arm, the
+per-question seal nonces, the note-facing qid aliases — enters only through
+the injected ``rng``/``nonce_factory``, so tests seed them and only the live
+driver draws fresh).
 Task 2 added the other half of the loop: ``parse_note`` (recovering the
 author's edits from the raw markdown), ``score`` (the forecast-vs-answer
 heuristic), and ``OracleLedger`` (JSONL persistence joining asked forecasts to
@@ -47,17 +51,26 @@ earlier version put a per-arm reason into the text and was a real,
 reviewer-caught leak, fixed here by dropping the reason from the rendered
 text entirely (see the P2^13 instrument section below).
 
-**Seal-then-reveal:** ``seal(forecast)`` is the SHA-256 hex commitment; the
-question block prints only the hash, never the plaintext. The plaintext lives
-in the caller's gitignored side-store (``oracle/forecasts.jsonl``) and reaches
-the note again only through a later ``## Reveals`` section, once the answer is
-in hand.
+**Seal-then-reveal:** ``seal(forecast, nonce)`` is the SALTED SHA-256 hex
+commitment (docket item 8): the forecast vocabulary is closed and small, so an
+unsalted hash is a precomputable dictionary — a per-question nonce from the
+caller's injected ``nonce_factory`` is what makes the seal binding. The
+question block prints only the hash, never the plaintext. The plaintext (and
+its nonce) lives in the caller's gitignored side-store
+(``oracle/forecasts.jsonl``) and reaches the note again only through a later
+``## Reveals`` section, once the answer is in hand — ``build_reveals``
+recomputing the salted hash first (``seal-broken`` on mismatch).
 
 **Qid recovery (Task 2):** each rendered question block carries an invisible
 ``<!-- qid: ... -->`` HTML comment right under its header — Obsidian's preview
 renderer hides HTML comments, so the author never sees it, but ``parse_note``
 uses it to recover which question an ``**A:**`` line belongs to without relying
-on question text (which the author might reasonably edit or quote back).
+on question text (which the author might reasonably edit or quote back). For a
+P2^13 question the comment carries an OPAQUE alias (:func:`opaque_note_qid` —
+whole-branch review, 2026-07-19: the real qids are structurally
+distinguishable by arm, and the author answers in source mode where comments
+are visible); the ledger keeps the real qid and joins the alias back through
+``forecasts.jsonl``'s ``note_qid`` field (:func:`resolve_note_qids`).
 """
 from __future__ import annotations
 
@@ -198,22 +211,27 @@ def _multi_journal_candidates(world, decode: Dict[str, str],
     return out
 
 
+def _consent_blocked(ref: str) -> bool:
+    """The consent boundary's one predicate (docket item 9), shared by EVERY
+    question source — the horizon questions and BOTH P2^13 arms (whole-branch
+    review, 2026-07-19: the instrument arms used to bypass it, which made the
+    filter dead on the default ``--p213`` path). True when ``ref``'s first
+    path component is a metadata-only folder (``People/``, ``Kith_Kin/``,
+    ``Household/``) — including the bare folder itself, since a
+    ``("scan", "People")`` want's ref IS ``"People"``. A root-level file ref
+    has no folder component in the set and passes through untouched."""
+    from vault_world import METADATA_ONLY_DIRS
+    parts = Path(ref).parts
+    return bool(parts) and parts[0] in METADATA_ONLY_DIRS
+
+
 def _consent_filtered(items):
     """The consent boundary (docket item 9) binds the question generator
     exactly as `vault_world`'s docstring binds the reader: an item whose ref
     sits under `People/`, `Kith_Kin/`, or `Household/` never becomes question
     text — it is still ON the horizon (registered, still counted in
-    `horizon.snapshot()`); only its promotion here is suppressed. A
-    root-level ref (`Path(ref).parts` of length 1, no folder component) has
-    nothing to filter on and passes through untouched."""
-    from vault_world import METADATA_ONLY_DIRS
-    out = []
-    for item in items:
-        parts = Path(item.ref).parts
-        if len(parts) > 1 and parts[0] in METADATA_ONLY_DIRS:
-            continue
-        out.append(item)
-    return out
+    `horizon.snapshot()`); only its promotion here is suppressed."""
+    return [item for item in items if not _consent_blocked(item.ref)]
 
 
 def _horizon_candidates(horizon, decode: Dict[str, str]) -> List[QuestionCandidate]:
@@ -298,7 +316,7 @@ def _p213_question(qid: str, ref: str, arm: str) -> QuestionCandidate:
 
 
 def _docket_candidates(
-        docket, n: int = 2) -> List[Tuple[QuestionCandidate, str]]:
+        docket, n: int = 2, world=None) -> List[Tuple[QuestionCandidate, str]]:
     """The docket arm: the top ``n`` entries the docket offers, each turned
     into one concrete "what is this?" question via the shared
     :func:`_p213_question` template. Docket item 10's falsifiability
@@ -310,12 +328,34 @@ def _docket_candidates(
     note relpath) is what the random arm needs to exclude so the two arms
     never both ask about the same thing; it isn't otherwise recoverable from
     the candidate (the qid carries the want's *key*, not its ref, so
-    provenance and the excludable subject are kept genuinely distinct)."""
+    provenance and the excludable subject are kept genuinely distinct).
+
+    Both arms filter IDENTICALLY (whole-branch review, 2026-07-19): the
+    consent boundary (docket item 9, :func:`_consent_blocked`) and the
+    ``authored_by: arisbe`` exclusion each bind here exactly as in
+    :func:`_random_candidates` — an asymmetric filter would make the two
+    arms different samples of the vault and bias the docket-vs-random
+    margin the instrument exists to measure. A blocked want stays on the
+    docket (nothing is deleted); only its promotion to question text is
+    suppressed, so the next-ranked eligible want takes the slot."""
     from attention_economy import wants_from_docket
+    is_arisbe = getattr(world, "is_arisbe_note", None)
+    # is_arisbe_note reads a note's frontmatter, so only ask it about refs
+    # the world actually lists as notes (a scan want's ref is a folder; a
+    # journal want's ref carries a "(batch N)" suffix — neither is a note).
+    known_notes = (set(world.notes())
+                   if world is not None and callable(getattr(world, "notes", None))
+                   else set())
     out: List[Tuple[QuestionCandidate, str]] = []
-    for dw in wants_from_docket(docket, round_idx=0)[:n]:
+    for dw in wants_from_docket(docket, round_idx=0):
+        if len(out) >= n:
+            break
         entry = dw.payload
         ref, _reason = entry.payload   # reason kept for provenance, not shown
+        if _consent_blocked(ref):
+            continue
+        if is_arisbe and ref in known_notes and is_arisbe(ref):
+            continue
         key_str = ":".join(str(part) for part in entry.key)
         cand = _p213_question(qid=f"p213:{key_str}", ref=ref, arm="docket")
         out.append((cand, ref))
@@ -335,10 +375,15 @@ def _random_candidates(world, rng, exclude: Set[str],
     in the PASS direction, the wrong bias for a falsifiability instrument.
     Uses ``world.is_arisbe_note`` when the world exposes it (the real
     ``VaultWorld`` does); a world that doesn't (a test double) simply skips
-    that filter rather than raising. Same template as the docket arm."""
+    that filter rather than raising. Same template as the docket arm, and
+    the SAME two filters as the docket arm (consent boundary + arisbe
+    exclusion — see :func:`_docket_candidates` on why the arms must filter
+    identically)."""
     is_arisbe = getattr(world, "is_arisbe_note", None)
     pool = [n_ for n_ in world.notes()
-            if n_ not in exclude and not (is_arisbe and is_arisbe(n_))]
+            if n_ not in exclude
+            and not _consent_blocked(n_)
+            and not (is_arisbe and is_arisbe(n_))]
     if not pool:
         return []
     chosen = rng.sample(pool, k=min(n, len(pool)))
@@ -361,7 +406,7 @@ def _p213_candidates(world, docket, rng, n: int = 2) -> List[QuestionCandidate]:
     happened to order first) rather than refusing outright; ``p2_13_report``
     already reads rates (non-trivial ÷ rated total per arm), which tolerate
     unequal ``n`` between arms and even between segments."""
-    docket_pairs = _docket_candidates(docket, n=n)
+    docket_pairs = _docket_candidates(docket, n=n, world=world)
     docket_cands = [c for c, _ref in docket_pairs]
     taken = {ref for _c, ref in docket_pairs}
     combined = docket_cands + _random_candidates(world, rng, taken, n=n)
@@ -437,6 +482,21 @@ def _topic(qid: str) -> str:
     return qid.split(":", 1)[0]
 
 
+def opaque_note_qid(qid: str, nonce: str) -> str:
+    """The note-facing alias for a P2^13 qid (whole-branch review, 2026-07-19,
+    IMPORTANT 3): the REAL qids are structurally distinguishable by arm
+    (``p213:scan:...`` docket-want keys vs ``p213:<relpath>`` random draws),
+    and the author answers in source mode where the ``<!-- qid: ... -->``
+    comments are visible — a blinding leak. The alias keeps the namespace
+    prefix (so ``_topic`` reads the same for both arms) and replaces the body
+    with ``sha256(qid + nonce)[:12]`` — same shape for every P2^13 question
+    regardless of arm. The LEDGER always keeps the real qid; the alias is
+    stored beside it (``record_asked``'s ``note_qid``) and joined back at
+    parse time via :func:`resolve_note_qids`."""
+    digest = hashlib.sha256((qid + nonce).encode("utf-8")).hexdigest()[:12]
+    return f"{_topic(qid)}:{digest}"
+
+
 def _frontmatter(note_date: str, run_id: str, segment: int, budget: dict) -> str:
     lines = [
         "---",
@@ -453,18 +513,23 @@ def _frontmatter(note_date: str, run_id: str, segment: int, budget: dict) -> str
 def _render_reveals(reveals: List[dict]) -> str:
     lines = ["## Reveals", ""]
     for r in reveals:
+        # Prefer the note-facing alias: a Reveals line printing the REAL
+        # P2^13 qid would leak the arm structure retroactively (the author
+        # reads reveals while rating the next note's questions).
+        shown = r.get("note_qid") or r["qid"]
         lines.append(
-            f"- `{r['qid']}`: forecast **{r['forecast_plain']}** "
+            f"- `{shown}`: forecast **{r['forecast_plain']}** "
             f"(`sha256:{r['forecast_hash']}`) — answer: \"{r['answer']}\" "
             f"→ **{r['verdict']}**"
         )
     return "\n".join(lines)
 
 
-def _render_question_block(n: int, c: QuestionCandidate, nonce: str = "") -> str:
+def _render_question_block(n: int, c: QuestionCandidate, nonce: str = "",
+                            note_qid: Optional[str] = None) -> str:
     lines = [
         f"## Q{n} · {c.tier} — {_topic(c.qid)}",
-        f"<!-- qid: {c.qid} -->",
+        f"<!-- qid: {note_qid or c.qid} -->",
         "",
         c.text,
         "",
@@ -481,7 +546,8 @@ def render_note(candidates: List[QuestionCandidate], *, note_date: str,
                  run_id: str, segment: int, budget: dict,
                  reveals: Optional[List[dict]],
                  conjectures: Optional[str] = None,
-                 nonces: Optional[Dict[str, str]] = None) -> str:
+                 nonces: Optional[Dict[str, str]] = None,
+                 note_qids: Optional[Dict[str, str]] = None) -> str:
     """The note's markdown: frontmatter, an optional ``## Reveals`` section
     (the previous note's scored answers), an optional ``## Conjectures``
     section (Task 3 — the caller passes the already-rendered string from
@@ -490,15 +556,21 @@ def render_note(candidates: List[QuestionCandidate], *, note_date: str,
     seal. ``nonces`` maps qid -> the per-question nonce the caller generated
     at candidate-selection time (the SAME nonce must reach ``record_asked``,
     so the note's printed seal and the ledger's stored seal agree); a missing
-    qid or an absent ``nonces`` falls back to the empty-nonce legacy seal."""
+    qid or an absent ``nonces`` falls back to the empty-nonce legacy seal.
+    ``note_qids`` maps qid -> the note-facing alias the block's comment
+    prints instead of the real qid (:func:`opaque_note_qid` — the P2^13
+    blinding fix); an absent mapping or missing qid renders the real qid,
+    byte-identical for every existing caller."""
     nonces = nonces or {}
+    note_qids = note_qids or {}
     parts: List[str] = [_frontmatter(note_date, run_id, segment, budget)]
     if reveals:
         parts.append(_render_reveals(reveals))
     if conjectures:
         parts.append(conjectures)
     for n, c in enumerate(select_within_budget(candidates, budget), start=1):
-        parts.append(_render_question_block(n, c, nonces.get(c.qid, "")))
+        parts.append(_render_question_block(n, c, nonces.get(c.qid, ""),
+                                             note_qids.get(c.qid)))
     return "\n\n".join(parts) + "\n"
 
 
@@ -708,6 +780,25 @@ def parse_note(text: str) -> ParsedNote:
                        budget_parsed=budget_parsed)
 
 
+def resolve_note_qids(parsed: ParsedNote,
+                       mapping: Dict[str, str]) -> ParsedNote:
+    """Translate a parsed note's note-facing qid aliases back to the real
+    qids the ledger keys everything by (``mapping`` = alias -> real, from
+    ``OracleLedger.note_qid_map``). A qid with no alias entry (every
+    non-P2^13 question, and every note written before the blinding fix)
+    passes through unchanged — identity on legacy notes."""
+    tr = lambda q: mapping.get(q, q)                      # noqa: E731
+    return ParsedNote(
+        budget=parsed.budget,
+        answers={tr(q): a for q, a in parsed.answers.items()},
+        declined={tr(q) for q in parsed.declined},
+        ignored={tr(q) for q in parsed.ignored},
+        ratings={tr(q): r for q, r in parsed.ratings.items()},
+        stray=parsed.stray,
+        budget_parsed=parsed.budget_parsed,
+    )
+
+
 def score(forecast_plain: str, answer: str) -> str:
     """Score a forecast against the author's answer. Deliberately modest: a
     case-insensitive substring test (does the forecast's own text appear
@@ -778,7 +869,7 @@ class OracleLedger:
                       forecast_plain: str, forecast_hash: str,
                       nonce: str = "", arm: Optional[str] = None,
                       segment: Optional[int] = None,
-                      text: str = "") -> None:
+                      text: str = "", note_qid: str = "") -> None:
         """``arm``/``segment`` (docket item 10): the P2^13 instrument's arm
         (``"docket"``/``"random"``) and the segment the question was asked
         in — recorded ONLY here, never in the note itself. Both default
@@ -787,11 +878,16 @@ class OracleLedger:
         rendered wording, stored so a later drift re-ask
         (:func:`reask_candidate`) can repeat it VERBATIM rather than
         regenerate it; the empty default keeps legacy rows readable (a row
-        without text is simply never re-asked)."""
+        without text is simply never re-asked). ``note_qid`` (the blinding
+        fix, 2026-07-19): the opaque alias the NOTE printed for this
+        question (:func:`opaque_note_qid`) — the join key
+        ``resolve_note_qids`` translates parsed answers back through; empty
+        for every question rendered under its real qid."""
         self._append(self._forecasts_path, {
             "note_date": note_date, "qid": qid, "tier": tier,
             "forecast_plain": forecast_plain, "forecast_hash": forecast_hash,
             "nonce": nonce, "arm": arm, "segment": segment, "text": text,
+            "note_qid": note_qid,
         })
 
     def record_outcome(self, qid: str, status: str, answer_text: str,
@@ -843,6 +939,18 @@ class OracleLedger:
 
     def forecasts(self) -> List[dict]:
         return self._read_all(self._forecasts_path)
+
+    def note_qid_map(self) -> Dict[str, str]:
+        """Note-facing alias -> real qid, from every forecasts row that
+        stored one (the blinding fix, 2026-07-19). Aliases are
+        nonce-derived and unique per asking, so later rows only add keys —
+        no collision to resolve."""
+        out: Dict[str, str] = {}
+        for r in self._read_all(self._forecasts_path):
+            nq = r.get("note_qid")
+            if nq and nq != r["qid"]:
+                out[nq] = r["qid"]
+        return out
 
     def ratings(self) -> List[dict]:
         return self._read_all(self._ratings_path)
@@ -906,6 +1014,10 @@ class OracleLedger:
                        else score(forecast["forecast_plain"], answer))
             reveals.append({
                 "qid": qid,
+                # the note-facing alias (blinding fix): _render_reveals
+                # prints this, so a real P2^13 qid never reaches a later
+                # note's Reveals section either.
+                "note_qid": forecast.get("note_qid") or qid,
                 "forecast_plain": forecast["forecast_plain"],
                 "forecast_hash": forecast["forecast_hash"],
                 "answer": answer,
@@ -977,13 +1089,22 @@ def p2_13_report(ledger: OracleLedger) -> dict:
     ledger — ``forecasts.jsonl`` (which segment/arm each qid was asked
     under) joined to ``ratings.jsonl`` (the author's ``**R:**`` marks) by
     qid. A qid rated more than once keeps its LATEST rating (a correction
-    supersedes, exactly like ``build_reveals``' latest-forecast join).
+    supersedes, exactly like ``build_reveals``' latest-forecast join). The
+    forecasts join reads each qid's EARLIEST ARMED row (whole-branch
+    review, 2026-07-19: last-write-wins let a drift re-ask row —
+    ``arm=None`` — erase a qid's arm while its rating still inflated the
+    ceiling; the earliest-armed join is read-side only, self-healing for
+    ledgers already written, and pins a rating to the segment/arm the
+    question was originally asked under). A qid that never carried an arm
+    (the standing reflective, a pure re-ask, a legacy row) sits outside the
+    instrument entirely: it reaches neither an arm's rate nor the ceiling
+    canary's denominator.
 
     Per segment: the docket-arm and random-arm non-trivial RATE (rated
     non-trivial ÷ rated total for that arm in that segment). An arm with
     zero ratings that segment reads ``None`` — an honest "no data", never a
-    fabricated 0.0. **Ceiling canary:** a segment where >=90% of ALL its
-    rated questions (either arm — the instrument's own discriminating power
+    fabricated 0.0. **Ceiling canary:** a segment where >=90% of its rated
+    ARMED questions (either arm — the instrument's own discriminating power
     is what's in question, not one arm alone) are marked non-trivial is
     flagged ``"uninformative"`` and excluded from the pass/fail tally
     entirely — it can't speak for or against P2^13 either way, because the
@@ -995,18 +1116,21 @@ def p2_13_report(ledger: OracleLedger) -> dict:
     compared at all; ``"fail"`` otherwise — this is the reading
     ``runs/RUN_13_LOG.md``'s P2^13 amendment names as the pre-registered
     rule."""
-    forecasts = {f["qid"]: f for f in ledger.forecasts()}
+    armed: Dict[str, dict] = {}
+    for f in ledger.forecasts():
+        if f.get("arm") in ("docket", "random") and f["qid"] not in armed:
+            armed[f["qid"]] = f
     latest_rating: Dict[str, str] = {}
     for r in ledger.ratings():
         latest_rating[r["qid"]] = r["rating"]
 
     buckets: Dict[Optional[int], dict] = {}
     for qid, rating in latest_rating.items():
-        fc = forecasts.get(qid)
+        fc = armed.get(qid)
         if fc is None:
-            continue
+            continue    # never armed: outside the instrument — no bucket at all
         seg = fc.get("segment")
-        arm = fc.get("arm")
+        arm = fc["arm"]
         b = buckets.setdefault(seg, {
             "all_total": 0, "all_non_trivial": 0,
             "docket_total": 0, "docket_non_trivial": 0,
@@ -1015,9 +1139,8 @@ def p2_13_report(ledger: OracleLedger) -> dict:
         is_nt = rating == "non-trivial"
         b["all_total"] += 1
         b["all_non_trivial"] += int(is_nt)
-        if arm in ("docket", "random"):
-            b[f"{arm}_total"] += 1
-            b[f"{arm}_non_trivial"] += int(is_nt)
+        b[f"{arm}_total"] += 1
+        b[f"{arm}_non_trivial"] += int(is_nt)
 
     segments: Dict[Optional[int], dict] = {}
     informative_segments = 0
@@ -1055,5 +1178,6 @@ __all__ = [
     "QuestionCandidate", "seal", "candidates_from_run", "render_note",
     "select_within_budget", "DEFAULT_BUDGET", "ParsedNote", "parse_note",
     "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
-    "conjectures_section", "reask_candidate",
+    "conjectures_section", "reask_candidate", "opaque_note_qid",
+    "resolve_note_qids",
 ]

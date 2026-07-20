@@ -382,9 +382,28 @@ class TestRebuildPruningInvariant:
             )
 
     def test_both_gone_prunes_cleanly_and_both_kept_survive(self):
-        egi, name_id, cut_id, _inner_v_id = quoted_host()
+        egi, name_id, cut_id, inner_v_id = quoted_host()
         rebuilt = _rebuild_graph(
             egi, V=egi.V, E=egi.E, nu=egi.nu, cuts=egi.Cut,
             area=egi.area, rel=egi.rel,
         )
         assert dict(rebuilt.quotation) == dict(egi.quotation)
+
+        # the both-gone half the name promises (whole-branch review Minor 9,
+        # 2026-07-19): drop cut + quoting name + interior TOGETHER — the
+        # quotation entry prunes cleanly, no raise, nothing left dangling.
+        gone_edges = {e.id for e in egi.E if name_id in egi.nu.get(e.id, ())}
+        gone = {cut_id, name_id, inner_v_id} | gone_edges
+        rebuilt2 = _rebuild_graph(
+            egi,
+            V=frozenset(v for v in egi.V if v.id not in gone),
+            E=frozenset(e for e in egi.E if e.id not in gone),
+            nu=frozendict({k: v for k, v in egi.nu.items() if k not in gone}),
+            cuts=frozenset(c for c in egi.Cut if c.id != cut_id),
+            area=frozendict({a: c - gone for a, c in egi.area.items()
+                             if a != cut_id}),
+            rel=frozendict({k: v for k, v in egi.rel.items()
+                            if k not in gone}),
+        )
+        assert dict(rebuilt2.quotation) == {}
+        assert dict(rebuilt2.sort) == {}
