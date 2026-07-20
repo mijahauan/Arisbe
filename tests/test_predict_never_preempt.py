@@ -137,6 +137,37 @@ class TestPredictNeverPreempt:
                     == _dispose(r_quoted, proposal)
                     == expected), proposal
 
+    def test_disposition_invariant_to_a_REALLY_banked_cell(self):
+        """The fixtures above quote a hand-built cell (``_pair`` via
+        ``quote_existing_name`` directly). V2a.2 opened the real channel —
+        assert the same invariance on ``bank_answer``'s actual output: a
+        resident model with a banked oracle answer disposes every proposal
+        exactly as models without the banked quotation.
+
+        ``bank_answer`` does two things at once: it INSs the attribution
+        atom ``(asserted "author" *q)`` (``ATTRIBUTION_EGIF``) AND wraps the
+        fresh name in a quotation oval holding the verbatim prose. Comparing
+        a bare model against the banked model therefore varies two things
+        at once. The invariance this gate actually claims is about the
+        QUOTATION alone, so the sharper control already carries the
+        attribution atom WITHOUT the oval (built with the same ``enlarge_m``
+        primitive ``bank_answer`` itself uses) — that isolates exactly the
+        quotation's contribution. The weaker bare-vs-banked comparison is
+        included too, as a second, non-sharp corroboration."""
+        from oracle_notes import ATTRIBUTION_EGIF, bank_answer
+        from world_scroll import enlarge_m
+
+        plain, _ = wrap_state(parse_egif('(swan "Alba")'))
+        banked, _cut = bank_answer(plain, "I think all swans are white.",
+                                    qid="q1", note_date="2026-07-19")
+        control = enlarge_m(plain, ATTRIBUTION_EGIF)
+
+        for proposal in (GROUND_PROPOSAL, QUOTED_P, LAW_PROPOSAL):
+            # sharper form: isolates the quotation's contribution alone.
+            assert _dispose(control, proposal) == _dispose(banked, proposal)
+            # weaker form: bare model vs. the fully banked model.
+            assert _dispose(plain, proposal) == _dispose(banked, proposal)
+
 
 # --------------------------------------------------------------------------- #
 # The question-neutrality rider                                               #
