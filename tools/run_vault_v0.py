@@ -222,41 +222,51 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
     Never crashes the oracle pass (whole-branch review 2026-07-19,
     CRITICAL 1): a missing world-scroll is handled defensively — banking is
     skipped and counted (``bank_skipped``) rather than raising. A row
-    missing its ``qid``/``answer_text`` (a hand-edited or legacy ledger
-    row) is skipped individually and counted (``bank_malformed``) rather
-    than poisoning the whole rebuild. And because a banked answer's prose
-    becomes a vertex label whose box must clear §3.3 occlusion at save time
-    (an answer past a few dozen characters can straddle its cell — measured
-    threshold ~52/53 chars, independent of surrounding-M size — see
+    missing its ``qid`` (dropped inside ``bankable_outcomes`` itself, per
+    NEW-2, 2026-07-19) or its ``answer_text`` (checked here — a row can
+    clear the qid gate and still lack this) is skipped individually and
+    counted (``bank_malformed``) rather than poisoning the whole rebuild.
+    And because a banked answer's prose becomes a vertex label whose box
+    must clear §3.3 occlusion at save time (an answer past a few dozen
+    characters can straddle its cell — measured threshold ~52/53 chars,
+    independent of surrounding-M size — see
     ``docs/superpowers/specs/2026-07-17-vault-cycle-design.md``), the whole
     chain-build-and-save is wrapped: ANY exception there is caught, banking
     for this pass is skipped entirely, and the failure is counted
-    (``bank_failed``) — never raised past this function. Without this, a
-    single long answer would crash every future oracle pass forever (the
-    recomputation thesis rebuilds and re-hits the same row every time),
-    fixable only by hand-editing the ledger. This fix is the safety net
-    only — it does not change how prose is represented; that
+    (``bank_failed``, with the exception's own CLASS NAME alongside it as
+    ``bank_failed_kind`` — never its message, which could carry more than a
+    bare id — so a disk-full, a permissions error, and a real regression
+    are distinguishable in the digest) — never raised past this function.
+    Without this, a single long answer would crash every future oracle pass
+    forever (the recomputation thesis rebuilds and re-hits the same row
+    every time), fixable only by hand-editing the ledger. This fix is the
+    safety net only — it does not change how prose is represented; that
     representational question (e.g. an over-long answer living in a
     gitignored sidecar the way ``vault_world._bounded`` handles over-long
     vault constants) is the author's ruling, not made here.
 
-    Numbers-only return throughout: every reported key is a bare count —
-    never a qid, never answer text, and never an exception's own message
-    (``CorrespondenceViolation``'s message carries only element/cut ids,
-    verified, but nothing here relies on that — the message is never
-    logged or returned regardless)."""
-    rows = bankable_outcomes(ledger)
+    Numbers-only return throughout: every reported key is a bare count or
+    a bare exception class name — never a qid, never answer text, and
+    never an exception's own message (``CorrespondenceViolation``'s
+    message carries only element/cut ids, verified, but nothing here
+    relies on that — the message is never logged or returned regardless)."""
+    rows, malformed = bankable_outcomes(ledger)
     if not rows:
-        return {"banked": 0}
+        out = {"banked": 0}
+        if malformed:
+            out["bank_malformed"] = malformed
+        return out
     if find_world_scroll(res.uod.current_egi) is None:
-        return {"banked": 0, "bank_skipped": len(rows)}
+        out = {"banked": 0, "bank_skipped": len(rows)}
+        if malformed:
+            out["bank_malformed"] = malformed
+        return out
 
     usable: List[Tuple[dict, str, str]] = []
-    malformed = 0
     for row in rows:
-        qid = row.get("qid")
+        qid = row["qid"]          # bankable_outcomes already dropped qid-less rows
         answer_text = row.get("answer_text")
-        if qid is None or answer_text is None:
+        if answer_text is None:
             malformed += 1
             continue
         usable.append((row, qid, answer_text))
@@ -288,9 +298,10 @@ def _bank_author_model(runs_dir: Path, ledger: OracleLedger, res) -> dict:
                          "BANK_TO_M step per answer.",
             category=UoDCategory.DOMAIN_MODEL)
         TomosService(runs_dir).save_uod_with_chain(uod, chain)
-    except Exception:
+    except Exception as exc:
         out["banked"] = 0
         out["bank_failed"] = len(usable)
+        out["bank_failed_kind"] = type(exc).__name__
     else:
         out["banked"] = len(usable)
     if malformed:
@@ -386,10 +397,13 @@ def _run_oracle(root: Path, runs_dir: Path, fixture: bool, note_date: str,
         # recorded answer for the same qid (the drift re-ask's whole point,
         # though any hand-edited answer counts too) appends a new row —
         # counted here as drift_data; the first row stays intact.
+        # NEW-1 (whole-branch review, 2026-07-19): this used to read
+        # `o["qid"]`/`o["status"]` on raw ledger.outcomes() rows directly —
+        # exactly the unguarded access one hand-injected qid-less row in
+        # outcomes.jsonl crashed on every subsequent pass. Delegated to
+        # OracleLedger.has_prior_answer, which tolerates a malformed row.
         for qid, answer in parsed.answers.items():
-            had_prior_answer = any(
-                o["qid"] == qid and o["status"] == "answered"
-                for o in ledger.outcomes())
+            had_prior_answer = ledger.has_prior_answer(qid)
             if ledger.record_outcome_once(qid, "answered", answer, note_date):
                 answers_recorded += 1
                 if had_prior_answer:

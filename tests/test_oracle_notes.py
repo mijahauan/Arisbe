@@ -742,6 +742,57 @@ class TestLedger:
         assert outs[-1]["answer_text"] == "actually, it's my own writing"
 
 
+class TestMalformedRowResilience:
+    """NEW-1 (whole-branch re-review, 2026-07-20): a live-verified crash —
+    one qid-less row hand-injected into a real ``outcomes.jsonl`` raised
+    ``KeyError: 'qid'`` inside ``OracleLedger.record_outcome_once`` and
+    would have crashed every subsequent driver pass identically. Every
+    keyed ledger read must tolerate a malformed row (unparseable line,
+    non-dict row, or a valid dict missing the key that read needs),
+    counting it in ``skipped_rows`` rather than raising or silently
+    dropping it."""
+
+    def test_read_all_skips_corrupt_line_and_counts_it(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger.record_outcome("q1", "answered", "fine", "2026-07-18")
+        with open(ledger._outcomes_path, "a", encoding="utf-8") as f:
+            f.write('{"qid": "q2", "status": "answered",\n')   # torn mid-object
+            f.write("not json at all\n")
+            f.write("42\n")                                    # valid JSON, not a dict
+        rows = ledger.outcomes()                                # must not raise
+        assert [r["qid"] for r in rows] == ["q1"]
+        assert ledger.skipped_rows == 3
+
+    def test_keyed_reads_skip_rows_missing_their_key_and_count_it(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger.record_outcome_once("q1", "answered", "kept", "2026-07-18")
+        ledger._append(ledger._outcomes_path, {
+            "status": "answered", "answer_text": "orphaned",
+            "answered_note_date": "2026-07-19",
+        })  # no "qid" key
+        # record_outcome_once's own read must not crash on the orphan row,
+        # and must still correctly recognize q1's unchanged answer as a
+        # duplicate (not re-append it).
+        assert ledger.record_outcome_once(
+            "q1", "answered", "kept", "2026-07-18") is False
+        assert ledger.skipped_rows >= 1
+        # has_prior_answer must tolerate the same orphan row.
+        assert ledger.has_prior_answer("q1") is True
+        assert ledger.has_prior_answer("nonexistent") is False
+
+    def test_forecasts_row_missing_forecast_plain_is_skipped_in_reveals(self, tmp_path):
+        ledger = OracleLedger(tmp_path)
+        ledger._append(ledger._forecasts_path, {
+            "note_date": "2026-07-18", "qid": "q1", "tier": "quick",
+            # "forecast_plain" / "forecast_hash" missing entirely
+        })
+        parsed = ParsedNote(budget={"max": 5, "reflective": 1},
+                             answers={"q1": "some answer"})
+        reveals = ledger.build_reveals(parsed)                  # must not raise
+        assert reveals == []
+        assert ledger.skipped_rows >= 1
+
+
 class TestConjectures:
     def test_admitted_law_renders_gloss_and_egif(self):
         law = "~[ (Bird *x) ~[ (Flies x) ] ]"
@@ -1018,6 +1069,11 @@ class TestEndToEnd:
         out2 = capsys.readouterr().out
         assert "'banked': 0" in out2
         assert "'bank_failed': 1" in out2
+        # ALSO (whole-branch re-review, 2026-07-20): the exception's own
+        # CLASS NAME rides alongside the count so a disk-full/permissions
+        # error is distinguishable from a real regression — never its
+        # message (which could carry more than a bare id).
+        assert "'bank_failed_kind': 'CorrespondenceViolation'" in out2
 
         # custody: the answer's prose never reaches stdout, whichever pass
         assert ANSWER not in out1 and ANSWER not in out2
@@ -1155,6 +1211,80 @@ class TestEndToEnd:
 
         # exactly one note on disk for this date
         assert sorted((runs_dir / "arisbe_notes").glob("Questions-*.md")) == [note1]
+
+    def test_qidless_outcome_row_never_crashes_the_driver(self, tmp_path, capsys):
+        """NEW-1 (whole-branch re-review, 2026-07-20): the reviewer
+        hand-injected one qid-less row into a real ``outcomes.jsonl`` and
+        drove the driver; it crashed with ``KeyError: 'qid'`` inside
+        ``OracleLedger.record_outcome_once`` and would crash every
+        subsequent pass identically (the downstream ``bank_malformed``
+        guard in ``_bank_author_model`` sits after this point, so it never
+        fired). Now the row is skipped and counted, never fatal."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], "a genuine answer")
+        note1.write_text(text, encoding="utf-8")
+
+        # Hand-inject exactly the reviewer's reproduction: a valid JSON
+        # object with an "answered" status but no "qid" key at all.
+        ledger_dir = runs_dir / "oracle"
+        ledger_dir.mkdir(parents=True, exist_ok=True)
+        with open(ledger_dir / "outcomes.jsonl", "a", encoding="utf-8") as f:
+            f.write(json.dumps({
+                "status": "answered", "answer_text": "orphaned",
+                "answered_note_date": "2026-07-01",
+            }) + "\n")
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0                          # the crash the review reproduced
+        out2 = capsys.readouterr().out
+        assert "bank_malformed" in out2         # counted, not silently dropped
+
+        # a fresh ledger instance over the same dir tolerates the row too:
+        # has_prior_answer must not crash on it, and must count it (a
+        # qid-requiring read, unlike the bare outcomes() scan above).
+        ledger = OracleLedger(runs_dir / "oracle")
+        assert ledger.outcomes()                # a further read still doesn't raise
+        assert ledger.has_prior_answer("nonexistent-qid") is False
+        assert ledger.skipped_rows >= 1
+
+    def test_torn_jsonl_line_never_crashes_the_driver(self, tmp_path, capsys):
+        """NEW-1: a torn/corrupt JSONL line (the failure mode a killed
+        process mid-``_append`` could leave) must be skipped by
+        ``_read_all``'s per-line guard, not raise ``json.JSONDecodeError``
+        into the driver on every future pass."""
+        mod = self._main()
+        runs_dir = tmp_path / "runs"
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-18"])
+        assert rc == 0
+        note1 = runs_dir / "arisbe_notes" / "Questions-2026-07-18.md"
+        text = note1.read_text(encoding="utf-8")
+        qids = re.findall(r"<!-- qid: (.+?) -->", text)
+        text = self._answer(text, qids[0], "a genuine answer")
+        note1.write_text(text, encoding="utf-8")
+
+        ledger_dir = runs_dir / "oracle"
+        ledger_dir.mkdir(parents=True, exist_ok=True)
+        with open(ledger_dir / "outcomes.jsonl", "a", encoding="utf-8") as f:
+            f.write('{"qid": "orphan", "status": "answered", "answer_text":\n')
+
+        rc = mod.main(["--fixture", "--no-p213", "--rounds", "30", "--segments", "1",
+                       "--runs-dir", str(runs_dir), "--note-date", "2026-07-25"])
+        assert rc == 0                          # never raises on the torn line
+
+        ledger = OracleLedger(runs_dir / "oracle")
+        ledger.outcomes()                       # forces a re-read; must not raise
+        assert ledger.skipped_rows >= 1
 
 
 class TestP213DefaultOn:
@@ -1694,13 +1824,30 @@ class TestBankableOutcomes:
         led.record_outcome_once("q2", "declined", "declined", "2026-07-01")
         led.record_outcome_once("q3", "ignored", "", "2026-07-01")
         led.record_outcome_once("q4", "answered", "kept", "2026-07-05")
-        rows = bankable_outcomes(led)
+        rows, dropped = bankable_outcomes(led)
         by_qid = {r["qid"]: r for r in rows}
         assert set(by_qid) == {"q1", "q4"}                        # no declines, no ignores
         assert by_qid["q1"]["answer_text"] == "revised answer"    # latest per qid
         assert by_qid["q1"]["answered_note_date"] == "2026-07-10"
+        assert dropped == 0
 
     def test_empty_ledger_yields_nothing(self, tmp_path):
         from oracle_notes import OracleLedger, bankable_outcomes
         led = OracleLedger(tmp_path / "oracle")
-        assert bankable_outcomes(led) == []
+        assert bankable_outcomes(led) == ([], 0)
+
+    def test_qidless_answered_row_dropped_and_counted(self, tmp_path):
+        """NEW-2 (whole-branch review, 2026-07-19): a qid-less "answered"
+        row used to vanish from `bankable_outcomes` with no count at all —
+        now it is dropped AND counted, so the caller's `bank_malformed`
+        digest entry is no longer a claim about dead code."""
+        from oracle_notes import OracleLedger, bankable_outcomes
+        led = OracleLedger(tmp_path / "oracle")
+        led.record_outcome_once("q1", "answered", "kept", "2026-07-05")
+        led._append(led._outcomes_path, {
+            "status": "answered", "answer_text": "orphaned",
+            "answered_note_date": "2026-07-06",
+        })  # no "qid" key at all
+        rows, dropped = bankable_outcomes(led)
+        assert {r["qid"] for r in rows} == {"q1"}
+        assert dropped == 1

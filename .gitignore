@@ -227,13 +227,25 @@ runs/*/STOP
 # covered one hardcoded number, but `--runs-dir` is a free argument and run
 # directories get renumbered across sessions (RUN 14, 15, ... already
 # routine) — a future run one `git add -A` away from committing verbatim
-# author prose. Generic glob instead: ANY `runs/run<N.../>` directory is
-# ignored wholesale (not just checkpoint subpaths, as above); only the
-# author-reviewed aggregate logs at the top level (`runs/RUN_*_LOG.md`,
-# `runs/OPERATIONS.md`, `runs/EXAMINATION_IV_BRIEFS/`) are ever committed —
-# none of those match this directory-only glob (uppercase `RUN_`, or not
-# shaped `run<digits...>` at all), and already-tracked files under earlier
-# `runs/runN/` directories (e.g. `runs/run3/filmstrip/*.svg`,
-# `runs/run10/console.txt`) are unaffected — .gitignore only screens
-# untracked paths, never untracks what git already knows about.
-runs/run*/
+# author prose. Generic glob instead: ANY `runs/run<digits...>/` directory
+# is ignored wholesale (not just checkpoint subpaths, as above).
+#
+# Re-review (2026-07-20, NEW-3): the prior comment here claimed the
+# top-level aggregate logs (`runs/RUN_*_LOG.md`, `runs/OPERATIONS.md`,
+# `runs/EXAMINATION_IV_BRIEFS/`) were spared because of their UPPERCASE
+# `RUN_` — FALSE on this repo: `core.ignorecase=true` (the default on a
+# case-insensitive filesystem, e.g. macOS/APFS), so git casefolds the
+# glob before matching (verified: `runs/run*/` DOES match a hand-made
+# `runs/RUN_TEST_DIR/` directory here). The reasoning that actually holds:
+# the trailing slash makes this glob directory-only, so it can never match
+# a FILE regardless of case (`RUN_12_LOG.md`, `OPERATIONS.md`); and the
+# pattern below is now tightened to require digits right after `run`
+# (case-insensitively), so `EXAMINATION_IV_BRIEFS/` (doesn't start with
+# "run" at all) AND a future `RUN_14_BRIEFS/`-shaped DIRECTORY (starts
+# with "run" case-folded, but not followed by a digit) both stay
+# unmatched on every platform, not just case-sensitive ones. Already-
+# tracked files under earlier `runs/runN/` directories (e.g.
+# `runs/run3/filmstrip/*.svg`, `runs/run10/console.txt`) are unaffected —
+# .gitignore only screens untracked paths, never untracks what git
+# already knows about.
+runs/run[0-9]*/

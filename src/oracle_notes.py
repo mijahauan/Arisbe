@@ -828,6 +828,29 @@ def note_substantially_answered(parsed: ParsedNote) -> bool:
 # -- the ledger (Task 2) ---------------------------------------------------------
 
 
+def _keyed_rows(ledger: "OracleLedger", rows: List[dict], *keys: str) -> List[dict]:
+    """Filter ``rows`` (already JSON-parsed ledger dicts) to those carrying
+    EVERY key in ``keys``, incrementing ``ledger.skipped_rows`` once per row
+    dropped. Whole-branch review, 2026-07-19 (NEW-1): a torn/corrupt line
+    was already survivable via ``_read_all``'s per-line guard, but a
+    perfectly valid JSON row simply missing a key a caller needed (e.g. one
+    ``qid``-less row hand-edited or half-written into ``outcomes.jsonl``)
+    still crashed every keyed read downstream (``r["qid"]`` etc.) with a
+    bare ``KeyError`` that poisoned every future pass. This is the one
+    place every keyed ledger read — inside ``OracleLedger``'s own methods
+    and the module-level helpers that read a ledger's rows directly
+    (``reask_candidate``, ``p2_13_report``) — funnels through, so the
+    counted-never-dropped rule holds uniformly rather than being
+    reinvented (or missed) at each call site."""
+    out: List[dict] = []
+    for r in rows:
+        if all(k in r for k in keys):
+            out.append(r)
+        else:
+            ledger.skipped_rows += 1
+    return out
+
+
 class OracleLedger:
     """Append-only JSONL persistence for the ask/answer loop, under
     ``dir_path`` (created if absent). Three files, one concern each:
@@ -839,7 +862,15 @@ class OracleLedger:
     parsed ``**R:**`` triviality rating — docket item 10's instrument
     output). Nothing is cached in memory — each read re-scans its file, so a
     ledger opened fresh in a later process (a later run) sees everything an
-    earlier one wrote."""
+    earlier one wrote.
+
+    ``skipped_rows`` (whole-branch review, 2026-07-19, NEW-1): a running,
+    observable count of every row this ledger has ever dropped rather than
+    raised on — an unparseable/non-dict JSONL line (``_read_all``) or a
+    structurally valid row missing a key some read needed (``_keyed_rows``).
+    Counted-never-dropped, the house rule throughout this codebase: a torn
+    line or a hand-edited row must never poison every subsequent pass, but
+    it must also never vanish silently."""
 
     def __init__(self, dir_path):
         self.dir_path = Path(dir_path)
@@ -847,22 +878,56 @@ class OracleLedger:
         self._forecasts_path = self.dir_path / "forecasts.jsonl"
         self._outcomes_path = self.dir_path / "outcomes.jsonl"
         self._ratings_path = self.dir_path / "ratings.jsonl"
+        self.skipped_rows = 0
 
     @staticmethod
     def _append(path: Path, record: dict) -> None:
+        """One ``write()`` of the fully-formed line, flushed before the
+        file closes. This is append-only JSONL, not a whole-file
+        checkpoint — the write-temp-then-``os.replace`` idiom
+        ``live_runner``/``wikidata_source`` use for their state files
+        doesn't fit an append (renaming a temp file would clobber every
+        other line already on disk instead of adding to it). The fallback
+        NEW-1 authorizes for this shape: build the complete
+        ``json.dumps(...) + "\\n"`` string first so exactly one ``write()``
+        call ever reaches the file (never two writes a kill could land
+        between), and flush explicitly rather than relying on the
+        context manager's close-time flush. This doesn't make a
+        kill-mid-syscall torn line impossible, but it removes the
+        previously-real "half the line written, then killed before the
+        rest" failure mode; whatever torn tail can still occur is exactly
+        what ``_read_all``'s per-line guard below tolerates."""
+        line = json.dumps(record) + "\n"
         with open(path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(record) + "\n")
+            f.write(line)
+            f.flush()
 
-    @staticmethod
-    def _read_all(path: Path) -> List[dict]:
+    def _read_all(self, path: Path) -> List[dict]:
+        """Every well-formed JSON-object line in ``path``, in file order.
+        A line that fails to parse (``json.JSONDecodeError`` — a torn
+        write, hand-editing damage) or that parses to something other
+        than a JSON object (a bare string/number/list/null) is skipped and
+        counted in ``self.skipped_rows`` rather than raised — NEW-1: an
+        unguarded ``json.loads`` here used to poison every future read of
+        this file the moment one bad line existed, identically to the
+        keyed-access hazard ``_keyed_rows`` guards below."""
         if not path.exists():
             return []
         out: List[dict] = []
         with open(path, encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
-                if line:
-                    out.append(json.loads(line))
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    self.skipped_rows += 1
+                    continue
+                if not isinstance(row, dict):
+                    self.skipped_rows += 1
+                    continue
+                out.append(row)
         return out
 
     def record_asked(self, note_date: str, qid: str, tier: str,
@@ -908,8 +973,12 @@ class OracleLedger:
         returns ``False`` (nothing new happened). Otherwise appends (a
         genuinely CHANGED answer for the same qid — the author edited their
         reply — still lands as a new row, so progress is kept) and returns
-        ``True``."""
-        existing = [r for r in self._read_all(self._outcomes_path)
+        ``True``. A row missing ``qid``/``status``/``answer_text`` (NEW-1)
+        is counted and excluded from the ``existing`` scan rather than
+        raising."""
+        existing = [r for r in _keyed_rows(
+                        self, self._read_all(self._outcomes_path),
+                        "qid", "status", "answer_text")
                     if r["qid"] == qid]
         if existing:
             latest = existing[-1]
@@ -917,6 +986,21 @@ class OracleLedger:
                 return False
         self.record_outcome(qid, status, answer_text, answered_note_date)
         return True
+
+    def has_prior_answer(self, qid: str) -> bool:
+        """True if this qid was EVER previously recorded with an
+        ``"answered"`` status — used to tell a fresh answer from a drift (a
+        changed answer to an already-answered qid). Centralizes what
+        ``run_vault_v0._run_oracle`` used to do inline with raw
+        ``o["qid"]``/``o["status"]`` indexing on ``ledger.outcomes()`` —
+        exactly the access the whole-branch review (2026-07-19, NEW-1)
+        reproduced crashing on one hand-injected qid-less row in
+        ``outcomes.jsonl`` (``KeyError: 'qid'``, poisoning every future
+        pass). Rows missing ``qid``/``status`` are counted and skipped,
+        never raised on, via :func:`_keyed_rows`."""
+        rows = _keyed_rows(self, self._read_all(self._outcomes_path),
+                            "qid", "status")
+        return any(r["qid"] == qid and r["status"] == "answered" for r in rows)
 
     def record_rating(self, qid: str, rating: str, note_date: str) -> None:
         """Docket item 10: append one ``**R:**`` triviality rating
@@ -929,8 +1013,11 @@ class OracleLedger:
     def record_rating_once(self, qid: str, rating: str, note_date: str) -> bool:
         """Idempotent ``record_rating`` — the same re-poll-pollution guard
         ``record_outcome_once`` gives outcomes, needed for the same reason:
-        a partially-answered note is re-parsed on every driver invocation."""
-        existing = [r for r in self._read_all(self._ratings_path)
+        a partially-answered note is re-parsed on every driver invocation.
+        A row missing ``qid``/``rating`` (NEW-1) is counted and excluded
+        rather than raising."""
+        existing = [r for r in _keyed_rows(
+                        self, self._read_all(self._ratings_path), "qid", "rating")
                     if r["qid"] == qid]
         if existing and existing[-1]["rating"] == rating:
             return False
@@ -944,9 +1031,10 @@ class OracleLedger:
         """Note-facing alias -> real qid, from every forecasts row that
         stored one (the blinding fix, 2026-07-19). Aliases are
         nonce-derived and unique per asking, so later rows only add keys —
-        no collision to resolve."""
+        no collision to resolve. A row missing ``qid`` (NEW-1) is counted
+        and excluded rather than raising."""
         out: Dict[str, str] = {}
-        for r in self._read_all(self._forecasts_path):
+        for r in _keyed_rows(self, self._read_all(self._forecasts_path), "qid"):
             nq = r.get("note_qid")
             if nq and nq != r["qid"]:
                 out[nq] = r["qid"]
@@ -967,15 +1055,16 @@ class OracleLedger:
         "asked within the last ``N`` **distinct note dates** recorded in
         ``forecasts.jsonl``" — a qid whose LATEST asking sits in an older
         note date reads ``False`` and becomes re-eligible. A qid never asked
-        at all is ``False`` either way."""
-        rows = [r for r in self._read_all(self._forecasts_path)
-                if r["qid"] == qid]
+        at all is ``False`` either way. A row missing ``qid``/``note_date``
+        (NEW-1) is counted and excluded rather than raising."""
+        all_rows = _keyed_rows(self, self._read_all(self._forecasts_path),
+                                "qid", "note_date")
+        rows = [r for r in all_rows if r["qid"] == qid]
         if not rows:
             return False
         if within_last_n_notes is None:
             return True
-        all_dates = sorted({r["note_date"]
-                            for r in self._read_all(self._forecasts_path)})
+        all_dates = sorted({r["note_date"] for r in all_rows})
         window = set(all_dates[-within_last_n_notes:])
         latest_asked = max(r["note_date"] for r in rows)
         return latest_asked in window
@@ -984,7 +1073,10 @@ class OracleLedger:
         return self._read_all(self._outcomes_path)
 
     def _latest_forecast(self, qid: str) -> Optional[dict]:
-        matches = [r for r in self._read_all(self._forecasts_path)
+        """A row missing ``qid`` (NEW-1) is counted and excluded rather
+        than raising."""
+        matches = [r for r in _keyed_rows(
+                       self, self._read_all(self._forecasts_path), "qid")
                    if r["qid"] == qid]
         return matches[-1] if matches else None
 
@@ -1002,24 +1094,34 @@ class OracleLedger:
         for a legacy pre-nonce row) and compared to ``forecast_hash`` before
         scoring. A row doctored after the fact (plaintext swapped without
         updating the hash) fails that comparison and reveals as
-        ``"seal-broken"`` instead of a silently-trusted score."""
+        ``"seal-broken"`` instead of a silently-trusted score.
+
+        NEW-1 (2026-07-19): a forecasts row missing ``forecast_plain``/
+        ``forecast_hash`` (hand-edited or torn) is counted
+        (``self.skipped_rows``) and skipped like any other malformed row,
+        rather than raising on the bracket access below."""
         reveals: List[dict] = []
         for qid in sorted(parsed.answers):
             forecast = self._latest_forecast(qid)
             if forecast is None:
                 continue
+            forecast_plain = forecast.get("forecast_plain")
+            forecast_hash = forecast.get("forecast_hash")
+            if forecast_plain is None or forecast_hash is None:
+                self.skipped_rows += 1
+                continue
             answer = parsed.answers[qid]
-            expected = seal(forecast["forecast_plain"], forecast.get("nonce", ""))
-            verdict = ("seal-broken" if expected != forecast["forecast_hash"]
-                       else score(forecast["forecast_plain"], answer))
+            expected = seal(forecast_plain, forecast.get("nonce", ""))
+            verdict = ("seal-broken" if expected != forecast_hash
+                       else score(forecast_plain, answer))
             reveals.append({
                 "qid": qid,
                 # the note-facing alias (blinding fix): _render_reveals
                 # prints this, so a real P2^13 qid never reaches a later
                 # note's Reveals section either.
                 "note_qid": forecast.get("note_qid") or qid,
-                "forecast_plain": forecast["forecast_plain"],
-                "forecast_hash": forecast["forecast_hash"],
+                "forecast_plain": forecast_plain,
+                "forecast_hash": forecast_hash,
                 "answer": answer,
                 "verdict": verdict,
             })
@@ -1051,12 +1153,18 @@ def reask_candidate(ledger: "OracleLedger") -> Optional[QuestionCandidate]:
 
     Among the eligible, the one whose latest asking is EARLIEST is chosen
     ("one early question"), deterministic tie-break by qid. Returns ``None``
-    when nothing qualifies."""
-    forecasts = ledger.forecasts()
+    when nothing qualifies. NEW-1 (2026-07-19): every keyed read below goes
+    through :func:`_keyed_rows` — a forecasts/outcomes row missing the key
+    this function needs is counted (``ledger.skipped_rows``) and excluded,
+    never raised on; a row that clears that gate but still lacks
+    ``forecast_plain`` is likewise counted and the re-ask skipped rather
+    than fabricated."""
+    forecasts = _keyed_rows(ledger, ledger.forecasts(), "qid", "note_date")
     if not forecasts:
         return None
     all_dates = sorted({r["note_date"] for r in forecasts})
-    answered = {r["qid"] for r in ledger.outcomes()
+    answered = {r["qid"] for r in _keyed_rows(
+                    ledger, ledger.outcomes(), "qid", "status")
                 if r["status"] == "answered"}
     latest_row: Dict[str, dict] = {}
     for r in forecasts:                      # file order; last write wins below
@@ -1072,12 +1180,16 @@ def reask_candidate(ledger: "OracleLedger") -> Optional[QuestionCandidate]:
     if not eligible:
         return None
     row = min(eligible, key=lambda r: (r["note_date"], r["qid"]))
+    forecast_plain = row.get("forecast_plain")
+    if forecast_plain is None:
+        ledger.skipped_rows += 1
+        return None
     return QuestionCandidate(
         qid=row["qid"], tier=row.get("tier", "quick"), text=row["text"],
         why="asked before; re-asked verbatim to detect a changed answer "
             "(drift)",
         settles="whether the earlier answer still stands",
-        forecast=row["forecast_plain"], severity=3.5,
+        forecast=forecast_plain, severity=3.5,
     )
 
 
@@ -1115,13 +1227,15 @@ def p2_13_report(ledger: OracleLedger) -> dict:
     arms rated; ``"insufficient_data"`` when no segment qualifies to be
     compared at all; ``"fail"`` otherwise — this is the reading
     ``runs/RUN_13_LOG.md``'s P2^13 amendment names as the pre-registered
-    rule."""
+    rule. NEW-1 (2026-07-19): a forecasts/ratings row missing ``qid`` (or,
+    for ratings, ``rating``) is counted (``ledger.skipped_rows``) and
+    excluded via :func:`_keyed_rows` rather than raised on."""
     armed: Dict[str, dict] = {}
-    for f in ledger.forecasts():
+    for f in _keyed_rows(ledger, ledger.forecasts(), "qid"):
         if f.get("arm") in ("docket", "random") and f["qid"] not in armed:
             armed[f["qid"]] = f
     latest_rating: Dict[str, str] = {}
-    for r in ledger.ratings():
+    for r in _keyed_rows(ledger, ledger.ratings(), "qid", "rating"):
         latest_rating[r["qid"]] = r["rating"]
 
     buckets: Dict[Optional[int], dict] = {}
@@ -1204,29 +1318,42 @@ def _utterance_graph(prose: str):
 BANK_TO_M = "BANK_TO_M"
 
 
-def bankable_outcomes(ledger: "OracleLedger") -> List[dict]:
-    """The rows the author-model checkpoint banks: the LATEST ``answered``
-    outcome row per qid (a drift row — the author revising a previous
-    answer — supersedes; the earlier row remains ledger history, untouched).
-    Declines and ignores are never banked (spec ruling 4: a refusal is never
-    banked back as answer-data — only a genuine answer is attributed
-    content). Each row carries ``qid``/``status``/``answer_text``/
-    ``answered_note_date`` (``OracleLedger.record_outcome``'s own keys).
+def bankable_outcomes(ledger: "OracleLedger") -> Tuple[List[dict], int]:
+    """The rows the author-model checkpoint banks, plus a count of rows
+    dropped for lacking ``qid``. Returns ``(rows, dropped)``.
 
-    A row with no ``qid`` (a hand-edited or legacy ledger line) can't be
-    keyed at all and is skipped here — the same "one bad row must not
-    poison every pass" concern the caller (``run_vault_v0._bank_author_model``)
-    applies to a row missing ``answer_text``; that half of the guard lives
-    there since only the caller counts malformed rows toward its digest."""
+    ``rows``: the LATEST ``answered`` outcome row per qid (a drift row —
+    the author revising a previous answer — supersedes; the earlier row
+    remains ledger history, untouched). Declines and ignores are never
+    banked (spec ruling 4: a refusal is never banked back as answer-data —
+    only a genuine answer is attributed content). Each row carries
+    ``qid``/``status``/``answer_text``/``answered_note_date``
+    (``OracleLedger.record_outcome``'s own keys).
+
+    ``dropped``: a row with no ``qid`` (a hand-edited or legacy ledger
+    line) can't be keyed at all, so it never reaches ``rows`` — but
+    whole-branch review, 2026-07-19 (NEW-2): the previous cut here dropped
+    such a row with NO count at all, which made the caller
+    (``run_vault_v0._bank_author_model``)'s own ``if qid is None`` guard
+    unreachable dead code (this function had already removed every
+    qid-less row before the caller ever saw one) while the caller's
+    docstring and the spec doc both still claimed the drop was "counted
+    (``bank_malformed``)" — false. Returning the count here lets the
+    caller fold it straight into ``bank_malformed`` instead of
+    re-deriving a case that can no longer occur on its own side; a row
+    missing ``answer_text`` (which CAN still occur — this function never
+    filters on it) remains the caller's own check to make and count."""
     latest: Dict[str, dict] = {}
+    dropped = 0
     for row in ledger.outcomes():
         if row.get("status") != "answered":
             continue
         qid = row.get("qid")
         if qid is None:
+            dropped += 1
             continue
         latest[qid] = row       # file order — later rows win
-    return list(latest.values())
+    return list(latest.values()), dropped
 
 
 def bank_answer_step(pc, answer_text: str, *, qid: str, note_date: str,
