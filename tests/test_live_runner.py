@@ -681,3 +681,57 @@ def test_decay_refused_exemption_does_not_outlive_the_atom():
     runner._round += 5                         # well past ttl=1, so it is stale if tracked
     g, dropped, _skipped = runner._decay(g, set())
     assert key in dropped                      # decay applies normally — no longer exempt
+
+
+# --------------------------------------------------------------------------- #
+# Examination IV composition pins: the banked oracle-answer cell (V2a.2 item  #
+# 2) through the live runner's structural carry and disuse-decay             #
+# --------------------------------------------------------------------------- #
+
+def _banked_resident_m():
+    from egif_parser_dau import parse_egif
+    from world_scroll import wrap_state
+    from oracle_notes import bank_answer
+    m, _ = wrap_state(parse_egif('(swan "Alba")'))
+    m2, _cut = bank_answer(
+        m, 'The author\'s answer.\nSecond "line".',
+        qid="q1", note_date="2026-07-19")
+    return m2
+
+
+def test_carry_preserves_a_banked_quotation_cell_across_segments():
+    """Examination IV composition test (a): the structural segment carry
+    (docket ④) keeps a banked ``(asserted "author" ⌜…⌝)`` cell intact —
+    the EGIF text carry could not (SecondOrderNotInLinearForm)."""
+    from egi_io import to_dict, from_dict
+    m2 = _banked_resident_m()
+    r = LiveRunner(to_dict(m2), ReplaySource(_fact_batches(2)), DiscourseFeed,
+                   LiveRunConfig(ttl=None, checkpoint=False),
+                   clock=_zero_clock).run()
+    final = from_dict(r.final_model_json)
+    assert len(final.quotation) == 1
+    from quotation_overlay import lift_quotation
+    (cut_id,) = final.quotation
+    labels = [v.label for v in lift_quotation(final, cut_id).V
+              if v.label is not None]
+    assert labels == ['The author\'s answer.\nSecond "line".']
+
+
+def test_decay_over_a_banked_cell_is_refused_skipped_and_counted():
+    """Examination IV composition test (b): a stale banked attribution atom is
+    NOT silently erased (the ERA would have to widen onto the oval — the
+    whole-unit guard refuses) and does NOT crash the loop (docket ⑥ catches
+    the refusal): skipped, counted, exempted; the quotation stands."""
+    from egi_io import to_dict, from_dict
+    m2 = _banked_resident_m()
+    # ttl=1 and batches that never re-deliver the asserted atom → it goes stale
+    r = LiveRunner(to_dict(m2), ReplaySource(_fact_batches(3)), DiscourseFeed,
+                   LiveRunConfig(ttl=1, checkpoint=False),
+                   clock=_zero_clock).run()
+    final = from_dict(r.final_model_json)
+    assert len(final.quotation) == 1                      # never corrupted
+    assert sum(d.decay_skipped for d in r.segments) >= 1
+    # the ordinary atom (swan Alba) is still subject to normal decay — it is
+    # NOT swept into the exemption: under ttl=1 across 3 segments it goes
+    # stale and is genuinely erased (unlike the refused attribution atom)
+    assert "swan" not in {final.rel[eid] for eid in final.rel}
