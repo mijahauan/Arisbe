@@ -132,9 +132,14 @@ answer's content. The next real RUN 13 launch may write the first actual
      P2¹³-mode notes (its rating is already excluded from both arms' rates and from the
      ceiling by the final fix wave's earliest-armed-row join, so tolerating it costs one
      budget slot, never instrument integrity).
-   - **V2a.2 (quotation-cell banking)** — now unblocked on ①–④; composition gates (a)
-     carry + (b) decay pinned in `test_live_runner.py`; gate (c) — `"quotation"` ∈ the
-     polarity gate's `M_ACTS` — remains for the V2a.2 build itself. Build unauthorized.
+   - **V2a.2 (quotation-cell banking) — item (2) BUILT (2026-07-19/20, commits
+     `dd2aa7b..0177bca`):** `bank_answer`/`bank_answer_step`/`bankable_outcomes` +
+     gate (c) (`"quotation"` ∈ `M_ACTS`, `"BANK_TO_M"` ∈ `M_RULES`, provenance-sensitive
+     `_acknowledged`) + driver wiring (`_bank_author_model`, the recomputation thesis) +
+     the composition pins (carry survives, decay refuses whole-unit skip-and-count).
+     Items (1) (multi-paragraph answers) and (3) (NL interpretation of answer content)
+     remain held on the timing rider — build starts after RUN 13's first real answered
+     note.
 
 -8. **TWO AUTHOR QUESTIONS FOR THE RECORD (2026-07-19, posed mid-docket-execution;
    open, nothing built).**

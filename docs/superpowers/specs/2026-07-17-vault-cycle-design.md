@@ -418,3 +418,85 @@ and one of the two named wake-sources for the B-full gate); (3) answer
 NL-interpretation by explicit episode. **Timing:** the build starts after RUN 13
 produces its first real questions note and the author has answered once — one real
 round informs the parser fix.
+
+## V2a.2 item (2) build record (2026-07-19/20)
+
+Item (2) — quotation-cell banking of answers into M — built via subagent-driven
+execution, six TDD tasks, per-task review (commits `dd2aa7b..0177bca`), out of the
+docket's stated authorization order (item (2) was unblocked first; items (1) and (3)
+remain held on the timing rider below). **Modules:** `src/oracle_notes.py` gained
+`ATTRIBUTION_EGIF = '(asserted "author" *q)'` + `_utterance_graph` (the quoted ink
+built structurally — one constant vertex carrying the answer's prose verbatim, named
+by one `utterance` atom — so the prose never meets a linear parser/generator and
+newlines/quotes/brackets survive untouched) + `bank_answer(m, answer_text, *, qid,
+note_date) -> (graph, quotation_cut_id)` (one licensed INS-of-cell via `enlarge_m`
+of `ATTRIBUTION_EGIF`, then `quote_existing_name` gives the fresh generic name its
+own oval holding the verbatim prose — mention, not use: the banked content asserts
+nothing about the world, only that the author said it) + `BANK_TO_M = "BANK_TO_M"`
++ `bank_answer_step(pc, answer_text, *, qid, note_date)` (records ONE composite
+chain step, act `"quotation"`, provenance `"oracle-answer"`, derivation `["INS",
+"with_quotation_binding"]`, `earned=True` — the `challenge_step` precedent: one act,
+the executed derivation list) + `bankable_outcomes(ledger)` (the latest `"answered"`
+outcome row per qid — a drift row where the author revised a previous answer
+supersedes; declines and ignores are never banked, per spec ruling 4: a refusal is
+never attributed content). `BANK_TO_M` registered ampliative in
+`src/proof_character.py` (a banked answer is new content entering M, not a
+corollary of what was already there).
+
+**Gate (c).** `tests/test_corpus_polarity_discipline.py` gained `"quotation"` to
+`M_ACTS` and `"BANK_TO_M"` to `M_RULES`, and `_replay_act` re-executes the
+oracle-answer flavor of a `"quotation"` act (calling `bank_answer` from the step's
+recorded params) so a banked cell's earned claim is permanently re-checkable. A
+bare `"quotation"` act with no `provenance` key (the shape `quotation_overlay.py`'s
+own builders stamp, unrelated to banking) is deliberately NOT acknowledged as an
+M-change — `_acknowledged(act, params)` special-cases `"quotation"` to require
+`provenance == "oracle-answer"` before it counts, with a falsifier
+(`test_a_provenance_less_quotation_act_does_not_acknowledge_an_m_change`) pinning
+that an unreplayable quotation act cannot silently ride through the gate as if
+earned.
+
+**Decay refusal, pinned with the verified error text.** A banked attribution atom
+that goes idle past `ttl` is not silently erased: `retract_from_m`'s underlying ERA
+application refuses to take the `"asserted"` edge without its quoting name's oval,
+raising (verified directly against the built code, 2026-07-20) `AssertionError:
+ERA apply failed: Rule rejected: Quoting name <vertex-id> selected without its
+oval <cut-id>: the quotation moves only as a whole unit` —
+`formal_transformation_rules._refuse_quotation_boundary`'s whole-unit guard.
+`live_runner._decay` catches this (`except (AssertionError, ValueError)`), skips
+the atom, counts it in `decay_skipped`, and holds it exempt from re-registration
+(never re-counted) while the quotation cell stands untouched. Pinned in
+`tests/test_live_runner.py`: `test_carry_preserves_a_banked_quotation_cell_across_segments`
+(the structural segment carry, docket ④, keeps the cell intact — an EGIF text
+carry could not, `SecondOrderNotInLinearForm`) and
+`test_decay_over_a_banked_cell_is_refused_skipped_and_counted` (the stale banked
+atom is skipped/counted/exempted while an ordinary co-resident atom still decays
+normally under the same `ttl`). This is a refusal, never an erasure — do not read
+it as the atom being silently dropped.
+
+**Recomputation-thesis persistence.** `tools/run_vault_v0.py`'s `_bank_author_model`
+is called at all four of `_run_oracle`'s return points (the "no questions this
+cycle" / "today's note already exists" / "previous note awaits answers" early
+returns, and the normal write path) — every oracle pass, regardless of whether that
+pass also wrote a new note. It rebuilds the cumulative author-model UoD from
+`bankable_outcomes(ledger)` from scratch each time (one `BANK_TO_M` step per
+answered qid via a fresh `ProofChain`) and saves it as the side-store checkpoint
+`vault_v0_author_model` (`UoDCategory.DOMAIN_MODEL`) via `TomosService`. The ledger
+is the durable store; the author-model is a rebuilt view of it, never incrementally
+mutated — so a same-day re-poll or an early-return cycle that only just recorded a
+fresh answer still banks it on that same pass, not the next. Digest keys `banked`
+(a count) / `bank_skipped` (the defensive, should-never-happen no-residence path);
+stdout stays numbers-only (custody — never a qid or answer text).
+
+**Explicitly deferred, still.** Only the LATEST answer per qid is banked — an
+earlier, superseded answer for the same qid stays in the ledger's history but never
+reaches M, so drift history is preserved in the ledger, not duplicated into the
+model. `live_runner._linear_form`'s documented consequence (a docket/tropism tick
+skipped once M carries a quotation) is unchanged by this build and remains
+unreached here: banked cells never enter the round loop in this build (banking
+happens once, after the last segment, from the ledger — not as a fact the round
+loop peels or materializes over). Items (1) (multi-paragraph answers) and (3) (NL
+interpretation of answer content) remain held on the timing rider: the build starts
+after RUN 13 produces its first real questions note and the author has answered it
+at least once.
+
+**Full suite at Task 7 close (2026-07-20):** `3879 passed, 144 skipped, 1 xfailed in 1331.62s (0:22:11)` — 0 failed.
