@@ -85,6 +85,13 @@ AMPLIATIVE_RULES = frozenset({
     # the live loop's recorded acts (agon_evolution): a disposition injection
     # or a disuse-decay erasure changes M by a choice/economy, not an inference.
     "DECAY",
+    # oracle_notes.bank_answer_step (V2a.2 item 2): banking an answered
+    # question into M is one composite act — a licensed INS-of-cell scribes
+    # the new attribution atom (content genuinely enters M), and the quoted
+    # body riding along is mention, not use (QUOTE-neutral on its own). The
+    # step's dominant character is the insertion, so the whole act is
+    # ampliative, exactly like ADMIT_TO_M.
+    "BANK_TO_M",
 })
 
 # A recorded observation that changes nothing — the peel's verdict scribed as

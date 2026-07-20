@@ -1489,3 +1489,46 @@ class TestBankAnswer:
         with _pytest.raises(ValueError):
             bank_answer(parse_egif('(swan "Alba")'), PROSE,
                         qid="q1", note_date="2026-07-19")
+
+
+# --------------------------------------------------------------------------- #
+# V2a.2 item (2): bank_answer_step — the explicit, replayable act              #
+# --------------------------------------------------------------------------- #
+
+
+class TestBankAnswerStep:
+    def test_one_composite_step_with_act_and_derivation(self):
+        from oracle_notes import bank_answer_step, BANK_TO_M, ATTRIBUTION_EGIF
+        from proof_authoring import ProofChain
+        pc = ProofChain(_resident_m())
+        pc = bank_answer_step(pc, PROSE, qid="q1", note_date="2026-07-19")
+        chain = pc.to_chain()
+        (step,) = chain.steps
+        p = step.parameters
+        assert step.rule_name == BANK_TO_M
+        assert p["act"] == "quotation"
+        assert p["derivation"] == ["INS", "with_quotation_binding"]
+        assert p["provenance"] == "oracle-answer"
+        assert p["attributed_to"] == "author"
+        assert p["fact_egif"] == ATTRIBUTION_EGIF
+        assert p["answer_text"] == PROSE
+        assert p["qid"] == "q1" and p["note_date"] == "2026-07-19"
+        assert p["earned"] is True
+
+    def test_step_actually_banks(self):
+        from oracle_notes import bank_answer_step
+        from proof_authoring import ProofChain
+        pc = ProofChain(_resident_m())
+        pc = bank_answer_step(pc, PROSE, qid="q1", note_date="2026-07-19")
+        chain = pc.to_chain()
+        after = chain.states[chain.steps[0].to_state_id]
+        assert len(after.quotation) == 1
+
+    def test_banked_chain_reads_ampliative(self):
+        from oracle_notes import bank_answer_step
+        from proof_authoring import ProofChain
+        from proof_character import character_of_chain
+        pc = ProofChain(_resident_m())
+        pc = bank_answer_step(pc, PROSE, qid="q1", note_date="2026-07-19")
+        character = character_of_chain(pc.to_chain())
+        assert character.character == "ampliative"

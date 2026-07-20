@@ -1201,6 +1201,34 @@ def _utterance_graph(prose: str):
     return g
 
 
+BANK_TO_M = "BANK_TO_M"
+
+
+def bank_answer_step(pc, answer_text: str, *, qid: str, note_date: str,
+                     note: str = None):
+    """Record banking as ONE composite chain step (the ``challenge_step``
+    precedent: one act, the executed derivation list). Act ``"quotation"`` —
+    the polarity gate's ``M_ACTS`` names it and its replayer re-executes
+    ``bank_answer`` from these params (docket ⑤: the record is earned,
+    permanently)."""
+    params = {
+        "act": "quotation",
+        "earned": True,
+        "derivation": ["INS", "with_quotation_binding"],
+        "provenance": "oracle-answer",
+        "attributed_to": "author",
+        "fact_egif": ATTRIBUTION_EGIF,
+        "answer_text": answer_text,
+        "qid": qid,
+        "note_date": note_date,
+    }
+    return pc.apply_derived(
+        BANK_TO_M,
+        lambda g: bank_answer(g, answer_text, qid=qid, note_date=note_date)[0],
+        note=note or f"bank oracle answer {qid} ({note_date})",
+        params=params)
+
+
 def bank_answer(m, answer_text: str, *, qid: str, note_date: str):
     """Bank one answered oracle question into the resident M: one licensed
     INS-of-cell of ``ATTRIBUTION_EGIF`` (``enlarge_m``), then the fresh
@@ -1231,4 +1259,5 @@ __all__ = [
     "score", "note_substantially_answered", "OracleLedger", "p2_13_report",
     "conjectures_section", "reask_candidate", "opaque_note_qid",
     "resolve_note_qids", "bank_answer", "ATTRIBUTION_EGIF",
+    "bank_answer_step", "BANK_TO_M",
 ]
