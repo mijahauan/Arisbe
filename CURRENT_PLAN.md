@@ -121,8 +121,11 @@ answer's content. The next real RUN 13 launch may write the first actual
      literature check) — the author's.
    - **RUN 13 launch** — the pre-RUN-13 riders are now in place (salted seal, People/
      filter, P2¹³ default-on); the **P2-vs-P4 scheduling call** (RUN_13_LOG.md) is the
-     author's at launch, and the **⑪ drift-re-ask-vs-P2¹³-suppression** ruling (an
-     un-suppressed re-ask slightly dilutes the instrument) is owed.
+     author's at launch. The **⑪ drift-re-ask-vs-P2¹³-suppression** ruling was TAKEN
+     same sitting: **"a re-ask is tolerable"** — no suppression; the re-ask stays in
+     P2¹³-mode notes (its rating is already excluded from both arms' rates and from the
+     ceiling by the final fix wave's earliest-armed-row join, so tolerating it costs one
+     budget slot, never instrument integrity).
    - **V2a.2 (quotation-cell banking)** — now unblocked on ①–④; composition gates (a)
      carry + (b) decay pinned in `test_live_runner.py`; gate (c) — `"quotation"` ∈ the
      polarity gate's `M_ACTS` — remains for the V2a.2 build itself. Build unauthorized.
@@ -236,7 +239,12 @@ answer's content. The next real RUN 13 launch may write the first actual
    stitched by reference nodes + cross-UoD quotation, where resolution = co-assertion
    (RESOLVE ≡ INLINED-AND-ATTESTED, already proven R1–R4) yields "one EGI" by
    construction-on-demand, windowed for the correspondence check (§3.3) at render.
-   Assistant recommends the virtual/stitched form; awaiting the author's word.
+   **RULED same sitting (the author): VIRTUAL, not physical.** The instance-UoD is the
+   stitched whole — one EGI by resolution-on-demand over stored documents (reference
+   nodes + cross-UoD quotation as the stitching ink), never one physical blob. Q-D's
+   three rulings are now all taken; what remains is the build/glossary work itself
+   (unauthorized): the GLOSSARY entries (UoD · world · career), the corpus-entity
+   renaming sweep, and the career-statistics instrumentation.
 
 -7. **✅ EXAMINATION IV EXECUTED (2026-07-19, same day chartered).** Five independent
    skeptic panels (measurement theorist+complexity scientist · ablation methodologist ·
