@@ -36,6 +36,15 @@ existing evaluator already computes every subgame's value, so the Grapheus's str
 off it*; the build is to **lift the evaluator into an interactive extensive-form driver**, not
 to write new logic.
 
+> **Role register (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> This document describes the **hot-seat human-vs-machine contest** — a human Graphist (proposal-side)
+> against a machine playing the Grapheus (Model-M-side). "Nature/Falsifier" here names the **mechanical
+> peel that decides the binary outcome** against M; under the settled account it is *not* a referee of
+> legality (the calculus guarantees every EGI→EGI move lawful, so there is nothing to referee) and *not*
+> a separate "Grapheus-the-tester" sub-role standing beside the model side. The two players yield a binary
+> outcome; selecting which *fate* that outcome earns is the Agonothetes' risked choice, which §3 holds is
+> **not a player**. See §3 for the settled two-player account.
+
 ---
 
 ## 1. Two games — and which one this is

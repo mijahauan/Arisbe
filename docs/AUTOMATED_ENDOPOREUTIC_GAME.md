@@ -68,6 +68,15 @@ UoD, the §3.3 correspondence attestation, the disposition taxonomy, and the mec
 
 ## 2 · The three roles + the incorruptible referee
 
+> **On "referee" and "roles" (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> This document keeps "the referee" as its own lexical shorthand for the **mechanical peel**. Under the
+> settled account that peel is *not* a conduct-referee of legality — the calculus guarantees every EGI→EGI
+> move lawful, so there is nothing to referee — but the mechanism that **decides the binary outcome** of the
+> two-player game (Graphist for the proposal, Grapheus for the Model M). The "three roles" below are those
+> two players plus the **Agonothetes**, which §3 holds is **not a player**: it applies the agreed *taxonomy
+> of fates* to the outcome as a risked choice, reified in the automated game as an agent acting on the
+> outcome (never a third contestant, never overruling the verdict). Read the bullets and table in that light.
+
 The single principle everything hangs from: **the LLMs argue; the calculus decides.** Two
 language models left alone will co-hallucinate a fluent, self-consistent, *groundless* model —
 that is the failure mode, and it is fatal. What prevents it is that `semantic_game.evaluate`

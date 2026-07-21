@@ -104,6 +104,15 @@ labelled by disposition·mode, so an *evolved* trajectory is visualised for free
 Three roles, of which exactly one is non-mechanical. This separation is the crux of keeping
 the system sound while letting it surprise us.
 
+> **Bridging note (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> "The Skeptic" / "incorruptible referee" below names the **mechanical peel that decides the binary
+> outcome** against M — *not* a conduct-referee of legality (the calculus guarantees every move lawful) and
+> *not* a "Grapheus-the-tester" sub-role. The **Agonothetes panel** is the *reified fate-selection function*
+> of §3 — plural in the automated build so that genuine dissent can fork the DAG — and remains **not a
+> player**: it selects which fate the outcome earns as a risked choice, never a third contestant and never
+> overruling the peel. Model-of, never instance-of: the panel models the institution's judging function
+> without being an institution.
+
 - **The Proposer(s) — the membrane (①).** Source of candidate graphs. Pluggable; §5.
 - **The Skeptic — mechanical (②).** *Not* an agent with an opinion. M decides, via
   `semantic_game`. The verdict is truth-in-the-current-model, three-valued and sound

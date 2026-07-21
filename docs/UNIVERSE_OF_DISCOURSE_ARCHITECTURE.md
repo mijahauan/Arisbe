@@ -241,6 +241,15 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
 - **Method**: Read graph from outside-in (endoporeutic)
 - **Outcome**: If Graphist wins → assertion accepted into UoD
 
+> **Role framing (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> The Defender/Challenger labels above describe the *classical hot-seat transformation game*, where the
+> parties trade moves over a single asserted graph. In the settled account the two players are named by
+> what each is *devoted to*, not by attack/defence: the **Graphist** is the **proposal-side** (the new —
+> G, whether arrived from outside the membrane or thrown up by the kytos's own doubt) and the **Grapheus**
+> is the **Model-M-side** (the established, habituated ground). Their play yields a **binary outcome**,
+> decided mechanically by the peel; there is **no referee** of legality, because the calculus guarantees
+> every EGI→EGI move lawful and so there is nothing to referee. See §3 for the full ruling.
+
 **User Actions**:
 
 - Propose new fact (from Ergasterion)

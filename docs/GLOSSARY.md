@@ -233,7 +233,10 @@ the field guide's [dragon 9](FIELD_GUIDE_AND_DRAGONS.md). See [MEANING_BY_HISTOR
 ### Agonothetes
 **Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third
 player but the function that turns a true/false outcome into an act of inquiry (a theorem
-registered, a model revised, a hypothesis held).
+registered, a model revised, a hypothesis held). In the automated game this fate-selection
+function is *reified as an agent acting on the outcome* (`LLMAgonothetes`) — still not a
+contestant, and never overruling the mechanically-decided outcome. Canonical account:
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 
 ### Scroll
 **Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
