@@ -96,6 +96,17 @@ whether open-membraned kytē scale superlinearly (city-shaped) while closed
 configurations stagnate (company-shaped, mortal — West's companies-die-cities-don't
 as the halting theorems with data). Conjecture until measured — see §5.
 
+**The measurable bridge to West (2026-07-20).** Each kytos carries a measurable S (UoD-management:
+|M|, the K3 ratio, peel cost, decay TTL, admission rates) and A (interaction: import/export
+throughput, proposal rate, horizon size) — the automaton's own decomposition — coupled by one
+attention budget, whose *allocation* **poise** reads (rigidity = S starves A; thrash = A starves
+S). Modeling S/A/allocation scaling across a community is how West becomes operational rather than
+metaphorical. But the community rung is a change in *kind*: reciprocal typification, and therefore
+genuine institutionalization and the [commens](GLOSSARY.md#commens), **cannot occur in an
+individual** — the three EPG roles inside one instance *model* the institution (good regulator),
+never *constitute* it. Full treatment:
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
+
 ## 5 · Honesty ledger — built, evidenced, conjectured
 
 - **Built:** the anatomy at levels 2–3 and 6 (laws/M: the loops, decay, residence;

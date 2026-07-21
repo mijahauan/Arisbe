@@ -94,7 +94,11 @@ measure:**
    knowledge-items and models**; they are never aggregated into a single number ranking
    *inquirers*. An aggregate scalar would reinvent the worth-ladder the Fidelity
    examinations dissolved — competence ≠ worth is a category-fact. *(Assistant's
-   proposed guard, §6 decision 3.)*
+   proposed guard, §6 decision 3.)* The ground of this guard is the commens: there is
+   **no commens-scaled denominator** to normalize K across agents, because no agent
+   possesses the commens (a participation-sustained social construct, not a God's-eye
+   given) — so an aggregate scalar has nothing to be a fraction *of*. See
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2.
 
 **Sufficiency is not claimed:** the four components cover the *assertoric* fragment of
 the seed definition; "acts that work" awaits the action arm (BOOTSTRAP), and

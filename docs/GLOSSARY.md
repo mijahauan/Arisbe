@@ -62,6 +62,11 @@ data model. See *Terms → EGI* below and [LINEAR_GRAPHICAL_CORRESPONDENCE.md](L
 **Universe of Discourse** — the fundamental entity: a *diachronic* (evolving) reasoning process of
 which an EGI is one synchronic frame. See [UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md).
 
+As a *standing concept* (not only the abbreviation): a UoD is the immediately
+accessible / controllable / **attested internal model inside the membrane** — what an Arisbe
+instance thinks *with*, the internalized complement of the un-possessed
+[Commens](#commens). See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §1.
+
 ### DAG
 **Directed Acyclic Graph** — the shape of the branching transformation history. See
 [DAG_HISTORY_ARCHITECTURE.md](DAG_HISTORY_ARCHITECTURE.md).
@@ -264,6 +269,21 @@ DAG keeping the withdrawn world. Recognition is structural, never annotational
 reader reaches M's content through `m_view` (the union of the cells' interiors; identity for a
 bare sheet-level fixture). See
 [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9.
+
+### Commens
+**Commens** (Peirce, the 1906 Lady Welby letters — "all that is, and must be, well understood
+between utterer and interpreter" for a sign to function) — the between/outside/before/after that
+makes communication possible without being possessed: interacted-with, never internalized, and
+**not an Arisbe structure** (it is *not* the attested corpus — that is the internalized
+[UoD](#uod)). A **social construct** in Berger & Luckmann's sense: real-for-participants (it
+confronts them with facticity, exceeds any one of them) yet **sustained only by participation** —
+*if we do not participate, it disappears* — so it is open *and precarious*, continuously
+reproduced rather than pre-given or timeless. Regulative, never to be operationalized. Genuine
+institutionalization and the commens are **community-level emergents** (a change in kind, not
+degree, above the single instance). See
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md),
+[World-scroll](#world-scroll), [Kytos](#kytos-the-semiotic-cell),
+[Mention-ascent](#mention-ascent).
 
 ### The explicit M-steps: PEEL, ADMIT_TO_M, RETRACT_FROM_M, REVISE_M, and the episode steps
 **PEEL / ADMIT_TO_M / RETRACT_FROM_M / REVISE_M / ENTERTAIN / DISCHARGE_TO_M / ABANDON_EPISODE**
