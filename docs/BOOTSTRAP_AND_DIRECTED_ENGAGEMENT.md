@@ -295,9 +295,16 @@ Arisbe resides.
 > beyond the membrane genuinely *exists*: real judge roles and judiciary institutions, umpires,
 > elections, markets. What an individual — or this project — does is **watch these judgments occur, as
 > if removed: participate but never own, never entirely comprehending**, for the reason already held as
-> doctrine (the commens is un-possessed and participation-sustained, §1). So the project's internal
-> model of external judgment — "the record disposes," the run-log Pⁿ/Fⁿ discipline — **does not make
-> the judgment; only the community does.** The Agonothetes/fate-selector the project carries at this
+> doctrine (the commens is un-possessed and participation-sustained, §1). **Even occupying the
+> judge-seat does not change this** (the author, sharpening): an individual may sit as judge, the world
+> waiting "with bated breath" for the decision — yet **the licence to judge does not reside in that
+> individual, and neither does the rationale**, any more than being asked to *judge the meaning of a
+> word* makes the meaning one's own. One may provide a response; but **how that response functions
+> beyond the membrane belongs to the objectivated institutionalizations** (Berger & Luckmann's
+> objectivation, §1), not to the responder. So the project's internal model of external judgment — "the
+> record disposes," the run-log Pⁿ/Fⁿ discipline — **does not make the judgment; only the community
+> does** — and the same holds of any lone judge, whose seat, licence, and reasons are themselves
+> objectivated, participated-in-never-owned. The Agonothetes/fate-selector the project carries at this
 > scale is, exactly, a *model of* a judging function whose instance lives in the community beyond the
 > membrane — which is why connecting outward (publication, workstream B) is not optional decoration but
 > the only route to a judgment the project cannot make for itself (§10).

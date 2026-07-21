@@ -141,11 +141,22 @@ missing bootstrap/vault subsystem + K2/K3" and "VISION_AND_SCOPE musement / PROD
 are **NOT docket findings** (both those docs are docket-clean; a DEEP audit found only the
 CAPABILITY_MAP:10 date) — so those were not done; CAPABILITY_MAP's genuinely-absent bootstrap/vault/K
 rows are flagged for a **future content pass (author's call)**.
-**▶ OPEN FOR THE AUTHOR (carried from B):** **FLAG A** — *who chooses M* (3 corpus attributions;
-§3 doesn't settle it; flagged in DOMAIN_ORACLE_AND_M + ENDOPOREUTIC_GAME_GUIDE). **FLAG B** — *does
-the outer project-scale game genuinely lack a judge?* (BOOTSTRAP:285). **Deferred Minor** — CLAUDE.md
-"~1000 passing" vs ~4044 collected (collected≠passing; needs a real full-suite count to refresh).
-Not pushed (local-primary; offer at session end).
+**✅ AUTHOR-CALLS RULED (2026-07-21, committed `f743d1a`):** **FLAG A** — *the Agonothetes chooses
+M* (§3 gained the before/after framing bracket — before: set the terms = choose M; after: select
+the fate; DOMAIN_ORACLE §4 + ENDOPOREUTIC_GAME_GUIDE reconciled; the dual "in what M does this G
+fit?" cross-linked to the inverse where-it-holds pivot, DOMAIN_ORACLE §7). **FLAG B** — *the outer
+game does NOT lack a judge, but the project only models external judgment; only the community
+judges* (real judiciaries/umpires/elections/markets beyond the membrane; the project
+watches — participates-but-never-owns per the commens un-possessability §1; "the record disposes" is
+model-of, not the actual judgment — the argument for publishing, §10; written into BOOTSTRAP:285).
+*Sharpened mid-turn (author): even occupying the judge-seat, the licence to judge and the rationale
+don't reside in the individual (cf. "judge the meaning of a word" — respond but don't own the
+meaning); how a response functions beyond the membrane belongs to the objectivated
+institutionalizations (Berger & Luckmann, §1).*
+**Housekeeping done same commit:** ARISBE_EXISTENTIAL archived-with-banner; CAPABILITY_MAP gained
+the directed-engagement action-arm section (attention_economy/vault/oracle/…) + a K1–K4 measure row
+(K2/K3 built). **CLAUDE.md "~1000 passing" count refresh** — pending a real full-suite run (in
+progress). Not pushed (local-primary; offer at session end).
 
 **▶ RUN 13 — COMPLETE; the `journal_entries: 0` anomaly DIAGNOSED (F4¹³, 2026-07-21).** 3
 segments, clean exit, |M| held at 780. **5 questions written to `Arisbe/Questions-2026-07-20.md`
