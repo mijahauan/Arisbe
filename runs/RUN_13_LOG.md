@@ -239,3 +239,25 @@ tier* is a cleaner K-measure story than a severity-8 want re-fired every
 round — but it is a genuine statement about a bedrock/working-set split in
 the vault kytos, which is the author's to make. Priors P1¹³–P4¹³ and the
 P5¹³ disposition remain the author's.
+
+**RESOLVED (2026-07-21, the author chose approach (1) + the test extension).**
+The journal spine is now a **pinned bedrock tier exempt from disuse-decay**.
+`agon_evolution.UsageLedger(ttl, pinned_relations=…)` never reports a pinned
+relation's atoms stale (relation-level exemption via `parse_atom_key`;
+`agon_evolution.run` gained a `pinned_relations` param, default `None` → the
+`not self._pinned` short-circuit keeps every existing caller's decay
+byte-identical); `vault_world.JOURNAL_SPINE_RELATIONS` =
+`{journal_entry, entry_date, entry_lines}`; `tools/run_vault_v0.py`'s
+`_run_segment` passes it. **Verified end-to-end:** the exact repro regime
+(`--fixture --rounds 120 --ttl 8`) that read `journal_entries: 0` now reads
+**`journal_entries: 5` with `entries_per_decade` populated** (1930s/1970s/1980s/
+1990s/2020s — the decade separation P5¹³ needs), and across 3 segments the
+spine holds at 5 with `m_atoms` stable (no cross-segment bloat/duplication;
+`m_removed` fell 24→9, |M| bounded by the journal's finite size — the intended
+bedrock). **Test extension (F4¹³'s coverage gap closed):**
+`test_vault_world.py` now drives rounds ≫ ttl — a **control** asserting the
+un-pinned spine decays to 0 (the bug bites in-test) and a **pinned** case
+asserting it survives; `test_agon_evolution.py` adds the ledger-level pin unit
++ an end-to-end `run` pin. Full loop/decay/membrane/vault suite: 337 passed /
+1 skipped. Priors P1¹³–P5¹³ still the author's — P5¹³ is now *measurable*
+(the spine survives to the digest to be read in the audit lens).

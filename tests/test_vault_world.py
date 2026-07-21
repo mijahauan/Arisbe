@@ -199,6 +199,38 @@ class TestJournalBatching:
         journal_entries = sum(1 for rel, _labels in atoms if rel == "journal_entry")
         assert journal_entries > 0
 
+    def _journal_count(self, res):
+        from probe_feed import _model_signature
+        atoms, _ = _model_signature(res.uod.current_egi)
+        return sum(1 for rel, _labels in atoms if rel == "journal_entry")
+
+    def test_journal_decays_out_over_a_long_run_without_the_pin(self):
+        """F4¹³ (the bug): the journal spine is *read* early but, under
+        disuse-decay with a run longer than ttl, it fades before the run ends —
+        journal is not re-delivered, so it is not kept warm. This is what made
+        ``journal_entries: 0`` survive F3¹³'s pricing fix. (rounds >> ttl is the
+        regime the short F3¹³ drive above never exercises.)"""
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultFeed
+        feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+        res = run('(even "0")', feed, rounds=40, ttl=5,
+                  uod_id="vault_journal_decay", name="journal decay control")
+        assert self._journal_count(res) == 0
+
+    def test_pinned_journal_spine_survives_a_long_run(self):
+        """F4¹³ (the fix): pinning the journal-spine relations exempts them from
+        disuse-decay, so the ~50-year spine (K2's showcase) stands through a run
+        far longer than ttl instead of fading like ephemeral scan noise."""
+        from agon_evolution import run
+        from attention_economy import AttentionEconomy, Horizon
+        from vault_world import VaultFeed, JOURNAL_SPINE_RELATIONS
+        feed = VaultFeed(VaultWorld(FIX), AttentionEconomy(), horizon=Horizon())
+        res = run('(even "0")', feed, rounds=40, ttl=5,
+                  pinned_relations=JOURNAL_SPINE_RELATIONS,
+                  uod_id="vault_journal_pinned", name="pinned journal spine")
+        assert self._journal_count(res) > 0
+
 
 class TestFeed:
     def _feed(self):

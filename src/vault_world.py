@@ -90,6 +90,14 @@ METADATA_ONLY_DIRS = frozenset({"People", "Kith_Kin", "Household"})
 # consumer (top_dirs/_seed/_refill/_execute/folder_listing_facts/note_facts).
 ROOT_BUCKET = "(root)"
 
+# The journal's atom relations (`journal_entry`/`entry_date`/`entry_lines`) form
+# the standing longitudinal spine — K2's 50-year showcase, meant to be *retained*,
+# the disposition-that-stands contrasted with the mood-that-fades. RUN_13 F4¹³:
+# without this, the spine is read once then disuse-decayed out before an
+# end-of-segment digest (rounds >> ttl), reading `journal_entries: 0`. Passed to
+# `agon_evolution.run(pinned_relations=...)` so its atoms are exempt from decay.
+JOURNAL_SPINE_RELATIONS = frozenset({"journal_entry", "entry_date", "entry_lines"})
+
 # -- journal date-lines --------------------------------------------------------------
 # Shape per the vault spec's two-timeline rule: a bare date-line is an event-time
 # claim (year, month, optional day). Year is deliberately NOT range-checked (a
@@ -581,4 +589,4 @@ class VaultFeed(ProbeDirectedFeedBase):
             return None
 
 
-__all__ = ["VaultWorld", "VaultFeed", "METADATA_ONLY_DIRS"]
+__all__ = ["VaultWorld", "VaultFeed", "METADATA_ONLY_DIRS", "JOURNAL_SPINE_RELATIONS"]

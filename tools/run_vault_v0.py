@@ -43,7 +43,7 @@ from probe_feed import _model_signature              # noqa: E402
 from proof_authoring import ProofChain                # noqa: E402
 from tomos_service import TomosService                # noqa: E402
 from universe_of_discourse import UoDCategory         # noqa: E402
-from vault_world import VaultFeed, VaultWorld         # noqa: E402
+from vault_world import VaultFeed, VaultWorld, JOURNAL_SPINE_RELATIONS  # noqa: E402
 from world_scroll import find_world_scroll            # noqa: E402
 
 
@@ -194,6 +194,12 @@ def _run_segment(
         description="Vault V0 metadata-membrane drive (RUN 13); "
                      "see docs/superpowers/specs/2026-07-17-vault-cycle-design.md.",
         ttl=ttl if ttl > 0 else None,
+        # F4¹³: the journal is the standing K2 spine, not a working set — exempt
+        # its atoms from disuse-decay so the 50-year span survives a segment
+        # longer than ttl (else it is read early then decays out before the
+        # digest, reading journal_entries: 0). Bounds |M| by the journal's own
+        # finite size, the intended bedrock tier.
+        pinned_relations=JOURNAL_SPINE_RELATIONS,
     )
 
     TomosService(runs_dir).save_uod_with_chain(res.uod, res.chain)

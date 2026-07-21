@@ -101,6 +101,30 @@ def test_usage_ledger_marks_idle_keys_stale():
     assert atom_key("swan", ["Alba"]) not in led.stale(2)
 
 
+def test_usage_ledger_never_stales_a_pinned_relation():
+    """F4¹³: a pinned relation is a standing bedrock tier — its atoms never fall
+    from use, so disuse-decay leaves them alone however long they sit idle."""
+    led = UsageLedger(ttl=2, pinned_relations={"journal_entry"})
+    led.seed({atom_key("journal_entry", ["E1"]), atom_key("rumor", ["X"])}, round_idx=0)
+    # neither is re-delivered; after ttl idle rounds the unpinned atom is stale,
+    # the pinned one is not — no matter how many rounds pass.
+    assert atom_key("rumor", ["X"]) in led.stale(2)
+    assert atom_key("journal_entry", ["E1"]) not in led.stale(2)
+    assert atom_key("journal_entry", ["E1"]) not in led.stale(1000)
+
+
+def test_decay_leaves_a_pinned_atom_standing_across_a_run():
+    """The pin holds end-to-end through ``run``: an idle unpinned atom decays,
+    an idle pinned atom of the same idle-ness stays in M."""
+    pool = ['(spot "Alba")'] * 4                       # keeps the loop turning
+    res = run('(spot "Alba") (journal_entry "E1") (rumor "X")', CorpusProposer(pool),
+              rounds=5, ttl=2, pinned_relations={"journal_entry"},
+              uod_id="pindecay", name="pindecay")
+    rels = list(res.uod.current_egi.rel.values())
+    assert "rumor" not in rels                          # unpinned, idle -> decayed
+    assert "journal_entry" in rels                      # pinned -> stands
+
+
 def test_decay_erases_an_atom_that_fell_from_use():
     pool = ['(swan "Bianca")', '(white "Bianca")', '(swan "Ciel")']
     res = run('(swan "Alba") (white "Alba") (rumor "X")', CorpusProposer(pool),

@@ -520,11 +520,20 @@ class UsageLedger:
     **Atom-level since 2026-07-03** (the rulebook decision RUN_4_LOG affirmed:
     the habit is the fact, not the name — F1″'s warm-name pinning dissolves
     because a warm re-delivery now keeps only the *re-delivered* atoms warm,
-    while the name-level ledger let one hot name pin an unbounded atom pile)."""
+    while the name-level ledger let one hot name pin an unbounded atom pile).
 
-    def __init__(self, ttl: int):
+    ``pinned_relations`` (optional, RUN_13 F4¹³) names a **standing bedrock
+    tier**: atoms of these relations never fall from use, so disuse-decay leaves
+    them alone however long they sit idle. This is for a spine that is *meant*
+    to be retained, not a working set — e.g. the vault journal (K2's 50-year
+    showcase), which is read once yet must stand across a run far longer than
+    ``ttl`` rather than fading like ephemeral scan noise. It is a relation-level
+    exemption by design; the class stays otherwise key-agnostic."""
+
+    def __init__(self, ttl: int, pinned_relations: Optional[Set[str]] = None):
         self.ttl = ttl
         self._last: Dict[str, int] = {}
+        self._pinned: frozenset = frozenset(pinned_relations or ())
 
     def seed(self, keys: Set[str], round_idx: int = 0) -> None:
         for k in keys:
@@ -536,7 +545,9 @@ class UsageLedger:
 
     def stale(self, round_idx: int) -> List[str]:
         return sorted(
-            k for k, last in self._last.items() if round_idx - last >= self.ttl
+            k for k, last in self._last.items()
+            if round_idx - last >= self.ttl
+            and (not self._pinned or parse_atom_key(k)[0] not in self._pinned)
         )
 
     def forget(self, key: str) -> None:
@@ -599,6 +610,7 @@ def run(
     description: Optional[str] = None,
     panel: Optional[Agonothetes] = None,
     ttl: Optional[int] = None,
+    pinned_relations: Optional[Set[str]] = None,
     standing_proposal: Optional[str] = None,
     seed_laws: Optional[Sequence[str]] = None,
     materializer: Optional[IncrementalMaterializer] = None,
@@ -622,6 +634,10 @@ def run(
 
     ``ttl`` (optional) turns on **atom-level** disuse-decay (use = re-delivery;
     an atom idle ``ttl`` rounds is retracted by ``retract_atom``);
+    ``pinned_relations`` (optional, RUN_13 F4¹³) exempts a standing bedrock tier
+    from that decay — atoms of these relations never fall from use, so a spine
+    meant to be retained (the vault journal, K2's 50-year showcase) stands across
+    a run far longer than ``ttl`` instead of fading like ephemeral scan noise;
     ``standing_proposal`` (optional, EGIF) is audited after each round so a
     verdict flip caused by growth or decay is *surfaced*, never silent.
     ``seed_laws`` (optional, EGIF) are standing laws M already carries on its
@@ -664,7 +680,7 @@ def run(
     mat = materializer if materializer is not None else IncrementalMaterializer()
     ledger: Optional[UsageLedger] = None
     if ttl:
-        ledger = UsageLedger(ttl)
+        ledger = UsageLedger(ttl, pinned_relations=pinned_relations)
         ledger.seed(sheet_atom_keys(pc.current))
 
     outcomes: List[RoundOutcome] = []
