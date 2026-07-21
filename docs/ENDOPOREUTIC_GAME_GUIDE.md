@@ -693,14 +693,19 @@ The Agonothetes manifests in three phases of the game:
 **Before the game — providing context:**
 
 Everything happens within one **Universe of Discourse** ([UoD](GLOSSARY.md#uod)), where more
-than one domain model may exist. The Graphist and Grapheus agree on a
-particular reference model M and a proposed graph G to interpret against it.
+than one domain model may exist. The **Agonothetes sets the terms** — choosing the particular
+reference model M the round will test a proposed graph G against. This is its *before-the-play*
+framing act (the *after* act being the selection of a fate from the outcome).
 
-> **Who chooses M — open author-call.** The settled two-player account
-> ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3: Graphist = proposal-side,
-> Grapheus = Model-M-side, binary outcome, no referee) does **not** fix *who selects which M*. The corpus
-> carries divergent attributions ("the Graphist and Grapheus agree on M" here; DOMAIN_ORACLE_AND_M.md §4
-> "an Agonothetes/Grapheus act"). Flagged for an author ruling, not decided here.
+> **Who chooses M — ✅ RULED (the author, 2026-07-21): the Agonothetes chooses.** Canonical
+> account: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3. The
+> two-player contest (Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no
+> referee) is *bracketed* by the Agonothetes' two framing acts — *before*: set the terms (choose
+> M); *after*: select the fate. Neither player can own the choice of M without conflict (the
+> Graphist must not pick the M its own proposal is graded against; the Grapheus *is* M). This
+> supersedes the earlier "the Graphist and Grapheus agree on M" phrasing (which also sat oddly
+> under this doc's own "the Agonothetes provides context" heading). The dual question — *in what
+> M does this G fit?* — is the inverse "where-it-holds" pivot (`DOMAIN_ORACLE_AND_M.md` §7).
 
 The interpretive frame — the structure the game will unwind — is:
 

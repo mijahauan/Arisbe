@@ -133,17 +133,22 @@ how a situated interpreter stands.
 
 The deepest form of the worry — "who decides what's relevant, and won't it be
 arbitrary?" — is resolved by making **the choice of M the opening move of the
-game**: an [Agonothetes](GLOSSARY.md#agonothetes) (the role that turns the game's outcome into an act of inquiry)/Grapheus act. *"I will test this against Wikidata,
+game**: an [Agonothetes](GLOSSARY.md#agonothetes) act (the role that turns the
+game's outcome into an act of inquiry). *"I will test this against Wikidata,
 neighborhood radius 2, this fragment asserted-complete."* Recorded, warranted,
 contestable. Relevance *is* a judgment; the honest place for it is owned by
 someone and open to challenge, not buried in a config file.
 
-> **Who chooses M — open author-call (canonical role account:
-> [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).** §3 fixes the two-player
-> account (Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no referee) but does **not**
-> settle *who selects which M* the round tests against. The corpus carries divergent attributions — here
-> "an Agonothetes/Grapheus act"; ENDOPOREUTIC_GAME_GUIDE.md §"What the Agonothetes Does" has "the Graphist
-> and Grapheus agree on M." This attribution is **flagged for an author ruling**, not decided here.
+> **Who chooses M — ✅ RULED (the author, 2026-07-21): the Agonothetes chooses.** Canonical
+> account: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3. §3 fixes the
+> two-player contest (Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no
+> referee); choosing which M the round tests against is the **before-the-play framing act of the
+> Agonothetes** — the non-player who brackets the contest (*before*: set the terms = choose M;
+> *after*: select the fate). Neither player can own it without conflict (the Graphist must not
+> pick the M its own proposal is graded against; the Grapheus *is* M). This settles the corpus's
+> earlier divergence (`ENDOPOREUTIC_GAME_GUIDE.md` §"What the Agonothetes Does" has been
+> reconciled to the same account). The **dual** question — *in what M does this G fit?* — is the
+> **inverse pivot** (§7 below), ranging the peel across candidate models.
 
 It composes with the warrant gradient: M enters as **low-warrant backdrop** —
 not "true," merely "available to map against." Nothing imported pollutes the

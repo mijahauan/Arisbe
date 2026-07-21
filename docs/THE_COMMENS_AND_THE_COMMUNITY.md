@@ -123,6 +123,22 @@ institution. Model-of, never instance-of.
   among votes already cast without fabricating a disposition — but conceptually it is one act:
   the risked selection of a fate.
 
+**The two framing acts bracket the play** (author's ruling, 2026-07-21). Standing outside the
+two-sided contest, the Agonothetes is the natural — and only coherent — home for the two acts
+that *bracket* it: **before**, it **sets the terms**, choosing the reference model M the
+proposal will be tested against; **after**, it **selects the fate**. Neither player can own the
+before-act without conflict: the Graphist is the doubt/proposal-side and must not pick the M its
+own proposal is graded against; the Grapheus *is* M and cannot choose what it is. Choosing M is
+therefore an Agonothetes act — a recorded, warranted, contestable *move*, not buried config
+(`DOMAIN_ORACLE_AND_M.md` §4) — and it carries the same risked, posture-bearing character §3
+already assigns the fate-choice: *which slice of the world do I hold myself accountable to?* The
+Agonothetes is thus the **inquirer who owns the episode** — frames it, hands the framed contest
+to the two devoted advocates, then reads what the outcome means. (Its historical namesake set
+the terms and declared the outcome; it never refereed play, because — no referee, above — play
+cannot be illegal.) The **forward** direction (given a chosen M, does G hold?) has a **dual the
+corpus already carries**: *in what M does this G fit?* — the inverse "where-it-holds" pivot
+(`DOMAIN_ORACLE_AND_M.md` §7), ranging the same peel across candidate models.
+
 **What the Agonothetes does with the outcome, stated exactly.** It **does not represent the
 commens** — nothing inside one process can (§1). What it does is bring the episode's outcome
 into a **posture of the functioning UoD *toward* the commens**: the selected fate is how this

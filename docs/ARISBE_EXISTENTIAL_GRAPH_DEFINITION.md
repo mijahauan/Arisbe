@@ -1,5 +1,14 @@
 # Arisbe Existential Graph Definition: Living Logical Systems
 
+> **⚠️ ARCHIVED — historical early-vision document (superseded).** This is an undated early
+> statement of ambition. It describes a never-built-as-designed 4-phase strategy and an
+> `ArisbeExistentialGraph` dataclass that does not match the shipped architecture (the "living
+> system" it sketches is realized today as the Universe of Discourse + the three conceptual
+> modes, with the Ergasterion as the composition workshop — not a single dataclass). It is
+> retained for provenance only, not as a current design-of-record. **For what the system
+> actually is and does today, see [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) (what/why/scope) and
+> [CAPABILITY_MAP.md](CAPABILITY_MAP.md) (what works, where, what guards it).**
+
 ## Comprehensive Definition
 
 An **Arisbe Existential Graph** extends far beyond simple diagrams or EGIF expressions. While isolated EG diagrams commonly illustrate texts and treatises, Arisbe recognizes something more comprehensive and ambitious.

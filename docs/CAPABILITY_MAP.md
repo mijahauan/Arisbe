@@ -170,10 +170,28 @@ record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
 
 ---
 
-## I. Analysis / doctrine tooling
+## I. Directed engagement — *the action arm (bootstrap rungs)*
+
+The Minimal Predictive Automaton's *missing fifth* — the action arm that chooses *which* reach to
+make next — made operational as an attention economy over candidate reaches, with pluggable
+"worlds" behind one `Proposer` socket. Design of record:
+[BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md).
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
+| Attention economy (the socket, rung 1) | SHIPPED 2026-07-17 | `attention_economy.py` → `test_attention_economy.py` | `Want` + `AttentionEconomy`: severity-weighted decayed-yield-per-cost ordering of reaches; musement reservation + boredom detector; noisy-TV decay at kind and want level; degrade-to-mechanical; bounded registers with counted drops. Plus the `Horizon`/`HorizonItem` register (the not-yet-legible, retained/counted/re-attemptable). See [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3. |
+| Probe-directed feed base (the socket base) | SHIPPED | `probe_feed.py` → `test_probe_feed.py` | `ProbeDirectedFeedBase`: the generic drain-refill `propose()` loop, model-delta yield read via `world_scroll.m_view`, FIFO/scatter baseline choosers, `replay_choices`, and the **count-or-refuse** dispatch rule (a chosen want the feed cannot voice is refused and counted, never silently dropped). |
+| Arithmetic world (world #1) | SHIPPED 2026-07-17 | `arithmetic_world.py` → `test_arithmetic_world.py` | Computed arithmetic (atoms by computation; probe cost = primality-test cost; deterministic `coin` noise) + `ProbeDirectedFeed`. Headline (S1–S5, pre-registered): **Fermat's 1640 conjecture refuted at F5 (Euler 1732) under budget only by the economy arm** — the FIFO/scatter baselines never reach it within 90 rounds. |
+| Vault world (world #2, the metadata membrane) | SHIPPED 2026-07-18 (RUN 13) | `vault_world.py` → `test_vault_world.py` | `VaultWorld` reads an Obsidian-style vault **structure-only** (path/folder/frontmatter/wikilinks/size/mtime — never body content, the custody constraint) + the journal's **two-timeline reader** (event-time vs deliberately-absent writing-time). `VaultFeed` is the socket's `Proposer` consumer, journal seeded at severity 8.0 (the author's datelined voice outranks a folder scan). Journal spine pinned from disuse-decay (RUN_13 F4¹³). |
+| Oracle notes loop (V2a) | SHIPPED 2026-07-18 | `oracle_notes.py` → `test_oracle_notes.py` | The Obsidian-native oracle loop: candidates (provenance / multi-journal / horizon / reflective) → budget-bounded markdown with **sealed** forecasts (salted SHA-256, never plaintext) → the author's `**A:**` edits parsed back → an append-only JSONL ledger → reveals → a plain-English conjectures gloss. Banking an answer into M as an attributed quotation cell (V2a.2 item 2, `BANK_TO_M`); decline/silence first-class. |
+
+---
+
+## J. Analysis / doctrine tooling
+
+| Capability | Status | Home (src → test) | Note |
+|---|---|---|---|
+| The knowledge measure (K1–K4) | PARTIAL (K2, K3 built; a vector, never a scalar) | `modal_query.durability_modality` (K2), `model_materialization.materialization_ratio` (K3) → `test_modal_query.py`, `test_model_materialization.py` | The four-component measure of [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md): **K1** severity-weighted track record · **K2** durability/stickiness (`durability_modality` reads ◇/□ necessity off the branching DAG) · **K3** compression (`materialization_ratio` → `KnowledgeCompression`, derived ÷ (explicit + derived), extent-invariant in [0,1]) · **K4** use/decay (the `UsageLedger`). Three standing guards: **never truth · never a target · a vector, never a scalar over agents** (the un-possessability of the commens, [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2a). Read across the fractal levels atom→law→M→mechanism→project. |
 | Diagram↔narration check | SHIPPED (prototype) | `diagram_narration_check.py` → `test_diagram_narration_check.py` | Scorer over 8 chains/35 steps; 3 Centering/Discourse Representation Theory ([DRT](GLOSSARY.md#drt)) salience roles 100%. **Measurement tool — not surfaced in the UI.** See [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. |
 | Schema layer (graph-with-holes node) | SHIPPED | `schema.py`, `eg_splice.py` → `test_schema.py` | P7 least-number schema; induction scaffold. Schema-drawing/§3.3 is a frontier. |
 | Derived rules (named UI moves) | SHIPPED | `derived_rules.py` → `test_derived_rules.py` | Built atop Dau's six. |
@@ -184,7 +202,7 @@ record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
 
 ---
 
-## J. Interfaces / adoption — *the referee, callable from outside*
+## K. Interfaces / adoption — *the referee, callable from outside*
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|

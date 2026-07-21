@@ -285,14 +285,22 @@ The author's proposal: consider Arisbe a proposition in a wider Endoporeutic Gam
 develop and refine against the resistance of a more generic Grapheus — the world in which
 Arisbe resides.
 
-> **Reconciliation + open author-call ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
-> §3).** Read this project-scale "more generic Grapheus" as **model-of, never instance-of** (§3): the outer
-> framing borrows the two-player picture (Arisbe as proposal-side, the world as the standing Model-M-side)
-> as a *model* of inquiry carried within the project's own process — it does not make the project an
-> instance of the institution of inquiry, which is a community-level emergent (§6). **Open author-call,
-> flagged, not decided here:** does the outer, project-vs-world game genuinely *lack a judge* (no
-> Agonothetes / fate-selector at that scale), or is the judging function merely diffused into "the record
-> disposes"? Left for an author ruling.
+> **Reconciliation + ✅ RULED (the author, 2026-07-21)
+> ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3, §1, §6).** Read this
+> project-scale "more generic Grapheus" as **model-of, never instance-of** (§3): the outer framing
+> borrows the two-player picture (Arisbe as proposal-side, the world as the standing Model-M-side) as a
+> *model* of inquiry carried within the project's own process — it does not make the project an instance
+> of the institution of inquiry, which is a community-level emergent (§6). **The ruling: the outer game
+> does NOT lack a judge — but the project does not own or make that judgment.** A judging function
+> beyond the membrane genuinely *exists*: real judge roles and judiciary institutions, umpires,
+> elections, markets. What an individual — or this project — does is **watch these judgments occur, as
+> if removed: participate but never own, never entirely comprehending**, for the reason already held as
+> doctrine (the commens is un-possessed and participation-sustained, §1). So the project's internal
+> model of external judgment — "the record disposes," the run-log Pⁿ/Fⁿ discipline — **does not make
+> the judgment; only the community does.** The Agonothetes/fate-selector the project carries at this
+> scale is, exactly, a *model of* a judging function whose instance lives in the community beyond the
+> membrane — which is why connecting outward (publication, workstream B) is not optional decoration but
+> the only route to a judgment the project cannot make for itself (§10).
 
 **The licence, and its conditions.** This walks through a door the Fidelity examinations
 deliberately left open. The corollary to
