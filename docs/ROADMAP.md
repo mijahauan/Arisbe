@@ -1,298 +1,291 @@
 # Arisbe — Roadmap
 
-> **What this is.** One sequenced backlog, consolidating the "open tracks" and frontiers that were
-> scattered across `CURRENT_PLAN.md` and the project memory. The top items carry near-term design
-> intent; the tail is one-liners. Re-order and prune as priorities move — this is the focus lever, not
-> a contract.
+> **What this is.** The program lever, not a contract — one place naming what's live and who
+> decides what's next. *Re-consolidated 2026-07-20; superseding the 2026-06-27 consolidation*
+> (that text is preserved in git history; every existing link to this file keeps working).
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [CAPABILITY_MAP.md](CAPABILITY_MAP.md) ·
-> [GLOSSARY.md](GLOSSARY.md).
+> [GLOSSARY.md](GLOSSARY.md) · [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
 >
-> *Last consolidated: 2026-06-27.* Items marked **(author decision)** need a call only the author can
-> make; the rest are buildable once sequenced.
-
-**Maturity of each item** mirrors [CAPABILITY_MAP.md](CAPABILITY_MAP.md): DESIGNED = specced not
-built; FRONTIER = built but an edge remains; DECISION = a choice precedes any build.
+> Items marked **(author decision)** need a call only the author can make; the rest are buildable
+> once sequenced. **Maturity** mirrors [CAPABILITY_MAP.md](CAPABILITY_MAP.md): DESIGNED = specced
+> not built; FRONTIER = built but an edge remains; DECISION = a choice precedes any build.
 
 ---
 
-## Near-term (with design intent)
+## Preamble
 
-### 1. Settle the "protected core" question — **✅ DECISION TAKEN & EXECUTED (2026-06-27)**
+The organizing principle changed on 2026-07-20. Instead of a flat backlog, the program is now
+four workstreams, named by verb: **Share · Use · Run · Understand.** The frame is
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) — the doctrine doc that
+worked out the UoD/commens pair, why institutionalization cannot occur in an individual, and the
+entailment that follows (§10): the solitary ceiling on what one kytos can attest sits below the
+community's **by kind, not effort**, and because the commens is a social construct sustained only
+by participation, connecting outward does not merely reach a standing resource — it **keeps that
+resource in being**. That entailment is stated up front because it is the reason this rewrite
+exists: the four workstreams below are its concrete forms, not four independent priorities.
 
-> **(a) keep + extend:** added the three §3.3 enforcers (`correspondence_attestation`, `presentation_ops`,
-> `natural_layout`) — they now require authorization to change.
-> **(b) trim:** removed the six EGIF/CGIF/CLIF parsers/generators — application-level I/O the calculus
-> doesn't import; guarded by corpus round-trip tests in CI. **Net 17 → 14 modules** (the genuine calculus
-> core). The thin ligature modules and `hierarchical_index` were *kept* — still load-bearing.
-> **(c) replace with CODEOWNERS — declined:** CODEOWNERS routes PR reviews and does nothing in a solo,
-> no-PR workflow; the protected set's inline comments now double as the bedrock note (it documents *and*
-> enforces). The gate is kept because its real value here is an **AI tripwire** on the calculus —
-> something neither a doc-note nor CODEOWNERS can provide.
-> *(The corpus-wide `test_correspondence_*` suites were NOT added to the fast gate: minutes-long ELK
-> layout, busts the <30s budget / 180s timeout; they run in full CI. A small in-gate smoke check is
-> possible future work.)*
+- **Understand** (Workstream A) — keep the doctrine that grounds everything else legible and
+  ratified, so the other three workstreams build on a conforming foundation.
+- **Share** (Workstream B) — push the project's own membrane outward: the documentation sweep
+  and the first publication, the acts of *export* the doctrine doc names in §1 and §10.
+- **Run** (Workstream C) — strengthen the membrane mechanism itself: the UoD-per-instance
+  discipline made code-real, import/export unified, the interaction capability (**A** in the S/A
+  pair, doctrine doc §4) instrumented to match the interior (**S**).
+- **Use** (Workstream D) — the people-facing edge: the issue inventory and the Charter-gated UX
+  fixes that make the other three workstreams reachable by someone who wasn't here while they
+  were built.
 
-The re-audit (2026-06-27) that motivated the decision:
-
-- **Count drift resolved.** The gate reports **17** modules, matching CLAUDE.md. No ghosts: every
-  protected member has a live importer.
-- **The mechanism does not guard the central invariant.** `correspondence_attestation.py` (28
-  importers) and `presentation_ops.py` (31 importers) are the *most-imported* modules in `src/`, wired
-  into the serving + save/load boundaries — yet **unprotected**. By the protection's own rationale
-  (guard what enforces the invariant) they belong in the set. `natural_layout.py` is a weaker but
-  defensible third.
-- **The list disagrees with the real guard.** The substantive guard is the ~150-test core subset, not
-  the name-match speed-bump. The fast gate does **not** currently include
-  `test_correspondence_invariant` / `test_correspondence_attestation`, so the central invariant isn't
-  in it.
-- **Architectural distinction surfaced.** The math core (data model + six rules + closure/isomorphism
-  validators) does **not** depend on the linear parsers/generators — those are application-level I/O
-  (the one exception: `rule_interaction` parses EGIF *insert text* as a convenience). CGIF/CLIF are
-  most clearly "I/O, not calculus."
-- **Two thinly-held members:** `ligature_manipulation_rules` + `single_object_ligature_detector` are
-  each held by a single non-test consumer (`chapter17_soundness_evaluation`).
-
-**Options to choose among:**
-- **(a) Keep + extend** — add `correspondence_attestation` + `presentation_ops` (+ maybe
-  `natural_layout`) to the set; add the correspondence tests to the fast gate. Smallest change,
-  closes the real gap.
-- **(b) Keep + trim** — also drop the I/O parsers/generators (and/or the thin ligature modules) to
-  leave a tight "calculus + invariant" core.
-- **(c) Replace** — retire the name-match speed-bump for a CODEOWNERS-style **bedrock note** (names
-  the non-negotiable modules + *why*) and let the test subset enforce. Least to maintain for a solo
-  author; loses the `.core_modification_authorized` intentionality ritual.
-
-Recommendation: at minimum **(a)** — the central invariant should not sit unguarded. The keep-vs-
-replace question is a values call. *Outcome updates [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §3.*
-
-### 2. Render-M UI — ground/legend panel + relevant-neighborhood M-render — **✅ DONE 2026-06-28**
-
-Shipped in the Agon interpretation register, both parts, read-only chrome (M drawn, never asserted):
-- **(d) the ground/legend** — `m_render.vocabulary_overlap`: the panel lists how G's and M's vocabularies
-  meet (shared / G-only = the addressability gap / M-only = context beyond G), so a reader sees what the
-  terms mean without leaving the board.
-- **(c) the relevant-neighborhood M-render** — `m_render.m_fragment`: draws only the part of M the proposal
-  *touches* — seed = M's own atoms (read through `world_scroll.m_view` since the 2026-07-15 polarity
-  sweep: the scroll's antecedent for a corpus M, the sheet for a loop-built one) whose relation/individual G uses, then one hop along the same
-  individual / line of identity, budget-capped (~a handful); the rest is reported as a **horizon** ("+N
-  more facts beyond view"). Materialized (forward-chained) facts render too.
-
-New module `src/m_render.py` (pure, unit-testable); wired into `_interpret_payload` (`render_m` block) and
-drawn in `agon.html` (legend + a small M-fragment board in the reading strip). Tests: `test_m_render.py`
-(6), `test_agon_interpretation.py` (+3 route), `test_agon_e2e.py` (+1 browser). See
-[THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) (recommendations (d) + (c)).
-
-### 3. First-class reference / transclusion node — **increment 1 SHIPPED (2026-06-29) · increment 2 = the cross-UoD fork (author decision)**
-
-> **Increment 1 (intra-UoD) shipped 2026-06-29, fully additive, core-protection CLEAN:** `src/reference_node.py`
-> (a **Form-2 reference edge** + an overlay `ReferenceMark` + the `ReferenceResolver` seam with
-> `DefinitionReferenceResolver`/`ChainReferenceResolver` + the `attest_reference` boundary hook + `reference_horizon`)
-> and the **render glyph** in `simple_svg_renderer` (`reference_marks=` → a dashed spot + "+N beyond view" badge,
-> default-off, no §3.3 change). Tests: `test_reference_node.py` (11) + `test_reference_glyph.py` (3); 95 corpus-wide
-> §3.3/render tests confirm zero regression. See [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md).
-> **Increment 2 — cross-UoD — is the author decision below:** it is *not* "more reference" but a **use / mention**
-> fork (DoR §4½/§7): **use** = governed import via the scroll `~[ B ~[ G ] ]` (B conditioned, LOW/attributed warrant,
-> never the transparent double-cut co-assertion that would merge universes); **mention** = second-order naming, B
-> drawn as the read-only "fourth thing" (`m_render`). **Paused here on the 2nd-order frontier (#13) by author choice.**
-
-The open *architectural fork*. A node that references material defined elsewhere (a shared sub-graph,
-a corpus graph) rather than copying it. High value for scale and for "scoping without recapitulation,"
-but it **touches the protected core** (`egi_core_dau` + the §3.3 correspondence contract), so it is
-not a safe additive build — it needs an author decision on whether to open the data model. See
-[THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) recommendation (b) + §12's three decisions.
-
-**De-risk done (2026-06-29):** before opening the core, the law a reference node must satisfy —
-`RESOLVE ≡ INLINED-AND-ATTESTED` (§12 decision 3, an `attest_reference` analogous to `attest_overview`)
-— is now **prototyped and proven on real graphs without any core change**:
-`src/reference_resolution_check.py` + `tools/run_reference_resolution_check.py` +
-`tests/test_reference_resolution_check.py` (11). Checks R1 resolve-equals-inline (`same_graph`),
-R2 resolved-is-§3.3-attested, R3 recoverable (`fold`, where an inverse exists), R4 honest horizon
-(unresolved named). PASS on definition references (Power Set, Infinity) **and** a transclusion
-reference (cl-imports model); falsifiers bite. The key finding: `definitions.py` is *the reference
-node in miniature* (defined edge → body elsewhere; `expand`/`fold` ⇒ resolve/refold), so the
-remaining decision is **form + recoverability, not correctness of resolution** — see
-[[project_reference_node_validation_harness]] / the memory note. The three §12 decisions (form:
-element vs edge vs overlay · calculus-entry under level-0 doctrine · the attestation contract) are now
-taken in a **design-of-record — [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md)**:
-Form 2 (a relation-shaped reference *edge* generalizing the definition node), **additive-first**
-(increment 1 touches no protected module — generalize the resolver to corpus-UoD-by-name, reference
-glyph, provenance in the overlay), with the **second-order-frontier invariant** banked (keep references
-in the `splice`/port/expansion family so definition/schema/reference stay one mechanism). Awaiting the
-author's go-ahead on increment 1.
-
-### 4. Newcomer / EGIF-authoring on-ramp — **DONE (stages 1 + 2(a) + 2(b) all shipped 2026-06-28)**
-
-The largest open UX arc (first flagged 2026-06-24, reaffirmed since). The author reframed it (2026-06-28):
-a newcomer's journey is **Organon → Ergasterion → Agon**, and a proposed G is *picked from Organon* or
-*composed in Ergasterion* before it reaches the arena — so the on-ramp is first about that **flow**, not a
-from-scratch EGIF box. Audience: "both, in sequence" (carry-a-graph first, then notation/plain-English authoring).
-
-- **✅ Stage 1 (2026-06-28):** the corpus is now a source of *proposals*, not only of models. Organon's single
-  "Use in Agon" (which hardcoded the graph into the **M** slot) split into **"⚔ Propose in Agon"** (the graph
-  → proposal G; the learner's path) + **"⚖ as model M"** (the prior behavior). Fixed a real bug: Agon's async
-  worked-example default was clobbering an incoming `?proposal_egif`/`?model_egif`; the deliberate hand-off now
-  wins. Ergasterion's "Send to Agon" mirrored the same two verbs (**⚔ Propose in Agon** / **⚖ as model M**) for
-  full carry-a-graph symmetry. (`organon.html` + `ergasterion.html` + `agon.html` + 1 Organon E2E; core-protection
-  CLEAN.)
-- **✅ Stage 2(b) (2026-06-28):** the guided **"first graph" primer** — the in-app front door to the Field Guide
-  ([FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md)) for the notation learner. New shared
-  `web_viewer/js/primer.js` overlay (loaded on all three mode pages + the home door): the four marks in plain
-  sight, the EGIF key table, and the **worked first graphs drawn by the real engine** (`GET /primer/examples` →
-  `src/web_api/routes/primer.py` renders cat-on-mat / the human→mortal scroll / the empty cut through
-  `generate_layout` so the picture↔proposition correspondence is *shown*, not described), the five drawable
-  dragons each deep-linking into Ergasterion challenge mode (`?challenge=🐉N`, new param handler), and
-  where-to-practice. Reached by a "New here? — start with the marks" link auto-injected into the shared mode-nav
-  and a green "New here?" door on the home page. (`primer.py` + `primer.js` + `index/organon/ergasterion/agon.html`
-  + `test_primer_route.py` (3) + `test_primer_e2e.py` (5); core-protection CLEAN, additive.)
-- **✅ Stage 2(a) (2026-06-28):** the **plain-English authoring door** in Agon's setup — surfaced the
-  already-built-but-UI-less **NL→logic front-end** (`POST /agon/propose-nl`, `src/nl_to_logic.py`). A
-  "…or describe G in plain English" textarea + **✶ Translate to a proposal G** button posts the description
-  (with the chosen M, whose signature hints the translation) → the page fills the Proposal G field from the
-  drafted EGIF and shows the **reading** (`read as <FOL>`), the **vocabulary-miss** (terms M can't even address —
-  "not even wrong") distinct from the **fact-miss** (the peel's verdict), and honest non-results (unmappable /
-  malformed / translator-absent all return `parsed:false` with the reason, fail-soft, never an error). Purely
-  additive (`agon.html` only) + 2 Agon E2E (network-stubbed for determinism); core-protection CLEAN. *LLM
-  proposes, Arisbe disposes* — the LLM never touches the EGI, nothing is asserted (LOW warrant; earns warrant
-  only by withstanding Agon).
+**Two rules hold across every item below:** every item carries either an **(author decision)**
+tag or a concrete next action — nothing is left to float without an owner; and the doctrine doc's
+vocabulary is used exactly (UoD = the internalized, attested model inside a membrane; commens =
+the un-possessed outside, never a data structure) with the ban-list from doctrine §7 respected
+throughout — the register here is "tends," "the current best-attested," "open," never a terminus
+word.
 
 ---
 
-## Backlog (one-liners)
+## Workstream A — Understand
 
-5. **Context-reflex overlay docking** — ✅ **DONE 2026-06-28** (chose **auto-dim-on-overlap**). The
-   reflex floated absolute top-left over every board and could occlude a left-heavy/frame-filling
-   drawing. Now: when the open panel overlaps the drawn extent (`.svg-pan-zoom_viewport` rect) it
-   recedes to a faint "Context" chip and its body becomes click-through, so the picture shows and
-   nothing under it is unreachable; hover/focus restores it. Self-contained in
-   `web_viewer/js/context-reflex.js` (all three modes); zero regression when there's no overlap.
+The foundation sub-project itself: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
+(the doctrine doc), the minimal ripple set into [GLOSSARY.md](GLOSSARY.md),
+[THE_KYTOS.md](THE_KYTOS.md), [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md), and
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md), and this rewritten ROADMAP.
+**Shipped when this commit lands.**
 
-6. **NL→logic fast-follows** — DESIGNED. (a) Multi-candidate disambiguation (G1,G2,G3 ranked *by
-   verdict* — the distinctively-Peircean "disambiguate by interpretation, not parser confidence").
-   (b) LOW-warrant `/import/admit` persistence of a tested proposal carrying its NL+LLM provenance.
+What remains in this workstream is not a build — it is a set of rulings only the author can make.
+The doctrine doc carries eleven `[flagged]` assistant elaborations, gathered as a numbered list in
+its own [§11 — Open verdicts](THE_COMMENS_AND_THE_COMMUNITY.md#11--open-verdicts)
+**(author decision — ruled later, per the doctrine doc's own OQ3)**. Two carried backlog items
+belong here too (see Carried-forward → Understand, below): B-full (#13) and the Departure-I
+reflexive-diagonal thread (#12).
 
-7. **Endoporeutic Game deferred frontier** — PARTIAL→. Fuller semantic-layer integration into the
-   contest UX and a dynamically-learned model M (the V1 arena is hot-seat). See
-   [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
+## Workstream B — Share
 
-8. **Tension layout frontier** — FRONTIER. Branch points, multiple threads, non-monotone ligatures
-   (single collinear threads done, 10/11). See [TENSION_LAYOUT.md](TENSION_LAYOUT.md) §9–§10.
+The documentation sweep plus the first publication choice — the project's membrane pushed
+outward, per doctrine §10.
 
-9. **Layout-perf frontier** — PARTIAL. Super-linear layout beyond ~127 axioms; the 130-cut COLORE
-   density closure imports as data but stays undrawn. The display-side answer is the adaptive-scope /
-   semantic-zoom "map app" lens. See [ADAPTIVE_SCOPE_VIEWER.md](ADAPTIVE_SCOPE_VIEWER.md).
+**The sweep (next action, no single owner-decision blocks starting):**
+- One canonical phrasing per concept across the docs the doctrine arc touched only glancingly —
+  README, [CAPABILITY_MAP.md](CAPABILITY_MAP.md), [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md), the
+  membrane docs ([AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md),
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)) — none of which were
+  harmonized to UoD/commens vocabulary by workstream A (that harmonization was explicitly routed
+  here, not done in A).
+- The overclaim hunt, including the "final"-family ban (doctrine §7) applied corpus-wide, not
+  only in the doctrine doc itself.
+- Quarto-book (`_quarto.yml`) membership decisions, including whether/where
+  [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) joins the book (deferred by
+  workstream A on purpose).
+- A readability pass over the whole spine with an outside reader's eye — the sweep's purpose is
+  **legibility** (takeable-up by someone who wasn't in the room), not tidiness for its own sake.
 
-10. **Diagram↔narration — next falsifications** — FRONTIER. The scorer is a prototype (8 chains/35
-    steps). Next: a narration corpus (inter-narrator agreement), an LLM bridge (free narration), macro
-    sub-step expansion (the D4 squash residual), metric-3 chapter-boundary on a branching DAG. See
-    [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. *Then consider surfacing in-view
-    findings in the viewer.*
+**The publication choice.** Five candidate theses, carried as candidates only — **which one is
+first is (author decision)**, not made here:
 
-11. **Schema-drawing / §3.3 for the schema node** — FRONTIER. The graph-with-holes schema layer is
-    built; drawing it and attesting its correspondence is the open edge (the math track is otherwise
-    complete).
+| # | Candidate | What it argues | Venue note |
+|---|---|---|---|
+| i | §3.3 correspondence | The inerrant linear↔graphical correspondence discipline (totality/injectivity, containment, incidence, transformation invariance) as a general contract for diagram calculi, not only for EGs | A diagrammatic-reasoning or formal-methods venue (e.g. *Diagrams*, or a proof-theory/logic journal covering diagrammatic calculi) |
+| ii | Modality without Gamma | The diachronic branching DAG read as a Kripke frame with no modal mark in the ink — [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) | A modal-logic or philosophy-of-logic journal, or a Peirce-studies venue (e.g. *Transactions of the Charles S. Peirce Society*) |
+| iii | Conservative mention-ascent ("thirdness kept") | The B-min quotation crossing as a scoped, conservative slice of Gamma — expressive power unchanged (Dau Ch. 26's reduction), iconicity the only honest motive to cross at all | The same Peirce-studies venue as (ii), or a higher-order-logic venue interested in conservative extensions |
+| iv | The EPG as live model-development architecture | `agon_evolution.py` → `agon_llm.py` → `agon_metalearning.py` → the membranes → `live_runner.py` as a working automated-theory-revision loop over live sources | A knowledge-representation or multi-agent-systems venue (e.g. KR), or the belief-revision (AGM) community directly |
+| v | The measure and the kytos | [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) + [THE_KYTOS.md](THE_KYTOS.md) as a fractal, vector-valued (never scalar-over-agents) knowledge measure, with the West correspondence as the named quantitative frontier | A cognitive-science or complexity-science venue interested in scaling laws applied to knowledge/institution measures |
 
-12. **Doctrine: Departure I reflexive-diagonal argument** — the one open joint held "at parity" in
-    [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md). A standing intellectual thread, not a build.
+**Next action:** hold the sweep as a standing docket; surface the five candidates to the author
+for the first-paper ruling once the sweep has stabilized the vocabulary each draft would need.
 
-17. **Directed engagement (the action arm)** — DESIGNED 2026-07-17, staged in
-    [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3: rung 0
-    (irritation pole: tropism + docket) is built; **rung 1** = the economy-of-research ordering
-    of reaches (metalearning frontier → docket feedback; learning-progress scoring; musement
-    pole; horizon as retained register) awaits authorization post-RUN-12; **rung 2** (mutual
-    co-evolution — pushing back on the source) needs its own outward-facing ethics pass first.
-    Concordance survey (active inference, cybernetics, Game of Life, biosemiotics, AGM/TMS) in
-    [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
+## Workstream C — Run
 
----
+Strengthening the membrane mechanism itself — the mechanism the doctrine doc's §1 defines and §4
+splits into S (interior) and A (interaction).
 
-## Chosen next — tidy-up tracks (author-set 2026-06-29, paused before reference-node increment 2)
+- **Settle UoD-per-instance operationally.** The doctrine doc's per-kytos UoD definition (§1) is
+  currently a doctrinal statement more than a code-level guarantee everywhere it should hold;
+  make it code-real across the loops and membranes that currently carry M more loosely.
+  **Next action:** an audit of every place a "model" is carried (`world_scroll.py`'s residence,
+  the live membranes, the corpus UoDs) against the doctrine's per-instance/internalized/attested
+  definition, flagging any gap.
+- **Unify import/export into one membrane seam.** The codebase already gestures at this —
+  `ImportExportManager` is sketched but not implemented
+  ([IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md) §36.6, marked PLANNED API), and the
+  2026-07-20 graphify run over the codebase surfaced it again as the natural single seam for what
+  is currently split across `/import`, `export_service`, and the individual format
+  parsers/generators. **Next action:** design the real seam (author decision on scope — whether it
+  subsumes the live-source membranes too, or stays a linear-format doorway).
+- **S/A instrumentation symmetry.** S (the interior) is already well-instrumented (|M|, the K3
+  materialization ratio, the peel's cost curve, decay TTL, admission/retraction rates). A (the
+  membrane) is the "missing fifth," younger and thinner-instrumented — import/export throughput,
+  proposal/doubt rate, horizon size, severity-weighted yield exist individually but are not read
+  together the way S's numbers are. **Next action:** an A-side dashboard/digest parallel to the
+  existing S-side digests, so poise (doctrine §4) can be read from data rather than inferred.
+- **Payoff.** Once S and A are both legible per-instance, the Q-B apportionment / West experiment
+  (one big Arisbe vs. distributed kytē + a coordinator, doctrine §5) becomes actually runnable —
+  it needs measurable S, measurable A, and a measurable allocation between them on *multiple*
+  instances at once, which this workstream is what supplies.
+- **Gate:** any push-back-on-source behavior (directed engagement rung 2, #17 below) needs its own
+  outward-facing ethics pass **before** it ships, independent of the rest of this workstream.
 
-The reference / transclusion node reached the **second-order frontier** (increment 1 shipped; increment 2 =
-the cross-UoD use/mention fork, an author decision — #3). The author chose to **pause there** and tidy a
-few things first:
+## Workstream D — Use
 
-14. **LaTeX export path** — for the **Peirce Edition Project** use case. **Phase 1 SHIPPED (2026-06-29).**
-    A geometric Dau/Sowa TikZ exporter already existed; the new **authentic-Peirce** path reimplements the
-    *function* of Jukka Nikulainen's `egpeirce.sty` (oval cuts, scrolls, heavy lines of identity, hooks,
-    argument order) in **pure TikZ that compiles with plain pdflatex** — no PSTricks. Two improvements over
-    egpeirce: it is **wedded to the EGI** (drives off the §3.3-attested `LayoutDTO`, so the printed picture
-    provably denotes the graph, every element id traced in a comment) and it is **delta-faithful** ("export
-    what you *adjusted* to see" — regime-3 nudges thread through, the PEP transcribe-then-tune path).
-    Deliverables: `src/tex/arisbe-eg.sty` (a modern, hand-authorable semantic macro package — the egpeirce
-    replacement), `src/peirce_latex.py` (the exporter), `peirce-tikz` format in `export_service`, and
-    `tests/test_peirce_latex.py` (corpus totality+traceability over all 29 UoDs, reader-faithfulness on a
-    representative subset + a falsifier, **actual pdflatex compilation** of a curated handful, the PEP delta
-    path). **Phase 2 SHIPPED (2026-06-29), three of four items:** (a) the **iconic self-continuing scroll
-    glyph** — `~[A ~[B]]` drawn as the outer cut with a downward neck that crosses itself and wraps the inner
-    oval; opt-in (`scroll_glyph=`), **ink-only** so `cut_bounds`/§3.3/`read_drawing` are untouched (like the
-    hand-drawn waver and bridges); (b) **worked-chain → multi-figure LaTeX document** (`export_peirce_chain` +
-    `POST /export/chain` + `export_peirce_chain_document`) — a reasoning episode in print, one captioned figure
-    per step; (c) **HTTP route deltas** — `ExportRequest.deltas` + `scroll_glyph` thread regime-3 adjustments
-    and the glyph through `/export`. (d) the **drawing→EGI learning loop** (`layout_learning.py`):
-    `arrangement_deltas` recovers the regime-3 deltas between Arisbe's canonical layout and a human-drawn
-    arrangement of the same EGI (the inverse of `apply_deltas`), and `generalize_arrangement` crystallises them
-    onto untouched siblings via the existing style ladder — so a replica drawn in Peirce's hand teaches the
-    Peirce-style spec. **#14 is now complete.** Only a thin UI surface remains optional (an Ergasterion route that
-    feeds the freeform canvas's drawn DTO into the loop, and a session-export convenience route).
+The people-facing edge. **First deliverable: the issue inventory** — the author's own list and/or
+a fresh persona / [UI_TRANSPARENCY_CHARTER.md](UI_TRANSPARENCY_CHARTER.md) audit, both feeding one
+docket rather than two competing ones. **Next action:** run that audit (a subagent task, not a
+design decision) and produce the docket.
 
-15. **Start-up guidance for new users — layered + tailored by expertise — ✅ DONE (2026-06-29).**
-    [GETTING_STARTED.md](GETTING_STARTED.md): a written, role-aware on-ramp that assumes *no* math/logic
-    background (a shared "five minutes" — run it, the three modes, your first graph, the *attest
-    correspondence not truth* discipline), then **branches** to a door per reader — newcomer, **ontologist**,
-    **logician**, **mathematician**, **Peirce scholar** — each with *what to read first / do first / your
-    frontier*, and a one-screen map. Complements the shipped in-app primer / Field Guide (newcomer on-ramp #4)
-    rather than restating; audience-layered the way `VISION_AND_SCOPE` / `GLOSSARY` already are. Linked from the
-    spine front-matter + GLOSSARY reading order + CLAUDE.md.
-
-16. **External-sources & import documentation — ✅ DONE (2026-06-29).**
-    [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md): the consolidating map of how outside
-    information gets *in* — the low-warrant **floor** (attest correspondence, not truth; no fabricated
-    citation), the **two families** (formal files: OWL/RDF/SUO-KIF/CLIF/COLORE → CLIF → EGI translators wrapped
-    as `kind=ontology` UoDs, with the honest skip-report and function-relationalisation; human-read material:
-    the `/import` linear-form doorway + NL→logic + the future reading desk), the **tool/module map**, the
-    loop-closing *import-as-M* theorem query, and the forward edges. Pulls together what was scattered across
-    [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md),
-    [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md), the OWL/RDF importers, and `cl_import_resolver`.
+Once the docket exists, fixes are tiered under the Charter's seven testable principles
+(orientation · one-word-one-way · recognition-never-recall · the-picture-never-lies ·
+prevent-don't-punish · error language · help ≤1 hover/2 clicks) — the same discipline every prior
+UI docket in this project has used. Several carried items below (#6, #7, #8, #10, #11) are UX
+frontiers that the issue inventory should re-triage rather than resequence blind.
 
 ---
 
-## Long horizon — the named research frontier
+## Carried-forward items
 
-13. **Second-order logic about the graphs themselves** — graphs of graphs, abstraction, predication of
-    qualities. Explicitly named (in [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)) as *the*
-    real frontier — **not** modal marks, **not** a Gamma tincture. Toe-in-the-water already exists:
-    the φ-hole / schema node (`schema.py`) and the math fixtures track. This is the direction Arisbe
-    grows *toward*, once the near-term spine is settled. **Mapped (2026-07-08) in
-    [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md):** how far Peirce's Gamma-as-second-order
-    leads, where his manuscripts trail off (comprehension / paradox control), and the governing rule
-    that the crossing must be *drawn* (§3.3 one order up) — with a recommended sortal layer completing
-    Peirce's own tinctures, and the departure marked. **Prep begun (2026-07-10) — the frontier
-    de-risked the way increment 1 was:** the correspondence contract one order up is written
-    ([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md), P1–P5 + the
-    law S1–S4), and a checker runs it on candidate quotations *without touching the protected core*
-    (`src/second_order_check.py` + `tests/test_second_order_check.py`, falsifiers biting; the paradox
-    floor S1 = dragon 9 drawn as an enclosure rule). **The crossing was decided and taken
-    (2026-07-16, [CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)):** the predicative
-    floor is doctrine, conservativity over the Dau core is the standing crossing invariant, and the
-    core opened exemplar-first — stage ⓪ (the quotation overlay) and stage ① (**B-min**, the
-    authorized core opening: sort-on-incidence + graph-valued area in the data model, the six rules
-    sort-preserving with the quotation boundary opaque, the committed dotted-oval convention, and
-    the second-order reader that recovers S3 off the drawing — CHECKED on the drawn exemplars) both
-    shipped 2026-07-15/16 (SECOND_ORDER_CORE_OPENING §7's build notes). What remains on this ladder
-    is **② B-full**: a native graph-valued element kind (ν hooks a blank, P3′) with committed render
-    conventions (P5′), following B-min per verdict B5 — **but see SECOND_ORDER_CORE_OPENING §8
-    (prep, 2026-07-17): the memo's stated hinge ("the hinge is S3, and only S3") was *discharged at
-    B-min*, so B-full awaits a freshly stated marginal value. The prep also finds that B-full is not
-    additive the way B-min was (it widens ν — 52 modules / 252 sites — so A3 stops being a
-    default-empty argument), and that the crossing's own mandate, "graphs about graphs", has a
-    cheaper route: quotation-in-quotation is a *validation* choice, not a model limit. Four open
-    questions (B-full-1…4) carried in CURRENT_PLAN item -5.**
+Every still-live item from the pre-2026-07-20 backlog, kept under its **old number** for
+traceability, slotted under the workstream it now belongs to.
+
+### Understand
+
+- **#12 — Doctrine: Departure I reflexive-diagonal argument.** The one open joint held "at parity"
+  in [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md). A standing intellectual thread, not
+  a build. **(author decision — open, no forcing function)**.
+- **#13 — B-full, the second-order core opening's next rung.** Stage ⓪ (the quotation overlay)
+  and stage ① (B-min, the authorized core opening) both shipped 2026-07-15/16; B-full — a native
+  graph-valued element kind, widening ν across ~52 modules/252 sites, not additive the way B-min
+  was — needs a **freshly stated marginal value** before it is authorized at all (the memo's
+  original stated hinge, S3, was discharged at B-min). Four open questions (B-full-1…4) are
+  carried in `CURRENT_PLAN.md`. **(author decision, held — awaiting a fresh marginal value)**.
+
+### Share
+
+*(No carried numbered items — workstream B's own docket, above, is the live work here.)*
+
+### Run
+
+- **#3 — Cross-UoD reference/transclusion, increment 2 (the use/mention fork).** Increment 1
+  (intra-UoD) shipped 2026-06-29. Increment 2 is not "more reference" but a fork per
+  [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) — **use** (governed import via the
+  scroll `~[ B ~[ G ] ]`, low/attributed warrant, never a transparent merge of universes) vs.
+  **mention** (second-order naming — the B-min quotation-overlay path already discharged this
+  half, see Discharged tail). **The *use* half is (author decision, held)** on the second-order
+  frontier; it belongs to Run because a governed cross-UoD import is exactly the membrane-seam
+  work this workstream is doing anyway.
+- **#9 — Layout-perf frontier.** Super-linear layout cost beyond ~127 axioms; the 130-cut COLORE
+  density closure imports as data but stays undrawn. Belongs to Run because it is an S-side
+  (interior) scaling limit directly relevant to the Q-B/West experiment's cost curves. The
+  display-side mitigation (adaptive-scope / semantic-zoom) is tracked separately in
+  [ADAPTIVE_SCOPE_VIEWER.md](ADAPTIVE_SCOPE_VIEWER.md). **Next action:** none scheduled; re-triage
+  alongside the Q-B experiment design.
+- **#17 — Directed engagement, rung 2 (mutual co-evolution / pushing back on the source).**
+  Staged in [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3: rung
+  0 (tropism + docket) is built; rung 1 (the economy-of-research ordering of reaches) shipped
+  2026-07-17 (`attention_economy.py` + `arithmetic_world.py`, S1–S5 held). Rung 2 needs its own
+  outward-facing ethics pass before any push-back-on-source behavior ships — **the Run workstream's
+  own gate, above.** **(author decision — the ethics pass itself, not yet scheduled)**.
+- **Vault V2a.2, items 1 and 3.** Item 2 (banking an answer via quotation) shipped 2026-07-18/19.
+  Items 1 (multi-paragraph answers) and 3 (real NL interpretation of an answer's content) are
+  deferred on a **timing rider: RUN 13's first answered note** — they need a real answered note to
+  design against, not a fixture. **Next action:** wait on RUN 13 (Standing runs, below), then
+  design items 1+3 against what the author actually wrote back.
+
+### Use
+
+- **#6 — NL→logic fast-follows.** (a) Multi-candidate disambiguation (G1/G2/G3 ranked *by
+  verdict*, not parser confidence — the distinctively-Peircean move) is a UX design task; (b)
+  LOW-warrant `/import/admit` persistence of a tested proposal carrying its NL+LLM provenance
+  touches the Run workstream's import/export seam and should be sequenced after that seam exists
+  rather than against today's split doorway. **Next action:** (a) is buildable now; (b) waits on
+  Run's unified seam.
+- **#7 — Endoporeutic Game contest-UX frontier.** Fuller semantic-layer integration into the
+  contest UX, and a dynamically-learned model M in the hot-seat arena (today's V1 arena is
+  hot-seat only). See [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md). The UX half sits in Use; the
+  "dynamically-learned M" half is really Run's automated-EPG arc reaching into the contest board —
+  **re-triage once the issue inventory exists.**
+- **#8 — Tension layout frontier.** Branch points, multiple threads, non-monotone ligatures
+  (single collinear threads done, 10/11). See [TENSION_LAYOUT.md](TENSION_LAYOUT.md) §9–§10.
+  **Next action:** none scheduled; a Charter-relevant ("the picture never lies") re-triage
+  candidate for the issue inventory.
+- **#10 — Diagram↔narration, next falsifications.** The scorer is a prototype (8 chains/35 steps).
+  Next: a narration corpus (inter-narrator agreement), an LLM bridge (free narration), macro
+  sub-step expansion, metric-3 chapter-boundary on a branching DAG. See
+  [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10. **Next action:** none scheduled;
+  candidate for the issue inventory's docket.
+- **#11 — Schema-drawing / §3.3 for the schema node.** The graph-with-holes schema layer is built;
+  drawing it and attesting its correspondence is the open edge (the math track is otherwise
+  complete). **Next action:** none scheduled; candidate for the issue inventory's docket.
+- **Tutor loop (its own note, cross-cutting Use).** Designed 2026-07-17
+  ([TUTOR_LOOP.md](TUTOR_LOOP.md)): the attention socket pointed at a human learner, a
+  learner-ledger (K1–K4 per skill atom, never a scalar rank or access gate), the EPG as tutorial
+  protocol, staged T0 scripted-learner → T1 author → T2 neophyte with TS1–TS5 pre-registered.
+  **Design complete; build unauthorized. (author decision — placement/authorization, held per the
+  design doc's own open decisions in its §7.)**
 
 ---
 
-*Discharged tracks (for the record):* the freeform composition arc (steps 1–4); fold-to-define
-(build A); the warrant-gradient / context-reflex / correspondence-chord / dragons UX threads; the
-FOLIO/DLCore coverage levers; the OWL/RDF import breadth; the modality-without-Gamma and level-zero
-doctrine passes; the web-presentation fidelity audit (2026-06-26). Full history lives in
-`CURRENT_PLAN.md` and the project memory.
+## Discharged tail
+
+Done items, one line each. Full build history lives in `CURRENT_PLAN.md` and the project memory.
+
+- **#1 — Protected-core question.** Decision taken & executed 2026-06-27 (17 → 14 modules; the
+  three §3.3 enforcers added, the linear parsers/generators trimmed).
+- **#2 — Render-M UI.** Ground/legend + relevant-neighborhood M-render shipped 2026-06-28.
+- **#4 — Newcomer/EGIF on-ramp.** Stages 1 + 2(a) + 2(b) all shipped 2026-06-28 (propose-vs-model
+  split, the plain-English NL door, the guided primer).
+- **#5 — Context-reflex overlay docking.** Shipped 2026-06-28 (auto-dim-on-overlap).
+- **#14 — LaTeX export path.** Complete 2026-06-29 (the authentic-Peirce TikZ exporter, the
+  iconic scroll glyph, the worked-chain document, the drawing→EGI learning loop).
+- **#15 — Start-up guidance for new users.** [GETTING_STARTED.md](GETTING_STARTED.md) done
+  2026-06-29.
+- **#16 — External-sources & import documentation.**
+  [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md) done 2026-06-29.
+- **Mention-ascent, stages ⓪+①.** The quotation overlay (stage ⓪) and B-min (stage ①, the
+  authorized core opening: sort/quotation maps, all six rules sort-preserving, the committed
+  drawn convention, S3 checked off the drawing) both shipped 2026-07-15/16
+  ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)). B-full carried forward as #13,
+  above.
+- **The automated-EPG arc.** `agon_evolution.py` (the Agon as engine of change) →
+  `agon_llm.py` (the three LLM roles under an incorruptible mechanical referee) →
+  `agon_metalearning.py` (the game studying its own resolution principles) → the membranes
+  (`discourse_membrane.py`, `resolving_membrane.py`, `wiki_dispute_membrane.py`) →
+  `live_runner.py` (bounded, paced, checkpointed live play) → the live sources
+  (`wikidata_source.py`, the weather trilogy runs 7–11, `sports_source.py` / RUN 12). See
+  [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) and
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+- **The vault arc, V0 → V2a.2 item 2.** V0 (the metadata membrane, `vault_world.py` +
+  `probe_feed.py`) built + pushed 2026-07-18; V2a.1 (the oracle-notes loop, `oracle_notes.py`)
+  built 2026-07-18; V2a.2 item 2 (banking an answer via quotation) built 2026-07-18/19. Items 1+3
+  carried forward under Run, above. RUN 13 (Standing runs, below) is this arc live against the
+  real vault.
+- **The measure/kytos/tutor-design pass.** [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md)
+  ratified + K3 (materialization ratio) built 2026-07-17; [THE_KYTOS.md](THE_KYTOS.md) ratified
+  2026-07-19; [TUTOR_LOOP.md](TUTOR_LOOP.md) designed (carried forward, unauthorized, under Use
+  above).
+- **Pre-existing discharged tracks** (carried forward unchanged from the 2026-06-27
+  consolidation, for the record): the freeform composition arc (steps 1–4); fold-to-define; the
+  warrant-gradient / context-reflex / correspondence-chord / dragons UX threads; the FOLIO/DLCore
+  coverage levers; the OWL/RDF import breadth; the modality-without-Gamma and level-zero doctrine
+  passes; the web-presentation fidelity audit (2026-06-26).
+
+---
+
+## Standing runs
+
+A section the pre-2026-07-20 ROADMAP lacked — the live/recently-closed automated runs, tracked
+here rather than only in `runs/`.
+
+- **RUN 13 — in flight.** The vault cycle, World #2 (the author according to Arisbe): the P2¹³
+  vault oracle loop is running against the real vault, its legible-questions comparator instrument
+  (docket-selected vs. template-random, author-rated) **on by default**. See
+  [runs/RUN_13_LOG.md](../runs/RUN_13_LOG.md) for the pre-registered priors (P1¹³–P5¹³) and the
+  findings recorded so far (F1¹³/F2¹³/F3¹³, all fixed same-day). Disposal against the priors is
+  the author's, in due course.
+- **RUN 12 — disposed 2026-07-20.** The sports (MLB) resolving membrane, closed by author STOP
+  after 359 rounds (300 picks raised, 215 resolved). `select_best` **did discriminate** among the
+  five rival arms — final standings: odds +8 net / 0.633 acc, home +6 / 0.607, naive +1 / 0.667,
+  cal −1 / 0.484, strong −3 / 0.448, with the leader flipping home↔odds across the run rather than
+  being fixed from the start. See [runs/RUN_12_LOG.md](../runs/RUN_12_LOG.md) for the full
+  per-prior evidence (P1¹²–P5¹²) including the two mid-run operational findings (the All-Star-break
+  thin-data leg, the decay-refusal crash-loop already fixed on `main` ahead of the live evidence).
+  **The disposal ruling against the pre-registered priors is the author's** — this ROADMAP records
+  the run as closed and the data as landed, not any particular disposition of the priors.
