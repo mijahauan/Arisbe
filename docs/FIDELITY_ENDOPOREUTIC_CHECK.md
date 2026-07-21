@@ -60,6 +60,12 @@ Pietarinen's reconstruction has five load-bearing parts:
    for the Graphist — in Peirce's own terms "a habit … of a tolerable stable
    nature" (MS 280: 30). The players share **common knowledge of the universe of
    discourse** — a common ground without which the discoursing could not proceed.
+   (This Pietarinen restatement is the **scholarly citation** behind Arisbe's own
+   settled two-player account; read
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3 as the canonical
+   frame — Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no referee, the
+   Agonothetes not a player but the risked fate-selector. The citation is not contradicted:
+   §3 names by *devotion* what Pietarinen names by *game role*.)
 4. **Meaning as consequences.** "The meaning of any graph-instance is the
    meaning of the sum total or aggregate of all the propositions which that
    graph-instance enables the interpreter to scribe" (MS 280: 35) — explicitly

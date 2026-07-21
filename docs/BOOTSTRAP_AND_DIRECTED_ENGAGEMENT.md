@@ -285,6 +285,15 @@ The author's proposal: consider Arisbe a proposition in a wider Endoporeutic Gam
 develop and refine against the resistance of a more generic Grapheus — the world in which
 Arisbe resides.
 
+> **Reconciliation + open author-call ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
+> §3).** Read this project-scale "more generic Grapheus" as **model-of, never instance-of** (§3): the outer
+> framing borrows the two-player picture (Arisbe as proposal-side, the world as the standing Model-M-side)
+> as a *model* of inquiry carried within the project's own process — it does not make the project an
+> instance of the institution of inquiry, which is a community-level emergent (§6). **Open author-call,
+> flagged, not decided here:** does the outer, project-vs-world game genuinely *lack a judge* (no
+> Agonothetes / fate-selector at that scale), or is the judging function merely diffused into "the record
+> disposes"? Left for an author ruling.
+
 **The licence, and its conditions.** This walks through a door the Fidelity examinations
 deliberately left open. The corollary to
 [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) (§"Corollary — the larger game

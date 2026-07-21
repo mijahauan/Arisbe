@@ -696,6 +696,12 @@ Everything happens within one **Universe of Discourse** ([UoD](GLOSSARY.md#uod))
 than one domain model may exist. The Graphist and Grapheus agree on a
 particular reference model M and a proposed graph G to interpret against it.
 
+> **Who chooses M — open author-call.** The settled two-player account
+> ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3: Graphist = proposal-side,
+> Grapheus = Model-M-side, binary outcome, no referee) does **not** fix *who selects which M*. The corpus
+> carries divergent attributions ("the Graphist and Grapheus agree on M" here; DOMAIN_ORACLE_AND_M.md §4
+> "an Agonothetes/Grapheus act"). Flagged for an author ruling, not decided here.
+
 The interpretive frame — the structure the game will unwind — is:
 
 ```
@@ -2112,8 +2118,13 @@ character. The post-game negotiation (Part II) connects the formal
 game to Peirce's broader theory of inquiry:
 
 - **Belief fixation**: The game outcome fixes or disturbs belief
-- **Community of inquiry**: The Agonothetes represents the community's standards
-  (the Commens — the community that realizes interpretation)
+- **Community of inquiry**: The Agonothetes *draws on* community-level standards
+  when it selects a fate for the outcome — it does **not** *represent* or *constitute*
+  the **commens**. The commens is the un-possessed, participation-sustained outside; nothing
+  inside one process (the Agonothetes included) can be it. Conflating the in-UoD Agonothetes
+  with the commens is exactly the category-mistake
+  [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §1 warns against; the
+  Agonothetes brings the episode into a *posture toward* the commens (§3), never represents it.
 - **Fallibilism**: Even "proven" results may be revised (case 2b)
 - **Growth of knowledge**: Independent proposals (case 3) are the engine of
   discovery — M develops as Graphist and Grapheus consider new graphs

@@ -138,6 +138,13 @@ neighborhood radius 2, this fragment asserted-complete."* Recorded, warranted,
 contestable. Relevance *is* a judgment; the honest place for it is owned by
 someone and open to challenge, not buried in a config file.
 
+> **Who chooses M — open author-call (canonical role account:
+> [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).** §3 fixes the two-player
+> account (Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no referee) but does **not**
+> settle *who selects which M* the round tests against. The corpus carries divergent attributions — here
+> "an Agonothetes/Grapheus act"; ENDOPOREUTIC_GAME_GUIDE.md §"What the Agonothetes Does" has "the Graphist
+> and Grapheus agree on M." This attribution is **flagged for an author ruling**, not decided here.
+
 It composes with the warrant gradient: M enters as **low-warrant backdrop** —
 not "true," merely "available to map against." Nothing imported pollutes the
 corpus; the game's **verdict** is what confers warrant. *Attest correspondence,

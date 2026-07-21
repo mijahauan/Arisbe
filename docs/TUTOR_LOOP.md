@@ -90,7 +90,11 @@ The Endoporeutic Game as tutorial, three seats:
   the tutor models it (a level-4 act: knowledge about this learner's
   knowledge-formation) but never overwrites it.
 - **The calculus as referee** — `same_graph` for the verdict, `legible_diff` for the
-  *how-it-differs*, in EG vocabulary. This is what makes teacher fallibility safe: the
+  *how-it-differs*, in EG vocabulary. (Under
+  [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3, "referee" here names the
+  mechanical **decision of the outcome** — `same_graph`/`legible_diff` — not a conduct-referee of
+  legality: the calculus decides the outcome, and there is no move-by-move judge of the players' moves.)
+  This is what makes teacher fallibility safe: the
   learner can win, and the referee doesn't care who drew what (the method-gate; every
   attempt owed its uptake — the diff report *is* the uptake, never withheld).
 
