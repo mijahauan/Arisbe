@@ -1,6 +1,6 @@
 # Jargon & Word-Choice Audit (for review)
 
-**Status:** proposal awaiting author sign-off (2026-06-30). **Policy chosen:** *conservative —
+**Status:** APPLIED (2026-06-30). **Policy chosen:** *conservative —
 keep + introduce.* Keep proper technical terms **and** load-bearing project coinages, but
 **introduce/gloss each on first use** (a plain phrase + a Glossary link); **replace only the
 gratuitous idiosyncrasies** with plainer terms. `peel` is kept but introduced on first use.
@@ -99,12 +99,12 @@ passage using "peel" can be supplied, cite that too.
   term links to its Glossary anchor on first use, opaque ones glossed where not already explained.
 - All other audit rows approved as written.
 
-## After sign-off
+## After sign-off (superseded — all applied, see "Resolved decisions" above)
 
-1. Add Glossary entries + anchors for the ⊕ terms (Agonothetes, recto, verso, tincture, floor,
-   membrane, style ladder, teridentity).
-2. First-use introduce/gloss the Class A + B terms (Glossary-linked), per chapter, like the
-   abbreviation pass (parallel agents, strict spec).
-3. Replace the Class C terms with the approved plainer wording.
-4. Add the "How to read this" note to ADVERSARIAL_EXAMINATION (if approved).
-5. Re-render + verify; commit.
+~~1. Add Glossary entries + anchors for the ⊕ terms (Agonothetes, recto, verso, tincture, floor,
+   membrane, style ladder, teridentity).~~
+~~2. First-use introduce/gloss the Class A + B terms (Glossary-linked), per chapter, like the
+   abbreviation pass (parallel agents, strict spec).~~
+~~3. Replace the Class C terms with the approved plainer wording.~~
+~~4. Add the "How to read this" note to ADVERSARIAL_EXAMINATION (if approved).~~
+~~5. Re-render + verify; commit.~~

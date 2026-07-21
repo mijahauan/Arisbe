@@ -543,7 +543,7 @@ interpretation register offers both.
   variants) under `tomos/`; the source of truth and the round-trip test bed.
 - **Regime-3 / presentation_ops** — the algebra of pure-appearance edits (move/reshape/reroute) that
   change the drawing but not the logic; boundary crossings raise `Regime3Violation`.
-- **Protected core** — the 17 modules a pre-commit guard locks against inadvertent change (see
+- **Protected core** — the 14 modules a pre-commit guard locks against inadvertent change (see
   [CAPABILITY_MAP.md](CAPABILITY_MAP.md) and [ROADMAP.md](ROADMAP.md) #1).
 - **Dragon** — a "here be dragons" pitfall in [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md);
   the drawable ones are challenge-mode targets.

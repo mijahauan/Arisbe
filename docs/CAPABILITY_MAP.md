@@ -7,7 +7,7 @@
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [ROADMAP.md](ROADMAP.md) ·
 > [GLOSSARY.md](GLOSSARY.md). Developer module map: [../CLAUDE.md](../CLAUDE.md).
 >
-> *Last consolidated: 2026-07-02.*
+> *Kept current — see individual row dates (latest: 2026-07-16).*
 
 **Status legend**
 - **SHIPPED** — working, with a passing test home.

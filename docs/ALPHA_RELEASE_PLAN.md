@@ -75,7 +75,7 @@ doc then retire · `RETIRE` = drop.
 |---|---|---|
 | PRODUCT_VISION.md | **MERGED → VISION_AND_SCOPE.md (done 2026-06-30)** | Superseded + partly stale (listed NL→logic as out-of-scope, but it ships). Replaced with a redirect stub; live code/doc refs repointed. |
 | CORPUS_AND_IMPORT_MODEL.md | **KEEP as DEV (revised)** | *Not* a merge after content review: EXTERNAL_SOURCES_AND_IMPORT is a summary that **depends on** it (points to its §5–§5.3 for COLORE wrinkles, worked landings, the import-kind taxonomy). The summary is the book chapter; this stays as the dev deep-doc behind it. |
-| ARISBE_FOR_SCHOLARS.md | **KEEP + promote to a BOOK chapter (revised)** | *Not* a merge after content review: it is a distinctive **scholarly invitation** (direct address to Pietarinen; the Agonothetes + mechanized-iconicity critique asks), not redundant on-ramp material. Added as a Part II chapter. (Minor staleness — `uv sync` missing `--extra web`, "~23 items" — to refresh later.) |
+| ARISBE_FOR_SCHOLARS.md | **KEEP + promote to a BOOK chapter (revised)** | *Not* a merge after content review: it is a distinctive **scholarly invitation** (direct address to Pietarinen; the Agonothetes + mechanized-iconicity critique asks), not redundant on-ramp material. Added as a Part II chapter. |
 
 ### → DEV (keep in repo, design-of-record; excluded from book)
 
@@ -107,8 +107,10 @@ DOCUMENTATION_REVIEW_PREP.md *(stale process doc)*
 - `derived/` — extracted text/summaries of the PDFs; dev-only.
 - `styles/`, `assets/`, `archived/` — leave in place; `archived/` is already the historical bin.
 
-**Tally (revised after content review):** ~31 BOOK (incl. ARISBE_FOR_SCHOLARS) · 1 MERGE
-(PRODUCT_VISION, done) · ~22 DEV (incl. CORPUS_AND_IMPORT_MODEL) · 7 ARCHIVE · 1 RETIRE.
+**Tally (point-in-time snapshot at alpha-close, 2026-07-02 — not a live count; see
+`docs/_quarto.yml` for the current book membership, which has since grown):** ~31 BOOK (incl.
+ARISBE_FOR_SCHOLARS) · 1 MERGE (PRODUCT_VISION, done) · ~22 DEV (incl. CORPUS_AND_IMPORT_MODEL)
+· 7 ARCHIVE · 1 RETIRE.
 
 ---
 
