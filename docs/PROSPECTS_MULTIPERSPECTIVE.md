@@ -17,7 +17,10 @@
 > service: check_egif / peel / apply_rule / validate_step / attest), **R2 shipped in its
 > contract half** (`docs/CORRESPONDENCE_CONTRACT.md` — the prover-agnostic §3.3 spec +
 > tomos dataset card, MIT), and the **G5 ops runbook** landed as `runs/OPERATIONS.md`.
-> **R4** remains open (an accessibility-polish thread is on the standing optional list).
+> **R4's core deliverable shipped 2026-07-07** (`src/accessible_projection.py` — the Organon
+> accessible lens: a traversable sheet→cut→area→ligature ARIA tree + spoken linear-form reading;
+> CAPABILITY_MAP.md marks it SHIPPED). Only an accessibility-polish residual remains open (on
+> the standing optional list).
 > The larger bets (R1/R5/R9) still wait on the named tensions; the rest of this menu is
 > undisposed.
 

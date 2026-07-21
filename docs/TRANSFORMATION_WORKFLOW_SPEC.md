@@ -1,6 +1,7 @@
 # Transformation Workflow Specification
 
-**Status:** reviewed design (2026-06-04), not yet implemented.
+**Status:** reviewed design (2026-06-04); all four build-order items complete (2026-06-06, §5
+below — "All four are now complete"). Left in its original design voice as the build record.
 **Scope:** how the Ergasterion (and later Agon) UI lets a user select the
 proper sub-graph — *including an empty space* — and carry out each of the
 six Dau transformation rules, with a *consistent* look-and-feel between

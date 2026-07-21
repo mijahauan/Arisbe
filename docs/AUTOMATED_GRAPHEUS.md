@@ -1,7 +1,10 @@
 # The Automated Grapheus — making Agon a dialogical contest
 
-**Status:** design-of-record (2026-06-12). Nothing built yet; this is the plan the next
-implementation session works from. Supersedes the "shape of the work" sketch in
+**Status:** BUILT (2026-06-12, same day as this design-of-record — `src/grapheus.py`, contest
+routes, frontend, and the increment-4 warrant step all shipped in commit `012b2af` and after;
+CAPABILITY_MAP.md marks the Automated Grapheus SHIPPED). The document below is left in its
+original design-of-record voice as the build record of what shipped; read it as historical
+plan-that-became-fact, not an open proposal. Supersedes the "shape of the work" sketch in
 `CURRENT_PLAN.md`'s ▶ NEXT SESSION block.
 
 **Read alongside:** `docs/ENDOPOREUTIC_GAME_GUIDE.md` (the two games, the triad),

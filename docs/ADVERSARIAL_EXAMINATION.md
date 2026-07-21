@@ -1757,6 +1757,12 @@ on — an un-suppressed re-ask slightly dilutes the instrument; (ii) the **P2-vs
 scheduling call** at RUN 13 launch (recorded in `RUN_13_LOG.md`) — which prior the first
 real questions note serves first.
 
+**Cluster E is also disposed, same commit — SUPERSEDED 2026-07-19:** the Conway's-Life
+"bounded plane" error and the requisite-variety inversion (Suspect 6, above) both landed in
+`24654b3`, alongside ①–⑫, across AUTOMATED_MODEL_DEVELOPMENT.md, CONTRIBUTION_AND_PRIOR_ART.md,
+and THE_KYTOS.md (see CONTRIBUTION_AND_PRIOR_ART.md's Cellular-automata and Cybernetics
+concordance entries for the corrected text).
+
 ## What the examination did not bring down
 
 For the record, charges that **withstood** in their strong forms: the literal

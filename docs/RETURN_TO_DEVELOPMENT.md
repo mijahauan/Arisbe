@@ -79,8 +79,11 @@ entry point for understanding any one module.
 
 ## Known follow-ups (don't re-discover these)
 
-- **Rule-reversibility and closure-idempotence property tests** are still
-  to be written (carried forward from issue #4 into issue #8).
+- **Rule-reversibility and closure-idempotence property tests are written and
+  passing** (`tests/test_properties_rule_reversibility.py`, issue #8, added
+  2026-05-29; the closure-idempotence class in
+  `tests/test_subgraph_closure_validation.py`). Issue #4/#8's item is closed;
+  no longer a follow-up.
 - **CI runs only a subset of the test suite** (see `.github/workflows/canonical.yml`).
   Full-suite-on-CI is a Phase 4 item.
 - **Three-mode UI (Organon/Ergasterion/Agon) is live** as web routes

@@ -221,8 +221,12 @@ when fed its own proposals (the loop generalises the hand-played exemplar).
 ## 9 · Deferred / open
 
 - The **open membrane** (Stage 1) and its viability — the real research question.
-- **Negotiation among reasoning agents** (LLM panel) vs deterministic policy-agents; how to
-  record a genuine *disagreement* in the DAG (branch per dissenting disposition?).
+- **Negotiation among reasoning agents** (LLM panel) vs deterministic policy-agents, and
+  recording a genuine *disagreement* in the DAG — shipped in `src/agon_llm.py`
+  (`LLMGrapheus`/`LLMAgonothetes`, the `panel.branch_votes` hook forking the DAG from the
+  pre-round state on irreducible disagreement); see the sibling doc's
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §5/§9 for the design and
+  `test_agon_llm.py` for the headline (a two-vote disagreement forks the DAG).
 - **Decay calibration** — what counts as "use", the threshold, and proving the floor (never
   erase the last support of a standing claim without a visible flip).
 - Whether **Conway's Life itself** is worth encoding as a closed object-level CA-in-EG demo,
