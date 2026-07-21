@@ -190,8 +190,12 @@ notations** and stays the same proposition everywhere.
 - **Modality needs no new mark.** □/◇ go to ordinary Beta quantifiers over an
   accessibility relation, and the diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) *is* that frame. *Gamma-as-modality
   is out of scope* on purpose. [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md).
-- **Frontier:** the automated **Grapheus** opponent and a learned dynamic M for the
-  contest register; the universal-generalization rule's Dau-native scaffold
+- **Frontier:** the 3-LLM-role automated Endoporeutic Game (`src/agon_llm.py` —
+  Graphist/Grapheus/Agonothetes under an incorruptible mechanical referee) and the
+  tropism/attention-economy work steering directed engagement (`src/attention_economy.py`);
+  see [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) for the shipped interpretation
+  register (peel/materialize/theory-query). The universal-generalization rule's Dau-native
+  scaffold is now built (`src/derived_rules.py`, `universal_generalization`)
   ([UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md](UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md)).
 
 ---
@@ -301,7 +305,7 @@ capability/test home of everything is [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
 |----------|-----------|----------|---------------|
 | **Newcomer** | [Field Guide](FIELD_GUIDE_AND_DRAGONS.md) | In-app primer → challenge mode | (none — just don't skip the dragons) |
 | **Ontologist** | [External sources & import](EXTERNAL_SOURCES_AND_IMPORT.md) | Import a file → ask a theorem in Agon | Manchester OWL; web import notation; layout at scale |
-| **Logician** | [The central contract](LINEAR_GRAPHICAL_CORRESPONDENCE.md) | Round-trip a form → build a chain | automated Grapheus; ∀-generalization scaffold |
+| **Logician** | [The central contract](LINEAR_GRAPHICAL_CORRESPONDENCE.md) | Round-trip a form → build a chain | the 3-LLM-role automated EPG |
 | **Mathematician** | [CLAUDE.md](../CLAUDE.md) module map | Read `egi_core_dau` + the correspondence layer | second-order logic about the graphs |
 | **Peirce scholar** | [For Scholars](ARISBE_FOR_SCHOLARS.md) | Step a worked proof in Organon → read the departures | the by-hand reading desk |
 

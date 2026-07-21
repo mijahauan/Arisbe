@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Generated**: 2026-07-07T14:55:42-05:00  
+**Last Generated**: 2026-07-19T14:43:52-05:00  
 **Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  
 **Module count**: 14
 
@@ -244,7 +244,7 @@ Constraints:
 
 **Methods**:
 
-- `__init__(self, V: FrozenSet[egi_core_dau.Vertex], E: FrozenSet[egi_core_dau.Edge], nu: frozendict.frozendict[str, typing.Tuple[str, ...]], sheet: str, Cut: FrozenSet[egi_core_dau.Cut], area: frozendict.frozendict[str, typing.FrozenSet[str]], rel: frozendict.frozendict[str, str], alphabet: Optional[ForwardRef('AlphabetDAU')] = None, rho: frozendict.frozendict[str, typing.Optional[str]] = frozendict.frozendict({}), variable_names: frozendict.frozendict[str, str] = frozendict.frozendict({}), hierarchical_index: Optional[ForwardRef('HierarchicalIndex')] = None, _vertex_map: frozendict.frozendict[str, egi_core_dau.Vertex] = None, _edge_map: frozendict.frozendict[str, egi_core_dau.Edge] = None, _cut_map: frozendict.frozendict[str, egi_core_dau.Cut] = None) -> None`
+- `__init__(self, V: FrozenSet[egi_core_dau.Vertex], E: FrozenSet[egi_core_dau.Edge], nu: frozendict.frozendict[str, typing.Tuple[str, ...]], sheet: str, Cut: FrozenSet[egi_core_dau.Cut], area: frozendict.frozendict[str, typing.FrozenSet[str]], rel: frozendict.frozendict[str, str], alphabet: Optional[ForwardRef('AlphabetDAU')] = None, rho: frozendict.frozendict[str, typing.Optional[str]] = frozendict.frozendict({}), variable_names: frozendict.frozendict[str, str] = frozendict.frozendict({}), sort: frozendict.frozendict[str, str] = frozendict.frozendict({}), quotation: frozendict.frozendict[str, str] = frozendict.frozendict({}), hierarchical_index: Optional[ForwardRef('HierarchicalIndex')] = None, _vertex_map: frozendict.frozendict[str, egi_core_dau.Vertex] = None, _edge_map: frozendict.frozendict[str, egi_core_dau.Edge] = None, _cut_map: frozendict.frozendict[str, egi_core_dau.Cut] = None) -> None`
   Initialize self.  See help(type(self)) for accurate signature.
 - `__post_init__(self)`
   Validate Dau's formal constraints and build derived mappings.
@@ -320,6 +320,12 @@ Constraints:
   Create new graph with additional cut.
 - `with_edge(self, edge: egi_core_dau.Edge, vertex_sequence: Tuple[str, ...], relation_name: str, context_id: str = None) -> 'RelationalGraphWithCuts'`
   Create new graph with additional edge.
+- `with_quotation(self, name_vertex: egi_core_dau.Vertex, *, context_id: str = None, sort_name: str = 'proposition', quotation_cut: Optional[egi_core_dau.Cut] = None) -> 'RelationalGraphWithCuts'`
+  Install a quotation: a NEW sorted name vertex + a NEW empty
+- `with_quotation_binding(self, vertex_id: str, cut_id: str, *, sort_name: Optional[str] = None) -> 'RelationalGraphWithCuts'`
+  Flag an EXISTING cut as the quotation area of an EXISTING vertex.
+- `with_sort(self, vertex_id: str, sort_name: str) -> 'RelationalGraphWithCuts'`
+  Create new graph with the given vertex carrying a second-order sort.
 - `with_vertex(self, vertex: egi_core_dau.Vertex) -> 'RelationalGraphWithCuts'`
   Create new graph with additional vertex in sheet of assertion.
 - `with_vertex_in_context(self, vertex: egi_core_dau.Vertex, context_id: str) -> 'RelationalGraphWithCuts'`
@@ -328,6 +334,8 @@ Constraints:
   Return a new graph with the given vertex relocated to a different context.
 - `without_element(self, element_id: str) -> 'RelationalGraphWithCuts'`
   Create new graph without specified element.
+- `without_quotation(self, cut_id: str) -> 'RelationalGraphWithCuts'`
+  Remove a quotation atomically: the flagged cut + its whole subtree
 
 #### `Vertex`
 

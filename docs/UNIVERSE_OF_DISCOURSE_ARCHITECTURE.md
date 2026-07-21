@@ -241,6 +241,15 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
 - **Method**: Read graph from outside-in (endoporeutic)
 - **Outcome**: If Graphist wins → assertion accepted into UoD
 
+> **Role framing (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> The Defender/Challenger labels above describe the *classical hot-seat transformation game*, where the
+> parties trade moves over a single asserted graph. In the settled account the two players are named by
+> what each is *devoted to*, not by attack/defence: the **Graphist** is the **proposal-side** (the new —
+> G, whether arrived from outside the membrane or thrown up by the kytos's own doubt) and the **Grapheus**
+> is the **Model-M-side** (the established, habituated ground). Their play yields a **binary outcome**,
+> decided mechanically by the peel; there is **no referee** of legality, because the calculus guarantees
+> every EGI→EGI move lawful and so there is nothing to referee. See §3 for the full ruling.
+
 **User Actions**:
 
 - Propose new fact (from Ergasterion)
@@ -657,33 +666,17 @@ tomos/
 
 ## Success Criteria
 
-### Conceptual Clarity
-- [ ] Users understand UoD as fundamental entity
-- [ ] Distinction between synchronic (EGI) and diachronic (UoD) is clear
-- [ ] Three-module architecture maps to user mental model
-
-### Data Model
-- [ ] `UniverseOfDiscourse` replaces `GraphEntity`
-- [ ] All states are `(EGI, LayoutDeltas)` pairs
-- [ ] History is complete audit trail
-- [ ] Static vs. dynamic UoDs clearly distinguished
-
-### Tomos Organization
-- [ ] Tomos organized around UoDs, not isolated EGIs
-- [ ] Efficient storage (JSONL streaming, snapshots)
-- [ ] Fast browsing (lightweight index)
-- [ ] Literature imports have clear identity
-
-### Module Functionality
-- [ ] **Organon**: Navigate history, export, browse corpus
-- [ ] **Ergasterion**: Isolated workspace, practice, promotion
-- [ ] **Agon**: Validate changes, record history, Endoporeutic Game
-
-### User Experience
-- [ ] Workflow matches research analogy (lab → conference → library)
-- [ ] Justification through game is intuitive
-- [ ] History timeline is explorable
-- [ ] Exports preserve provenance
+> **Status (2026-07-20):** this checklist was written alongside the original Phase 1–6 plan
+> above and, like it, predates the build. Per the doc's own §"Implementation Strategy" note,
+> the roadmap is largely realized — `UniverseOfDiscourse`, the `(EGI, LayoutDeltas)` state
+> pairs, UoD-centric `TomosService`, and all three web modes (Organon/Ergasterion/Agon) are
+> built and live. Rather than hand-check items whose truth has drifted since 2025-10-14, the
+> current, maintained answer to "does the system meet these criteria" is
+> [CAPABILITY_MAP.md](CAPABILITY_MAP.md) — in particular its "E. The three web modes" section
+> (Organon SHIPPED, Ergasterion SHIPPED, Agon PARTIAL-V1 with the interpretation register
+> SHIPPED separately) and "D. Diachronic / provenance". The categories below (Conceptual
+> Clarity / Data Model / Tomos Organization / Module Functionality / User Experience) are kept
+> as the original framing of *what* to check, not as a current pass/fail record.
 
 ---
 
@@ -735,6 +728,11 @@ This method embodies the **dialogical nature of inquiry** - truth emerges throug
 
 ## Conclusion
 
+> **Status (2025-10-14, original conclusion — superseded):** the paragraphs below are this
+> document's original closing argument, written before any of the three modes existed. They
+> are retained as the doc's historical framing, not a current capability claim. For what the
+> system actually does today, see [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
+
 By establishing the **Universe of Discourse** as the fundamental entity, Arisbe transcends the limitations of diagram editors and becomes a **true logical reasoning environment**.
 
 **Key Achievements**:
@@ -756,6 +754,7 @@ A system that honors Peirce's vision of "moving pictures of thought" - not merel
 
 ---
 
-**Last Updated**: 2025-10-14  
-**Status**: Foundational Architecture Document  
-**Next Steps**: Model refactoring and implementation
+**Written**: 2025-10-14 (original architecture proposal) · **Status note added**: 2026-06-08
+**Status**: Foundational Architecture Document — the plan is largely realized; see
+[CAPABILITY_MAP.md](CAPABILITY_MAP.md) for what is actually built today
+**Next Steps**: none tracked here — see [ROADMAP.md](ROADMAP.md)

@@ -104,6 +104,15 @@ labelled by disposition·mode, so an *evolved* trajectory is visualised for free
 Three roles, of which exactly one is non-mechanical. This separation is the crux of keeping
 the system sound while letting it surprise us.
 
+> **Bridging note (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> "The Skeptic" / "incorruptible referee" below names the **mechanical peel that decides the binary
+> outcome** against M — *not* a conduct-referee of legality (the calculus guarantees every move lawful) and
+> *not* a "Grapheus-the-tester" sub-role. The **Agonothetes panel** is the *reified fate-selection function*
+> of §3 — plural in the automated build so that genuine dissent can fork the DAG — and remains **not a
+> player**: it selects which fate the outcome earns as a risked choice, never a third contestant and never
+> overruling the peel. Model-of, never instance-of: the panel models the institution's judging function
+> without being an institution.
+
 - **The Proposer(s) — the membrane (①).** Source of candidate graphs. Pluggable; §5.
 - **The Skeptic — mechanical (②).** *Not* an agent with an opinion. M decides, via
   `semantic_game`. The verdict is truth-in-the-current-model, three-valued and sound
@@ -221,8 +230,12 @@ when fed its own proposals (the loop generalises the hand-played exemplar).
 ## 9 · Deferred / open
 
 - The **open membrane** (Stage 1) and its viability — the real research question.
-- **Negotiation among reasoning agents** (LLM panel) vs deterministic policy-agents; how to
-  record a genuine *disagreement* in the DAG (branch per dissenting disposition?).
+- **Negotiation among reasoning agents** (LLM panel) vs deterministic policy-agents, and
+  recording a genuine *disagreement* in the DAG — shipped in `src/agon_llm.py`
+  (`LLMGrapheus`/`LLMAgonothetes`, the `panel.branch_votes` hook forking the DAG from the
+  pre-round state on irreducible disagreement); see the sibling doc's
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §5/§9 for the design and
+  `test_agon_llm.py` for the headline (a two-vote disagreement forks the DAG).
 - **Decay calibration** — what counts as "use", the threshold, and proving the floor (never
   erase the last support of a standing claim without a visible flip).
 - Whether **Conway's Life itself** is worth encoding as a closed object-level CA-in-EG demo,

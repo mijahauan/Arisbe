@@ -138,6 +138,13 @@ neighborhood radius 2, this fragment asserted-complete."* Recorded, warranted,
 contestable. Relevance *is* a judgment; the honest place for it is owned by
 someone and open to challenge, not buried in a config file.
 
+> **Who chooses M — open author-call (canonical role account:
+> [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).** §3 fixes the two-player
+> account (Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no referee) but does **not**
+> settle *who selects which M* the round tests against. The corpus carries divergent attributions — here
+> "an Agonothetes/Grapheus act"; ENDOPOREUTIC_GAME_GUIDE.md §"What the Agonothetes Does" has "the Graphist
+> and Grapheus agree on M." This attribution is **flagged for an author ruling**, not decided here.
+
 It composes with the warrant gradient: M enters as **low-warrant backdrop** —
 not "true," merely "available to map against." Nothing imported pollutes the
 corpus; the game's **verdict** is what confers warrant. *Attest correspondence,
@@ -207,7 +214,7 @@ Sequence:
    isomorphism engine (a negation-free `g` has no cuts, so the embedding is small
    and well-defined).
 2. **[DONE 2026-06-11]** The semantic-game [seam](GLOSSARY.md#seam) — `src/semantic_game.py`,
-   `tests/test_semantic_game.py` (15 tests). `evaluate(egi, oracle)` reads G
+   `tests/test_semantic_game.py` (18 tests). `evaluate(egi, oracle)` reads G
    outside-in and asks the oracle (`match_atoms` / `individuals`, added to the
    interface this step) at each negation-free layer; returns a three-valued
    `Verdict3` (TRUE / FALSE / UNKNOWN) + a legible transcript. **Kleene** logic
@@ -316,7 +323,7 @@ clarification 1) routes to "the contest/deduction game": the peel stays pure
 model-checking; the theory query is the inference step that makes a T-box testable.
 Verified end-to-end on `sumo_upper` (subsumption theorems), `porphyry_tree` (the ladder
 + the disjointness residue), and `foaf_core` (typing chains through subsumption:
-`knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (15).
+`knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (16).
 
 ---
 

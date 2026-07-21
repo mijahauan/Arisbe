@@ -121,6 +121,10 @@ result = InsertionRule().apply_transformation(context)
 - Play the Endoporeutic Game: Proposer (Graphist) and Skeptic (Grapheus) alternate moves
 - Validate proofs: a sequence of rule applications from premises to conclusion
 - Classify outcomes: tautology, contradiction, or contingent (hypothesis)
+- **Interpretation register**: choose a reference model M, [peel](GLOSSARY.md#peel) an
+  assertion against it to a three-valued verdict with witness/counterexample,
+  materialize M (Horn rules → least Herbrand model), and run the inverse pivot
+  ("in what domain does G hold?") — see `docs/DOMAIN_ORACLE_AND_M.md`
 
 **Game structure** (a sign-triad within the Agon):
 
@@ -140,7 +144,7 @@ Assertion EGIF → parse → EGI (hypothesis)
 GameEngine.play() → alternating moves → GameOutcome
 ```
 
-**Current status**: Live as a thin V1 arena (shipped 2026-06-01). The game engine (`src/endoporeutic_game.py`) is wired; play is hot-seat (one user drives both roles), nothing auto-asserts, and the outcome is an open disposition taxonomy. Deferred frontier: a semantic layer, an automated Grapheus opponent, and a dynamically-learned model M — see [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+**Current status**: Live, well past the original thin V1 arena (shipped 2026-06-01). The game engine (`src/endoporeutic_game.py`) is wired; play is hot-seat (one user drives both roles), nothing auto-asserts, and the outcome is an open disposition taxonomy. The semantic layer, an automated Grapheus opponent (`src/grapheus.py`), and dynamic-M development (`src/agon_evolution.py`/`src/model_revision.py`) have since shipped; the current frontier is the 3-LLM-role automated Endoporeutic Game (`src/agon_llm.py`) and the meta-learning layer that studies the game's own resolution principles (`src/agon_metalearning.py`) — see [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) and `docs/AUTOMATED_ENDOPOREUTIC_GAME.md`.
 
 ---
 

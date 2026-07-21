@@ -213,6 +213,20 @@ Alpha-level warrant for treating the choice and refinement of M as a *move*
 (§4 there), and for `src/liveness.py`'s reversible retire/revive. The philosophy
 the corpus has been asserting now has its place in the calculus.
 
+> **Note — single episode vs. corpus-standing residence.** The picture above (M at
+> *odd* depth, one scroll `cut[ M cut[P] ]`) is the shape of one *episode*: a
+> single "given M, then G" move. It is not the same picture as where M's elements
+> *stand* between episodes in the corpus. `M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md`
+> §9 (the "second relocation," ratified 2026-07-16) relocated M's standing
+> residence to **even-depth cells** beside a hold — `~[ ~[cell] … ~[ ] ]` — precisely
+> so that a resident M asserts nothing while still being enlarged/retracted by
+> licensed rule moves (INS-of-cell / ERA-in-cell) rather than by whole-scroll
+> withdrawal. The two pictures answer different questions — "what does one episode's
+> conditional look like" (this section, odd-depth antecedent) vs. "where does M sit
+> when no episode is in progress" (M_RESIDENCE §9, even-depth cells) — and are not in
+> tension; §10 there shows an episode being *entertained* by lifting a resident M's
+> cells into exactly this section's scroll shape for the duration of the move.
+
 ### How a given enters: the construction from the blank
 
 The scroll is not *derived* from the blank as a theorem — a contingent `M → P` is not

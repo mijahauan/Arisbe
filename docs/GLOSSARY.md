@@ -233,7 +233,10 @@ the field guide's [dragon 9](FIELD_GUIDE_AND_DRAGONS.md). See [MEANING_BY_HISTOR
 ### Agonothetes
 **Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third
 player but the function that turns a true/false outcome into an act of inquiry (a theorem
-registered, a model revised, a hypothesis held).
+registered, a model revised, a hypothesis held). In the automated game this fate-selection
+function is *reified as an agent acting on the outcome* (`LLMAgonothetes`) — still not a
+contestant, and never overruling the mechanically-decided outcome. Canonical account:
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 
 ### Scroll
 **Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
@@ -543,7 +546,7 @@ interpretation register offers both.
   variants) under `tomos/`; the source of truth and the round-trip test bed.
 - **Regime-3 / presentation_ops** — the algebra of pure-appearance edits (move/reshape/reroute) that
   change the drawing but not the logic; boundary crossings raise `Regime3Violation`.
-- **Protected core** — the 17 modules a pre-commit guard locks against inadvertent change (see
+- **Protected core** — the 14 modules a pre-commit guard locks against inadvertent change (see
   [CAPABILITY_MAP.md](CAPABILITY_MAP.md) and [ROADMAP.md](ROADMAP.md) #1).
 - **Dragon** — a "here be dragons" pitfall in [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md);
   the drawable ones are challenge-mode targets.

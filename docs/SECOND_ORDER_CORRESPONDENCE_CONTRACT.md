@@ -20,6 +20,10 @@ project is built on."**
 > *Created 2026-07-10. Companion to [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md),
 > [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md), [SCHEMA_HOLE_CORRESPONDENCE.md](SCHEMA_HOLE_CORRESPONDENCE.md),
 > [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md).*
+>
+> **Vocabulary note.** This memo predates the 2026-07-20 mention-ascent rename and uses
+> the earlier "second-order"/"the crossing" vocabulary throughout. See
+> [GLOSSARY.md#mention-ascent](GLOSSARY.md#mention-ascent).
 
 ## 0. The design test (unchanged, raised one order)
 

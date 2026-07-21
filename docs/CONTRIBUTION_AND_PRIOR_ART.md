@@ -293,8 +293,8 @@ instructive as the agreements. The design consequences live in
   types of actors** — which *cannot occur in an individual*. The concordance under Arisbe's
   UoD/commens distinction and the honesty guard that the automated EPG *models* an institution
   rather than being one. See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
-- **Conant & Ashby (the good-regulator theorem, 1970; requisite variety, 1956).** "Every good
-  regulator of a system must be a model of that system." The concordance licensing the three EPG
+- **Conant & Ashby (the good-regulator theorem, 1970; requisite variety, 1956).** See
+  Cybernetics, above, for the theorem statement. The concordance licensing the three EPG
   roles as an instance's internal model of the institution of inquiry — *model-of, never
   instance-of*. See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 

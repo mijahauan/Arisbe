@@ -1,7 +1,13 @@
 # ELK Layout Engine Implementation Summary
 
-**Date**: 2026-04-01  
-**Status**: ✅ Complete and validated
+**Date**: 2026-04-01
+**Status**: ✅ Complete and validated — **historical snapshot at 2026-04-01.** `src/elk_layout_engine.py`
+has grown substantially since (395 → ~1300 lines): ligature-anchor rebuild
+(`rebuild_ligature_anchors`), tension-order wiring (`TENSION_LAYOUT.md`), the exact bbox
+quick-reject + visibility-graph optimizations in the ligature router (`CLAUDE.md`'s `src/`
+module list has the current line-by-line account). Read this document for the original
+architecture and rationale; for current state see CLAUDE.md's `elk_layout_engine.py` entry and
+`docs/CAPABILITY_MAP.md`.
 
 ## Overview
 
@@ -179,7 +185,11 @@ not a correctness one, and is out of scope for this audit.
 
 ## Known Limitations
 
-1. **No incremental layout**: Every layout is computed from scratch. For transformation sequences, unchanged elements don't automatically hold their positions (this is the "layout stability" problem — deferred to future work).
+1. **No incremental layout** (as of this 2026-04-01 snapshot): every layout was computed from
+   scratch, so unchanged elements didn't automatically hold their positions. **Superseded**:
+   `TRANSFORMATION_WORKFLOW_SPEC.md` §5 item ④a (pin-and-place, shipped 2026-06-06) and the
+   opt-in `tension_engine.py` (`TensionLayoutEngine`, `?engine=tension`) both address layout
+   stability across transformation sequences.
 
 2. **No layout templates**: Structurally similar graphs (e.g., two implications) don't automatically share visual patterns (also deferred).
 

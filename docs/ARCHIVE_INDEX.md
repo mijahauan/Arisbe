@@ -286,7 +286,10 @@ Test files that were in root (tests/ directory remains active):
 
 ## What Remains Active
 
-### Essential Documentation (30+ files)
+*The counts below are a point-in-time cleanup record as of 2026-06-08, not a live count — see
+the repo directly for current file counts.*
+
+### Essential Documentation (30+ files, as of 2026-06-08)
 
 - README.md, AGENTS.md, CURRENT\_PLAN.md
 - PRODUCT\_VISION.md, AI\_CONDUCT\_GUIDELINES.md
@@ -294,7 +297,7 @@ Test files that were in root (tests/ directory remains active):
 - API docs (ARISBE\_CORE\_API\_REFERENCE.md, etc.)
 - Framework docs (COHERENCE\_FRAMEWORK\_REMINDER.md, etc.)
 
-### Active Directories
+### Active Directories (as of 2026-06-08)
 
 - **src/** - All production code (177 files)
 - **tests/** - Active test suite (58 files)

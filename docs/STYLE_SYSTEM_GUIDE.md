@@ -419,15 +419,17 @@ uv run pytest tests/test_styles.py -v
 - Verify numeric values are within valid ranges
 
 ### Debug Tools
+There are no standalone style-debug CLIs today (`tools/validate_style.py`,
+`tools/test_style_layout.py`, and `tools/style_preview.py` never existed / were removed).
+Verify a style change against the real pipeline instead:
+
 ```bash
-# Validate style file
-python tools/validate_style.py styles/my-style@1.0.json
+# Run the style test suite (loading, rendering, oval/rectangle cuts, hand-drawn wobble, ligatures)
+uv run pytest tests/test_styles.py -q
 
-# Test layout integration
-python tools/test_style_layout.py --style my-style@1.0 --egif "test case"
-
-# Generate visual samples
-python tools/style_preview.py --style my-style@1.0
+# List styles + render an EGI through the live API/viewer
+uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
+# then GET /styles (src/web_api/routes/styles.py) or pick a style in the web viewer
 ```
 
 ## Contributing
@@ -452,8 +454,8 @@ styles/
 
 src/
 ├── style_loader.py            # Style loading utilities
-├── layout_engine_styled.py    # Style-aware layout engine
-└── style_integration.py       # Integration helpers
+├── style_specification.py     # Style spec model + validation
+└── elk_layout_engine.py       # Cut-aware layout engine (style-aware, the default layout path)
 
 docs/
 └── STYLE_SYSTEM_GUIDE.md      # This guide

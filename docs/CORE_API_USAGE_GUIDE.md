@@ -1,42 +1,60 @@
 # 🔒 ARISBE CORE API USAGE GUIDE
 
-**Date:** 2025-01-19  
-**Status:** ✅ **COMPREHENSIVE REFERENCE**  
+**Date:** 2025-01-19
+**Last verified:** 2026-07-21 (protected-module set, constructor signatures, `HierarchicalIndex`
+accessors checked directly against `tools/core_protection_system.py` and `src/egi_core_dau.py` /
+`src/hierarchical_index.py`)
+**Status:** ✅ **COMPREHENSIVE REFERENCE**
 **Purpose:** Eliminate guesswork in core API usage
 
 ---
 
 ## 🎯 **PURPOSE**
 
-This guide provides **definitive, tested API signatures** for all 16 protected core modules. No more guessing at function names, parameters, or return types!
+This guide provides **definitive, tested API signatures** for the 14 protected core modules. No more guessing at function names, parameters, or return types!
 
 ---
 
 ## 📚 **QUICK REFERENCE INDEX**
 
-### **🔧 CORE OPERATIONS**
-- **`egi_core_dau`** - Create graphs, vertices, edges, cuts
+The 14 modules below are the live `protected_modules` set in
+`tools/core_protection_system.py` (verified 2026-07-21) — the genuine calculus core: the data
+model + IO, diachronic state, the Dau rules + validators, the ligature machinery, and the three
+correspondence enforcers. **The EGIF/CGIF/CLIF parsers/generators are *not* protected-core** —
+they were removed from the set on 2026-06-27 as application-level I/O guarded by corpus
+round-trip tests instead (see CLAUDE.md's Core Protection System section).
+
+### **🔧 CORE DATA MODEL + IO**
+- **`egi_core_dau`** - Create graphs, vertices, edges, cuts (immutable `RelationalGraphWithCuts`)
 - **`egi_io`** - Save/load EGI files (JSON/YAML)
 - **`hierarchical_index`** - Cut nesting and polarity
 
-### **📝 PARSING & GENERATION**
-- **`cgif_parser_dau`** / **`cgif_generator_dau`** - CGIF format
-- **`egif_parser_dau`** / **`egif_generator_dau`** - EGIF format
+### **🕰️ DIACHRONIC STATE**
+- **`universe_of_discourse`** - UoD entity (synchronic EGI + diachronic DAG history)
+- **`egi_transformation_history`** - DAG-based branching transformation history
 
-### **🔄 TRANSFORMATIONS**
-- **`formal_transformation_rules`** - Dau Chapter 14/15 rules
-- **`syntactic_equivalence_checker`** - Dau Chapter 20 equivalence
+### **🔄 TRANSFORMATIONS + VALIDATION**
+- **`formal_transformation_rules`** - Dau Chapter 14/15 rules (ERA, INS, IT+, IT−, DC+, DC−)
+- **`rule_interaction`** - Headless stepwise protocol for all rules
+- **`subgraph_closure_validator`** - Closure validation (Beta-aware)
+- **`graph_isomorphism_engine`** - VF2 isomorphism matching
+
+### **🔗 CORRESPONDENCE ENFORCERS** (added 2026-06-27)
+- **`correspondence_attestation`** - Runtime §3.3 check (EGI ↔ LayoutDTO)
+- **`presentation_ops`** - Regime-3 algebra (move/reshape/reroute, area-topology helpers)
+- **`natural_layout`** - Coordinate-free projection-independent layout
 
 ### **🔗 LIGATURE PROCESSING**
-- **`enhanced_ligature_algorithms`** - Main ligature engine
-- **`ligature_manipulation_rules`** - Rule-based processing
-- **`ligature_optimization_engine`** - Performance optimization
-- **`ligature_aware_positioning_engine`** - Spatial positioning
-- **`obstacle_aware_ligature_router`** - Routing algorithms
+- **`ligature_manipulation_rules`** - Rule-based ligature processing
 - **`single_object_ligature_detector`** - Detection algorithms
 
-### **📐 SPATIAL CONSTRAINTS**
-- **`area_spatial_constraint_system`** - Area-based constraints
+### **📝 PARSING & GENERATION** (application-level I/O — NOT protected-core)
+- **`cgif_parser_dau`** / **`cgif_generator_dau`** - CGIF format
+- **`egif_parser_dau`** / **`egif_generator_dau`** - EGIF format
+- **`clif_parser_dau`** / **`clif_generator_dau`** - CLIF format
+
+### **🔍 OTHER CORE-ADJACENT UTILITIES** (not protected-core)
+- **`syntactic_equivalence_checker`** - Dau Chapter 20 equivalence checking
 
 ---
 
@@ -54,12 +72,18 @@ egi = create_empty_graph()
 human_vertex = create_vertex(label="Human", is_generic=False)
 socrates_vertex = create_vertex(label="Socrates", is_generic=False)
 
-# Create edge
-# Signature: create_edge(relation: str, vertex_ids: List[str] = None) -> Edge
-human_edge = create_edge(relation="Human")
+# Create edge — the constructor itself is zero-arg; the relation name + argument
+# order (nu) are supplied when the edge is attached via with_edge, not at creation.
+# Signature: create_edge() -> Edge
+human_edge = create_edge()
 
 # Add to graph
-egi = egi.with_vertex(human_vertex).with_vertex(socrates_vertex).with_edge(human_edge)
+# Signature: with_edge(self, edge: Edge, vertex_sequence: Tuple[str, ...],
+#                       relation_name: str, context_id: str = None) -> RelationalGraphWithCuts
+egi = (egi
+       .with_vertex(human_vertex)
+       .with_vertex(socrates_vertex)
+       .with_edge(human_edge, (human_vertex.id, socrates_vertex.id), relation_name="Human"))
 ```
 
 ### **Pattern 2: Saving and Loading EGI**
@@ -124,22 +148,24 @@ are_equivalent = checker.check_equivalence(egi1, egi2)
 ### **Pattern 6: Working with Cuts and Nesting**
 ```python
 from egi_core_dau import create_cut
-from hierarchical_index import HierarchicalIndex, NestingInfo
+from hierarchical_index import HierarchicalIndex
 
-# Create cut
-# Signature: create_cut(area_id: str = None) -> Cut
-cut = create_cut(area_id="cut_1")
+# Create cut — the constructor is zero-arg; it gets its own generated id
+# Signature: create_cut() -> Cut
+cut = create_cut()
 
 # Add cut to graph
-egi = egi.with_cut(cut)
+# Signature: with_cut(self, cut: Cut, context_id: str = None) -> RelationalGraphWithCuts
+egi = egi.with_cut(cut)  # context_id=None attaches at the sheet
 
 # Work with hierarchical index
 index = HierarchicalIndex()
-index.add_area("cut_1", parent_area=None)  # Top-level cut
+index.add_area(cut.id, parent_area=None)  # Top-level cut
 
-# Get nesting info
-nesting_info = index.get_nesting_info("cut_1")
-polarity = nesting_info.polarity  # "positive" or "negative"
+# Get nesting info — there is no get_nesting_info(); use the direct O(1) accessors
+# Signatures: get_nesting_level / get_polarity / get_parent / get_children / get_ancestors
+nesting_level = index.get_nesting_level(cut.id)
+polarity = index.get_polarity(cut.id)  # "positive" or "negative"
 ```
 
 ---
@@ -264,12 +290,13 @@ def test_my_functionality():
 ## 🔒 **CORE PROTECTION AWARENESS**
 
 ### **What's Protected**
-- **16 core modules** with 57 classes and 19 functions
+- **14 core modules** with 67 classes and 49 functions (per `tools/extract_core_api.py`,
+  re-run 2026-07-21 — see `ARISBE_CORE_API_REFERENCE.md`)
 - **The mathematical core test suite** (~118 tests covering egi_core_dau, formal_transformation_rules, rule_interaction, subgraph_closure_validator, graph_isomorphism_engine, and Beta/logical proof exercises) that must always pass
 - **API signatures** that cannot change without authorization
 
 ### **What Requires Authorization**
-- Modifying any of the 16 protected modules
+- Modifying any of the 14 protected modules
 - Changing function signatures
 - Adding/removing public methods or classes
 
@@ -324,14 +351,15 @@ def create_socrates_human_egi():
     human_vertex = create_vertex(label="Human", is_generic=False)
     socrates_vertex = create_vertex(label="Socrates", is_generic=False)
     
-    # Create relation edge
-    human_relation = create_edge(relation="Human")
+    # Create relation edge — zero-arg constructor; relation name + argument
+    # order are supplied to with_edge, not create_edge (see Pattern 1 above)
+    human_relation = create_edge()
     
     # Assemble graph
     return (egi
             .with_vertex(human_vertex)
             .with_vertex(socrates_vertex)
-            .with_edge(human_relation))
+            .with_edge(human_relation, (human_vertex.id, socrates_vertex.id), relation_name="Human"))
 ```
 
 ---

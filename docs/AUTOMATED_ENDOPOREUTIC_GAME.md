@@ -33,8 +33,8 @@ calculus* · aim = **discovery** · **Drafted**: 2026-06-30 · **restructured 20
 > (before this pass they were scattered across a dozen run appendices). **Part III (§12)** is the
 > **run ledger** — a compact chronological table + a findings index, each run linking to its full
 > `runs/RUN_N_LOG.md` (where the per-run pre-registration and disposal detail lives; this document
-> carries the synthesis, not a second copy). Runs 1–10 are executed and disposed; run 11 (the
-> calibrated precip arm) is built and awaiting the author's launch.
+> carries the synthesis, not a second copy). Runs 1–12 are executed and disposed (run 12, the
+> sports-outcomes arc, closed 2026-07-20 — see §12's run-ledger row and the new §11.8).
 
 > **The question this answers.** Can the Endoporeutic Game be played *automatically* — no
 > ponderous human in the loop — by AI agents that, starting from scratch, build a domain
@@ -67,6 +67,15 @@ loop lacks — the **Grapheus's defense**. What stays fixed is the substrate: th
 UoD, the §3.3 correspondence attestation, the disposition taxonomy, and the mechanical peel.
 
 ## 2 · The three roles + the incorruptible referee
+
+> **On "referee" and "roles" (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
+> This document keeps "the referee" as its own lexical shorthand for the **mechanical peel**. Under the
+> settled account that peel is *not* a conduct-referee of legality — the calculus guarantees every EGI→EGI
+> move lawful, so there is nothing to referee — but the mechanism that **decides the binary outcome** of the
+> two-player game (Graphist for the proposal, Grapheus for the Model M). The "three roles" below are those
+> two players plus the **Agonothetes**, which §3 holds is **not a player**: it applies the agreed *taxonomy
+> of fates* to the outcome as a risked choice, reified in the automated game as an agent acting on the
+> outcome (never a third contestant, never overruling the verdict). Read the bullets and table in that light.
 
 The single principle everything hangs from: **the LLMs argue; the calculus decides.** Two
 language models left alone will co-hallucinate a fluent, self-consistent, *groundless* model —
@@ -876,17 +885,41 @@ reliable_source 1.0 in the first watched session's overturn scenario). Warrant d
 resolution mechanism, and the game *measures* that difference rather than assuming it —
 *progression, not progress*, made observable.
 
+**11.8 · The knob-type law crosses domains, and rival theories discriminate live under
+`select_best` (run 12, closed 2026-07-20).** Run 12 asked whether §11.4's knob-type law
+(twice-evidenced in weather, F1¹⁰/F1¹¹) is a fact about weather or a law of the game, using MLB
+outcomes — a **discrete** resolving membrane with no natural width knob, so the manufactured
+calibration cut (arm B, "cal") and three rival theories (naive home-team / win-pct-differential /
+odds-consensus) had to earn their bets from raw contingency rather than an already-skilled
+forecast. The run had two legs: leg 1 opened inside the All-Star break and produced almost no
+resolutions (evidentially thin, disposed as such — see `runs/RUN_12_LOG.md`'s F0¹²); leg 2, a
+fresh single-regime restart, ran to the author's STOP on 2026-07-20 with 300 picks raised, 215
+resolved, and 16 crashes survived (all one already-fixed decay-refusal family — Examination IV
+docket ④+⑥ — harmless replays of a bug patched on `main` two days ahead of the live evidence).
+Final per-arm standings: **odds** net +8 / accuracy 0.633 (the `select_best` leader), **home**
++6 / 0.607, **naive** +1 / 0.667, **cal** −1 / 0.484, **strong** −3 / 0.448, with the lead
+flipping home↔odds mid-run rather than being fixed from the start — **P3¹² answered**:
+`select_best` discriminates live among rival theories over the same claims, the register's first
+live exercise. Two further data points, not yet disposed against their pre-registered priors: the
+home-win rate read 0.607 over 28 decided bets against the literature's documented ≈0.53–0.54
+(**P4¹²**, small-n, the author's interpretation to make); and the calibrated cut walked
+50→300 across 33 re-generalizations yet finished next-to-last on net (**P2¹²**'s ledger half),
+so whether a manufactured knob recovers in a width-donating-nothing domain is recorded but not
+yet ruled on. Final disposal of the run-12 findings against the pre-registered priors remains the
+author's; this entry synthesizes what the run recorded, not a verdict on the knob-type law's
+cross-domain reach.
+
 ---
 
 # Part III — the run ledger
 
-## 12 · The eleven runs — the evidence trail
+## 12 · The twelve runs — the evidence trail
 
 *Each run pre-registered a prior and disposed it; the full pre-registration, totals, and
 finding-by-finding disposal live in the linked `runs/RUN_N_LOG.md` (this document carries the
-synthesis in Part II, not a second copy). Runs 1–10 are executed and disposed; run 11 is built and
-awaiting the author's launch. Note the section-vs-run offset in earlier drafts is gone — the runs
-are simply 1–11.*
+synthesis in Part II, not a second copy). Runs 1–12 are executed and disposed (run 12 closed
+2026-07-20 — §11.8). Note the section-vs-run offset in earlier drafts is gone — the runs are
+simply 1–12.*
 
 **The design memos that used to sit among these appendices have moved into the design proper:** the
 docket of doubts (content-directed probing) is now Part I §4 (item 5); the atom-level decay rulebook and
@@ -908,7 +941,7 @@ index.
 | 9 | NWS weather, **forecast-centered bins** + per-arm counters | centre the temperature bin on the forecast | disposed | **F1⁹** centred bins convert the cycle → fixed point (F2⁸ was grid-edge-fragility); F2⁹ precip raised **zero** (disposes F3⁸); F3⁹ console tee | [RUN_9](../runs/RUN_9_LOG.md) |
 | 10 | NWS weather, **live precip arm** (wet stations, low gate) | activate the non-binned precip control | disposed | **F1¹⁰** the *knob-type*, not binning, gates recovery (calibration vs selectivity); P2¹⁰ a third outcome; **F2¹⁰** the cycle decomposes | [RUN_10](../runs/RUN_10_LOG.md) |
 | 11 | NWS weather, **calibrated precip arm** | `--precip-mode calibrated` (two-direction cutpoint bet) | disposed | **F1¹¹** F1¹⁰ CONFIRMED — the calibrated arm recovers to **net +58 / acc 0.983** over 60 resolutions (the run-10 gate arm: −5 / 0.14 over 9); **F3¹¹** the cut settles at 70, not the cap (a calibration knob's digest signature vs the gate's ratchet) | [RUN_11](../runs/RUN_11_LOG.md) |
-| 12 | **Sports outcomes** (MLB, discrete resolving membrane) | swap domain class: continuous→**discrete** (no natural width knob); four arms — A no-knob null · B manufactured cut on win-pct differential · C **rival theories over the same claims, `select_best` live** (first time) · D optional induction-from-blank | **built 2026-07-12 (+ odds rival keyed 07-13); launch pending** (`sports_source` / `sports_recalibration` / `run_live_sports`; 41 offline tests incl. the P1¹²/P2¹² causal pair; `select_best` ranks five theories; play resumes 07-16) | P2¹² (headline) — does a *manufactured* calibration knob recover in a domain that donates no width? Is the knob-type law the game's or the weather's? + P4¹² the first external-literature check (home advantage ≈53–54 %) | [RUN_12](../runs/RUN_12_LOG.md) |
+| 12 | **Sports outcomes** (MLB, discrete resolving membrane) | swap domain class: continuous→**discrete** (no natural width knob); four arms — A no-knob null · B manufactured cut on win-pct differential · C **rival theories over the same claims, `select_best` live** (first time) · D optional induction-from-blank | **closed 2026-07-20** (author STOP; two legs — leg 1 thin on the All-Star break, leg 2 a fresh clean single-regime run; 359 rounds, 300 picks raised, 215 resolved, 16 crashes survived — all one already-fixed decay-refusal family, harmless) — see §11.8 | **P3¹² answered**: `select_best` discriminates (odds net +8 acc 0.633 leads, home +6/.607, naive +1/.667, cal −1/.484, strong −3/.448; the lead flipped home↔odds mid-run). **P4¹²**: home-win rate 0.607 over 28 decided bets vs the literature's ≈0.53–0.54 (small-n; author's read). **P2¹²** (ledger half): the calibrated cut walked 50→300 across 33 re-generalizations and still finished next-to-last. Final disposal against the pre-registered priors is the author's. | [RUN_12](../runs/RUN_12_LOG.md) |
 
 ### Findings index — what each established, and where it now lives
 

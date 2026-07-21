@@ -160,16 +160,18 @@ and one thing does not:
   the current record does not compel. The modal proposal reading reports
   `unknown_worlds` separately, never coerced.
 - **What does not carry over** — tinctures as first-class *marks* on one sheet, and the
-  second-order uses (qualities, abstraction) — stays where the doctrine put it: the §5
-  abbreviation horizon and the §7 frontier, respectively. No mark bears modality here.
+  second-order uses (qualities, abstraction) — stays where the doctrine put it: the
+  MODALITY_WITHOUT_GAMMA §5 abbreviation horizon and the MODALITY_WITHOUT_GAMMA §7
+  frontier, respectively. No mark bears modality here.
 
 ## 7 · Honest limits (stated in the exemplars themselves)
 
 - **Trans-world identity by constant.** `would_be_courses` carries "Clara" and "Otto"
   across worlds as constant labels — rigid designators, a constant-domain policy. That
   is a *choice*, stated in the UoD's annotations; a **generic** line of identity carried
-  across a transition (Peirce's Ms 490 "special relation", the doctrine's §2 crux)
-  remains unimplemented, and the domain-policy question (§3) remains open.
+  across a transition (Peirce's Ms 490 "special relation", the doctrine's
+  MODALITY_WITHOUT_GAMMA §2 crux) remains unimplemented, and the domain-policy
+  question (MODALITY_WITHOUT_GAMMA §3) remains open.
 - **States vs leaves.** A would-be quantifies most naturally over *completed* courses
   (`over="leaves"`). The exemplar's single-step courses make □G hold on both readings,
   but a finer-grained course (failure admitted, the sequel not yet) would make G FALSE

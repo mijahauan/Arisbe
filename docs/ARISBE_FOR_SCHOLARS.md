@@ -2,7 +2,7 @@
 
 *An introduction for scholars, teachers, and researchers of Peirce's logic*
 
-**Status**: active development · **Reviewed**: 2026-06-08 ·
+**Status**: active development · **Reviewed**: 2026-07-21 ·
 Repository: <https://github.com/mijahauan/Arisbe>
 
 ---
@@ -104,9 +104,13 @@ M, then G*: choose a reference model M, [peel](GLOSSARY.md#peel) (reading it fro
 M **materializable** (facts + Horn rules → the least Herbrand model, so the syllogism
 works) and an **inverse pivot** ("in what domain does G hold?"). The conceptual
 division is settled (`docs/GENERATION_AND_TESTING.md`): the *eliminative* peel is the
-game (Agon), *additive* construction is making (Ergasterion). **Still not built**: the
-dialogical **contest** with an automated **Grapheus** (the peel now supplies the
-model-respecting reply it would use); the **ontology-as-M pipeline** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI
+game (Agon), *additive* construction is making (Ergasterion). **Also built**: the
+dialogical **contest** with an automated **Grapheus** opponent (`src/grapheus.py`,
+2026-06-12) and dynamic-M development driven by the Agon itself
+(`src/agon_evolution.py`/`src/model_revision.py`) — now extended to a full
+3-LLM-role automated Endoporeutic Game (`src/agon_llm.py`: Graphist/Grapheus/Agonothetes
+under an incorruptible mechanical referee). **Still not built**: the **ontology-as-M
+pipeline** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI
 from WordNet/SNOMED/Wikidata — materialization unblocks the terminological box ([T-box](GLOSSARY.md#t-box)) side); and the
 **warrant lifecycle** that would raise a graph from *low* to *tested* by its surviving
 Agon. We would rather say this plainly than oversell a demo.

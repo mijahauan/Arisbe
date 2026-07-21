@@ -267,7 +267,8 @@ recorded `flavor`); the challenge = `REVISE_M` (the ERA + INS composite);
 world-withdrawal (the triple) retired to rare full replacement. The **live loops**
 (`agon_evolution`, `live_runner`, the membranes) dispatch through the residence-aware
 `revise_with_disposition` and open every chain with genuine DC+ · INS residence steps
-(the §8.1 migration, discharged). The same calculus that draws every other graph; the
+(the [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
+§8.1 migration, discharged). The same calculus that draws every other graph; the
 dispositions that *don't* revise M (`redundancy`, `rejection`, `open_conjecture`, …)
 are recorded judgments, not edits.
 

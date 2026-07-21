@@ -153,7 +153,8 @@ of external representations to escape it. Each entry: the finding, then its impl
   Roberts 1973). *Implication:* Peirce already drew the boundary; we choose which *region* (which nesting
   neighborhood around the focus) to keep lit — and **nesting depth is the natural distance metric** for the
   degree-of-interest rule (§6, S1). The endoporeutic universe — the line of identity as a *chosen individual*
-  ([commens: endoporeutic](http://www.commens.org/encyclopedia/article/pietarinen-ahti-veikko-endoporeutic-method))
+  (the *Commens* Peirce-terms dictionary, unrelated to Arisbe's later commens doctrine —
+  [entry: endoporeutic](http://www.commens.org/encyclopedia/article/pietarinen-ahti-veikko-endoporeutic-method))
   — is precisely a discourse referent under an assignment (§6), which is why the narration check works.
 
 ## 6. Relevance, discourse scoping, and the keep-vs-collapse rule (precedent register 2 — the *technique* and the *discourse science*)
@@ -571,20 +572,19 @@ step↔update scorer is a genuine contribution. Tuning S1–S5 / D1–D4 without
 > Form 2 (a relation-shaped reference *edge* generalizing the definition node), additive-first, with the
 > second-order-frontier invariant banked.
 
-**The open architectural question (the author's to decide): (b), the reference / transclusion node.** It is the
-general form of (c) and the only real fork, because it touches `egi_core_dau` and the §3.3 contract. Three
-decisions:
+**(b), the reference / transclusion node — resolved.** The three decisions named below (form,
+calculus entry, attestation contract) are taken and shipped, additive-first, as increment 1
+(intra-UoD): see the "Update (2026-06-29)" note above and
+**[REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md)** for the
+design-of-record. `src/reference_node.py` is SHIPPED (Form 2, a relation-shaped reference edge +
+overlay mark, `egi_core_dau` untouched — CAPABILITY_MAP.md); `reference_resolution_check.py`
+proves the law `RESOLVE ≡ INLINED-AND-ATTESTED`. Cross-UoD *use* (scroll-import) remains
+deferred to the B-min core opening; the *mention* side is exercised by the quotation stratum
+([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)).
 
-1. **Form** — a new element kind, an annotated edge, or a metadata overlay (`annotations.py` / `provenance.py`)?
-   This determines whether §3.3 totality/correspondence must be *extended*.
-2. **Calculus entry** — how does a reference node enter without violating level-0 doctrine (conditioned inside a
-   cut, never naked on the recto — [`LEVEL_ZERO_AND_THE_REGISTERS.md`](LEVEL_ZERO_AND_THE_REGISTERS.md))?
-3. **Attestation contract** — an `attest_reference` analogous to `attest_overview`, with the law "resolve ≡
-   inlined-and-attested."
-
-**Safe / decision split.** (a)(c)(d)(e)(f) are safe read-only extensions and may proceed when scheduled. **(g)
-and (b) need the author's decision before any core/build work** — (g) because it is a research commitment worth
-making deliberately, (b) because it changes the core.
+**Safe / decision split.** (a)(c)(d)(e)(f) are safe read-only extensions and may proceed when scheduled; (b) has
+been decided and built as above. **(g) still needs the author's decision before any core/build work** — a
+research commitment worth making deliberately.
 
 ---
 

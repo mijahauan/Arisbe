@@ -1,8 +1,11 @@
 # Tension layout — the vertex tree as a natural organizing principle
 
-**Status:** design speculation + proof-of-concept (2026-06-07). Not built into
-the layout path. This note records a candidate organizing principle for EG
-layout and the small experiment that tests whether it behaves. Read alongside
+**Status:** wired into the layout path (2026-06-07) — `src/tension_layout.py`, honored by
+`ELKLayoutEngine._build_area_children` behind the (default-off) `tension_sibling_order`
+convention; opt in via `generate_layout(tension=True)` / the workshop `?tension=true` query.
+18/18 corpus UoDs attest crash-free, byte-identical when off (§8–§9 below). This note began as
+design speculation + proof-of-concept and is left largely in that voice as the build record; read
+alongside
 [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md) (§3.1–3.2
 natural layout / crossing-sequence invariant) and the memories
 `project-render-as-projection-own-dimensionality`,

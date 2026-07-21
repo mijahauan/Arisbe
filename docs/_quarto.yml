@@ -29,6 +29,10 @@ book:
         - MODALITY_WITHOUT_GAMMA.md
         - SECOND_ORDER_FRONTIER.md
         - GAMMA_DEMONSTRATIONS.md
+        - BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md
+        - THE_MEASURE_OF_KNOWLEDGE.md
+        - THE_KYTOS.md
+        - THE_COMMENS_AND_THE_COMMUNITY.md
     - part: "II · Getting started"
       chapters:
         - install.qmd

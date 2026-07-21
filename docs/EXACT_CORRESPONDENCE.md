@@ -98,10 +98,10 @@ nest or be separate," now falling out of the geometry.
 
 ## Phased plan (each phase: full suite + §3.3 corpus suite green before the next)
 
-**Phase 1 — exact cut containment (the foundation).** *In progress.*
-- New `render_geometry.cut_boundary(bounds, style, seed) -> [Point]` — the canonical
+**Phase 1 — exact cut containment (the foundation). *Done* (2026-06-10).**
+- `presentation_ops.cut_boundary(bounds, style, seed) -> [Point]` — the canonical
   closed polyline (rounded-rect with corner radius, sampled ellipse, wobbled oval),
-  and `point_in_polygon` / `polygon_in_polygon`.
+  and `point_in_polygon` / `polyline_polygon_crossings`.
 - `presentation_ops.point_in_cut` / `bounds_in_cut` test against `cut_boundary`
   (keep a fast path for the plain axis-aligned box). This closes the rounded-corner
   void: a point in the corner now reads *outside*, matching the drawing.

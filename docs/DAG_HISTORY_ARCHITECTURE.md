@@ -1,5 +1,16 @@
 # DAG-Based Transformation History Architecture
 
+**Last Updated**: 2025-10-14
+**Status**: Foundational Architecture Document — describes `egi_transformation_history.py`'s
+`EGITransformationHistory`, the in-memory DAG model. A second, newer chain representation now
+also exists: `tomos_service.py`'s `TransformationChain`/`ChainStep` (the slim on-disk shape
+persisted as `history/chain.jsonl` for a saved UoD — see CLAUDE.md's `tomos_service.py` entry).
+The two are **not** the same object: `TransformationChain` is *not* a hydration of
+`EGITransformationHistory` — it's a separate, simpler, corpus-persistence-oriented model
+(steps carry `from_state_id`/`to_state_id`/`branch_id` directly rather than the adjacency-list
+`state_to_outgoing_steps` structure documented below). This document covers only the older,
+in-memory `EGITransformationHistory`.
+
 ## Overview
 
 The Universe of Discourse ([UoD](GLOSSARY.md#uod)) history model now supports **branching development** through a **Directed Acyclic Graph ([DAG](GLOSSARY.md#dag))** structure. This enables realistic inquiry workflows where multiple paths can be explored from any historical state.
@@ -52,6 +63,17 @@ class EGITransformationHistory:
 ## API
 
 ### Creating Branches
+
+Every branch is tagged with a `HistoryBranchType` naming *why* it exists, not just that it
+does:
+
+- **`LINEAR`** — the default, non-branching main line; a state sequence with no fork.
+- **`EXPLORATION`** — a temporary "what if?" side path, expected to be abandoned or merged
+  back rather than kept as a permanent alternative.
+- **`ALTERNATIVE`** — a durable alternative proof or approach, kept alongside the main line
+  for comparison (e.g. two independent derivations of the same result).
+- **`ROLLBACK`** — a branch created by returning to an earlier state and continuing from
+  there, distinguishing "I backed up and redid this" from a forward exploration.
 
 ```python
 # Branch from any historical state
@@ -302,9 +324,16 @@ Test coverage: `tools/test_history_dag.py`
 ## Future Enhancements
 
 1. **Merge Branches**: Combine alternative paths
-2. **Branch Labels**: User-defined names for branches
-3. **Branch Colors**: Visual distinction in GUI
-4. **Diff Views**: Compare states across branches
+2. **Diff Views**: Compare states across branches (today's diff is per-step only — each
+   transformation's own `+N/−N` summary, not a cross-branch state comparison)
+
+**Shipped, no longer future (2026-07-16):** branch labels and branch colors, via
+`src/chain_branches.py`'s `branch_report`/`BranchReport` (human labels from the recorded
+`branch_id`, "main"/"branch N" fallback, and per-branch step counters — "a counter never
+aggregates incompatible futures") surfaced in the Organon chain player as a ⑂ chip strip
+(`src/web_viewer/organon.html`) and as branch-colored edges/pills in the derivation-DAG lens
+(`src/web_viewer/js/derivation-dag-lens.js`'s `colorOf(branch_id)`). See
+[UI_TRANSPARENCY_CHARTER.md](UI_TRANSPARENCY_CHARTER.md)'s branch-orientation entry.
 5. **Branch Metrics**: Success rates, path lengths
 6. **Automatic Pruning**: Remove abandoned branches
 

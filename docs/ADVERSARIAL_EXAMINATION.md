@@ -79,19 +79,19 @@ Three moves:
 
 ### The strongest charge
 
-At the level of *substance*, the defense neutralizes every charge: the two-register distinction is real, the level-0 theorem is a correct soundness fact, the scroll genuinely is the Alpha home of defeasibility, and the warrant-gradient operationalization is a contribution the prosecution itself concedes. Internally the author does **not** hold "no contingent thing can be asserted at depth 0" — §4 and §7 say the assertoric register's "primary office" is to bear unenclosed contingent premises. That is what saves the doctrine.
+At the level of *substance*, the defense neutralizes every charge: the two-register distinction is real, the level-0 theorem is a correct soundness fact, the scroll genuinely is the Alpha home of defeasibility, and the warrant-gradient operationalization is a contribution the prosecution itself concedes. Internally the author does **not** hold "no contingent thing can be asserted at depth 0" — LEVEL_ZERO_AND_THE_REGISTERS §4 and §7 say the assertoric register's "primary office" is to bear unenclosed contingent premises. That is what saves the doctrine.
 
-The charge lands on the **prose**, and the defense concedes six of seven charges. The deepest surviving point is *assertion-4*, which the defense grants rather than answers: **model-revision-as-INS (§5) presupposes an M already scribed**, and the scribing of that antecedent M is an *unconditioned* posit the scroll machinery cannot itself supply. So the document's own thesis — "the saying happens always-already conditioned, inside" — is strictly **false for the antecedent M**: every scroll requires at least one unconditioned positing. The reply ("M enters at low warrant via Agon, not as a theorem") concedes exactly this — low warrant is still a posit on the [recto](GLOSSARY.md#recto) (the asserted side of the sheet). This is a substantive gap, not a wording slip, and §8's own admission that the constitutive-vs-diagrammatic joint is "left genuinely open" means the constitutive reading underwriting "always-already conditioned" is assumed, not established.
+The charge lands on the **prose**, and the defense concedes six of seven charges. The deepest surviving point is *assertion-4*, which the defense grants rather than answers: **model-revision-as-INS (LEVEL_ZERO_AND_THE_REGISTERS §5) presupposes an M already scribed**, and the scribing of that antecedent M is an *unconditioned* posit the scroll machinery cannot itself supply. So the document's own thesis — "the saying happens always-already conditioned, inside" — is strictly **false for the antecedent M**: every scroll requires at least one unconditioned positing. The reply ("M enters at low warrant via Agon, not as a theorem") concedes exactly this — low warrant is still a posit on the [recto](GLOSSARY.md#recto) (the asserted side of the sheet). This is a substantive gap, not a wording slip, and LEVEL_ZERO_AND_THE_REGISTERS §8's own admission that the constitutive-vs-diagrammatic joint is "left genuinely open" means the constitutive reading underwriting "always-already conditioned" is assumed, not established.
 
 Three families of wording are demonstrably false as written:
 
-- **(a) The bare "cannot say."** "we cannot say anything at level 0" (LEVEL_ZERO 17, 245; FIDELITY 145), stated flatly in the register where "say" most naturally means "assert a contingent premise" — which §4/§7 affirm the SA does. Contradicts the author's own text and Peirce's Phemic-Sheet reading, on which the recto is exactly where, by the responsibility-act, one *does* say.
+- **(a) The bare "cannot say."** "we cannot say anything at level 0" (LEVEL_ZERO 17, 245; FIDELITY 145), stated flatly in the register where "say" most naturally means "assert a contingent premise" — which LEVEL_ZERO_AND_THE_REGISTERS §4/§7 affirm the SA does. Contradicts the author's own text and Peirce's Phemic-Sheet reading, on which the recto is exactly where, by the responsibility-act, one *does* say.
 - **(b) "A constitutional rule about what the Sheet of Assertion is for."** (LEVEL_ZERO 208) Its own next paragraph restricts the rule to the demonstrative recto. Calling it constitutional of the whole SA (which also hosts the assertoric office) is a category slip; properly scoped, it reduces to the trivial theorem-not-premise point.
 - **(c) The unqualified "the literature" / "the tradition" / "buried" / "equivocation."** (FIDELITY 175, 253–256, 264–273) Overclaims against proof theory (Γ⊢φ vs. ⊢φ marks the [seam](GLOSSARY.md#seam) maximally) and against the dialogical strand (Pietarinen/Hintikka supply context-as-ground). The silence charge is true only of *in-the-picture Existential Graph ([EG](GLOSSARY.md#eg)) diagrammatic exposition*.
 
 ### The author's best answer
 
-The §7 guard and §4 already contain, in adjacent sentences, every qualification the prose elsewhere drops. The level-0 theorem is offered as the *demonstrative* half ("no contingent content is *derived* at depth 0"); the assertoric office to *posit* a premise is expressly preserved. The Phemic Sheet is read identically by both sides — saying is the *act*; the author's claim is the negative half (the *mark*, the *depth*, does not supply the act). And the genuine novelty — noticing that diagrammatic EG lacks a turnstile-equivalent and supplying one operationally as a runtime warrant gradient — is conceded by the prosecution as real engineering.
+The LEVEL_ZERO_AND_THE_REGISTERS §7 guard and §4 already contain, in adjacent sentences, every qualification the prose elsewhere drops. The level-0 theorem is offered as the *demonstrative* half ("no contingent content is *derived* at depth 0"); the assertoric office to *posit* a premise is expressly preserved. The Phemic Sheet is read identically by both sides — saying is the *act*; the author's claim is the negative half (the *mark*, the *depth*, does not supply the act). And the genuine novelty — noticing that diagrammatic EG lacks a turnstile-equivalent and supplying one operationally as a runtime warrant gradient — is conceded by the prosecution as real engineering.
 
 ### Rationale
 
@@ -120,22 +120,22 @@ Amendment 4 (and the *assertion-4* concession it answered) is **retracted as an 
 
 ### The strongest charge
 
-The core thesis survives untouched: no new modal *mark* is needed; the standard translation over the drawn frame discharges the modal logics whose frame conditions are first-order definable; the residue is second-order-about-the-graphs, not modal. Every one of the four chairs concedes that much — GL well-foundedness, common-knowledge transitive closure, LTL liveness, and the line-of-identity discipline all land in §7's second-order residue, not in a demand for a modal glyph.
+The core thesis survives untouched: no new modal *mark* is needed; the standard translation over the drawn frame discharges the modal logics whose frame conditions are first-order definable; the residue is second-order-about-the-graphs, not modal. Every one of the four chairs concedes that much — GL well-foundedness, common-knowledge transitive closure, LTL liveness, and the line-of-identity discipline all land in MODALITY_WITHOUT_GAMMA §7's second-order residue, not in a demand for a modal glyph.
 
 The charge that lands is *modal-3*, and it is the only reason the **completeness boast** (not the architecture) must be retracted:
 
-> The completeness argument **equivocates**. §3 and FIDELITY §4 lean "no gap / completeness exact" on van Benthem's theorem — a result about **basic propositional** modal logic vs. FOL over one binary R. But §2's crux carries a line of identity across a transition as **trans-world identity**, which is **first-order modal logic WITH identity** — precisely where van Benthem's characterization provably does **not** apply. Citing a propositional-modal characterization to license a QML-with-identity construction is a real equivocation, undischarged anywhere in the docs.
+> The completeness argument **equivocates**. MODALITY_WITHOUT_GAMMA §3 and FIDELITY §4 lean "no gap / completeness exact" on van Benthem's theorem — a result about **basic propositional** modal logic vs. FOL over one binary R. But MODALITY_WITHOUT_GAMMA §2's crux carries a line of identity across a transition as **trans-world identity**, which is **first-order modal logic WITH identity** — precisely where van Benthem's characterization provably does **not** apply. Citing a propositional-modal characterization to license a QML-with-identity construction is a real equivocation, undischarged anywhere in the docs.
 
 And the rigid persisting line silently commits the author to **necessity of identity** and — with a fixed carried domain — the **converse Barcan formula**: contested principles the docs never adjudicate while calling trans-world identity "home ground." No domain policy (constant vs. varying/expanding) is stated.
 
 Two further over-reaches must be amended:
 
-- **(modal-2/modal-4)** The scope clause "they lie outside ordinary modal practice" is **false** — GL/provability, common knowledge, and temporal liveness are everyday. Worse, the §1 trajectory/provability reading the author reaches for *first* is GL-shaped — exactly what §4.1 admits is not captured. Counterfactuals (Lewis/Stalnaker sphere semantics, not one R) and the object-language actuality operator @ are flatly uncovered.
+- **(modal-2/modal-4)** The scope clause "they lie outside ordinary modal practice" is **false** — GL/provability, common knowledge, and temporal liveness are everyday. Worse, the MODALITY_WITHOUT_GAMMA §1 trajectory/provability reading the author reaches for *first* is GL-shaped — exactly what MODALITY_WITHOUT_GAMMA §4.1 admits is not captured. Counterfactuals (Lewis/Stalnaker sphere semantics, not one R) and the object-language actuality operator @ are flatly uncovered.
 - **(historian-3)** FIDELITY §5 mis-credits the modal/second-order partition as a confusion the commentators left un-dissolved, when **Zeman** (broken cut ↔ S4/S5) and **Roberts** (the Gamma-strand catalogue) already drew it.
 
 ### The author's best answer
 
-The no-new-mark thesis is rescued in every case: a line carried across the DAG is still no broken cut and no tincture. The non-FO cases are not counterexamples demanding a mark — they are the second-order residue the author already keeps (§7). Frame-selection-as-feature is coherent: the document offers two readings (trajectory/derivability and alethic/S5) as *different* frames for different work, and the corpus-as-library-of-universes makes "which frame" a chooseable, drawn object. On @, [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #6 turns the alleged contradiction into a *confirmed prediction*: the membrane forbids any mark from bearing actuality, so forgoing @ is the floor doing its intended work, not an oversight.
+The no-new-mark thesis is rescued in every case: a line carried across the DAG is still no broken cut and no tincture. The non-FO cases are not counterexamples demanding a mark — they are the second-order residue the author already keeps (MODALITY_WITHOUT_GAMMA §7). Frame-selection-as-feature is coherent: the document offers two readings (trajectory/derivability and alethic/S5) as *different* frames for different work, and the corpus-as-library-of-universes makes "which frame" a chooseable, drawn object. On @, [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #6 turns the alleged contradiction into a *confirmed prediction*: the membrane forbids any mark from bearing actuality, so forgoing @ is the floor doing its intended work, not an oversight.
 
 ### Rationale
 
@@ -145,9 +145,9 @@ Every charge is a correction to wording and credit, not a refutation of the arch
 
 Five conjoined points:
 
-- **(a) Withdraw the unconditional completeness boast.** Replace "expresses everything the modern □ and ◇ express" and "there is no gap" (MODALITY §1, §3; FIDELITY §4) with: *van Benthem certifies no expressive gap ONLY for basic propositional modal logic over a fixed frame; it does not extend to the construction once §2 carries a line of identity across a transition.*
-- **(b) Add an explicit QML-with-identity clause.** §2's trans-world line is first-order modal logic with identity. State the domain policy (constant vs. varying/expanding carried domain) and which of necessity-of-identity, the Barcan formula, and its converse the line-across-the-DAG validates — or flag these as an open, undischarged commitment rather than "home ground."
-- **(c) Strike or rewrite "they lie outside ordinary modal practice"** (§4.1). Acknowledge GL/provability, common knowledge, and temporal liveness as everyday non-FO cases; reclassify them as the §7 second-order residue — conceding that the §1 provability/trajectory reading is *gestured at*, not constructed.
+- **(a) Withdraw the unconditional completeness boast.** Replace "expresses everything the modern □ and ◇ express" and "there is no gap" (MODALITY §1, §3; FIDELITY §4) with: *van Benthem certifies no expressive gap ONLY for basic propositional modal logic over a fixed frame; it does not extend to the construction once MODALITY_WITHOUT_GAMMA §2 carries a line of identity across a transition.*
+- **(b) Add an explicit QML-with-identity clause.** MODALITY_WITHOUT_GAMMA §2's trans-world line is first-order modal logic with identity. State the domain policy (constant vs. varying/expanding carried domain) and which of necessity-of-identity, the Barcan formula, and its converse the line-across-the-DAG validates — or flag these as an open, undischarged commitment rather than "home ground."
+- **(c) Strike or rewrite "they lie outside ordinary modal practice"** (MODALITY_WITHOUT_GAMMA §4.1). Acknowledge GL/provability, common knowledge, and temporal liveness as everyday non-FO cases; reclassify them as the MODALITY_WITHOUT_GAMMA §7 second-order residue — conceding that the MODALITY_WITHOUT_GAMMA §1 provability/trajectory reading is *gestured at*, not constructed.
 - **(d) Add an explicit non-coverage note** for counterfactuals (Lewis/Stalnaker sphere semantics, not reducible to a single R) and for the object-language actuality operator @ (forgone by principle of the membrane/floor #6, not served) — so "modality without Gamma" is stated as narrower than total.
 - **(e) Downgrade FIDELITY §5's historiographic credit-claim** from "the literature inherits an un-dissolved conflation" to *"made explicit and put to constructive work,"* since Zeman and Roberts already separated the modal from the higher-order strands.
 
@@ -1756,6 +1756,12 @@ here): (i) whether the ⑪ drift re-ask should be *suppressed* while the P2¹³ 
 on — an un-suppressed re-ask slightly dilutes the instrument; (ii) the **P2-vs-P4
 scheduling call** at RUN 13 launch (recorded in `RUN_13_LOG.md`) — which prior the first
 real questions note serves first.
+
+**Cluster E is also disposed, same commit — SUPERSEDED 2026-07-19:** the Conway's-Life
+"bounded plane" error and the requisite-variety inversion (Suspect 6, above) both landed in
+`24654b3`, alongside ①–⑫, across AUTOMATED_MODEL_DEVELOPMENT.md, CONTRIBUTION_AND_PRIOR_ART.md,
+and THE_KYTOS.md (see CONTRIBUTION_AND_PRIOR_ART.md's Cellular-automata and Cybernetics
+concordance entries for the corrected text).
 
 ## What the examination did not bring down
 

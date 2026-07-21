@@ -333,9 +333,11 @@ The register gains five corollaries, each in its favor:
    "without force" (a double cut around a retired law is inert — it still binds).
    What "keep the old M in view" needs splits into: *in force* (the rivals
    pattern), *withdrawn-remembered* (the history), and *present-without-force* —
-   expressible only one order up, as **quotation**. That third tense nominates
-   `(superseded ⌜M⌝ …)` as a candidate first second-order claim
-   ([SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
+   expressible only one order up, as **quotation**. That third tense **is realized
+   by** the `swan_third_tense` corpus exemplar — a withdrawn law present without
+   force as a quoted exhibit (`quotation_overlay.py`; see
+   [CAPABILITY_MAP.md](CAPABILITY_MAP.md)'s "Second-order quotation overlay" row and
+   [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
 
 The assertive-graphs literature (Bellucci, Chiffi & Pietarinen 2021, "Beta
 Assertive Graphs") bears on the register in its favor: it documents that the gloss
@@ -389,21 +391,22 @@ metalanguage, which is more Peircean, not less. And **van Benthem's theorem**
 (*basic propositional* modal logic = the bisimulation-invariant fragment of FOL)
 certifies that no modal mark is needed to fill an expressive gap — **but only for
 the propositional fragment**, over a fixed frame. We withdraw the unconditional
-boast ("expresses everything □/◇ express," "there is no gap"): once §2's crux
-carries a *line of identity* across a transition, we are in **first-order modal
-logic with identity** (QML), which van Benthem's theorem does *not* govern. That
-carried line makes substantive, contested commitments — **necessity of identity**,
-and (with a fixed carried domain) the **converse Barcan formula** — that depend on
-a stated **domain policy** (constant vs. varying/expanding). We owe that policy and
-flag these as undischarged rather than calling trans-world identity "home ground"
-for free. The claim is therefore **adequacy, not completeness**, and bounded
-several ways: GL/provability, common-knowledge, and temporal-liveness modalities
-are not first-order-definable and are *everyday*, not exotic — they belong to the
-§7 second-order residue, and the §1 provability/trajectory reading is *gestured
-at*, not constructed; counterfactuals (Lewis/Stalnaker sphere semantics, not one
-R) and the object-language actuality operator @ (forgone by floor #6, not served)
-are uncovered. Succinctness is traded for explicitness; the result is an *adequacy
-argument*, not a mechanized theorem.
+boast ("expresses everything □/◇ express," "there is no gap"): once
+MODALITY_WITHOUT_GAMMA §2's crux carries a *line of identity* across a transition,
+we are in **first-order modal logic with identity** (QML), which van Benthem's
+theorem does *not* govern. That carried line makes substantive, contested
+commitments — **necessity of identity**, and (with a fixed carried domain) the
+**converse Barcan formula** — that depend on a stated **domain policy** (constant
+vs. varying/expanding). We owe that policy and flag these as undischarged rather
+than calling trans-world identity "home ground" for free. The claim is therefore
+**adequacy, not completeness**, and bounded several ways: GL/provability,
+common-knowledge, and temporal-liveness modalities are not first-order-definable
+and are *everyday*, not exotic — they belong to the MODALITY_WITHOUT_GAMMA §7
+second-order residue, and the MODALITY_WITHOUT_GAMMA §1 provability/trajectory
+reading is *gestured at*, not constructed; counterfactuals (Lewis/Stalnaker
+sphere semantics, not one R) and the object-language actuality operator @
+(forgone by floor #6, not served) are uncovered. Succinctness is traded for
+explicitness; the result is an *adequacy argument*, not a mechanized theorem.
 
 **What is genuinely at stake — and what is conceded.** The author does **not**
 claim Gamma was empty. He claims its *modal* ambition is dischargeable without new
@@ -720,4 +723,4 @@ implementation against Pietarinen's account of the Endoporeutic Principle).
 Sources for the three departures: the archived conversations under
 [references/](references/).*
 
-**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20 · **Worth-ladder footing re-grounded (Examination III: method-gate + uptake)**: 2026-06-22
+**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20 · **Worth-ladder footing re-grounded (Examination III: method-gate + uptake)**: 2026-06-22 · **§3b appendix added — Departure II's operational completion (validity-by-construction, the depth-0 inventory theorem, the outbound discharge path) and the M-residence "second relocation" (M's elements re-housed in even-depth cells, ratified 2026-07-16) absorbed into corollary 4; corollary 5's third tense marked realized by the `swan_third_tense` exemplar**: 2026-07-15/16
