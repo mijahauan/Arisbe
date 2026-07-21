@@ -209,6 +209,40 @@ answer's content. The next real RUN 13 launch may write the first actual
    exponent measured in Arisbe's own system, and it is the minimum evidence before the word
    "murmuration" enters a doc. Assistant's reading of the obligation, flagged as such;
    the claim itself is the author's and stands open.
+   **Q-E — reasoning and metabolism as one reliability-optimization class; West's
+   scalar as a frozen-landscape shadow (the author, 2026-07-20, extending Q-B/Q-C).**
+   The author's claim: the normative logic within a kytos and the landscape West sought
+   *both drive toward an improved outcome* — **reliable reasoning** on one side, **reliable
+   energy economics** on the other — so they are one *kind* of thing, not an analogy. Both
+   are **selection-driven reliability-optimizations over associative networks of invariant
+   terminal units**; the "ought" is functional, enforced by what persists (inefficient
+   organisms die; an M that fails the world's push-back at the membrane decays), so the
+   is/ought seam dissolves. Peircean at root: the *Fixation of Belief* makes logic
+   reliability-under-recalcitrance — the semiotic instance of metabolism's
+   reliability-under-physical-constraint. **The author's correction of the assistant's first
+   framing (load-bearing):** energy is a clean *scalar* only at the **supply/distribution
+   layer** — the plumbing West actually modeled (minimize dissipation through a space-filling
+   network to invariant terminals). The organism's energy *economics* — allocation across
+   growth / repair / reproduction / defense — is **vectorial**, exactly as the K1–K4 measure
+   is, and West brackets it (it is life-history theory, not network theory). And purposive
+   systems *change the landscape they operate in* — "billiard balls that define a purpose and
+   intent and in that process change the landscape" (niche construction) — so the optimization
+   runs on a **moving** landscape no static exponent fully captures; a seam West's own
+   framework carries (cities outlive companies by perpetual innovation; the finite-time
+   singularity needs successive resets). **Consequence:** West's universality may itself need
+   a **vector operand**; the scalar exponent (¾, 1.15) is the *frozen-landscape shadow* of a
+   vector, niche-constructing optimization that metabolism and reasoning share.
+   *Assistant's reading, flagged:* (i) the reciprocal payoff — the kytos is the substrate where
+   the bracketed vector/landscape layer is **explicit and instrumented** (the disposition
+   taxonomy, K1–K4, the participation-sustained commens), so Arisbe is a candidate *lens on
+   what West's exponent is the shadow of*, a contribution back to West, not only borrowed from
+   him; (ii) the test ties to Q-B — the federation experiment measures whether the vector
+   optimand yields a scaling **manifold** rather than a single exponent, the same un-possessable
+   commens surfacing twice, as the vectoriality of the measure (THE_MEASURE_OF_KNOWLEDGE §2)
+   and of the scaling; (iii) concordances, neighbors not proofs: teleodynamics (Deacon),
+   niche-construction theory, Kauffman's adjacent-possible. Conjecture-until-measured; nothing
+   built. The core claim is the author's and stands open.
+
    **Q-D — UoD, "world", and the career of a notion (the author, same sitting; a first
    sketch).** The GLOSSARY under-defines "UoD" and "world". Sketch: **the contents of
    Organon ARE the UoD for that instance of Arisbe** (the Peircean totality-of-discourse,

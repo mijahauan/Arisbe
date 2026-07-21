@@ -107,6 +107,21 @@ individual** — the three EPG roles inside one instance *model* the institution
 never *constitute* it. Full treatment:
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
 
+**Reliability, not analogy (2026-07-20).** The connection to West is not a metaphor laid over
+biology: a kytos optimizing for **reliable reasoning** and an organism optimizing for **reliable
+energy economics** are the same *kind* of thing — selection-driven reliability-optimizations over
+associative networks of invariant terminal units, the "ought" functional and enforced by what
+persists (Peirce's *Fixation of Belief* is reliability-under-recalcitrance, the semiotic instance
+of metabolism's reliability-under-physical-constraint). One caution reframes the whole comparison:
+West's clean *scalar* exponent lives only at the **supply** layer — the distribution network he
+actually modeled. The **allocation-toward-purposes** layer — vectorial, and reshaping its own
+selection landscape by niche construction — is what West brackets and what a kytos makes *explicit
+and instrumented* (the disposition taxonomy, the K1–K4 vector measure, the participation-sustained
+commens). So West's universality may itself need a **vector operand**, and the kytos may be the
+lens on the vector, landscape-changing structure *beneath* the scalar exponent — a contribution
+back to West, not only borrowed from him. See CURRENT_PLAN item -8 **Q-E**; conjecture-until-measured
+(§5), and the honesty-ledger flag on transportability at levels 5–7 applies here with full force.
+
 ## 5 · Honesty ledger — built, evidenced, conjectured
 
 - **Built:** the anatomy at levels 2–3 and 6 (laws/M: the loops, decay, residence;
