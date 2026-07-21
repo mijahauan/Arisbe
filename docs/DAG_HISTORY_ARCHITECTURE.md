@@ -324,9 +324,16 @@ Test coverage: `tools/test_history_dag.py`
 ## Future Enhancements
 
 1. **Merge Branches**: Combine alternative paths
-2. **Branch Labels**: User-defined names for branches
-3. **Branch Colors**: Visual distinction in GUI
-4. **Diff Views**: Compare states across branches
+2. **Diff Views**: Compare states across branches (today's diff is per-step only — each
+   transformation's own `+N/−N` summary, not a cross-branch state comparison)
+
+**Shipped, no longer future (2026-07-16):** branch labels and branch colors, via
+`src/chain_branches.py`'s `branch_report`/`BranchReport` (human labels from the recorded
+`branch_id`, "main"/"branch N" fallback, and per-branch step counters — "a counter never
+aggregates incompatible futures") surfaced in the Organon chain player as a ⑂ chip strip
+(`src/web_viewer/organon.html`) and as branch-colored edges/pills in the derivation-DAG lens
+(`src/web_viewer/js/derivation-dag-lens.js`'s `colorOf(branch_id)`). See
+[UI_TRANSPARENCY_CHARTER.md](UI_TRANSPARENCY_CHARTER.md)'s branch-orientation entry.
 5. **Branch Metrics**: Success rates, path lengths
 6. **Automatic Pruning**: Remove abandoned branches
 

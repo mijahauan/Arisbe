@@ -1,5 +1,14 @@
 # Closing ∀x — the Dau homework
 
+**✅ BUILT.** The scaffold tactic this document works out is implemented as
+`universal_generalization` (`src/derived_rules.py:204`, exported in `__all__`) and
+exercised by `tests/test_induction_proofs.py::test_totality_universal`
+(`tests/test_induction_proofs.py:798`) — exactly the construction described in §2/§3
+below (`DC+` → isolated-vertex insert on the negative outer cut → `IT+` the axioms
+inward → caller-supplied `derive_body` re-derivation → `ERA` the spent axiom copies).
+The rest of this document is retained as the design rationale (why the naive
+∃→∀ rewrite is unsound, and why the scaffold is), not a still-open question.
+
 **Question.** Parametric totality (`test_totality_assembly_parametric`) leaves us
 with `[*x] … ~[ [*Y] ~[ [*z](plus x Y z) ] ]` — a sheet graph whose `x` is a
 **free line of identity**. A free line on the sheet of assertion is *existential*

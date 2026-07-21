@@ -173,28 +173,63 @@ construction independently arriving at the same crossing devices (names of graph
 relation on those names), nominating the first asserted second-order claim the core-opening
 decision has been waiting for.
 
-## Where Arisbe already has a toe in the water
+## Where Arisbe stands: Stage ⓪ and B-min shipped, B-full is the open frontier
 
-The project is not starting cold; it stands on the first step with reconnaissance on the second:
+**Status update (2026-07-16, superseding the "toe in the water" framing below as history).**
+The author ratified [CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)'s A and B
+verdicts: the predicative/Henkin-read/grounded-partial comprehension floor is doctrine (A1–A4
+affirmed), and **the frontier is crossed** — "the point of crossing the frontier is to enable
+handling graphs about graphs... we needn't shy away from implementing it" (B, amended at B2/B4).
+Two build rungs of what the corpus now calls **mention-ascent** (the vocabulary that retires
+the earlier name "the second-order crossing" — see GLOSSARY.md) are shipped:
+
+- **Stage ⓪ — the quotation overlay**, SHIPPED 2026-07-15 (`quotation_overlay.py`,
+  `second_order_check.py`): Peirce's dotted-line/dotted-oval device as a `QuotationMark` — a
+  proposition-sorted name in the host graph plus a serialisable overlay beside the EGI
+  (`quotations.json`, the `reference_node` pattern; no protected-core change) — with a resolver
+  seam (inline EGIF / chain-step record / corpus-UoD mention) and the S1/S2/S4/S5 laws of
+  `second_order_check` checked (S3 skip-named at this stage, pending a sort in the drawing
+  itself). Three blessed corpus exemplars: `swan_third_tense`, `forcing_forces`,
+  `peirce_law_commentary`.
+- **Stage ① — B-min, the authorized core opening**, SHIPPED 2026-07-16 (`egi_core_dau.py`'s
+  parallel `sort`/`quotation` ρ-pattern maps + constructors, `formal_transformation_rules.py`'s
+  sort-preserving/quotation-opaque six rules, `second_order_reader.py`, `second_order_limits.py`,
+  `eg_reader.py`'s second-order `read_drawing`): the one genuine protected-core edit of the
+  crossing so far. First-order graphs stay bit-identical; the committed drawn convention (dotted
+  stroke + sort badge + attachment tie) is held total by the correspondence check (§3.3); **S3
+  (read-back one order up) is now CHECKED** on `swan_third_tense`/`forcing_forces`; the A3
+  conservativity gate (invisibility / erasure-projection / rules-restraint) holds corpus-wide;
+  linear generators refuse loudly (`SecondOrderNotInLinearForm`) rather than emit a false
+  reading. See CAPABILITY_MAP.md's "Second-order quotation overlay" and "Second-order core"
+  rows for the full build ledger.
+
+What remains open is **B-full** — a native graph-valued element kind (widening ν itself, ~52
+modules/252 call sites) rather than the additive overlay B-min used. The items below record
+*why* this frontier existed and what groundwork preceded the crossing; read them as the
+pre-crossing reconnaissance, now historical, not as an open question:
 
 - **`definitions.py`** — a defined relation names a graph and unfolds back to it: **hypostatic
   abstraction in miniature**, and crucially *reversible / conservative* (resolve = co-assertion).
-  This is the controlled, first-order-safe seed of the ascent operator.
+  This was the controlled, first-order-safe seed of the ascent operator, and remains the
+  first-order case the mention-ascent device generalizes.
 - **The reference node's *mention* branch** ([REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md),
   increment 2) — "second-order naming": a spot that *names* a graph without *asserting* it. The
-  use/mention fork is the quotation discipline the name-layer needs; it is paused *exactly* on this
-  frontier, by design.
+  use/mention fork this needed is now discharged for the mention half (Stage ⓪/B-min's resolver
+  seam); the *use* half (scroll-import) remains a deliberate deferral, pinned as a test
+  (`test_use_mention_fork.py`).
 - **The schema / φ-hole** ([SCHEMA_HOLE_CORRESPONDENCE.md](SCHEMA_HOLE_CORRESPONDENCE.md)) — a graph
-  with a hole ranging over subgraphs, which *deliberately stops short* of a graph-valued node
+  with a hole ranging over subgraphs, which *deliberately stopped short* of a graph-valued node
   ("Sowa's Proposition-typed context node — second-order, out of scope") to avoid crossing before
-  the floor exists. The restraint is itself the marked boundary.
+  the floor existed. That floor now exists (B-min); a native graph-valued φ-hole is a B-full
+  question.
 - **The meta-reasoning to bring *in-drawing*.** `same_graph`, `theory_query.entails`, `standing_of`,
-  `modal_query`, `agon_metalearning` today reason *about* graphs from Python — the meta-level.
-  Crossing the frontier means letting the calculus *draw* those claims. That is also what
-  **self-modeling** ([MEANING_BY_HISTORY](MEANING_BY_HISTORY.md), Phase D) requires — hence it waits
-  here — and it is where **dragon 9 becomes a formal constraint**: a self-assessment may be drawn
-  only *enclosed* (a would-be under a cut), never flat on the sheet, enforced by the modal reading
-  (□ = convergence of all trajectories, unassertible from one history).
+  `modal_query`, `agon_metalearning` still reason *about* graphs from Python — the meta-level.
+  Mention-ascent lets the calculus *draw* a quoted claim (Stage ⓪/B-min); it does not yet let the
+  calculus draw a *quantified* claim over graphs, which is what full **self-modeling**
+  ([MEANING_BY_HISTORY](MEANING_BY_HISTORY.md), Phase D) needs — hence that phase still waits on
+  B-full — and it is where **dragon 9 becomes a formal constraint**: a self-assessment may be
+  drawn only *enclosed* (a would-be under a cut), never flat on the sheet, enforced by the modal
+  reading (□ = convergence of all trajectories, unassertible from one history).
 
 ## Marking the departure (the method)
 
@@ -210,13 +245,16 @@ This frontier gets the treatment [FIDELITY_AND_DEPARTURES](FIDELITY_AND_DEPARTUR
   are well-formed* — recorded here and echoed at the point of implementation, so no reader mistakes
   the borrowed floor for Peirce's own.
 
-The frontier is not crossed until second-order logic can be **drawn tractably and read back** with
-the correspondence contract intact one order up. Until then this document is the map of the ground,
-and the boundary on it is marked — and now **de-risked**: the contract one order up is written
-([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md)) and its law is
-running on candidates (`second_order_check.py`), so the two decisions that *cross* it — which
-comprehension floor, and how much to open the core (overlay-forever vs. a native graph-valued node
-+ a sort-reader) — are all that remain, and both are the author's.
+**The frontier is crossed.** Second-order logic — in its mention-ascent form — is now drawn
+tractably and read back with the correspondence contract intact one order up: the contract
+([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md)) is written,
+its law runs on real candidates (`second_order_check.py`), and both decisions this document once
+posed as open — which comprehension floor, and how much to open the core — were ratified by the
+author 2026-07-16 ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)) and built as Stage
+⓪ + B-min (above). What remains is the **B-full** rung: widening ν to a native graph-valued
+element kind rather than the additive overlay B-min used — a fresh marginal-value question (the
+ladder's originally-stated hinge, S3, was discharged already at B-min), not a re-opening of
+whether to cross at all.
 
 ## Sources & further reading
 

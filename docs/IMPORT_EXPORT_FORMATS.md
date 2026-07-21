@@ -380,10 +380,12 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 - [ ] Export options dialog
 
 ### Possible Future Formats
-- Resource Description Framework ([RDF](GLOSSARY.md#rdf))/Web Ontology Language ([OWL](GLOSSARY.md#owl)) (semantic web)
 - GraphML (graph exchange)
 - DOT (Graphviz)
 - PNG/JPEG (raster images)
+
+(RDF/OWL import has already shipped — `tools/owl_to_clif.py`, `tools/rdf_to_owl.py`,
+`domain_model_importer.py` — see [EXTERNAL_SOURCES_AND_IMPORT.md §3](EXTERNAL_SOURCES_AND_IMPORT.md#family-a-formal-files-and-ontologies).)
 
 ---
 

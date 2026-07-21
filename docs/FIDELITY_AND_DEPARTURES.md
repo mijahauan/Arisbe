@@ -333,9 +333,11 @@ The register gains five corollaries, each in its favor:
    "without force" (a double cut around a retired law is inert — it still binds).
    What "keep the old M in view" needs splits into: *in force* (the rivals
    pattern), *withdrawn-remembered* (the history), and *present-without-force* —
-   expressible only one order up, as **quotation**. That third tense nominates
-   `(superseded ⌜M⌝ …)` as a candidate first second-order claim
-   ([SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
+   expressible only one order up, as **quotation**. That third tense **is realized
+   by** the `swan_third_tense` corpus exemplar — a withdrawn law present without
+   force as a quoted exhibit (`quotation_overlay.py`; see
+   [CAPABILITY_MAP.md](CAPABILITY_MAP.md)'s "Second-order quotation overlay" row and
+   [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
 
 The assertive-graphs literature (Bellucci, Chiffi & Pietarinen 2021, "Beta
 Assertive Graphs") bears on the register in its favor: it documents that the gloss
@@ -720,4 +722,4 @@ implementation against Pietarinen's account of the Endoporeutic Principle).
 Sources for the three departures: the archived conversations under
 [references/](references/).*
 
-**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20 · **Worth-ladder footing re-grounded (Examination III: method-gate + uptake)**: 2026-06-22
+**Created**: 2026-06-18 · **Examined and amended**: 2026-06-19 · **Corollary (ends & progress) examined and absorbed**: 2026-06-20 · **Worth-ladder footing re-grounded (Examination III: method-gate + uptake)**: 2026-06-22 · **§3b appendix added — Departure II's operational completion (validity-by-construction, the depth-0 inventory theorem, the outbound discharge path) and the M-residence "second relocation" (M's elements re-housed in even-depth cells, ratified 2026-07-16) absorbed into corollary 4; corollary 5's third tense marked realized by the `swan_third_tense` exemplar**: 2026-07-15/16

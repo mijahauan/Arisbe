@@ -297,11 +297,14 @@ readable. *That* is the complete geometric realization of inerrant correspondenc
      on drag-release, so its area is never the ambiguous boundary band. Live area
      feedback (`areaAt`) names the destination while dragging. **Step 1 is now
      complete** (validity + visible containment + live feedback + snapping).
-3. **The legible EGI diff** (the discrepancy report): align two EGIs by relation
+3. **The legible EGI diff — DONE 2026-06-11** (`src/egi_diff.py`,
+   `tests/test_egi_diff.py`). The discrepancy report: align two EGIs by relation
    label + role (generic vertices by incidence), diff area trees and per-relation
    incidence/order, phrase in EG terms (containment / scope / incidence / order /
    missing / extra). Reused by both fix-time validity *and* challenge mode.
-4. **Challenge mode** in Ergasterion: pick a tomos linear form, hide its drawing,
+4. **Challenge mode — DONE 2026-06-11** (`src/challenge_mode.py`,
+   `tests/test_challenge_mode.py`, `tests/test_ergasterion_challenge.py`) in
+   Ergasterion: pick a tomos linear form, hide its drawing,
    grade the freehand attempt with `same_graph` + the diff. Difficulty gradient
    straight from the corpus: single relation → nested cuts (negation, the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"))
    → Beta with a shared line crossing a boundary (∀x(P→Q)), where scope errors are
