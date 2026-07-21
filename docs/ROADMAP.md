@@ -282,7 +282,7 @@ here rather than only in `runs/`.
   the author's, in due course.
 - **RUN 12 — disposed 2026-07-20.** The sports (MLB) resolving membrane, closed by author STOP
   after 359 rounds (300 picks raised, 215 resolved). `select_best` **did discriminate** among the
-  five rival arms — final standings: odds +8 net / 0.633 acc, home +6 / 0.607, naive +1 / 0.667,
+  five rival arms — closing standings: odds +8 net / 0.633 acc, home +6 / 0.607, naive +1 / 0.667,
   cal −1 / 0.484, strong −3 / 0.448, with the leader flipping home↔odds across the run rather than
   being fixed from the start. See [runs/RUN_12_LOG.md](../runs/RUN_12_LOG.md) for the full
   per-prior evidence (P1¹²–P5¹²) including the two mid-run operational findings (the All-Star-break

@@ -735,6 +735,11 @@ This method embodies the **dialogical nature of inquiry** - truth emerges throug
 
 ## Conclusion
 
+> **Status (2025-10-14, original conclusion — superseded):** the paragraphs below are this
+> document's original closing argument, written before any of the three modes existed. They
+> are retained as the doc's historical framing, not a current capability claim. For what the
+> system actually does today, see [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
+
 By establishing the **Universe of Discourse** as the fundamental entity, Arisbe transcends the limitations of diagram editors and becomes a **true logical reasoning environment**.
 
 **Key Achievements**:
