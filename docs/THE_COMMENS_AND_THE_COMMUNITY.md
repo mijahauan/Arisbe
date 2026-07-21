@@ -138,7 +138,7 @@ merely more talk). The conjecture is to be fit against the exponents recovered f
 apportionment / West experiment (the Q-B sketch, CURRENT_PLAN.md item -8: one big
 Arisbe vs. distributed kytē plus a coordinator, measuring cost curves, K3 exponents, and
 poise). This is a **conjecture-until-measured**, and stays one permanently in the sense that
-matters here — the measurement itself is an ongoing act, never a closing one (see [§7](#7--no-final)).
+matters here — the measurement itself is an ongoing act, never a closing one (see [§7](#7--no-final-ratified)).
 
 ## 6 · The rung-boundary *[flagged formulation]*
 

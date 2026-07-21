@@ -279,8 +279,7 @@ makes communication possible without being possessed: interacted-with, never int
 confronts them with facticity, exceeds any one of them) yet **sustained only by participation** —
 *if we do not participate, it disappears* — so it is open *and precarious*, continuously
 reproduced rather than pre-given or timeless. Regulative, never to be operationalized. Genuine
-institutionalization and the commens are **community-level emergents** (a change in kind, not
-degree, above the single instance). See
+institutionalization and the commens are **community-level emergents**, above the single instance. See
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md),
 [World-scroll](#world-scroll), [Kytos](#kytos-the-semiotic-cell),
 [Mention-ascent](#mention-ascent).
