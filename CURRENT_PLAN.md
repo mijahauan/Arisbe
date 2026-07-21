@@ -152,7 +152,10 @@ model-of, not the actual judgment — the argument for publishing, §10; written
 *Sharpened mid-turn (author): even occupying the judge-seat, the licence to judge and the rationale
 don't reside in the individual (cf. "judge the meaning of a word" — respond but don't own the
 meaning); how a response functions beyond the membrane belongs to the objectivated
-institutionalizations (Berger & Luckmann, §1).*
+institutionalizations (Berger & Luckmann, §1). **Lifted (author's word) to THE_COMMENS §2(c) as
+ratified doctrine** — "judgment itself is objectivated — the licence and the rationale are never
+owned," a third grounded consequence of un-possessability beside (a) vector-not-scalar + (b)
+correspondence-not-truth.*
 **Housekeeping done same commit:** ARISBE_EXISTENTIAL archived-with-banner; CAPABILITY_MAP gained
 the directed-engagement action-arm section (attention_economy/vault/oracle/…) + a K1–K4 measure row
 (K2/K3 built). **CLAUDE.md "~1000 passing" count refresh** — pending a real full-suite run (in

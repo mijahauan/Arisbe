@@ -301,7 +301,9 @@ Arisbe resides.
 > individual, and neither does the rationale**, any more than being asked to *judge the meaning of a
 > word* makes the meaning one's own. One may provide a response; but **how that response functions
 > beyond the membrane belongs to the objectivated institutionalizations** (Berger & Luckmann's
-> objectivation, §1), not to the responder. So the project's internal model of external judgment — "the
+> objectivation, [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §1; lifted to
+> general doctrine there as **§2(c) — judgment itself is objectivated**), not to the responder. So the
+> project's internal model of external judgment — "the
 > record disposes," the run-log Pⁿ/Fⁿ discipline — **does not make the judgment; only the community
 > does** — and the same holds of any lone judge, whose seat, licence, and reasons are themselves
 > objectivated, participated-in-never-owned. The Agonothetes/fate-selector the project carries at this

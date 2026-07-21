@@ -54,9 +54,9 @@ internalizes a portion of the outside into a UoD; export contributes to the outs
 then becomes part of *others'* potential commens — and, in doing so, helps sustain the
 commens itself. Neither direction is automatic or costless; both are acts.
 
-## 2 · What the pair grounds *[flagged]*
+## 2 · What the pair grounds *[flagged (a), (b) · ratified (c)]*
 
-Two consequences follow from keeping the UoD/commens pair exactly as drawn:
+Three consequences follow from keeping the UoD/commens pair exactly as drawn:
 
 *[flagged]* (a) The knowledge measure ([THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md))
 is a **vector, never a scalar over agents** *because* no commens-scaled denominator exists to
@@ -70,6 +70,21 @@ attestation certifies truth rather than internal correspondence — is the insta
 acknowledgment that its UoD is a finite internalization facing a commens it does not own. A
 kytos can attest that its picture and its proposition agree with each other; it cannot attest
 that either agrees with a commens it can only interact with, never hold.
+
+*[ratified — the author, 2026-07-21]* (c) **Judgment itself is objectivated — the licence and the
+rationale are never owned.** A kytos may occupy a judge's seat — sit as the one whose decision the
+world awaits "with bated breath" — and still not own the judging. The **licence to judge does not
+reside in the individual, and neither does the rationale**, any more than being asked to *judge the
+meaning of a word* makes the meaning one's own: one may return a response, but *how that response
+functions beyond the membrane* — whether it counts, binds, means — belongs to the **objectivated
+institutionalizations** (Berger and Luckmann's objectivation, §1), not to the responder. This is
+the same un-possessability as (a) and (b), now applied to the act of judging: a lone judge's seat,
+licence, and reasons are themselves objectivated — participated in, never owned. It is why the
+game's Agonothetes "does not represent the commens" (§3), and why the outer, project-scale game's
+judgment *belongs* to the community the project faces rather than to the project itself
+([BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §4, the FLAG B
+ruling). Only the community makes the judgment; an individual — however placed — takes
+part in a judging whose authority and reasons it does not hold.
 
 ## 3 · The institution and the roles *[ratified]*
 
