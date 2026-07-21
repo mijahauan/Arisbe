@@ -96,8 +96,8 @@ M as a quoted attributed cell, multi-paragraph answers, real NL interpretation o
 answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
-**▶▶▶ NEXT SESSION (re-headed 2026-07-20/21 — the Understand·Share·Run·Use program;
-workstream A shipped, B's audit done + fix PARKED; the §3 EPG-role ruling to WRITE FIRST).**
+**▶▶▶ NEXT SESSION (re-headed 2026-07-21 — the Understand·Share·Run·Use program;
+workstream A shipped, the §3 EPG-role ruling WRITTEN, B's fix EXECUTION still PARKED awaiting go).**
 
 This sitting established a four-workstream program (ROADMAP rewritten: **Understand · Share ·
 Run · Use**). **Workstream A (Understand) SHIPPED + PUSHED:** `docs/THE_COMMENS_AND_THE_COMMUNITY.md`
@@ -108,19 +108,19 @@ reliability-optimization class; West's scalar exponent = the frozen-landscape sh
 niche-constructing* optimand (the author's supply-vs-allocation correction); ties to Q-B's
 federation test; conjecture-until-measured.
 
-**▶ DO FIRST — the §3 EPG-role refinement (author's authoritative ruling 2026-07-20; specified,
-NOT yet written).** TWO players only: **Graphist** devoted to the *proposal* (the new, arrived
-from outside or inspired by doubt); **Grapheus** devoted to the *Model M* (the established,
-habituated ground used in further thought/action). Their play yields a **binary outcome**. **No
-move-by-move referee** — every EGI→EGI transform is guaranteed legal by the calculus. The
-**Agonothetes is NOT a player**: given the binary outcome + the agreed **taxonomy of fates**
-("intents and purposes"), it **applies them to SELECT which fate applies** — a **risked CHOICE**
-(not recognition: charts a path, takes a risk, commits to what might-or-might-not resolve the
-doubt; human-played, it carries her posture in the dialogue and toward the world); it **does not
-represent the Commens** but **brings the episode outcome into a posture of the functioning UoD
-*toward* the Commens**. → Rewrite doctrine-doc §3 to exactly this (it **SUPERSEDES** the docket
-§(iii) "Grapheus = tester + defender" draft — there is no tester and no referee), mark **open
-verdict #3 resolved**, then propagate via fix batch 6.
+**✅ DONE (2026-07-21) — the §3 EPG-role refinement.** `docs/THE_COMMENS_AND_THE_COMMUNITY.md`
+§3 rewritten to the author's authoritative ruling: TWO players only — **Graphist** devoted to the
+*proposal*, **Grapheus** devoted to the *Model M* — yielding a **binary outcome**; **no
+move-by-move referee** (the calculus guarantees every EGI→EGI move legal); the **Agonothetes is
+NOT a player** but applies the agreed **taxonomy of fates** ("intents and purposes") to select
+which fate applies as a **risked CHOICE** (charts a path, takes a risk; human-played it carries
+her posture toward the world), thereby bringing the episode outcome into a **posture of the
+functioning UoD *toward* the Commens** (it does not represent the Commens). Section header
+promoted `*[ratified spine / flagged detail]* → *[ratified]*`; the priority/DAG-fork/LLM-choice
+mechanisms retained as the *mechanical realization* of the one risked selection. **Open verdict
+#3 marked ✅ RESOLVED** in §11 (intro adjusted); the ruling **supersedes** the doc-sweep docket
+§(iii) "Grapheus = tester + defender" draft. Remaining: **propagate to the docket §(iii) via
+workstream B fix batch 6** (parked below).
 
 **▶ THEN — workstream B (Share) FIX EXECUTION (parked, awaiting go).** The audit is DONE +
 committed: spec `docs/superpowers/specs/2026-07-20-doc-sweep-design.md`, audit plan

@@ -71,7 +71,7 @@ acknowledgment that its UoD is a finite internalization facing a commens it does
 kytos can attest that its picture and its proposition agree with each other; it cannot attest
 that either agrees with a commens it can only interact with, never hold.
 
-## 3 · The institution and the sub-roles *[ratified spine / flagged detail]*
+## 3 · The institution and the roles *[ratified]*
 
 Berger and Luckmann's account of institutionalization: it is a **reciprocal typification of
 habitualized actions by types of actors**. Actor-type A does typical action X, actor-type B
@@ -81,25 +81,54 @@ that reciprocal anticipation, sedimented over time and handed to newcomers as "h
 individual**. It takes at least two distinguishable types of actor, actually reciprocating,
 for an institution to exist.
 
-This is why Arisbe's three EPG roles — Graphist, Grapheus, Agonothetes — are not, by
+This is why Arisbe's Endoporeutic Game roles — Graphist, Grapheus, Agonothetes — are not, by
 themselves, an institution. They are **internalized typifications** carried as sub-roles
 within one process (see `agon_llm.py`'s three roles, or the mechanical panel in
 `agon_evolution.py`). Conant and Ashby's good-regulator theorem (requisite variety: a
 regulator that manages a system well must, in effect, contain a model of that system) supplies
 the right frame: to manage its own belief-fixation, a kytos's process must model the social
-division of labor by which belief actually gets fixed elsewhere — Graphist doubts, Grapheus
-defends, Agonothetes judges. The three roles are a **model of** the institution of inquiry,
-carried internally as sub-roles — never an **instance of** that institution. Model-of, never
-instance-of.
+division of labor by which belief actually gets fixed elsewhere. The roles are a **model of**
+the institution of inquiry, carried internally as sub-roles — never an **instance of** that
+institution. Model-of, never instance-of.
 
-*[flagged]* The Agonothetes-negotiation account, stated precisely: the Agonothetes does not
-decide *truth* — the peel does that, mechanically, against the reference model. What the
-Agonothetes decides is what a round's outcome does to the *UoD's own attested record*:
-resolving the non-trivial cases by policy priority among an `Agonothetes` panel's votes, by
-forking the DAG to carry genuine dissent forward as siblings (`agon_llm.py`'s
-`branch_votes` hook), or, with an LLM judge, by choosing among votes already cast without
-fabricating a disposition. **Commens-entry is a separate act** — circulation and uptake by
-other kytē — never automatic just because a round resolved inside one process.
+**The game is played by two, judged by neither** (the author's authoritative ruling,
+2026-07-20). The refinement that fixes the roles precisely:
+
+- **Two players, and only two.** The **Graphist** is devoted to the *proposal* — the new,
+  whether arrived from outside the membrane or thrown up by the kytos's own doubt. The
+  **Grapheus** is devoted to the *Model M* — the established, habituated ground already used in
+  further thought and action. Their play is the confrontation of the new with the standing, and
+  it yields a **binary outcome**: the proposal either holds against M or it does not. These are
+  exactly Berger and Luckmann's two reciprocating actor-types — the one who brings a candidate,
+  the one who answers with the standing ground — which is why two is not an incidental count but
+  the minimum the institution-model requires.
+
+- **No referee.** There is **no move-by-move judge** of legality, because there is nothing to
+  judge: every EGI→EGI transformation is guaranteed lawful by the calculus itself (the six Dau
+  rules, attested at [§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md)). The peel decides the binary
+  outcome mechanically, against the reference model; it does not adjudicate the players'
+  conduct, because their conduct cannot be illegal.
+
+- **The Agonothetes is not a player.** It stands outside the two-sided play. Given the binary
+  outcome and an agreed **taxonomy of fates** — the episode-outcome dispositions, the game's
+  "intents and purposes" ([EXEMPLARS.md](EXEMPLARS.md) §6, the
+  [Endoporeutic Game guide](ENDOPOREUTIC_GAME_GUIDE.md)'s Taxonomy, coded as
+  `model_revision.REVISION_TAXONOMY`) — the Agonothetes **applies that taxonomy to select which
+  fate applies**. This is a **risked choice, not a recognition**: it does not read off a
+  determinate fact of the matter but charts a path, takes a risk, and commits to a disposition
+  that *might or might not* actually resolve the doubt. Played by a human, this is where her own
+  posture — in the dialogue and toward the world — enters the record. Mechanically the choice is
+  realized by policy priority among a panel's votes, by forking the DAG to carry genuine dissent
+  forward as siblings (`agon_llm.py`'s `branch_votes` hook), or, with an LLM judge, by choosing
+  among votes already cast without fabricating a disposition — but conceptually it is one act:
+  the risked selection of a fate.
+
+**What the Agonothetes does with the outcome, stated exactly.** It **does not represent the
+commens** — nothing inside one process can (§1). What it does is bring the episode's outcome
+into a **posture of the functioning UoD *toward* the commens**: the selected fate is how this
+kytos now stands, provisionally and at its own risk, in relation to an outside it does not own.
+**Commens-entry remains a separate act** — circulation and uptake by other kytē — never
+automatic just because a round resolved and a fate was chosen inside one process.
 
 ## 4 · S and A, made measurable *[ratified spine / flagged coupling]*
 
@@ -248,9 +277,11 @@ ontology beneath it.
 
 ## 11 · Open verdicts
 
-The following are assistant elaborations the author engaged with in the 2026-07-19/20 sitting
-but has not yet ruled on. Each is carried in place above, marked `*[flagged]*`, and restated
-here as a crisp question for a later ruling. Nothing below is settled doctrine.
+The following are assistant elaborations the author engaged with in the 2026-07-19/20 sitting.
+Each is carried in place above, marked `*[flagged]*`, and restated here as a crisp question for
+a later ruling — except where marked **✅ RESOLVED**, which records a ruling the author has since
+made (the corresponding §-detail is now ratified doctrine). Nothing still marked `*[flagged]*`
+below is settled doctrine.
 
 1. **§2(a) — the vector-not-scalar ground.** Is "no commens-scaled denominator exists to
    normalize across agents" the *correct and complete* ground for the measure being a vector
@@ -261,10 +292,17 @@ here as a crisp question for a later ruling. Nothing below is settled doctrine.
    that the correspondence-not-truth floor *is* a UoD's acknowledgment of facing an un-owned
    commens, as opposed to a narrower, purely formal reading (§3.3 attests structural agreement
    and nothing about truth-conditions at all, independent of any commens-facing story)?
-3. **§3-detail — the Agonothetes-negotiation account.** Is the three-way resolution mechanism
-   (priority among votes / DAG-fork on dissent / LLM choice-without-fabrication) the right and
-   complete inventory of how the Agonothetes decides record-effects, or does it need a fourth
-   case, and is "commens-entry is a separate act" stated with the right emphasis?
+3. **§3-detail — the Agonothetes-negotiation account. ✅ RESOLVED (the author's authoritative
+   ruling, 2026-07-20).** The account is superseded and sharpened, and §3 now carries the
+   ruling as ratified doctrine: the EPG is **two players** (Graphist for the proposal, Grapheus
+   for the Model M) yielding a **binary outcome**, with **no referee** (the calculus guarantees
+   every move's legality); the **Agonothetes is not a player** but applies the agreed *taxonomy
+   of fates* to that outcome as a **risked choice** (charting a path, not recognizing a fact),
+   thereby bringing the episode into a **posture of the functioning UoD *toward* the commens** —
+   it does not represent the commens. The priority / DAG-fork / LLM-choice mechanisms are
+   retained as the *mechanical realization* of that single risked selection, not as three
+   separate cases. This supersedes the doc-sweep docket's §(iii) "Grapheus = tester + defender"
+   draft (there is no tester and no referee).
 4. **§4-coupling — S/A coupled by one attention budget, poise as its reading.** Rule on
    whether this coupling claim is doctrine (S and A *necessarily* share one budget by
    construction) or a currently-true implementation fact that a future architecture could
