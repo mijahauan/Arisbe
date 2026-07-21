@@ -96,6 +96,55 @@ M as a quoted attributed cell, multi-paragraph answers, real NL interpretation o
 answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
+**▶▶▶ NEXT SESSION (re-headed 2026-07-20/21 — the Understand·Share·Run·Use program;
+workstream A shipped, B's audit done + fix PARKED; the §3 EPG-role ruling to WRITE FIRST).**
+
+This sitting established a four-workstream program (ROADMAP rewritten: **Understand · Share ·
+Run · Use**). **Workstream A (Understand) SHIPPED + PUSHED:** `docs/THE_COMMENS_AND_THE_COMMUNITY.md`
+(UoD/commens, institution-can't-happen-in-an-individual, S/A→West, no-"final", thirdness-kept;
+open-verdicts §11 standing) + ripples (GLOSSARY Commens/UoD · KYTOS · MEASURE · PRIOR_ART) + the
+ROADMAP rewrite. **Q-E recorded** (item -8 above + THE_KYTOS §4): reasoning/metabolism = one
+reliability-optimization class; West's scalar exponent = the frozen-landscape shadow of a *vector,
+niche-constructing* optimand (the author's supply-vs-allocation correction); ties to Q-B's
+federation test; conjecture-until-measured.
+
+**▶ DO FIRST — the §3 EPG-role refinement (author's authoritative ruling 2026-07-20; specified,
+NOT yet written).** TWO players only: **Graphist** devoted to the *proposal* (the new, arrived
+from outside or inspired by doubt); **Grapheus** devoted to the *Model M* (the established,
+habituated ground used in further thought/action). Their play yields a **binary outcome**. **No
+move-by-move referee** — every EGI→EGI transform is guaranteed legal by the calculus. The
+**Agonothetes is NOT a player**: given the binary outcome + the agreed **taxonomy of fates**
+("intents and purposes"), it **applies them to SELECT which fate applies** — a **risked CHOICE**
+(not recognition: charts a path, takes a risk, commits to what might-or-might-not resolve the
+doubt; human-played, it carries her posture in the dialogue and toward the world); it **does not
+represent the Commens** but **brings the episode outcome into a posture of the functioning UoD
+*toward* the Commens**. → Rewrite doctrine-doc §3 to exactly this (it **SUPERSEDES** the docket
+§(iii) "Grapheus = tester + defender" draft — there is no tester and no referee), mark **open
+verdict #3 resolved**, then propagate via fix batch 6.
+
+**▶ THEN — workstream B (Share) FIX EXECUTION (parked, awaiting go).** The audit is DONE +
+committed: spec `docs/superpowers/specs/2026-07-20-doc-sweep-design.md`, audit plan
+`.../plans/2026-07-20-doc-sweep.md`, pre-pass (mechanical layer verified CLEAN — 0 real dead
+links), **the 67-finding docket `docs/superpowers/audits/2026-07-20-doc-sweep-docket.md`**
+(26 mechanical / 41 judgment; 13 Criticals — stale "grapheus unbuilt"×5 / clockwise-pending /
+GLOSSARY "17 modules"→14 / CHAPTER18 fabricated-tests+"100%" / CAPABILITY_MAP missing the whole
+bootstrap+vault subsystem / SECOND_ORDER_FRONTIER crossing-is-open; the harmonized EPG vision in
+§(iii)), and **the fix plan `.../plans/2026-07-20-doc-sweep-fixes.md`** (7 SDD batches). Execute
+via superpowers:subagent-driven-development. Baked rulings: EPG = the §3 ruling above (NOT the
+docket draft); book membership = add THE_COMMENS/THE_KYTOS/THE_MEASURE/BOOTSTRAP to `_quarto.yml`
+(TUTOR_LOOP held); CLAUDE.md editable for clear factual drift. Constraint: correct what a doc
+*says*, never change meaning; every staleness fix carries a repo-verification line.
+
+**▶ RUN 13 — COMPLETE.** 3 segments, clean exit, |M| held at 780 (disuse-decay bounding ~7k
+atoms of churn/segment). **5 questions written to `Arisbe/Questions-2026-07-20.md` in the author's
+vault** — awaiting the author's answers, which unblock V2a.2 items (1) multi-paragraph + (3)
+NL-interpretation. **Anomaly to investigate (repo-side only):** `journal_entries: 0` — the ~50-year
+longitudinal journal spine read empty despite journal being the top-severity want kind (119.8).
+RUN_13_LOG disposal not yet appended. (RUN 12 already disposed: 359 rounds, select_best
+discriminates; priors ruling the author's.)
+
+---
+
 **▶▶▶ NEXT SESSION (re-headed 2026-07-19, third sitting: EXAMINATION IV DEFECT DOCKET
 ①–⑫ EXECUTED — docs amended, record closed, full suite verified).**
 
