@@ -169,3 +169,73 @@ budget truth, clobber guard, horizon cap raised`.
 (ttl defaults to 120; `--ttl 0` disables at your own save-time peril) — the
 same command as F1¹³'s relaunch; segment 2's crash and the journal's
 starvation are both fixed underneath it, no new flags needed.
+
+**F4¹³ (2026-07-21) — the journal spine is READ but does not PERSIST: it
+decays out before the end-of-segment digest, so `journal_entries: 0`
+survived F3¹³. Root cause found + reproduced; fix is an author design call
+(unpatched).** The real run (`runs/run13_console.txt`, mtime 2026-07-21 —
+post-F3¹³) still shows `journal_entries: 0` and `entries_per_decade: {}` in
+**all three** segment digests, even though `ledger.kinds.journal ≈ 119.8`
+is the *top* kind. F3¹³ fixed *pricing* (the journal is now affordable and
+chosen); it did not make the journal *stick*.
+- **What `journal_entries` measures:** `tools/run_vault_v0.py:170`,
+  `tally.get("journal_entry", 0)` — a point-in-time count of `journal_entry`
+  atoms *in M at the segment digest*. `0` is truthful: M holds no journal
+  atoms at that instant. Not a reporting bug.
+- **What `ledger.kinds.journal ≈ 119.8` means:** `attention_economy` line ~122,
+  the per-kind **decayed yield** = round-granular M churn (`added + removed +
+  |Δcuts|`) credited to the chosen kind. ≈120 ≈ a 40-entry batch × 3 atoms —
+  so journal wants *are* chosen and *do* enter M. Read, not starved.
+- **Why they vanish:** journal wants are **finite** (`VaultFeed._seed`,
+  `src/vault_world.py:524-532` — ~40 batch wants, seeded once per segment;
+  `_seed` guarded by `self._seeded`) and journal is **not a
+  `persistent_kind`** (`VaultFeed.persistent_kinds = frozenset()`), so each
+  batch executes once and settles, never re-proposed. `--rounds` is **per
+  segment** and a **fresh `VaultFeed` is built per segment**
+  (`_run_segment`, `run_vault_v0.py:188`), so within one 200-round segment the
+  ~40 batches are chosen early (severity 8.0, rounds ~1-40), their atoms enter
+  M, then **disuse-decay (ttl=120) erases them at rounds ~121-160 — before the
+  end-of-segment digest at round 200** — and nothing replenishes them.
+  Scan/read atoms persist only because `_refill` keeps discovering *new* notes,
+  a fresh supply the finite journal has no analogue of.
+- **Reproduced (fixture, decay forced):** `--fixture --rounds 30` →
+  `journal_entries: 5` in every segment (M=54, `m_removed: 0`, no decay
+  pressure — the F3¹³ test's regime, which is why it passed). `--fixture
+  --rounds 120 --ttl 8` → **`journal_entries: 0`, `entries_per_decade: {}`**
+  (`m_removed: 24`, journal yield 2.88 — read then decayed). The real
+  vault's 200-rounds-vs-ttl-120 is the same regime at scale.
+- **Consequence for P5¹³ (the K2 showcase):** it **cannot be disposed** as
+  the log stands — the 50-year journal spine never survives to the digest to
+  be read in the audit lens, so "a disposition standing across decades vs a
+  mood that faded" has nothing to measure. F4¹³ blocks P5¹³.
+- **Test-coverage gap (safe follow-up regardless of the fix chosen):** the
+  F3¹³ regression test drives a short fixture run (rounds < ttl), so it
+  never exercises decay and cannot catch a persistence regression. Extend it
+  to run rounds ≫ ttl and assert `journal_entries > 0` at the digest.
+
+**Fix is an author design call — three approaches, different K-measure
+semantics (NOT patched, pending the author's ruling):**
+  1. **Pin the journal spine from disuse-decay** (a protected/standing atom
+     class exempt from ttl). Semantically the truest to intent — the journal
+     *is* the standing longitudinal spine, K2's whole point is that it does
+     *not* fade — but it makes the journal a privileged, non-decaying tier,
+     which is a real statement about what the vault kytos treats as
+     bedrock-vs-working-set. Touches the runner/agon_evolution decay pass.
+  2. **Make journal a `persistent_kind`** (re-proposed each round → its atoms
+     re-delivered → never disuse-decay). Keeps the spine alive through the
+     ordinary use=re-delivery mechanism (no new decay tier), but journal
+     (severity 8.0) would then dominate the proposal stream every round —
+     a heavy, possibly starving change to the economy's balance.
+  3. **Measure the journal where it lives, not at the digest** — accept that
+     the working-set M is churn-bounded and read the journal spine from a
+     separate standing structure (or a per-decade rollup captured at read
+     time), leaving M's decay semantics untouched. Least invasive to the
+     loop; changes what "journal_entries" reports rather than what M retains.
+
+The recommendation, flagged as the assistant's: **(1)** best matches the
+stated intent (the journal is the *retained* K2 spine, explicitly contrasted
+with the mood-that-fades), and a decay *exemption for a declared standing
+tier* is a cleaner K-measure story than a severity-8 want re-fired every
+round — but it is a genuine statement about a bedrock/working-set split in
+the vault kytos, which is the author's to make. Priors P1¹³–P4¹³ and the
+P5¹³ disposition remain the author's.
