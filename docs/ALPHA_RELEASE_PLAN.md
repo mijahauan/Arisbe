@@ -155,7 +155,7 @@ ARISBE_FOR_SCHOLARS) · 1 MERGE (PRODUCT_VISION, done) · ~22 DEV (incl. CORPUS_
    imperceptible). `_quarto.yml` pdf: `geometry margin=1in`, `fontsize 10pt`, `code-overflow: wrap`,
    header adds `microtype` + `xurl` + `hyphenat[htt]` (breaks long inline `module.function`/path
    tokens) + `\sloppy`/`\emergencystretch` + `\fvset{fontsize=\small}`; two wide source blocks
-   (the VISION §7 diagram, a FEATURE_PEIRCE TikZ sample) trimmed; a slash-run in CAPABILITY_MAP
+   (the VISION_AND_SCOPE.md §7 diagram, a FEATURE_PEIRCE TikZ sample) trimmed; a slash-run in CAPABILITY_MAP
    spaced. PDF now ~1 MB.
 9. ✅ **Residual dead links fixed** — two moves: **(a) promoted** three heavily-linked book-grade
    docs to chapters — FIDELITY_AND_DEPARTURES + ADVERSARIAL_EXAMINATION (Part I), GENERATION_AND_TESTING

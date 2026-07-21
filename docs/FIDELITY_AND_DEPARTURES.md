@@ -391,21 +391,22 @@ metalanguage, which is more Peircean, not less. And **van Benthem's theorem**
 (*basic propositional* modal logic = the bisimulation-invariant fragment of FOL)
 certifies that no modal mark is needed to fill an expressive gap — **but only for
 the propositional fragment**, over a fixed frame. We withdraw the unconditional
-boast ("expresses everything □/◇ express," "there is no gap"): once §2's crux
-carries a *line of identity* across a transition, we are in **first-order modal
-logic with identity** (QML), which van Benthem's theorem does *not* govern. That
-carried line makes substantive, contested commitments — **necessity of identity**,
-and (with a fixed carried domain) the **converse Barcan formula** — that depend on
-a stated **domain policy** (constant vs. varying/expanding). We owe that policy and
-flag these as undischarged rather than calling trans-world identity "home ground"
-for free. The claim is therefore **adequacy, not completeness**, and bounded
-several ways: GL/provability, common-knowledge, and temporal-liveness modalities
-are not first-order-definable and are *everyday*, not exotic — they belong to the
-§7 second-order residue, and the §1 provability/trajectory reading is *gestured
-at*, not constructed; counterfactuals (Lewis/Stalnaker sphere semantics, not one
-R) and the object-language actuality operator @ (forgone by floor #6, not served)
-are uncovered. Succinctness is traded for explicitness; the result is an *adequacy
-argument*, not a mechanized theorem.
+boast ("expresses everything □/◇ express," "there is no gap"): once
+MODALITY_WITHOUT_GAMMA §2's crux carries a *line of identity* across a transition,
+we are in **first-order modal logic with identity** (QML), which van Benthem's
+theorem does *not* govern. That carried line makes substantive, contested
+commitments — **necessity of identity**, and (with a fixed carried domain) the
+**converse Barcan formula** — that depend on a stated **domain policy** (constant
+vs. varying/expanding). We owe that policy and flag these as undischarged rather
+than calling trans-world identity "home ground" for free. The claim is therefore
+**adequacy, not completeness**, and bounded several ways: GL/provability,
+common-knowledge, and temporal-liveness modalities are not first-order-definable
+and are *everyday*, not exotic — they belong to the MODALITY_WITHOUT_GAMMA §7
+second-order residue, and the MODALITY_WITHOUT_GAMMA §1 provability/trajectory
+reading is *gestured at*, not constructed; counterfactuals (Lewis/Stalnaker
+sphere semantics, not one R) and the object-language actuality operator @
+(forgone by floor #6, not served) are uncovered. Succinctness is traded for
+explicitness; the result is an *adequacy argument*, not a mechanized theorem.
 
 **What is genuinely at stake — and what is conceded.** The author does **not**
 claim Gamma was empty. He claims its *modal* ambition is dischargeable without new
