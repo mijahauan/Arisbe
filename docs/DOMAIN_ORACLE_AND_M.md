@@ -207,7 +207,7 @@ Sequence:
    isomorphism engine (a negation-free `g` has no cuts, so the embedding is small
    and well-defined).
 2. **[DONE 2026-06-11]** The semantic-game [seam](GLOSSARY.md#seam) — `src/semantic_game.py`,
-   `tests/test_semantic_game.py` (15 tests). `evaluate(egi, oracle)` reads G
+   `tests/test_semantic_game.py` (18 tests). `evaluate(egi, oracle)` reads G
    outside-in and asks the oracle (`match_atoms` / `individuals`, added to the
    interface this step) at each negation-free layer; returns a three-valued
    `Verdict3` (TRUE / FALSE / UNKNOWN) + a legible transcript. **Kleene** logic
@@ -316,7 +316,7 @@ clarification 1) routes to "the contest/deduction game": the peel stays pure
 model-checking; the theory query is the inference step that makes a T-box testable.
 Verified end-to-end on `sumo_upper` (subsumption theorems), `porphyry_tree` (the ladder
 + the disjointness residue), and `foaf_core` (typing chains through subsumption:
-`knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (15).
+`knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (16).
 
 ---
 
