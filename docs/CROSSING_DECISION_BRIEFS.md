@@ -30,6 +30,10 @@ ends with a **verdict form** — the sentences awaiting affirmation or amendment
 Context: the "Moses" beta (v2.0.0-beta.1) tags the completed first-order
 territory; frontier ink lands on `main` only, after the cut.
 
+> **Vocabulary note.** This memo predates the 2026-07-20 mention-ascent rename and uses
+> the earlier "second-order"/"the crossing" vocabulary throughout. See
+> [GLOSSARY.md#mention-ascent](GLOSSARY.md#mention-ascent).
+
 The two decisions are **orthogonal** (SECOND_ORDER_CORE_OPENING §8: the harness
 parameterises S1, so the floor swaps in without touching the overlay-vs-native
 axis), and **neither decision-B nominee needs more than the predicative floor**

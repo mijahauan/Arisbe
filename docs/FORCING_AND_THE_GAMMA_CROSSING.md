@@ -13,6 +13,10 @@
 > [CATEGORIES_AND_THE_THREE_PARTS](CATEGORIES_AND_THE_THREE_PARTS.md) (2026-07-15) gives
 > the same two decisions their categorial footing — `(forces s φ)` read as hypostatic
 > abstraction of a graph.
+>
+> **Vocabulary note.** This memo predates the 2026-07-20 mention-ascent rename and uses
+> the earlier "second-order"/"the crossing" vocabulary throughout. See
+> [GLOSSARY.md#mention-ascent](GLOSSARY.md#mention-ascent).
 
 ## §0 Why this memo
 

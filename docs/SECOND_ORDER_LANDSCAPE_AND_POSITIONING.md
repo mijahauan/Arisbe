@@ -11,6 +11,10 @@
 > decisions (A: the comprehension floor; B: opening the core) recorded in
 > [SECOND_ORDER_CORRESPONDENCE_CONTRACT](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md) and
 > [SECOND_ORDER_CORE_OPENING](SECOND_ORDER_CORE_OPENING.md).
+>
+> **Vocabulary note.** This memo predates the 2026-07-20 mention-ascent rename and uses
+> the earlier "second-order"/"the crossing" vocabulary throughout. See
+> [GLOSSARY.md#mention-ascent](GLOSSARY.md#mention-ascent).
 
 ## §1 The semantics fork — the biggest post-Peirce fact
 

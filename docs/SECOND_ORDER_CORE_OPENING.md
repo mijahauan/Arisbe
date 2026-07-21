@@ -21,6 +21,10 @@ defers as "author decision B: how much to open the core."**
 > [REFERENCE_AND_TRANSCLUSION_NODE.md](REFERENCE_AND_TRANSCLUSION_NODE.md) (the increment
 > model this memo copies), [SCHEMA_HOLE_CORRESPONDENCE.md](SCHEMA_HOLE_CORRESPONDENCE.md)
 > (the φ-hole that deliberately stops one step short of the node this memo would add).*
+>
+> **Vocabulary note.** This memo predates the 2026-07-20 mention-ascent rename and uses
+> the earlier "second-order"/"the crossing" vocabulary throughout. See
+> [GLOSSARY.md#mention-ascent](GLOSSARY.md#mention-ascent).
 
 ## 0. The decision, in one line
 

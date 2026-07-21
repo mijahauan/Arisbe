@@ -153,7 +153,8 @@ of external representations to escape it. Each entry: the finding, then its impl
   Roberts 1973). *Implication:* Peirce already drew the boundary; we choose which *region* (which nesting
   neighborhood around the focus) to keep lit — and **nesting depth is the natural distance metric** for the
   degree-of-interest rule (§6, S1). The endoporeutic universe — the line of identity as a *chosen individual*
-  ([commens: endoporeutic](http://www.commens.org/encyclopedia/article/pietarinen-ahti-veikko-endoporeutic-method))
+  (the *Commens* Peirce-terms dictionary, unrelated to Arisbe's later commens doctrine —
+  [entry: endoporeutic](http://www.commens.org/encyclopedia/article/pietarinen-ahti-veikko-endoporeutic-method))
   — is precisely a discourse referent under an assignment (§6), which is why the narration check works.
 
 ## 6. Relevance, discourse scoping, and the keep-vs-collapse rule (precedent register 2 — the *technique* and the *discourse science*)
