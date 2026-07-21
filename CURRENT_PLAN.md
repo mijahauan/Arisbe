@@ -97,7 +97,9 @@ answer's content. The next real RUN 13 launch may write the first actual
 `Arisbe/Questions-<date>.md` into the vault.
 
 **▶▶▶ NEXT SESSION (re-headed 2026-07-21 — the Understand·Share·Run·Use program;
-workstream A shipped, the §3 EPG-role ruling WRITTEN, B's fix EXECUTION still PARKED awaiting go).**
+workstream A shipped, the §3 EPG-role ruling WRITTEN + committed, workstream B fix EXECUTION
+DONE + merged to main. NEXT: RUN 13 disposal + the journal_entries:0 anomaly; then the two B
+author-calls (FLAG A/B) and the deferred content passes.).**
 
 This sitting established a four-workstream program (ROADMAP rewritten: **Understand · Share ·
 Run · Use**). **Workstream A (Understand) SHIPPED + PUSHED:** `docs/THE_COMMENS_AND_THE_COMMUNITY.md`
@@ -122,18 +124,28 @@ mechanisms retained as the *mechanical realization* of the one risked selection.
 §(iii) "Grapheus = tester + defender" draft. Remaining: **propagate to the docket §(iii) via
 workstream B fix batch 6** (parked below).
 
-**▶ THEN — workstream B (Share) FIX EXECUTION (parked, awaiting go).** The audit is DONE +
-committed: spec `docs/superpowers/specs/2026-07-20-doc-sweep-design.md`, audit plan
-`.../plans/2026-07-20-doc-sweep.md`, pre-pass (mechanical layer verified CLEAN — 0 real dead
-links), **the 67-finding docket `docs/superpowers/audits/2026-07-20-doc-sweep-docket.md`**
-(26 mechanical / 41 judgment; 13 Criticals — stale "grapheus unbuilt"×5 / clockwise-pending /
-GLOSSARY "17 modules"→14 / CHAPTER18 fabricated-tests+"100%" / CAPABILITY_MAP missing the whole
-bootstrap+vault subsystem / SECOND_ORDER_FRONTIER crossing-is-open; the harmonized EPG vision in
-§(iii)), and **the fix plan `.../plans/2026-07-20-doc-sweep-fixes.md`** (7 SDD batches). Execute
-via superpowers:subagent-driven-development. Baked rulings: EPG = the §3 ruling above (NOT the
-docket draft); book membership = add THE_COMMENS/THE_KYTOS/THE_MEASURE/BOOTSTRAP to `_quarto.yml`
-(TUTOR_LOOP held); CLAUDE.md editable for clear factual drift. Constraint: correct what a doc
-*says*, never change meaning; every staleness fix carries a repo-verification line.
+**✅ DONE (2026-07-21) — workstream B (Share) FIX EXECUTION.** All 7 SDD batches executed
+(subagent-driven-development, fresh implementer + task review per batch, opus whole-branch review),
+merged to `main` as `3ff31cf` (branch `doc-sweep-fixes`, 11 commits, **docs-only, 48 docs, no
+`src/` change**). Landed: book membership (+4 doctrine chapters to `_quarto.yml`, TUTOR_LOOP held,
+quarto renders 46/46); Conant-Ashby dedup + workstream-A minors; mention-ascent pointers + commens
+gloss; the 13 Criticals (grapheus×5 / clockwise / GLOSSARY 17→14 / CHAPTER18 fabricated-tests+100%
+→ honest untested-but-wired / CORE_API_USAGE_GUIDE 4 signature breaks / AUTOMATED_GRAPHEUS header /
+ELK whole-doc / RETURN Agon-undersell) + the rest of Tier-1(d)/Tier-2(i); and **Task 6 = the EPG
+one-vision harmonized to §3 across 11 docs** (opus review: decisive test clean — no doc reasserts
+"tester+defender" or "Agonothetes as third player"). Every staleness fix carried a repo-verification
+line; reviewers independently re-verified facts (protected=14, shipped modules, test counts 18/16,
+run-12 synthesis verbatim vs RUN_12_LOG, the extract_core_api regen byte-compared).
+**Two plan-vs-docket corrections found + ruled by the controller:** the plan prose's "CAPABILITY_MAP
+missing bootstrap/vault subsystem + K2/K3" and "VISION_AND_SCOPE musement / PRODUCT_VISION run-history"
+are **NOT docket findings** (both those docs are docket-clean; a DEEP audit found only the
+CAPABILITY_MAP:10 date) — so those were not done; CAPABILITY_MAP's genuinely-absent bootstrap/vault/K
+rows are flagged for a **future content pass (author's call)**.
+**▶ OPEN FOR THE AUTHOR (carried from B):** **FLAG A** — *who chooses M* (3 corpus attributions;
+§3 doesn't settle it; flagged in DOMAIN_ORACLE_AND_M + ENDOPOREUTIC_GAME_GUIDE). **FLAG B** — *does
+the outer project-scale game genuinely lack a judge?* (BOOTSTRAP:285). **Deferred Minor** — CLAUDE.md
+"~1000 passing" vs ~4044 collected (collected≠passing; needs a real full-suite count to refresh).
+Not pushed (local-primary; offer at session end).
 
 **▶ RUN 13 — COMPLETE.** 3 segments, clean exit, |M| held at 780 (disuse-decay bounding ~7k
 atoms of churn/segment). **5 questions written to `Arisbe/Questions-2026-07-20.md` in the author's
