@@ -156,13 +156,17 @@ in the author's vault** — awaiting the author's answers (unblock V2a.2 items (
 then **disuse-decay (ttl=120) erases them at rounds ~121-160, before the end-of-segment digest at
 round 200**, with nothing to replenish (unlike scan/read via `_refill`). F3¹³ fixed *pricing*, not
 *persistence*; the F3¹³ test missed it (fixture run < ttl → no decay). Reproduced on the fixture
-(`--rounds 120 --ttl 8` → `journal_entries` 5→0). **Blocks P5¹³** (the K2 50-year showcase).
-**▶ AUTHOR CALL — the fix (not patched):** 3 approaches with different K-measure semantics —
-(1) pin the journal spine from decay [assistant's rec: truest to intent, but declares a
-bedrock/working-set split]; (2) make journal a `persistent_kind` [heavy — severity-8 re-fired
-every round]; (3) measure the journal off a separate standing structure [least invasive]. Plus a
-safe test-coverage follow-up (extend the F3¹³ test to rounds ≫ ttl). RUN_13_LOG disposal + priors
-P1¹³–P5¹³ remain the author's. (RUN 12 already disposed: 359 rounds, select_best discriminates.)
+(`--rounds 120 --ttl 8` → `journal_entries` 5→0). **Blocked P5¹³** (the K2 50-year showcase).
+**✅ FIXED (2026-07-21, the author chose approach (1) + the test extension; committed `77b6521`):**
+the journal spine is now a **pinned bedrock tier exempt from disuse-decay** —
+`UsageLedger(ttl, pinned_relations=…)` (relation-level, default None → existing decay
+byte-identical), `run(pinned_relations=)`, `vault_world.JOURNAL_SPINE_RELATIONS`, wired in the
+driver. Verified end-to-end: the repro regime now reads `journal_entries: 5` with
+`entries_per_decade` populated, spine stable across 3 segments (no bloat). The F3¹³ **test-coverage
+gap is closed** (drive now runs rounds ≫ ttl: a control that decays to 0 + the pinned survivor;
++ledger unit). 337 passed/1 skipped across loop/decay/membrane/vault suites. **P5¹³ is now
+measurable** (the spine survives to the digest). RUN_13_LOG disposal + priors P1¹³–P5¹³ remain the
+author's. (RUN 12 already disposed: 359 rounds, select_best discriminates.)
 
 ---
 
