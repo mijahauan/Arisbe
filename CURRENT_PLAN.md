@@ -147,13 +147,22 @@ the outer project-scale game genuinely lack a judge?* (BOOTSTRAP:285). **Deferre
 "~1000 passing" vs ~4044 collected (collected≠passing; needs a real full-suite count to refresh).
 Not pushed (local-primary; offer at session end).
 
-**▶ RUN 13 — COMPLETE.** 3 segments, clean exit, |M| held at 780 (disuse-decay bounding ~7k
-atoms of churn/segment). **5 questions written to `Arisbe/Questions-2026-07-20.md` in the author's
-vault** — awaiting the author's answers, which unblock V2a.2 items (1) multi-paragraph + (3)
-NL-interpretation. **Anomaly to investigate (repo-side only):** `journal_entries: 0` — the ~50-year
-longitudinal journal spine read empty despite journal being the top-severity want kind (119.8).
-RUN_13_LOG disposal not yet appended. (RUN 12 already disposed: 359 rounds, select_best
-discriminates; priors ruling the author's.)
+**▶ RUN 13 — COMPLETE; the `journal_entries: 0` anomaly DIAGNOSED (F4¹³, 2026-07-21).** 3
+segments, clean exit, |M| held at 780. **5 questions written to `Arisbe/Questions-2026-07-20.md`
+in the author's vault** — awaiting the author's answers (unblock V2a.2 items (1) multi-paragraph +
+(3) NL-interpretation). **Anomaly root cause found + reproduced (RUN_13_LOG F4¹³, committed
+`ac65c22`):** the journal spine is **read but does not PERSIST** — journal batch wants are finite
+(seeded once/segment) and journal is not a `persistent_kind`, so its ~40-batch atoms enter M early
+then **disuse-decay (ttl=120) erases them at rounds ~121-160, before the end-of-segment digest at
+round 200**, with nothing to replenish (unlike scan/read via `_refill`). F3¹³ fixed *pricing*, not
+*persistence*; the F3¹³ test missed it (fixture run < ttl → no decay). Reproduced on the fixture
+(`--rounds 120 --ttl 8` → `journal_entries` 5→0). **Blocks P5¹³** (the K2 50-year showcase).
+**▶ AUTHOR CALL — the fix (not patched):** 3 approaches with different K-measure semantics —
+(1) pin the journal spine from decay [assistant's rec: truest to intent, but declares a
+bedrock/working-set split]; (2) make journal a `persistent_kind` [heavy — severity-8 re-fired
+every round]; (3) measure the journal off a separate standing structure [least invasive]. Plus a
+safe test-coverage follow-up (extend the F3¹³ test to rounds ≫ ttl). RUN_13_LOG disposal + priors
+P1¹³–P5¹³ remain the author's. (RUN 12 already disposed: 359 rounds, select_best discriminates.)
 
 ---
 
