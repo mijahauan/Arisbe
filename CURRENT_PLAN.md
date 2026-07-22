@@ -1,6 +1,41 @@
 # Current Plan
 
-**Last Updated**: 2026-07-22 (later) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
+**Last Updated**: 2026-07-22 (latest) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
+PRE-REGISTERED + BUILT + MERGED + RUN (`main` @ `97a9d80`, pushed). RESULT: P2²/P3²/P4² held, P1²
+separation-only, the pre-committed refutation NOT triggered** (`runs/WEST_E2_LOG.md`; sweep ran
+2026-07-22 16:32–18:28, 1h56m, deterministic, canary PASS, all four fits r²≥0.99).
+
+- **β_mono 1.277 > β_fed(I) 1.025** — the separation holds, so apportionment's advantage is a
+  *scaling* property, not a fixed-size artifact (E1's paired win survives growth; the refutation
+  `β_mono ≤ β_fed(I)` was not triggered). But β_mono missed the 1.3 magnitude bar by 0.023 →
+  **P1² separation-only**. Ruling B's third verdict earned itself on the first run: a two-valued P1²
+  would have misreported this clean directional separation as `refuted`. β_mono is low (not the
+  probe's ≈1.8) because proportional-R + `ttl=120` caps MONO's working set (|M|mono flat ~745), so
+  it scales gentler than the fixed-R probe estimated.
+- **P2² held emphatically** — per-folder-member cost max/min **1.0012** across F=2→16 (CV ≈ 0.002).
+  Terminal-unit invariance to three sig-figs; the West economy-of-scale signature at the terminal
+  unit, which E1 could only foreshadow at one size.
+- **P3² held, `crossover_kind=observed` at F=12** — β_tax(N)=3.03≥2, and the naive-coordinator
+  federation *overtakes the monolith within the swept range* (cheaper at F≤8, dearer at F≥12). **The
+  two-arm ruling paid off decisively: the same federation on the same corpus costs 51,371 (Arm I) or
+  1,308,587 (Arm N) at F=16 — a 25× spread from coordinator scan discipline alone.** Whether
+  apportionment pays at scale is a property of how the coordinator is built, not of the partition.
+- **P4² held** — E1's FED-retains-more surprise is a **decay artifact**: the |M| ratio narrows
+  2.42→0.92 as ttl→off and MONO's |M| passes FED's (1127 vs FED's ttl-invariant 1041) once decay
+  stops biting. Not a Q-E vector effect; the mechanism is MONO's single attention budget decaying its
+  working set, exactly as hypothesised.
+- Two invariants reproduced at every point (C(H,2) = the incremental total exactly; **H ≈ 5.9·F**,
+  fitted from E1); gap=0 throughout (passive registry sufficed, broker never needed); the free
+  consistency check passed (rider ttl=120 reproduced the grid F=6 |M| exactly).
+
+▶ **Disposition + next are the author's.** Candidates from this run: **E2b** — the p-sweep crossover
+(force gap > θ, exercise the broker, since gap=0 here taught nothing about where passive federation
+breaks); a **per-round A3** measuring the sequential-vs-concurrent coordinator both ways rather than
+modelling one (the ~26% Arm-N assumption); **E3** — endogenous partition (split/merge in a meta-Agon
+over partitions, with these cost/K curves as the disposition evidence). The build-and-run record
+follows.
+
+**Last Updated (prior)**: 2026-07-22 (later) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
 PRE-REGISTERED + BUILT + MERGED to `main` (`6f7ec9a`); the ~3h run is the author's and has NOT been
 launched.** A full spec→plan→build cycle in one sitting: design spec committed *before* any code
 (`240c156`, `docs/superpowers/specs/2026-07-22-west-in-kyte-e2-design.md`), then a 9-task
