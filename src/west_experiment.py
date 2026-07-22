@@ -82,18 +82,19 @@ def _run_member(root: Path, *, folders: Optional[frozenset], include_journal: bo
     return res, cm
 
 
-def run_fed(root: Path, manifest, *, rounds: int, ttl: int) -> ArrangementResult:
-    """Run F folder-members + 1 journal-member (adaptation A2) over ``root``,
-    apportioning ``rounds`` round-robin across the F+1 members
-    (:func:`_apportion`), each with its own developing M. The coordinator
-    (Task 5/6) then ingests each *folder*-member's final M (the
-    journal-member is excluded — journal facts are never cross-folder link
-    targets) and computes coverage + the passive consistency-scan tax.
+def _fed_members(root: Path, manifest, *, rounds: int, ttl: int) -> tuple:
+    """Shared member-running loop for the FED arrangements (Task 7 ``run_fed``
+    and Task 8 ``run_fed_broker``): run F folder-members + 1 journal-member
+    (adaptation A2) over ``root``, apportioning ``rounds`` round-robin across
+    the F+1 members (:func:`_apportion`), each with its own developing M, and
+    have the coordinator (Task 5/6) ingest each *folder*-member's final M
+    (the journal-member is excluded — journal facts are never cross-folder
+    link targets).
 
-    FED cost = Σ member (materialization atoms + peel proxy) + coordinator
-    cost (cells_written + scan_comparisons) — the coherence tax made visible.
-    Quality is aggregated across all F+1 members: mean K2 (over members that
-    report one), mean K3, and the summed final |M|."""
+    Returns ``(coord, member_ms, member_costs, mat_atoms, peel, k2s, k3s,
+    total_m)`` — the coordinator (already ingested), the folder->EGI map, and
+    the raw per-member/aggregate cost+quality figures both callers assemble
+    into their own :class:`ArrangementResult`."""
     folders = list(manifest.folders)
     # A2: FED members = one per content folder + one journal-only member.
     # folders=frozenset() means "no scan wants" (distinct from folders=None,
@@ -131,6 +132,20 @@ def run_fed(root: Path, manifest, *, rounds: int, ttl: int) -> ArrangementResult
             coord.ingest(folder_name, res.uod.current_egi)
             member_ms[folder_name] = res.uod.current_egi
 
+    return coord, member_ms, member_costs, mat_atoms, peel, k2s, k3s, total_m
+
+
+def run_fed(root: Path, manifest, *, rounds: int, ttl: int) -> ArrangementResult:
+    """Run the FED arrangement (:func:`_fed_members`) and compute coverage +
+    the passive consistency-scan tax.
+
+    FED cost = Σ member (materialization atoms + peel proxy) + coordinator
+    cost (cells_written + scan_comparisons) — the coherence tax made visible.
+    Quality is aggregated across all F+1 members: mean K2 (over members that
+    report one), mean K3, and the summed final |M|."""
+    (coord, member_ms, member_costs, mat_atoms, peel,
+     k2s, k3s, total_m) = _fed_members(root, manifest, rounds=rounds, ttl=ttl)
+
     conflicts = coord.consistency_scan()
     cov, _unresolved = coord.coverage(manifest, member_ms)
     coordinator_cost = coord.cells_written + coord.scan_comparisons
@@ -145,3 +160,33 @@ def run_fed(root: Path, manifest, *, rounds: int, ttl: int) -> ArrangementResult
     return ArrangementResult(name="FED", cost=cost, quality=quality,
                              member_costs=member_costs, coverage=cov,
                              conflicts=conflicts)
+
+
+def run_fed_broker(root: Path, manifest, *, rounds: int, ttl: int) -> ArrangementResult:
+    """The active-broker path (E1b): identical to :func:`run_fed`, but after
+    the members run, the coordinator additionally drives one
+    :meth:`Coordinator.route` per cross-folder link in ``manifest.cross_links``
+    — the real coordination workload, rather than the passive registry
+    :func:`run_fed` computes via :meth:`Coordinator.coverage`. Route attempts
+    are added to ``coordinator_cost`` alongside the cells-written and
+    scan-comparisons taxes, and ``ArrangementResult.routes`` records the
+    count."""
+    (coord, member_ms, member_costs, mat_atoms, peel,
+     k2s, k3s, total_m) = _fed_members(root, manifest, rounds=rounds, ttl=ttl)
+
+    conflicts = coord.consistency_scan()
+    cov, _unresolved = coord.coverage(manifest, member_ms)
+    for cl in manifest.cross_links:
+        coord.route(cl.source_folder, cl.target_note, cl.target_folder, member_ms)
+    coordinator_cost = coord.cells_written + coord.scan_comparisons + coord.routes
+
+    cost = CostBreakdown(materialization_atoms=mat_atoms, peel_proxy=peel,
+                         coordinator_cost=coordinator_cost)
+    quality = QualityReading(
+        k2_stick_rate=(sum(k2s) / len(k2s)) if k2s else None,
+        k3_ratio=(sum(k3s) / len(k3s)) if k3s else 0.0,
+        final_m_size=total_m,
+    )
+    return ArrangementResult(name="FED-broker", cost=cost, quality=quality,
+                             member_costs=member_costs, coverage=cov,
+                             conflicts=conflicts, routes=coord.routes)

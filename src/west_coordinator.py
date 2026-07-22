@@ -12,7 +12,7 @@ cross into the digest, quoted (mentioned) rather than spliced in (used)."""
 
 from __future__ import annotations
 
-from typing import Dict, Set, Tuple
+from typing import Dict, Optional, Set, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts, create_empty_graph
 from egif_parser_dau import parse_egif
@@ -67,6 +67,7 @@ class Coordinator:
         self.held: Set[Tuple[str, str]] = set()
         self.cells_written: int = 0
         self.scan_comparisons: int = 0
+        self.routes: int = 0
 
     def ingest(self, folder: str, member_m: RelationalGraphWithCuts) -> int:
         """Project ``member_m``'s *new* relation names into one attributed
@@ -157,6 +158,32 @@ class Coordinator:
                 resolved += 1
         cov = resolved / len(cross)
         return cov, len(cross) - resolved
+
+    def route(
+        self,
+        source_folder: str,
+        target_note: str,
+        target_folder: str,
+        member_ms: Dict[str, RelationalGraphWithCuts],
+    ) -> Optional[str]:
+        """Attempt to route one cross-folder reference (``source_folder`` ->
+        ``target_note`` in ``target_folder``): the real coordination workload
+        (E1b, the active-broker path). Every attempt counts against
+        ``self.routes``, resolved or not. Returns the owning member's
+        attributed fact about ``target_note`` (mention-not-use, the same
+        digest currency as :meth:`ingest`) if ``target_folder``'s member
+        actually holds that note's id, else ``None``.
+
+        EXACT set membership (not substring) — the same false-positive class
+        fixed in :meth:`coverage`: a short un-ingested id can be a substring
+        of a longer ingested one at scale."""
+        self.routes += 1
+        stem = target_note[:-3] if target_note.endswith(".md") else target_note
+        target_m = member_ms.get(target_folder)
+        consts = note_id_constants(target_m) if target_m is not None else frozenset()
+        if stem in consts or target_note in consts:
+            return f'(asserts "{target_folder}" "{stem}")'
+        return None
 
 
 __all__ = ["Coordinator", "member_relation_names", "note_id_constants"]

@@ -111,3 +111,14 @@ def test_coverage_rejects_substring_false_positive():
     )
     cov, unresolved = coord.coverage(manifest, member_ms)
     assert (cov, unresolved) == (0.0, 1)
+
+
+def test_broker_route_counts_and_resolves():
+    coord = Coordinator()
+    m1 = parse_egif('(in_folder "Folder-1/note-2" "Folder-1")')
+    member_ms = {"Folder-1": m1}
+    hit = coord.route("Folder-0", "Folder-1/note-2.md", "Folder-1", member_ms)
+    miss = coord.route("Folder-0", "Folder-1/note-9.md", "Folder-1", member_ms)
+    assert hit is not None
+    assert miss is None
+    assert coord.routes == 2
