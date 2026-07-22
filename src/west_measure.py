@@ -7,6 +7,7 @@ membrane — see the plan's Adaptations)."""
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -142,3 +143,59 @@ def read_member_costs(member_costs: List[int]) -> MemberCostReading:
         return MemberCostReading(folder_costs, journal_cost, 0.0, 0.0)
     var = sum((c - mean) ** 2 for c in folder_costs) / len(folder_costs)
     return MemberCostReading(folder_costs, journal_cost, mean, (var ** 0.5) / mean)
+
+
+MIN_FIT_POINTS = 6
+MIN_FIT_R_SQUARED = 0.90
+
+
+@dataclass
+class PowerLawFit:
+    """An OLS fit of log(cost) on log(size): ``cost ∝ size**beta``.
+
+    ``weak`` is the pre-registered guard (E2 spec §4): fewer than six usable
+    points, or R² below 0.90, means the instrument is too blunt to support a
+    verdict — the dependent prior is recorded "undetermined", never held or
+    refuted."""
+    beta: float
+    stderr: float
+    r_squared: float
+    n: int
+    weak: bool
+
+
+def fit_power_law(sizes, costs) -> PowerLawFit:
+    """Ordinary least squares of ``log(costs)`` on ``log(sizes)``.
+
+    Raises ValueError on mismatched lengths or non-positive values (log is
+    undefined there) — a silent drop would misreport the point count the
+    weak-fit rule depends on."""
+    if len(sizes) != len(costs):
+        raise ValueError("sizes and costs must have the same length")
+    if any(s <= 0 for s in sizes) or any(c <= 0 for c in costs):
+        raise ValueError("power-law fit needs strictly positive sizes and costs")
+    n = len(sizes)
+    if n < 2:
+        return PowerLawFit(0.0, 0.0, 0.0, n, True)
+
+    xs = [math.log(s) for s in sizes]
+    ys = [math.log(c) for c in costs]
+    mx, my = sum(xs) / n, sum(ys) / n
+    sxx = sum((x - mx) ** 2 for x in xs)
+    if sxx == 0:                       # no variance in size — nothing to fit
+        return PowerLawFit(0.0, 0.0, 0.0, n, True)
+    sxy = sum((x - mx) * (y - my) for x, y in zip(xs, ys))
+    beta = sxy / sxx
+    intercept = my - beta * mx
+
+    ss_res = sum((y - (intercept + beta * x)) ** 2 for x, y in zip(xs, ys))
+    ss_tot = sum((y - my) ** 2 for y in ys)
+    r_squared = 1.0 if ss_tot == 0 else 1.0 - ss_res / ss_tot
+    if n > 2:
+        stderr = math.sqrt(max(ss_res, 0.0) / (n - 2) / sxx)
+    else:
+        stderr = 0.0
+
+    weak = (n < MIN_FIT_POINTS) or (r_squared < MIN_FIT_R_SQUARED)
+    return PowerLawFit(beta=beta, stderr=stderr, r_squared=r_squared,
+                       n=n, weak=weak)

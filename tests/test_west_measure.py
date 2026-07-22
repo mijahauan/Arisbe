@@ -135,3 +135,56 @@ def test_read_member_costs_zero_mean_does_not_divide_by_zero():
     from west_measure import read_member_costs
     r = read_member_costs([0, 0, 0])
     assert r.cv == 0.0
+
+
+def test_fit_power_law_recovers_a_known_exponent():
+    from west_measure import fit_power_law
+    sizes = [2, 4, 6, 8, 12, 16]
+    costs = [3.0 * (s ** 1.8) for s in sizes]      # exact power law
+    fit = fit_power_law(sizes, costs)
+    assert abs(fit.beta - 1.8) < 1e-6
+    assert fit.r_squared > 0.9999
+    assert fit.n == 6 and fit.weak is False
+    assert fit.stderr < 1e-6
+
+
+def test_fit_power_law_recovers_a_linear_exponent():
+    from west_measure import fit_power_law
+    sizes = [2, 4, 6, 8, 12, 16]
+    costs = [500.0 * s for s in sizes]
+    fit = fit_power_law(sizes, costs)
+    assert abs(fit.beta - 1.0) < 1e-6
+    assert fit.weak is False
+
+
+def test_fit_power_law_marks_too_few_points_weak():
+    from west_measure import fit_power_law
+    sizes = [2, 4, 8]
+    costs = [3.0 * (s ** 1.8) for s in sizes]
+    fit = fit_power_law(sizes, costs)
+    assert fit.n == 3 and fit.weak is True, "fewer than six points is a weak fit"
+
+
+def test_fit_power_law_marks_a_poor_fit_weak():
+    from west_measure import fit_power_law
+    sizes = [2, 4, 6, 8, 12, 16]
+    costs = [10.0, 900.0, 30.0, 5000.0, 60.0, 12000.0]   # no power law here
+    fit = fit_power_law(sizes, costs)
+    assert fit.r_squared < 0.90 and fit.weak is True
+
+
+def test_fit_power_law_refuses_nonpositive_and_mismatched_input():
+    import pytest
+    from west_measure import fit_power_law
+    with pytest.raises(ValueError):
+        fit_power_law([2, 4], [1.0])                 # length mismatch
+    with pytest.raises(ValueError):
+        fit_power_law([2, 0, 4], [1.0, 2.0, 3.0])    # log(0) undefined
+    with pytest.raises(ValueError):
+        fit_power_law([2, 4, 8], [1.0, -2.0, 3.0])   # log of a negative
+
+
+def test_fit_power_law_is_weak_not_crashing_on_degenerate_sizes():
+    from west_measure import fit_power_law
+    fit = fit_power_law([4, 4, 4], [10.0, 20.0, 30.0])   # zero variance in x
+    assert fit.weak is True and fit.beta == 0.0
