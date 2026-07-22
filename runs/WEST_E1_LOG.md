@@ -80,6 +80,9 @@ equal K2 quality, and the *passive* registry alone keeps it coherent (the broker
 
 ## Disposition & next (the author's)
 
+Program-level rationale, the learnings distilled from this result, and how they shape the next
+rungs: **`docs/WEST_IN_KYTE_PROGRAM.md`.**
+
 Mechanically all priors held; the author dispositions whether to accept the paired result and
 proceed. **E2** = the size sweep (vary N and/or corpus size, fit the scaling relation — the first
 point at which a West exponent is estimable). **E3** = endogenous partition (split/merge as
