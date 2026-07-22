@@ -122,3 +122,53 @@ def test_broker_route_counts_and_resolves():
     assert hit is not None
     assert miss is None
     assert coord.routes == 2
+
+
+def test_incremental_scan_counters_start_at_zero():
+    coord = Coordinator()
+    assert coord.scan_comparisons_incremental == 0
+    assert coord.consistency_scan_incremental() == 0
+    assert coord.scan_comparisons_incremental == 0
+
+
+def test_incremental_scan_compares_each_pair_exactly_once_over_a_run():
+    """The Arm I invariant: however many rounds elapse, the incremental total
+    equals ONE naive scan's total — every unordered pair compared exactly once."""
+    coord = Coordinator()
+    m0 = parse_egif('(links_to "a" "b") (has_tag "a" "t")')
+    m1 = parse_egif('(links_to "c" "d") (in_folder "c" "F1")')
+    # Round 1: one folder ingests, then an incremental scan.
+    coord.ingest("F0", m0)
+    coord.consistency_scan_incremental()
+    # Round 2: another folder ingests, then another incremental scan.
+    coord.ingest("F1", m1)
+    coord.consistency_scan_incremental()
+    # Rounds 3-5: nothing new arrives; incremental scans must be free.
+    before = coord.scan_comparisons_incremental
+    for _ in range(3):
+        coord.consistency_scan_incremental()
+    assert coord.scan_comparisons_incremental == before, (
+        "an incremental scan with no new cells must cost nothing"
+    )
+    h = len(coord.held)
+    assert coord.scan_comparisons_incremental == h * (h - 1) // 2
+
+
+def test_naive_scan_is_unchanged_and_costs_a_full_pass_every_call():
+    """Arm N (the E1 behaviour) must be untouched: every call re-compares all pairs."""
+    coord = Coordinator()
+    coord.ingest("F0", parse_egif('(links_to "a" "b") (has_tag "a" "t")'))
+    h = len(coord.held)
+    coord.consistency_scan()
+    coord.consistency_scan()
+    assert coord.scan_comparisons == 2 * (h * (h - 1) // 2)
+
+
+def test_incremental_and_naive_counters_are_independent():
+    coord = Coordinator()
+    coord.ingest("F0", parse_egif('(links_to "a" "b")'))
+    coord.consistency_scan()
+    assert coord.scan_comparisons_incremental == 0
+    coord.consistency_scan_incremental()
+    h = len(coord.held)
+    assert coord.scan_comparisons_incremental == h * (h - 1) // 2

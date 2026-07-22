@@ -67,6 +67,8 @@ class Coordinator:
         self.held: Set[Tuple[str, str]] = set()
         self.cells_written: int = 0
         self.scan_comparisons: int = 0
+        self.scan_comparisons_incremental: int = 0
+        self._unscanned: Set[Tuple[str, str]] = set()
         self.routes: int = 0
 
     def ingest(self, folder: str, member_m: RelationalGraphWithCuts) -> int:
@@ -96,6 +98,7 @@ class Coordinator:
                 m2, q_vid, _utterance_graph(rel)
             )
             self.held.add(key)
+            self._unscanned.add(key)
             written += 1
         self.cells_written += written
         return written
@@ -122,6 +125,31 @@ class Coordinator:
                 if cells[i][1] == cells[j][1] and cells[i][0] != cells[j][0]:
                     pass
         self.scan_comparisons += comparisons
+        return conflicts
+
+    def consistency_scan_incremental(self) -> int:
+        """Arm I (E2 spec §3.2): scan only the cells added since the previous
+        incremental scan, against the whole held set — O(ΔH·H) rather than the
+        naive O(H²) full re-pass. Every unordered pair is therefore compared
+        **exactly once over a whole run**, so the accumulated total for any
+        trajectory equals a single naive scan's `H(H−1)/2`, independent of how
+        many rounds elapse. Conflict semantics are identical to
+        :meth:`consistency_scan`; only the work done differs."""
+        new = sorted(self._unscanned)
+        old = sorted(self.held - self._unscanned)
+        conflicts = 0
+        comparisons = 0
+        for i, a in enumerate(new):
+            for b in old:                       # new against already-scanned
+                comparisons += 1
+                if a[1] == b[1] and a[0] != b[0]:
+                    pass
+            for b in new[i + 1:]:               # new against new (once each)
+                comparisons += 1
+                if a[1] == b[1] and a[0] != b[0]:
+                    pass
+        self.scan_comparisons_incremental += comparisons
+        self._unscanned.clear()
         return conflicts
 
     def coverage(
