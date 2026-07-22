@@ -38,11 +38,28 @@ class TracingMaterializer(CountingMaterializer):
     """A :class:`CountingMaterializer` that additionally records the distinct
     relation names present in M at each round.
 
-    ``materialize(egi)`` is invoked once per round with M itself, so this is an
-    exact per-round capture of the member's state — no hook in
-    ``agon_evolution`` and no chain-walking required. The captured trajectory is
-    what the E2 coordinator-tax replay (spec §3.1) consumes: the tax depends only
-    on which (folder, relation-name) cells the coordinator holds at each round."""
+    ``materialize(egi)`` is invoked once per round with M itself — but only
+    when ``agon_evolution.run()`` is called WITHOUT ``standing_proposal``. In
+    that case (the E2 harness's usage: no standing proposal is passed to
+    ``run(..., materializer=tm)``) this is an exact 1:1 per-round capture — no
+    hook in ``agon_evolution`` and no chain-walking required.
+
+    **Known limit — do not rely on 1:1 alignment when ``standing_proposal`` is
+    set.** ``run()``'s loop calls ``peel(model, g_egif, materializer=mat)``
+    once per round for the proposal itself, but *also* calls
+    ``_verdict_or_none(pc.current, standing_proposal, mat)`` on every round
+    (both the no-winner and winner branches) to audit the standing proposal —
+    and ``_verdict_or_none`` performs a *second* ``peel(..., materializer=mat)``
+    whenever ``standing_proposal`` is not ``None``, i.e. a second
+    ``materialize()`` call through this same materializer. With a standing
+    proposal set, ``len(per_round_relations)`` exceeds the round count and the
+    entries no longer align 1:1 with rounds — see
+    ``test_tracing_materializer_standing_proposal_breaks_1to1_alignment`` in
+    ``tests/test_west_measure.py``, which pins this as regression-visible.
+    The captured trajectory is what the E2 coordinator-tax replay (spec §3.1)
+    consumes: the tax depends only on which (folder, relation-name) cells the
+    coordinator holds at each round — hence the E2 harness always calls
+    ``run()`` without a ``standing_proposal`` when tracing."""
 
     def __init__(self):
         super().__init__()

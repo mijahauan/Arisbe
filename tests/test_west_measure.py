@@ -45,12 +45,50 @@ def test_tracing_materializer_sees_relations_appear_as_m_grows():
     pool = ['(bird "tweety")', '(swan "odette")']
     run("", CorpusProposer(pool), rounds=6, uod_id="trace-grow",
         name="trace-grow", materializer=tm, ttl=None)
+    # CorpusProposer exhausts after len(pool) rounds regardless of the
+    # requested `rounds`, so this run captures 2 rounds, not 6.
+    assert len(tm.per_round_relations) >= 2, (
+        "need at least two captured rounds to observe growth"
+    )
     union = set()
     for s in tm.per_round_relations:
         union |= s
-    assert union, "some relation name must have entered M over six rounds"
-    assert union <= set().union(*tm.per_round_relations)
+    assert union, "some relation name must have entered M over the run"
+    # Genuine growth check: each round's capture (taken *before* that round's
+    # own revision lands, since materialize() is called on the pre-round
+    # model) is a subset of the next, and the trajectory ends strictly larger
+    # than it started — relation names accumulate as M grows in this fixture,
+    # they do not vanish (no decay/relinquishment is in play: ttl=None and
+    # both proposals are ground new_fact admissions, not laws).
+    for prev, nxt in zip(tm.per_round_relations, tm.per_round_relations[1:]):
+        assert prev <= nxt, "a relation name disappeared from M between rounds"
+    assert tm.per_round_relations[-1] > tm.per_round_relations[0], (
+        "the relation set must have strictly grown by the last captured round"
+    )
 
 
 def test_tracing_materializer_is_a_counting_materializer():
     assert issubclass(TracingMaterializer, CountingMaterializer)
+
+
+def test_tracing_materializer_standing_proposal_breaks_1to1_alignment():
+    """Pins the known limit documented on TracingMaterializer: when run() is
+    given a standing_proposal, its loop calls _verdict_or_none() every round
+    on top of the round's own peel() — a second materialize() call through
+    the same shared materializer — so per_round_relations no longer aligns
+    1:1 with rounds. This test exists to make that landmine regression-visible,
+    not to endorse it as desired behaviour."""
+    tm = TracingMaterializer()
+    pool = ['(bird "tweety")', '(swan "odette")', '(bird "robin")']
+    res = run("", CorpusProposer(pool), rounds=5, uod_id="trace-standing",
+              name="trace-standing", materializer=tm,
+              standing_proposal='(bird *x)')
+    rounds_run = len(res.outcomes)
+    assert rounds_run == len(pool)   # CorpusProposer exhausts after len(pool)
+    # One peel() for the round's own proposal + one for the standing-proposal
+    # audit on every round => twice as many materialize() calls as rounds.
+    assert len(tm.per_round_relations) == 2 * rounds_run
+    assert len(tm.per_round_relations) > rounds_run, (
+        "with standing_proposal set, per_round_relations does NOT align "
+        "1:1 with rounds — see TracingMaterializer's docstring"
+    )
