@@ -59,6 +59,16 @@ def test_run_fed_broker_drives_routes_and_costs_them(tmp_path):
     assert res.coverage is not None
 
 
+def test_run_fed_broker_is_deterministic(tmp_path):
+    manifest = generate_vault(tmp_path, seed=20260721, folders=3, notes_per_folder=4,
+                              cross_folder_link_prob=0.3, journal_len=5)
+    a = run_fed_broker(tmp_path, manifest, rounds=32, ttl=120)
+    b = run_fed_broker(tmp_path, manifest, rounds=32, ttl=120)
+    assert a.cost.total() == b.cost.total()
+    assert a.coverage == b.coverage
+    assert a.routes == b.routes
+
+
 def test_assemble_report_and_priors(tmp_path):
     manifest = generate_vault(tmp_path, seed=20260721, folders=3, notes_per_folder=5,
                               cross_folder_link_prob=0.15, journal_len=6)
