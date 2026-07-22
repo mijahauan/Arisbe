@@ -1,6 +1,46 @@
 # Current Plan
 
-**Last Updated**: 2026-07-22 — **agenda #6 — West-in-kytē E1 BUILT + RUN + MERGED to `main`
+**Last Updated**: 2026-07-22 (later) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
+PRE-REGISTERED + BUILT + MERGED to `main` (`6f7ec9a`); the ~3h run is the author's and has NOT been
+launched.** A full spec→plan→build cycle in one sitting: design spec committed *before* any code
+(`240c156`, `docs/superpowers/specs/2026-07-22-west-in-kyte-e2-design.md`), then a 9-task
+subagent-driven TDD build (fresh implementer + independent reviewer per task; branch merged ff).
+**Full suite 4013 passed / 144 skipped / 1 xfailed / 0 failed.** Zero protected-core change; every
+E1 entry point byte-frozen (the only `west_experiment.py` deletions across 18 commits are four
+import lines), so `runs/WEST_E1_LOG.md` stays reproducible.
+
+**Design (author-ruled):** sweep A only (corpus size at fixed granularity) — `F ∈ {2,4,6,8,12,16}`,
+`R = 25·(F+1)` so every member performs exactly 25 rounds at every F; **both** coordinator cost
+models reported (Arm N naive-per-member-round vs Arm I incremental) rather than choosing one in
+advance; ttl rider in, p-sweep deferred to E2b. New: `tools/run_west_e2.py` (numbers-only driver +
+determinism canary) plus additions to `west_coordinator` / `west_measure` / `west_experiment`.
+
+**Three measurement corrections found while designing, all carried in:** A3 paid down (the
+coordinator tax is now a true per-round replay, exact for the read-only passive coordinator);
+`consistency_scan` is O(H²) with **H ≈ 5.9·F** (fits E1's measured totals exactly), so a naive
+rescan taxes ∝F³ and FED *can* lose — hence both arms; and E1's P2 CV statistic was **defective for
+a sweep**, including the ~30×-cheaper journal-member outlier that alone flips the verdict at F=2.
+
+**Two rulings taken mid-build, both recorded + dated in spec §6** (the code's authority; the plan's
+Task 7 text is now stale): **(A)** P3² requires γ≥2 **and** a crossover existing — `observed` /
+`extrapolated` above range / `below-range` (FED dearer throughout, the *strongest* confirmation);
+**(B)** P1² is three-valued, with `refuted` **reserved** for the pre-committed `β_mono ≤ β_fed(I)`
+and separation-holds-but-misses-the-bar reading `separation-only`.
+
+**Pre-registered:** β_mono ≈ 1.8 vs β_fed(I) ≈ 1.0, with the refutation pre-committed. Stated in
+advance so it cannot be spun after: **no arrangement is predicted to show West's sublinear β<1** —
+E2 can establish *diseconomy avoided*, not economy of scale achieved.
+
+**Before the run (the author's):** P4²'s 2% net-decrease bar is an assistant judgment call, not a
+ruling (per-ttl ratios are printed, so it can be re-decided by eye); the `ttl=0` rider cell is the
+wall-clock wildcard; the rider's `ttl=120` cell re-runs the grid's F=6 point on the same corpus, so
+those |M| values must match exactly — a free consistency check; **read `crossover_kind`, not
+`crossover_F`** (the predicted `below-range` prints as `None`); don't reorder the driver. Standing
+disclosed assumption: the tax replay models members as **concurrent** while the harness runs them
+sequentially (~26% on Arm N, which is all of P3²). **NOT pushed** (local-primary). E1's record and
+the prior sitting follow.
+
+**Last Updated (prior)**: 2026-07-22 — **agenda #6 — West-in-kytē E1 BUILT + RUN + MERGED to `main`
 (`ad87a7c`).** Subagent-driven execution of the pre-registered E1 harness (implementation plan
 `docs/superpowers/plans/2026-07-21-west-in-kyte-e1.md`; 9 TDD tasks, fresh implementer + independent
 review each — three caught real defects, fixed + re-verified; opus reviews on the two subtle tasks +
