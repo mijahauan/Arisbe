@@ -1,6 +1,7 @@
 from pathlib import Path
 from vault_generator import generate_vault
-from west_experiment import run_mono, run_fed, run_fed_broker, ArrangementResult
+from west_experiment import (run_mono, run_fed, run_fed_broker, ArrangementResult,
+                             assemble_report, ExperimentReport)
 
 
 def test_run_mono_on_tiny_corpus(tmp_path):
@@ -56,3 +57,27 @@ def test_run_fed_broker_drives_routes_and_costs_them(tmp_path):
     assert res.cost.coordinator_cost >= res.routes   # route count folded into the tax
     assert len(res.member_costs) == 3 + 1
     assert res.coverage is not None
+
+
+def test_assemble_report_and_priors(tmp_path):
+    manifest = generate_vault(tmp_path, seed=20260721, folders=3, notes_per_folder=5,
+                              cross_folder_link_prob=0.15, journal_len=6)
+    mono = run_mono(tmp_path, rounds=40, ttl=120)
+    fed = run_fed(tmp_path, manifest, rounds=40, ttl=120)
+    rep = assemble_report(mono, fed, theta=0.20, tol=0.10)
+    assert isinstance(rep, ExperimentReport)
+    assert set(rep.priors) == {"P1", "P2", "P3", "P4"}
+    # P1 is a direction check: FED total cost vs MONO total cost
+    assert rep.priors["P1"] in ("held", "refuted")
+    assert 0.0 <= rep.gap <= 1.0
+
+
+def test_determinism_canary(tmp_path):
+    manifest = generate_vault(tmp_path, seed=20260721, folders=3, notes_per_folder=5,
+                              cross_folder_link_prob=0.15, journal_len=6)
+    m1 = run_mono(tmp_path, rounds=40, ttl=120)
+    m2 = run_mono(tmp_path, rounds=40, ttl=120)
+    f1 = run_fed(tmp_path, manifest, rounds=40, ttl=120)
+    f2 = run_fed(tmp_path, manifest, rounds=40, ttl=120)
+    assert (m1.cost.total(), m1.quality.final_m_size) == (m2.cost.total(), m2.quality.final_m_size)
+    assert (f1.cost.total(), f1.coverage) == (f2.cost.total(), f2.coverage)

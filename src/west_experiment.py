@@ -190,3 +190,57 @@ def run_fed_broker(root: Path, manifest, *, rounds: int, ttl: int) -> Arrangemen
     return ArrangementResult(name="FED-broker", cost=cost, quality=quality,
                              member_costs=member_costs, coverage=cov,
                              conflicts=conflicts, routes=coord.routes)
+
+
+@dataclass
+class ExperimentReport:
+    """The θ-decided paired-comparison report + the P1-P4 pre-registered
+    verdicts (spec §4.3, §6). ``gap = 1 - fed.coverage`` — the passive
+    registry's unresolved fraction; ``broker_used`` records whether the
+    caller re-ran the active broker (fed.name == "FED-broker") after a
+    theta breach."""
+    mono: ArrangementResult
+    fed: ArrangementResult
+    theta: float
+    tol: float
+    gap: float
+    broker_used: bool
+    priors: Dict[str, str]
+
+
+def _quality_within_band(fed_q: QualityReading, mono_q: QualityReading,
+                         tol: float) -> bool:
+    """A1: parity judged on K2 (with K3 + |M| alongside). FED passes if its K2 is
+    within tol below MONO's; if either K2 is None, fall back to final_m_size band."""
+    if fed_q.k2_stick_rate is not None and mono_q.k2_stick_rate is not None:
+        return fed_q.k2_stick_rate >= mono_q.k2_stick_rate - tol
+    if mono_q.final_m_size == 0:
+        return True
+    return fed_q.final_m_size >= mono_q.final_m_size * (1 - tol)
+
+
+def assemble_report(mono: ArrangementResult, fed: ArrangementResult, *,
+                    theta: float, tol: float) -> ExperimentReport:
+    """Compute the coherence gap, decide the theta branch, and evaluate the
+    four pre-registered priors P1-P4 (spec §6) into a
+    ``{"P1": "held"|"refuted", ...}`` verdict dict."""
+    gap = 1.0 - (fed.coverage if fed.coverage is not None else 1.0)
+    band_ok = _quality_within_band(fed.quality, mono.quality, tol)
+    # P1 (headline): FED total cost < MONO total cost at comparable quality.
+    p1 = "held" if (fed.cost.total() < mono.cost.total() and band_ok) else "refuted"
+    # P2 (Q-C foreshadow): per-member cost-per-cycle clusters (CV < 0.5).
+    mc = fed.member_costs
+    if mc and sum(mc) > 0:
+        mean = sum(mc) / len(mc)
+        var = sum((c - mean) ** 2 for c in mc) / len(mc)
+        cv = (var ** 0.5) / mean if mean else 0.0
+        p2 = "held" if cv < 0.5 else "refuted"
+    else:
+        p2 = "refuted"
+    # P3 (coherence): passive registry resolves >= 1 - theta.
+    p3 = "held" if gap <= theta else "refuted"
+    # P4 (refutation): FED loses if quality outside band (super-linear-F tax is E2's).
+    p4 = "refuted" if not band_ok else "held"
+    return ExperimentReport(mono=mono, fed=fed, theta=theta, tol=tol, gap=gap,
+                            broker_used=(fed.name == "FED-broker"),
+                            priors={"P1": p1, "P2": p2, "P3": p3, "P4": p4})
