@@ -1,6 +1,14 @@
 # Current Plan
 
-**Last Updated**: 2026-07-21 — **session closed: §3 EPG-role ruling written; workstream B doc
+**Last Updated**: 2026-07-21 (later) — **agenda #6 opened: West-in-kytē experiment E1
+pre-registered.** A design-spec-only session (brainstorming → committed spec, no code): E1 =
+monolith vs per-folder federation over a synthetic vault, developing UoDs, two coordinator
+variants + θ=0.20 rule, deterministic cost metric, priors P1–P4 with pre-committed refutation.
+Author rulings folded in; committed + pushed (`cb45b7e`). Build not yet done — next session
+writes the E1 implementation plan, builds, runs; E2/E3 follow based on E1's results. Prior
+session's close-record below.
+
+**Last Updated (prior)**: 2026-07-21 — **session closed: §3 EPG-role ruling written; workstream B doc
 sweep executed + merged (`3ff31cf`); RUN 13 F4¹³ (journal-spine decay) diagnosed + fixed
 (journal pinned from disuse-decay); FLAG A + FLAG B author-calls ruled; the "judgment is
 objectivated" doctrine lifted to THE_COMMENS §2(c); housekeeping (ARISBE_EXISTENTIAL archived,
@@ -41,6 +49,16 @@ these are the standing agenda. Each is tagged with the threads it extends.
    Q-E vector-optimand). The cheapest first test is already sketched in
    [[project-apportionment-spectrum]] (vault: one-M vs per-folder kytē + coordinator; measure
    cost curves / K3 exponents / poise). Pre-register the priors.
+   **▷ STARTED 2026-07-21 — E1 pre-registered design spec committed** (`cb45b7e`):
+   `docs/superpowers/specs/2026-07-21-west-in-kyte-experiment-design.md`. MONO (one kytos over
+   the whole vault) vs FED (per-folder kytē + coordinator) over a synthetic generated vault;
+   developing UoDs; two coordinator variants (passive registry / active broker) with θ=0.20
+   decision rule; deterministic cost metric; priors P1–P4 incl. pre-committed refutation.
+   Author rulings: pre-registers accepted (F=6, n=40, p=0.15, R=300; θ=0.20; tol=10%), oracle
+   unwired, round-robin apportionment. **Design-only — build not yet done. ▶ NEXT: write the
+   E1 implementation plan → build → run E1; then E2 (size-sweep, the exponent) / E3 (endogenous
+   partition) based on what E1 shows.** E1 is a *paired comparison + harness only*; the West
+   exponent proper is E2 (two points can't fit a power law).
 7. **Arisbe (a) user app vs (b) autonomous kytos.** Make a clear, standing distinction between
    Arisbe *as a user-facing application* and Arisbe *as an autonomous kytos in a society of
    kytē*. Ties to THE_COMMENS §10 ("Arisbe-the-project is itself a kytos") and the three web
