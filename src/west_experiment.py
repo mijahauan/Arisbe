@@ -562,12 +562,12 @@ def _crossover(fit_fed_naive: PowerLawFit, fit_mono: PowerLawFit,
     Absent an observed transition, extrapolates from the two fitted lines'
     intercepts (recovered in log space). The result is only honestly
     ``"extrapolated"`` when it lands **above** the swept range
-    (``> max(folders)``) — an extrapolated F at or inside the range (or, from
-    a degenerate fit, non-positive) is not "beyond what we swept", it is a
-    fit artifact, and is never reported as a value (a measured run produced
-    a physically meaningless ``crossover_f`` of 0.02 folders this way). In
-    that case the honest read falls back to ``"below-range"`` (if FED
-    dominated the whole sweep) or ``"none"``.
+    (``> max(folders)``) — an extrapolated F at or inside the range is not
+    "beyond what we swept", it is a fit artifact, and is never reported as a
+    value (a review probe once produced a physically meaningless
+    ``crossover_f`` of ~0.02 folders this way — no E2 run has been executed
+    yet). In that case the honest read falls back to ``"below-range"`` (if
+    FED dominated the whole sweep) or ``"none"``.
 
     Returns ``(None, "none")`` when there is nothing to report: no configs,
     or no observed transition, FED did not dominate the whole sweep, and the
@@ -631,18 +631,27 @@ def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
     - ``"undetermined"`` — either fit is weak; checked first, before either
       of the above conditions.
 
-    **P3² (Ruling A, 2026-07-22)** requires *both* ``beta_tax_naive >= 2.0``
-    *and* a crossover existing — observed in range, extrapolated above it, or
-    below the range (FED-naive dearer than MONO throughout the sweep, per the
-    Task 7 re-review); ``gamma >= 2`` with no crossover means coordination
-    diverges without ever being shown to overtake MONO — not the binding
-    constraint the prior claims — so it reads "refuted". The weak-fit gate on
-    ``fit_tax_naive`` is checked first. A **second** weak-fit gate applies
-    only to an ``"extrapolated"`` crossover: that value is read off
-    ``fit_fed_naive``/``fit_mono``, so if either of *those* fits is weak the
-    extrapolation cannot be trusted and P3² reads "undetermined" rather than
-    "held" off a blunt fit — an observed or below-range crossover is data,
-    not a fit, and needs no such gate."""
+    **P3² (Ruling A, 2026-07-22; reordered in the third re-review, same day)**
+    requires *both* ``beta_tax_naive >= 2.0`` *and* a crossover existing —
+    observed in range, extrapolated above it, or below the range (FED-naive
+    dearer than MONO throughout the sweep, per the Task 7 re-review);
+    ``gamma >= 2`` with no crossover means coordination diverges without ever
+    being shown to overtake MONO — not the binding constraint the prior
+    claims — so it reads "refuted". Because P3² is a conjunction, the checks
+    run in this order: (1) the weak-fit gate on ``fit_tax_naive`` itself —
+    "undetermined" if weak; (2) the determinate ``gamma < 2.0`` refutation,
+    decided off ``fit_tax_naive`` alone, *before* the crossover is consulted
+    at all — a weak crossover fit must never suppress a refutation the tax
+    fit alone already settles; (3) only once gamma >= 2.0 is established, a
+    **second** weak-fit gate applies to a crossover reading of
+    ``"extrapolated"`` *or* ``"none"`` — both are decided entirely off
+    ``fit_fed_naive``/``fit_mono`` (an extrapolated F* is read off their
+    intercepts; a "none" reading is either ``beta_fed_naive <= beta_mono`` or
+    an extrapolated F* landing inside the range), so if either of *those*
+    fits is weak the reading cannot be trusted and P3² reads "undetermined"
+    rather than "held" or "refuted" off a blunt fit. An observed or
+    below-range crossover is a pointwise data comparison, not a fit, and
+    needs no such gate."""
     ordered = sorted(configs, key=lambda c: c.folders)
     sizes = [c.folders for c in ordered]
     fit_mono = fit_power_law(sizes, [c.mono.cost.total() for c in ordered])
@@ -684,16 +693,26 @@ def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
         p2 = "held" if (tight and flat) else "refuted"
 
     # P3² — coordination is the binding constraint under Arm N (Ruling A).
+    # P3² is a conjunction (gamma >= 2 AND a crossover exists), so a
+    # determinate gamma < 2 refutation must be decided *before* the
+    # crossover-fit gate below — otherwise a weak fed/mono fit can suppress a
+    # refutation the tax fit alone already settles (Finding 1, third
+    # re-review, 2026-07-22).
     crossover, crossover_kind = _crossover(fit_fed_naive, fit_mono, ordered)
     if fit_tax_naive.weak:
         p3 = "undetermined"
-    elif crossover_kind == "extrapolated" and (fit_fed_naive.weak or fit_mono.weak):
-        # An extrapolated F* is read off these two fits, not off the swept
-        # data; a weak one must never carry a "held" verdict (Finding 2,
-        # Task 7 re-review, 2026-07-22). Observed/below-range crossovers are
-        # data and pass through untouched by this gate.
+    elif fit_tax_naive.beta < P3_MIN_TAX_BETA:
+        p3 = "refuted"
+    elif crossover_kind in ("extrapolated", "none") and (fit_fed_naive.weak or fit_mono.weak):
+        # An "extrapolated" F* is read off these two fits, not off the swept
+        # data, so a weak one must never carry a "held" verdict. A "none"
+        # reading is *also* decided entirely by these two fits (either
+        # beta_fed_naive <= beta_mono, or the extrapolated F* landing inside
+        # the range) — the same gate applies (Finding 2, third re-review,
+        # 2026-07-22). Observed/below-range crossovers are pointwise data
+        # comparisons, not fits, and pass through untouched by this gate.
         p3 = "undetermined"
-    elif fit_tax_naive.beta >= P3_MIN_TAX_BETA and crossover_kind != "none":
+    elif crossover_kind != "none":
         p3 = "held"
     else:
         p3 = "refuted"

@@ -214,11 +214,12 @@ fix) stays on in every rider cell so the arm varies decay pressure only.
   **below-range** — FED-naive is above MONO at *every* swept F, so no transition is observed but
   none is needed either — the crossover, if any, lies below the range, which is the *strongest*
   confirmation coordination binds, not a refutation; **extrapolated** — the two fitted lines cross
-  strictly above the swept range (`> max(F)`). An extrapolated F* that lands at or inside the range,
-  or is non-positive, is a fit artifact, not a finding, and is reported as no-crossover rather than a
-  number (a run once produced a physically meaningless `crossover_f` of ~0.02 folders this way).
-  γ ≥ 2 with no crossover of any kind reads "refuted" — coordination diverging without ever being
-  shown to overtake MONO is not the binding constraint the prior claims.
+  strictly above the swept range (`> max(F)`). An extrapolated F* that lands at or inside the range
+  is a fit artifact, not a finding, and falls back to **below-range** (if FED dominated the whole
+  swept range) or **none** (otherwise) rather than being reported as a number (a review probe once
+  produced a physically meaningless `crossover_f` of ~0.02 folders this way — no E2 run has been
+  executed yet). γ ≥ 2 with no crossover of any kind reads "refuted" — coordination diverging without
+  ever being shown to overtake MONO is not the binding constraint the prior claims.
   **Weak-fit gating:** `fit_tax_naive` weak → "undetermined", checked before anything else, since γ
   itself is unusable. An **observed** or **below-range** crossover is read off the swept data, not
   off a fit, and needs no further gate. An **extrapolated** crossover is read off

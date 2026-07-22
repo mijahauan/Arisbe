@@ -627,6 +627,58 @@ def test_p3_held_just_above_the_2_0_tax_beta_bar_with_crossover_present():
     assert rep.priors["P3"] == "held"
 
 
+def test_p3_refuted_on_strong_gamma_below_2_even_when_crossover_fits_are_weak():
+    """Finding 1 (third re-review, 2026-07-22): P3² is a conjunction
+    (gamma >= 2 AND a crossover exists), so a determinate gamma < 2 refutation
+    must be decided off ``fit_tax_naive`` alone, *before* the crossover-fit
+    weak-fit gate is even consulted. ``fit_tax_naive`` here is strong
+    (tax = 60*F^1.5, measured beta~1.502, weak=False) and clearly below 2.0;
+    ``fit_mono`` is also strong (mono = 1e6*F^1.2). FED-naive is noisy enough
+    to be a weak fit (measured weak=True), which forces ``crossover_kind`` to
+    ``"extrapolated"`` — and under the *pre-fix* ordering the weak-crossover
+    gate ran before the gamma check and swallowed this into "undetermined".
+    Since gamma < 2.0 is decided by the tax fit alone, the crossover's
+    reliability is irrelevant here: P3² must read "refuted"."""
+    from west_experiment import assemble_e2_report
+    mono_vals = [int(1e6 * f ** 1.2) for f in SIZES]
+    noisy_fed = [10, 900, 30, 5000, 60, 12000]
+    tax_vals = [int(60 * f ** 1.5) for f in SIZES]     # strong, beta ~1.5 < 2.0
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, mono_vals, noisy_fed, tax_vals)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta < 2.0
+    assert rep.fit_fed_naive.weak is True
+    assert rep.crossover_kind == "extrapolated"
+    assert rep.priors["P3"] == "refuted"
+
+
+def test_p3_undetermined_on_a_none_crossover_resting_on_weak_fed_and_mono_fits():
+    """Finding 2 (third re-review, 2026-07-22): a ``"none"`` crossover reading
+    is decided *entirely* by ``fit_fed_naive``/``fit_mono`` (either
+    beta_fed_naive <= beta_mono, or an extrapolated F* landing inside the
+    range) — the same two fits the weak-fit gate exists to distrust for
+    ``"extrapolated"``. Here both are noisy enough to be weak (measured
+    weak=True for each) while ``fit_tax_naive`` is strong and clears the
+    gamma >= 2.0 bar (tax = 60*F^2.5). The pre-fix gate only checked
+    ``crossover_kind == "extrapolated"``, so a ``"none"`` reading resting on
+    the same two untrustworthy fits fell through to "refuted" ungated. P3²
+    must read "undetermined" instead."""
+    from west_experiment import assemble_e2_report
+    noisy_mono = [10, 900, 30, 5000, 60, 12000]
+    noisy_fed = [int(0.001 * f ** 4 + 1) for f in SIZES]
+    tax_vals = [int(60 * f ** 2.5) for f in SIZES]     # strong, gamma >= 2.0
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, noisy_mono, noisy_fed, tax_vals)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.fit_mono.weak is True
+    assert rep.fit_fed_naive.weak is True
+    assert rep.crossover_kind == "none"
+    assert rep.priors["P3"] == "undetermined"
+
+
 def test_p4_is_deferred_to_the_rider():
     from west_experiment import assemble_e2_report
     configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),
@@ -663,13 +715,16 @@ def test_tax_clamp_is_recorded_and_forces_the_fit_weak():
     it ever does): the clamp must be counted, and the resulting fit must never
     be trusted un-flagged.
 
-    The five un-clamped points (``tax = 2 * F**2.2``) alone fit a *strong*
-    line (measured: beta=3.11, r-squared=0.942, weak=False) — the F6 forcing
-    is what makes this "weak"; a data shape whose fit is already weak on its
-    own merits (as the prior version of this test used, r-squared=0.871 <
-    0.90) pins nothing, since the assertion would hold even with the forcing
-    deleted. Verified by deleting the forcing line and confirming this test
-    fails, then restoring it and confirming it passes again."""
+    The *six-point* fit that includes the clamped point (max(0, 1) -> 1) is
+    strong on its own merits (measured: beta=3.11, r-squared=0.942,
+    weak=False) — it clears both MIN_FIT_POINTS and the r-squared bar without
+    any help from the forcing. So it is the F6 forcing alone — not a
+    borderline fit — that turns this "weak"; a data shape whose fit is
+    already weak on its own merits (as the prior version of this test used,
+    r-squared=0.871 < 0.90) pins nothing, since the assertion would hold even
+    with the forcing deleted. Verified by deleting the forcing line and
+    confirming this test fails, then restoring it and confirming it passes
+    again."""
     from west_experiment import assemble_e2_report
     tax_values = [0 if f == 2 else int(2 * f ** 2.2) for f in SIZES]
     configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
