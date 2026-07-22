@@ -1,6 +1,22 @@
 # Current Plan
 
-**Last Updated**: 2026-07-21 (later) — **agenda #6 opened: West-in-kytē experiment E1
+**Last Updated**: 2026-07-22 — **agenda #6 — West-in-kytē E1 BUILT + RUN + MERGED to `main`
+(`ad87a7c`).** Subagent-driven execution of the pre-registered E1 harness (implementation plan
+`docs/superpowers/plans/2026-07-21-west-in-kyte-e1.md`; 9 TDD tasks, fresh implementer + independent
+review each — three caught real defects, fixed + re-verified; opus reviews on the two subtle tasks +
+the whole branch). Full suite **3933 passed / 0 failed**. Zero protected-core change (only additive
+`VaultFeed` folder-scoping in the unprotected `vault_world.py`). **Author ratified adaptations A1**
+(K1 N/A on the raise-only vault membrane → parity on K2) **+ A2** (FED adds a journal-member, F+1);
+**A3 disclosed** in the final review (coordinator tax = one end-of-run snapshot, a lower bound
+biasing toward P1 — negligible, printed on every run). **Pre-registered R=300 result** (`runs/WEST_E1_LOG.md`):
+**MONO cost 188,039 vs FED 36,097 — FED ~5.2× cheaper at equal K2 (1.0=1.0)**, coverage 1.0 / gap 0.0
+(passive registry sufficed, no broker), member costs cluster ±0.9% (P2 signal), determinism PASS —
+**all four priors P1–P4 held**. FED also retains MORE total knowledge (|M|Σ 1367 > MONO 752 — a decay
+artifact or a real advantage? an E2 probe). **NOT pushed** (local-primary; offer at close). ▶ The
+*disposition* + **E2** (size sweep → the exponent) / **E3** (endogenous partition) are the author's.
+Prior session's design-spec + close-record below.
+
+**Last Updated (prior)**: 2026-07-21 (later) — **agenda #6 opened: West-in-kytē experiment E1
 pre-registered.** A design-spec-only session (brainstorming → committed spec, no code): E1 =
 monolith vs per-folder federation over a synthetic vault, developing UoDs, two coordinator
 variants + θ=0.20 rule, deterministic cost metric, priors P1–P4 with pre-committed refutation.
@@ -49,16 +65,18 @@ these are the standing agenda. Each is tagged with the threads it extends.
    Q-E vector-optimand). The cheapest first test is already sketched in
    [[project-apportionment-spectrum]] (vault: one-M vs per-folder kytē + coordinator; measure
    cost curves / K3 exponents / poise). Pre-register the priors.
-   **▷ STARTED 2026-07-21 — E1 pre-registered design spec committed** (`cb45b7e`):
-   `docs/superpowers/specs/2026-07-21-west-in-kyte-experiment-design.md`. MONO (one kytos over
-   the whole vault) vs FED (per-folder kytē + coordinator) over a synthetic generated vault;
-   developing UoDs; two coordinator variants (passive registry / active broker) with θ=0.20
-   decision rule; deterministic cost metric; priors P1–P4 incl. pre-committed refutation.
-   Author rulings: pre-registers accepted (F=6, n=40, p=0.15, R=300; θ=0.20; tol=10%), oracle
-   unwired, round-robin apportionment. **Design-only — build not yet done. ▶ NEXT: write the
-   E1 implementation plan → build → run E1; then E2 (size-sweep, the exponent) / E3 (endogenous
-   partition) based on what E1 shows.** E1 is a *paired comparison + harness only*; the West
-   exponent proper is E2 (two points can't fit a power law).
+   **✅ BUILT + RUN + MERGED 2026-07-22 (`ad87a7c`).** E1 design spec (`cb45b7e`) →
+   implementation plan (`docs/superpowers/plans/2026-07-21-west-in-kyte-e1.md`) → 9-task
+   subagent-driven build (branch merged ff to main). New modules: `src/vault_generator.py`
+   (deterministic structure-only synthetic vault + cross-link manifest), `src/west_measure.py`
+   (`CountingMaterializer` deterministic cost + K2/K3/|M| readers), `src/west_coordinator.py`
+   (attributed-cell digest mention-not-use + consistency scan + coverage + broker), `src/west_experiment.py`
+   (`run_mono`/`run_fed`/`run_fed_broker`/`assemble_report` + P1–P4), `tools/run_west_e1.py`
+   (numbers-only driver + determinism canary); + additive `VaultFeed(folders=, include_journal=)`.
+   **Result (`runs/WEST_E1_LOG.md`): all four priors held; FED ~5.2× cheaper than MONO at equal K2;
+   passive registry sufficed (gap 0).** ▶ NEXT (author's): disposition; **E2** (size-sweep, the
+   exponent proper — two points can't fit a power law) / **E3** (endogenous partition); candidate
+   refinements — A3 per-round tax, the FED-retains-more-|M| question, a p-sweep to force E1b.
 7. **Arisbe (a) user app vs (b) autonomous kytos.** Make a clear, standing distinction between
    Arisbe *as a user-facing application* and Arisbe *as an autonomous kytos in a society of
    kytē*. Ties to THE_COMMENS §10 ("Arisbe-the-project is itself a kytos") and the three web
