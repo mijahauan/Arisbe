@@ -15,7 +15,8 @@ from vault_world import VaultWorld, VaultFeed, JOURNAL_SPINE_RELATIONS
 from attention_economy import AttentionEconomy, Horizon
 from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
-                          read_quality, peel_proxy)
+                          read_quality, peel_proxy, TracingMaterializer,
+                          read_member_costs, MemberCostReading)
 from west_coordinator import Coordinator
 
 
@@ -345,3 +346,117 @@ def assemble_report(mono: ArrangementResult, fed: ArrangementResult, *,
     return ExperimentReport(mono=mono, fed=fed, theta=theta, tol=tol, gap=gap,
                             broker_used=(fed.name == "FED-broker"),
                             priors={"P1": p1, "P2": p2, "P3": p3, "P4": p4})
+
+
+def _run_member_traced(root: Path, *, folders: Optional[frozenset],
+                       include_journal: bool, rounds: int, ttl: int, uid: str):
+    """As :func:`_run_member`, but with a :class:`TracingMaterializer` so the
+    member's per-round relation-name trajectory is captured for the coordinator
+    replay. Returns ``(EvolutionResult, TracingMaterializer)``."""
+    world = VaultWorld(root)
+    economy = AttentionEconomy()
+    horizon = Horizon()
+    feed = VaultFeed(world, economy, horizon=horizon,
+                     folders=folders, include_journal=include_journal)
+    tm = TracingMaterializer()
+    res = run(
+        "", feed, rounds=rounds, uod_id=uid, name=f"West E2 FED {uid}",
+        description="FED member kytos (West-in-kyte E2).",
+        ttl=ttl if ttl > 0 else None,
+        pinned_relations=JOURNAL_SPINE_RELATIONS,
+        materializer=tm,
+    )
+    return res, tm
+
+
+def run_fed_traced(root: Path, manifest, *, rounds: int, ttl: int):
+    """Run the passive FED arrangement capturing each folder-member's per-round
+    relation trajectory, and replay the coordinator over it (spec §3.1).
+
+    Returns ``(ArrangementResult, CoordinatorTax)``. The ``ArrangementResult``'s
+    ``cost.coordinator_cost`` carries the E1-comparable end-of-run snapshot so
+    the two measurement bases stay side by side; the per-round readings live in
+    the returned :class:`CoordinatorTax`.
+
+    Passive only — the broker is not replay-exact (spec §3.1)."""
+    folders = list(manifest.folders)
+    member_specs = [(frozenset({f}), False, f"west_e2_{f}") for f in folders]
+    member_specs.append((frozenset(), True, "west_e2_journal"))
+    shares = _apportion(rounds, len(member_specs))
+
+    coord = Coordinator()
+    member_ms: Dict[str, object] = {}
+    member_costs: List[int] = []
+    trajectories: Dict[str, List[frozenset]] = {}
+    mat_atoms = 0
+    peel = 0
+    k2s: List[float] = []
+    k3s: List[float] = []
+    total_m = 0
+
+    for (folder_set, incl_journal, uid), share in zip(member_specs, shares):
+        res, tm = _run_member_traced(root, folders=folder_set,
+                                     include_journal=incl_journal,
+                                     rounds=share, ttl=ttl, uid=uid)
+        member_costs.append(tm.total_atoms() + peel_proxy(res))
+        mat_atoms += tm.total_atoms()
+        peel += peel_proxy(res)
+        q = read_quality(res)
+        if q.k2_stick_rate is not None:
+            k2s.append(q.k2_stick_rate)
+        k3s.append(q.k3_ratio)
+        total_m += q.final_m_size
+        folder_name = next(iter(folder_set)) if folder_set else None
+        if folder_name is not None:
+            coord.ingest(folder_name, res.uod.current_egi)
+            member_ms[folder_name] = res.uod.current_egi
+            trajectories[folder_name] = list(tm.per_round_relations)
+
+    conflicts = coord.consistency_scan()
+    cov, _unresolved = coord.coverage(manifest, member_ms)
+    snapshot_cost = coord.cells_written + coord.scan_comparisons
+
+    cost = CostBreakdown(materialization_atoms=mat_atoms, peel_proxy=peel,
+                         coordinator_cost=snapshot_cost)
+    quality = QualityReading(
+        k2_stick_rate=(sum(k2s) / len(k2s)) if k2s else None,
+        k3_ratio=(sum(k3s) / len(k3s)) if k3s else 0.0,
+        final_m_size=total_m,
+    )
+    arrangement = ArrangementResult(name="FED", cost=cost, quality=quality,
+                                    member_costs=member_costs, coverage=cov,
+                                    conflicts=conflicts)
+    return arrangement, replay_coordinator_tax(trajectories)
+
+
+@dataclass
+class E2ConfigResult:
+    """One point of the E2 grid: MONO and FED at a given (folders, rounds, ttl),
+    with FED's total reported under **both** pre-registered coordinator arms
+    (spec §3.2)."""
+    folders: int
+    rounds: int
+    ttl: int
+    mono: ArrangementResult
+    fed: ArrangementResult
+    tax: CoordinatorTax
+    member_reading: MemberCostReading
+    fed_cost_naive: int
+    fed_cost_incremental: int
+    gap: float
+
+
+def run_e2_config(root: Path, manifest, *, folders: int, rounds: int,
+                  ttl: int) -> E2ConfigResult:
+    """Run one grid point: MONO plus the traced passive FED, and assemble both
+    arm totals. ``folders`` is recorded as the size axis S (spec §2)."""
+    mono = run_mono(root, rounds=rounds, ttl=ttl)
+    fed, tax = run_fed_traced(root, manifest, rounds=rounds, ttl=ttl)
+    base = fed.cost.materialization_atoms + fed.cost.peel_proxy
+    return E2ConfigResult(
+        folders=folders, rounds=rounds, ttl=ttl, mono=mono, fed=fed, tax=tax,
+        member_reading=read_member_costs(fed.member_costs),
+        fed_cost_naive=base + tax.cells_written + tax.naive_member_round,
+        fed_cost_incremental=base + tax.cells_written + tax.incremental,
+        gap=1.0 - (fed.coverage if fed.coverage is not None else 1.0),
+    )

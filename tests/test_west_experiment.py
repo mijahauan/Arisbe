@@ -182,3 +182,58 @@ def test_replay_is_deterministic():
     a = replay_coordinator_tax(traj)
     b = replay_coordinator_tax(traj)
     assert a == b
+
+
+def _tiny_vault(tmp_path):
+    from vault_generator import generate_vault
+    return generate_vault(tmp_path, seed=20260721, folders=2, notes_per_folder=4,
+                          cross_folder_link_prob=0.15, journal_len=4)
+
+
+def test_run_fed_traced_returns_a_tax_and_matches_run_fed_member_count(tmp_path):
+    from west_experiment import run_fed_traced
+    manifest = _tiny_vault(tmp_path)
+    fed, tax = run_fed_traced(tmp_path, manifest, rounds=6, ttl=120)
+    assert len(fed.member_costs) == 3          # F=2 folder-members + journal-member
+    assert tax.cells_written > 0
+    assert tax.incremental <= tax.naive_global_round <= tax.naive_member_round
+
+
+def test_run_fed_traced_tax_exceeds_the_e1_snapshot_lower_bound(tmp_path):
+    """A3 paid down: the per-round tax must be at least the end-of-run snapshot."""
+    from west_experiment import run_fed, run_fed_traced
+    manifest = _tiny_vault(tmp_path)
+    e1 = run_fed(tmp_path, manifest, rounds=6, ttl=120)
+    _fed, tax = run_fed_traced(tmp_path, manifest, rounds=6, ttl=120)
+    assert tax.naive_member_round >= e1.cost.coordinator_cost
+
+
+def test_run_e2_config_reports_both_arms_and_they_differ(tmp_path):
+    from west_experiment import run_e2_config
+    manifest = _tiny_vault(tmp_path)
+    cfg = run_e2_config(tmp_path, manifest, folders=2, rounds=6, ttl=120)
+    assert cfg.folders == 2 and cfg.rounds == 6
+    assert cfg.mono.cost.total() > 0
+    assert cfg.fed_cost_naive >= cfg.fed_cost_incremental
+    assert cfg.member_reading.journal_member_cost is not None
+    assert 0.0 <= cfg.gap <= 1.0
+
+
+def test_run_e2_config_is_deterministic(tmp_path):
+    from west_experiment import run_e2_config
+    manifest = _tiny_vault(tmp_path)
+    a = run_e2_config(tmp_path, manifest, folders=2, rounds=6, ttl=120)
+    b = run_e2_config(tmp_path, manifest, folders=2, rounds=6, ttl=120)
+    assert a.mono.cost.total() == b.mono.cost.total()
+    assert a.fed_cost_naive == b.fed_cost_naive
+    assert a.fed_cost_incremental == b.fed_cost_incremental
+
+
+def test_e1_run_fed_is_unchanged_by_e2_additions(tmp_path):
+    """E1 reproducibility guard."""
+    from west_experiment import run_fed
+    manifest = _tiny_vault(tmp_path)
+    a = run_fed(tmp_path, manifest, rounds=6, ttl=120)
+    b = run_fed(tmp_path, manifest, rounds=6, ttl=120)
+    assert a.cost.total() == b.cost.total()
+    assert a.name == "FED"
