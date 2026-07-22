@@ -59,6 +59,86 @@ def _apportion(rounds: int, members: int) -> List[int]:
     return [base + (1 if i < rem else 0) for i in range(members)]
 
 
+def _pair_comparisons(held_count: int) -> int:
+    """Comparisons one NAIVE full scan makes over ``held_count`` cells — every
+    unordered pair once. Identical by construction to what
+    ``Coordinator.consistency_scan`` counts (pinned by test)."""
+    return held_count * (held_count - 1) // 2
+
+
+def _incremental_comparisons(held_count: int, new_count: int) -> int:
+    """Comparisons one INCREMENTAL scan makes: each new cell against every
+    already-scanned cell, plus each new pair once. Identical by construction to
+    what ``Coordinator.consistency_scan_incremental`` counts (pinned by test)."""
+    old = held_count - new_count
+    return new_count * old + new_count * (new_count - 1) // 2
+
+
+@dataclass(frozen=True)
+class CoordinatorTax:
+    """The three readings of the per-round coordinator tax, from one replay
+    (E2 spec §3.1, §3.2).
+
+    ``naive_member_round`` is **Arm N** (pre-registered): a full O(H²) pass after
+    every member-round export — the pessimistic bound. ``incremental`` is
+    **Arm I** (pre-registered): delta-scan, totalling H(H−1)/2 for a whole run
+    however long it is. ``naive_global_round`` is a **disclosed secondary**
+    reading — one full pass per synchronized global round — reported because
+    E1 spec §4.1's "one scan/round" is ambiguous between it and Arm N. **No
+    pre-registered prior depends on ``naive_global_round``.**"""
+    cells_written: int
+    naive_member_round: int
+    naive_global_round: int
+    incremental: int
+
+
+def replay_coordinator_tax(
+    trajectories: Dict[str, List[frozenset]],
+) -> CoordinatorTax:
+    """Replay the passive coordinator round-by-round over per-member relation-name
+    trajectories and return all three tax readings (:class:`CoordinatorTax`).
+
+    ``trajectories`` maps folder name -> the list of that member's per-round
+    relation-name sets (from :class:`west_measure.TracingMaterializer`). Global
+    round ``g`` is the synchronized round in which every member takes its ``g``-th
+    step; a member with a shorter trajectory has simply finished.
+
+    Exact for the PASSIVE coordinator only: it is read-only, so replaying it
+    cannot perturb what it measures. The active broker feeds routes back to
+    members and would require true lockstep — callers must not use this for a
+    broker arrangement (spec §3.1)."""
+    folders = sorted(trajectories)
+    global_rounds = max((len(trajectories[f]) for f in folders), default=0)
+    held: set = set()
+    unscanned: set = set()
+    cells_written = 0
+    naive_member_round = 0
+    naive_global_round = 0
+    incremental = 0
+
+    for g in range(global_rounds):
+        for f in folders:
+            traj = trajectories[f]
+            if g >= len(traj):
+                continue                      # this member has finished
+            new = {(f, rel) for rel in sorted(traj[g])} - held
+            held |= new
+            unscanned |= new
+            cells_written += len(new)
+            # Arm N: one full pass after every member-round export.
+            naive_member_round += _pair_comparisons(len(held))
+        # Disclosed secondary: one full pass per synchronized global round.
+        naive_global_round += _pair_comparisons(len(held))
+        # Arm I: delta-scan once per synchronized global round.
+        incremental += _incremental_comparisons(len(held), len(unscanned))
+        unscanned = set()
+
+    return CoordinatorTax(cells_written=cells_written,
+                          naive_member_round=naive_member_round,
+                          naive_global_round=naive_global_round,
+                          incremental=incremental)
+
+
 def _run_member(root: Path, *, folders: Optional[frozenset], include_journal: bool,
                 rounds: int, ttl: int, uid: str):
     """Run one FED member kytos (a folder-member or the journal-member) with

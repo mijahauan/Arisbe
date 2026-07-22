@@ -91,3 +91,81 @@ def test_determinism_canary(tmp_path):
     f2 = run_fed(tmp_path, manifest, rounds=40, ttl=120)
     assert (m1.cost.total(), m1.quality.final_m_size) == (m2.cost.total(), m2.quality.final_m_size)
     assert (f1.cost.total(), f1.coverage) == (f2.cost.total(), f2.coverage)
+
+
+def test_pair_comparisons_matches_the_real_naive_scan():
+    """The closed form is earned: it must equal what Coordinator.consistency_scan
+    actually counts for the same held set."""
+    from west_experiment import _pair_comparisons
+    from west_coordinator import Coordinator
+    from egif_parser_dau import parse_egif
+    coord = Coordinator()
+    coord.ingest("F0", parse_egif('(links_to "a" "b") (has_tag "a" "t")'))
+    coord.ingest("F1", parse_egif('(links_to "c" "d") (in_folder "c" "F1")'))
+    coord.consistency_scan()
+    assert coord.scan_comparisons == _pair_comparisons(len(coord.held))
+
+
+def test_incremental_comparisons_matches_the_real_incremental_scan():
+    from west_experiment import _incremental_comparisons
+    from west_coordinator import Coordinator
+    from egif_parser_dau import parse_egif
+    coord = Coordinator()
+    coord.ingest("F0", parse_egif('(links_to "a" "b") (has_tag "a" "t")'))
+    first_new = set(coord._unscanned)
+    expected = _incremental_comparisons(len(coord.held), len(first_new))
+    coord.consistency_scan_incremental()
+    assert coord.scan_comparisons_incremental == expected
+
+
+def test_replay_incremental_equals_one_full_scan_of_the_final_held_set():
+    """Arm I's whole-run invariant, at replay level."""
+    from west_experiment import replay_coordinator_tax, _pair_comparisons
+    traj = {
+        "F0": [frozenset({"a"}), frozenset({"a", "b"}), frozenset({"a", "b"})],
+        "F1": [frozenset({"a"}), frozenset({"a"}), frozenset({"a", "c"})],
+    }
+    tax = replay_coordinator_tax(traj)
+    # held = {(F0,a),(F0,b),(F1,a),(F1,c)} => H = 4
+    assert tax.cells_written == 4
+    assert tax.incremental == _pair_comparisons(4)
+
+
+def test_replay_naive_member_round_exceeds_global_round_by_the_member_factor():
+    from west_experiment import replay_coordinator_tax
+    traj = {
+        "F0": [frozenset({"a"}), frozenset({"a", "b"})],
+        "F1": [frozenset({"a"}), frozenset({"a", "c"})],
+    }
+    tax = replay_coordinator_tax(traj)
+    assert tax.naive_member_round > tax.naive_global_round > 0
+    assert tax.naive_global_round >= tax.incremental
+
+
+def test_replay_naive_grows_with_rounds_but_incremental_does_not():
+    """The bracket's whole point: extra quiet rounds cost Arm N and are free to Arm I."""
+    from west_experiment import replay_coordinator_tax
+    short = {"F0": [frozenset({"a", "b"})], "F1": [frozenset({"a"})]}
+    long = {"F0": [frozenset({"a", "b"})] * 5, "F1": [frozenset({"a"})] * 5}
+    t_short, t_long = replay_coordinator_tax(short), replay_coordinator_tax(long)
+    assert t_long.naive_member_round > t_short.naive_member_round
+    assert t_long.incremental == t_short.incremental
+    assert t_long.cells_written == t_short.cells_written
+
+
+def test_replay_is_empty_for_empty_trajectories():
+    from west_experiment import replay_coordinator_tax
+    tax = replay_coordinator_tax({})
+    assert (tax.cells_written, tax.naive_member_round,
+            tax.naive_global_round, tax.incremental) == (0, 0, 0, 0)
+
+
+def test_replay_is_deterministic():
+    from west_experiment import replay_coordinator_tax
+    traj = {
+        "F1": [frozenset({"b", "a"}), frozenset({"a", "b", "c"})],
+        "F0": [frozenset({"a"}), frozenset({"a", "z"})],
+    }
+    a = replay_coordinator_tax(traj)
+    b = replay_coordinator_tax(traj)
+    assert a == b
