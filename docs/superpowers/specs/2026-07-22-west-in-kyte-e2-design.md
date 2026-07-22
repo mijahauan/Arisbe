@@ -196,21 +196,40 @@ fix) stays on in every rider cell so the arm varies decay pressure only.
 
 ## 6 · Pre-registered priors (Pᴱ² — committed before any run)
 
-- **P1² (headline exponent).** β_mono > β_fed(I), **and** β_mono > 1.3.
+- **P1² (headline exponent, Ruling B — 2026-07-22).** Three-valued, not two: **"held"** requires
+  β_mono > β_fed(I) *and* β_mono > 1.3; **"separation-only"** is the genuinely different case where
+  separation holds (β_mono > β_fed(I)) but the 1.3 magnitude bar is missed — it gets its own name
+  rather than being folded into a refutation it isn't; **"refuted"** is reserved for the one
+  pre-committed condition below. Either fit weak → "undetermined", checked first.
   *Predicted from the design probe:* β_mono ≈ 1.8 (measured `cost ∝ F^0.6·R^1.2`, times R ∝ F);
   β_fed(I) ≈ 1.0 (FED cost is flat in F at fixed R — 8,980 → 9,214 → 9,575 across F=2,4,8 — so
   under proportional-R it is `F+1` members × constant work).
 - **P2² (Q-C terminal-unit invariance).** Per-kytos cost-per-cycle stays flat as the community
   grows: **folder-member CV < 0.5 at every F**, *and* the mean per-folder-member cost's
   **max/min ratio across the six configs < 1.25**.
-- **P3² (coordination is the binding constraint).** Under **Arm N**, coordinator tax ∝ F^γ with
-  **γ ≥ 2**, and a crossover F\* exists where `COST_fed(N) > COST_mono`. If no crossover falls inside
-  the swept range, the extrapolated F\* is reported (as an extrapolation, flagged).
+- **P3² (coordination is the binding constraint, Ruling A — 2026-07-22).** Under **Arm N**,
+  coordinator tax ∝ F^γ with **γ ≥ 2**, **and** a crossover exists where `COST_fed(N) > COST_mono`.
+  A crossover is read one of three ways, most informative first: **observed** — a genuine
+  within-range transition (FED at-or-below MONO at a smaller swept F, above it at a larger one);
+  **below-range** — FED-naive is above MONO at *every* swept F, so no transition is observed but
+  none is needed either — the crossover, if any, lies below the range, which is the *strongest*
+  confirmation coordination binds, not a refutation; **extrapolated** — the two fitted lines cross
+  strictly above the swept range (`> max(F)`). An extrapolated F* that lands at or inside the range,
+  or is non-positive, is a fit artifact, not a finding, and is reported as no-crossover rather than a
+  number (a run once produced a physically meaningless `crossover_f` of ~0.02 folders this way).
+  γ ≥ 2 with no crossover of any kind reads "refuted" — coordination diverging without ever being
+  shown to overtake MONO is not the binding constraint the prior claims.
+  **Weak-fit gating:** `fit_tax_naive` weak → "undetermined", checked before anything else, since γ
+  itself is unusable. An **observed** or **below-range** crossover is read off the swept data, not
+  off a fit, and needs no further gate. An **extrapolated** crossover is read off
+  `fit_fed_naive`/`fit_mono`; if either of *those* is weak, P3² reads "undetermined" rather than
+  "held" off a fit too blunt to support the extrapolation.
 - **P4² (the rider).** The FED/MONO |M| ratio narrows monotonically as ttl → off.
 
 **Pre-committed refutation.** **β_mono ≤ β_fed(I)** refutes the federation hypothesis in its
 *scaling* form: E1's paired win would then be an artifact of one corpus size rather than a property
-of apportionment. This is recorded as a finding, not a failure.
+of apportionment. This is recorded as a finding, not a failure. Per Ruling B this is the *only*
+condition "refuted" is reserved for in P1² — a below-bar-but-separated result is "separation-only".
 
 **Stated in advance, so it is not spun afterward:** *no arrangement is predicted to show West's
 sublinear β < 1.* A federation of independent kytē is linear by construction. What E2 can establish
@@ -275,3 +294,10 @@ Zero protected-core modification is anticipated. Any need for one halts the buil
    not run.
 3. **Both coordinator arms reported** (§3.2), rather than picking one model in advance.
 4. **ttl rider included** (§5). The **p-sweep crossover is deferred** to E2b.
+5. **Task 7 re-review, crossover + weak-fit refinement (2026-07-22).** §6's P1²/P3² text above is
+   corrected to match what the code actually decides: P1² is three-valued (Ruling B) and P3²'s
+   crossover clause admits a **below-range** reading, distinct from "none" (Ruling A implemented
+   honestly) — FED dearer than MONO across the whole sweep is the strongest support for the prior,
+   not a refutation-by-omission. An extrapolated crossover additionally requires (a) landing above
+   `max(F)`, never a fit artifact reported as a number, and (b) `fit_fed_naive`/`fit_mono` both
+   strong — an extrapolation resting on a weak fit reads "undetermined", never "held".

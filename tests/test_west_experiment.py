@@ -458,19 +458,74 @@ def test_p3_reports_extrapolated_crossover_when_none_is_observed():
 def test_p3_fed_above_mono_at_f_min_is_not_misreported_as_a_crossover_there():
     """F2, the literal case named in the finding: FED-naive is above MONO
     already at the smallest swept F, and stays above at every point. A
-    pre-fix ``_crossover`` scanned for the first F with ``fed > mono`` and
+    pre-F2 ``_crossover`` scanned for the first F with ``fed > mono`` and
     would report F_min itself — indistinguishable from a genuine in-range
-    crossing. Since there is no below-to-above transition anywhere in the
-    data (there is no "below" at all) and MONO's exponent (3.0) exceeds
-    FED's (1.0) so the fitted lines don't converge going forward either, the
-    honest answer is no crossover at all — not "at F_min"."""
+    crossing. There is no below-to-above transition anywhere in the data
+    (there is no "below" at all), so it is not ``"observed"``. Per the Task 7
+    re-review (Finding 1, 2026-07-22) that is *not* the same as no crossover:
+    FED dominating the whole sweep means the crossover, if any, lies below
+    the range — ``"below-range"``, the strongest possible confirmation that
+    coordination binds, not ``"none"``."""
     from west_experiment import assemble_e2_report
     configs = [_fake_config(f, int(100 * f ** 3.0), int(50000 * f),
                             int(500 * f)) for f in SIZES]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert all(c.fed_cost_naive > c.mono.cost.total() for c in configs)
     assert rep.crossover_f is None
-    assert rep.crossover_kind == "none"
+    assert rep.crossover_kind == "below-range"
+
+
+def test_p3_held_on_a_below_range_crossover_fed_dearer_throughout():
+    """The other half of Finding 1: FED-naive is above MONO at every swept F
+    *and* gamma >= 2.0 clears the tax bar — coordination is shown to bind at
+    every measured point, which P3² must read as "held", not "refuted" (the
+    pre-fix behaviour, which would have required an in-range or forward
+    extrapolation to exist)."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(10 * f), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert all(c.fed_cost_naive > c.mono.cost.total() for c in configs)
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.crossover_kind == "below-range"
+    assert rep.crossover_f is None
+    assert rep.priors["P3"] == "held"
+
+
+def test_crossover_extrapolated_inside_the_range_is_reported_honestly():
+    """Finding 1's second half: an extrapolated F* must lie ABOVE the swept
+    range to be reported as ``"extrapolated"`` — a run once produced a
+    physically meaningless ``crossover_f`` of ~0.02 folders this way. Here
+    FED-naive sits below MONO at every swept point (so there is no in-range
+    transition and FED does not dominate the sweep either), but the fitted
+    intercepts happen to cross at F*~10 -- inside [2, 16]. That must fall
+    back to "none" honestly, never claim "extrapolated" at a value the swept
+    data itself contradicts."""
+    from west_experiment import _crossover
+    from west_measure import PowerLawFit
+
+    class _Cost:
+        def __init__(self, total):
+            self._total = total
+        def total(self):
+            return self._total
+
+    class _Mono:
+        def __init__(self, total):
+            self.cost = _Cost(total)
+
+    class _Cfg:
+        def __init__(self, folders, fed_cost_naive, mono_total):
+            self.folders = folders
+            self.fed_cost_naive = fed_cost_naive
+            self.mono = _Mono(mono_total)
+
+    configs = [_Cfg(f, 100, 175) for f in [2, 4, 6, 8, 16]]   # fed <= mono always
+    fit_fed = PowerLawFit(beta=2.0, stderr=0.0, r_squared=1.0, n=5, weak=False)
+    fit_mono = PowerLawFit(beta=1.0, stderr=0.0, r_squared=1.0, n=5, weak=False)
+    crossover_f, crossover_kind = _crossover(fit_fed, fit_mono, configs)
+    assert crossover_kind == "none"
+    assert crossover_f is None
 
 
 def test_p3_refuted_when_gamma_holds_but_no_crossover_exists():
@@ -513,6 +568,51 @@ def test_p3_refuted_just_below_the_2_0_tax_beta_bar_with_crossover_present():
     assert rep.fit_tax_naive.beta < 2.0
     assert rep.crossover_f is not None
     assert rep.priors["P3"] == "refuted"
+
+
+def test_p3_undetermined_when_an_extrapolated_crossover_rests_on_a_weak_fed_naive_fit():
+    """Finding 2 (Task 7 re-review, 2026-07-22): the demonstrated bug — a
+    noisy FED-naive fit (weak, low R²) still produced an "extrapolated"
+    crossover and P3² read "held" off it. FED-naive sits below MONO at every
+    swept point here (no observed transition), the fit is genuinely weak,
+    and the fitted lines nonetheless cross beyond the range — but that
+    extrapolation must not carry the verdict: P3² must read "undetermined",
+    never "held", when it rests on a weak fit."""
+    from west_experiment import assemble_e2_report
+    mono_vals = [int(1e6 * f ** 1.2) for f in SIZES]
+    noisy_fed = [10, 900, 30, 5000, 60, 12000]
+    tax_vals = [int(60 * f ** 2.5) for f in SIZES]     # clean, gamma >= 2.0
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, mono_vals, noisy_fed, tax_vals)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_fed_naive.weak is True
+    assert rep.crossover_kind == "extrapolated"
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.priors["P3"] == "undetermined"
+
+
+def test_p3_below_range_crossover_is_not_gated_by_a_weak_fed_naive_fit():
+    """The companion boundary to the test above: a ``"below-range"``
+    crossover is read directly off the swept data (FED-naive above MONO at
+    every point), not off ``fit_fed_naive``/``fit_mono`` — so unlike an
+    extrapolated crossover it needs no weak-fit gate on those two fits. Here
+    FED-naive is noisy enough to make ``fit_fed_naive`` weak yet still
+    dominates MONO throughout, so P3² reads "held" (gamma clears the bar and
+    the crossover exists) despite the weak fed-naive fit."""
+    from west_experiment import assemble_e2_report
+    mono_vals = [10 * f for f in SIZES]
+    noisy_fed = [1000, 90000, 3000, 500000, 6000, 1200000]   # always > mono_vals
+    tax_vals = [int(60 * f ** 2.5) for f in SIZES]
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, mono_vals, noisy_fed, tax_vals)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_fed_naive.weak is True
+    assert all(fv > mv for fv, mv in zip(noisy_fed, mono_vals))
+    assert rep.crossover_kind == "below-range"
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.priors["P3"] == "held"
 
 
 def test_p3_held_just_above_the_2_0_tax_beta_bar_with_crossover_present():
@@ -561,14 +661,22 @@ def test_tax_clamp_is_recorded_and_forces_the_fit_weak():
     data. Here one config's tax reading is non-positive (won't happen on real
     data — see CoordinatorTax's docstring — but must be handled honestly if
     it ever does): the clamp must be counted, and the resulting fit must never
-    be trusted un-flagged, even though the other five points alone would fit
-    a clean beta ~3 (>= P3_MIN_TAX_BETA) with a high R²."""
+    be trusted un-flagged.
+
+    The five un-clamped points (``tax = 2 * F**2.2``) alone fit a *strong*
+    line (measured: beta=3.11, r-squared=0.942, weak=False) — the F6 forcing
+    is what makes this "weak"; a data shape whose fit is already weak on its
+    own merits (as the prior version of this test used, r-squared=0.871 <
+    0.90) pins nothing, since the assertion would hold even with the forcing
+    deleted. Verified by deleting the forcing line and confirming this test
+    fails, then restoring it and confirming it passes again."""
     from west_experiment import assemble_e2_report
-    tax_values = [0 if f == 2 else int(50 * f ** 3) for f in SIZES]
+    tax_values = [0 if f == 2 else int(2 * f ** 2.2) for f in SIZES]
     configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
                             tax_naive=tv) for f, tv in zip(SIZES, tax_values)]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert rep.tax_clamped_count == 1
+    assert rep.fit_tax_naive.beta > 2.0    # would clear P3_MIN_TAX_BETA on its own
     assert rep.fit_tax_naive.weak is True
     assert rep.priors["P3"] == "undetermined"
 
