@@ -679,6 +679,103 @@ def test_p3_undetermined_on_a_none_crossover_resting_on_weak_fed_and_mono_fits()
     assert rep.priors["P3"] == "undetermined"
 
 
+def test_p3_tax_weak_gate_is_checked_before_the_gamma_refutation():
+    """Finding B (Task 7 fix-4 review, 2026-07-22): the tax-weak gate
+    (``fit_tax_naive.weak`` -> "undetermined") must be checked *before* the
+    determinate ``gamma < 2.0`` refutation, not after. The existing
+    ``test_p3_undetermined_on_a_weak_tax_fit`` only exercises this gate with a
+    3-point fixture whose measured beta (~2.98) sits comfortably *above*
+    2.0 -- swapping the two branches (gamma-check first, tax-weak-check
+    second) still reads "undetermined" there via the n<6 weak-fit path
+    reached from the *other* direction, so that test cannot discriminate the
+    ordering.
+
+    This fixture is a genuine 6-point weak fit (measured beta=1.758,
+    r-squared=0.564 < 0.90 -> weak=True) whose beta *also* happens to read
+    below 2.0. Under the correct ordering (weak-check first) this reads
+    "undetermined". Under the swapped ordering the gamma<2.0 branch would
+    fire first and read "refuted" off a fit already established to be
+    unusable.
+
+    Verified to bite: swapping the ``if fit_tax_naive.weak`` and
+    ``elif fit_tax_naive.beta < P3_MIN_TAX_BETA`` branches in
+    ``assemble_e2_report`` makes this test fail (reads "refuted" instead of
+    "undetermined"); restoring the original order makes it pass again."""
+    from west_experiment import assemble_e2_report
+    tax_values = [3, 40, 9, 200, 25, 300]
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),
+                            int(500 * f), tax_naive=tv)
+              for f, tv in zip(SIZES, tax_values)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is True
+    assert rep.fit_tax_naive.beta < 2.0
+    assert rep.priors["P3"] == "undetermined"
+
+
+def test_p3_crossover_weak_gate_also_fires_on_a_weak_mono_fit():
+    """Finding C (Task 7 fix-4 review, 2026-07-22): the crossover weak-fit
+    gate on an ``"extrapolated"``/``"none"`` reading must distrust *both*
+    ``fit_fed_naive`` and ``fit_mono`` -- either one being weak makes the
+    reading untrustworthy, since both feed the intercept computation (or the
+    beta comparison, for "none"). Both existing gate tests
+    (``test_p3_undetermined_when_an_extrapolated_crossover_rests_on_a_weak_fed_naive_fit``
+    and ``test_p3_undetermined_on_a_none_crossover_resting_on_weak_fed_and_mono_fits``)
+    have ``fit_fed_naive`` weak (the second has *both* weak), so neither can
+    discriminate ``or fit_mono.weak`` from the gate on its own.
+
+    Here MONO is the noisy one (measured weak=True, r-squared~0.36) while
+    FED-naive is a clean ``F^1.5`` fit (weak=False) and the tax clears the
+    gamma bar (``60*F^2.5``, weak=False, beta~2.5) -- this reproduces the
+    reviewer's fixture, giving ``crossover_kind == "none"``. P3² must read
+    "undetermined" (the "none" reading rests on the weak MONO fit), not
+    "refuted" off an unreliable comparison.
+
+    Verified to bite: dropping ``or fit_mono.weak`` from the gate condition
+    in ``assemble_e2_report`` makes this test fail (reads "refuted" instead
+    of "undetermined"); restoring it makes it pass again."""
+    from west_experiment import assemble_e2_report
+    mono_values = [10, 900, 30, 5000, 60, 12000]
+    fed_values = [int(f ** 1.5) for f in SIZES]
+    tax_values = [int(60 * f ** 2.5) for f in SIZES]
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, mono_values, fed_values, tax_values)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.weak is True
+    assert rep.fit_fed_naive.weak is False
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.crossover_kind == "none"
+    assert rep.priors["P3"] == "undetermined"
+
+
+def test_crossover_overflow_error_falls_back_honestly_instead_of_crashing():
+    """Finding D (Task 7 fix-4 review, 2026-07-22): ``math.exp`` in
+    ``_crossover`` can raise ``OverflowError`` when
+    ``beta_fed_naive - beta_mono`` is near-degenerate and the intercept gap
+    is large -- pre-existing, implausible on real cost data, but an unguarded
+    crash in the honesty layer. Here MONO (``1e15*F^2``) towers over FED-naive
+    (``1e6*F^2.0000001``) at every swept point, so FED never crosses it (no
+    in-range or below-range signal) while the two betas are close enough that
+    the intercept-difference exponent overflows a float.
+
+    ``assemble_e2_report`` must return a report, not raise -- and the
+    fallback must read honestly: FED never dominates the sweep here (MONO is
+    always dearer), so the crossover reads ``"none"``, and gamma>=2.0 (tax
+    ``60*F^2.5``) with no crossover reads P3² "refuted" per Ruling A, not a
+    fabricated "held"."""
+    from west_experiment import assemble_e2_report
+    mono_values = [int(1e15 * f ** 2) for f in SIZES]
+    fed_values = [int(1e6 * f ** 2.0000001) for f in SIZES]
+    tax_values = [int(60 * f ** 2.5) for f in SIZES]
+    configs = [_fake_config(f, mv, fv, int(500 * f), tax_naive=tv)
+              for f, mv, fv, tv in zip(SIZES, mono_values, fed_values, tax_values)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)   # must not raise
+    assert rep.crossover_f is None
+    assert rep.crossover_kind == "none"
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.priors["P3"] == "refuted"
+
+
 def test_p4_is_deferred_to_the_rider():
     from west_experiment import assemble_e2_report
     configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),

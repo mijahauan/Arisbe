@@ -220,11 +220,17 @@ fix) stays on in every rider cell so the arm varies decay pressure only.
   produced a physically meaningless `crossover_f` of ~0.02 folders this way — no E2 run has been
   executed yet). γ ≥ 2 with no crossover of any kind reads "refuted" — coordination diverging without
   ever being shown to overtake MONO is not the binding constraint the prior claims.
-  **Weak-fit gating:** `fit_tax_naive` weak → "undetermined", checked before anything else, since γ
-  itself is unusable. An **observed** or **below-range** crossover is read off the swept data, not
-  off a fit, and needs no further gate. An **extrapolated** crossover is read off
-  `fit_fed_naive`/`fit_mono`; if either of *those* is weak, P3² reads "undetermined" rather than
-  "held" off a fit too blunt to support the extrapolation.
+  **Weak-fit gating, checked in this order (Task 7 re-review, third pass, 2026-07-22):** (1)
+  `fit_tax_naive` weak → "undetermined", checked first, since γ itself is unusable. (2) The
+  determinate **γ < 2** refutation is decided next, off `fit_tax_naive` alone, *before* the
+  crossover is consulted at all — a weak crossover fit must never suppress a refutation the tax fit
+  alone already settles. (3) Only once γ ≥ 2 is established, a second gate applies to a crossover
+  reading of **extrapolated** *or* **none** — both are decided entirely off
+  `fit_fed_naive`/`fit_mono` (an extrapolated F* is read off their intercepts; a "none" reading is
+  either β_fed_naive ≤ β_mono or an extrapolated F* landing inside the range), so if either of
+  *those* fits is weak the reading cannot be trusted: P3² reads "undetermined" rather than "held"
+  (extrapolated) or "refuted" (none) off a fit too blunt to support it. An **observed** or
+  **below-range** crossover is read off the swept data, not off a fit, and needs no such gate.
 - **P4² (the rider).** The FED/MONO |M| ratio narrows monotonically as ttl → off.
 
 **Pre-committed refutation.** **β_mono ≤ β_fed(I)** refutes the federation hypothesis in its
@@ -302,3 +308,9 @@ Zero protected-core modification is anticipated. Any need for one halts the buil
    not a refutation-by-omission. An extrapolated crossover additionally requires (a) landing above
    `max(F)`, never a fit artifact reported as a number, and (b) `fit_fed_naive`/`fit_mono` both
    strong — an extrapolation resting on a weak fit reads "undetermined", never "held".
+6. **Task 7 fix-4 doc pass (2026-07-22).** §6's "Weak-fit gating" paragraph had drifted from the
+   code it describes: it named the second gate as covering only an **extrapolated** crossover
+   (it also covers **none**), said the suppressed verdict for that case was "held" (for "none" it
+   is "refuted"), and left the checking order — tax-weak, then the determinate γ < 2 refutation,
+   then the crossover weak-gate — undocumented. Corrected to match `assemble_e2_report`'s docstring
+   exactly, which remains the source of truth for this ordering.

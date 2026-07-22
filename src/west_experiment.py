@@ -605,7 +605,16 @@ def _crossover(fit_fed_naive: PowerLawFit, fit_mono: PowerLawFit,
     a_fed = sum(ly_fed) / len(ly_fed) - fit_fed_naive.beta * mx
     a_mono = sum(ly_mono) / len(ly_mono) - fit_mono.beta * mx
     denom = fit_fed_naive.beta - fit_mono.beta   # > 0, guarded above
-    f_star = math.exp((a_mono - a_fed) / denom)
+    try:
+        f_star = math.exp((a_mono - a_fed) / denom)
+    except OverflowError:
+        # A near-degenerate denom (beta_fed_naive ~ beta_mono) combined with a
+        # large intercept gap can drive the exponent out of float range. This
+        # is a fit-artifact, not a finding, and gets exactly the same honest
+        # fallback as any other undeterminable extrapolation (Finding D, Task
+        # 7 fix-4 review, 2026-07-22): below-range if FED dominated the whole
+        # sweep, none otherwise.
+        return _fallback()
 
     max_f = max(c.folders for c in configs)
     if f_star > max_f:
