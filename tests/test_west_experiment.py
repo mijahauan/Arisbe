@@ -241,3 +241,107 @@ def test_e1_run_fed_is_unchanged_by_e2_additions(tmp_path):
     b = run_fed(tmp_path, manifest, rounds=6, ttl=120)
     assert a.cost.total() == b.cost.total()
     assert a.name == "FED"
+
+
+def _fake_config(folders, mono_cost, fed_naive, fed_incr, cv=0.03, mean=1000.0,
+                 gap=0.0):
+    """A hand-built E2ConfigResult for verdict-logic tests — no vault run needed."""
+    from west_experiment import E2ConfigResult, CoordinatorTax, ArrangementResult
+    from west_measure import CostBreakdown, QualityReading, MemberCostReading
+    mono = ArrangementResult(
+        name="MONO",
+        cost=CostBreakdown(materialization_atoms=mono_cost, peel_proxy=0),
+        quality=QualityReading(k2_stick_rate=1.0, k3_ratio=0.0, final_m_size=100))
+    fed = ArrangementResult(
+        name="FED",
+        cost=CostBreakdown(materialization_atoms=fed_incr, peel_proxy=0),
+        quality=QualityReading(k2_stick_rate=1.0, k3_ratio=0.0, final_m_size=100),
+        member_costs=[1000, 1000, 120], coverage=1.0 - gap)
+    return E2ConfigResult(
+        folders=folders, rounds=25 * (folders + 1), ttl=120, mono=mono, fed=fed,
+        tax=CoordinatorTax(cells_written=1, naive_member_round=fed_naive,
+                           naive_global_round=fed_naive // 2, incremental=1),
+        member_reading=MemberCostReading([1000, 1000], 120, mean, cv),
+        fed_cost_naive=fed_naive, fed_cost_incremental=fed_incr, gap=gap)
+
+
+SIZES = [2, 4, 6, 8, 12, 16]
+
+
+def test_p1_holds_when_mono_scales_worse_than_fed():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert abs(rep.fit_mono.beta - 1.8) < 0.01
+    assert abs(rep.fit_fed_incremental.beta - 1.0) < 0.01
+    assert rep.priors["P1"] == "held"
+
+
+def test_p1_refuted_when_mono_does_not_scale_worse():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f), int(50 * f ** 3),
+                            int(500 * f ** 1.5)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P1"] == "refuted"
+
+
+def test_p1_undetermined_on_a_weak_fit():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),
+                            int(500 * f)) for f in [2, 4, 8]]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.weak is True
+    assert rep.priors["P1"] == "undetermined"
+
+
+def test_p2_holds_when_per_member_cost_is_flat_and_tight():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            cv=0.03, mean=1000.0) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "held"
+
+
+def test_p2_refuted_when_a_single_config_has_loose_members():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            cv=0.03 if f != 8 else 0.7) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "refuted"
+
+
+def test_p2_refuted_when_mean_per_member_cost_drifts_across_the_sweep():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            mean=1000.0 * f) for f in SIZES]   # 8x drift
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "refuted"
+
+
+def test_p3_holds_and_reports_an_observed_crossover():
+    from west_experiment import assemble_e2_report
+    # naive tax ∝ F^3 overtakes mono ∝ F^1.8 inside the swept range
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(200 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.priors["P3"] == "held"
+    assert rep.crossover_f is not None
+
+
+def test_p3_reports_extrapolated_crossover_when_none_is_observed():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(1e7 * f ** 1.8), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert all(c.fed_cost_naive < c.mono.cost.total() for c in configs)
+    assert rep.crossover_f is not None and rep.crossover_f > 16
+
+
+def test_p4_is_deferred_to_the_rider():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P4"] == "deferred"

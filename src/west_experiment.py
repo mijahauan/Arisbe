@@ -7,6 +7,7 @@ compared on equal work."""
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -16,7 +17,8 @@ from attention_economy import AttentionEconomy, Horizon
 from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
                           read_quality, peel_proxy, TracingMaterializer,
-                          read_member_costs, MemberCostReading)
+                          read_member_costs, MemberCostReading,
+                          fit_power_law, PowerLawFit)
 from west_coordinator import Coordinator, member_relation_names
 
 
@@ -487,3 +489,92 @@ def run_e2_config(root: Path, manifest, *, folders: int, rounds: int,
         fed_cost_incremental=base + tax.cells_written + tax.incremental,
         gap=1.0 - (fed.coverage if fed.coverage is not None else 1.0),
     )
+
+
+P1_MIN_MONO_BETA = 1.3
+P2_MAX_CV = 0.5
+P2_MAX_MEAN_RATIO = 1.25
+P3_MIN_TAX_BETA = 2.0
+
+
+@dataclass
+class E2Report:
+    """The assembled size-sweep result: the fitted exponents, the crossover, and
+    the pre-registered verdicts P1²-P4² (spec §6). P4² belongs to the ttl rider
+    and reads "deferred" here."""
+    configs: List["E2ConfigResult"]
+    fit_mono: PowerLawFit
+    fit_fed_incremental: PowerLawFit
+    fit_fed_naive: PowerLawFit
+    fit_tax_naive: PowerLawFit
+    crossover_f: Optional[float]
+    priors: Dict[str, str]
+
+
+def _crossover(fit_fed_naive: PowerLawFit, fit_mono: PowerLawFit,
+               configs) -> Optional[float]:
+    """The F at which COST_fed(N) overtakes COST_mono.
+
+    Returns the smallest **observed** crossover if one falls inside the swept
+    range; otherwise extrapolates from the two fitted lines. ``None`` when the
+    FED-naive exponent does not exceed MONO's (the curves never cross above the
+    range) or the fit is too degenerate to extrapolate."""
+    observed = [c.folders for c in sorted(configs, key=lambda c: c.folders)
+                if c.fed_cost_naive > c.mono.cost.total()]
+    if observed:
+        return float(observed[0])
+    if fit_fed_naive.beta <= fit_mono.beta:
+        return None
+    # Recover each line's intercept in log space from its own points.
+    xs = [math.log(c.folders) for c in configs]
+    if not xs:
+        return None
+    mx = sum(xs) / len(xs)
+    ly_fed = [math.log(c.fed_cost_naive) for c in configs]
+    ly_mono = [math.log(c.mono.cost.total()) for c in configs]
+    a_fed = sum(ly_fed) / len(ly_fed) - fit_fed_naive.beta * mx
+    a_mono = sum(ly_mono) / len(ly_mono) - fit_mono.beta * mx
+    denom = fit_fed_naive.beta - fit_mono.beta
+    if denom <= 0:
+        return None
+    return math.exp((a_mono - a_fed) / denom)
+
+
+def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
+    """Fit the exponents over the grid and decide P1²-P3² (spec §6). ``theta``
+    and ``tol`` are carried for the record and for the coherence read; the
+    weak-fit rule turns any fit-dependent prior into "undetermined"."""
+    ordered = sorted(configs, key=lambda c: c.folders)
+    sizes = [c.folders for c in ordered]
+    fit_mono = fit_power_law(sizes, [c.mono.cost.total() for c in ordered])
+    fit_fed_incr = fit_power_law(sizes, [c.fed_cost_incremental for c in ordered])
+    fit_fed_naive = fit_power_law(sizes, [c.fed_cost_naive for c in ordered])
+    fit_tax_naive = fit_power_law(
+        sizes, [max(c.tax.naive_member_round, 1) for c in ordered])
+
+    # P1² — the headline exponent separation.
+    if fit_mono.weak or fit_fed_incr.weak:
+        p1 = "undetermined"
+    elif fit_mono.beta > fit_fed_incr.beta and fit_mono.beta > P1_MIN_MONO_BETA:
+        p1 = "held"
+    else:
+        p1 = "refuted"
+
+    # P2² — terminal-unit invariance: tight within each config, flat across them.
+    means = [c.member_reading.mean for c in ordered if c.member_reading.mean > 0]
+    tight = all(c.member_reading.cv < P2_MAX_CV for c in ordered)
+    flat = bool(means) and (max(means) / min(means) < P2_MAX_MEAN_RATIO)
+    p2 = "held" if (tight and flat) else "refuted"
+
+    # P3² — coordination is the binding constraint under Arm N.
+    crossover = _crossover(fit_fed_naive, fit_mono, ordered)
+    if fit_tax_naive.weak:
+        p3 = "undetermined"
+    else:
+        p3 = "held" if fit_tax_naive.beta >= P3_MIN_TAX_BETA else "refuted"
+
+    return E2Report(configs=ordered, fit_mono=fit_mono,
+                    fit_fed_incremental=fit_fed_incr,
+                    fit_fed_naive=fit_fed_naive, fit_tax_naive=fit_tax_naive,
+                    crossover_f=crossover,
+                    priors={"P1": p1, "P2": p2, "P3": p3, "P4": "deferred"})
