@@ -13,6 +13,7 @@ from typing import List, Optional
 from model_materialization import IncrementalMaterializer, materialization_ratio
 from agon_evolution import sheet_atom_keys, EvolutionResult, delivered_atom_keys
 from agon_metalearning import episodes_from, resolution_principles
+from west_coordinator import member_relation_names
 
 
 class CountingMaterializer(IncrementalMaterializer):
@@ -31,6 +32,26 @@ class CountingMaterializer(IncrementalMaterializer):
 
     def total_atoms(self) -> int:
         return sum(self.per_round_atoms)
+
+
+class TracingMaterializer(CountingMaterializer):
+    """A :class:`CountingMaterializer` that additionally records the distinct
+    relation names present in M at each round.
+
+    ``materialize(egi)`` is invoked once per round with M itself, so this is an
+    exact per-round capture of the member's state — no hook in
+    ``agon_evolution`` and no chain-walking required. The captured trajectory is
+    what the E2 coordinator-tax replay (spec §3.1) consumes: the tax depends only
+    on which (folder, relation-name) cells the coordinator holds at each round."""
+
+    def __init__(self):
+        super().__init__()
+        self.per_round_relations: List[frozenset] = []
+
+    def materialize(self, egi):
+        out = super().materialize(egi)
+        self.per_round_relations.append(member_relation_names(egi))
+        return out
 
 
 @dataclass

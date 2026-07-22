@@ -1,5 +1,5 @@
 from west_measure import (CountingMaterializer, read_quality, peel_proxy,
-                          CostBreakdown, QualityReading)
+                          CostBreakdown, QualityReading, TracingMaterializer)
 from agon_evolution import run, CorpusProposer
 
 
@@ -26,3 +26,31 @@ def test_read_quality_shape():
 def test_cost_breakdown_total():
     cb = CostBreakdown(materialization_atoms=100, peel_proxy=20, coordinator_cost=5)
     assert cb.total() == 125
+
+
+def test_tracing_materializer_records_one_relation_set_per_round():
+    tm = TracingMaterializer()
+    pool = ['(bird "tweety")', '(swan "odette")', '(bird "robin")']
+    run("", CorpusProposer(pool), rounds=5, uod_id="trace-test",
+        name="trace", materializer=tm)
+    assert len(tm.per_round_relations) == len(tm.per_round_atoms), (
+        "one captured relation set per materialization call (== per round)"
+    )
+    assert all(isinstance(s, frozenset) for s in tm.per_round_relations)
+    assert tm.total_atoms() == sum(tm.per_round_atoms)   # base behaviour intact
+
+
+def test_tracing_materializer_sees_relations_appear_as_m_grows():
+    tm = TracingMaterializer()
+    pool = ['(bird "tweety")', '(swan "odette")']
+    run("", CorpusProposer(pool), rounds=6, uod_id="trace-grow",
+        name="trace-grow", materializer=tm, ttl=None)
+    union = set()
+    for s in tm.per_round_relations:
+        union |= s
+    assert union, "some relation name must have entered M over six rounds"
+    assert union <= set().union(*tm.per_round_relations)
+
+
+def test_tracing_materializer_is_a_counting_materializer():
+    assert issubclass(TracingMaterializer, CountingMaterializer)
