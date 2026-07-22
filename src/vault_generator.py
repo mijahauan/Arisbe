@@ -47,10 +47,19 @@ def generate_vault(dest: Path, *, seed: int, folders: int, notes_per_folder: int
                    cross_folder_link_prob: float, journal_len: int) -> VaultManifest:
     dest = Path(dest)
     folder_names = tuple(f"Folder-{k}" for k in range(folders))
+    # Note stems must be GLOBALLY unique across the whole vault: VaultWorld._stems()
+    # resolves a bare wikilink stem to exactly one note (first-wins setdefault), so
+    # per-folder-repeating names ("note-0" in every folder) make resolution
+    # ambiguous. A global index g = k * notes_per_folder + i gives every note a
+    # unique "note-{g}" stem regardless of which folder it lives in.
     note_relpaths = []
-    for fk in folder_names:
+    note_by_folder_local = {}  # (folder_name, local_i) -> relpath
+    for k, fk in enumerate(folder_names):
         for i in range(notes_per_folder):
-            note_relpaths.append(f"{fk}/note-{i}.md")
+            g = k * notes_per_folder + i
+            rp = f"{fk}/note-{g}.md"
+            note_relpaths.append(rp)
+            note_by_folder_local[(fk, i)] = rp
     note_relpaths = tuple(note_relpaths)
 
     # First pass: decide cross-folder links deterministically.
@@ -61,7 +70,8 @@ def generate_vault(dest: Path, *, seed: int, folders: int, notes_per_folder: int
             target_folder = _pick(seed, rp + "tf",
                                   [f for f in folder_names if f != fk])
             ti = int(_unit(seed, rp, "ti") * notes_per_folder)
-            target_note = f"{target_folder}/note-{min(ti, notes_per_folder - 1)}.md"
+            ti = min(ti, notes_per_folder - 1)
+            target_note = note_by_folder_local[(target_folder, ti)]
             cross.append(CrossLink(rp, fk, target_note, target_folder))
     cross_by_source = {}
     for cl in cross:
@@ -71,7 +81,9 @@ def generate_vault(dest: Path, *, seed: int, folders: int, notes_per_folder: int
     for rp in note_relpaths:
         p = dest / rp
         p.parent.mkdir(parents=True, exist_ok=True)
-        links = "".join(f"[[{cl.target_note[:-3]}]] "
+        # Wikilink text is the bare, globally-unique stem — VaultWorld._stems()
+        # resolves wikilinks by bare lowercase stem, not by full path.
+        links = "".join(f"[[{Path(cl.target_note).stem}]] "
                         for cl in cross_by_source.get(rp, []))
         tag = _pick(seed, rp + "tag", ["topic-a", "topic-b", "topic-c"])
         p.write_text(
@@ -89,7 +101,12 @@ def generate_vault(dest: Path, *, seed: int, folders: int, notes_per_folder: int
     lines = []
     for d in range(journal_len):
         year = 1975 + d  # a wide span so entries_per_decade is populated
-        lines.append(f"- {year}-01-0{(d % 9) + 1} {_SENTINEL} entry {d}")
+        # VaultWorld.journal_entries() starts a new entry ONLY at a BARE
+        # date-line (the whole stripped line must match the date-line shape) —
+        # a leading "- " or trailing text disqualifies it. So each entry is two
+        # lines: a bare date-line, then a separate body line.
+        lines.append(f"{year}-01-0{(d % 9) + 1}")
+        lines.append(f"{_SENTINEL} entry {d}")
     (jdir / "Journal.md").write_text(
         "---\ntags: [journal]\n---\n" + "\n".join(lines) + "\n"
     )

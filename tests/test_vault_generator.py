@@ -57,3 +57,49 @@ def test_bodies_are_sentinel_only(tmp_path):
                    cross_folder_link_prob=0.0, journal_len=3)
     for p in tmp_path.rglob("*.md"):
         assert "SENTINELBODY" in p.read_text()
+
+
+def test_journal_entries_are_readable(tmp_path):
+    # Finding 1: VaultWorld.journal_entries() only starts a new entry at a
+    # BARE date-line (the whole stripped line matches the date shape). The
+    # old one-line "- YYYY-MM-DD SENTINELBODY entry N" format fails that
+    # shape check for every line, so journal_entries() returned zero entries
+    # regardless of journal_len. This is biting: it fails against the old
+    # generator and passes once each entry is a bare date-line followed by a
+    # separate body line.
+    generate_vault(tmp_path, seed=9, folders=1, notes_per_folder=1,
+                   cross_folder_link_prob=0.0, journal_len=12)
+    w = VaultWorld(tmp_path)
+    jp = w.journal_paths()[0]
+    assert len(w.journal_entries(jp)[0]) == 12
+    assert w.journal_facts(jp) != ""
+
+
+def test_note_stems_are_globally_unique(tmp_path):
+    # Finding 2 (part a): VaultWorld._stems() resolves a bare wikilink stem
+    # to exactly one note via a first-wins setdefault. The old generator
+    # named every folder's notes identically ("note-0".."note-{n-1}"), so
+    # stems collided across folders. Stems must be globally unique.
+    m = generate_vault(tmp_path, seed=5, folders=4, notes_per_folder=6,
+                       cross_folder_link_prob=0.3, journal_len=4)
+    stems = [Path(n).stem for n in m.notes]
+    assert len(stems) == len(set(stems))
+
+
+def test_cross_links_resolve_as_internal_links(tmp_path):
+    # Finding 2 (part b): the old generator wrote cross-folder wikilink text
+    # as the full path "[[Folder-k/note-i]]", which never matches a bare
+    # stem key in VaultWorld._stems() — every cross-link emitted as an
+    # unresolved "(links_out ...)" atom instead of a resolved internal
+    # "(links ...)" atom. With globally-unique bare stems as link text,
+    # resolution must succeed.
+    m = generate_vault(tmp_path, seed=5, folders=4, notes_per_folder=6,
+                       cross_folder_link_prob=0.6, journal_len=4)
+    assert len(m.cross_links) >= 1
+    w = VaultWorld(tmp_path)
+    for cl in m.cross_links:
+        facts = w.note_facts(cl.source_note)
+        source_id = w.note_id(cl.source_note)
+        target_id = w.note_id(cl.target_note)
+        assert f'(links "{source_id}" "{target_id}")' in facts
+        assert f'(links_out "{source_id}" "{target_id}")' not in facts
