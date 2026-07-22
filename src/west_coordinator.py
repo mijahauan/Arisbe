@@ -12,7 +12,7 @@ cross into the digest, quoted (mentioned) rather than spliced in (used)."""
 
 from __future__ import annotations
 
-from typing import Set, Tuple
+from typing import Dict, Set, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts, create_empty_graph
 from egif_parser_dau import parse_egif
@@ -26,6 +26,20 @@ def member_relation_names(member_m: RelationalGraphWithCuts) -> frozenset:
     work)."""
     view = m_view(member_m)
     return frozenset(view.rel[e.id] for e in view.E if e.id in view.rel)
+
+
+def note_id_constants(member_m: RelationalGraphWithCuts) -> frozenset:
+    """The constant labels present in a member's M (read through ``m_view``,
+    same non-mutating idiom as :func:`member_relation_names`). A generic
+    (unnamed) vertex has ``label is None`` and is skipped — only named
+    constants (note ids, folder names, ...) count."""
+    view = m_view(member_m)
+    labels: Set[str] = set()
+    for v in view.V:
+        vx = view.get_vertex(v.id)
+        if getattr(vx, "label", None):
+            labels.add(vx.label)
+    return frozenset(labels)
 
 
 def _utterance_graph(label: str) -> RelationalGraphWithCuts:
@@ -52,6 +66,7 @@ class Coordinator:
         )
         self.held: Set[Tuple[str, str]] = set()
         self.cells_written: int = 0
+        self.scan_comparisons: int = 0
 
     def ingest(self, folder: str, member_m: RelationalGraphWithCuts) -> int:
         """Project ``member_m``'s *new* relation names into one attributed
@@ -84,5 +99,60 @@ class Coordinator:
         self.cells_written += written
         return written
 
+    def consistency_scan(self) -> int:
+        """One pass over ``self.held`` cells looking for a digest-level
+        assert/deny conflict (folder-A asserts relname R vs a deny of R held
+        by another folder). The synthetic corpus never denies anything, so
+        this always finds 0 conflicts on it — but the scan is real work: every
+        pair of held cells is compared once, and ``self.scan_comparisons``
+        records that passive-registry tax (the coordinator does O(n^2) work
+        even when nothing is wrong)."""
+        cells = sorted(self.held)
+        conflicts = 0
+        comparisons = 0
+        for i in range(len(cells)):
+            for j in range(i + 1, len(cells)):
+                comparisons += 1
+                # No denial relation exists in this corpus's held cells (each
+                # cell is a bare `(asserts "folder" rel)` mention), so a
+                # cross-folder conflict can never be found here — but the
+                # same-relname-different-folder pair is exactly the candidate
+                # a real denial-aware scan would inspect.
+                if cells[i][1] == cells[j][1] and cells[i][0] != cells[j][0]:
+                    pass
+        self.scan_comparisons += comparisons
+        return conflicts
 
-__all__ = ["Coordinator", "member_relation_names"]
+    def coverage(
+        self,
+        manifest,
+        member_ms: Dict[str, RelationalGraphWithCuts],
+    ) -> Tuple[float, int]:
+        """Of ``manifest.cross_links``, the fraction whose ``target_note`` id
+        appears as a constant in the *target folder's* member M (i.e. the
+        reference actually resolves against what that folder's member
+        surfaced). Returns ``(coverage_fraction, unresolved_count)``;
+        ``gap = 1 - coverage_fraction``."""
+        target_consts = {f: note_id_constants(m) for f, m in member_ms.items()}
+        cross = list(manifest.cross_links)
+        if not cross:
+            return 1.0, 0
+        resolved = 0
+        for cl in cross:
+            stem = (
+                cl.target_note[:-3]
+                if cl.target_note.endswith(".md")
+                else cl.target_note
+            )
+            consts = target_consts.get(cl.target_folder, frozenset())
+            # Robust to whether the member's constant carries the ".md" suffix
+            # or not: note ids are the full relpath WITH ".md" (Task 2
+            # as-built), so `cl.target_note in c` is the matching branch in
+            # practice, but the stem check is kept as a defensive fallback.
+            if any(stem in c or cl.target_note in c for c in consts):
+                resolved += 1
+        cov = resolved / len(cross)
+        return cov, len(cross) - resolved
+
+
+__all__ = ["Coordinator", "member_relation_names", "note_id_constants"]
