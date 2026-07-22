@@ -839,3 +839,40 @@ def test_tax_clamp_count_is_zero_on_ordinary_data():
               for f in SIZES]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert rep.tax_clamped_count == 0
+
+
+def test_decide_p4_holds_on_a_monotonically_narrowing_ratio():
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(60, 100, 300, 3.0), TtlReading(120, 100, 200, 2.0),
+                TtlReading(240, 100, 150, 1.5), TtlReading(0, 100, 100, 1.0)]
+    assert decide_p4(readings) == "held"
+
+
+def test_decide_p4_refuted_when_the_ratio_does_not_narrow():
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(60, 100, 150, 1.5), TtlReading(120, 100, 200, 2.0),
+                TtlReading(240, 100, 210, 2.1), TtlReading(0, 100, 250, 2.5)]
+    assert decide_p4(readings) == "refuted"
+
+
+def test_decide_p4_treats_ttl_zero_as_the_largest_ttl():
+    """`off` must sort last however the caller ordered the list."""
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(0, 100, 100, 1.0), TtlReading(240, 100, 150, 1.5),
+                TtlReading(60, 100, 300, 3.0), TtlReading(120, 100, 200, 2.0)]
+    assert decide_p4(readings) == "held"
+
+
+def test_decide_p4_undetermined_on_too_few_points():
+    from west_experiment import decide_p4, TtlReading
+    assert decide_p4([TtlReading(120, 100, 200, 2.0)]) == "undetermined"
+    assert decide_p4([]) == "undetermined"
+
+
+def test_run_ttl_rider_produces_one_reading_per_ttl(tmp_path):
+    from west_experiment import run_ttl_rider
+    manifest = _tiny_vault(tmp_path)
+    readings = run_ttl_rider(tmp_path, manifest, rounds=6, ttls=[120, 0])
+    assert [r.ttl for r in readings] == [120, 0]
+    assert all(r.mono_m >= 0 and r.fed_m >= 0 for r in readings)
+    assert all(r.ratio >= 0.0 for r in readings)

@@ -78,6 +78,16 @@ def _incremental_comparisons(held_count: int, new_count: int) -> int:
 
 
 @dataclass(frozen=True)
+class TtlReading:
+    """One cell of the ttl rider (spec §5). ``ttl=0`` means decay off, and is
+    ordered as the largest ttl. ``ratio`` = FED |M|Σ / MONO |M|."""
+    ttl: int
+    mono_m: int
+    fed_m: int
+    ratio: float
+
+
+@dataclass(frozen=True)
 class CoordinatorTax:
     """The three readings of the per-round coordinator tax, from one replay
     (E2 spec §3.1, §3.2).
@@ -489,6 +499,35 @@ def run_e2_config(root: Path, manifest, *, folders: int, rounds: int,
         fed_cost_incremental=base + tax.cells_written + tax.incremental,
         gap=1.0 - (fed.coverage if fed.coverage is not None else 1.0),
     )
+
+
+def run_ttl_rider(root: Path, manifest, *, rounds: int,
+                  ttls: List[int]) -> List[TtlReading]:
+    """Run MONO and the traced passive FED at one config across ``ttls``,
+    reading final |M| at each — the decay-pressure probe for E1's
+    FED-retains-more observation. ``ttl=0`` means no disuse-decay."""
+    readings: List[TtlReading] = []
+    for ttl in ttls:
+        mono = run_mono(root, rounds=rounds, ttl=ttl)
+        fed, _tax = run_fed_traced(root, manifest, rounds=rounds, ttl=ttl)
+        mono_m = mono.quality.final_m_size
+        fed_m = fed.quality.final_m_size
+        readings.append(TtlReading(ttl=ttl, mono_m=mono_m, fed_m=fed_m,
+                                   ratio=(fed_m / mono_m) if mono_m else 0.0))
+    return readings
+
+
+def decide_p4(readings: List[TtlReading]) -> str:
+    """P4² (spec §5, §6): the FED/MONO |M| ratio narrows monotonically as
+    ttl -> off. ``held`` => the retention advantage is a decay artifact;
+    ``refuted`` => it is structural. Fewer than two points => "undetermined"."""
+    if len(readings) < 2:
+        return "undetermined"
+    # ttl=0 means "off" — the largest decay window, so it sorts last.
+    ordered = sorted(readings, key=lambda r: (r.ttl == 0, r.ttl))
+    ratios = [r.ratio for r in ordered]
+    narrowing = all(b <= a + 1e-9 for a, b in zip(ratios, ratios[1:]))
+    return "held" if narrowing else "refuted"
 
 
 P1_MIN_MONO_BETA = 1.3
