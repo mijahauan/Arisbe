@@ -1247,12 +1247,14 @@ def main():
 
     rep = assemble_report(mono, fed, theta=THETA, tol=TOL)
 
-    # Determinism canary: a second MONO + FED must match.
+    # Determinism canary: a second MONO + FED must match. Re-run the SAME
+    # arrangement fed used (broker or passive) — else the canary is a no-op on
+    # the broker branch and prints a PASS it never checked.
     mono2 = run_mono(dest, rounds=args.rounds, ttl=args.ttl)
-    fed2 = run_fed(dest, manifest, rounds=args.rounds, ttl=args.ttl)
+    fed2 = (run_fed_broker if fed.name == "FED-broker" else run_fed)(
+        dest, manifest, rounds=args.rounds, ttl=args.ttl)
     canary = (mono.cost.total() == mono2.cost.total()
-              and fed.cost.total() == (fed2.cost.total()
-                  if fed.name == "FED" else fed.cost.total()))
+              and fed.cost.total() == fed2.cost.total())
 
     print("=== West-in-kytē E1 (numbers only) ===")
     print(f"corpus: F={args.folders} n={args.notes} p={args.p} J={args.journal} "
