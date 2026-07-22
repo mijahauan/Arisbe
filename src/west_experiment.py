@@ -517,17 +517,43 @@ def run_ttl_rider(root: Path, manifest, *, rounds: int,
     return readings
 
 
+# Pairwise tolerance (float noise between two adjacent-ttl points) — an
+# absolute bound, since it is only ever comparing two numbers that should be
+# exactly equal or ordered.
+P4_PAIRWISE_EPS = 1e-9
+
+# Net-decrease bar (largest-decay point vs decay-off point), as a FRACTION of
+# the starting ratio: a run's |M| ratio is a ratio of two integer atom
+# counts, so it wobbles from run to run by a percent or so even with no real
+# decay effect at all — a 0.6% end-to-end move is exactly that wobble, not a
+# genuine narrowing, and must not read "held". 2% comfortably clears such
+# noise while still catching any real, if modest, narrowing (see the
+# near-flat vs genuinely-narrowing tests in tests/test_west_experiment.py).
+P4_NET_DECREASE_FRACTION = 0.02
+
+
 def decide_p4(readings: List[TtlReading]) -> str:
     """P4² (spec §5, §6): the FED/MONO |M| ratio narrows monotonically as
     ttl -> off. ``held`` => the retention advantage is a decay artifact;
-    ``refuted`` => it is structural. Fewer than two points => "undetermined"."""
+    ``refuted`` => it is structural — including the case where the ratio is
+    flat (constant or near-flat across the whole ttl sweep), which spec §5
+    names explicitly: *"If it does not narrow: the decay explanation is
+    refuted and the retention advantage is structural."* A flat ratio is
+    monotonic-non-increasing by the pairwise check alone (each step's slack
+    is 0 or near it), so pairwise monotonicity is necessary but not
+    sufficient — a strict net decrease from the first (largest-decay) point
+    to the last (decay-off) point, by more than :data:`P4_NET_DECREASE_FRACTION`
+    of the starting ratio, is also required; a run whose ratio moves by less
+    than that reads "not narrowing" (constant and near-flat runs both refute).
+    Fewer than two points => "undetermined"."""
     if len(readings) < 2:
         return "undetermined"
     # ttl=0 means "off" — the largest decay window, so it sorts last.
     ordered = sorted(readings, key=lambda r: (r.ttl == 0, r.ttl))
     ratios = [r.ratio for r in ordered]
-    narrowing = all(b <= a + 1e-9 for a, b in zip(ratios, ratios[1:]))
-    return "held" if narrowing else "refuted"
+    monotonic = all(b <= a + P4_PAIRWISE_EPS for a, b in zip(ratios, ratios[1:]))
+    net_decrease = ratios[-1] <= ratios[0] * (1 - P4_NET_DECREASE_FRACTION)
+    return "held" if (monotonic and net_decrease) else "refuted"
 
 
 P1_MIN_MONO_BETA = 1.3

@@ -251,5 +251,9 @@ runs/*/STOP
 runs/run[0-9]*/
 
 # West-in-kytē E2 sweep output — same custody boundary as above (a synthetic
-# vault, but the driver's own working directory is not corpus content).
-runs/west_e2*/
+# vault, but the driver's own working directory is not corpus content). No
+# trailing slash (final review, Minor 1): a slash-terminated glob is
+# directory-only and would silently miss a console redirect like
+# `> runs/west_e2_console.txt` — the exact footgun that left
+# runs/run13_console.txt untracked-and-unignored.
+runs/west_e2*

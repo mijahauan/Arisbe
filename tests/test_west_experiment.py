@@ -869,6 +869,35 @@ def test_decide_p4_undetermined_on_too_few_points():
     assert decide_p4([]) == "undetermined"
 
 
+def test_decide_p4_refuted_on_an_exactly_constant_ratio():
+    """Final review Important 1: a flat ratio is pairwise-monotonic (each step's
+    slack is exactly 0) but spec §5 requires a genuine narrowing to read
+    'held' — retention insensitive to decay pressure is the most interesting
+    possible result and must not be silently folded into 'held'."""
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(60, 100, 150, 1.5), TtlReading(120, 100, 150, 1.5),
+                TtlReading(240, 100, 150, 1.5), TtlReading(0, 100, 150, 1.5)]
+    assert decide_p4(readings) == "refuted"
+
+
+def test_decide_p4_refuted_on_a_near_flat_ratio():
+    """A ratio that moves within noise (0.6% end to end) must not read 'held'
+    off pairwise monotonicity alone."""
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(60, 100, 181, 1.81), TtlReading(120, 100, 180, 1.80),
+                TtlReading(240, 100, 180, 1.80), TtlReading(0, 100, 180, 1.80)]
+    assert decide_p4(readings) == "refuted"
+
+
+def test_decide_p4_holds_on_a_genuinely_narrowing_ratio():
+    """A real, non-trivial net decrease still reads 'held' (the fix must not
+    over-tighten the pass case)."""
+    from west_experiment import decide_p4, TtlReading
+    readings = [TtlReading(60, 100, 250, 2.5), TtlReading(120, 100, 200, 2.0),
+                TtlReading(240, 100, 170, 1.7), TtlReading(0, 100, 130, 1.3)]
+    assert decide_p4(readings) == "held"
+
+
 def test_run_ttl_rider_produces_one_reading_per_ttl(tmp_path):
     from west_experiment import run_ttl_rider
     manifest = _tiny_vault(tmp_path)
