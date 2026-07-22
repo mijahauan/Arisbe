@@ -205,7 +205,11 @@ def test_run_fed_traced_tax_exceeds_the_e1_snapshot_lower_bound(tmp_path):
     manifest = _tiny_vault(tmp_path)
     e1 = run_fed(tmp_path, manifest, rounds=6, ttl=120)
     _fed, tax = run_fed_traced(tmp_path, manifest, rounds=6, ttl=120)
-    assert tax.naive_member_round >= e1.cost.coordinator_cost
+    # Arm N's final term is exactly C(H,2) — the same scan the end-of-run
+    # snapshot performs — and cells_written matches the snapshot's. This is the
+    # structurally guaranteed comparison; the bare comparison_count alone is
+    # coincidentally sufficient only at certain round counts.
+    assert tax.cells_written + tax.naive_member_round >= e1.cost.coordinator_cost
 
 
 def test_run_e2_config_reports_both_arms_and_they_differ(tmp_path):

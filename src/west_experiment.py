@@ -426,7 +426,8 @@ def run_fed_traced(root: Path, manifest, *, rounds: int, ttl: int):
             # drop the leading pre-round seed and append the member's true final
             # M, read the same way coord.ingest/member_ms already read it (via
             # member_relation_names), so the corrected trajectory means "M after
-            # round g" for g = 1..share and its length equals the round share.
+            # round g" for each round the member actually executed (which may be
+            # fewer than its share if the feed exhausts).
             # Do not revert this — without it, replay_coordinator_tax
             # systematically understates the per-round coherence tax and can
             # even invert the "per-round >= end-of-run snapshot" inequality.
