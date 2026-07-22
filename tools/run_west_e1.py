@@ -65,6 +65,14 @@ def main():
           f"theta={THETA} conflicts={fed.conflicts}")
     print(f"priors: {rep.priors}")
     print(f"determinism_canary: {'PASS' if canary else 'FAIL'}")
+    # Honest measurement basis (the Pⁿ/Fⁿ discipline) — read before disposing:
+    print("notes: A3 = coordinator_tax is one END-OF-RUN snapshot (ingest each "
+          "member's final M once + one scan/coverage pass), a LOWER BOUND on the "
+          "pre-registered per-round tax (spec §4.1); it under-counts FED's tax, so "
+          "it biases TOWARD P1 (FED-wins) — negligible vs MONO's per-round "
+          "materialization, but disclosed. K3 = materialization ratio (0.0 when M "
+          "carries no Horn laws — true, not a bug). peel = proposal-atom proxy for "
+          "peel-visits (spec §5.1). K1 = N/A (raise-only membrane, A1).")
 
 
 if __name__ == "__main__":

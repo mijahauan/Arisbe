@@ -28,6 +28,8 @@ before build. Both are surfaced in the driver's report so the measured protocol 
 
 **A2 — FED includes a journal-member.** The dated journal is a root-level spine, not a top-folder, so "one member per top-folder" would leave the journal uncovered and let FED win by ingesting less than MONO. FED therefore has **F folder-members + 1 journal-member + 1 coordinator**; R is apportioned round-robin across the **F+1 members**. The journal-member reads only the journal (`folders=frozenset()`, `include_journal=True`) with the journal spine pinned. The driver labels FED's member count `F+1` and names the journal-member.
 
+**A3 — the coordinator tax is measured as one end-of-run snapshot (disclosed, found in the final review).** The spec §4/§4.1 pre-registered a *per-round* coordination tax ("members export after each of their rounds"; "one consistency scan per round"). Because each member's `agon_evolution.run(...)` runs all its rounds internally (no per-round hook without a lockstep refactor that is really E2 scope), the harness instead ingests each member's **final** M once and runs **one** consistency-scan + coverage pass. This is a **lower bound** on the pre-registered per-round tax — it under-counts FED's coordinator cost, so it biases **toward** the headline prior P1 (FED wins on cost). The magnitude is negligible against MONO's per-round materialization (coordinator cost ~hundreds of comparisons vs MONO's hundreds of thousands of forward-chained atoms over R rounds), so P1's *direction* is not at risk — but per the Pⁿ/Fⁿ honesty discipline the driver prints this basis on every run (the `notes:` line) and `runs/WEST_E1_LOG.md` must carry it beside the P1 verdict. Refining to a true per-round tax is a candidate for E2.
+
 ---
 
 ## File structure
