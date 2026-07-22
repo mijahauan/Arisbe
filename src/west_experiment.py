@@ -8,9 +8,9 @@ compared on equal work."""
 from __future__ import annotations
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from vault_world import VaultWorld, VaultFeed, JOURNAL_SPINE_RELATIONS
 from attention_economy import AttentionEconomy, Horizon
@@ -18,7 +18,7 @@ from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
                           read_quality, peel_proxy, TracingMaterializer,
                           read_member_costs, MemberCostReading,
-                          fit_power_law, PowerLawFit)
+                          fit_power_law, PowerLawFit, MIN_FIT_POINTS)
 from west_coordinator import Coordinator, member_relation_names
 
 
@@ -501,80 +501,170 @@ P3_MIN_TAX_BETA = 2.0
 class E2Report:
     """The assembled size-sweep result: the fitted exponents, the crossover, and
     the pre-registered verdicts P1²-P4² (spec §6). P4² belongs to the ttl rider
-    and reads "deferred" here."""
+    and reads "deferred" here.
+
+    ``crossover_f`` is the F at which ``COST_fed(N)`` overtakes ``COST_mono``;
+    ``crossover_kind`` (F3) says how it was determined so a caller can never
+    misread one for the other:
+
+    - ``"observed"`` — a genuine within-range transition: some smaller swept F
+      has FED <= MONO and a larger swept F has FED > MONO.
+    - ``"extrapolated"`` — no such transition appears in the swept data; the
+      value is where the two *fitted* lines cross (flagged, per spec §6).
+    - ``"none"`` — neither: ``crossover_f`` is ``None``.
+
+    ``theta`` / ``tol`` (F5) are carried through from the call for the record.
+    ``broker_forced`` (F5) lists the swept F values whose passive-registry gap
+    exceeded ``theta`` — spec §3.1: that config's coordinator tax is not
+    replay-exact and must be read as broker-forced, not silently folded in.
+    ``tax_clamped_count`` (F6) counts configs whose ``tax.naive_member_round``
+    was <= 0 and had to be clamped to 1 to take its log; a nonzero count
+    forces ``fit_tax_naive.weak`` True (a clamped point is fabricated, not
+    measured, and should never by itself carry a verdict)."""
     configs: List["E2ConfigResult"]
     fit_mono: PowerLawFit
     fit_fed_incremental: PowerLawFit
     fit_fed_naive: PowerLawFit
     fit_tax_naive: PowerLawFit
     crossover_f: Optional[float]
+    crossover_kind: str
+    theta: float
+    tol: float
+    broker_forced: List[int]
+    tax_clamped_count: int
     priors: Dict[str, str]
 
 
 def _crossover(fit_fed_naive: PowerLawFit, fit_mono: PowerLawFit,
-               configs) -> Optional[float]:
-    """The F at which COST_fed(N) overtakes COST_mono.
+               configs) -> Tuple[Optional[float], str]:
+    """The F at which COST_fed(N) overtakes COST_mono, and how that F was
+    determined — ``(value, kind)`` with ``kind`` one of ``"observed"``,
+    ``"extrapolated"``, ``"none"`` (F3).
 
-    Returns the smallest **observed** crossover if one falls inside the swept
-    range; otherwise extrapolates from the two fitted lines. ``None`` when the
-    FED-naive exponent does not exceed MONO's (the curves never cross above the
-    range) or the fit is too degenerate to extrapolate."""
-    observed = [c.folders for c in sorted(configs, key=lambda c: c.folders)
-                if c.fed_cost_naive > c.mono.cost.total()]
-    if observed:
-        return float(observed[0])
+    A genuine **observed** crossover requires an actual within-range
+    transition: some smaller swept F with FED <= MONO followed by a larger
+    swept F with FED > MONO. FED already being above MONO at the smallest
+    swept F is *not* a crossover by itself — there is no transition anywhere
+    in the data, only "FED loses everywhere swept" — so that case falls
+    through to extrapolation rather than being misreported as a crossover at
+    F_min (F2).
+
+    Absent an observed transition, extrapolates from the two fitted lines'
+    intercepts (recovered in log space) and reports ``"extrapolated"``.
+    Returns ``(None, "none")`` when there is nothing to report: no configs, or
+    no observed transition and the FED-naive exponent does not exceed MONO's
+    (the fitted lines do not cross going forward, so extrapolation would be
+    meaningless or divide by zero).
+
+    ``configs`` must already be sorted by ``folders`` ascending — the sole
+    caller, :func:`assemble_e2_report`, sorts once and passes that list
+    straight through; re-sorting here would be dead work on data that is
+    already sorted."""
+    if not configs:
+        return None, "none"
+
+    seen_at_or_below = False
+    for c in configs:
+        if c.fed_cost_naive <= c.mono.cost.total():
+            seen_at_or_below = True
+        elif seen_at_or_below:
+            return float(c.folders), "observed"
+
     if fit_fed_naive.beta <= fit_mono.beta:
-        return None
+        return None, "none"
     # Recover each line's intercept in log space from its own points.
     xs = [math.log(c.folders) for c in configs]
-    if not xs:
-        return None
     mx = sum(xs) / len(xs)
     ly_fed = [math.log(c.fed_cost_naive) for c in configs]
     ly_mono = [math.log(c.mono.cost.total()) for c in configs]
     a_fed = sum(ly_fed) / len(ly_fed) - fit_fed_naive.beta * mx
     a_mono = sum(ly_mono) / len(ly_mono) - fit_mono.beta * mx
-    denom = fit_fed_naive.beta - fit_mono.beta
-    if denom <= 0:
-        return None
-    return math.exp((a_mono - a_fed) / denom)
+    denom = fit_fed_naive.beta - fit_mono.beta   # > 0, guarded above
+    return math.exp((a_mono - a_fed) / denom), "extrapolated"
 
 
 def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
     """Fit the exponents over the grid and decide P1²-P3² (spec §6). ``theta``
-    and ``tol`` are carried for the record and for the coherence read; the
-    weak-fit rule turns any fit-dependent prior into "undetermined"."""
+    and ``tol`` are carried for the record and for the coherence read (F5); the
+    weak-fit rule turns any fit-dependent prior into "undetermined".
+
+    **P1² (Ruling B, 2026-07-22)** has three outcomes, not two:
+
+    - ``"refuted"`` — reserved for the pre-committed refutation only:
+      ``beta_mono <= beta_fed_incremental`` (the federation hypothesis fails
+      in its scaling form).
+    - ``"separation-only"`` — separation holds (``beta_mono >
+      beta_fed_incremental``) but ``beta_mono`` misses the 1.3 magnitude bar:
+      a genuinely different outcome from the pre-committed refutation, so it
+      gets its own name rather than being folded into "refuted".
+    - ``"held"`` — separation holds *and* ``beta_mono > 1.3``.
+    - ``"undetermined"`` — either fit is weak; checked first, before either
+      of the above conditions.
+
+    **P3² (Ruling A, 2026-07-22)** requires *both* ``beta_tax_naive >= 2.0``
+    *and* a crossover existing (observed in range, or extrapolable above it);
+    ``gamma >= 2`` with no crossover means coordination diverges without ever
+    being shown to overtake MONO — not the binding constraint the prior
+    claims — so it reads "refuted". The weak-fit gate on ``fit_tax_naive`` is
+    checked before anything else, per spec."""
     ordered = sorted(configs, key=lambda c: c.folders)
     sizes = [c.folders for c in ordered]
     fit_mono = fit_power_law(sizes, [c.mono.cost.total() for c in ordered])
     fit_fed_incr = fit_power_law(sizes, [c.fed_cost_incremental for c in ordered])
     fit_fed_naive = fit_power_law(sizes, [c.fed_cost_naive for c in ordered])
-    fit_tax_naive = fit_power_law(
-        sizes, [max(c.tax.naive_member_round, 1) for c in ordered])
 
-    # P1² — the headline exponent separation.
+    # F6: naive_member_round can only be <= 0 for a config whose coordinator
+    # never held a cell (won't happen on real data — see CoordinatorTax's
+    # docstring) — clamp to 1 so log() is defined, but never silently: record
+    # how many points needed it and force the fit weak, since a clamped point
+    # is fabricated, not measured, and must never carry a verdict alone.
+    tax_values = [c.tax.naive_member_round for c in ordered]
+    tax_clamped_count = sum(1 for v in tax_values if v <= 0)
+    fit_tax_naive = fit_power_law(sizes, [max(v, 1) for v in tax_values])
+    if tax_clamped_count:
+        fit_tax_naive = replace(fit_tax_naive, weak=True)
+
+    # P1² — the headline exponent separation (Ruling B).
     if fit_mono.weak or fit_fed_incr.weak:
         p1 = "undetermined"
-    elif fit_mono.beta > fit_fed_incr.beta and fit_mono.beta > P1_MIN_MONO_BETA:
+    elif fit_mono.beta <= fit_fed_incr.beta:
+        p1 = "refuted"
+    elif fit_mono.beta > P1_MIN_MONO_BETA:
         p1 = "held"
     else:
-        p1 = "refuted"
+        p1 = "separation-only"
 
-    # P2² — terminal-unit invariance: tight within each config, flat across them.
-    means = [c.member_reading.mean for c in ordered if c.member_reading.mean > 0]
-    tight = all(c.member_reading.cv < P2_MAX_CV for c in ordered)
-    flat = bool(means) and (max(means) / min(means) < P2_MAX_MEAN_RATIO)
-    p2 = "held" if (tight and flat) else "refuted"
+    # P2² — terminal-unit invariance: tight within each config, flat across
+    # them. A cross-size claim, so it needs the same n-point guard as the
+    # fits (F4) — fewer than MIN_FIT_POINTS configs is too few to say
+    # anything (a single config reads "flat" trivially; zero configs must
+    # not read as a refutation from no data).
+    if len(ordered) < MIN_FIT_POINTS:
+        p2 = "undetermined"
+    else:
+        means = [c.member_reading.mean for c in ordered if c.member_reading.mean > 0]
+        tight = all(c.member_reading.cv < P2_MAX_CV for c in ordered)
+        flat = bool(means) and (max(means) / min(means) < P2_MAX_MEAN_RATIO)
+        p2 = "held" if (tight and flat) else "refuted"
 
-    # P3² — coordination is the binding constraint under Arm N.
-    crossover = _crossover(fit_fed_naive, fit_mono, ordered)
+    # P3² — coordination is the binding constraint under Arm N (Ruling A).
+    crossover, crossover_kind = _crossover(fit_fed_naive, fit_mono, ordered)
     if fit_tax_naive.weak:
         p3 = "undetermined"
+    elif fit_tax_naive.beta >= P3_MIN_TAX_BETA and crossover is not None:
+        p3 = "held"
     else:
-        p3 = "held" if fit_tax_naive.beta >= P3_MIN_TAX_BETA else "refuted"
+        p3 = "refuted"
+
+    # F5: spec §3.1 — a config whose passive-registry gap exceeds theta is
+    # broker-forced; its coordinator tax is not replay-exact and must be
+    # named, not silently folded into the fits above.
+    broker_forced = sorted(c.folders for c in ordered if c.gap > theta)
 
     return E2Report(configs=ordered, fit_mono=fit_mono,
                     fit_fed_incremental=fit_fed_incr,
                     fit_fed_naive=fit_fed_naive, fit_tax_naive=fit_tax_naive,
-                    crossover_f=crossover,
+                    crossover_f=crossover, crossover_kind=crossover_kind,
+                    theta=theta, tol=tol, broker_forced=broker_forced,
+                    tax_clamped_count=tax_clamped_count,
                     priors={"P1": p1, "P2": p2, "P3": p3, "P4": "deferred"})

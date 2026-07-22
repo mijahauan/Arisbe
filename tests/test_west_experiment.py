@@ -244,10 +244,18 @@ def test_e1_run_fed_is_unchanged_by_e2_additions(tmp_path):
 
 
 def _fake_config(folders, mono_cost, fed_naive, fed_incr, cv=0.03, mean=1000.0,
-                 gap=0.0):
-    """A hand-built E2ConfigResult for verdict-logic tests — no vault run needed."""
+                 gap=0.0, tax_naive=None):
+    """A hand-built E2ConfigResult for verdict-logic tests — no vault run needed.
+
+    ``tax_naive`` defaults to ``fed_naive`` (the two coincide in every ordinary
+    test) but can be set independently to pin ``CoordinatorTax.naive_member_round``
+    apart from ``fed_cost_naive`` — needed for the F6 clamp test, where the tax
+    reading must go non-positive while the reported FED-naive cost stays
+    positive (as `fit_power_law`'s positivity contract requires)."""
     from west_experiment import E2ConfigResult, CoordinatorTax, ArrangementResult
     from west_measure import CostBreakdown, QualityReading, MemberCostReading
+    if tax_naive is None:
+        tax_naive = fed_naive
     mono = ArrangementResult(
         name="MONO",
         cost=CostBreakdown(materialization_atoms=mono_cost, peel_proxy=0),
@@ -259,7 +267,7 @@ def _fake_config(folders, mono_cost, fed_naive, fed_incr, cv=0.03, mean=1000.0,
         member_costs=[1000, 1000, 120], coverage=1.0 - gap)
     return E2ConfigResult(
         folders=folders, rounds=25 * (folders + 1), ttl=120, mono=mono, fed=fed,
-        tax=CoordinatorTax(cells_written=1, naive_member_round=fed_naive,
+        tax=CoordinatorTax(cells_written=1, naive_member_round=tax_naive,
                            naive_global_round=fed_naive // 2, incremental=1),
         member_reading=MemberCostReading([1000, 1000], 120, mean, cv),
         fed_cost_naive=fed_naive, fed_cost_incremental=fed_incr, gap=gap)
@@ -279,10 +287,13 @@ def test_p1_holds_when_mono_scales_worse_than_fed():
 
 
 def test_p1_refuted_when_mono_does_not_scale_worse():
+    """The pre-committed refutation (beta_mono <= beta_fed_incremental) — the
+    *only* condition Ruling B (2026-07-22) reserves "refuted" for."""
     from west_experiment import assemble_e2_report
     configs = [_fake_config(f, int(100 * f), int(50 * f ** 3),
                             int(500 * f ** 1.5)) for f in SIZES]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.beta <= rep.fit_fed_incremental.beta
     assert rep.priors["P1"] == "refuted"
 
 
@@ -293,6 +304,63 @@ def test_p1_undetermined_on_a_weak_fit():
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert rep.fit_mono.weak is True
     assert rep.priors["P1"] == "undetermined"
+
+
+def test_p1_undetermined_on_a_weak_fit_from_low_r_squared_not_few_points():
+    """The n<6 path and the R²<0.90 path are independent branches of the same
+    weak-fit rule (spec §4) — this exercises R²<0.90 alone, at the full n=6
+    point count, so a mutant that only checks ``n < MIN_FIT_POINTS`` cannot
+    hide behind "well there just weren't enough points"."""
+    from west_experiment import assemble_e2_report
+    noisy_mono = [10, 900, 30, 5000, 60, 12000]     # no power law here (n=6)
+    configs = [_fake_config(f, mc, int(50 * f ** 3), int(500 * f))
+              for f, mc in zip(SIZES, noisy_mono)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.n == 6
+    assert rep.fit_mono.r_squared < 0.90
+    assert rep.fit_mono.weak is True
+    assert rep.priors["P1"] == "undetermined"
+
+
+def test_p1_undetermined_when_only_fed_incremental_is_weak():
+    """Pins P1's *second* weak-fit gate separately from the first: MONO fits
+    cleanly here, only FED(I) is weak, and the verdict must still be
+    "undetermined" — kills a mutant that drops ``fit_fed_incr.weak`` from the
+    gate (which would compute a "refuted"/"held"/"separation-only" answer off
+    a numerically meaningless noisy fit instead)."""
+    from west_experiment import assemble_e2_report
+    noisy_fed_incr = [10, 900, 30, 5000, 60, 12000]
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), fi)
+              for f, fi in zip(SIZES, noisy_fed_incr)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.weak is False
+    assert rep.fit_fed_incremental.weak is True
+    assert rep.priors["P1"] == "undetermined"
+
+
+def test_p1_held_just_above_the_1_3_beta_bar():
+    """Boundary: beta_mono fitted just above 1.3, separation holds — "held"."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.31), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.beta > 1.3
+    assert rep.fit_mono.beta > rep.fit_fed_incremental.beta
+    assert rep.priors["P1"] == "held"
+
+
+def test_p1_separation_only_just_below_the_1_3_beta_bar():
+    """Boundary: beta_mono fitted just below 1.3, separation still holds — per
+    Ruling B (2026-07-22) that is "separation-only", not "refuted" (the
+    pre-committed refutation is beta_mono <= beta_fed_incremental, which does
+    not hold here) and not "held" (the magnitude bar is missed)."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.29), int(50 * f ** 3),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_mono.beta < 1.3
+    assert rep.fit_mono.beta > rep.fit_fed_incremental.beta
+    assert rep.priors["P1"] == "separation-only"
 
 
 def test_p2_holds_when_per_member_cost_is_flat_and_tight():
@@ -319,15 +387,59 @@ def test_p2_refuted_when_mean_per_member_cost_drifts_across_the_sweep():
     assert rep.priors["P2"] == "refuted"
 
 
+def test_p2_held_just_below_the_1_25_mean_ratio_bar():
+    """Boundary: max/min per-folder-member mean ratio = 1.24, tight CV
+    everywhere — held."""
+    from west_experiment import assemble_e2_report
+    means = [1000.0] * 5 + [1240.0]     # ratio exactly 1.24
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            cv=0.03, mean=m) for f, m in zip(SIZES, means)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "held"
+
+
+def test_p2_refuted_just_above_the_1_25_mean_ratio_bar():
+    """Boundary: max/min per-folder-member mean ratio = 1.26 — refuted. Kills
+    a mutant that widens ``P2_MAX_MEAN_RATIO`` (e.g. to 5.0), which would read
+    this same 1.26 drift as flat."""
+    from west_experiment import assemble_e2_report
+    means = [1000.0] * 5 + [1260.0]     # ratio exactly 1.26
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            cv=0.03, mean=m) for f, m in zip(SIZES, means)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "refuted"
+
+
+def test_p2_undetermined_with_no_configs():
+    """F4: P2² is a cross-size claim; zero configs must never read as a
+    refutation from no data."""
+    from west_experiment import assemble_e2_report
+    rep = assemble_e2_report([], theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "undetermined"
+
+
+def test_p2_undetermined_with_a_single_config():
+    """F4: one config makes max/min == 1 trivially and CV meaningless as a
+    cross-size flatness claim — must not read "held" on that technicality."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(4, int(100 * 4 ** 1.8), int(50 * 4 ** 3), int(500 * 4))]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.priors["P2"] == "undetermined"
+
+
 def test_p3_holds_and_reports_an_observed_crossover():
     from west_experiment import assemble_e2_report
-    # naive tax ∝ F^3 overtakes mono ∝ F^1.8 inside the swept range
-    configs = [_fake_config(f, int(100 * f ** 1.8), int(200 * f ** 3),
+    # naive tax/cost ∝ F^3 starts BELOW mono ∝ F^1.8 at F=2 (240 < 348) and
+    # overtakes it inside the swept range, first at F=4 (1920 > 1212) — a
+    # genuine within-range transition, not FED already above MONO at F_min.
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(30 * f ** 3),
                             int(500 * f)) for f in SIZES]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert rep.fit_tax_naive.beta >= 2.0
     assert rep.priors["P3"] == "held"
     assert rep.crossover_f is not None
+    assert rep.crossover_kind == "observed"
+    assert rep.crossover_f == 4.0
 
 
 def test_p3_reports_extrapolated_crossover_when_none_is_observed():
@@ -337,6 +449,82 @@ def test_p3_reports_extrapolated_crossover_when_none_is_observed():
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert all(c.fed_cost_naive < c.mono.cost.total() for c in configs)
     assert rep.crossover_f is not None and rep.crossover_f > 16
+    assert rep.crossover_kind == "extrapolated"
+    # gamma >= 2 and an (extrapolated) crossover both hold: P3 reads "held".
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.priors["P3"] == "held"
+
+
+def test_p3_fed_above_mono_at_f_min_is_not_misreported_as_a_crossover_there():
+    """F2, the literal case named in the finding: FED-naive is above MONO
+    already at the smallest swept F, and stays above at every point. A
+    pre-fix ``_crossover`` scanned for the first F with ``fed > mono`` and
+    would report F_min itself — indistinguishable from a genuine in-range
+    crossing. Since there is no below-to-above transition anywhere in the
+    data (there is no "below" at all) and MONO's exponent (3.0) exceeds
+    FED's (1.0) so the fitted lines don't converge going forward either, the
+    honest answer is no crossover at all — not "at F_min"."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 3.0), int(50000 * f),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert all(c.fed_cost_naive > c.mono.cost.total() for c in configs)
+    assert rep.crossover_f is None
+    assert rep.crossover_kind == "none"
+
+
+def test_p3_refuted_when_gamma_holds_but_no_crossover_exists():
+    """Ruling A (2026-07-22): gamma >= 2 alone is not enough. Here FED-naive's
+    tax exponent (~2.5) clears P3_MIN_TAX_BETA, but FED never overtakes
+    MONO — MONO's own exponent (~3.5) is larger, so the curves never cross,
+    observed or extrapolated. Under the old rule this held; under Ruling A it
+    must read "refuted" (coordination diverges but is never shown to be the
+    binding constraint)."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(1000 * f ** 3.5), int(50 * f ** 2.5),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.crossover_f is None
+    assert rep.crossover_kind == "none"
+    assert rep.priors["P3"] == "refuted"
+
+
+def test_p3_undetermined_on_a_weak_tax_fit():
+    """Explicit weak-fit case: too few points to fit the tax exponent at all,
+    regardless of what beta or crossover a 3-point line would suggest."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(30 * f ** 3),
+                            int(500 * f)) for f in [2, 4, 8]]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is True
+    assert rep.priors["P3"] == "undetermined"
+
+
+def test_p3_refuted_just_below_the_2_0_tax_beta_bar_with_crossover_present():
+    """Boundary: an observed crossover exists in both this test and the next,
+    isolating the beta_tax >= 2.0 check on its own. Here beta_tax fits just
+    below 2.0 — refuted, even though a crossover is observed."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(60 * f ** 1.99),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta < 2.0
+    assert rep.crossover_f is not None
+    assert rep.priors["P3"] == "refuted"
+
+
+def test_p3_held_just_above_the_2_0_tax_beta_bar_with_crossover_present():
+    """Boundary: same shape as above, beta_tax fits just above 2.0 — held."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(60 * f ** 2.01),
+                            int(500 * f)) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.fit_tax_naive.weak is False
+    assert rep.fit_tax_naive.beta >= 2.0
+    assert rep.crossover_f is not None
+    assert rep.priors["P3"] == "held"
 
 
 def test_p4_is_deferred_to_the_rider():
@@ -345,3 +533,49 @@ def test_p4_is_deferred_to_the_rider():
                             int(500 * f)) for f in SIZES]
     rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
     assert rep.priors["P4"] == "deferred"
+
+
+def test_e2_report_carries_theta_and_tol_and_flags_the_configs_that_breach_theta():
+    """F5: theta/tol were accepted but silently dropped — a later task (spec
+    §3.1, broker-forced configs) needs theta on the record. One config here
+    breaches theta (gap 0.30 > theta 0.20); the rest do not."""
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            gap=0.30 if f == 8 else 0.0) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.theta == 0.20
+    assert rep.tol == 0.10
+    assert rep.broker_forced == [8]
+
+
+def test_e2_report_broker_forced_is_empty_when_no_config_breaches_theta():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            gap=0.05) for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.broker_forced == []
+
+
+def test_tax_clamp_is_recorded_and_forces_the_fit_weak():
+    """F6: ``max(naive_member_round, 1)`` used to silently alter verdict-bearing
+    data. Here one config's tax reading is non-positive (won't happen on real
+    data — see CoordinatorTax's docstring — but must be handled honestly if
+    it ever does): the clamp must be counted, and the resulting fit must never
+    be trusted un-flagged, even though the other five points alone would fit
+    a clean beta ~3 (>= P3_MIN_TAX_BETA) with a high R²."""
+    from west_experiment import assemble_e2_report
+    tax_values = [0 if f == 2 else int(50 * f ** 3) for f in SIZES]
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f),
+                            tax_naive=tv) for f, tv in zip(SIZES, tax_values)]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.tax_clamped_count == 1
+    assert rep.fit_tax_naive.weak is True
+    assert rep.priors["P3"] == "undetermined"
+
+
+def test_tax_clamp_count_is_zero_on_ordinary_data():
+    from west_experiment import assemble_e2_report
+    configs = [_fake_config(f, int(100 * f ** 1.8), int(50 * f ** 3), int(500 * f))
+              for f in SIZES]
+    rep = assemble_e2_report(configs, theta=0.20, tol=0.10)
+    assert rep.tax_clamped_count == 0
