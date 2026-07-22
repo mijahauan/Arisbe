@@ -249,3 +249,7 @@ runs/*/STOP
 # .gitignore only screens untracked paths, never untracks what git
 # already knows about.
 runs/run[0-9]*/
+
+# West-in-kytē E2 sweep output — same custody boundary as above (a synthetic
+# vault, but the driver's own working directory is not corpus content).
+runs/west_e2*/
