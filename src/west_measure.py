@@ -109,3 +109,36 @@ def read_quality(result: EvolutionResult) -> QualityReading:
     k3 = materialization_ratio(final).ratio
     return QualityReading(k2_stick_rate=k2, k3_ratio=k3,
                           final_m_size=len(sheet_atom_keys(final)))
+
+
+@dataclass
+class MemberCostReading:
+    """Per-member cost split so the CV statistic means what P2² says it means
+    (E2 spec §3.3). ``cv`` and ``mean`` are over **folder-members only**; the
+    journal-member (adaptation A2) is reported beside them, never inside them."""
+    folder_member_costs: List[int]
+    journal_member_cost: Optional[int]
+    mean: float
+    cv: float
+
+
+def read_member_costs(member_costs: List[int]) -> MemberCostReading:
+    """Split ``member_costs`` as ``_fed_members`` produces it — F folder-members
+    followed by the single trailing journal-member — and compute the coefficient
+    of variation over the folder-members alone.
+
+    E1 read CV over all F+1 members, so the ~30x-cheaper journal-member alone
+    could flip the verdict at small F (CV 0.68 at F=2 vs 0.035 over
+    folder-members) while being diluted at larger F. That made E1's P2 statistic
+    move with F for reasons unrelated to terminal-unit invariance."""
+    if not member_costs:
+        return MemberCostReading([], None, 0.0, 0.0)
+    folder_costs = list(member_costs[:-1])
+    journal_cost = member_costs[-1]
+    if not folder_costs:
+        return MemberCostReading([], journal_cost, 0.0, 0.0)
+    mean = sum(folder_costs) / len(folder_costs)
+    if mean == 0:
+        return MemberCostReading(folder_costs, journal_cost, 0.0, 0.0)
+    var = sum((c - mean) ** 2 for c in folder_costs) / len(folder_costs)
+    return MemberCostReading(folder_costs, journal_cost, mean, (var ** 0.5) / mean)

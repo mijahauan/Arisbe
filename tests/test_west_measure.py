@@ -1,5 +1,6 @@
 from west_measure import (CountingMaterializer, read_quality, peel_proxy,
-                          CostBreakdown, QualityReading, TracingMaterializer)
+                          CostBreakdown, QualityReading, TracingMaterializer,
+                          MemberCostReading, read_member_costs)
 from agon_evolution import run, CorpusProposer
 
 
@@ -92,3 +93,45 @@ def test_tracing_materializer_standing_proposal_breaks_1to1_alignment():
         "with standing_proposal set, per_round_relations does NOT align "
         "1:1 with rounds — see TracingMaterializer's docstring"
     )
+
+
+def test_read_member_costs_excludes_the_trailing_journal_member():
+    from west_measure import read_member_costs
+    r = read_member_costs([4506, 4288, 120])      # the measured F=2 case
+    assert r.folder_member_costs == [4506, 4288]
+    assert r.journal_member_cost == 120
+    assert r.cv < 0.05, "two folder-members within 2.5% must read as tight"
+
+
+def test_the_journal_outlier_would_have_flipped_the_verdict():
+    """Pins the defect this fix exists for: all-member CV crosses 0.5, folder-only does not."""
+    from west_measure import read_member_costs
+    costs = [4506, 4288, 120]
+    mean_all = sum(costs) / len(costs)
+    var_all = sum((c - mean_all) ** 2 for c in costs) / len(costs)
+    cv_all = (var_all ** 0.5) / mean_all
+    assert cv_all > 0.5                            # E1's statistic: "refuted"
+    assert read_member_costs(costs).cv < 0.5       # E2's statistic: "held"
+
+
+def test_read_member_costs_mean_is_over_folder_members_only():
+    from west_measure import read_member_costs
+    r = read_member_costs([100, 200, 3])
+    assert r.mean == 150.0
+
+
+def test_read_member_costs_handles_degenerate_inputs():
+    from west_measure import read_member_costs
+    empty = read_member_costs([])
+    assert empty.folder_member_costs == [] and empty.journal_member_cost is None
+    assert empty.cv == 0.0 and empty.mean == 0.0
+    only_journal = read_member_costs([120])
+    assert only_journal.folder_member_costs == []
+    assert only_journal.journal_member_cost == 120
+    assert only_journal.cv == 0.0
+
+
+def test_read_member_costs_zero_mean_does_not_divide_by_zero():
+    from west_measure import read_member_costs
+    r = read_member_costs([0, 0, 0])
+    assert r.cv == 0.0
