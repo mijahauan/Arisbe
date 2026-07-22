@@ -17,7 +17,7 @@ from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
                           read_quality, peel_proxy, TracingMaterializer,
                           read_member_costs, MemberCostReading)
-from west_coordinator import Coordinator
+from west_coordinator import Coordinator, member_relation_names
 
 
 @dataclass
@@ -410,7 +410,33 @@ def run_fed_traced(root: Path, manifest, *, rounds: int, ttl: int):
         if folder_name is not None:
             coord.ingest(folder_name, res.uod.current_egi)
             member_ms[folder_name] = res.uod.current_egi
-            trajectories[folder_name] = list(tm.per_round_relations)
+            # CORRECTION (Task 6 review finding): TracingMaterializer.materialize()
+            # is invoked once per round from inside agon_evolution.run()'s loop as
+            # `model = pc.current` THEN `peel(model, ..., materializer=mat)`, with
+            # the round's disposition (pc.apply_derived) applied only AFTER that
+            # peel call. So per_round_relations[0] is the PRE-round-1 seed, and
+            # per_round_relations[i] for i >= 1 is really "M after round i" (the
+            # state left by round i's disposition, captured at the START of round
+            # i+1). The state produced by the member's FINAL round's own
+            # disposition is never captured by any materialize() call, because
+            # there is no round R+1 to trigger it — so the raw trace is shifted
+            # one round early and is missing the last round's growth entirely.
+            # Fix it here, in the consumer (per the review's ruling — the capture
+            # point in TracingMaterializer is correct for what it documents):
+            # drop the leading pre-round seed and append the member's true final
+            # M, read the same way coord.ingest/member_ms already read it (via
+            # member_relation_names), so the corrected trajectory means "M after
+            # round g" for g = 1..share and its length equals the round share.
+            # Do not revert this — without it, replay_coordinator_tax
+            # systematically understates the per-round coherence tax and can
+            # even invert the "per-round >= end-of-run snapshot" inequality.
+            raw_trajectory = list(tm.per_round_relations)
+            if raw_trajectory:
+                trajectories[folder_name] = (
+                    raw_trajectory[1:] + [member_relation_names(res.uod.current_egi)]
+                )
+            else:
+                trajectories[folder_name] = []
 
     conflicts = coord.consistency_scan()
     cov, _unresolved = coord.coverage(manifest, member_ms)
