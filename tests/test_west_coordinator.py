@@ -87,3 +87,27 @@ def test_coverage_counts_resolved_cross_links():
     cov, unresolved = coord.coverage(manifest, member_ms)
     assert unresolved == 1
     assert abs(cov - 0.5) < 1e-9
+
+
+def test_coverage_rejects_substring_false_positive():
+    # "Folder-1/note-1.md" is never ingested, but it IS a substring of
+    # "Folder-1/note-10.md" and "Folder-1/note-11.md", which are. A
+    # substring-based match would falsely resolve the cross-link; exact
+    # membership must not.
+    coord = Coordinator()
+    m1 = parse_egif(
+        '(in_folder "Folder-1/note-10.md" "Folder-1") '
+        '(in_folder "Folder-1/note-11.md" "Folder-1")'
+    )
+    member_ms = {"Folder-1": m1}
+    manifest = VaultManifest(
+        folders=("Folder-1",),
+        notes=("Folder-1/note-10.md", "Folder-1/note-11.md"),
+        cross_links=(
+            CrossLink("Folder-0/note-0.md", "Folder-0",
+                      "Folder-1/note-1.md", "Folder-1"),           # never ingested
+        ),
+        journal_len=0,
+    )
+    cov, unresolved = coord.coverage(manifest, member_ms)
+    assert (cov, unresolved) == (0.0, 1)

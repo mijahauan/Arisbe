@@ -145,11 +145,15 @@ class Coordinator:
                 else cl.target_note
             )
             consts = target_consts.get(cl.target_folder, frozenset())
-            # Robust to whether the member's constant carries the ".md" suffix
-            # or not: note ids are the full relpath WITH ".md" (Task 2
-            # as-built), so `cl.target_note in c` is the matching branch in
-            # practice, but the stem check is kept as a defensive fallback.
-            if any(stem in c or cl.target_note in c for c in consts):
+            # Note ids are the FULL relpath (with ".md"), never truncated,
+            # and globally unique at E1 scale — so EXACT set membership is
+            # the correct, unambiguous test. A substring scan here would let
+            # a short un-ingested id (e.g. "note-1.md") false-match as a
+            # substring of a longer ingested one (e.g. "note-10.md"),
+            # silently over-reporting coverage. The `stem` branch is kept as
+            # a harmless exact-match fallback for a constant stored without
+            # the ".md" suffix.
+            if stem in consts or cl.target_note in consts:
                 resolved += 1
         cov = resolved / len(cross)
         return cov, len(cross) - resolved
