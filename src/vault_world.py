@@ -504,11 +504,19 @@ class VaultFeed(ProbeDirectedFeedBase):
 
     def __init__(self, world: VaultWorld, economy: AttentionEconomy, *,
                  horizon: Optional[Horizon] = None, chooser=None,
-                 probe_budget: int = 1, journal=None):
+                 probe_budget: int = 1, journal=None,
+                 folders: Optional[frozenset] = None,
+                 include_journal: bool = True):
         super().__init__(economy, chooser=chooser, probe_budget=probe_budget,
                           journal=journal)
         self._world = world
         self._horizon = horizon if horizon is not None else Horizon()
+        # Additive folder-scoping (West-in-kytē E1, Task 1): None ⇒ all top
+        # dirs (byte-identical default); a frozenset (incl. the empty set)
+        # ⇒ only those top dirs get scan wants at all. include_journal=False
+        # ⇒ no journal wants registered, at all.
+        self._folders = folders
+        self._include_journal = include_journal
         self._scanned_dirs: set = set()   # top dirs whose scan want has executed
         self._read_notes: set = set()     # relpaths whose read want has executed
         self._link_targets: set = set()   # note ids seen as a `links` target so far
@@ -518,7 +526,10 @@ class VaultFeed(ProbeDirectedFeedBase):
 
     # -- intake -----------------------------------------------------------------
     def _seed(self, round_idx: int):
-        for top in self._world.top_dirs():
+        tops = self._world.top_dirs()
+        if self._folders is not None:
+            tops = [t for t in tops if t in self._folders]
+        for top in tops:
             self._economy.register(Want(
                 kind="scan", key=("scan", top), payload=top,
                 cost=1.0, created_round=round_idx))
@@ -529,15 +540,16 @@ class VaultFeed(ProbeDirectedFeedBase):
         # unit. Batches are computed once here (one file read); severity
         # stays 8.0 so the author's own datelined voice still outranks
         # generic listing, batch by batch.
-        for relpath in self._world.journal_paths():
-            batches = self._world._journal_entry_batches(relpath)
-            self._journal_batches[relpath] = [text for text, _span in batches]
-            for idx, (_text, span) in enumerate(batches):
-                self._economy.register(Want(
-                    kind="journal", key=("journal", relpath, idx),
-                    payload=(relpath, idx),
-                    cost=1.0 + span / 20_000, severity=8.0,
-                    created_round=round_idx))
+        if self._include_journal:
+            for relpath in self._world.journal_paths():
+                batches = self._world._journal_entry_batches(relpath)
+                self._journal_batches[relpath] = [text for text, _span in batches]
+                for idx, (_text, span) in enumerate(batches):
+                    self._economy.register(Want(
+                        kind="journal", key=("journal", relpath, idx),
+                        payload=(relpath, idx),
+                        cost=1.0 + span / 20_000, severity=8.0,
+                        created_round=round_idx))
         # Attachments and malformed journal date-lines never become facts —
         # they're registered to the horizon once, at seed time, where they
         # wait to be re-attempted as legibility improves in a later stage.

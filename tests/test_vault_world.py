@@ -388,3 +388,55 @@ class TestConstantBound:
         reloaded = service.load_chain("vault_attest")
         assert reloaded is not None
         assert len(reloaded.steps) == len(res.chain.steps)
+
+
+def test_vaultfeed_folder_scoping_and_journal_toggle(tmp_path):
+    from egif_parser_dau import parse_egif
+    from vault_world import VaultWorld, VaultFeed
+    from attention_economy import AttentionEconomy
+    from vault_generator import generate_vault  # Task 2 provides this
+
+    generate_vault(tmp_path, seed=1, folders=3, notes_per_folder=4,
+                   cross_folder_link_prob=0.0, journal_len=5)
+    world = VaultWorld(tmp_path)
+    tops = world.top_dirs()
+    assert len(tops) >= 2
+
+    blank = parse_egif("")   # propose() needs the graph itself, not EGIF text
+    # Default (unscoped) sees all top dirs + journal.
+    full = VaultFeed(world, AttentionEconomy())
+    for _ in range(60):
+        full.propose(blank, 0)
+    # A scoped feed touches only its folder's scan wants.
+    scoped = VaultFeed(world, AttentionEconomy(),
+                       folders=frozenset({tops[0]}), include_journal=False)
+    for r in range(60):
+        scoped.propose(blank, r)
+    # Its scanned dirs are a subset of the requested folder set.
+    assert scoped._scanned_dirs <= {tops[0]}
+    # No journal batches were ever queued.
+    assert scoped._journal_batches == {}
+
+
+def test_vaultfeed_empty_folders_is_journal_only(tmp_path):
+    """folders=frozenset() (empty, non-None) means zero scan wants — distinct
+    from folders=None (all folders). A later task (Task 7's journal-member
+    feed) relies on this exact distinction: an empty set filters every top
+    dir out, so no scan want is ever registered, while include_journal=True
+    still queues journal batches."""
+    from egif_parser_dau import parse_egif
+    from vault_world import VaultWorld, VaultFeed
+    from attention_economy import AttentionEconomy
+    from vault_generator import generate_vault
+
+    generate_vault(tmp_path, seed=2, folders=2, notes_per_folder=3,
+                   cross_folder_link_prob=0.0, journal_len=5)
+    world = VaultWorld(tmp_path)
+
+    blank = parse_egif("")
+    feed = VaultFeed(world, AttentionEconomy(),
+                      folders=frozenset(), include_journal=True)
+    for r in range(60):
+        feed.propose(blank, r)
+    assert feed._scanned_dirs == set()
+    assert feed._journal_batches != {}
