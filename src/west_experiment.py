@@ -103,6 +103,24 @@ def replay_coordinator_tax(
     round ``g`` is the synchronized round in which every member takes its ``g``-th
     step; a member with a shorter trajectory has simply finished.
 
+    **Interleaving assumption (disclosed, verdict-bearing):** global round
+    ``g`` models every member's ``g``-th step as taken *concurrently* — Arm
+    N's per-member-round tax (:func:`_pair_comparisons`) fires once per
+    member within round ``g``, interleaved across members, before the round
+    advances. This is a modelling choice about a *federation*, whose members
+    conceptually run in parallel, not a description of how this harness
+    happens to execute them: ``_fed_members`` runs members sequentially (F0's
+    whole round share, then F1's, ...) purely for harness convenience. The
+    two orderings are not equivalent — for 3 members x 10 rounds x 8 relation
+    names each they give ``naive_member_round`` totals ~26% apart (3956
+    interleaved vs 3148 sequential) — because Arm N's cost depends on how big
+    ``held`` is *at each individual export*, and that depends on the order
+    exports are counted in. The interleaved (pessimistic) reading is used
+    deliberately, since it is what a genuinely concurrent federation would
+    pay; ``incremental`` and ``cells_written`` are invariant to this choice
+    (both are pure set-cardinality totals over the fully-held set), so only
+    ``naive_member_round`` is affected.
+
     Exact for the PASSIVE coordinator only: it is read-only, so replaying it
     cannot perturb what it measures. The active broker feeds routes back to
     members and would require true lockstep — callers must not use this for a
@@ -121,7 +139,10 @@ def replay_coordinator_tax(
             traj = trajectories[f]
             if g >= len(traj):
                 continue                      # this member has finished
-            new = {(f, rel) for rel in sorted(traj[g])} - held
+            # Determinism comes from sorted(folders) above and set-cardinality
+            # accumulators (held/unscanned/cells_written) — not from ordering
+            # this set-builder's source, which cannot affect its result.
+            new = {(f, rel) for rel in traj[g]} - held
             held |= new
             unscanned |= new
             cells_written += len(new)

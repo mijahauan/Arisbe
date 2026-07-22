@@ -107,6 +107,10 @@ def test_pair_comparisons_matches_the_real_naive_scan():
 
 
 def test_incremental_comparisons_matches_the_real_incremental_scan():
+    """Pinned across two scans so ``old > 0`` on the second one — otherwise
+    deleting the ``new_count * old`` term from ``_incremental_comparisons``
+    leaves this test passing (the first scan alone has ``old == 0``, so that
+    term contributes nothing there)."""
     from west_experiment import _incremental_comparisons
     from west_coordinator import Coordinator
     from egif_parser_dau import parse_egif
@@ -114,6 +118,15 @@ def test_incremental_comparisons_matches_the_real_incremental_scan():
     coord.ingest("F0", parse_egif('(links_to "a" "b") (has_tag "a" "t")'))
     first_new = set(coord._unscanned)
     expected = _incremental_comparisons(len(coord.held), len(first_new))
+    coord.consistency_scan_incremental()
+    assert coord.scan_comparisons_incremental == expected
+
+    # Second ingest, different folder, at least one new relation name: this
+    # scan has old > 0, so it genuinely exercises the new_count * old term.
+    coord.ingest("F1", parse_egif('(links_to "c" "d") (in_folder "c" "F1")'))
+    second_new = set(coord._unscanned)
+    assert len(coord.held - second_new) > 0            # old > 0, for real
+    expected += _incremental_comparisons(len(coord.held), len(second_new))
     coord.consistency_scan_incremental()
     assert coord.scan_comparisons_incremental == expected
 
