@@ -1,6 +1,60 @@
 # Current Plan
 
-**Last Updated**: 2026-07-19 — **EXAMINATION IV defect docket ①–⑫ executed** (see item
+**Last Updated**: 2026-07-21 — **session closed: §3 EPG-role ruling written; workstream B doc
+sweep executed + merged (`3ff31cf`); RUN 13 F4¹³ (journal-spine decay) diagnosed + fixed
+(journal pinned from disuse-decay); FLAG A + FLAG B author-calls ruled; the "judgment is
+objectivated" doctrine lifted to THE_COMMENS §2(c); housekeeping (ARISBE_EXISTENTIAL archived,
+CAPABILITY_MAP action-arm + K-measure rows, CLAUDE.md count → real full suite 3903/0-failed).
+All pushed to `origin/main` (`9808e95`).** The forward agenda (the author's 9 topics for next
+session) is the block immediately below; the completed-work record follows it.
+
+---
+
+**▶▶▶ NEXT SESSION — the author's 9 topics (posed 2026-07-21, to consider next).** Nothing built;
+these are the standing agenda. Each is tagged with the threads it extends.
+
+1. **Typification ↔ West's economies.** How does Berger & Luckmann's *reciprocal typification*
+   (the institution-forming mechanism, THE_COMMENS §3) correspond with West's scaling economies?
+   Extends Q-E (reasoning/metabolism as one reliability-optimization class; THE_KYTOS §4) and the
+   apportionment thread ([[project-apportionment-spectrum]]).
+2. **Kyto-pathologies.** Begin identifying failure modes of a kytos: breakdown in the integrity
+   of its UoD; loss of **poise** between S and A (rigidity vs thrash — already an observable,
+   `agon_metalearning.poise_report`); **transcription errors** (usually deleterious, on occasion
+   serendipitous — a mutation channel); **hyper- or hypo-habituation** (decay/use pathologies,
+   the K4/`UsageLedger` axis). **Relate each to the "dragons"** (FIELD_GUIDE_AND_DRAGONS.md — the
+   reification/error catalogue). A pathology taxonomy for THE_KYTOS.
+3. **The ethics of rung 2.** The push-back / mutual-co-evolution rung
+   (BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md §3 named rung 2 as needing an **ethics pass first**);
+   draws on THE_MEASURE_OF_KNOWLEDGE §"ethics" (Rawls/Fricker) and the FLAG B community-judgment
+   doctrine just ruled (§2(c)).
+4. **Do we model questions?** Whether/how a *question* is a first-class object — perhaps via
+   **Dau's Relation Graphs of Chapter 25** and otherwise. Ties to the oracle loop
+   (`oracle_notes.py`) which *asks* but does not model the question qua question, and to the
+   docket-of-doubts.
+5. **Reduction theorem × B-min+.** Have we fleshed out **Q-A** — the mention-ascent reduction
+   theorem (higher-level quoting reduces to the one B-min quotation device) — and its
+   applicability to **B-min+** (lifting the quotation-in-quotation *validation* refusal)? See
+   [[project-crossing-verdicts]] + CORE_OPENING §8.
+6. **West-in-kytē experiments.** Define simple → progressively complex experiments to test that
+   we can model West's approach *in* kytē and gather data on **kytē in association**, answering
+   the posed West-model questions (Q-B federation/apportionment, Q-C terminal-unit invariance,
+   Q-E vector-optimand). The cheapest first test is already sketched in
+   [[project-apportionment-spectrum]] (vault: one-M vs per-folder kytē + coordinator; measure
+   cost curves / K3 exponents / poise). Pre-register the priors.
+7. **Arisbe (a) user app vs (b) autonomous kytos.** Make a clear, standing distinction between
+   Arisbe *as a user-facing application* and Arisbe *as an autonomous kytos in a society of
+   kytē*. Ties to THE_COMMENS §10 ("Arisbe-the-project is itself a kytos") and the three web
+   modes / the automated loops — two registers that should not be conflated.
+8. **Publication topics.** A list of topics realizable as **papers / publications** worth sharing
+   with the outside world — the concrete Share deliverables beyond the doc sweep.
+9. **Framed outreach.** Frame outreach to particular individuals — **Pietarinen, Dau, Sowa,
+   West**, or others — matched to the relevant work (e.g. Pietarinen ↔ the EPG/dialogical account
+   + FIDELITY_ENDOPOREUTIC_CHECK; Dau ↔ the calculus core + Ch. 25/26; Sowa ↔ CG/ontology; West
+   ↔ the scaling program). #8 and #9 are the natural next moves of the **Share** workstream.
+
+---
+
+**Last Updated (prior)**: 2026-07-19 — **EXAMINATION IV defect docket ①–⑫ executed** (see item
 -9 in the NEXT SESSION block: the author authorized the full docket; all twelve items
 landed on `main`, the panel doc amendments were applied+reconciled to the post-build
 state, and the record was closed with a dated Disposition block in
