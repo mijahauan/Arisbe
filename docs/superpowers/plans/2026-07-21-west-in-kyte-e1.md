@@ -144,6 +144,8 @@ git commit -m "feat(west-e1): additive folder-scoping + journal toggle on VaultF
 - Create: `src/vault_generator.py`
 - Test: `tests/test_vault_generator.py`
 
+**AS-BUILT NOTE (Task 2 complete, commit `12628bd`):** two corrections were made during review that later tasks depend on — (1) journal entries are written as a **bare date-line + a body line** per entry (VaultWorld's parser needs a bare `YYYY-MM-DD` line, else `journal_entries()` returns 0); (2) note ids are **globally unique** — relpath `Folder-{k}/note-{g}.md` with `g = k*notes_per_folder + i`, and cross-folder wikilinks are written as the **bare unique stem** `[[note-{g}]]` so `VaultWorld.note_facts` resolves them as internal `(links ...)`. `note_id(relpath)` is the full relpath, so Task 6 coverage matches `cl.target_note` (with `.md`) against a member M's constants unambiguously.
+
 **Interfaces:**
 - Produces:
   - `@dataclass(frozen=True) class CrossLink: source_note: str; source_folder: str; target_note: str; target_folder: str`
@@ -826,8 +828,10 @@ def note_id_constants(member_m: RelationalGraphWithCuts) -> frozenset:
         for cl in cross:
             stem = cl.target_note[:-3] if cl.target_note.endswith(".md") else cl.target_note
             consts = target_consts.get(cl.target_folder, frozenset())
-            # a target resolves if the owner member surfaced the note id in any form
-            if any(stem in c or cl.target_note in c for c in consts):
+            # a target resolves if the owner member surfaced the note id. EXACT set
+            # membership, NOT substring — note ids are globally-unique full relpaths
+            # and a substring test false-positives ("note-1.md" ⊂ "note-10.md") at scale.
+            if stem in consts or cl.target_note in consts:
                 resolved += 1
         cov = resolved / len(cross)
         return cov, len(cross) - resolved
@@ -1037,7 +1041,9 @@ Expected: FAIL — `AttributeError: 'Coordinator' object has no attribute 'route
         stem = target_note[:-3] if target_note.endswith(".md") else target_note
         consts = note_id_constants(member_ms.get(target_folder, None)) \
             if member_ms.get(target_folder) is not None else frozenset()
-        if any(stem in c or target_note in c for c in consts):
+        # EXACT membership, NOT substring (same fix as coverage() in Task 6 —
+        # a substring test false-positives on globally-unique note ids at scale).
+        if stem in consts or target_note in consts:
             return f'(asserts "{target_folder}" "{stem}")'
         return None
 ```
