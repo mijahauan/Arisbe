@@ -257,3 +257,7 @@ runs/run[0-9]*/
 # `> runs/west_e2_console.txt` — the exact footgun that left
 # runs/run13_console.txt untracked-and-unignored.
 runs/west_e2*
+# ...but the tracked aggregate run log is spared (case-insensitive filesystems
+# match `west_e2*` against the UPPERCASE name, exactly as the RUN_*_LOG.md logs
+# are spared above — the log is committed, the console/data outputs are not).
+!runs/WEST_E2_LOG.md
