@@ -82,3 +82,68 @@ class TestSlate:
         b = (("a", "b"), ("c",))
         labels = [lab for lab, _ in slate_moves(b, m, k=3)]
         assert labels == ["split:0", "merge:0+1"]
+
+
+import pytest
+
+from vault_generator import generate_vault
+from west_experiment import run_sweepb_point
+from west_measure import round_robin_buckets
+
+from west_meta_agon import MemoEvaluator, MetaEvidence, arm_cost
+
+
+@pytest.fixture(scope="module")
+def small_vault(tmp_path_factory):
+    dest = tmp_path_factory.mktemp("e3vault")
+    manifest = generate_vault(dest, seed=20260721, folders=4,
+                              notes_per_folder=3,
+                              cross_folder_link_prob=0.5, journal_len=3)
+    return dest, manifest
+
+
+class TestMemoEvaluator:
+    def test_matches_run_sweepb_point_on_round_robin(self, small_vault):
+        dest, manifest = small_vault
+        ev = MemoEvaluator(dest, manifest, rounds=12, ttl=120)
+        b = canonical(round_robin_buckets(manifest.folders, 2))
+        got = ev.evaluate(b)
+        ref = run_sweepb_point(dest, manifest, n=2, rounds=12, ttl=120,
+                               bucketing="round_robin")
+        assert (got.n, got.cost_naive, got.cost_incremental) == \
+            (ref.n, ref.fed_cost_naive, ref.fed_cost_incremental)
+        assert got.gap == ref.gap
+        assert got.m_fed == ref.m_fed
+        assert got.cut_links == ref.cut_links
+        assert got.cv == ref.member_reading.cv
+
+    def test_memo_hit_skips_rerun(self, small_vault):
+        dest, manifest = small_vault
+        ev = MemoEvaluator(dest, manifest, rounds=12, ttl=120)
+        b = canonical(round_robin_buckets(manifest.folders, 2))
+        first = ev.evaluate(b)
+        assert (ev.hits, ev.misses) == (0, 1)
+        second = ev.evaluate(b)
+        assert (ev.hits, ev.misses) == (1, 1)
+        assert second is first  # the cached object, not a re-run
+
+    def test_key_is_canonical_not_order(self, small_vault):
+        dest, manifest = small_vault
+        ev = MemoEvaluator(dest, manifest, rounds=12, ttl=120)
+        f = sorted(manifest.folders)
+        a = canonical([[f[0], f[1]], [f[2], f[3]]])
+        b = canonical([[f[3], f[2]], [f[1], f[0]]])
+        ev.evaluate(a)
+        ev.evaluate(b)
+        assert (ev.hits, ev.misses) == (1, 1)
+
+
+class TestArmCost:
+    def test_selects_currency(self):
+        e = MetaEvidence(n=2, cost_naive=10, cost_incremental=7, gap=0.0,
+                         coverage=1.0, m_fed=5, k2=1.0, k3=0.0, cut_links=1,
+                         cv=0.0, mean_member=5.0)
+        assert arm_cost(e, "naive") == 10
+        assert arm_cost(e, "incremental") == 7
+        with pytest.raises(ValueError):
+            arm_cost(e, "mono")
