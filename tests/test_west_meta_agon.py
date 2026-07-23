@@ -449,3 +449,108 @@ class TestBrokerQuality:
         assert q.rr_cost == 1000 + 100 + 10 + 100 + 50
         assert q.la_cost == 700 + 100 + 10 + 100 + 20
         assert q.material is True
+        # Verify cut counts are computed (not just left as defaults).
+        # For _manifest(["a","b","c","d"], [("a","c"),("b","d")]):
+        # rr n=2: {a,c},{b,d} → both links intra-bucket → rr_cut=0
+        # la n=2: {a,c},{b,d} → both links intra-bucket → la_cut=0
+        assert q.rr_cut == 0
+        assert q.la_cut == 0
+
+    def test_boundary_exact_equality(self):
+        # Kills the <= → < mutation: when la_cost == rr_cost * (1 - tol) exactly,
+        # material must be True.
+        class Res:
+            def __init__(self, mat, peel, routes):
+                class C:
+                    materialization_atoms = mat
+                    peel_proxy = peel
+                self.cost = C()
+                self.routes = routes
+                self.coverage = 1.0
+        class Tax:
+            cells_written = 0
+            naive_member_round = 0
+            incremental = 0
+        calls = {"i": 0}
+        def fake_broker(root, manifest, *, buckets, rounds, ttl):
+            calls["i"] += 1
+            if calls["i"] == 1:
+                # First call (round-robin): rr_cost = 1000
+                return Res(1000, 0, 0), Tax()
+            # Second call (link-aware): la_cost = 900 = 1000 * (1 - 0.10)
+            return Res(900, 0, 0), Tax()
+        m = _manifest(["a", "b", "c", "d"], [])
+        q = run_broker_quality(None, m, n=2, rounds=1, ttl=60, tol=0.10,
+                               broker_fn=fake_broker)
+        assert q.rr_cost == 1000
+        assert q.la_cost == 900
+        # 900 <= 1000 * 0.9 = 900 is True (exact boundary)
+        assert q.material is True
+
+    def test_near_miss_material_false(self):
+        # Kills two mutations:
+        # 1. la_cost * (1 - tol) <= rr_cost (wrong operand) → would give True
+        # 2. la_cost > rr_cost * (1 - tol) (inverted comparison) → would give False
+        # This test ensures material is False when la_cost > rr_cost * (1 - tol).
+        class Res:
+            def __init__(self, mat, peel, routes):
+                class C:
+                    materialization_atoms = mat
+                    peel_proxy = peel
+                self.cost = C()
+                self.routes = routes
+                self.coverage = 1.0
+        class Tax:
+            cells_written = 0
+            naive_member_round = 0
+            incremental = 0
+        calls = {"i": 0}
+        def fake_broker(root, manifest, *, buckets, rounds, ttl):
+            calls["i"] += 1
+            if calls["i"] == 1:
+                # First call (round-robin): rr_cost = 1000
+                return Res(1000, 0, 0), Tax()
+            # Second call (link-aware): la_cost = 950
+            # 950 > 1000 * (1 - 0.10) = 900, so material should be False
+            return Res(950, 0, 0), Tax()
+        m = _manifest(["a", "b", "c", "d"], [])
+        q = run_broker_quality(None, m, n=2, rounds=1, ttl=60, tol=0.10,
+                               broker_fn=fake_broker)
+        assert q.rr_cost == 1000
+        assert q.la_cost == 950
+        # 950 > 900, so material is False
+        # Mutant la_cost * (1 - tol) <= rr_cost would give 855 <= 1000 = True
+        assert q.material is False
+
+    def test_cut_counts_computed(self):
+        # Verify cut_link_count is actually called and results stored in rr_cut/la_cut.
+        # Use a manifest with a hub to show rr vs la differ.
+        # folders: [a, b, c, d]; links: a→b, a→c, a→d (star topology, a is hub)
+        class Res:
+            def __init__(self, mat, peel, routes):
+                class C:
+                    materialization_atoms = mat
+                    peel_proxy = peel
+                self.cost = C()
+                self.routes = routes
+                self.coverage = 1.0
+        class Tax:
+            cells_written = 0
+            naive_member_round = 0
+            incremental = 0
+        def fake_broker(root, manifest, *, buckets, rounds, ttl):
+            # Both return the same cost to isolate cut-count testing
+            return Res(500, 0, 0), Tax()
+        m = _manifest(["a", "b", "c", "d"],
+                      [("a", "b"), ("a", "c"), ("a", "d")])
+        q = run_broker_quality(None, m, n=2, rounds=1, ttl=60, tol=0.10,
+                               broker_fn=fake_broker)
+        # Verify rr_cut and la_cut are integers (cut_link_count called)
+        assert isinstance(q.rr_cut, int)
+        assert isinstance(q.la_cut, int)
+        # Both should be >= 0
+        assert q.rr_cut >= 0
+        assert q.la_cut >= 0
+        # For a star topology with 3 links to different buckets,
+        # link-aware should do better (fewer cross-links) than round-robin
+        assert q.la_cut <= q.rr_cut
