@@ -1011,3 +1011,21 @@ def test_run_p_sweep_no_shoulder_leaves_broker_none(tmp_path):
                       ttl=120, seed=20260721, ps=[0.15, 0.45], theta=2.0)
     assert res.shoulder_p is None
     assert res.broker_routes is None and res.broker_coord_cost is None
+
+
+def test_run_quality_arm_reports_both_bucketings(tmp_path):
+    from west_experiment import run_quality_arm
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4, p=0.6)
+    r = run_quality_arm(tmp_path, manifest, n=2, rounds=24, ttl=120, tol=0.10)
+    assert r.n == 2
+    assert r.link_aware_cut <= r.round_robin_cut       # link-aware cuts no more
+    assert r.round_robin_cost > 0 and r.link_aware_cost > 0
+    assert isinstance(r.material, bool)
+
+
+def test_run_quality_arm_material_flag_follows_the_tol_threshold(tmp_path):
+    from west_experiment import run_quality_arm
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4, p=0.6)
+    r = run_quality_arm(tmp_path, manifest, n=2, rounds=24, ttl=120, tol=0.10)
+    expected = r.link_aware_cost <= r.round_robin_cost * (1 - 0.10)
+    assert r.material == expected

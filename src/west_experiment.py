@@ -881,6 +881,19 @@ def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
 
 
 @dataclass
+class QualityArmResult:
+    """The partition-quality arm (spec §4): round-robin vs link-aware bucketing
+    at fixed n on the same corpus. ``material`` = link-aware cost is at least tol
+    below round-robin (partition quality has teeth)."""
+    n: int
+    round_robin_cost: int
+    link_aware_cost: int
+    round_robin_cut: int
+    link_aware_cut: int
+    material: bool
+
+
+@dataclass
 class SweepBPoint:
     """One Sweep-B granularity point (spec §2): the bucketed FED at ``n``
     buckets on the fixed corpus, both arm totals."""
@@ -893,6 +906,26 @@ class SweepBPoint:
     k3_fed: float
     gap: float
     cut_links: int
+
+
+def run_quality_arm(root: Path, manifest, *, n: int, rounds: int, ttl: int,
+                    tol: float, arm: str = "naive") -> QualityArmResult:
+    """Compare round-robin vs link-aware bucketing at fixed ``n`` on the same
+    corpus (spec §4). ``arm`` selects which cost total to compare ('naive' —
+    the default, where coordination and thus partition quality bite — or
+    'incremental')."""
+    attr = "fed_cost_naive" if arm == "naive" else "fed_cost_incremental"
+    rr = run_sweepb_point(root, manifest, n=n, rounds=rounds, ttl=ttl,
+                          bucketing="round_robin")
+    la = run_sweepb_point(root, manifest, n=n, rounds=rounds, ttl=ttl,
+                          bucketing="link_aware")
+    rr_cost = getattr(rr, attr)
+    la_cost = getattr(la, attr)
+    return QualityArmResult(
+        n=n, round_robin_cost=rr_cost, link_aware_cost=la_cost,
+        round_robin_cut=rr.cut_links, link_aware_cut=la.cut_links,
+        material=(la_cost <= rr_cost * (1 - tol)),
+    )
 
 
 def run_sweepb_point(root: Path, manifest, *, n: int, rounds: int, ttl: int,
