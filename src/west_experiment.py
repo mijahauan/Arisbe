@@ -18,7 +18,8 @@ from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
                           read_quality, peel_proxy, TracingMaterializer,
                           read_member_costs, MemberCostReading,
-                          fit_power_law, PowerLawFit, MIN_FIT_POINTS)
+                          fit_power_law, PowerLawFit, MIN_FIT_POINTS,
+                          round_robin_buckets, link_aware_buckets, cut_link_count)
 from west_coordinator import Coordinator, member_relation_names
 
 
@@ -876,3 +877,45 @@ def assemble_e2_report(configs, *, theta: float, tol: float) -> E2Report:
                     theta=theta, tol=tol, broker_forced=broker_forced,
                     tax_clamped_count=tax_clamped_count,
                     priors={"P1": p1, "P2": p2, "P3": p3, "P4": "deferred"})
+
+
+@dataclass
+class SweepBPoint:
+    """One Sweep-B granularity point (spec §2): the bucketed FED at ``n``
+    buckets on the fixed corpus, both arm totals."""
+    n: int
+    fed_cost_naive: int
+    fed_cost_incremental: int
+    member_reading: MemberCostReading
+    m_fed: int
+    k2_fed: Optional[float]
+    k3_fed: float
+    gap: float
+    cut_links: int
+
+
+def run_sweepb_point(root: Path, manifest, *, n: int, rounds: int, ttl: int,
+                     bucketing: str = "round_robin") -> SweepBPoint:
+    """Run one fixed-corpus Sweep-B point at granularity ``n`` (spec §2).
+    ``bucketing`` selects the folder-bucketing: 'round_robin' (baseline) or
+    'link_aware' (quality-seeking). Arm totals are assembled exactly as
+    run_e2_config."""
+    if bucketing == "round_robin":
+        buckets = round_robin_buckets(manifest.folders, n)
+    elif bucketing == "link_aware":
+        buckets = link_aware_buckets(manifest, n)
+    else:
+        raise ValueError("bucketing must be 'round_robin' or 'link_aware'")
+    fed, tax = run_fed_bucketed(root, manifest, buckets=buckets, rounds=rounds, ttl=ttl)
+    base = fed.cost.materialization_atoms + fed.cost.peel_proxy
+    return SweepBPoint(
+        n=n,
+        fed_cost_naive=base + tax.cells_written + tax.naive_member_round,
+        fed_cost_incremental=base + tax.cells_written + tax.incremental,
+        member_reading=read_member_costs(fed.member_costs),
+        m_fed=fed.quality.final_m_size,
+        k2_fed=fed.quality.k2_stick_rate,
+        k3_fed=fed.quality.k3_ratio,
+        gap=1.0 - (fed.coverage if fed.coverage is not None else 1.0),
+        cut_links=cut_link_count(buckets, manifest),
+    )

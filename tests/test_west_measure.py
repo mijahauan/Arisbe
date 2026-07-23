@@ -262,3 +262,27 @@ def test_link_aware_is_deterministic_and_partitions():
     b = link_aware_buckets(m, 4)
     assert a == b
     assert set().union(*a) == set(folders) and sum(len(x) for x in a) == 12
+
+
+def test_read_ucurve_finds_an_interior_minimum():
+    from west_measure import read_ucurve
+    class P:
+        def __init__(s, n, cn, ci): s.n, s.fed_cost_naive, s.fed_cost_incremental = n, cn, ci
+    # naive: U-shaped with min at n=4; incremental: monotone down.
+    pts = [P(1, 1000, 900), P(2, 600, 500), P(4, 400, 300),
+           P(6, 700, 250), P(12, 1500, 200)]
+    naive = read_ucurve(pts, "naive")
+    assert naive.argmin_n == 4 and naive.interior is True
+    assert naive.monotone_nonincreasing is False
+    incr = read_ucurve(pts, "incremental")
+    assert incr.argmin_n == 12 and incr.interior is False
+    assert incr.monotone_nonincreasing is True
+
+
+def test_read_ucurve_endpoint_minimum_is_not_interior():
+    from west_measure import read_ucurve
+    class P:
+        def __init__(s, n, c): s.n, s.fed_cost_naive, s.fed_cost_incremental = n, c, c
+    pts = [P(1, 100), P(2, 200), P(4, 300)]            # min at the left endpoint
+    r = read_ucurve(pts, "naive")
+    assert r.argmin_n == 1 and r.interior is False

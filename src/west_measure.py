@@ -296,3 +296,37 @@ def link_aware_buckets(manifest, n: int) -> List[frozenset]:
         del groups[j]
 
     return [frozenset(g) for g in sorted(groups, key=group_key)]
+
+
+@dataclass
+class UCurveReading:
+    """The Sweep-B U-curve reduced to its verdict inputs (spec §5). ``interior``
+    means the cost-minimising granularity is a strict interior point
+    (1 < argmin_n < max n) — PB1's condition. ``monotone_nonincreasing`` is
+    PB2's condition (Arm I: splitting is ~free, so cost never rises with n)."""
+    argmin_n: int
+    argmin_cost: int
+    interior: bool
+    monotone_nonincreasing: bool
+    costs_by_n: dict
+
+
+def read_ucurve(points, which: str) -> UCurveReading:
+    """Reduce Sweep-B points to a U-curve reading for arm ``which`` (\"naive\" or
+    \"incremental\"). ``points`` each expose ``.n`` and ``.fed_cost_naive`` /
+    ``.fed_cost_incremental``."""
+    if which not in ("naive", "incremental"):
+        raise ValueError("which must be 'naive' or 'incremental'")
+    attr = "fed_cost_naive" if which == "naive" else "fed_cost_incremental"
+    ordered = sorted(points, key=lambda p: p.n)
+    costs = {p.n: getattr(p, attr) for p in ordered}
+    ns = [p.n for p in ordered]
+    argmin_n = min(ns, key=lambda n: (costs[n], n))
+    argmin_cost = costs[argmin_n]
+    interior = len(ns) >= 3 and ns[0] < argmin_n < ns[-1]
+    seq = [costs[n] for n in ns]
+    monotone_nonincreasing = all(b <= a for a, b in zip(seq, seq[1:]))
+    return UCurveReading(argmin_n=argmin_n, argmin_cost=argmin_cost,
+                         interior=interior,
+                         monotone_nonincreasing=monotone_nonincreasing,
+                         costs_by_n=costs)

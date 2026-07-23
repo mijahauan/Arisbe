@@ -960,3 +960,24 @@ def test_run_fed_bucketed_is_deterministic(tmp_path):
     a, ta = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
     b, tb = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
     assert a.cost.total() == b.cost.total() and ta == tb
+
+
+def test_run_sweepb_point_reports_both_arms_and_cut(tmp_path):
+    from west_experiment import run_sweepb_point
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4)
+    pt = run_sweepb_point(tmp_path, manifest, n=3, rounds=24, ttl=120)
+    assert pt.n == 3
+    assert pt.fed_cost_naive >= pt.fed_cost_incremental
+    assert pt.member_reading.journal_member_cost is not None
+    assert pt.cut_links >= 0
+    assert 0.0 <= pt.gap <= 1.0
+
+
+def test_run_sweepb_point_link_aware_cuts_no_more_than_round_robin(tmp_path):
+    from west_experiment import run_sweepb_point
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4, p=0.6)
+    rr = run_sweepb_point(tmp_path, manifest, n=2, rounds=24, ttl=120,
+                          bucketing="round_robin")
+    la = run_sweepb_point(tmp_path, manifest, n=2, rounds=24, ttl=120,
+                          bucketing="link_aware")
+    assert la.cut_links <= rr.cut_links
