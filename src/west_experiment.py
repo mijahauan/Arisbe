@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 from vault_world import VaultWorld, VaultFeed, JOURNAL_SPINE_RELATIONS
+from vault_generator import generate_vault
 from attention_economy import AttentionEconomy, Horizon
 from agon_evolution import run
 from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
@@ -919,3 +920,54 @@ def run_sweepb_point(root: Path, manifest, *, n: int, rounds: int, ttl: int,
         gap=1.0 - (fed.coverage if fed.coverage is not None else 1.0),
         cut_links=cut_link_count(buckets, manifest),
     )
+
+
+@dataclass
+class PSweepPoint:
+    """One p-sweep cell (spec §3): the passive gap at a cross-link density."""
+    p: float
+    gap: float
+    coverage: float
+    coordinator_cost: int
+
+
+@dataclass
+class PSweepResult:
+    """The p-sweep + the first broker exercise (spec §3). ``shoulder_p`` is the
+    smallest p with gap > theta (None if none breaches); the broker figures are
+    populated only at that p."""
+    points: List[PSweepPoint]
+    shoulder_p: Optional[float]
+    broker_routes: Optional[int]
+    broker_coord_cost: Optional[int]
+
+
+def run_p_sweep(dest_root: Path, *, folders: int, notes: int, journal: int,
+                rounds: int, ttl: int, seed: int, ps: List[float],
+                theta: float) -> PSweepResult:
+    """Sweep cross-link density p at the natural one-folder-per-member partition,
+    reading the passive gap at each p; at the first p with gap > theta, also run
+    the active broker and record its tax (spec §3). Each p uses its own vault
+    subdir so runs do not collide."""
+    points: List[PSweepPoint] = []
+    shoulder_p = None
+    broker_routes = None
+    broker_coord_cost = None
+    for i, p in enumerate(ps):
+        dest = dest_root / f"p{i}"
+        manifest = generate_vault(dest, seed=seed, folders=folders,
+                                  notes_per_folder=notes, cross_folder_link_prob=p,
+                                  journal_len=journal)
+        fed, _tax = run_fed_traced(dest, manifest, rounds=rounds, ttl=ttl)
+        cov = fed.coverage if fed.coverage is not None else 1.0
+        gap = 1.0 - cov
+        points.append(PSweepPoint(p=p, gap=gap, coverage=cov,
+                                  coordinator_cost=fed.cost.coordinator_cost))
+        if shoulder_p is None and gap > theta:
+            shoulder_p = p
+            broker = run_fed_broker(dest, manifest, rounds=rounds, ttl=ttl)
+            broker_routes = broker.routes
+            broker_coord_cost = broker.cost.coordinator_cost
+    return PSweepResult(points=points, shoulder_p=shoulder_p,
+                        broker_routes=broker_routes,
+                        broker_coord_cost=broker_coord_cost)

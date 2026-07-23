@@ -981,3 +981,33 @@ def test_run_sweepb_point_link_aware_cuts_no_more_than_round_robin(tmp_path):
     la = run_sweepb_point(tmp_path, manifest, n=2, rounds=24, ttl=120,
                           bucketing="link_aware")
     assert la.cut_links <= rr.cut_links
+
+
+def test_run_p_sweep_produces_one_point_per_p_ordered(tmp_path):
+    from west_experiment import run_p_sweep
+    res = run_p_sweep(tmp_path, folders=4, notes=4, journal=4, rounds=16,
+                      ttl=120, seed=20260721, ps=[0.15, 0.45], theta=0.20)
+    assert [round(pt.p, 2) for pt in res.points] == [0.15, 0.45]
+    assert all(0.0 <= pt.gap <= 1.0 for pt in res.points)
+    assert all(pt.coverage == 1.0 - pt.gap for pt in res.points)
+
+
+def test_run_p_sweep_records_shoulder_and_fires_broker_once(tmp_path):
+    """A synthetic threshold: force theta so low that even p=0.15's gap can breach
+    it, and confirm the broker fires (routes recorded) at the first breaching p."""
+    from west_experiment import run_p_sweep
+    res = run_p_sweep(tmp_path, folders=4, notes=4, journal=4, rounds=8,
+                      ttl=120, seed=20260721, ps=[0.15, 0.45, 0.75], theta=-1.0)
+    # theta=-1 => every gap (>= 0) breaches, so the shoulder is the first p.
+    assert res.shoulder_p == 0.15
+    assert res.broker_routes is not None and res.broker_routes >= 0
+    assert res.broker_coord_cost is not None
+
+
+def test_run_p_sweep_no_shoulder_leaves_broker_none(tmp_path):
+    """theta=2.0 can never be breached (gap <= 1), so no broker run."""
+    from west_experiment import run_p_sweep
+    res = run_p_sweep(tmp_path, folders=4, notes=4, journal=4, rounds=8,
+                      ttl=120, seed=20260721, ps=[0.15, 0.45], theta=2.0)
+    assert res.shoulder_p is None
+    assert res.broker_routes is None and res.broker_coord_cost is None
