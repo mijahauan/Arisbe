@@ -263,3 +263,7 @@ runs/west_e2*
 !runs/WEST_E2_LOG.md
 # ...and the E2b run log too (same case-insensitive-glob reasoning).
 !runs/WEST_E2B_LOG.md
+
+# E3 (same pattern: outputs ignored, the tracked run log spared).
+runs/west_e3*
+!runs/WEST_E3_LOG.md
