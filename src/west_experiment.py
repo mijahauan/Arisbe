@@ -468,6 +468,79 @@ def run_fed_traced(root: Path, manifest, *, rounds: int, ttl: int):
     return arrangement, replay_coordinator_tax(trajectories)
 
 
+def run_fed_bucketed(root: Path, manifest, *, buckets: List[frozenset],
+                     rounds: int, ttl: int):
+    """Run the passive FED arrangement with members = folder-BUCKETS (spec §1,
+    §2), plus the journal-member (A2), capturing each bucket's per-round
+    relation trajectory and replaying the coordinator over it.
+
+    Generalises :func:`run_fed_traced` (one folder per member) to one bucket
+    (a folder-set) per member. Returns ``(ArrangementResult, CoordinatorTax)``.
+    ``buckets`` must partition ``manifest.folders``. Passive only — the broker
+    is not replay-exact (spec §3.1, §8)."""
+    member_specs = [(frozenset(b), False, f"e2b_bucket_{i}")
+                    for i, b in enumerate(buckets)]
+    member_specs.append((frozenset(), True, "e2b_journal"))
+    shares = _apportion(rounds, len(member_specs))
+
+    coord = Coordinator()
+    member_ms: Dict[str, object] = {}
+    member_costs: List[int] = []
+    trajectories: Dict[str, List[frozenset]] = {}
+    mat_atoms = 0
+    peel = 0
+    k2s: List[float] = []
+    k3s: List[float] = []
+    total_m = 0
+
+    for (folder_set, incl_journal, uid), share in zip(member_specs, shares):
+        res, tm = _run_member_traced(root, folders=folder_set,
+                                     include_journal=incl_journal,
+                                     rounds=share, ttl=ttl, uid=uid)
+        member_costs.append(tm.total_atoms() + peel_proxy(res))
+        mat_atoms += tm.total_atoms()
+        peel += peel_proxy(res)
+        q = read_quality(res)
+        if q.k2_stick_rate is not None:
+            k2s.append(q.k2_stick_rate)
+        k3s.append(q.k3_ratio)
+        total_m += q.final_m_size
+        if folder_set:                       # a content bucket (journal's is empty)
+            bucket_m = res.uod.current_egi
+            # Coverage keys on the TARGET folder, and a bucket covers several
+            # folders — so map EVERY folder in the bucket to this member's M.
+            for f in folder_set:
+                member_ms[f] = bucket_m
+            # Ingest once per bucket under a distinct synthetic key (the digest
+            # key labels cells_written/consistency_scan; it does not feed
+            # coverage, which uses the real folder names in member_ms above).
+            coord.ingest(uid, bucket_m)
+            # Same one-round trajectory-shift correction as run_fed_traced:
+            # per_round_relations[0] is the pre-round-1 seed and the final
+            # round's own growth is never captured, so drop the leading seed
+            # and append the true final M. Do not omit — the tax depends on it.
+            raw = list(tm.per_round_relations)
+            trajectories[uid] = (
+                raw[1:] + [member_relation_names(bucket_m)] if raw else []
+            )
+
+    conflicts = coord.consistency_scan()
+    cov, _unresolved = coord.coverage(manifest, member_ms)
+    snapshot_cost = coord.cells_written + coord.scan_comparisons
+
+    cost = CostBreakdown(materialization_atoms=mat_atoms, peel_proxy=peel,
+                         coordinator_cost=snapshot_cost)
+    quality = QualityReading(
+        k2_stick_rate=(sum(k2s) / len(k2s)) if k2s else None,
+        k3_ratio=(sum(k3s) / len(k3s)) if k3s else 0.0,
+        final_m_size=total_m,
+    )
+    arrangement = ArrangementResult(name="FED-bucketed", cost=cost, quality=quality,
+                                    member_costs=member_costs, coverage=cov,
+                                    conflicts=conflicts)
+    return arrangement, replay_coordinator_tax(trajectories)
+
+
 @dataclass
 class E2ConfigResult:
     """One point of the E2 grid: MONO and FED at a given (folders, rounds, ttl),

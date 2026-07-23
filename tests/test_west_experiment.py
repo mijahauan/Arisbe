@@ -905,3 +905,58 @@ def test_run_ttl_rider_produces_one_reading_per_ttl(tmp_path):
     assert [r.ttl for r in readings] == [120, 0]
     assert all(r.mono_m >= 0 and r.fed_m >= 0 for r in readings)
     assert all(r.ratio >= 0.0 for r in readings)
+
+
+def _bucket_vault(tmp_path, folders=6, notes=4, p=0.15, journal=4):
+    from vault_generator import generate_vault
+    return generate_vault(tmp_path, seed=20260721, folders=folders,
+                          notes_per_folder=notes, cross_folder_link_prob=p,
+                          journal_len=journal)
+
+
+def test_run_fed_bucketed_one_member_per_bucket_plus_journal(tmp_path):
+    from west_experiment import run_fed_bucketed
+    from west_measure import round_robin_buckets
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4)
+    buckets = round_robin_buckets(manifest.folders, 3)     # 3 buckets of 2 folders
+    fed, tax = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
+    assert len(fed.member_costs) == 4                       # 3 buckets + journal
+    assert fed.coverage is not None and 0.0 <= fed.coverage <= 1.0
+    assert tax.incremental <= tax.naive_global_round <= tax.naive_member_round
+
+
+def test_run_fed_bucketed_n1_covers_every_cross_link(tmp_path):
+    """A single bucket holds every folder, so coverage must be 1.0 (gap 0) —
+    every cross-link's target folder is in the one member's folder set."""
+    from west_experiment import run_fed_bucketed
+    from west_measure import round_robin_buckets
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4, p=0.6)  # dense links
+    buckets = round_robin_buckets(manifest.folders, 1)
+    fed, _tax = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
+    assert len(fed.member_costs) == 2                       # 1 bucket + journal
+    assert fed.coverage == 1.0
+
+
+def test_run_fed_bucketed_matches_run_fed_traced_at_singletons(tmp_path):
+    """One-folder-per-bucket must reproduce run_fed_traced's cost exactly —
+    the bucketed runner is a faithful generalisation, not a new measurement."""
+    from west_experiment import run_fed_bucketed, run_fed_traced
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4)
+    singletons = [frozenset({f}) for f in manifest.folders]
+    fedb, taxb = run_fed_bucketed(tmp_path, manifest, buckets=singletons,
+                                  rounds=24, ttl=120)
+    fedt, taxt = run_fed_traced(tmp_path, manifest, rounds=24, ttl=120)
+    assert fedb.cost.materialization_atoms == fedt.cost.materialization_atoms
+    assert fedb.cost.peel_proxy == fedt.cost.peel_proxy
+    assert taxb == taxt
+    assert fedb.coverage == fedt.coverage
+
+
+def test_run_fed_bucketed_is_deterministic(tmp_path):
+    from west_experiment import run_fed_bucketed
+    from west_measure import round_robin_buckets
+    manifest = _bucket_vault(tmp_path, folders=6, notes=4)
+    buckets = round_robin_buckets(manifest.folders, 2)
+    a, ta = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
+    b, tb = run_fed_bucketed(tmp_path, manifest, buckets=buckets, rounds=24, ttl=120)
+    assert a.cost.total() == b.cost.total() and ta == tb
