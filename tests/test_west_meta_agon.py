@@ -254,6 +254,50 @@ class TestWalk:
         assert res_n.moves == ["split:0"]
         assert res_i.moves == []
 
+    def test_equal_cost_split_is_not_improving(self):
+        # A split at exactly the incumbent's cost must NOT count as
+        # improving (strict `<`, never `<=`) -> no admissible move -> halt.
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 100),
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.halt == "converged"
+        assert res.moves == []
+
+    def test_tie_break_by_canonical_key(self):
+        # Two equal-cost improving splits; the canonical-key-smaller one
+        # wins the tie, not tabling order (split:0 is tabled first but
+        # split:1's key "a,b;c;d" sorts before split:0's "a;b;c,d").
+        m = _manifest(["a", "b", "c", "d"], [])
+        start = canonical([["a", "b"], ["c", "d"]])
+        fake = FakeEvaluator({
+            "a,b;c,d": _ev(2, 100),
+            "a;b;c,d": _ev(3, 90),   # split:0
+            "a,b;c;d": _ev(3, 90),   # split:1 -- key < split:0's key
+        })
+        assert "a,b;c;d" < "a;b;c,d"
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.moves[0] == "split:1"
+        assert res.rounds[0].chosen_key == "a,b;c;d"
+
+    def test_gap_exactly_theta_is_not_refused(self):
+        # gap == theta must be admissible (strict `>`, never `>=`).
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 90, gap=0.20),
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.moves == ["split:0"]
+        assert res.rounds[0].slate[0].refused is False
+
     def test_max_rounds_reports_non_converged(self):
         # An ever-improving ladder (each split cheaper) with max_rounds=2.
         m = _manifest(["a", "b", "c", "d"], [])
@@ -300,6 +344,43 @@ class TestLedger:
         lines = led.read_text().splitlines()
         row = json.loads(lines[1])          # line 0 is the header
         row["disposition"] = "halt:converged"
+        lines[1] = json.dumps(row)
+        led.write_text("\n".join(lines) + "\n")
+        rep = replay_walk(led)
+        assert rep["ok"] is False
+        assert rep["mismatches"]
+
+    def test_replay_recomputes_flags_not_recorded(self, tmp_path):
+        # Doctor ONE slate entry's recorded refused/improving flags to
+        # falsely mark it admissible, while leaving disposition/chosen (and
+        # the OTHER, genuinely-winning entry) untouched. That doctored entry
+        # is priced far above the real winner, so even falsely "admitting"
+        # it can never change which move gets chosen -- the only way this
+        # doctoring can be detected at all is by RECOMPUTING each entry's
+        # flags from its recorded evidence and comparing, not by trusting
+        # the recorded flags (which a "just recompute disposition" replay
+        # would silently pass, since the winner/disposition never move).
+        m = _manifest(["a", "b", "c", "d"], [])
+        start = canonical([["a", "b"], ["c", "d"]])
+        fake = FakeEvaluator({
+            "a,b;c,d": _ev(2, 100),
+            "a;b;c,d": _ev(3, 200, gap=0.5),  # split:0 -- truly refused,
+                                               # and priced far above the
+                                               # real winner regardless
+            "a,b;c;d": _ev(3, 90),            # split:1 -- the real winner
+        })
+        led = tmp_path / "w.jsonl"
+        run_meta_walk(start, name="T", arm="naive", manifest=m,
+                      evaluate=fake.evaluate, theta=0.20, ledger_path=led)
+        lines = led.read_text().splitlines()
+        row = json.loads(lines[1])          # line 0 is the header
+        assert row["disposition"] == "accept:split"
+        assert row["chosen"] == "a,b;c;d"
+        split0 = next(s for s in row["slate"] if s["move"] == "split:0")
+        assert split0["refused"] is True
+        assert split0["improving"] is False
+        split0["refused"] = False
+        split0["improving"] = True
         lines[1] = json.dumps(row)
         led.write_text("\n".join(lines) + "\n")
         rep = replay_walk(led)
