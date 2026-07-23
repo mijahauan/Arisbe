@@ -1,6 +1,34 @@
 # Current Plan
 
-**Last Updated**: 2026-07-23 — **agenda #6 continued — West-in-kytē E2b (the calibration)
+**Last Updated**: 2026-07-23 (later) — **agenda #6 continued — West-in-kytē E2b RUN (by the
+assistant, at the author's 2026-07-23 request). RESULT: PB1/PB2/PB5 held, PB3 refuted (a
+reported finding), PB4 undetermined (the conditional fired as pre-registered)**
+(`runs/WEST_E2B_LOG.md`; run 2026-07-23 07:03–07:39 CDT, 35m51s, deterministic, canary PASS).
+
+- **PB1 held — E3's target exists:** the naive-arm U-curve has an interior minimum at **N\*=3**
+  (162,907 → **137,129** → 573,487; trough 16% under the N=1 content-monolith, N=12 at 4.2× the
+  trough). **PB2 held (control):** the incremental arm is monotone non-increasing to 37,917 at
+  N=12 — the optimum is a *coordination* effect; the same N=12 federation costs 37,917 (Arm I)
+  vs 573,487 (Arm N), a **15× scan-discipline spread** (E2's 25× at the bucketing level).
+- **PB3 refuted:** gap = 0.0, coverage = 1.0 at *every* p ≤ 0.75 — passive coherence never
+  breaks via link density at this scale; the broker's first exercise did not happen. **PB4
+  undetermined** (force absent; the p=0.75 fallback observed a null: link-aware 0.10% *dearer*,
+  cut −4% — E3's quality premise is untested, not false). **PB5 held** (within-N CV ≤ 0.0128).
+- **The unplanned finding:** the coherence force arrived **by decay, not link density** — the
+  N=1 point reads gap = 0.5795 (51/88 cross-link targets decayed out of the monolith's M, which
+  saturates at |M|=739, E2's MONO plateau). So the U-curve's walls are now *named forces*:
+  decay-incoherence punishes under-partitioning, the naive scan tax punishes over-partitioning.
+- Free consistency check: the N=12 point reproduces E2's F=12 FED row **exactly**
+  (37,917 / |M| 1,958 / mean member 2,954.2) across two independently-built drivers.
+
+▶ **NEXT: E3** (endogenous partition — split/merge as licensed moves in a meta-Agon over
+folder-bucketings) gets its own brainstorm→spec cycle **with these curves in hand**: E3's
+disposition evidence must name its coordinator arm (interior optimum exists only under Arm N);
+the two walls are measurable in currencies the panel already reads (gap, cost); the broker +
+partition-quality premises remain unexercised and need a coarser regime (a candidate E3 rider
+or a small E2b′ cell — the author's call). The E2b build record and prior sittings follow.
+
+**Last Updated (prior)**: 2026-07-23 — **agenda #6 continued — West-in-kytē E2b (the calibration)
 PRE-REGISTERED + BUILT + MERGED to `main` (`6241e24`, ff 9 commits); the ~1.5–2h run is the
 author's and has NOT been launched.** E2b characterizes E3's fitness landscape *before* E3 is
 designed (mirrors E1→E2). Positioned by the post-E2 analysis: E2 measured the Sweep-A *exponents* but
