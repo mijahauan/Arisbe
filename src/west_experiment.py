@@ -1046,3 +1046,76 @@ def assemble_e2b_report(sweepb_points, p_result, quality, *, tol: float) -> E2bR
                      shoulder_p=p_result.shoulder_p, quality=quality,
                      priors={"PB1": pb1, "PB2": pb2, "PB3": pb3,
                              "PB4": pb4, "PB5": pb5})
+
+
+def run_fed_bucketed_broker(root: Path, manifest, *, buckets: List[frozenset],
+                            rounds: int, ttl: int):
+    """E3 rider (E3 spec §5b): :func:`run_fed_bucketed` plus the active broker
+    — after the members run, one :meth:`Coordinator.route` per CROSS-BUCKET
+    link (a link inside one bucket resolves within its own member; only
+    cross-bucket references need coordination). Route attempts are added to
+    ``coordinator_cost`` and ``ArrangementResult.routes`` records the count.
+    The broker tax remains an end-of-run snapshot (A3-style lower bound,
+    disclosed — E2b spec §8). Additive: E1/E2/E2b entry points untouched."""
+    member_specs = [(frozenset(b), False, f"e3_bucket_{i:02d}")
+                    for i, b in enumerate(buckets)]
+    member_specs.append((frozenset(), True, "e3_journal"))
+    shares = _apportion(rounds, len(member_specs))
+
+    coord = Coordinator()
+    member_ms: Dict[str, object] = {}
+    member_costs: List[int] = []
+    trajectories: Dict[str, List[frozenset]] = {}
+    mat_atoms = 0
+    peel = 0
+    k2s: List[float] = []
+    k3s: List[float] = []
+    total_m = 0
+
+    for (folder_set, incl_journal, uid), share in zip(member_specs, shares):
+        res, tm = _run_member_traced(root, folders=folder_set,
+                                     include_journal=incl_journal,
+                                     rounds=share, ttl=ttl, uid=uid)
+        member_costs.append(tm.total_atoms() + peel_proxy(res))
+        mat_atoms += tm.total_atoms()
+        peel += peel_proxy(res)
+        q = read_quality(res)
+        if q.k2_stick_rate is not None:
+            k2s.append(q.k2_stick_rate)
+        k3s.append(q.k3_ratio)
+        total_m += q.final_m_size
+        if folder_set:
+            bucket_m = res.uod.current_egi
+            for f in folder_set:
+                member_ms[f] = bucket_m
+            coord.ingest(uid, bucket_m)
+            raw = list(tm.per_round_relations)
+            trajectories[uid] = (
+                raw[1:] + [member_relation_names(bucket_m)] if raw else []
+            )
+
+    conflicts = coord.consistency_scan()
+    cov, _unresolved = coord.coverage(manifest, member_ms)
+
+    where = {}
+    for i, b in enumerate(buckets):
+        for f in b:
+            where[f] = i
+    for cl in manifest.cross_links:
+        if where.get(cl.source_folder) != where.get(cl.target_folder):
+            coord.route(cl.source_folder, cl.target_note, cl.target_folder,
+                        member_ms)
+    coordinator_cost = coord.cells_written + coord.scan_comparisons + coord.routes
+
+    cost = CostBreakdown(materialization_atoms=mat_atoms, peel_proxy=peel,
+                         coordinator_cost=coordinator_cost)
+    quality = QualityReading(
+        k2_stick_rate=(sum(k2s) / len(k2s)) if k2s else None,
+        k3_ratio=(sum(k3s) / len(k3s)) if k3s else 0.0,
+        final_m_size=total_m,
+    )
+    arrangement = ArrangementResult(name="FED-bucketed-broker", cost=cost,
+                                    quality=quality, member_costs=member_costs,
+                                    coverage=cov, conflicts=conflicts,
+                                    routes=coord.routes)
+    return arrangement, replay_coordinator_tax(trajectories)
