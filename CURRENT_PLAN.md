@@ -26,10 +26,14 @@ The final whole-branch review returned **Ready-to-merge**; the verdict layer's T
 **3 of 8 surviving mutations** (PB2's two conjuncts + PB5's CV conjunct, the E2 pattern), all fixed
 with bite-verified killer fixtures.
 
-▶ **The run + E3 are the author's.** When launched (~1.5–2h, only N=1 expensive): read the U-curve
-argmin/interior, the shoulder p, and the quality arm's link-aware<round-robin headline. Then **E3**
-(endogenous partition / meta-Agon over folder-bucketings) gets its own brainstorm→spec cycle, shaped
-by these curves. The E2 run record and prior sittings follow.
+▶ **NEXT SESSION: the assistant runs the E2b calibration** (~1.5–2h, only N=1 expensive) — the author
+asked (2026-07-23) that *the assistant* launch it, to avoid the process-ownership confusion when the
+E2 full-suite gate collided with the author's RUN 13. Run `tools/run_west_e2b.py` (numbers-only →
+`runs/west_e2b_run1/`), stream the parts, then write `runs/WEST_E2B_LOG.md` against PB1–PB5: read the
+U-curve argmin/interior (PB1), the incremental-curve monotonicity (PB2 control), the shoulder p +
+whether the broker fires (PB3), and the quality arm's link-aware<round-robin headline (PB4). Then
+**E3** (endogenous partition / meta-Agon over folder-bucketings) gets its own brainstorm→spec cycle,
+shaped by these curves. The E2 run record and prior sittings follow.
 
 **Last Updated (prior)**: 2026-07-22 (latest) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
 PRE-REGISTERED + BUILT + MERGED + RUN (`main` @ `97a9d80`, pushed). RESULT: P2²/P3²/P4² held, P1²
