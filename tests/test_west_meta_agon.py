@@ -386,3 +386,66 @@ class TestLedger:
         rep = replay_walk(led)
         assert rep["ok"] is False
         assert rep["mismatches"]
+
+
+from west_meta_agon import (BrokerQuality, RegimeCell, find_biting_regime,
+                            run_broker_quality)
+
+
+class TestRegimeFinder:
+    def _fake_point(self, gaps):
+        """gaps: {(n, ttl): gap}. Returns a stand-in for run_sweepb_point."""
+        class P:
+            def __init__(self, gap):
+                self.gap = gap
+        def fn(root, manifest, *, n, rounds, ttl, bucketing="round_robin"):
+            return P(gaps[(n, ttl)])
+        return fn
+
+    def test_picks_largest_biting_ttl_at_n4(self):
+        gaps = {(2, 60): 0.0, (2, 30): 0.1, (2, 15): 0.3,
+                (4, 60): 0.1, (4, 30): 0.25, (4, 15): 0.4}
+        cells, biting = find_biting_regime(
+            None, None, rounds=1, theta=0.20,
+            point_fn=self._fake_point(gaps))
+        assert biting == 30            # largest ttl with gap>theta at n=4
+        assert len(cells) == 6
+        assert RegimeCell(n=4, ttl=30, gap=0.25) in cells
+
+    def test_none_when_nothing_bites_at_n4(self):
+        gaps = {(2, 60): 0.5, (2, 30): 0.5, (2, 15): 0.5,
+                (4, 60): 0.0, (4, 30): 0.1, (4, 15): 0.2}  # 0.2 NOT > 0.20
+        cells, biting = find_biting_regime(
+            None, None, rounds=1, theta=0.20,
+            point_fn=self._fake_point(gaps))
+        assert biting is None          # n=2 biting does not define the regime
+
+
+class TestBrokerQuality:
+    def test_material_and_totals(self):
+        # Fake broker keyed on CALL ORDER: run_broker_quality must call
+        # round-robin FIRST, then link-aware (pinned by this test).
+        class Res:
+            def __init__(self, mat, peel, routes, cov):
+                class C:
+                    materialization_atoms = mat
+                    peel_proxy = peel
+                self.cost = C()
+                self.routes = routes
+                self.coverage = cov
+        class Tax:
+            cells_written = 10
+            naive_member_round = 100
+            incremental = 5
+        calls = {"i": 0}
+        def fake_broker(root, manifest, *, buckets, rounds, ttl):
+            calls["i"] += 1
+            if calls["i"] == 1:        # round-robin: dear
+                return Res(1000, 100, 50, 0.9), Tax()
+            return Res(700, 100, 20, 0.95), Tax()   # link-aware: cheaper
+        m = _manifest(["a", "b", "c", "d"], [("a", "c"), ("b", "d")])
+        q = run_broker_quality(None, m, n=2, rounds=1, ttl=60, tol=0.10,
+                               broker_fn=fake_broker)
+        assert q.rr_cost == 1000 + 100 + 10 + 100 + 50
+        assert q.la_cost == 700 + 100 + 10 + 100 + 20
+        assert q.material is True

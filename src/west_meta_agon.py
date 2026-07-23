@@ -10,8 +10,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Tuple
 
-from west_experiment import run_fed_bucketed
-from west_measure import cut_link_count, read_member_costs
+from west_experiment import run_fed_bucketed, run_fed_bucketed_broker, run_sweepb_point
+from west_measure import (cut_link_count, link_aware_buckets, read_member_costs,
+                          round_robin_buckets)
 
 Bucketing = Tuple[Tuple[str, ...], ...]
 
@@ -294,3 +295,71 @@ def replay_walk(ledger_path) -> dict:
                 f"({disposition!r} vs recorded {row['disposition']!r})")
     return {"ok": not mismatches, "rounds": n_rounds,
             "mismatches": mismatches}
+
+
+@dataclass
+class RegimeCell:
+    """One rider-(a) cell: the passive gap at (n, ttl) (spec §5a)."""
+    n: int
+    ttl: int
+    gap: float
+
+
+@dataclass
+class BrokerQuality:
+    """Rider (b): round-robin vs link-aware at n, broker-active (spec §5b)."""
+    ttl: int
+    rr_cost: int
+    la_cost: int
+    rr_cut: int
+    la_cut: int
+    rr_routes: int
+    la_routes: int
+    material: bool
+
+
+def find_biting_regime(root, manifest, *, rounds: int, ttls=(60, 30, 15),
+                       ns=(2, 4), theta: float, point_fn=None):
+    """Rider (a) — sweep ttl at fixed round-robin bucketings; the biting
+    regime is the LARGEST ttl with gap > theta at n=4 (n=2 recorded for the
+    mechanism read, never regime-defining — spec §5a). Returns
+    (cells, biting_ttl|None)."""
+    fn = point_fn if point_fn is not None else run_sweepb_point
+    cells: List[RegimeCell] = []
+    biting = None
+    for n in ns:
+        for ttl in ttls:
+            pt = fn(root, manifest, n=n, rounds=rounds, ttl=ttl,
+                    bucketing="round_robin")
+            cells.append(RegimeCell(n=n, ttl=ttl, gap=pt.gap))
+    for ttl in sorted(ttls, reverse=True):
+        if any(c.gap > theta for c in cells if c.n == 4 and c.ttl == ttl):
+            biting = ttl
+            break
+    return cells, biting
+
+
+def _broker_total(res, tax) -> int:
+    """Broker-active Arm-N total (spec §5b): passive naive total + routes."""
+    return (res.cost.materialization_atoms + res.cost.peel_proxy
+            + tax.cells_written + tax.naive_member_round + res.routes)
+
+
+def run_broker_quality(root, manifest, *, n: int, rounds: int, ttl: int,
+                       tol: float, broker_fn=None) -> BrokerQuality:
+    """Rider (b) — PB4's deferred test under force: round-robin FIRST, then
+    link-aware, both broker-active, at the biting regime (spec §5b)."""
+    fn = broker_fn if broker_fn is not None else run_fed_bucketed_broker
+    rr_buckets = round_robin_buckets(manifest.folders, n)
+    la_buckets = link_aware_buckets(manifest, n)
+    rr, rr_tax = fn(root, manifest, buckets=rr_buckets, rounds=rounds, ttl=ttl)
+    la, la_tax = fn(root, manifest, buckets=la_buckets, rounds=rounds, ttl=ttl)
+    rr_cost = _broker_total(rr, rr_tax)
+    la_cost = _broker_total(la, la_tax)
+    return BrokerQuality(
+        ttl=ttl, rr_cost=rr_cost, la_cost=la_cost,
+        rr_cut=cut_link_count(rr_buckets, manifest),
+        la_cut=cut_link_count(la_buckets, manifest),
+        rr_routes=rr.routes, la_routes=la.routes,
+        material=(la_cost <= rr_cost * (1 - tol)),
+    )
