@@ -558,8 +558,8 @@ class TestBrokerQuality:
 from west_meta_agon import TROUGH_E2B, assemble_e3_report
 
 
-def _walk(halt, n, cost_naive, name="W", arm="naive"):
-    ev = _ev(n, cost_naive)
+def _walk(halt, n, cost_naive, name="W", arm="naive", incr=None):
+    ev = _ev(n, cost_naive, incr=incr)
     return WalkResult(name=name, arm=arm, start_key="s", rounds=[],
                       final=tuple(), final_evidence=ev, halt=halt, moves=[])
 
@@ -604,6 +604,24 @@ class TestVerdictLayer:
     def test_pe1_needs_both_walks(self):
         assert _report(w2=_walk("converged", 12, 37917)).priors["PE1"] == "refuted"
 
+    def test_pe1_cost_source_is_naive_not_incremental(self):
+        # HIGH priority: killer for cost-source mutation (naive→incremental).
+        # Correct code reads cost_naive for ceiling check; mutant reads cost_incremental.
+        # w1/w2: naive=160000 (above ceiling, PE1 refuted by correct code),
+        #        incr=137000 (below ceiling, would make mutant say PE1 held).
+        # If mutant flips to cost_incremental, test fails (says "held" not "refuted").
+        assert _report(w1=_walk("converged", 3, 160000, incr=137000),
+                       w2=_walk("converged", 3, 160000, incr=137000)
+                       ).priors["PE1"] == "refuted"
+
+    def test_pe1_tolerance_band_interior(self):
+        # MEDIUM priority: killer for tolerance-band mutation (<= trough → <= trough without *(1+tol)).
+        # cost=145000, trough=137129, tol=0.10 → 145000 <= 137129*1.10 = 150841.9 is True (held).
+        # Mutant with `<= trough` → 145000 <= 137129 is False (refuted) — test fails.
+        assert _report(w1=_walk("converged", 3, 145000),
+                       w2=_walk("converged", 3, 145000)
+                       ).priors["PE1"] == "held"
+
     # --- PE2 ---
     def test_pe2_spread_refutes(self):
         r = _report(w3=_walk("converged", 5, 160000))
@@ -614,6 +632,17 @@ class TestVerdictLayer:
                     w2=_walk("converged", 3, 140000),
                     w3=_walk("converged", 3, 143000))
         assert r.priors["PE2"] == "held"      # 143000/137000 = 1.0438 <= 1.10
+
+    def test_pe2_cost_source_is_naive_not_incremental(self):
+        # HIGH priority: killer for cost-source mutation in PE2 (naive→incremental).
+        # Correct code reads cost_naive; mutant reads cost_incremental.
+        # Three walks with equal naive (137000) but unequal incr (50000, 60000, 200000).
+        # Correct: max(naive)/min(naive) = 137000/137000 = 1.0 <= 1.10 → held.
+        # Mutant: max(incr)/min(incr) = 200000/50000 = 4.0 > 1.10 → refuted.
+        r = _report(w1=_walk("converged", 3, 137000, incr=50000),
+                    w2=_walk("converged", 3, 137000, incr=60000),
+                    w3=_walk("converged", 3, 137000, incr=200000))
+        assert r.priors["PE2"] == "held"
 
     # --- PE3 ---
     def test_pe3_interior_halt_refutes(self):
@@ -632,3 +661,13 @@ class TestVerdictLayer:
 
     def test_pe5_not_material_refutes(self):
         assert _report(material=False).priors["PE5"] == "refuted"
+
+    def test_final_costs_contract(self):
+        # LOW priority: killer for final_costs field contract.
+        # E3Report.final_costs must have W1/W2/W3 = cost_naive, W4 = cost_incremental.
+        r = _report(w1=_walk("converged", 3, 573487),
+                    w4=_walk("converged", 12, 573487, arm="incremental", incr=37917))
+        assert r.final_costs["W1"] == 573487
+        assert r.final_costs["W2"] == 137000  # default naive
+        assert r.final_costs["W3"] == 137000  # default naive
+        assert r.final_costs["W4"] == 37917   # w4's cost_incremental, not naive
