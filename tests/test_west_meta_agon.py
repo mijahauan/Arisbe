@@ -553,3 +553,82 @@ class TestBrokerQuality:
         # No inequalities, no type checks — the values must be exact.
         assert q.rr_cut == 3, f"rr_cut mismatch: expected 3, got {q.rr_cut}"
         assert q.la_cut == 4, f"la_cut mismatch: expected 4, got {q.la_cut}"
+
+
+from west_meta_agon import TROUGH_E2B, assemble_e3_report
+
+
+def _walk(halt, n, cost_naive, name="W", arm="naive"):
+    ev = _ev(n, cost_naive)
+    return WalkResult(name=name, arm=arm, start_key="s", rounds=[],
+                      final=tuple(), final_evidence=ev, halt=halt, moves=[])
+
+
+def _quality(material):
+    return BrokerQuality(ttl=30, rr_cost=100, la_cost=(80 if material else 99),
+                         rr_cut=10, la_cut=5, rr_routes=9, la_routes=4,
+                         material=material)
+
+
+def _report(w1=None, w2=None, w3=None, w4=None, biting=30, material=True):
+    w1 = w1 or _walk("converged", 3, 137000)
+    w2 = w2 or _walk("converged", 3, 137000)
+    w3 = w3 or _walk("converged", 3, 137000)
+    w4 = w4 or _walk("converged", 12, 37917, arm="incremental")
+    q = _quality(material) if biting is not None else None
+    return assemble_e3_report(w1, w2, w3, w4, cells=[], biting_ttl=biting,
+                              quality=q, tol=0.10)
+
+
+class TestVerdictLayer:
+    def test_all_held_baseline(self):
+        r = _report()
+        assert r.priors == {"PE1": "held", "PE2": "held", "PE3": "held",
+                            "PE4": "held", "PE5": "held"}
+
+    # --- PE1: each conjunct has a killer ---
+    def test_pe1_endpoint_halt_refutes(self):
+        assert _report(w1=_walk("converged", 1, 100000)).priors["PE1"] == "refuted"
+
+    def test_pe1_max_rounds_refutes(self):
+        assert _report(w2=_walk("max_rounds", 3, 137000)).priors["PE1"] == "refuted"
+
+    def test_pe1_above_ceiling_refutes(self):
+        over = int(TROUGH_E2B * 1.10) + 1
+        assert _report(w1=_walk("converged", 3, over)).priors["PE1"] == "refuted"
+
+    def test_pe1_below_trough_holds(self):
+        assert _report(w1=_walk("converged", 4, 120000),
+                       w3=_walk("converged", 4, 120000)).priors["PE1"] == "held"
+
+    def test_pe1_needs_both_walks(self):
+        assert _report(w2=_walk("converged", 12, 37917)).priors["PE1"] == "refuted"
+
+    # --- PE2 ---
+    def test_pe2_spread_refutes(self):
+        r = _report(w3=_walk("converged", 5, 160000))
+        assert r.priors["PE2"] == "refuted"
+
+    def test_pe2_uses_naive_costs_of_all_three(self):
+        r = _report(w1=_walk("converged", 3, 137000),
+                    w2=_walk("converged", 3, 140000),
+                    w3=_walk("converged", 3, 143000))
+        assert r.priors["PE2"] == "held"      # 143000/137000 = 1.0438 <= 1.10
+
+    # --- PE3 ---
+    def test_pe3_interior_halt_refutes(self):
+        assert _report(w4=_walk("converged", 6, 60000,
+                                arm="incremental")).priors["PE3"] == "refuted"
+
+    def test_pe3_max_rounds_refutes(self):
+        assert _report(w4=_walk("max_rounds", 12, 37917,
+                                arm="incremental")).priors["PE3"] == "refuted"
+
+    # --- PE4 / PE5 ---
+    def test_pe4_refuted_makes_pe5_undetermined(self):
+        r = _report(biting=None)
+        assert r.priors["PE4"] == "refuted"
+        assert r.priors["PE5"] == "undetermined"
+
+    def test_pe5_not_material_refutes(self):
+        assert _report(material=False).priors["PE5"] == "refuted"

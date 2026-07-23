@@ -363,3 +363,50 @@ def run_broker_quality(root, manifest, *, n: int, rounds: int, ttl: int,
         rr_routes=rr.routes, la_routes=la.routes,
         material=(la_cost <= rr_cost * (1 - tol)),
     )
+
+
+TROUGH_E2B = 137129     # E2b's measured Arm-N trough (runs/WEST_E2B_LOG.md)
+
+
+@dataclass
+class E3Report:
+    """The assembled E3 result and the pre-registered verdicts PE1-PE5
+    (spec §6). PE5 is conditional on PE4."""
+    priors: Dict[str, str]
+    final_costs: Dict[str, int]
+    biting_ttl: Optional[int]
+
+
+def assemble_e3_report(w1: WalkResult, w2: WalkResult, w3: WalkResult,
+                       w4: WalkResult, cells, biting_ttl,
+                       quality: Optional[BrokerQuality], *, tol: float,
+                       trough: int = TROUGH_E2B,
+                       sweep_max_n: int = 12) -> E3Report:
+    """Decide PE1-PE5 from the walks and the rider (spec §6)."""
+    def _interior_ok(w: WalkResult) -> bool:
+        return (w.halt == "converged"
+                and 1 < w.final_evidence.n < sweep_max_n
+                and w.final_evidence.cost_naive <= trough * (1 + tol))
+
+    pe1 = "held" if (_interior_ok(w1) and _interior_ok(w2)) else "refuted"
+
+    finals = [w.final_evidence.cost_naive for w in (w1, w2, w3)]
+    pe2 = "held" if max(finals) <= min(finals) * (1 + tol) else "refuted"
+
+    pe3 = "held" if (w4.halt == "converged"
+                     and w4.final_evidence.n == sweep_max_n) else "refuted"
+
+    pe4 = "held" if biting_ttl is not None else "refuted"
+    if pe4 == "refuted":
+        pe5 = "undetermined"
+    else:
+        pe5 = "held" if (quality is not None and quality.material) else "refuted"
+
+    return E3Report(
+        priors={"PE1": pe1, "PE2": pe2, "PE3": pe3, "PE4": pe4, "PE5": pe5},
+        final_costs={"W1": w1.final_evidence.cost_naive,
+                     "W2": w2.final_evidence.cost_naive,
+                     "W3": w3.final_evidence.cost_naive,
+                     "W4": w4.final_evidence.cost_incremental},
+        biting_ttl=biting_ttl,
+    )
