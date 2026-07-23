@@ -523,9 +523,13 @@ class TestBrokerQuality:
         assert q.material is False
 
     def test_cut_counts_computed(self):
-        # Verify cut_link_count is actually called and results stored in rr_cut/la_cut.
-        # Use a manifest with a hub to show rr vs la differ.
-        # folders: [a, b, c, d]; links: a→b, a→c, a→d (star topology, a is hub)
+        # Killer test: verify cut_link_count is actually called with correct args.
+        # Uses a fixture where rr and la buckets DIVERGE in cut counts.
+        # Fixture: folders [a,b,c,d,e,f]; links: a→b,a→c,a→d,b→e,b→f
+        # n=3 round-robin: {d,a}, {b,e}, {c,f} → 3 cross-links
+        # n=3 link-aware: {b,a}, {d,c}, {f,e} → 4 cross-links
+        # Arg-swap mutation (passing rr_buckets/la_buckets swapped to cut_link_count)
+        # would flip the results, so this test MUST FAIL if args are swapped.
         class Res:
             def __init__(self, mat, peel, routes):
                 class C:
@@ -541,16 +545,11 @@ class TestBrokerQuality:
         def fake_broker(root, manifest, *, buckets, rounds, ttl):
             # Both return the same cost to isolate cut-count testing
             return Res(500, 0, 0), Tax()
-        m = _manifest(["a", "b", "c", "d"],
-                      [("a", "b"), ("a", "c"), ("a", "d")])
-        q = run_broker_quality(None, m, n=2, rounds=1, ttl=60, tol=0.10,
+        m = _manifest(["a", "b", "c", "d", "e", "f"],
+                      [("a", "b"), ("a", "c"), ("a", "d"), ("b", "e"), ("b", "f")])
+        q = run_broker_quality(None, m, n=3, rounds=1, ttl=60, tol=0.10,
                                broker_fn=fake_broker)
-        # Verify rr_cut and la_cut are integers (cut_link_count called)
-        assert isinstance(q.rr_cut, int)
-        assert isinstance(q.la_cut, int)
-        # Both should be >= 0
-        assert q.rr_cut >= 0
-        assert q.la_cut >= 0
-        # For a star topology with 3 links to different buckets,
-        # link-aware should do better (fewer cross-links) than round-robin
-        assert q.la_cut <= q.rr_cut
+        # EXACT hardcoded values catch the arg-swap mutation.
+        # No inequalities, no type checks — the values must be exact.
+        assert q.rr_cut == 3, f"rr_cut mismatch: expected 3, got {q.rr_cut}"
+        assert q.la_cut == 4, f"la_cut mismatch: expected 4, got {q.la_cut}"
