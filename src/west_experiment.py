@@ -20,7 +20,8 @@ from west_measure import (CountingMaterializer, CostBreakdown, QualityReading,
                           read_quality, peel_proxy, TracingMaterializer,
                           read_member_costs, MemberCostReading,
                           fit_power_law, PowerLawFit, MIN_FIT_POINTS,
-                          round_robin_buckets, link_aware_buckets, cut_link_count)
+                          round_robin_buckets, link_aware_buckets, cut_link_count,
+                          read_ucurve, UCurveReading)
 from west_coordinator import Coordinator, member_relation_names
 
 
@@ -1004,3 +1005,46 @@ def run_p_sweep(dest_root: Path, *, folders: int, notes: int, journal: int,
     return PSweepResult(points=points, shoulder_p=shoulder_p,
                         broker_routes=broker_routes,
                         broker_coord_cost=broker_coord_cost)
+
+
+PB5_MAX_CV = 0.5
+PB5_MAX_MEAN_RATIO = 1.25
+
+
+@dataclass
+class E2bReport:
+    """The assembled calibration result and the pre-registered verdicts PB1-PB5
+    (spec §6). PB4 is conditional on PB3."""
+    ucurve_naive: UCurveReading
+    ucurve_incremental: UCurveReading
+    shoulder_p: Optional[float]
+    quality: "QualityArmResult"
+    priors: Dict[str, str]
+
+
+def assemble_e2b_report(sweepb_points, p_result, quality, *, tol: float) -> E2bReport:
+    """Decide PB1-PB5 from the three parts' readings (spec §6)."""
+    un = read_ucurve(sweepb_points, "naive")
+    ui = read_ucurve(sweepb_points, "incremental")
+
+    # PB1 — E3's target exists: the naive U-curve has an interior minimum.
+    pb1 = "held" if un.interior else "refuted"
+    # PB2 — control: the incremental curve is monotone non-increasing (no interior min).
+    pb2 = "held" if (ui.monotone_nonincreasing and not ui.interior) else "refuted"
+    # PB3 — a coherence shoulder exists.
+    pb3 = "held" if p_result.shoulder_p is not None else "refuted"
+    # PB4 — partition quality has teeth, CONDITIONAL on PB3.
+    if pb3 == "refuted":
+        pb4 = "undetermined"
+    else:
+        pb4 = "held" if quality.material else "refuted"
+    # PB5 — terminal-unit invariance persists across the n sweep.
+    means = [p.member_reading.mean for p in sweepb_points if p.member_reading.mean > 0]
+    tight = all(p.member_reading.cv < PB5_MAX_CV for p in sweepb_points)
+    flat = bool(means) and (max(means) / min(means) < PB5_MAX_MEAN_RATIO)
+    pb5 = "held" if (tight and flat) else "refuted"
+
+    return E2bReport(ucurve_naive=un, ucurve_incremental=ui,
+                     shoulder_p=p_result.shoulder_p, quality=quality,
+                     priors={"PB1": pb1, "PB2": pb2, "PB3": pb3,
+                             "PB4": pb4, "PB5": pb5})

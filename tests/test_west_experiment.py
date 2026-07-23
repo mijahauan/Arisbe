@@ -1029,3 +1029,93 @@ def test_run_quality_arm_material_flag_follows_the_tol_threshold(tmp_path):
     r = run_quality_arm(tmp_path, manifest, n=2, rounds=24, ttl=120, tol=0.10)
     expected = r.link_aware_cost <= r.round_robin_cost * (1 - 0.10)
     assert r.material == expected
+
+
+def _sbpoint(n, cn, ci, cv=0.02, mean=1000.0):
+    from west_experiment import SweepBPoint
+    from west_measure import MemberCostReading
+    return SweepBPoint(
+        n=n, fed_cost_naive=cn, fed_cost_incremental=ci,
+        member_reading=MemberCostReading([int(mean)] * max(n, 1), 120, mean, cv),
+        m_fed=100, k2_fed=1.0, k3_fed=0.0, gap=0.0, cut_links=0)
+
+
+def _presult(shoulder):
+    from west_experiment import PSweepResult
+    return PSweepResult(points=[], shoulder_p=shoulder,
+                        broker_routes=(0 if shoulder is not None else None),
+                        broker_coord_cost=(0 if shoulder is not None else None))
+
+
+def _quality(material):
+    from west_experiment import QualityArmResult
+    return QualityArmResult(n=4, round_robin_cost=1000,
+                            link_aware_cost=(800 if material else 990),
+                            round_robin_cut=10, link_aware_cut=2, material=material)
+
+
+NS = [1, 2, 3, 4, 6, 12]
+
+
+def test_pb1_held_on_interior_naive_minimum():
+    from west_experiment import assemble_e2b_report
+    # naive U with min at n=4; incremental monotone down.
+    naive = {1: 1000, 2: 600, 3: 450, 4: 400, 6: 700, 12: 1500}
+    incr = {1: 900, 2: 500, 3: 350, 4: 300, 6: 250, 12: 200}
+    pts = [_sbpoint(n, naive[n], incr[n]) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB1"] == "held"
+    assert rep.priors["PB2"] == "held"
+
+
+def test_pb1_refuted_when_naive_minimum_is_at_an_endpoint():
+    from west_experiment import assemble_e2b_report
+    naive = {n: 100 * n for n in NS}                    # monotone up -> min at n=1
+    pts = [_sbpoint(n, naive[n], naive[n]) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB1"] == "refuted"
+
+
+def test_pb2_refuted_when_incremental_has_an_interior_dip():
+    from west_experiment import assemble_e2b_report
+    naive = {n: 100 * n for n in NS}
+    incr = {1: 500, 2: 400, 3: 300, 4: 200, 6: 350, 12: 600}   # interior min at 4
+    pts = [_sbpoint(n, naive[n], incr[n]) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB2"] == "refuted"
+
+
+def test_pb3_and_pb4_held_with_a_shoulder():
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.60), _quality(True), tol=0.10)
+    assert rep.priors["PB3"] == "held" and rep.priors["PB4"] == "held"
+
+
+def test_pb4_undetermined_when_no_shoulder():
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(None), _quality(False), tol=0.10)
+    assert rep.priors["PB3"] == "refuted"
+    assert rep.priors["PB4"] == "undetermined"          # conditional on PB3
+
+
+def test_pb4_refuted_when_shoulder_but_quality_immaterial():
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.60), _quality(False), tol=0.10)
+    assert rep.priors["PB4"] == "refuted"
+
+
+def test_pb5_refuted_when_member_cost_drifts_across_n():
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100, mean=1000.0 * n) for n in NS]   # 12x drift
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB5"] == "refuted"
+
+
+def test_pb5_held_when_member_cost_is_flat():
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100, cv=0.02, mean=1000.0) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB5"] == "held"
