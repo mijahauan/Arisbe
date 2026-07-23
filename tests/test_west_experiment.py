@@ -1085,6 +1085,32 @@ def test_pb2_refuted_when_incremental_has_an_interior_dip():
     assert rep.priors["PB2"] == "refuted"
 
 
+def test_pb2_refuted_when_incremental_is_monotone_but_plateaus_interior():
+    """Gap 1: monotone_nonincreasing=True AND interior=True (a plateau at
+    n=4,6,12 — argmin ties to the smallest, n=4, which is interior). PB2 must
+    read "refuted" — pins the ``and not ui.interior`` conjunct: dropping it
+    would flip this fixture to "held"."""
+    from west_experiment import assemble_e2b_report
+    naive = {n: 100 * n for n in NS}                    # monotone up; keeps PB1 out of the way
+    incr = {1: 1000, 2: 900, 3: 850, 4: 800, 6: 800, 12: 800}
+    pts = [_sbpoint(n, naive[n], incr[n]) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB2"] == "refuted"
+
+
+def test_pb2_refuted_when_incremental_is_nonmonotone_with_endpoint_minimum():
+    """Gap 2: monotone_nonincreasing=False AND interior=False (min at the
+    n=12 endpoint, but 500->600 breaks monotonicity). PB2 must read
+    "refuted" — pins the ``ui.monotone_nonincreasing`` conjunct: replacing it
+    with True would flip this fixture to "held"."""
+    from west_experiment import assemble_e2b_report
+    naive = {n: 100 * n for n in NS}
+    incr = {1: 500, 2: 600, 3: 400, 4: 300, 6: 200, 12: 100}
+    pts = [_sbpoint(n, naive[n], incr[n]) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB2"] == "refuted"
+
+
 def test_pb3_and_pb4_held_with_a_shoulder():
     from west_experiment import assemble_e2b_report
     pts = [_sbpoint(n, 100, 100) for n in NS]
@@ -1119,3 +1145,14 @@ def test_pb5_held_when_member_cost_is_flat():
     pts = [_sbpoint(n, 100, 100, cv=0.02, mean=1000.0) for n in NS]
     rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
     assert rep.priors["PB5"] == "held"
+
+
+def test_pb5_refuted_when_flat_means_but_high_cv():
+    """Gap 3: means flat across n (flat=True) but per-point CV is high
+    (tight=False). PB5 must read "refuted" — pins the ``cv < 0.5`` conjunct:
+    broadening PB5_MAX_CV to 100 would flip this fixture to "held", since the
+    other two pb5 fixtures both use cv=0.02 and never exercise it."""
+    from west_experiment import assemble_e2b_report
+    pts = [_sbpoint(n, 100, 100, cv=0.6, mean=1000.0) for n in NS]
+    rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
+    assert rep.priors["PB5"] == "refuted"
