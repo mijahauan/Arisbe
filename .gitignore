@@ -261,3 +261,5 @@ runs/west_e2*
 # match `west_e2*` against the UPPERCASE name, exactly as the RUN_*_LOG.md logs
 # are spared above — the log is committed, the console/data outputs are not).
 !runs/WEST_E2_LOG.md
+# ...and the E2b run log too (same case-insensitive-glob reasoning).
+!runs/WEST_E2B_LOG.md
