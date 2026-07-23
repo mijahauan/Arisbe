@@ -147,3 +147,161 @@ class TestArmCost:
         assert arm_cost(e, "incremental") == 7
         with pytest.raises(ValueError):
             arm_cost(e, "mono")
+
+
+import json
+
+from west_meta_agon import (WalkResult, replay_walk, run_meta_walk)
+
+
+def _ev(n, naive, incr=None, gap=0.0):
+    return MetaEvidence(n=n, cost_naive=naive,
+                        cost_incremental=(incr if incr is not None else naive),
+                        gap=gap, coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                        cut_links=0, cv=0.0, mean_member=0.0)
+
+
+class FakeEvaluator:
+    """Evidence by bucketing key; unknown keys get a default expensive read."""
+    def __init__(self, table):
+        self.table = table
+        self.calls = []
+
+    def evaluate(self, b):
+        key = bucketing_key(b)
+        self.calls.append(key)
+        return self.table.get(key, _ev(len(b), 10**9))
+
+
+def _walk_manifest():
+    return _manifest(["a", "b", "c", "d"], [("a", "b"), ("c", "d")])
+
+
+class TestWalk:
+    def test_descends_and_halts_converged(self, tmp_path):
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        # N=1 costs 100; its split (ab|cd) costs 80; children of that cost
+        # more -> converge at N=2 after one accept.
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 80),
+        })
+        led = tmp_path / "w.jsonl"
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20,
+                            ledger_path=led)
+        assert res.halt == "converged"
+        assert res.moves == ["split:0"]
+        assert bucketing_key(res.final) == "a,b;c,d"
+        assert res.rounds[0].disposition == "accept:split"
+        assert res.rounds[1].disposition == "halt:converged"
+
+    def test_gap_gate_refuses_regardless_of_cost(self):
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        # The split is far cheaper but incoherent -> refused -> halt.
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 10, gap=0.5),
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.halt == "converged"
+        assert res.moves == []
+        entry = res.rounds[0].slate[0]
+        assert entry.refused is True
+
+    def test_incumbent_gap_never_gated(self):
+        # A standing-incoherent incumbent (the N=1 start, spec §2) can still
+        # accept a coherent improving move.
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100, gap=0.58),
+            "a,b;c,d": _ev(2, 90),
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.moves == ["split:0"]
+
+    def test_steepest_not_first_improvement(self):
+        # Two improving splits; the CHEAPER one wins even though it is
+        # tabled second.
+        m = _manifest(["a", "b", "c", "d"], [])
+        start = canonical([["a", "b"], ["c", "d"]])
+        fake = FakeEvaluator({
+            "a,b;c,d": _ev(2, 100),
+            "a;b;c,d": _ev(3, 90),   # split:0
+            "a,b;c;d": _ev(3, 85),   # split:1 — steepest
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20)
+        assert res.moves[0] == "split:1"
+
+    def test_arm_currency_selects_winner(self):
+        # Under naive the split improves; under incremental it worsens.
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100, incr=50),
+            "a,b;c,d": _ev(2, 80, incr=60),
+        })
+        res_n = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                              evaluate=fake.evaluate, theta=0.20)
+        res_i = run_meta_walk(start, name="T", arm="incremental", manifest=m,
+                              evaluate=fake.evaluate, theta=0.20)
+        assert res_n.moves == ["split:0"]
+        assert res_i.moves == []
+
+    def test_max_rounds_reports_non_converged(self):
+        # An ever-improving ladder (each split cheaper) with max_rounds=2.
+        m = _manifest(["a", "b", "c", "d"], [])
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 90),
+            "a;b;c,d": _ev(3, 80),
+            "a,b;c;d": _ev(3, 85),
+            "a;b;c;d": _ev(4, 70),
+        })
+        res = run_meta_walk(start, name="T", arm="naive", manifest=m,
+                            evaluate=fake.evaluate, theta=0.20, max_rounds=2)
+        assert res.halt == "max_rounds"
+        assert len(res.moves) == 2
+
+
+class TestLedger:
+    def test_ledger_replays_ok(self, tmp_path):
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 80),
+        })
+        led = tmp_path / "w.jsonl"
+        run_meta_walk(start, name="T", arm="naive", manifest=m,
+                      evaluate=fake.evaluate, theta=0.20, ledger_path=led)
+        rep = replay_walk(led)
+        assert rep["ok"] is True
+        assert rep["rounds"] == 2
+        assert rep["mismatches"] == []
+
+    def test_replay_flags_doctored_disposition(self, tmp_path):
+        m = _walk_manifest()
+        start = canonical([["a", "b", "c", "d"]])
+        fake = FakeEvaluator({
+            "a,b,c,d": _ev(1, 100),
+            "a,b;c,d": _ev(2, 80),
+        })
+        led = tmp_path / "w.jsonl"
+        run_meta_walk(start, name="T", arm="naive", manifest=m,
+                      evaluate=fake.evaluate, theta=0.20, ledger_path=led)
+        lines = led.read_text().splitlines()
+        row = json.loads(lines[1])          # line 0 is the header
+        row["disposition"] = "halt:converged"
+        lines[1] = json.dumps(row)
+        led.write_text("\n".join(lines) + "\n")
+        rep = replay_walk(led)
+        assert rep["ok"] is False
+        assert rep["mismatches"]
