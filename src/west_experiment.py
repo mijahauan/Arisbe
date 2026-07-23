@@ -481,7 +481,7 @@ def run_fed_bucketed(root: Path, manifest, *, buckets: List[frozenset],
     (a folder-set) per member. Returns ``(ArrangementResult, CoordinatorTax)``.
     ``buckets`` must partition ``manifest.folders``. Passive only — the broker
     is not replay-exact (spec §3.1, §8)."""
-    member_specs = [(frozenset(b), False, f"e2b_bucket_{i}")
+    member_specs = [(frozenset(b), False, f"e2b_bucket_{i:02d}")
                     for i, b in enumerate(buckets)]
     member_specs.append((frozenset(), True, "e2b_journal"))
     shares = _apportion(rounds, len(member_specs))
@@ -1008,7 +1008,6 @@ def run_p_sweep(dest_root: Path, *, folders: int, notes: int, journal: int,
 
 
 PB5_MAX_CV = 0.5
-PB5_MAX_MEAN_RATIO = 1.25
 
 
 @dataclass
@@ -1038,11 +1037,10 @@ def assemble_e2b_report(sweepb_points, p_result, quality, *, tol: float) -> E2bR
         pb4 = "undetermined"
     else:
         pb4 = "held" if quality.material else "refuted"
-    # PB5 — terminal-unit invariance persists across the n sweep.
-    means = [p.member_reading.mean for p in sweepb_points if p.member_reading.mean > 0]
-    tight = all(p.member_reading.cv < PB5_MAX_CV for p in sweepb_points)
-    flat = bool(means) and (max(means) / min(means) < PB5_MAX_MEAN_RATIO)
-    pb5 = "held" if (tight and flat) else "refuted"
+    # PB5 — terminal-unit invariance persists WITHIN N: at a fixed N, all
+    # round-robin buckets are the same size doing the same round-share, so
+    # they should cost the same (2026-07-23 amendment — see spec §6).
+    pb5 = "held" if all(p.member_reading.cv < PB5_MAX_CV for p in sweepb_points) else "refuted"
 
     return E2bReport(ucurve_naive=un, ucurve_incremental=ui,
                      shoulder_p=p_result.shoulder_p, quality=quality,

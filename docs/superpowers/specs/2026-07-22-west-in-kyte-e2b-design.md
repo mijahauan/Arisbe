@@ -177,9 +177,16 @@ checkable not asserted — the E2 review's finding). **Wall-clock is secondary, 
   (PB3 refuted), the force PB4 tests is absent, so PB4 is reported **undetermined** (run at `p=0.75`,
   flagged coherence-force-weak), never refuted — a null difference there is PB3's consequence, not
   evidence about partition quality.
-- **PB5 (terminal-unit invariance persists — sanity).** Folder-member cost stays flat across the
-  Sweep-B N range: per-N folder-member CV < 0.5, and mean per-folder-member cost max/min across N
-  < 1.25. *Refuted if it drifts* — which would undercut the E2 P2² result under re-bucketing.
+- **PB5 (terminal-unit invariance persists — sanity), amended 2026-07-23.** As originally
+  pre-registered PB5 conjoined a within-N check with a cross-N one (mean per-folder-member cost
+  max/min across N < 1.25). That cross-N conjunct is dropped: under the fixed-R=325 apportioned
+  Sweep-B setup the terminal unit *changes size* with N (a member is 12 folders at N=1, 1 folder at
+  N=12), so per-member cost falls with N by construction — comparing mean cost across N compares
+  non-comparable units and is guaranteed to refute for a reason orthogonal to invariance. PB5 is now
+  the **within-N conjunct only**: per-N folder-member CV < 0.5. *Refuted if it drifts* — this is the
+  well-posed terminal-unit-invariance check (E2's P2² analogue): at a fixed N all round-robin buckets
+  are the same size doing the same round-share, so they should cost the same. (No run had occurred
+  under the original form; this is a pre-data correction.)
 
 **Stated in advance (as in E2):** E2b measures a *landscape*, not a *trajectory*. Nothing here tests
 whether a meta-Agon converges to N\* or discovers the link-aware bucketing — that is E3, and its priors

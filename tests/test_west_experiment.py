@@ -1133,11 +1133,16 @@ def test_pb4_refuted_when_shoulder_but_quality_immaterial():
     assert rep.priors["PB4"] == "refuted"
 
 
-def test_pb5_refuted_when_member_cost_drifts_across_n():
+def test_pb5_held_despite_cross_n_mean_drift_when_tight_within_n():
+    """Amended 2026-07-23: PB5 is the within-N conjunct only (the terminal
+    unit varies in size across N under the fixed-R apportioned setup, so a
+    cross-N mean-ratio comparison is not well-posed — see spec §6). A 12x
+    mean drift across N, with each point's within-N CV tight, no longer
+    refutes PB5."""
     from west_experiment import assemble_e2b_report
     pts = [_sbpoint(n, 100, 100, mean=1000.0 * n) for n in NS]   # 12x drift
     rep = assemble_e2b_report(pts, _presult(0.45), _quality(True), tol=0.10)
-    assert rep.priors["PB5"] == "refuted"
+    assert rep.priors["PB5"] == "held"
 
 
 def test_pb5_held_when_member_cost_is_flat():
