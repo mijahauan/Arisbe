@@ -1,6 +1,37 @@
 # Current Plan
 
-**Last Updated**: 2026-07-22 (latest) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
+**Last Updated**: 2026-07-23 — **agenda #6 continued — West-in-kytē E2b (the calibration)
+PRE-REGISTERED + BUILT + MERGED to `main` (`6241e24`, ff 9 commits); the ~1.5–2h run is the
+author's and has NOT been launched.** E2b characterizes E3's fitness landscape *before* E3 is
+designed (mirrors E1→E2). Positioned by the post-E2 analysis: E2 measured the Sweep-A *exponents* but
+not E3's actual landscape (the **Sweep-B** fixed-corpus U-curve), and ran at gap=0 so the **coherence
+force** (what makes partition *quality* matter, not just count) was never exercised. Spec `7f0ffa3` →
+7-task subagent-driven build; full suite **4048 passed / 0 failed**; E1/E2 byte-frozen (the only
+`src/` deletion in 9 commits is an import-line swap).
+
+**The load-bearing constraint:** the partition unit is the **folder** — a partition is a *bucketing
+of folders*, E3 later proposes folder re-bucketings, and partition quality (cross-bucket links) is
+measurable with the existing coverage/gap machinery. Three parts, all FED-only (N=1 = the
+content-monolith): **Sweep-B** (fixed F₀=12 corpus, fixed R=325, N∈{1,2,3,4,6,12}, both arms → the
+cost U-curve), the **p-sweep** (F=6 anchor, p∈{0.15..0.75} → the gap>θ shoulder + the first broker
+exercise), the **quality arm** (round-robin vs greedy link-aware bucketing at N=4).
+
+**Pre-registered priors:** PB1 (naive U-curve has an *interior* minimum — E3's optimum exists);
+PB2 (control — incremental curve monotone, so the optimum is a *coordination* effect not
+materialization); PB3 (a coherence shoulder exists in (0.15,0.75]); PB4 conditional-on-PB3
+(link-aware < round-robin at equal N — partition quality has teeth); PB5 **amended pre-data**
+(2026-07-23) to the within-N CV check only — the original cross-N conjunct was mis-specified (fixed-R
+apportionment makes the terminal unit *change size* with N, an uninformative guaranteed refutation).
+The final whole-branch review returned **Ready-to-merge**; the verdict layer's Task-6 review caught
+**3 of 8 surviving mutations** (PB2's two conjuncts + PB5's CV conjunct, the E2 pattern), all fixed
+with bite-verified killer fixtures.
+
+▶ **The run + E3 are the author's.** When launched (~1.5–2h, only N=1 expensive): read the U-curve
+argmin/interior, the shoulder p, and the quality arm's link-aware<round-robin headline. Then **E3**
+(endogenous partition / meta-Agon over folder-bucketings) gets its own brainstorm→spec cycle, shaped
+by these curves. The E2 run record and prior sittings follow.
+
+**Last Updated (prior)**: 2026-07-22 (latest) — **agenda #6 continued — West-in-kytē E2 (the size sweep)
 PRE-REGISTERED + BUILT + MERGED + RUN (`main` @ `97a9d80`, pushed). RESULT: P2²/P3²/P4² held, P1²
 separation-only, the pre-committed refutation NOT triggered** (`runs/WEST_E2_LOG.md`; sweep ran
 2026-07-22 16:32–18:28, 1h56m, deterministic, canary PASS, all four fits r²≥0.99).
