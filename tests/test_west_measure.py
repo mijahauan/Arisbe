@@ -188,3 +188,77 @@ def test_fit_power_law_is_weak_not_crashing_on_degenerate_sizes():
     from west_measure import fit_power_law
     fit = fit_power_law([4, 4, 4], [10.0, 20.0, 30.0])   # zero variance in x
     assert fit.weak is True and fit.beta == 0.0
+
+
+def _manifest(folders, links):
+    """A minimal VaultManifest for bucketing tests: folders = ("Folder-0",...),
+    links = list of (src_folder, tgt_folder) pairs."""
+    from vault_generator import VaultManifest, CrossLink
+    cls = tuple(
+        CrossLink(source_note="x", source_folder=s, target_note="y", target_folder=t)
+        for s, t in links
+    )
+    return VaultManifest(folders=tuple(folders), notes=(), cross_links=cls, journal_len=0)
+
+
+def test_round_robin_buckets_partitions_all_folders():
+    from west_measure import round_robin_buckets
+    folders = tuple(f"Folder-{k}" for k in range(12))
+    buckets = round_robin_buckets(folders, 4)
+    assert len(buckets) == 4
+    assert all(len(b) == 3 for b in buckets)             # 12 / 4, balanced
+    union = set().union(*buckets)
+    assert union == set(folders)                          # every folder placed once
+    assert sum(len(b) for b in buckets) == 12             # disjoint
+
+
+def test_round_robin_n1_is_the_monolith_bucketing():
+    from west_measure import round_robin_buckets
+    folders = tuple(f"Folder-{k}" for k in range(12))
+    buckets = round_robin_buckets(folders, 1)
+    assert buckets == [frozenset(folders)]
+
+
+def test_round_robin_is_deterministic():
+    from west_measure import round_robin_buckets
+    folders = tuple(f"Folder-{k}" for k in range(6))
+    assert round_robin_buckets(folders, 3) == round_robin_buckets(folders, 3)
+
+
+def test_link_aware_groups_heavily_linked_folders_together():
+    from west_measure import link_aware_buckets, cut_link_count, round_robin_buckets
+    folders = [f"Folder-{k}" for k in range(6)]
+    # Two tight clusters {0,1,2} and {3,4,5}, each internally linked, no cross-cluster links.
+    links = [("Folder-0","Folder-1"),("Folder-1","Folder-2"),("Folder-0","Folder-2"),
+             ("Folder-3","Folder-4"),("Folder-4","Folder-5"),("Folder-3","Folder-5")]
+    m = _manifest(folders, links)
+    la = link_aware_buckets(m, 2)                          # cap 3 per bucket
+    assert len(la) == 2 and all(len(b) == 3 for b in la)
+    assert frozenset({"Folder-0","Folder-1","Folder-2"}) in la
+    assert frozenset({"Folder-3","Folder-4","Folder-5"}) in la
+    # link-aware cuts 0 of these links; round-robin (0,2,4 | 1,3,5) cuts 4 of
+    # the 6 (Folder-0/Folder-2 and Folder-3/Folder-5 happen to land in the
+    # same bucket under k mod n, so only those two escape the cut).
+    assert cut_link_count(la, m) == 0
+    assert cut_link_count(round_robin_buckets(folders, 2), m) == 4
+
+
+def test_cut_link_count_counts_cross_bucket_links():
+    from west_measure import cut_link_count
+    folders = [f"Folder-{k}" for k in range(4)]
+    m = _manifest(folders, [("Folder-0","Folder-1"), ("Folder-2","Folder-3")])
+    same = [frozenset({"Folder-0","Folder-1"}), frozenset({"Folder-2","Folder-3"})]
+    split = [frozenset({"Folder-0","Folder-2"}), frozenset({"Folder-1","Folder-3"})]
+    assert cut_link_count(same, m) == 0
+    assert cut_link_count(split, m) == 2
+
+
+def test_link_aware_is_deterministic_and_partitions():
+    from west_measure import link_aware_buckets
+    folders = [f"Folder-{k}" for k in range(12)]
+    links = [("Folder-0","Folder-1")] * 3 + [("Folder-6","Folder-7")] * 2
+    m = _manifest(folders, links)
+    a = link_aware_buckets(m, 4)
+    b = link_aware_buckets(m, 4)
+    assert a == b
+    assert set().union(*a) == set(folders) and sum(len(x) for x in a) == 12

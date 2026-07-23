@@ -199,3 +199,100 @@ def fit_power_law(sizes, costs) -> PowerLawFit:
     weak = (n < MIN_FIT_POINTS) or (r_squared < MIN_FIT_R_SQUARED)
     return PowerLawFit(beta=beta, stderr=stderr, r_squared=r_squared,
                        n=n, weak=weak)
+
+
+def round_robin_buckets(folders, n: int) -> List[frozenset]:
+    """Partition ``folders`` (an ordered tuple/list of folder-name strings) into
+    ``n`` buckets by ``folder_index mod n`` — the quality-blind baseline
+    bucketing (spec §2). Balanced when ``len(folders)`` is divisible by ``n``.
+    ``n == 1`` returns a single bucket of all folders (the monolith bucketing)."""
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    ordered = list(folders)
+    groups: List[set] = [set() for _ in range(n)]
+    for k, f in enumerate(ordered):
+        groups[k % n].add(f)
+    return [frozenset(g) for g in groups]
+
+
+def cut_link_count(buckets: List[frozenset], manifest) -> int:
+    """Number of cross-folder links whose source and target folders fall in
+    DIFFERENT buckets — the coherence-cost proxy (a lower count = a partition
+    that respects the link structure). Spec §4."""
+    where = {}
+    for i, b in enumerate(buckets):
+        for f in b:
+            where[f] = i
+    cut = 0
+    for cl in manifest.cross_links:
+        if where.get(cl.source_folder) != where.get(cl.target_folder):
+            cut += 1
+    return cut
+
+
+def link_aware_buckets(manifest, n: int) -> List[frozenset]:
+    """Greedy agglomerative bucketing that groups the most heavily cross-linked
+    folders together, capped at ``len(folders)//n`` folders per bucket, to
+    minimise cross-bucket links (spec §4). Deterministic: pair weights are the
+    symmetric cross-link counts, ties break by (smallest min-folder-index, then
+    smallest other-index). Assumes ``len(folders)`` divisible by ``n``."""
+    if n < 1:
+        raise ValueError("n must be >= 1")
+    folders = list(manifest.folders)
+    idx = {f: i for i, f in enumerate(folders)}
+    cap = len(folders) // n
+    # Symmetric pair weights.
+    weight = {}
+    for cl in manifest.cross_links:
+        a, b = cl.source_folder, cl.target_folder
+        if a == b:
+            continue
+        key = tuple(sorted((a, b), key=lambda f: idx[f]))
+        weight[key] = weight.get(key, 0) + 1
+    groups: List[set] = [{f} for f in folders]
+
+    def group_key(g):                       # deterministic ordering of a group
+        return min(idx[f] for f in g)
+
+    def inter_weight(ga, gb):
+        w = 0
+        for a in ga:
+            for b in gb:
+                key = tuple(sorted((a, b), key=lambda f: idx[f]))
+                w += weight.get(key, 0)
+        return w
+
+    while len(groups) > n:
+        best = None  # (-weight, key_a, key_b, i, j)
+        for i in range(len(groups)):
+            for j in range(i + 1, len(groups)):
+                if len(groups[i]) + len(groups[j]) > cap:
+                    continue
+                w = inter_weight(groups[i], groups[j])
+                ka, kb = sorted((group_key(groups[i]), group_key(groups[j])))
+                cand = (-w, ka, kb, i, j)
+                if best is None or cand < best:
+                    best = cand
+        if best is None:
+            # No weighted merge fits the cap; merge the two lowest-key groups
+            # whose union fits — deterministic fallback so we always reach n.
+            order = sorted(range(len(groups)), key=lambda i: group_key(groups[i]))
+            merged = False
+            for a in range(len(order)):
+                for b in range(a + 1, len(order)):
+                    i, j = order[a], order[b]
+                    if len(groups[i]) + len(groups[j]) <= cap:
+                        groups[i] |= groups[j]
+                        del groups[j]
+                        merged = True
+                        break
+                if merged:
+                    break
+            if not merged:
+                raise ValueError("cannot reach n buckets under the capacity")
+            continue
+        _, _, _, i, j = best
+        groups[i] |= groups[j]
+        del groups[j]
+
+    return [frozenset(g) for g in sorted(groups, key=group_key)]
