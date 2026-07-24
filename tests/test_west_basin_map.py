@@ -221,6 +221,61 @@ class TestShadowDiagnostic:
         assert full_neighbourhood_improver(
             incumbent, m, evaluate, theta=0.2) is False
 
+    def test_killer_equal_cost_is_not_improvement(self):
+        # KILL `<` → `<=` mutation: equal cost must NOT count as strict improvement.
+        from west_meta_agon import MetaEvidence, canonical
+        from west_basin_map import full_neighbourhood_improver
+
+        def _ev(n, naive, gap=0.0):
+            return MetaEvidence(n=n, cost_naive=naive, cost_incremental=naive, gap=gap,
+                                coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                                cut_links=0, cv=0.0, mean_member=0.0)
+
+        m = _manifest(["a", "b", "c", "d"])
+        incumbent = canonical([["a", "b"], ["c", "d"]])
+        table = {
+            bucketing_key(incumbent): _ev(2, 100),
+            # One neighbour at equal cost (gap 0) — should NOT count as improver.
+            bucketing_key(canonical([["a"], ["b"], ["c", "d"]])): _ev(3, 100),
+        }
+
+        def evaluate(b):
+            return table.get(bucketing_key(b), _ev(len(b), 999))
+
+        # Under `<` the cost is NOT better (100 < 100 is False), returns False.
+        # Under `<=` mutation (100 <= 100 is True), returns True — test fails.
+        assert full_neighbourhood_improver(
+            incumbent, m, evaluate, theta=0.2) is False
+
+    def test_killer_split_only_improver(self):
+        # KILL `split_moves(bucketing) +` deletion: must check splits, not just merges.
+        from west_meta_agon import MetaEvidence, canonical
+        from west_basin_map import full_neighbourhood_improver
+
+        def _ev(n, naive, gap=0.0):
+            return MetaEvidence(n=n, cost_naive=naive, cost_incremental=naive, gap=gap,
+                                coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                                cut_links=0, cv=0.0, mean_member=0.0)
+
+        m = _manifest(["a", "b", "c", "d"])
+        incumbent = canonical([["a", "b"], ["c", "d"]])
+        # Only split:0 child is cheaper; all merges are expensive.
+        table = {
+            bucketing_key(incumbent): _ev(2, 100),
+            # split:0 — split first bucket -> a;b;c,d
+            bucketing_key(canonical([["a"], ["b"], ["c", "d"]])): _ev(3, 50),
+            # merge:0+1 — merge both buckets -> a,b,c,d
+            bucketing_key(canonical([["a", "b", "c", "d"]])): _ev(1, 999),
+        }
+
+        def evaluate(b):
+            return table.get(bucketing_key(b), _ev(len(b), 999))
+
+        # Under correct code, split:0 is found and is cheaper -> True.
+        # Under split_moves deletion, only merges checked -> no improver -> False (mutation fails test).
+        assert full_neighbourhood_improver(
+            incumbent, m, evaluate, theta=0.2) is True
+
 
 class TestKillerTests:
     """Killer tests: catch mutations the real-evaluator tests can't."""
