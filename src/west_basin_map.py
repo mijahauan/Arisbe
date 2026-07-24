@@ -8,7 +8,8 @@ Reuses west_meta_agon UNCHANGED; unprotected, additive."""
 from dataclasses import dataclass
 from typing import Dict, List
 
-from west_meta_agon import Bucketing, MemoEvaluator, WalkResult, bucketing_key, canonical, run_meta_walk
+from west_meta_agon import (Bucketing, MemoEvaluator, WalkResult, arm_cost, bucketing_key, canonical,
+                            merge_moves, run_meta_walk, split_moves)
 from west_measure import round_robin_buckets
 
 
@@ -110,3 +111,23 @@ def map_basins(root, manifest, starts, *, rounds: int, ttl: int, theta: float,
 def distinct_optima(bm: BasinMap) -> List[str]:
     """Sorted distinct terminus keys (the basins reached)."""
     return sorted(bm.watersheds.keys())
+
+
+def full_neighbourhood_improver(bucketing, manifest, evaluate, *, theta: float,
+                                arm: str = "naive") -> bool:
+    """The shortlist_shadowed diagnostic (spec §2): does the FULL neighbourhood
+    — all splits + ALL pairwise merges (no top-k shortlist) — contain a
+    gap-admissible strict Arm-``arm`` improver over ``bucketing``? Reported,
+    never acted on. A merge_k larger than any bucket count forces the full
+    merge slate."""
+    inc = evaluate(bucketing)
+    full_k = len(bucketing) * len(bucketing) + 1        # >= C(N,2), all pairs
+    neighbours = split_moves(bucketing) + merge_moves(bucketing, manifest,
+                                                      k=full_k)
+    for _label, child in neighbours:
+        ev = evaluate(child)
+        if ev.gap > theta:
+            continue
+        if arm_cost(ev, arm) < arm_cost(inc, arm):
+            return True
+    return False

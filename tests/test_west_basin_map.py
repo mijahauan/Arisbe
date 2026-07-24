@@ -152,6 +152,76 @@ class FakeEval:
                             cut_links=0, cv=0.0, mean_member=0.0)
 
 
+class TestShadowDiagnostic:
+    def test_shortlist_hides_an_improving_merge(self):
+        # 4 singletons, no links -> merge_moves(k=3) would shortlist by weight,
+        # but the ONLY cheaper child is a low-weight merge the top-3 could rank
+        # out. full_neighbourhood_improver must still find it.
+        from west_meta_agon import MetaEvidence, canonical
+        from west_basin_map import full_neighbourhood_improver
+
+        def _ev(n, naive, gap=0.0):
+            return MetaEvidence(n=n, cost_naive=naive, cost_incremental=naive, gap=gap,
+                                coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                                cut_links=0, cv=0.0, mean_member=0.0)
+
+        m = _manifest(["a", "b", "c", "d"])
+        incumbent = canonical([["a"], ["b"], ["c"], ["d"]])   # N=4
+        table = {bucketing_key(incumbent): _ev(4, 100)}
+        # exactly one cheaper neighbour: merging c+d (a low/zero-weight pair)
+        cheaper = canonical([["a"], ["b"], ["c", "d"]])
+        table[bucketing_key(cheaper)] = _ev(3, 50)
+
+        def evaluate(b):
+            return table.get(bucketing_key(b), _ev(len(b), 999))
+
+        assert full_neighbourhood_improver(
+            incumbent, m, evaluate, theta=0.2) is True
+
+    def test_true_optimum_has_no_improver(self):
+        from west_meta_agon import MetaEvidence, canonical
+        from west_basin_map import full_neighbourhood_improver
+
+        def _ev(n, naive, gap=0.0):
+            return MetaEvidence(n=n, cost_naive=naive, cost_incremental=naive, gap=gap,
+                                coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                                cut_links=0, cv=0.0, mean_member=0.0)
+
+        m = _manifest(["a", "b", "c", "d"])
+        incumbent = canonical([["a", "b"], ["c", "d"]])
+        table = {}
+
+        def evaluate(b):
+            # incumbent is 100; every neighbour is dearer.
+            return _ev(len(b), 100 if bucketing_key(b) ==
+                       bucketing_key(incumbent) else 200)
+
+        assert full_neighbourhood_improver(
+            incumbent, m, evaluate, theta=0.2) is False
+
+    def test_incoherent_cheaper_neighbour_is_not_an_improver(self):
+        # a cheaper neighbour with gap>theta is refused -> not a shadow.
+        from west_meta_agon import MetaEvidence, canonical
+        from west_basin_map import full_neighbourhood_improver
+
+        def _ev(n, naive, gap=0.0):
+            return MetaEvidence(n=n, cost_naive=naive, cost_incremental=naive, gap=gap,
+                                coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                                cut_links=0, cv=0.0, mean_member=0.0)
+
+        m = _manifest(["a", "b", "c", "d"])
+        incumbent = canonical([["a", "b"], ["c", "d"]])
+        table = {bucketing_key(incumbent): _ev(2, 100)}
+
+        def evaluate(b):
+            if bucketing_key(b) == bucketing_key(incumbent):
+                return _ev(2, 100)
+            return _ev(len(b), 10, gap=0.5)     # cheaper but incoherent
+
+        assert full_neighbourhood_improver(
+            incumbent, m, evaluate, theta=0.2) is False
+
+
 class TestKillerTests:
     """Killer tests: catch mutations the real-evaluator tests can't."""
 
