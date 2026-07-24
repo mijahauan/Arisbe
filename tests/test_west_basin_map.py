@@ -1,7 +1,9 @@
 """West-in-kytē E3b — the basin map.
 Spec: docs/superpowers/specs/2026-07-24-west-in-kyte-e3b-design.md"""
 
-from vault_generator import CrossLink, VaultManifest
+import pytest
+
+from vault_generator import CrossLink, VaultManifest, generate_vault
 
 from west_meta_agon import bucketing_key, bucket_sizes, canonical
 from west_basin_map import contiguous_compositions, structured_starts
@@ -77,3 +79,55 @@ class TestStructuredStarts:
         for b in starts:
             assert bucketing_key(b) != degenerate_key, \
                 f"Degenerate 6/3/2/1 mid-start should not appear for F0={len(fs)}"
+
+
+@pytest.fixture(scope="module")
+def small_vault(tmp_path_factory):
+    dest = tmp_path_factory.mktemp("e3b")
+    manifest = generate_vault(dest, seed=20260721, folders=4,
+                              notes_per_folder=3,
+                              cross_folder_link_prob=0.5, journal_len=3)
+    return dest, manifest
+
+
+class TestMapBasins:
+    def test_terminus_matches_direct_walk(self, small_vault):
+        from west_meta_agon import MemoEvaluator, run_meta_walk
+        from west_basin_map import BasinMap, distinct_optima, map_basins
+        dest, manifest = small_vault
+        starts = structured_starts(manifest, comp_parts=(2, 3), comp_cap=4)
+        bm = map_basins(dest, manifest, starts, rounds=12, ttl=120, theta=0.2)
+        # Every recorded terminus is a converged halt.
+        for wr in bm.terminus_by_start.values():
+            assert wr.halt == "converged"
+        # Re-running one start's walk directly reproduces its terminus.
+        s0 = starts[0]
+        direct = run_meta_walk(s0, name="chk", arm="naive", manifest=manifest,
+                               evaluate=MemoEvaluator(dest, manifest, rounds=12,
+                                                      ttl=120).evaluate,
+                               theta=0.2)
+        assert (bm.terminus_by_start[bucketing_key(s0)].final_evidence.cost_naive
+                == direct.final_evidence.cost_naive)
+
+    def test_watersheds_partition_the_starts(self, small_vault):
+        from west_meta_agon import MemoEvaluator, run_meta_walk
+        from west_basin_map import BasinMap, distinct_optima, map_basins
+        dest, manifest = small_vault
+        starts = structured_starts(manifest, comp_parts=(2, 3), comp_cap=4)
+        bm = map_basins(dest, manifest, starts, rounds=12, ttl=120, theta=0.2)
+        # Every start appears in exactly one watershed; the union is all starts.
+        flat = [s for members in bm.watersheds.values() for s in members]
+        assert sorted(flat) == sorted(bucketing_key(s) for s in starts)
+        assert len(flat) == len(set(flat))          # disjoint
+        # Each watershed key is a terminus of each of its members.
+        for term_key, members in bm.watersheds.items():
+            for s_key in members:
+                assert bucketing_key(bm.terminus_by_start[s_key].final) == term_key
+
+    def test_shared_memo_saves_evals(self, small_vault):
+        from west_meta_agon import MemoEvaluator, run_meta_walk
+        from west_basin_map import BasinMap, distinct_optima, map_basins
+        dest, manifest = small_vault
+        starts = structured_starts(manifest, comp_parts=(2, 3), comp_cap=4)
+        bm = map_basins(dest, manifest, starts, rounds=12, ttl=120, theta=0.2)
+        assert bm.evaluator.hits > 0        # overlap across starts was reused
