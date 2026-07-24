@@ -330,3 +330,139 @@ class TestKillerTests:
         for term_key, members in bm.watersheds.items():
             assert members == sorted(members), \
                 f"Watershed {term_key} not sorted: {members} != {sorted(members)}"
+
+
+def _ev(n, cost):
+    """Create a MetaEvidence for testing."""
+    from west_meta_agon import MetaEvidence
+    return MetaEvidence(n=n, cost_naive=cost, cost_incremental=cost, gap=0.0,
+                        coverage=1.0, m_fed=0, k2=None, k3=0.0,
+                        cut_links=0, cv=0.0, mean_member=0.0)
+
+
+def _wr(start_key, term_bucketing, cost):
+    """Create a WalkResult for testing."""
+    from west_meta_agon import WalkResult
+    ev = _ev(len(term_bucketing), cost)
+    return WalkResult(name="b", arm="naive", start_key=start_key, rounds=[],
+                      final=term_bucketing, final_evidence=ev,
+                      halt="converged", moves=[])
+
+
+def _bm(entries):
+    """Create a BasinMap from (start_key, terminus_bucketing, cost) entries."""
+    from west_basin_map import BasinMap
+    tbs = {sk: _wr(sk, tb, c) for sk, tb, c in entries}
+    watersheds = {}
+    for sk, wr in tbs.items():
+        watersheds.setdefault(bucketing_key(wr.final), []).append(sk)
+    for m_ in watersheds.values():
+        m_.sort()
+    return BasinMap(terminus_by_start=tbs, watersheds=watersheds,
+                    evaluator=None, manifest=None)
+
+
+# canonical N=3 optima used across the verdict tests. bucket_sizes renders
+# sizes in CANONICAL bucket order (buckets sorted lexicographically by
+# content), NOT size order — so the fixtures are built so the big bucket sorts
+# first (its min element "Folder-0" precedes the singletons' "Folder-10"/"-11").
+CHEAP = canonical([[f"Folder-{k}" for k in range(10)],       # Folder-0..9
+                   ["Folder-10"], ["Folder-11"]])            # -> "10/1/1"
+DEAR = canonical([[f"Folder-{k}" for k in range(0, 3)],      # Folder-0,1,2
+                  [f"Folder-{k}" for k in range(3, 11)],     # Folder-3..10 (min "Folder-10")
+                  ["Folder-11"]])                            # -> "3/8/1"
+# sanity (the fixtures must render the E3-known sizes, else consistency breaks):
+assert bucket_sizes(CHEAP) == "10/1/1"
+assert bucket_sizes(DEAR) == "3/8/1"
+
+
+def _mono_key():
+    return bucketing_key(canonical([[f"Folder-{k}" for k in range(12)]]))
+
+
+class TestVerdictLayer:
+    def test_all_expected_baseline(self):
+        # monolith (N=1) -> DEAR@120k ; a merge start (N=12) -> CHEAP@101k
+        bm = _bm([(_mono_key(), DEAR, 119935),
+                  (bucketing_key(canonical([[f"Folder-{k}"] for k in range(12)])),
+                   CHEAP, 101411)])
+        shadowed = {bucketing_key(DEAR): False, bucketing_key(CHEAP): False}
+        from west_basin_map import assemble_basin_report
+        rep = assemble_basin_report(bm, shadowed)
+        assert rep.priors == {"PM1": "held", "PM2": "held",
+                              "PM3": "held", "PM4": "held"}
+        assert rep.consistency_ok is True
+        assert rep.cheapest_cost == 101411
+        assert rep.distinct_count == 2
+        # optima cost-ascending
+        assert [o.cost for o in rep.optima] == [101411, 119935]
+
+    def test_pm1_single_n3_optimum_refutes(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        # both starts land in the same optimum -> only ONE distinct N=3 optimum
+        bm = _bm([(mono, CHEAP, 101411),
+                  (bucketing_key(canonical([[f"Folder-{k}"] for k in range(12)])),
+                   CHEAP, 101411)])
+        rep = assemble_basin_report(bm, {bucketing_key(CHEAP): False})
+        assert rep.priors["PM1"] == "refuted"
+
+    def test_pm2_merge_start_dearer_than_monolith_refutes(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        merge_start = bucketing_key(
+            canonical([[f"Folder-{k}"] for k in range(12)]))   # N=12
+        # monolith reaches CHEAP@101k, merge start reaches DEAR@120k -> refute
+        bm = _bm([(mono, CHEAP, 101411), (merge_start, DEAR, 119935)])
+        shadowed = {bucketing_key(CHEAP): False, bucketing_key(DEAR): False}
+        rep = assemble_basin_report(bm, shadowed)
+        assert rep.priors["PM2"] == "refuted"
+
+    def test_pm2_refuted_when_no_monolith_start(self):
+        from west_basin_map import assemble_basin_report
+        merge_start = bucketing_key(
+            canonical([[f"Folder-{k}"] for k in range(12)]))
+        bm = _bm([(merge_start, CHEAP, 101411)])
+        rep = assemble_basin_report(bm, {bucketing_key(CHEAP): False})
+        assert rep.priors["PM2"] == "refuted"
+
+    def test_pm3_cheaper_basin_refutes(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        merge_start = bucketing_key(
+            canonical([[f"Folder-{k}"] for k in range(12)]))
+        bm = _bm([(mono, DEAR, 119935), (merge_start, CHEAP, 90000)])  # < 101411
+        shadowed = {bucketing_key(DEAR): False, bucketing_key(CHEAP): False}
+        rep = assemble_basin_report(bm, shadowed)
+        assert rep.priors["PM3"] == "refuted"
+        assert rep.cheapest_cost == 90000
+
+    def test_pm4_more_than_five_optima_refutes(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        entries = [(mono, DEAR, 119935)]
+        # add six MORE distinct N=2 optima (7 total > 5)
+        for k in range(6):
+            term = canonical([[f"Folder-{k}"],
+                              [f"Folder-{j}" for j in range(12) if j != k]])
+            entries.append((bucketing_key(term), term, 130000 + k))
+        bm = _bm(entries)
+        shadowed = {t: False for t in bm.watersheds}
+        rep = assemble_basin_report(bm, shadowed)
+        assert rep.priors["PM4"] == "refuted"
+
+    def test_consistency_fails_when_known_optimum_absent(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        # only CHEAP present, DEAR (3/8/1) missing
+        bm = _bm([(mono, CHEAP, 101411)])
+        rep = assemble_basin_report(bm, {bucketing_key(CHEAP): False})
+        assert rep.consistency_ok is False
+
+    def test_shadowed_flag_carried_onto_optimum(self):
+        from west_basin_map import assemble_basin_report
+        mono = _mono_key()
+        bm = _bm([(mono, CHEAP, 101411)])
+        rep = assemble_basin_report(bm, {bucketing_key(CHEAP): True})
+        opt = [o for o in rep.optima if o.sizes == "10/1/1"][0]
+        assert opt.shadowed is True

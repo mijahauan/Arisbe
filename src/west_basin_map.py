@@ -8,8 +8,8 @@ Reuses west_meta_agon UNCHANGED; unprotected, additive."""
 from dataclasses import dataclass
 from typing import Dict, List
 
-from west_meta_agon import (Bucketing, MemoEvaluator, WalkResult, arm_cost, bucketing_key, canonical,
-                            merge_moves, run_meta_walk, split_moves)
+from west_meta_agon import (Bucketing, MemoEvaluator, WalkResult, arm_cost, bucketing_key, bucket_sizes,
+                            canonical, merge_moves, run_meta_walk, split_moves)
 from west_measure import round_robin_buckets
 
 
@@ -131,3 +131,79 @@ def full_neighbourhood_improver(bucketing, manifest, evaluate, *, theta: float,
         if arm_cost(ev, arm) < arm_cost(inc, arm):
             return True
     return False
+
+
+@dataclass
+class Optimum:
+    """One distinct basin bottom (spec §5)."""
+    key: str
+    sizes: str
+    n: int
+    cost: int
+    watershed_count: int
+    shadowed: bool
+
+
+@dataclass
+class BasinReport:
+    """The assembled map + PM1-PM4 verdicts (spec §5-§6)."""
+    optima: List["Optimum"]
+    priors: Dict[str, str]
+    consistency_ok: bool
+    cheapest_cost: int
+    distinct_count: int
+
+
+def assemble_basin_report(bm: BasinMap, shadowed: Dict[str, bool], *,
+                          e3_w1_cost: int = 119935, e3_w2_cost: int = 101411,
+                          e3_known_sizes=("3/8/1", "10/1/1")) -> BasinReport:
+    """Decide PM1-PM4 and build the optima table (spec §6). ``shadowed`` maps a
+    terminus key to its full-neighbourhood diagnostic (Task 3)."""
+    # Build the optima table (one per distinct terminus).
+    optima: List[Optimum] = []
+    for term_key, members in bm.watersheds.items():
+        # every member reaches this terminus; read cost/n from any one.
+        wr = bm.terminus_by_start[members[0]]
+        optima.append(Optimum(
+            key=term_key, sizes=bucket_sizes(wr.final), n=wr.final_evidence.n,
+            cost=wr.final_evidence.cost_naive, watershed_count=len(members),
+            shadowed=bool(shadowed.get(term_key, False))))
+    optima.sort(key=lambda o: (o.cost, o.key))
+
+    n3 = [o for o in optima if o.n == 3]
+    distinct_count = len(optima)
+    cheapest_cost = min((o.cost for o in optima), default=0)
+
+    # PM1 — >= 2 distinct N=3 optima.
+    pm1 = "held" if len(n3) >= 2 else "refuted"
+
+    # PM2 — every merge-direction (start_n>3) start reaching N=3 is strictly
+    # cheaper than the monolith (start_n==1) start's terminus.
+    mono_keys = [sk for sk in bm.terminus_by_start
+                 if len(sk.split(";")) == 1]
+    if not mono_keys:
+        pm2 = "refuted"
+    else:
+        mono_cost = bm.terminus_by_start[mono_keys[0]].final_evidence.cost_naive
+        pm2 = "held"
+        for start_key, wr in bm.terminus_by_start.items():
+            start_n = len(start_key.split(";"))
+            if start_n > 3 and wr.final_evidence.n == 3:
+                if wr.final_evidence.cost_naive >= mono_cost:
+                    pm2 = "refuted"
+                    break
+
+    # PM3 — no cheaper basin than E3's W2 hides.
+    pm3 = "held" if cheapest_cost >= e3_w2_cost else "refuted"
+
+    # PM4 — few-basin (<= 5 distinct optima).
+    pm4 = "held" if distinct_count <= 5 else "refuted"
+
+    sizes_present = {o.sizes for o in optima}
+    consistency_ok = all(s in sizes_present for s in e3_known_sizes)
+
+    return BasinReport(
+        optima=optima,
+        priors={"PM1": pm1, "PM2": pm2, "PM3": pm3, "PM4": pm4},
+        consistency_ok=consistency_ok, cheapest_cost=cheapest_cost,
+        distinct_count=distinct_count)
