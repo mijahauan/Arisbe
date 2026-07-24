@@ -1,6 +1,51 @@
 # Current Plan
 
-**Last Updated**: 2026-07-23 (later) — **agenda #6 continued — West-in-kytē E2b RUN (by the
+**Last Updated**: 2026-07-23 (latest) — **agenda #6 continued — West-in-kytē E3 (endogenous
+partition) BUILT + MERGED (`main` @ `bfe9c69`) + RUN. RESULT: PE1/PE3/PE4 held, PE2 refuted, PE5
+refuted** (`runs/WEST_E3_LOG.md`; run 2026-07-23 17:38–23:27 CDT, ~5h49m, deterministic, canary
+PASS, all four ledgers replay clean). A full spec→plan→build→run arc in one sitting: spec
+`9d95326`, plan `4c55785`, 8-task subagent-driven TDD build (Tasks 4/5/6 — the walk, the rider,
+the verdict layer — each hardened with bite-verified killer tests after review; the E2/E2b
+mutation-in-verdict-layer pattern held a third time), full suite **4100 passed / 0 failed**,
+E1/E2/E2b byte-frozen. E3 = a harness-level meta-Agon over folder-bucketings: split/merge as
+licensed recorded moves, full-slate steepest descent on measured cost + a gap-gate, JSONL move
+ledger + replay.
+
+- **PE1 held — self-partitioning converges to the interior optimum.** Both end-start Arm-N walks
+  halt at an interior **N=3** partition at or *below* E2b's measured trough (137,129): W1 (from the
+  N=1 monolith) → 3/8/1 at **119,935** (0.88×); W2 (from N=12 singletons) → 10/1/1 at **101,411**
+  (0.74×). The meta-Agon finds a *cheaper* N=3 than the round-robin baseline via link-guided merging.
+- **PE2 refuted — the headline: convergence is to a *granularity*, not a unique *partition*.** All
+  three Arm-N walks agree on N=3 but not on the bucketing: W2 & W3 (both merge-direction) settle the
+  **10/1/1** basin (101,411 / 102,099, agree to 0.7%); W1 (split-direction, from the monolith) is
+  caught in a **different 3/8/1** basin 18% dearer. The landscape has **multiple N=3 basins and the
+  search direction selects which one** — the honest multi-optimum structure E2b's single U-curve
+  could not show. (The empirical miniature of the Graeber-Wengrow "many viable organizations, no
+  unique optimum" thread just recorded to memory.)
+- **PE3 held (control) + PE4 held.** W4 (Arm I) splits all the way to N=12 (37,917 = E2b's F=12
+  Arm-I exactly) — the interior optimum is the *naive coordinator's*, PB2 made a trajectory. And the
+  rider reached the coherence force: tightening ttl to 60 pushes even N=4 past θ (gap 0.47) —
+  **the first coherence break in the whole arc away from the N=1 monolith**; the broker fired.
+- **PE5 refuted — partition quality has no cost teeth even under force.** Broker-active at ttl=60,
+  link-aware cut cross-bucket links 71→64 (−10%) yet cost *rose* 0.5% (146,228 vs 145,487).
+  Mechanism: routing is ~1 unit/link so the link saving is negligible, while materialization
+  dominates and is minimised by **balance**, not link-locality — link-aware's lumpy buckets pile
+  materialization on the big member. **Balance beats link-locality**; there is nothing for a quality
+  search to win in this cost model.
+- The gap-gate does real work: every N=2 round shows `refused=1` — the merge back to the incoherent
+  N=1 monolith (gap 0.58) is refused, while the incumbent monolith start is never gated (so W1/W4
+  begin standing-incoherent and escape on move 1).
+
+▶ **Disposition + next are the author's.** Candidates from this run (in `runs/WEST_E3_LOG.md`): a
+**basin map** (enumerate the N=3 local optima + attractor sets — the "how many viable commens"
+question); a **cost model where quality pays** (PE5's null is specific to cheap-routing +
+balance-driven materialization); and **the commens rung proper** — the change in *kind* THE_COMMENS
+flags as un-constitutable in one instance, where the fractal framing meets its named skeptical test.
+The six open author threads (veil/uptake/substrate/normativity/fractal-heterarchy/no-teleology,
+posed this sitting) are queued for that rung. **NOT pushed** (local-primary; offer at close). The
+E2b run record and prior sittings follow.
+
+**Last Updated (prior)**: 2026-07-23 — **agenda #6 continued — West-in-kytē E2b RUN (by the
 assistant, at the author's 2026-07-23 request). RESULT: PB1/PB2/PB5 held, PB3 refuted (a
 reported finding), PB4 undetermined (the conditional fired as pre-registered)**
 (`runs/WEST_E2B_LOG.md`; run 2026-07-23 07:03–07:39 CDT, 35m51s, deterministic, canary PASS).
