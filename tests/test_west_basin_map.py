@@ -3,7 +3,7 @@ Spec: docs/superpowers/specs/2026-07-24-west-in-kyte-e3b-design.md"""
 
 from vault_generator import CrossLink, VaultManifest
 
-from west_meta_agon import bucketing_key
+from west_meta_agon import bucketing_key, bucket_sizes, canonical
 from west_basin_map import contiguous_compositions, structured_starts
 
 
@@ -14,11 +14,6 @@ def _manifest(folders, links=()):
         for i, (s, t) in enumerate(links))
     return VaultManifest(folders=tuple(folders), notes=(),
                          cross_links=cross, journal_len=0)
-
-
-def bucket_sizes(bucketing):
-    """Helper: return size of each bucket as a string like '2/1/1'."""
-    return "/".join(str(len(b)) for b in bucketing)
 
 
 class TestContiguousCompositions:
@@ -65,3 +60,20 @@ class TestStructuredStarts:
         keys = [bucketing_key(x) for x in a]
         assert keys == [bucketing_key(x) for x in b]          # deterministic
         assert len(keys) == len(set(keys))                    # deduped
+
+    def test_f0_less_than_12_excludes_mid_start(self):
+        # F0 < 12: the 6/3/2/1 mid-start guard should NOT fire.
+        m = _manifest([f"Folder-{k}" for k in range(4)])
+        starts = structured_starts(m, comp_parts=(2, 3), comp_cap=4)
+        # All starts must have non-empty buckets.
+        for b in starts:
+            assert all(len(bucket) > 0 for bucket in b), \
+                f"Bucketing {b} has empty buckets"
+        # The degenerate 6/3/2/1 shape (which would have empty buckets on F0=4)
+        # must NOT appear in the starts.
+        fs = sorted(m.folders)
+        degenerate = canonical([fs[0:6], fs[6:9], fs[9:11], fs[11:12]])
+        degenerate_key = bucketing_key(degenerate)
+        for b in starts:
+            assert bucketing_key(b) != degenerate_key, \
+                f"Degenerate 6/3/2/1 mid-start should not appear for F0={len(fs)}"
