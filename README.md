@@ -3,7 +3,7 @@
 
 An environment for **doing logic in pictures**, built around Charles S. Peirce's Existential Graphs with Frithjof Dau's formalization as the guarantor of correctness. Arisbe elevates logical diagrams from static notation to **living processes of inquiry** - complete universes of discourse where justification, transformation, and meaning unfold through dialogue and formal rules.
 
-The central engineering and research problem the codebase solves: **inerrant correspondence between an EGI's linear written form and its graphical drawn form**. The contract is stated in [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md), tested against the tomos corpus, exposed as a refusal-bearing API in [src/presentation_ops.py](src/presentation_ops.py), and runtime-attested at the web service boundary by [src/correspondence_attestation.py](src/correspondence_attestation.py). When picture and proposition come apart, the system refuses to serve a drawing it can't attest.
+The central engineering and research problem the codebase solves: **inerrant correspondence between an EGI's linear written form and its graphical drawn form**. The contract is stated in [docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md), tested against tomos, exposed as a refusal-bearing API in [src/presentation_ops.py](src/presentation_ops.py), and runtime-attested at the web service boundary by [src/correspondence_attestation.py](src/correspondence_attestation.py). When picture and proposition come apart, the system refuses to serve a drawing it can't attest.
 
 **The exact-correspondence engine (complete, June 2026).** That contract is now realized *geometrically*: a cut **is its drawn curve**, every mark is an **extent** (label box, not anchor point), and the whole §3.3 invariant — cut containment, ligature crossing-sequence, label/numeral extents, no improper occlusion, argument order by clockwise placement — is checked as a set of **exact facts about the literal drawn picture**, no proxy shape. A cut can be an arbitrary human-drawn polyline, tested point-in-polygon by both the attestation and the reader and hit-tested in the browser via `isPointInFill`. See [docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md). It is the foundation the **freeform composition canvas** (draw logic by hand, read it into a sign on demand — shipped, live in Ergasterion) was built on.
 
@@ -11,6 +11,7 @@ The central engineering and research problem the codebase solves: **inerrant cor
 
 ---
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/mijahauan/Arisbe)
+[![Release](https://img.shields.io/badge/release-v2.0.0--beta.1%20%22Moses%22-blue)](https://github.com/mijahauan/Arisbe/releases/tag/v2.0.0-beta.1)
 ---
 
 ## 🎯 **Philosophical Foundation** (Read First)
@@ -64,7 +65,7 @@ The **library and archives** for universes of discourse.
 - Explore any historical state
 - Import literature examples
 - Export proofs, diagrams, sequences
-- Search and browse corpus
+- Search and browse the archive
 
 **Metaphor**: The published proceedings and library - read, cite, export
 
@@ -110,8 +111,15 @@ The **core reasoning engine** and referee.
 **Who**: Researchers, logicians, and students working with diagrammatic reasoning
 **Why**: First modern implementation that treats correspondence as a stated, tested, and runtime-attested invariant — not an emergent property maintained by careful code
 
+👉 **New user? Start here**: [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) — a role-aware
+on-ramp (no logic background assumed) that branches by reader: newcomer / ontologist / logician /
+mathematician / Peirce scholar
 👉 **Full vision**: [VISION_AND_SCOPE.md](docs/VISION_AND_SCOPE.md)
+👉 **What actually works, today**: [CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) — the living
+capability/maturity table this README summarizes; it is the source of truth when the two disagree
+👉 **What's next**: [ROADMAP.md](docs/ROADMAP.md)
 👉 **Correspondence spec**: [LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md)
+👉 **For scholars & Peirce researchers**: [ARISBE_FOR_SCHOLARS.md](docs/ARISBE_FOR_SCHOLARS.md)
 👉 **AI assistance**: [AI_CONDUCT_GUIDELINES.md](AI_CONDUCT_GUIDELINES.md)
 
 ---
@@ -119,7 +127,8 @@ The **core reasoning engine** and referee.
 ## 🔒 **Development Guidelines**
 
 - **📚 API Documentation**: `docs/ARISBE_CORE_API_REFERENCE.md`
-- **🛡️ Core Protection**: 17 validated modules; ~1000 passing tests across the suite
+- **🛡️ Core Protection**: 14 protected modules (the genuine calculus core — see
+  `tools/core_protection_system.py --report`); 4,100+ passing tests across the suite
 - **📊 Quality Monitoring**: Automated quality gates and daily dashboard
 - **🧠 Context Recovery**: `docs/RETURN_TO_DEVELOPMENT.md`
 
@@ -169,6 +178,10 @@ The **core reasoning engine** and referee.
 
 ### Core Source Modules (`src/`)
 
+`src/` now holds 120+ modules; the list below is a curated tour of the bedrock, not the full
+inventory. For the complete, current module ↔ test map, see
+[docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) or [CLAUDE.md](CLAUDE.md).
+
 **EGI Data Model:**
 
 - `egi_core_dau.py` — `RelationalGraphWithCuts` with 6+1 component architecture (V, E, ν, sheet, Cut, area, rel)
@@ -212,11 +225,11 @@ The **core reasoning engine** and referee.
 - `chapter20_syntactic_equivalence_fixes.py` — Equivalence edge cases
 - `subgraph_closure_validator.py` — INS/ERA closure validation (Beta-aware: free outer-area vertices)
 
-**Corpus and UoD Management:**
+**Tomos and UoD Management:**
 
 - `universe_of_discourse.py` — `UniverseOfDiscourse` entity (synchronic + diachronic + layout)
-- `tomos_service.py` — Unified API for corpus browsing and UoD loading
-- `tomos_index.py` — Index-based fast corpus navigation
+- `tomos_service.py` — Unified API for browsing and loading tomos
+- `tomos_index.py` — Index-based fast tomos navigation
 
 **Layout and Visualization:**
 
@@ -228,8 +241,6 @@ The **core reasoning engine** and referee.
 - `layout_dto.py` — platform-independent layout DTO (carries cut boundary polylines for human-drawn cuts)
 - `presentation_ops.py` — regime-3 algebra + the exact-correspondence geometry (`point_in_cut`, `cut_boundary`, `point_in_polygon`, label-box extents)
 - `style_loader.py` — declarative visual style system (Dau / Peirce / Sowa)
-
-> The Qt GUI and the old `unified_d3` engine were archived to `archive/qt-gui-2025/` in May 2026; the web app (`src/web_api/` + `src/web_viewer/`) is the canonical UI.
 
 **Utilities:**
 
@@ -249,13 +260,13 @@ The **core reasoning engine** and referee.
 ## 📁 Project Structure
 
 ```
-src/                  Core logic and engine (35+ production modules)
-tests/                Pytest test suite (~960 passing, 45+ test files)
+src/                  Core logic and engine (120+ production modules)
+tests/                Pytest test suite (4,100+ passing, 144 skipped)
 tools/                Quality tools, demos, and utilities
-docs/                 Architecture documentation
+docs/                 Architecture documentation (see CAPABILITY_MAP.md for what's live)
 docs/RETURN_TO_DEVELOPMENT.md  Context recovery guide for returning authors
-tomos/                Canonical example corpus (87 items)
-corpus/               Active working corpus
+tomos/                The canonical example set (87 items)
+corpus/               Imported ontologies, domain models, and working graphs
 archive/              Archived legacy components
 styles/               Visual style specifications (JSON)
 ```
@@ -286,10 +297,6 @@ The home page links the three live modes: **Organon** (`/organon`, the read-only
 **Ergasterion** (`/ergasterion`, the workshop), and **Agon** (`/agon`, the contest/interpretation
 arena).
 
-The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) was archived to
-`archive/qt-gui-2025/` in May 2026. The web viewer
-(`src/web_api/` + `src/web_viewer/`) is the active surface.
-
 ### 📖 Documentation — the book / help
 
 The full documentation is a single-source **book** (also served as browseable in-app help),
@@ -300,8 +307,9 @@ quarto render docs          # → docs/_book/ (HTML site)
 ```
 
 Once rendered, the running app serves it at **http://localhost:8000/book/**. See
-[docs/install.qmd](docs/install.qmd) for PDF/epub builds, and
-[docs/ALPHA_RELEASE_PLAN.md](docs/ALPHA_RELEASE_PLAN.md) for the consolidation plan.
+[docs/install.qmd](docs/install.qmd) for PDF/epub builds. The consolidation plan
+([docs/ALPHA_RELEASE_PLAN.md](docs/ALPHA_RELEASE_PLAN.md)) shipped as the **v2.0.0-beta.1 "Moses"
+release** (first full-suite CI pass) — see [docs/ROADMAP.md](docs/ROADMAP.md) for what's current now.
 
 ### Play the Endoporeutic Game (REPL)
 
@@ -354,6 +362,11 @@ print(r)   # Z3Result(YES: ...)
 
 ## 🧪 Testing
 
+**4,125 passed, 144 skipped, 0 failed** as of this writing (`uv run pytest tests/ -q`, ~23 min).
+The mathematical core subset (`egi_core_dau`, `formal_transformation_rules`, `rule_interaction`,
+`subgraph_closure_validator`, `graph_isomorphism_engine`, the Beta/logical proof exercises) must
+always pass — a failing core test is a real correctness defect, never test noise.
+
 ### Core suite
 
 ```bash
@@ -391,148 +404,79 @@ uv run python tools/demo_round_trip_translations.py
 
 ## 🗺️ Sub-application Status
 
-The three modes are now best understood as **routes within the web app**;
-the Qt implementation was archived in May 2026.
+The three modes are routes within the web app.
 
 | Module | Status | Notes |
 |---|---|---|
-| **Organon** (Archive/browser) | ✅ **Live** | `web_api/routes/organon.py` + `web_viewer/organon.html` — read-only corpus archive at `/organon`. Both load and render boundaries §3.3-attested per request. |
+| **Organon** (Archive/browser) | ✅ **Live** | `web_api/routes/organon.py` + `web_viewer/organon.html` — read-only archive at `/organon`. Both load and render boundaries §3.3-attested per request. |
 | **Ergasterion** (Workshop) | ✅ **Live** | `web_api/routes/ergasterion.py` + `web_viewer/ergasterion.html` — composition route at `/ergasterion`. Regime-1 drafts (correspondence invariant suspended); promotion is the regime-1 → regime-2 boundary at which §3.3 attestation fires. Chain of rule applications persisted via `TomosService.save_uod_with_chain` (V1 linear chains, JSONL + per-state snapshots). |
 | **Agon** (Endoporeutic Game) | ✅ **Live** | `web_api/routes/agon.py` + `web_viewer/agon.html` at `/agon` — the contest (hot-seat transformation game) and the interpretation register (choose a model M, peel G against it → verdict + witness/counterexample, the inverse pivot). REPL also available (`game_repl.py`); Z3-validated. |
 | **Correspondence attestation** | ✅ **Live** | `correspondence_attestation.py` + hook in `web_api/services/layout_service.py` |
 
 ---
 
-## 📊 Current State (June 2026)
+## 📊 Capabilities Snapshot
 
-### ✅ Completed
+Arisbe is under active development. The **v2.0.0-beta.1 "Moses" release** (2026-07) tags the
+completed first-order territory — the full Dau calculus, all three web modes, the exact
+correspondence engine, and the validity discipline described below — ahead of the project's
+active frontier: **mention-ascent**, logic *about* the graphs themselves (quotation,
+`(forces s φ)`). That crossing is deliberately paused pending two author decisions; see
+[docs/SECOND_ORDER_FRONTIER.md](docs/SECOND_ORDER_FRONTIER.md).
 
-**Mathematical Core:**
+**This section is a summary, not the record.** [docs/CAPABILITY_MAP.md](docs/CAPABILITY_MAP.md) is
+the living, per-capability table (status + module + test home for everything below and more) —
+treat it as the source of truth where the two disagree. [docs/ROADMAP.md](docs/ROADMAP.md) is
+what's next, organized as four workstreams (Understand · Share · Run · Use).
 
-- Complete Dau-compliant EGI data structures (6+1 component `RelationalGraphWithCuts`)
-- All six transformation rules (ERA, INS, IT+, IT-, DC+, DC-) with precondition validation
-- **Full Beta graph support**: lines of identity crossing cut boundaries (first-order logic)
-- **Headless RuleInteraction protocol** for stepwise proof construction (all six rules)
-- Round-trip translation: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI (57+ / 40+ / 35+ tomos validated)
-- Hierarchical indexing for O(1) polarity and nesting calculations
-- Chapter 17 ligature rules (move branches, extend/retract, split/merge vertices)
-- Chapter 18 FOPL ↔ EGI (Φ/Ψ translations)
-- Chapter 20 syntactic equivalence checking
-- NetworkX VF2 graph isomorphism (replaces O(n!) permutation engine)
+### The bedrock (shipped)
 
-**Beta Graph Support (FOL):**
+- **Complete Dau formalism**: 6+1 component `RelationalGraphWithCuts`, all six transformation
+  rules (ERA, INS, IT±, DC±), Beta-aware (lines of identity crossing cut boundaries), a headless
+  `RuleInteraction` protocol, Z3-backed soundness checking
+- **Round-trip linear forms**: EGIF ↔ CGIF ↔ CLIF ↔ FOPL ↔ EGI (57+ / 40+ / 35+ tomos examples)
+- **Linear↔graphical correspondence** — the project's central contract — stated
+  ([docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md](docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md)), tested
+  tomos-wide, and runtime-attested at the web boundary; realized *geometrically* — cuts as drawn
+  polylines, label-box extents, clockwise argument order, no proxy shape
+  ([docs/EXACT_CORRESPONDENCE.md](docs/EXACT_CORRESPONDENCE.md))
+- **Freeform composition & challenge mode** — draw an EG by hand (cut / relation /
+  line-of-identity), read it into a sign on demand, get graded against a target
+  ([docs/FREEFORM_COMPOSITION_AND_LEARNING.md](docs/FREEFORM_COMPOSITION_AND_LEARNING.md))
+- **The three web modes** — Organon (read-only archive), Ergasterion (workshop, incl. freeform
+  composition), Agon (Endoporeutic Game — hot-seat contest + the interpretation register: peel a
+  graph against a chosen model M to a three-valued verdict with witness/counterexample)
+- **The validity discipline & M-residence** — a standing discipline for where contingent claims
+  may live, every change to a model an explicit rule-licensed step, every verdict a recomputable
+  peel ([docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](docs/M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md))
+- **Ontology import**: OWL/RDF/CLIF → EGI, with T-box subsumption decided by `theory_query.entails`
 
-- Beta-aware `SubgraphClosureValidator` — vertices in ancestor areas are free
-- Beta-aware `IterationRule` — extends lines of identity, does not copy source-area vertices
-- Beta-aware `ErasureRule` / `InsertionRule` — operate on edges with free outer-area vertices
-- EGIF round-trip preservation of shared vertex structure across cut boundaries
-- 20 dedicated Beta proof exercises validating all rules on FOL graphs
+### Beyond the core calculus
 
-**RuleInteraction Protocol:**
+More recent work extends the project past reasoning with one graph at a time:
 
-- Platform-independent, headless protocol for stepwise rule application
-- Guided multi-step workflows: source selection → destination → apply
-- Automatic subgraph closure expansion with user feedback
-- Beta-aware closure validation throughout
-- Used by both programmatic proof construction and future GUI integration
+- **The automated Endoporeutic Game** — the game played *autonomously*: a proposer voices a claim,
+  the peel tests it against a developing model, a panel negotiates how the model should change, and
+  disuse decays what's no longer used. Runs against real, live sources (Wikidata's edit stream,
+  weather forecasts, wiki edit-war disputes), bounded and checkpointed for continuous operation.
+  See [docs/AUTOMATED_MODEL_DEVELOPMENT.md](docs/AUTOMATED_MODEL_DEVELOPMENT.md) and
+  [docs/AUTOMATED_ENDOPOREUTIC_GAME.md](docs/AUTOMATED_ENDOPOREUTIC_GAME.md).
+- **A knowledge measure** — a four-part, fractal measure of a model's track record, durability,
+  compression, and use/decay, read the same way from a single fact up to a whole reasoning
+  community (never a scalar ranking, never truth itself). See
+  [docs/THE_MEASURE_OF_KNOWLEDGE.md](docs/THE_MEASURE_OF_KNOWLEDGE.md).
+- **MCP verifier** — Arisbe's mechanical referee exposed as [Model Context Protocol](https://modelcontextprotocol.io)
+  tools (`check_egif`, `peel`, `apply_rule`, `attest`) so other AI agents can call it directly —
+  *the LLM argues, the calculus decides*. See [docs/MCP_VERIFIER.md](docs/MCP_VERIFIER.md).
+- **Accessible (non-visual) projection** — a genuine ARIA tree reading of a graph with an
+  outside-in spoken reading; the repo's first accessibility surface.
 
-**Logical Proof Exercises:**
+### The active frontier
 
-- Propositional tautologies: modus ponens, modus tollens, hypothetical syllogism, double negation, contraposition, weakening
-- Beta graph proofs: universal strengthening, weakening via ERA, IT+/IT- round-trips
-- Multi-predicate and multi-variable Beta graphs
-- EGIF round-trip verification for Beta structure preservation
-
-**Semantic Validation:**
-
-- Z3 SMT-solver integration (`z3_semantic_validator.py`)
-- Semantic equivalence verified: DC+ soundness confirmed (∃x.Human(x) ≡ ¬¬∃x.Human(x))
-- `chapter17_soundness_evaluation.py` backed by real Z3 calls
-
-**Endoporeutic Game (Agon):**
-
-- Full game engine with `Player.PROPOSER` / `Player.SKEPTIC` role model
-- Polarity-based move permissions enforced
-- EGIF-based insertion with fresh-UUID element merging
-- Goal detection via graph isomorphism
-- Interactive REPL with save/load via `ProofSerializer`
-- Transformation history as serializable proof notation
-
-**UoD and Corpus:**
-
-- `UniverseOfDiscourse` as fundamental entity (synchronic + DAG history + layout)
-- `TomosService` unified corpus API
-- DAG-based transformation history with branching
-
-**Linear-Graphical Correspondence (the central contract):**
-
-- Specification: `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (§3 properties,
-  §4 three-regime scoping, §5 hard cases, §7 testable shapes)
-- Property tests: `tests/test_correspondence_invariant.py` covers all
-  six §7 shapes against every UoD in the tomos corpus
-- Regime-3 production API: `src/presentation_ops.py` — vertex
-  translation, cut reshape, ligature reroute, each raising
-  `Regime3Violation` on attempted boundary crossings
-- Runtime attestation: `src/correspondence_attestation.py`, hooked into
-  `web_api/services/layout_service.py` so every (EGI, drawing) pair
-  the user sees has been verified before leaving the service
-
-**The exact-correspondence engine (Phases 1–4, June 2026):**
-
-- The correspondence contract realized *geometrically* — every §3.3 property is an
-  exact fact about the literal drawn picture, no proxy shape
-  (`docs/EXACT_CORRESPONDENCE.md`)
-- **Phase 1–2**: cut containment + ligature crossing tested on the rounded
-  rectangle / inscribed ellipse the renderer actually draws (no corner void)
-- **Phase 3**: every mark is an **extent** — predicate/constant **label boxes**
-  (not anchor points) wholly within their area; no improper occlusion (text-on-text,
-  cut-line straddle, line through a non-incident label, with **label-aware ligature
-  routing** as the constructive partner); **argument order by clockwise placement**
-  (Peirce's writing convention) with a single start anchor and a numeral toggle
-- **Phase 4**: a cut can be carried as its **literal drawn polyline** — the
-  foundation for human-drawn cuts — tested point-in-polygon by §3.3 and the reader,
-  and hit-tested in the browser via `isPointInFill` (`areaAtPoint`)
-
-**The three web modes (live):**
-
-- **Organon** (`/organon`) — read-only corpus archive, load + render boundaries
-  §3.3-attested per request
-- **Ergasterion** (`/ergasterion`) — workshop / composition; regime-1 drafts; a graph
-  reaches the corpus only via Agon or as a style-only reprojection
-- **Agon** (`/agon`) — Endoporeutic Game arena (hot-seat V1)
-
-**Testing:**
-
-- **~960 tests passing**, ~35 skipped, across 45+ test files
-- Quality gates and core protection active (17 protected modules)
-- Comprehensive coverage: core data model, all six transformation rules,
-  import/export round-trips, isomorphism engine, proof exercises
-  (Alpha + Beta), rule interaction protocol, subgraph closure
-  validation, §3.3 correspondence properties, regime-3 contract
-
-### 🔧 In Progress / Next
-
-- **Mention-ascent** *(the active frontier — deliberately paused)* —
-  logic *about* the graphs themselves: quotation (a graph as an object, mention
-  without force), `(forces s φ)`, `(superseded ⌜M⌝ …)`. The landscape is mapped
-  ([docs/SECOND_ORDER_FRONTIER.md](docs/SECOND_ORDER_FRONTIER.md),
-  [docs/SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](docs/SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)),
-  the validation harness built (`second_order_check`), and the advance gates on two
-  author decisions (the comprehension floor; how much to open the core). The
-  **"Moses" beta** tags the completed first-order territory before this crossing.
-- **Freeform composition canvas** *(shipped, including challenge mode)* — composition
-  is draw-then-read: place/drag/erase typed marks (cut / relation / line-of-identity)
-  at free positions, with no live EGI; the picture is read into a sign only at gate
-  ① (`read_drawing` → validity → build EGI → "what it says"). **Live** in Ergasterion
-  (`web_viewer/js/freeform-canvas.js` + `read-drawing`/`fix-drawing` routes), with a
-  **Graph↔Argument** two-mode workspace, draw-time snapping, a fix-time validity pass
-  (`drawing_validity`), the drawing→EGI builder (`drawing_to_egi`), the legible EGI
-  diff (`egi_diff`), and **challenge mode** (draw a target freehand, graded by
-  `same_graph` + the diff; `docs/FREEFORM_COMPOSITION_AND_LEARNING.md`).
-- **Agon web arena** — surface the Endoporeutic Game engine (live as a REPL) as a
-  web route
-- **Math horizon** — the ∀x scaffold tactic (`derived_rules.py`) and selection-driven
-  `fold` (`definitions.py`); corpus-import the math theories (ZFC + Peirce 1881)
+**Mention-ascent** — logic about the graphs themselves, rather than logic within one — is mapped
+in [docs/SECOND_ORDER_FRONTIER.md](docs/SECOND_ORDER_FRONTIER.md) and deliberately paused pending
+two author decisions (how much comprehension to allow; how much of the protected core to open).
+See [🧪 Testing](#-testing) below for the current test-suite figures.
 
 ---
 
@@ -588,7 +532,7 @@ the Qt implementation was archived in May 2026.
 
 ### For Knowledge Engineers
 
-- Large-scale corpus management with `TomosService`
+- Large-scale tomos management with `TomosService`
 - DAG-based transformation history for branching inquiry workflows
 - Bridge between diagrammatic (EGI) and symbolic (FOPL/CLIF) reasoning
 
@@ -596,35 +540,22 @@ the Qt implementation was archived in May 2026.
 
 ## 🗓️ Development Roadmap
 
-### Current Focus (mid-2026)
-- **Freeform composition canvas** *(built)*: draw logic by hand, read it into a
-  determinate sign on demand (gate ①). Live in Ergasterion with a Graph↔Argument
-  two-mode workspace, draw-time snapping, a fix-time validity pass, the drawing→EGI
-  builder, the legible EGI diff, and **challenge mode** *(built)* — grade a freehand
-  attempt against a tomos target
-- **Agon interpretation register** *(built)*: the inning *given M, then G* — choose a
-  reference model M (curated scenarios or corpus UoDs, optionally **materialized** so
-  facts + Horn rules become testable), peel G against it to a three-valued verdict
-  with witness/counterexample, and the **inverse pivot** ("in what domain does G
-  hold?"). See `docs/GENERATION_AND_TESTING.md`, `docs/DOMAIN_ORACLE_AND_M.md`
-- **Next**: **ontology-as-M** (materialize a T-box, peel/search against it) and the
-  oracle's scale steps (demand-driven cache → horizon params → a remote SPARQL backing)
+The program is organized as four workstreams, named by verb — see
+[docs/ROADMAP.md](docs/ROADMAP.md) for the full, current picture (each item there carries either
+an **(author decision)** tag or a concrete next action):
 
-### Medium-term
-- **Hypothesis-driven exhaustive transformation testing**: extend
-  per-rule property tests from one deterministic site to full
-  enumeration of applicable sites
-- **The dialogical contest, in full**: an automated Grapheus (the peel supplies the
-  model-respecting reply) and the warrant lifecycle (low → tested by surviving Agon)
-- **Advanced visualization**: animated transformation sequences;
-  alternative projections (3-D viewer, accessibility renderings)
+- **Understand** — keep the doctrine that grounds everything else legible and ratified.
+- **Share** — push the project's own boundary outward: the documentation sweep and a first
+  publication choice (candidate theses include the §3.3 correspondence discipline, modality
+  without Gamma, and the automated Endoporeutic Game as a live model-development architecture).
+- **Run** — strengthen the mechanism itself: import/export unified, the interaction layer
+  instrumented to match the interior.
+- **Use** — the people-facing edge: UX fixes gated by
+  [docs/UI_TRANSPARENCY_CHARTER.md](docs/UI_TRANSPARENCY_CHARTER.md)'s seven testable principles.
 
-### Long-term
-- **Stylus drawing input** parsed back to a canonical EGI under the
-  named projection conventions (would activate the parse direction of
-  the correspondence map)
-- **Educational platform**: learning management system for EG theory
-- **Theorem prover bridge**: integration with Coq/Lean via CLIF
+Longer-term directions not yet scheduled into a workstream: stylus drawing input parsed back to a
+canonical EGI, an educational platform / learning-management integration, and a theorem-prover
+bridge (Coq/Lean via CLIF).
 
 ---
 
