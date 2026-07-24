@@ -42,8 +42,16 @@ question); a **cost model where quality pays** (PE5's null is specific to cheap-
 balance-driven materialization); and **the commens rung proper** — the change in *kind* THE_COMMENS
 flags as un-constitutable in one instance, where the fractal framing meets its named skeptical test.
 The six open author threads (veil/uptake/substrate/normativity/fractal-heterarchy/no-teleology,
-posed this sitting) are queued for that rung. **NOT pushed** (local-primary; offer at close). The
-E2b run record and prior sittings follow.
+posed this sitting) are queued for that rung. Pushed to `origin/main` (`d33461a`).
+
+**▶▶ AUTHOR DECISION (2026-07-23/24): keep the West momentum with the BASIN MAP next** (see what it
+teaches), **THEN return to brainstorm the rest** — explicitly the nine-topic agenda (block below)
+**and** the queued open threads: the six from this sitting
+(`project_four_doubts_veil_uptake_substrate_normativity`) + the earlier ethics-negotiated doubt
+(`project_ethics_negotiated_in_commens`). Retention verified (all three memory files present +
+indexed in MEMORY.md; the nine-topic block intact below). The West "cost model where quality pays"
+and "commens rung proper" candidates are also still open, after the basin map. The E2b run record
+and prior sittings follow.
 
 **Last Updated (prior)**: 2026-07-23 — **agenda #6 continued — West-in-kytē E2b RUN (by the
 assistant, at the author's 2026-07-23 request). RESULT: PB1/PB2/PB5 held, PB3 refuted (a
