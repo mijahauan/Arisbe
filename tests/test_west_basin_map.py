@@ -131,3 +131,77 @@ class TestMapBasins:
         starts = structured_starts(manifest, comp_parts=(2, 3), comp_cap=4)
         bm = map_basins(dest, manifest, starts, rounds=12, ttl=120, theta=0.2)
         assert bm.evaluator.hits > 0        # overlap across starts was reused
+
+
+class FakeEval:
+    """Deterministic evaluator for killer tests (rejects per-start and arm mutations)."""
+    def __init__(self, table):
+        self.table = table          # {bucketing_key: (cost_naive, cost_incremental, gap)}
+        self.calls = []
+        self.hits = 0
+        self.misses = 0
+
+    def evaluate(self, b):
+        from west_meta_agon import MetaEvidence
+        key = bucketing_key(b)
+        self.calls.append(key)
+        self.misses += 1
+        cn, ci, gap = self.table.get(key, (10**9, 10**9, 0.0))
+        return MetaEvidence(n=len(b), cost_naive=cn, cost_incremental=ci, gap=gap,
+                            coverage=1.0 - gap, m_fed=0, k2=None, k3=0.0,
+                            cut_links=0, cv=0.0, mean_member=0.0)
+
+
+class TestKillerTests:
+    """Killer tests: catch mutations the real-evaluator tests can't."""
+
+    def test_killer_shared_evaluator_identity(self):
+        """KILL per-start mutation: each start must use THE SHARED evaluator, not its own."""
+        from west_basin_map import map_basins
+        # Create a simple manifest and starts.
+        m = _manifest(["a", "b"])
+        starts = [canonical([("a",), ("b",)]), canonical([("a", "b")])]
+        fake = FakeEval({
+            bucketing_key(canonical([("a",), ("b",)])): (100, 100, 0.0),
+            bucketing_key(canonical([("a", "b")])): (50, 50, 0.0),
+        })
+        bm = map_basins(None, m, starts, rounds=0, ttl=0, theta=0.5, evaluator=fake)
+        # The per-start mutation builds its own MemoEvaluator internally,
+        # ignoring the injected one. The identity check fails.
+        assert bm.evaluator is fake, "map_basins did not use the injected evaluator"
+        assert len(fake.calls) > 0, "Injected evaluator was never called"
+
+    def test_killer_arm_is_naive(self):
+        """KILL arm="incremental" mutation: walk must use arm="naive", not "incremental"."""
+        from west_basin_map import map_basins
+        # Construct S (start) and C (split child).
+        # Under "naive": S high, C low → accept split → terminus C.
+        # Under "incremental": S's incremental low, C's incremental high (worse) → halt at S.
+        S = canonical([("a", "b"), ("c", "d")])
+        C = canonical([("a",), ("b",), ("c", "d")])  # split first bucket of S
+        fake = FakeEval({
+            bucketing_key(S): (1000, 100, 0.0),   # S: naive=high, incr=low
+            bucketing_key(C): (10, 1000, 0.0),    # C: naive=low, incr=high
+            # Other neighbors of S (for completeness, set them high).
+            bucketing_key(canonical([("a", "b"), ("c",), ("d",)])): (10**9, 10**9, 0.0),
+            bucketing_key(canonical([("a", "b"), ("c", "d", "e")])): (10**9, 10**9, 0.0),
+        })
+        bm = map_basins(None, _manifest(["a", "b", "c", "d"]),
+                        [S], rounds=0, ttl=0, theta=0.2, evaluator=fake)
+        # Under arm="naive", the split (S → C, 1000 → 10) is improving.
+        # The terminus must be C.
+        terminus = bm.terminus_by_start[bucketing_key(S)].final
+        assert bucketing_key(terminus) == bucketing_key(C), \
+            f"arm='incremental' mutation: expected terminus C, got {bucketing_key(terminus)}"
+
+    def test_killer_watersheds_sorted(self, small_vault):
+        """KILL unsorted-watersheds mutation: watershed members must be sorted."""
+        from west_basin_map import map_basins
+        dest, manifest = small_vault
+        starts = structured_starts(manifest, comp_parts=(2, 3), comp_cap=4)
+        bm = map_basins(dest, manifest, starts, rounds=12, ttl=120, theta=0.2)
+        # Every watershed member list must equal its own sorted copy.
+        # This test fails if members.sort() is removed (the mutation).
+        for term_key, members in bm.watersheds.items():
+            assert members == sorted(members), \
+                f"Watershed {term_key} not sorted: {members} != {sorted(members)}"

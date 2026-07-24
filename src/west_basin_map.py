@@ -84,10 +84,12 @@ class BasinMap:
 
 
 def map_basins(root, manifest, starts, *, rounds: int, ttl: int, theta: float,
-               merge_k: int = 3, max_rounds: int = 20) -> BasinMap:
+               merge_k: int = 3, max_rounds: int = 20, evaluator=None) -> BasinMap:
     """Descend each structured start through the verbatim E3 Arm-N walk on ONE
-    shared MemoEvaluator (spec §2-§4); invert termini to watersheds."""
-    evaluator = MemoEvaluator(root, manifest, rounds=rounds, ttl=ttl)
+    shared MemoEvaluator (spec §2-§4); invert termini to watersheds.
+    Evaluator is injectable (for testing); if None, builds a new MemoEvaluator."""
+    if evaluator is None:
+        evaluator = MemoEvaluator(root, manifest, rounds=rounds, ttl=ttl)
     terminus_by_start: Dict[str, WalkResult] = {}
     for b in starts:
         wr = run_meta_walk(b, name="basin", arm="naive", manifest=manifest,
