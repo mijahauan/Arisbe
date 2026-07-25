@@ -232,6 +232,87 @@ class TestTier3RulesRestraint:
         assert "second_order_limit" not in plain
 
 
+    def test_reduction_forcing_forces_uses_only_bmin_machinery(self, tomos):
+        """**Reduction Theorem Test 1:** Verify that `forcing_forces` exemplar
+        reduces to B-min's quotation device (no B-full features needed).
+
+        B-min machinery includes:
+        - sort: vertex can carry "proposition" | "abstraction" (default individual)
+        - quotation: cut can hold a graph-valued area (one oval per name, no nesting)
+        - Six Dau rules (ERA, INS, IT+, IT-, DC+, DC-) sort-preserving
+        - QUOTE step recording the quotation as neutral act
+
+        The claim: `forcing_forces` uses only this machinery. Test verifies:
+        1. Every chain step is either a Dau rule or QUOTE (no B-full ops)
+        2. No quotation-in-quotation (B-min limit)
+        3. Peel verdicts identical on quotation-bearing vs. projected graphs
+        4. No rules derive from quoted ink (erasure projection property)
+        """
+        from proof_character import NEUTRAL_RULES
+
+        uod = tomos.load_uod("forcing_forces", attest=False)
+        egi = uod.current_egi
+        chain = tomos.load_chain("forcing_forces")
+
+        assert chain is not None
+        assert egi.quotation, "forcing_forces should carry core quotations"
+
+        # 1. Verify chain steps use only Dau rules + QUOTE
+        dau_rules = {"ERA", "INS", "IT+", "IT-", "DC+", "DC-"}
+        for step in chain.steps:
+            rule_name = step.rule_name
+            assert (
+                rule_name in dau_rules or rule_name == "QUOTE"
+            ), f"Unexpected rule {rule_name} — not a Dau rule or QUOTE"
+            # QUOTE steps must be marked neutral
+            if rule_name == "QUOTE":
+                assert rule_name in NEUTRAL_RULES
+                assert step.parameters.get("act") == "quotation"
+
+        # 2. Verify no quotation-in-quotation (B-min named limit)
+        # The core validation already rejects nested quotations during load.
+        # If we got here, this property holds.
+        # Verify: for each quotation-cut, its parent context is not also a quotation
+        for cut_id in egi.quotation:
+            parent = egi.get_context(cut_id)
+            assert (
+                parent not in egi.quotation
+            ), f"Quotation cut {cut_id} nests inside quotation {parent}"
+
+        # 3. Verify peel verdicts are identical on both graphs
+        # The projection removes quotation ink; verdicts should not change
+        proj = project_first_order(egi)
+        proposal = '(forces "Rock" "Paper")'  # The base relation in forcing_forces
+        verdict_with_quotation = _verdict(egi, proposal)
+        verdict_projected = _verdict(proj, proposal)
+        assert (
+            verdict_with_quotation == verdict_projected
+        ), f"Verdicts differ: {verdict_with_quotation} vs {verdict_projected}"
+
+        # 4. Verify projection's verdicts are robust across multiple proposals
+        # If verdicts are stable under projection, the quotation ink is not licensing new inferences
+        test_proposals = [
+            '(forces "Rock" "Paper")',
+            '(forces "Paper" "Scissors")',
+            '(one "s1")',  # Inside quotation — should be false in closed world
+        ]
+        for prop in test_proposals:
+            v_with = _verdict(egi, prop)
+            v_without = _verdict(proj, prop)
+            assert v_with == v_without, (
+                f"Verdict differs for {prop}: "
+                f"with quotation={v_with}, projected={v_without}"
+            )
+
+        # **CONCLUSION: Reduction theorem verified for `forcing_forces`**
+        # forcing_forces is fully expressible using only B-min machinery:
+        # - sort on vertices (for propositional naming)
+        # - quotation cuts (one oval per name, no nesting)
+        # - Six Dau rules (sort-preserving)
+        # - QUOTE steps marking the quotation as earned neutral act
+        # No B-full features required.
+
+
 class TestClosureGuardOnExpandedSet:
     """Docket ①: the guard must see what will actually be erased (Examination IV).
 
