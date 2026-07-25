@@ -312,6 +312,116 @@ class TestTier3RulesRestraint:
         # - QUOTE steps marking the quotation as earned neutral act
         # No B-full features required.
 
+    def test_reduction_swan_third_tense_uses_only_bmin_machinery(self, tomos):
+        """**Reduction Theorem Test 2:** Verify `swan_third_tense` exemplar
+        reduces to B-min machinery. Same checks as Test 1."""
+        from proof_character import NEUTRAL_RULES
+
+        uod = tomos.load_uod("swan_third_tense", attest=False)
+        egi = uod.current_egi
+        chain = tomos.load_chain("swan_third_tense")
+
+        assert chain is not None
+        assert egi.quotation, "swan_third_tense should carry core quotations"
+
+        # 1. Verify chain steps use only Dau rules + QUOTE
+        dau_rules = {"ERA", "INS", "IT+", "IT-", "DC+", "DC-"}
+        for step in chain.steps:
+            rule_name = step.rule_name
+            assert (
+                rule_name in dau_rules or rule_name == "QUOTE"
+            ), f"Unexpected rule {rule_name}"
+            if rule_name == "QUOTE":
+                assert rule_name in NEUTRAL_RULES
+                assert step.parameters.get("act") == "quotation"
+
+        # 2. Verify no quotation-in-quotation
+        for cut_id in egi.quotation:
+            parent = egi.get_context(cut_id)
+            assert parent not in egi.quotation
+
+        # 3. Verify peel verdicts identical on both graphs
+        proj = project_first_order(egi)
+        test_proposals = [
+            '(superseded "M_swan_law" "Nox")',
+            '(swan "Alba")',
+            '(white "Alba")',
+        ]
+        for prop in test_proposals:
+            v_with = _verdict(egi, prop)
+            v_without = _verdict(proj, prop)
+            assert v_with == v_without
+
+        # **CONCLUSION: Reduction theorem verified for `swan_third_tense`**
+
+    def test_reduction_peirce_law_commentary_uses_only_bmin_machinery(self, tomos):
+        """**Reduction Theorem Test 3:** Verify `peirce_law_commentary` exemplar
+        uses only B-min (core) or Stage ⓪ (overlay) machinery.
+
+        NOTE: This exemplar uses the Stage ⓪ overlay, not B-min core quotations.
+        Both are considered part of the B-min+ denominator (core sort + quotation,
+        or overlay marks). Test verifies it does NOT use B-full (nested quotations,
+        multi-name ovals, etc.)."""
+        from proof_character import NEUTRAL_RULES
+
+        uod = tomos.load_uod("peirce_law_commentary", attest=False)
+        egi = uod.current_egi
+        chain = tomos.load_chain("peirce_law_commentary")
+        overlay_quotations = tomos.load_quotations("peirce_law_commentary")
+
+        assert chain is not None
+        # Either core quotation or overlay quotations should exist
+        has_core_quotation = bool(egi.quotation)
+        has_overlay = bool(overlay_quotations)
+        assert has_core_quotation or has_overlay, (
+            "peirce_law_commentary should carry quotations (core or overlay)"
+        )
+
+        # 1. Verify chain steps use only Dau rules + QUOTE
+        dau_rules = {"ERA", "INS", "IT+", "IT-", "DC+", "DC-"}
+        for step in chain.steps:
+            rule_name = step.rule_name
+            assert (
+                rule_name in dau_rules or rule_name == "QUOTE"
+            ), f"Unexpected rule {rule_name}"
+            if rule_name == "QUOTE":
+                assert rule_name in NEUTRAL_RULES
+                assert step.parameters.get("act") == "quotation"
+
+        # 2. Verify no quotation-in-quotation (core only; overlay has no nesting)
+        if has_core_quotation:
+            for cut_id in egi.quotation:
+                parent = egi.get_context(cut_id)
+                assert parent not in egi.quotation
+
+        # 3. Verify peel verdicts identical on both graphs (if core quotations exist)
+        if has_core_quotation:
+            proj = project_first_order(egi)
+            test_proposals = [
+                '(cites "peirce_law" "Peirce-1885")',
+            ]
+            for prop in test_proposals:
+                v_with = _verdict(egi, prop)
+                v_without = _verdict(proj, prop)
+                assert v_with == v_without
+
+        # 4. Verify overlay quotations are simple (no B-full features)
+        if has_overlay:
+            for mark in overlay_quotations:
+                # Overlay quotations should not nest (no impredicative flag set)
+                assert mark.get("impredicative") is None, (
+                    f"Overlay quotation {mark['element_id']} has impredicative set"
+                )
+                # Should be single-name (kind in {uod, defn, etc})
+                assert mark.get("kind") in (
+                    "uod",
+                    "defn",
+                    "mention",
+                ), f"Unexpected overlay quotation kind: {mark.get('kind')}"
+
+        # **CONCLUSION: Reduction theorem verified for `peirce_law_commentary`**
+        # Uses Stage ⓪ overlay (part of B-min+ denominator), no B-full features.
+
 
 class TestClosureGuardOnExpandedSet:
     """Docket ①: the guard must see what will actually be erased (Examination IV).
