@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 
 from egi_core_dau import RelationalGraphWithCuts
 from egi_transformation_history import (
@@ -30,7 +30,6 @@ from egi_transformation_history import (
     StateSnapshot,
     TransformationStep,
 )
-from alternative_set import AlternativeSet, Doubt  # Doubt is a backward-compat alias
 
 
 class UoDType(Enum):
@@ -240,21 +239,6 @@ class UniverseOfDiscourse:
     # Synchronic aspect: current state
     current_egi: RelationalGraphWithCuts       # Current logical structure
     current_layout_deltas: Optional[Dict[str, Any]] = None  # User layout preferences
-
-    # Alternative-set tracking (deliberative inquiry trajectory)
-    alternatives_by_state: Dict[str, List[AlternativeSet]] = field(default_factory=dict)  # Maps state_id → list of AlternativeSets
-    all_alternatives: Dict[str, AlternativeSet] = field(default_factory=dict)  # Registry of all alternatives ever (alt_id → latest version)
-
-    # Backward-compatibility properties (Doubt was renamed to AlternativeSet)
-    @property
-    def doubts_by_state(self) -> Dict[str, List[Doubt]]:
-        """Alias for alternatives_by_state (backward compatibility)."""
-        return self.alternatives_by_state
-
-    @property
-    def all_doubts(self) -> Dict[str, Doubt]:
-        """Alias for all_alternatives (backward compatibility)."""
-        return self.all_alternatives
 
     # Diachronic aspect: transformation history
     history: Optional[EGITransformationHistory] = None
@@ -550,226 +534,6 @@ class UniverseOfDiscourse:
 
         # Update metadata
         self.metadata.last_modified = datetime.now()
-
-    # ===== Doubt Tracking =====
-
-    def record_alternative_at_state(self, state_id: str, alt_set: AlternativeSet) -> None:
-        """Record that an alternative-set emerged at this state.
-
-        Adds the alternative-set to both alternatives_by_state (indexed by state) and
-        all_alternatives (global registry). If the alternative-set already exists in the
-        registry, the newer instance is kept.
-
-        Args:
-            state_id: State where alternative-set emerged
-            alt_set: The AlternativeSet instance to record
-
-        Effects:
-            - Adds alt_set to alternatives_by_state[state_id]
-            - Updates all_alternatives[alt_set.id] with this version
-            - Updates metadata.last_modified
-        """
-        # Record in state-indexed map
-        if state_id not in self.alternatives_by_state:
-            self.alternatives_by_state[state_id] = []
-        self.alternatives_by_state[state_id].append(alt_set)
-
-        # Record in global registry (latest version)
-        self.all_alternatives[alt_set.id] = alt_set
-
-        # Update metadata
-        self.metadata.last_modified = datetime.now()
-
-    def record_doubt_at_state(self, state_id: str, doubt: Doubt) -> None:
-        """Backward-compatibility alias for record_alternative_at_state."""
-        return self.record_alternative_at_state(state_id, doubt)
-
-    def select_alternative_at_state(
-        self, alt_id: str, state_id: str, choice: str
-    ) -> AlternativeSet:
-        """Record selection of an alternative-set at this state.
-
-        Retrieves the alternative-set from the registry, calls select() with the
-        choice hash, updates the registry, and records the selected version
-        at the state.
-
-        Args:
-            alt_id: ID of alternative-set to select
-            state_id: State where selection occurred
-            choice: EGI hash (string) of the chosen alternative
-
-        Returns:
-            The selected AlternativeSet instance
-
-        Raises:
-            ValueError: If alt_id not found or choice not in alternatives
-            KeyError: If state_id doesn't exist in history
-        """
-        if alt_id not in self.all_alternatives:
-            raise ValueError(f"Alternative-set {alt_id} not found in registry")
-
-        # Retrieve current version
-        alt_set = self.all_alternatives[alt_id]
-
-        # Select the choice
-        selected = alt_set.select(choice)
-
-        # Update resolution metadata
-        selected_with_state = AlternativeSet(
-            id=selected.id,
-            context=selected.context,
-            alternatives=selected.alternatives,
-            current_selection=selected.current_selection,
-            kind=selected.kind,
-            emerged_at_state=selected.emerged_at_state,
-            resolved_at_state=state_id,  # Record resolution state
-            selection_path=selected.selection_path,
-            warrant=selected.warrant,
-            source=selected.source,
-        )
-
-        # Update registry
-        self.all_alternatives[alt_id] = selected_with_state
-
-        # Record at state
-        if state_id not in self.alternatives_by_state:
-            self.alternatives_by_state[state_id] = []
-        self.alternatives_by_state[state_id].append(selected_with_state)
-
-        # Update metadata
-        self.metadata.last_modified = datetime.now()
-
-        return selected_with_state
-
-    def resolve_doubt_at_state(
-        self, doubt_id: str, state_id: str, answer: str
-    ) -> Doubt:
-        """Backward-compatibility alias for select_alternative_at_state."""
-        return self.select_alternative_at_state(doubt_id, state_id, answer)
-
-    def narrow_alternative_at_state(
-        self, alt_id: str, state_id: str, choices: Set[str]
-    ) -> AlternativeSet:
-        """Narrow an alternative-set's alternatives at this state.
-
-        Retrieves the alternative-set, narrows it to the provided choices, updates
-        the registry, and records the narrowed version at the state.
-
-        Args:
-            alt_id: ID of alternative-set to narrow
-            state_id: State where narrowing occurred
-            choices: Set of choice hashes to narrow to
-
-        Returns:
-            The narrowed AlternativeSet instance
-
-        Raises:
-            ValueError: If alt_id not found or choices don't overlap with alternatives
-        """
-        if alt_id not in self.all_alternatives:
-            raise ValueError(f"Alternative-set {alt_id} not found in registry")
-
-        # Retrieve current version
-        alt_set = self.all_alternatives[alt_id]
-
-        # Narrow to the choices
-        narrowed = alt_set.narrow_to(choices)
-
-        # Update selection path if it's a new narrowing
-        new_path = list(narrowed.selection_path)
-        if state_id not in new_path:
-            new_path.append(state_id)
-
-        narrowed_with_path = AlternativeSet(
-            id=narrowed.id,
-            context=narrowed.context,
-            alternatives=narrowed.alternatives,
-            current_selection=narrowed.current_selection,
-            kind=narrowed.kind,
-            emerged_at_state=narrowed.emerged_at_state,
-            resolved_at_state=narrowed.resolved_at_state,
-            selection_path=new_path,
-            warrant=narrowed.warrant,
-            source=narrowed.source,
-        )
-
-        # Update registry
-        self.all_alternatives[alt_id] = narrowed_with_path
-
-        # Record at state
-        if state_id not in self.alternatives_by_state:
-            self.alternatives_by_state[state_id] = []
-        self.alternatives_by_state[state_id].append(narrowed_with_path)
-
-        # Update metadata
-        self.metadata.last_modified = datetime.now()
-
-        return narrowed_with_path
-
-    def narrow_doubt_at_state(
-        self, doubt_id: str, state_id: str, answers: Set[str]
-    ) -> Doubt:
-        """Backward-compatibility alias for narrow_alternative_at_state."""
-        return self.narrow_alternative_at_state(doubt_id, state_id, answers)
-
-    def alternative_lifecycle(self, alt_id: str) -> List[Tuple[str, AlternativeSet]]:
-        """Trace the full lifecycle of an alternative-set through the DAG.
-
-        Returns an ordered sequence of (state_id, alt_version) tuples,
-        tracing how the alternative-set evolved through the UoD history.
-
-        Args:
-            alt_id: ID of alternative-set to trace
-
-        Returns:
-            List of (state_id, AlternativeSet) tuples in the order they appeared
-            in selection_path + emerged_at_state
-
-        Raises:
-            ValueError: If alt_id not found
-        """
-        if alt_id not in self.all_alternatives:
-            raise ValueError(f"Alternative-set {alt_id} not found in registry")
-
-        alt_set = self.all_alternatives[alt_id]
-        result: List[Tuple[str, AlternativeSet]] = []
-
-        # Add emerged state first
-        if alt_set.emerged_at_state:
-            result.append((alt_set.emerged_at_state, alt_set))
-
-        # Add selection path states
-        for state_id in alt_set.selection_path:
-            if state_id != alt_set.emerged_at_state:  # Avoid duplicates
-                if state_id in self.alternatives_by_state:
-                    # Find the version at this state
-                    versions = [a for a in self.alternatives_by_state[state_id] if a.id == alt_id]
-                    if versions:
-                        result.append((state_id, versions[-1]))
-
-        return result
-
-    def alternatives_at_state(self, state_id: str) -> List[AlternativeSet]:
-        """Get all active alternative-sets at a given state.
-
-        Returns all alternative-sets that were recorded at this state, in the order
-        they were recorded. Returns a fresh copy to maintain immutability.
-
-        Args:
-            state_id: State to query
-
-        Returns:
-            List of AlternativeSet instances at this state (may be empty)
-        """
-        return list(self.alternatives_by_state.get(state_id, []))
-
-    def doubt_lifecycle(self, doubt_id: str) -> List[Tuple[str, Doubt]]:
-        """Backward-compatibility alias for alternative_lifecycle."""
-        return self.alternative_lifecycle(doubt_id)
-
-    def doubts_at_state(self, state_id: str) -> List[Doubt]:
-        """Backward-compatibility alias for alternatives_at_state."""
-        return self.alternatives_at_state(state_id)
 
 
 # ===== Backward Compatibility Aliases =====

@@ -1354,174 +1354,67 @@ class TomosService:
 
         print(f"\n✅ Migration complete: {migrated_count} UoDs migrated")
 
-    # ===== AlternativeSet Persistence =====
+    # ===== AlternativeRegister Persistence =====
 
-    def save_alternatives(self, uod_id: str, alternatives: Dict[str, "AlternativeSet"]) -> None:
-        """Save alternatives to {uod_path}/alternatives.jsonl (one per line).
-
-        Persists AlternativeSet objects in JSONL format (one JSON object per line).
-        Files are written atomically using a temp file + rename pattern.
-
-        Args:
-            uod_id: The UoD identifier
-            alternatives: Dict mapping alternative_id → AlternativeSet
-
-        Raises:
-            KeyError: If the UoD is not found in the index
-            IOError: If file writing fails
-        """
-        from alternative_set import AlternativeSet
+    def save_alternative_register(self, uod_id: str, register, *,
+                                  chain=None) -> None:
+        """Persist the AlternativeRegister as {uod_path}/alternatives.jsonl
+        (header line = register counters; one record per line, sorted by key).
+        When ``chain`` is given every record is ATTESTED against it first —
+        the boundary hook, one floor up from §3.3 (spec §4). Atomic write;
+        any failure RAISES (never demoted to a print)."""
+        from alternative_index import attest_alternative_record
 
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             raise KeyError(f"UoD {uod_id} not found in tomos index")
-
         uod_path = self._entry_path(entry)
-        if not uod_path.exists():
-            uod_path.mkdir(parents=True, exist_ok=True)
+        uod_path.mkdir(parents=True, exist_ok=True)
+        alternatives_path = self._get_uod_files(uod_path)["alternatives"]
 
-        files = self._get_uod_files(uod_path)
-        alternatives_path = files["alternatives"]
-
-        # If no alternatives, don't create the file (backward compat)
-        if not alternatives:
-            # Remove file if it exists
+        snap = register.snapshot()
+        if not snap["records"]:
             if alternatives_path.exists():
                 alternatives_path.unlink()
             return
 
-        # Write to temp file first (atomic write)
+        if chain is not None:
+            for record in register.records():
+                attest_alternative_record(record, chain)
+
         temp_path = alternatives_path.with_suffix(".tmp")
         try:
-            with open(temp_path, 'w', encoding='utf-8') as f:
-                # Write alternatives in sorted order by ID for determinism
-                for alt_id in sorted(alternatives.keys()):
-                    alt = alternatives[alt_id]
-                    alt_dict = alt.to_dict()
-                    json.dump(alt_dict, f)
-                    f.write('\n')
-
-            # Atomic rename
+            with open(temp_path, "w", encoding="utf-8") as f:
+                header = {k: v for k, v in snap.items() if k != "records"}
+                json.dump({"register": header}, f)
+                f.write("\n")
+                for rec_dict in snap["records"]:
+                    json.dump(rec_dict, f)
+                    f.write("\n")
             temp_path.replace(alternatives_path)
         except Exception:
-            # Clean up temp file on error
             if temp_path.exists():
                 temp_path.unlink()
             raise
 
-    def load_alternatives(self, uod_id: str) -> Dict[str, "AlternativeSet"]:
-        """Load alternatives from {uod_path}/alternatives.jsonl.
-
-        Reads JSONL format (one JSON object per line) and reconstructs AlternativeSet objects.
-        Returns empty dict if file doesn't exist (backward compatibility).
-
-        Args:
-            uod_id: The UoD identifier
-
-        Returns:
-            Dict mapping alternative_id → AlternativeSet
-
-        Raises:
-            KeyError: If the UoD is not found in the index
-            ValueError: If alternatives.jsonl is malformed
-        """
-        from alternative_set import AlternativeSet
+    def load_alternative_register(self, uod_id: str):
+        """Load the register sidecar; an absent file is an empty register."""
+        from alternative_index import AlternativeRegister
 
         entry = self.get_uod_metadata(uod_id)
         if entry is None:
             raise KeyError(f"UoD {uod_id} not found in tomos index")
-
-        uod_path = self._entry_path(entry)
-        files = self._get_uod_files(uod_path)
-        alternatives_path = files["alternatives"]
-
-        # Backward compat: if file doesn't exist, return empty dict
+        alternatives_path = self._get_uod_files(self._entry_path(entry))["alternatives"]
         if not alternatives_path.exists():
-            return {}
-
-        alternatives: Dict[str, AlternativeSet] = {}
-
-        try:
-            with open(alternatives_path, 'r', encoding='utf-8') as f:
-                for line_num, line in enumerate(f, 1):
-                    line = line.strip()
-                    if not line:
-                        continue
-
-                    try:
-                        data = json.loads(line)
-                        alt = AlternativeSet.from_dict(data)
-                        alternatives[alt.id] = alt
-                    except json.JSONDecodeError as e:
-                        raise ValueError(
-                            f"Malformed JSON in alternatives.jsonl at line {line_num}: {e}"
-                        )
-                    except Exception as e:
-                        raise ValueError(
-                            f"Failed to deserialize AlternativeSet from line {line_num}: {e}"
-                        )
-        except ValueError:
-            raise
-        except Exception as e:
-            raise IOError(f"Failed to read alternatives.jsonl for {uod_id}: {e}")
-
-        return alternatives
-
-    def load_uod_with_alternatives(self, uod_id: str) -> Optional[UniverseOfDiscourse]:
-        """Load full UoD including alternatives from persistent store.
-
-        Convenience method combining load_uod + load_alternatives.
-        Populates the UoD's all_alternatives with loaded data.
-
-        Args:
-            uod_id: The UoD identifier
-
-        Returns:
-            UniverseOfDiscourse with all_alternatives populated, or None if not found
-        """
-        uod = self.load_uod(uod_id)
-        if uod is None:
-            return None
-
-        alternatives = self.load_alternatives(uod_id)
-
-        # Populate the UoD's alternatives
-        # Create a new UoD with the alternatives populated (since it's frozen)
-        return UniverseOfDiscourse(
-            metadata=uod.metadata,
-            current_egi=uod.current_egi,
-            current_layout_deltas=uod.current_layout_deltas,
-            alternatives_by_state=uod.alternatives_by_state,
-            all_alternatives=alternatives,
-            history=uod.history,
-        )
-
-    def save_uod_with_alternatives(self, uod: UniverseOfDiscourse) -> None:
-        """Persist UoD + alternatives to disk.
-
-        Convenience method combining save_uod + save_alternatives.
-        Atomic: either both succeed or both fail.
-
-        Args:
-            uod: The UniverseOfDiscourse to save
-
-        Raises:
-            CorrespondenceViolation: If the UoD's EGI cannot be rendered
-            IOError: If file writing fails
-        """
-        # First save the UoD itself (this also attests correspondence)
-        self.save_uod(uod)
-
-        # Then save alternatives (if this fails, the UoD is already persisted)
-        # This is acceptable: alternatives are metadata, not core content
-        try:
-            self.save_alternatives(uod.uod_id, uod.all_alternatives)
-        except Exception as e:
-            # Log the error but don't fail the whole operation
-            # (alternatives are a nice-to-have, not required)
-            import sys
-            print(f"Warning: Failed to save alternatives for {uod.uod_id}: {e}", file=sys.stderr)
-            raise
+            return AlternativeRegister()
+        with open(alternatives_path, "r", encoding="utf-8") as f:
+            lines = [l for l in (line.strip() for line in f) if l]
+        if not lines:
+            return AlternativeRegister()
+        header = json.loads(lines[0]).get("register", {})
+        state = dict(header)
+        state["records"] = [json.loads(l) for l in lines[1:]]
+        return AlternativeRegister.restore(state)
 
     # ===== Statistics =====
     
