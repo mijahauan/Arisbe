@@ -216,7 +216,110 @@ class AlternativeRecord:
         )
 
 
+class AlternativeRegister:
+    """The standing, content-keyed, bounded register of open questions.
+    A cache over the chain, never a second authority: records rebuild from
+    the chain (Task 6's ``rebuild_from_chain``), so LRU displacement loses
+    no truth, only cache. Snapshot/restore on the docket template (V.6)."""
+
+    def __init__(self, capacity: int = 64):
+        self._capacity = capacity
+        self._records: Dict[str, AlternativeRecord] = {}
+        self.admitted = 0
+        self.displaced = 0
+        self.displaced_keys: List[str] = []      # dedup'd, insertion order
+
+    def __len__(self) -> int:
+        return len(self._records)
+
+    def __contains__(self, key: str) -> bool:
+        return key in self._records
+
+    def get(self, key: str) -> Optional[AlternativeRecord]:
+        return self._records.get(key)
+
+    def records(self) -> List[AlternativeRecord]:
+        return [self._records[k] for k in sorted(self._records)]
+
+    def open_records(self) -> List[AlternativeRecord]:
+        return [r for r in self.records() if r.status != "resolved"]
+
+    def note(self, record: AlternativeRecord, *, round_idx: int) -> Optional[str]:
+        """Admit or touch by key. A re-arrival merges: evidence fields are
+        adopted from whichever side carries them (never wiped — the V.3
+        discipline); the earliest emergence stands; the touch is stamped.
+        Returns the displaced key when the register was full, else None."""
+        if record.key in self._records:
+            old = self._records[record.key]
+            self._records[record.key] = replace(
+                old,
+                emerged_from=old.emerged_from or record.emerged_from,
+                traced_by=record.traced_by or old.traced_by,
+                materiality=record.materiality or old.materiality,
+                resolved_by=record.resolved_by or old.resolved_by,
+                selection=record.selection or old.selection,
+                receptions=old.receptions + tuple(
+                    r for r in record.receptions if r not in old.receptions),
+                posture_pressure=max(old.posture_pressure, record.posture_pressure),
+                last_touched_round=round_idx,
+            )
+            return None
+        displaced_key: Optional[str] = None
+        if self._records and len(self._records) >= self._capacity:
+            oldest = min(self._records.values(),
+                         key=lambda r: (r.last_touched_round, r.key))
+            displaced_key = oldest.key
+            del self._records[oldest.key]
+            self.displaced += 1
+            if displaced_key not in self.displaced_keys:
+                self.displaced_keys.append(displaced_key)
+        self._records[record.key] = replace(record, last_touched_round=round_idx,
+                                            emerged_round=round_idx)
+        self.admitted += 1
+        return displaced_key
+
+    def resolve(self, key: str, *, resolved_by: str, selection: str) -> AlternativeRecord:
+        rec = self._records[key]
+        out = replace(rec, resolved_by=resolved_by, selection=selection)
+        self._records[key] = out
+        return out
+
+    def receive(self, key: str, reception: Reception, *, round_idx: int) -> AlternativeRecord:
+        """Attach a membrane arrival. A stance with no checkable content on
+        an OPEN record is posture-only: counted, contributing nothing (the
+        political-play hook, spec §5)."""
+        rec = self._records[key]
+        pressure = rec.posture_pressure
+        if not reception.bears_evidence and rec.status != "resolved":
+            pressure += 1
+        out = replace(rec, receptions=rec.receptions + (reception,),
+                      posture_pressure=pressure, last_touched_round=round_idx)
+        self._records[key] = out
+        return out
+
+    def snapshot(self) -> dict:
+        return {
+            "capacity": self._capacity,
+            "records": [r.to_dict() for r in self.records()],
+            "admitted": self.admitted,
+            "displaced": self.displaced,
+            "displaced_keys": list(self.displaced_keys),
+        }
+
+    @staticmethod
+    def restore(state: dict) -> "AlternativeRegister":
+        reg = AlternativeRegister(capacity=int(state.get("capacity", 64)))
+        for d in state.get("records", []):
+            rec = AlternativeRecord.from_dict(d)
+            reg._records[rec.key] = rec
+        reg.admitted = int(state.get("admitted", 0))
+        reg.displaced = int(state.get("displaced", 0))
+        reg.displaced_keys = list(state.get("displaced_keys", []))
+        return reg
+
+
 __all__ = [
     "AlternativeLawViolation", "alt_key", "Materiality", "Reception",
     "TrackRecord", "SourceRecord", "UntrackedSources", "AlternativeRecord",
+    "AlternativeRegister",
 ]

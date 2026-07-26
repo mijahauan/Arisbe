@@ -99,3 +99,67 @@ class TestAlternativeRecord:
                           claim_egif=None, bears_evidence=False),),
                       posture_pressure=1)
         assert AlternativeRecord.from_dict(r.to_dict()) == r
+
+
+# Import for AlternativeRegister tests
+from alternative_index import AlternativeRegister
+
+
+def _record(rel="swan", labels=("Dover",), **kw):
+    base = dict(key=alt_key(rel, labels), relation=rel, labels=labels,
+                alternatives=(f'({rel} "{labels[0]}")', f'~[ ({rel} "{labels[0]}") ]'))
+    base.update(kw)
+    return AlternativeRecord(**base)
+
+
+class TestAlternativeRegister:
+    def test_dedup_by_key_touches_never_forks(self):
+        reg = AlternativeRegister(capacity=4)
+        reg.note(_record(), round_idx=1)
+        reg.note(_record(), round_idx=5)               # same key re-arrives
+        assert len(reg) == 1
+        assert reg.get(alt_key("swan", ("Dover",))).last_touched_round == 5
+        assert reg.get(alt_key("swan", ("Dover",))).emerged_round == 1
+
+    def test_merge_adopts_evidence_never_wipes(self):
+        # The V.3 regression pin: a later, less-informed arrival must not
+        # reset the traced fields.
+        reg = AlternativeRegister(capacity=4)
+        traced = _record(traced_by="step-2", materiality=Materiality(tier="material"))
+        reg.note(traced, round_idx=1)
+        reg.note(_record(), round_idx=2)               # untraced re-arrival
+        got = reg.get(traced.key)
+        assert got.traced_by == "step-2"
+        assert got.materiality.tier == "material"
+
+    def test_lru_displacement_counted(self):
+        reg = AlternativeRegister(capacity=2)
+        reg.note(_record("apple", ("1",)), round_idx=1)
+        reg.note(_record("blue", ("2",)), round_idx=2)
+        displaced = reg.note(_record("cat", ("3",)), round_idx=3)
+        assert displaced == alt_key("apple", ("1",))
+        assert reg.displaced == 1
+        assert reg.displaced_keys == [alt_key("apple", ("1",))]
+        assert len(reg) == 2
+
+    def test_snapshot_restore_round_trips(self):
+        reg = AlternativeRegister(capacity=2)
+        reg.note(_record("apple", ("1",)), round_idx=1)
+        reg.note(_record("blue", ("2",)), round_idx=2)
+        reg.note(_record("cat", ("3",)), round_idx=3)    # displaces apple
+        reg2 = AlternativeRegister.restore(reg.snapshot())
+        assert reg2.snapshot() == reg.snapshot()
+
+    def test_resolve_and_receive(self):
+        reg = AlternativeRegister(capacity=4)
+        r = _record()
+        reg.note(r, round_idx=1)
+        posture = Reception(source="pundit", stance="supports",
+                            classification="legible-benign",
+                            claim_egif=None, bears_evidence=False)
+        got = reg.receive(r.key, posture, round_idx=2)
+        assert got.posture_pressure == 1
+        resolved = reg.resolve(r.key, resolved_by="step-9",
+                               selection='(swan "Dover")')
+        assert resolved.status == "resolved"
+        assert reg.open_records() == []
