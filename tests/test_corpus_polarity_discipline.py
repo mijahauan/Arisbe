@@ -491,13 +491,16 @@ def test_recorded_branch_surveys_recompute_identically(tomos, uod_id):
         p = step.parameters
         survey = survey_branches(chain, upto=step.step_id, at=p["at"])
         n = p["budget"]
+        surfaced = survey.unknowns[:n]
         expect = [[r, ["*" if l is None else l for l in labels]]
-                  for r, labels in survey.unknowns[:n]]
-        keys = {e[0] for e in p["evidence"]}
+                  for r, labels in surfaced]
+        refused = [alt_key(r, labels) for r, labels in survey.unknowns[n:]]
+        keys = {alt_key(r, labels) for r, labels in surfaced}
         ev = [[k, list(ins), list(outs)]
               for k, ins, outs in survey.evidence if k in keys]
-        assert (p["fork_states"], p["unknown_atoms"], p["evidence"]) == \
-            (list(survey.fork_states), expect, ev), (
+        assert (p["fork_states"], p["unknown_atoms"], p["refused_budget"],
+                p["evidence"]) == \
+            (list(survey.fork_states), expect, refused, ev), (
             f"{uod_id}/{step.step_id}: recorded branch survey does not recompute")
 
 
