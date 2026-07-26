@@ -29,11 +29,21 @@ ALTERNATIVE_SET_INTELLECTUAL_HISTORY re-pointed at the shipped shape (+ the date
 Evidence to Indexed Evidence" section; free-will bullet re-written to the author's
 deliberative-interval formulation); inquiry-principle spec got the engineering-shape header note.
 
-**▶ AUTHOR-RULING DOCKET (from the final review):** the **self-damping question** — a material
-record damps against its OWN trace's `distinction:` admission to the S-register (in natural wiring
-material reads 4.0 = untraced; material > bare survives, so the loop's headline stands). Rule:
-intended ("the system already owns the distinction") or exclude the record's own trace admissions
-(the trace step's `s_admitted` params carry exactly what a fix needs)?
+**▶ AUTHOR-RULING DOCKET — RULED (2026-07-26): the self-damping question is RESERVED AS A
+STUDIABLE TEMPERAMENT KNOB**, committed to neither arm. (The question: a material record damps
+against its OWN trace's `distinction:` admission to the S-register, so in natural wiring material
+reads 4.0 = untraced; the two arms are "intended" = explore-leaning vs "exclude own-trace
+admissions" = settle-first.) The author's ruling: the explore-leaning vs settle-first split is a
+*temperament* that might be tunable — reserve it, don't fold it. Shape: split the single hardcoded
+×0.5 in `wants_from_alternatives` into `cross_damping` (distinction arrived from another record's
+trace — the uncontroversial don't-pay-twice case) and `self_damping` (the temperament dial: 1.0 =
+settle-first, 0.5 = explore-leaning); **defaults 0.5/0.5 = byte-identical to today** until the dial
+is deliberately turned. Self-vs-cross is distinguished by dereferencing `traced_by` → the trace
+step's `s_admitted` params — the consumer re-reads licensed ink, the record still holds nothing
+(index-over-ink compliant). Implementation folds into the Tasks 5–6 + follow-on build; the dial is
+a pre-registerable experiment candidate (sweep `self_damping`, measure settlement latency vs
+discovery yield — the explore/exploit trade made observable, kin to the KyteProfile
+species-parametrization seam).
 
 **▶ FOLLOW-ON BATCH (none merge-blocking):** a trace-bearing corpus exemplar (de-vacuates the
 gate's parametrized obligation, currently skipping all 18 M-bearing UoDs, + discharges AC7's
@@ -47,8 +57,9 @@ escape-vs-refuse divergence from AC2's wording, receptions-are-snapshot-only doc
 intellectual-history bullet carries the working formulation) joins the commens-rung set.
 
 ▶ **NEXT SESSION: Tasks 5–6 (thin spots; branch points) are UNBLOCKED** — replicate the proven
-wire per the standing rule, through the ruled self-damping question first. Or: the West basin map
-(the standing prior decision), or the follow-on batch. All commits local on `main`; not pushed.
+wire per the standing rule; the self-damping ruling is IN (reserve-as-knob, above) and the knob's
+implementation folds into this build alongside the follow-on batch. Or: the West basin map
+(the standing prior decision). All commits pushed to `origin/main` (verified 2026-07-26).
 
 **Last Updated (prior)**: 2026-07-25 — **agenda items 5 + 4 — the reduction check, then the
 AlternativeSet arc: BUILT through Task 4, then EXAMINED, then RULED.** A multi-sitting arc
