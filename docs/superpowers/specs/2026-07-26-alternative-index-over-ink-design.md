@@ -29,7 +29,7 @@ Decisions taken during this design session, in force for the build:
 | R-C | Which consumer proves the loop? | **Attention-economy severity wire**: `wants_from_alternatives`, severity from traced materiality, novelty damped against the S-register (its first reader). |
 | R-D | What happens to the Task 4 modules? | **Clean re-house**: new `alternative_index.py` + reworked `alternative_trace.py`; `alternative_set.py`, `alternative_inquiry.py`, the `Doubt` alias, and the UoD's alternative methods/fields retired. No warrant-float namespace survives. |
 | R-E | Pathologies of thought (author extension, this session) | Fact/rationale distinction; posture-only receptions counted and inert; recompute law as the anti-circularity invariant. Full Berger & Luckmann treatment (legitimation, "what's right" vs "what works") **queued for the commens rung** — hooks named here, doctrine not folded until examined. |
-| R-F | The two apertures (author extension, this session) | The grounding of §5: both deviation sources are lawful apertures; pathology = **depth misrepresentation**; claimed standing is **stripped at the membrane**; the reception taxonomy = contextualization adequacy. |
+| R-F | The two apertures (author extension, this session) | The grounding of §5: both deviation sources are lawful apertures; **depth misrepresentation** is the *enforced* pathology class — under standing suspicion that other, non-depth pathology families exist (author's rider); claimed standing is **stripped at the membrane**; the reception taxonomy = contextualization adequacy. |
 
 ---
 
@@ -269,13 +269,26 @@ two lawful apertures through which deviation can enter:
    **re-contextualize at its own expense** (trace, peel, re-derive) or lean
    on **track record as compressed context** — partial, never a substitute.
 
-**Pathology = depth misrepresentation:** presenting content at, or as at, a
-polarity it has not earned. A lie is entertained (or nowhere-standing)
-content presented as discharged; a fallacy is an odd-depth move dressed as
-even-depth; the internalized "ill rationale" is an arrival whose *claimed*
-standing was taken at face value. An arrival that is merely
-*unaccompanied* — honest but orphaned — is context-poverty, not pathology:
-it routes to the Horizon, re-attemptable as context accrues.
+**Depth misrepresentation — the enforced pathology class, not a definition
+of pathology:** presenting content at, or as at, a polarity it has not
+earned. A lie is entertained (or nowhere-standing) content presented as
+discharged; a fallacy is an odd-depth move dressed as even-depth; the
+internalized "ill rationale" is an arrival whose *claimed* standing was
+taken at face value. An arrival that is merely *unaccompanied* — honest but
+orphaned — is context-poverty, not pathology: it routes to the Horizon,
+re-attemptable as context accrues.
+
+**Standing suspicion (author's rider, 2026-07-26):** other pathology
+families, originating from something besides depth, must be presumed to
+exist — naming the class this machinery enforces against must not be read
+as exhausting the genus. Concrete candidates already visible in the
+system's own vocabulary, none depth-shaped: pathologies of **attention**
+(agenda-setting by omission — controlling which questions ever get traced,
+with no polarity misrepresented anywhere; noisy-TV capture), of
+**identity** (equivocation — one word riding two content-keys), of
+**pacing** (rumination/thrash — poise's named poles). The taxonomy of
+pathologies is itself an open AlternativeSet, AS4-style: what this spec
+cannot detect it must not silently define away.
 
 **The boundary rule:** **claimed standing is stripped at the membrane.**
 Whatever posture a product arrives with — expert confidence, agreement,
@@ -420,3 +433,6 @@ until AC1–AC10 are green.**
 - The commens-rung examination of the queued threads (B&L legitimation,
   "what's right" vs "what works", the four-doubts set) — hooks named in §5,
   doctrine deferred per the author's standing rule.
+- The open taxonomy of pathologies (the §5 standing-suspicion rider):
+  non-depth families — attention, identity, pacing, and the not-yet-named —
+  await their own examination; this spec enforces only the depth class.
