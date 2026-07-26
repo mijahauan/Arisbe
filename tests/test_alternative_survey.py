@@ -91,3 +91,37 @@ class TestBranchSurvey:
         admit_step(pc, '(white "Ciel")', disposition="new_fact")
         s = survey_branches(pc.to_chain())
         assert s.fork_states == () and s.unknowns == ()
+
+    def test_held_at_reference_excludes_only_via_not_held_filter(self):
+        # Exercise the `and atom not in held` clause in isolation: pick the
+        # reference state to be branch A's own tip, where cloudy genuinely
+        # holds. cloudy is still contested across leaves (present at A,
+        # absent at B) — only the held-at-reference filter keeps it out.
+        # calm does not hold at the reference (tip A) and is contested, so
+        # it must surface.
+        pc, base = self._forked_chain()
+        chain = pc.to_chain()
+        tip_a = chain.steps[0].to_state_id
+        s = survey_branches(chain, at=tip_a)
+        assert ("cloudy", ("sky",)) not in s.unknowns
+        assert ("calm", ("sea",)) in s.unknowns
+
+    def test_generic_atoms_excluded_by_ground_only_filter(self):
+        # Exercise the `all(l is not None ...)` ground-only filter in
+        # isolation: '(rain *x)' admitted on one branch produces a generic
+        # sheet atom ('rain', (None,)) at that leaf — present at A, absent
+        # at B, so it IS contested-across-leaves, but must never surface
+        # (it isn't a ground atom to begin with).
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        from m_steps import admit_step
+        base = pc.current_state_id
+        admit_step(pc, '(rain *x)', disposition="new_fact", branch="wx-a")
+        pc.at(base)
+        admit_step(pc, '(calm "sea")', disposition="new_fact", branch="wx-b")
+        s = survey_branches(pc.to_chain(), at=base)
+        surfaced_rels = {r for r, _ in s.unknowns}
+        assert "rain" not in surfaced_rels
+        ev_keys = {k for k, _, _ in s.evidence}
+        assert alt_key("rain", (None,)) not in ev_keys
+        assert ("calm", ("sea",)) in s.unknowns
