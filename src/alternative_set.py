@@ -98,6 +98,11 @@ class AlternativeSet:
     # Internal discovery (traced consequences)
     warrant: float = 1.0
     source: str = "unspecified"
+    consequence_description: str = ""           # What distinctions were discovered?
+    s_expansion: FrozenSet[str] = field(default_factory=frozenset)  # New S vocabulary
+    s_decayed: FrozenSet[str] = field(default_factory=frozenset)    # Deprecated S vocabulary (rational decay)
+    a_expansion: FrozenSet[str] = field(default_factory=frozenset)  # New A actions
+    a_decayed: FrozenSet[str] = field(default_factory=frozenset)    # Deprecated A actions (rational decay)
 
     # External reception (membrane input, teaching, correction)
     external_input: Optional[str] = None        # Feedback from membrane
@@ -158,6 +163,11 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            consequence_description=self.consequence_description,
+            s_expansion=self.s_expansion,
+            s_decayed=self.s_decayed,
+            a_expansion=self.a_expansion,
+            a_decayed=self.a_decayed,
             external_input=self.external_input,
             external_input_source=self.external_input_source,
             external_warrant=self.external_warrant,
@@ -193,6 +203,11 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            consequence_description=self.consequence_description,
+            s_expansion=self.s_expansion,
+            s_decayed=self.s_decayed,
+            a_expansion=self.a_expansion,
+            a_decayed=self.a_decayed,
             external_input=self.external_input,
             external_input_source=self.external_input_source,
             external_warrant=self.external_warrant,
@@ -231,6 +246,11 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            consequence_description=self.consequence_description,
+            s_expansion=self.s_expansion,
+            s_decayed=self.s_decayed,
+            a_expansion=self.a_expansion,
+            a_decayed=self.a_decayed,
             external_input=self.external_input,
             external_input_source=self.external_input_source,
             external_warrant=self.external_warrant,
@@ -261,6 +281,11 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            consequence_description=self.consequence_description,
+            s_expansion=self.s_expansion,
+            s_decayed=self.s_decayed,
+            a_expansion=self.a_expansion,
+            a_decayed=self.a_decayed,
             external_input=self.external_input,
             external_input_source=self.external_input_source,
             external_warrant=self.external_warrant,
@@ -290,6 +315,11 @@ class AlternativeSet:
             "selection_path": self.selection_path,
             "warrant": self.warrant,
             "source": self.source,
+            "consequence_description": self.consequence_description,
+            "s_expansion": sorted(self.s_expansion),
+            "s_decayed": sorted(self.s_decayed),
+            "a_expansion": sorted(self.a_expansion),
+            "a_decayed": sorted(self.a_decayed),
             "external_input": self.external_input,
             "external_input_source": self.external_input_source,
             "external_warrant": self.external_warrant,
@@ -325,6 +355,11 @@ class AlternativeSet:
             selection_path=data.get("selection_path", []),
             warrant=data.get("warrant", 1.0),
             source=data.get("source", "unspecified"),
+            consequence_description=data.get("consequence_description", ""),
+            s_expansion=frozenset(data.get("s_expansion", [])),
+            s_decayed=frozenset(data.get("s_decayed", [])),
+            a_expansion=frozenset(data.get("a_expansion", [])),
+            a_decayed=frozenset(data.get("a_decayed", [])),
             external_input=data.get("external_input"),
             external_input_source=data.get("external_input_source", "none"),
             external_warrant=data.get("external_warrant", 0.0),

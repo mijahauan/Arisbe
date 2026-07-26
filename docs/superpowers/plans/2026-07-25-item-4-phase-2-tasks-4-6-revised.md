@@ -82,25 +82,43 @@ Each task follows this pattern:
      If internal trace and external input conflict → mid warrant (requires further inquiry)
    ```
 
-5. **Track S/A expansions**
+5. **Refine S/A within bounded capacity**
    ```
-   S_new = S_old ∪ {"M-revision-path", "K-trajectory", "disposition-consequence"}
-   A_new = A_old ∪ {
-     "choose-M-revision-by-path",
-     "optimize-for-K-trajectory",
-     "condition-on-disposition-consequence"
-   }
+   Discovered distinctions: {M-revision-path, K-trajectory, disposition-consequence}
+   
+   S refinement (within this kyte's limited vocabulary capacity):
+     Add: {"M-revision-path", "K-trajectory", "disposition-consequence"}
+     Constraint: This kyte can only hold N vocabulary terms total
+     Decision: What unused vocabulary is deprecated? (disuse-decay)
+     Result: S_refined (reordered priorities, some old vocabulary fades)
+   
+   A refinement (within this kyte's limited action capacity):
+     Add: {"choose-M-revision-by-path", "optimize-for-K-trajectory", ...}
+     Constraint: This kyte can only deploy M action strategies total
+     Decision: What unused actions are deprioritized? (disuse-decay)
+     Result: A_refined (specialized in new actions, some old strategies fade)
    ```
 
-6. **Update warrant**
+6. **Track disuse-decay**
+   ```
+   Vocabulary deprecated: {...old terms unused by this inquiry...}
+   Actions deprecated: {...old strategies superseded by new ones...}
+   Reason: Rational capacity management (this kyte is finite)
+   Record: For succession (next kyte may specialize differently)
+   ```
+
+7. **Update warrant**
    ```
    If material distinctions found:
      warrant = 1.0 (lock in)
    Else:
      warrant = 0.0 (collapse to one)
+   
+   External validation: Did membrane (other kytes) agree?
+     external_warrant = 1.0 if membrane confirms, 0.5 if partial, 0.0 if contradicts
    ```
 
-7. **Record in UoD**
+8. **Record in UoD**
    ```
    AlternativeSet(
      id="unknown_{proposal_id}",
@@ -109,9 +127,13 @@ Each task follows this pattern:
      kind="interrogative",
      emerged_at_state=state_id_of_unknown,
      consequence_description=discovered_distinctions,
-     s_expansion=S_new - S_old,
-     a_expansion=A_new - A_old,
-     warrant=warrant_value
+     s_expansion={"M-revision-path", "K-trajectory", "disposition-consequence"},
+     s_decayed={...vocabulary no longer used by this kyte...},
+     a_expansion={"choose-M-revision-by-path", "optimize-for-K-trajectory", ...},
+     a_decayed={...actions superseded by new ones...},
+     warrant=warrant_value,  # internal discovery
+     external_input=membrane_feedback,
+     external_warrant=external_warrant_value
    )
    ```
 
@@ -176,22 +198,40 @@ Each task follows this pattern:
      If groundings differ → material alternative
    ```
 
-5. **Track S/A expansions**
+5. **Refine S/A within bounded capacity**
    ```
-   S_new = S_old ∪ {"inference-consequence", "grounding-stability", "rule-consequence"}
-   A_new = A_old ∪ {
-     "prefer-grounding-by-inference",
-     "condition-on-stability",
-     "choose-rule-set-by-grounding"
-   }
+   Discovered distinctions: {inference-consequence, grounding-stability, rule-consequence}
+   
+   S refinement (within this kyte's vocabulary capacity):
+     Add: {"inference-consequence", "grounding-stability", "rule-consequence"}
+     Constraint: Limited vocabulary space; prioritize what matters
+     Decision: Deprecate unused vocabulary from prior inquiry cycles
+     Result: S_refined (new distinctions added, old ones decay)
+   
+   A refinement (within this kyte's action capacity):
+     Add: {"prefer-grounding-by-inference", "condition-on-stability", ...}
+     Constraint: Limited action space; specialize in what works
+     Decision: Deprecate grounding heuristics superseded by new evidence
+     Result: A_refined (new strategies added, old ones fade)
    ```
 
-6. **Update warrant**
+6. **Track disuse-decay**
+   ```
+   Vocabulary deprecated: {...old grounding concepts no longer used...}
+   Actions deprecated: {...old grounding heuristics superseded...}
+   Reason: This kyte is finite; repurpose capacity for better groundings
+   Record: For succession
+   ```
+
+7. **Update warrant**
    ```
    Based on actual differences discovered in inferences/K/rules
+   High warrant if groundings differ significantly in consequences
+   Low warrant if all groundings converge (collapse to one)
+   External warrant: Do other kytes agree on which groundings matter?
    ```
 
-7. **Record in UoD**
+8. **Record in UoD**
    ```
    AlternativeSet(
      id="thin_spot_{relation_name}",
@@ -200,9 +240,13 @@ Each task follows this pattern:
      kind="hypothetical",
      emerged_at_state=state_id_of_thin_spot,
      consequence_description=discovered_inference_distinctions,
-     s_expansion=S_new - S_old,
-     a_expansion=A_new - A_old,
-     warrant=warrant_value
+     s_expansion={"inference-consequence", "grounding-stability", "rule-consequence"},
+     s_decayed={...old vocabulary no longer used...},
+     a_expansion={"prefer-grounding-by-inference", "condition-on-stability", ...},
+     a_decayed={...old heuristics superseded...},
+     warrant=warrant_value,  # internal discovery
+     external_input=membrane_feedback,
+     external_warrant=external_warrant_value
    )
    ```
 
@@ -267,24 +311,40 @@ Each task follows this pattern:
      If branches diverge → material alternative (real choice point)
    ```
 
-5. **Track S/A expansions**
+5. **Refine S/A within bounded capacity**
    ```
-   S_new = S_old ∪ {"K-trajectory-divergence", "future-consequence", "branch-durability"}
-   A_new = A_old ∪ {
-     "optimize-for-K-trajectory",
-     "condition-on-future-consequence",
-     "select-stable-branch"
-   }
+   Discovered distinctions: {K-trajectory-divergence, future-consequence, branch-durability}
+   
+   S refinement (within this kyte's vocabulary capacity):
+     Add: {"K-trajectory-divergence", "future-consequence", "branch-durability"}
+     Constraint: Limited vocabulary; focus on distinctions this kyte can make
+     Decision: Deprecate unused modal vocabulary from prior cycles
+     Result: S_refined (branch-point vocabulary added, old modal concepts decay)
+   
+   A refinement (within this kyte's action capacity):
+     Add: {"optimize-for-K-trajectory", "condition-on-future-consequence", ...}
+     Constraint: Limited action space; specialize in explorable branches
+     Decision: Deprecate actions irrelevant to these branches
+     Result: A_refined (specialized for this branch topology, others fade)
    ```
 
-6. **Update warrant**
+6. **Track disuse-decay**
    ```
-   Based on actual K/fact divergence across branches
+   Vocabulary deprecated: {...old branch-point vocabulary no longer activated...}
+   Actions deprecated: {...actions irrelevant to observed branches...}
+   Reason: This kyte is finite; focus capacity on what it actually encounters
+   Record: For succession (if branches change, other kytes may need old actions)
+   ```
+
+7. **Update warrant**
+   ```
+   Based on actual K/fact divergence across branches:
    If branches are near-identical → warrant low (collapse to one)
    If branches diverge significantly → warrant high (lock in)
+   External warrant: Do other kytes see the same branch divergence?
    ```
 
-7. **Record in UoD**
+8. **Record in UoD**
    ```
    AlternativeSet(
      id="branch_point_{state_id}",
@@ -293,9 +353,13 @@ Each task follows this pattern:
      kind="modal",
      emerged_at_state=state_id,
      consequence_description=discovered_branch_distinctions,
-     s_expansion=S_new - S_old,
-     a_expansion=A_new - A_old,
-     warrant=warrant_value
+     s_expansion={"K-trajectory-divergence", "future-consequence", "branch-durability"},
+     s_decayed={...old modal vocabulary not activated by these branches...},
+     a_expansion={"optimize-for-K-trajectory", "condition-on-future-consequence", ...},
+     a_decayed={...actions irrelevant to observed topology...},
+     warrant=warrant_value,  # internal discovery
+     external_input=membrane_feedback,
+     external_warrant=external_warrant_value
    )
    ```
 
@@ -330,23 +394,33 @@ Watch for corrections, suggestions, novelty coming from outside the system.
 Compare outcomes from BOTH sources (internal trace + external input).
 Let the differences that emerge define materiality.
 
-### 5. **Track S/A Expansion** (from both sources)
-Document what new vocabulary (S) and new actions (A) became possible.
+### 5. **Refine S/A Within Bounded Capacity** (from both sources)
+Document what new vocabulary (S) and new actions (A) this kyte refined.
+**Key: This is refinement within limits, not unbounded expansion.**
 - Internal source: vocabulary from traced consequences
 - External source: vocabulary from membrane input
-- Integrated: how do the two sources enrich each other?
+- Bounded capacity: What must decay/be forgotten to make room?
+- Heterogeneity: Different kytes will refine differently (different bounds, different priorities)
 
-### 6. **Update Warrant Based on Discovery AND Reception**
+### 6. **Track Disuse-Decay** (rational capacity management)
+Document what vocabulary and actions were deprioritized.
+- This is not loss; it's rational resource management.
+- The kyte is finite and mortal.
+- Track what decayed (for succession: next generation may need it in different context).
+
+### 7. **Update Warrant Based on Discovery AND Reception**
 - Internal distinctions: warrant reflects traced evidence
 - External input: warrant starts lower (received, not derived), updates as it integrates
 - Aligned sources: high warrant (robust)
 - Conflicting sources: mid warrant (requires further inquiry)
 
-### 7. **Record Everything for Diachronic Learning**
-AlternativeSet persists so future inquiries can learn:
+### 8. **Record Everything for Diachronic Learning**
+AlternativeSet persists so future inquiries and successor kytes can learn:
 - What distinctions matter (internal discovery)
+- What was forgotten and why (disuse-decay)
 - What external input was valuable (membrane dialogue)
 - How internal and external sources interact
+- What the next generation might specialize in (given their different bounds)
 
 ---
 
