@@ -175,3 +175,80 @@ class TestTraceStep:
                             s_register=s, a_register=a)
         assert batch.results == ()
         assert len(batch.unrepresentable) == 1
+
+
+class TestFollowOnCleanups:
+    """Spec 2026-07-26-close-the-arc §4 / AC19."""
+
+    def test_bounded_register_zero_capacity_admits_nothing(self):
+        reg = BoundedRegister(0)
+        out = reg.admit("a")
+        assert out == "a"                      # refused, returned as displaced
+        assert len(reg) == 0
+        assert reg.displaced == 1
+        assert reg.admitted == 0
+        restored = BoundedRegister.restore(reg.snapshot())
+        assert restored.snapshot() == reg.snapshot()
+
+    def test_bounded_register_capacity_one_unchanged(self):
+        reg = BoundedRegister(1)
+        assert reg.admit("a") is None
+        assert reg.admit("b") == "a"           # byte-identical to shipped LRU
+        assert len(reg) == 1 and reg.displaced == 1 and reg.admitted == 2
+
+    def test_diverging_simplification_is_equivalent(self):
+        # rels_t ^ rels_f ⊆ {r for r,_ in extra_t ^ extra_f} — pin the
+        # equivalence on sets exercising both original clauses.
+        cases = [
+            ({("p", ("a",))}, {("q", ("b",))}),               # one-side-only rels
+            ({("p", ("a",)), ("r", ("c",))}, {("p", ("b",))}),  # shared rel, differing atoms
+            ({("p", ("a",))}, {("p", ("a",))}),               # identical → empty
+            (set(), {("q", ("b",))}),                          # empty side
+        ]
+        for extra_t, extra_f in cases:
+            rels_t = {r for r, _ in extra_t}
+            rels_f = {r for r, _ in extra_f}
+            old = tuple(sorted(
+                (rels_t ^ rels_f) | {r for r, _ in (extra_t ^ extra_f)}))
+            new = tuple(sorted({r for r, _ in (extra_t ^ extra_f)}))
+            assert old == new
+
+    def test_k3_check_does_not_rematerialize(self, monkeypatch):
+        import alternative_trace as at
+        import model_materialization as mm
+        calls = {"n": 0}
+        real = mm.materialize_egi
+        def counting(egi, **kw):
+            calls["n"] += 1
+            return real(egi, **kw)
+        monkeypatch.setattr(at, "materialize_egi", counting)
+        m = parse_egif('(swan "Ciel")')
+        tr = trace_unknown(m, "phoenix", ("Ciel",),
+                           s_register=BoundedRegister(8),
+                           a_register=BoundedRegister(8))
+        # empty branch-diffs exercise the K3 branch (tier reads "bare" here:
+        # the explicit counts differ, 2 vs 1); base + true + false = 3 calls,
+        # no fourth/fifth from materialization_ratio.
+        assert tr.materiality.k3_true is not None      # the K3 branch ran
+        assert calls["n"] == 3
+        # numbers identical to an independent materialization_ratio read
+        from model_materialization import materialization_ratio
+        base = tr.materiality
+        kc = materialization_ratio(assert_fact_helper(m, tr.atom_egif))
+        assert base.k3_true == (kc.explicit, kc.derived)
+
+    def test_refused_unknown_is_counted_at_batch_level(self):
+        # D-5 as revised: raw embedded quote → refused AND counted.
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        batch = trace_batch(pc, [("said", ('he said "hi"',))],
+                            s_register=BoundedRegister(8),
+                            a_register=BoundedRegister(8))
+        assert len(batch.results) == 0
+        assert len(batch.unrepresentable) == 1
+
+
+def assert_fact_helper(m, atom_egif):
+    from model_revision import assert_fact
+    from world_scroll import m_view
+    return assert_fact(m_view(m), atom_egif)

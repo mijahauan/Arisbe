@@ -18,7 +18,7 @@ from alternative_index import Materiality, alt_key
 from eg_navigation import area_of
 from egi_core_dau import RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
-from model_materialization import materialization_ratio, materialize_egi
+from model_materialization import materialize_egi
 from model_revision import assert_fact
 from world_scroll import m_view
 
@@ -61,6 +61,10 @@ class BoundedRegister:
 
     def admit(self, term: str) -> Optional[str]:
         self._seq += 1
+        if self._capacity <= 0:
+            # A zero-capacity register admits nothing: refuse-and-count.
+            self.displaced += 1
+            return term
         if term in self._touch:
             self._touch[term] = self._seq
             return None
@@ -110,7 +114,10 @@ def atom_and_denial_egif(relation: str, labels: Sequence[Optional[str]]
     (None) becomes a defining variable (``*x``, ``*x2``, …); a constant slot
     is quoted. The result is VERIFICATION-PARSED: the atom must parse back to
     exactly ``(relation, labels)`` (generic slots as generic vertices), else
-    ``UnrepresentableAtomError`` — refuse, never mangle."""
+    ``UnrepresentableAtomError`` — refuse, never mangle. Labels are expected in
+    the parser's escaped form (the EGIF parser retains backslashes and never
+    unescapes); a raw embedded quote cannot round-trip and is refused — count-or-refuse,
+    never mangle (spec D-5 as revised)."""
     parts: List[str] = []
     var_i = 0
     for l in labels:
@@ -188,13 +195,16 @@ def trace_unknown(
     atom_egif, denial_egif = atom_and_denial_egif(relation, labels)
 
     base = m_view(m_egi)
-    base_atoms = _sheet_atoms(materialize_egi(base)[0])
+    base_mat, base_report = materialize_egi(base)
+    base_atoms = _sheet_atoms(base_mat)
     atom_key_t = (relation, labels)
 
     true_egi = assert_fact(base, atom_egif)
-    true_atoms = _sheet_atoms(materialize_egi(true_egi)[0])
+    true_mat, true_report = materialize_egi(true_egi)
+    true_atoms = _sheet_atoms(true_mat)
     false_egi = assert_fact(base, denial_egif)
-    false_atoms = _sheet_atoms(materialize_egi(false_egi)[0])
+    false_mat, false_report = materialize_egi(false_egi)
+    false_atoms = _sheet_atoms(false_mat)
 
     extra_t = true_atoms - base_atoms - {atom_key_t}
     extra_f = false_atoms - base_atoms - {atom_key_t}
@@ -206,21 +216,16 @@ def trace_unknown(
     elif extra_t or extra_f:
         tier = "bare"
     else:
-        # K3 honesty check rather than assuming "spurious".
-        kt = materialization_ratio(true_egi)
-        kf = materialization_ratio(false_egi)
-        k3_true = (kt.explicit, kt.derived)
-        k3_false = (kf.explicit, kf.derived)
+        # K3 honesty check rather than assuming "spurious" — read off the
+        # reports the trace's own materialization already produced (the
+        # counts materialization_ratio would recompute).
+        k3_true = (true_report.base_facts, true_report.derived_facts)
+        k3_false = (false_report.base_facts, false_report.derived_facts)
         tier = "spurious" if k3_true == k3_false else "bare"
 
-    # "Relations that differ between branches": relations present on one side
-    # only, plus relations whose ATOM sets differ even where both sides name
-    # the relation. Only a material tier carries a divergence.
+    # "Relations that differ between branches": the relations of the atoms in the symmetric difference (a one-side-only relation necessarily appears there). Only a material tier carries a divergence.
     if tier == "material":
-        rels_t = {r for r, _ in extra_t}
-        rels_f = {r for r, _ in extra_f}
-        diverging = tuple(sorted(
-            (rels_t ^ rels_f) | {r for r, _ in (extra_t ^ extra_f)}))
+        diverging = tuple(sorted({r for r, _ in (extra_t ^ extra_f)}))
     else:
         diverging = ()
 
