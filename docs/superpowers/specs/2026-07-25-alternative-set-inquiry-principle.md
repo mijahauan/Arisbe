@@ -33,41 +33,60 @@ If we attempt to filter alternatives to "only materially different ones" *before
 
 ## The Inquiry Cycle (Correct Approach)
 
+**Two Sources of Growth:**
+- **Internal:** Trace consequences, discover distinctions
+- **External:** Receive input from the membrane (teaching, correction, novelty)
+
 ```
 1. DETECT ALTERNATIVES (unfiltered)
    └─ Record what we observe, without pre-judging consequences
+   └─ Source: internal detection OR external membrane input
 
 2. GENERATE META-QUESTIONS
    └─ "If I select alternative A, what follows?"
       "If I select alternative B, what follows?"
       "How do the paths differ?"
 
-3. TRACE INQUIRY PATHS
+3. TRACE INQUIRY PATHS (internal consequence)
    └─ Run the peel, materialize M, measure K1/K2/K3/K4
    └─ Build proof trees showing consequences
    └─ Discover finer distinctions in outcomes
 
-4. EXPAND SIGN-SPACE (S)
-   └─ New vocabulary emerges from discovered distinctions
-   └─ Example: discover {K2-high, K2-low} → add "K2-stability" to S
-   └─ Example: discover {M-path-X, M-path-Y} → add "M-revision-path" to S
+4. LISTEN TO MEMBRANE (external input)
+   └─ Is there a correction from outside? A teaching moment?
+   └─ A contradiction the world presents?
+   └─ Record external input with warrant < 1.0 (received, not derived)
+
+5. EXPAND SIGN-SPACE (S) — from both sources
+   └─ Internal: new vocabulary from discovered distinctions
+   └─ External: new vocabulary from external input
+   └─ Example (internal): discover {K2-high, K2-low} → add "K2-stability" to S
+   └─ Example (external): world says "but consider perspective X" → add "X-perspective" to S
    └─ These become the names of distinctions we can now make
 
-5. EXPAND ACTION-SPACE (A)
-   └─ New responses become possible
-   └─ Example: can now condition actions on K2 stability
-   └─ Example: can now choose which M-revision-path to prefer
+6. EXPAND ACTION-SPACE (A) — from both sources
+   └─ Internal: new responses to discovered distinctions
+   └─ External: new responses suggested by external input
+   └─ Example (internal): can now condition actions on K2 stability
+   └─ Example (external): world suggests "try approach X" → add "X-approach" to A
    └─ These are the new interventions we can now take
 
-6. UPDATE WARRANT
-   └─ If distinctions found → warrant increases (real alternatives)
-   └─ If no distinctions found → warrant decreases (spurious)
-   └─ Intermediate: warrant reflects confidence in materiality
+7. UPDATE WARRANT — from both sources
+   └─ Internal distinctions: warrant increases with trace evidence
+   └─ External input: warrant starts lower (received, not derived), updates with integration
+   └─ If distinctions/inputs align → high warrant (robust)
+   └─ If distinctions/inputs conflict → mid warrant (requires further inquiry)
+   └─ If spurious (no consequences) → low warrant (collapse or reject)
 
-7. REPEAT WITH HIGHER SENSITIVITY
+8. REPEAT WITH HIGHER SENSITIVITY
    └─ Richer S/A enables detection of even finer alternatives
    └─ Next cycle discovers distinctions invisible to previous system
+   └─ Next cycle is more receptive to external input (higher perceptual capacity)
 ```
+
+**Key insight:** The system is NOT closed. It's in **dialogue with its membrane**. Novelty is not only discovered internally; it can be *received* from outside. The two sources feed each other:
+- Stronger S/A from internal discovery → higher capacity to *receive* external input intelligently
+- External input → new S/A vocabulary → enables finer internal discovery next round
 
 ---
 

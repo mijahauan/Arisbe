@@ -46,7 +46,7 @@ Each task follows this pattern:
      Q: "How would K1/K2/K3/K4 change?"
    ```
 
-3. **Trace inquiry paths** (dry-run, no actual revision)
+3. **Trace inquiry paths** (internal discovery — dry-run, no actual revision)
    ```
    For each alternative A:
      path_A = [
@@ -57,16 +57,29 @@ Each task follows this pattern:
      ]
    ```
 
-4. **Discover distinctions**
+3b. **Listen to membrane** (external input)
    ```
-   Compare outcomes:
+   Watch for:
+     - Is there external feedback on this verdict?
+     - Does another system suggest a different interpretation?
+     - Does the world (empirical test, human input) contradict the trace?
+   
+   Record external input with source and warrant < 1.0 (received, not derived)
+   ```
+
+4. **Discover distinctions** (integration)
+   ```
+   Compare outcomes from BOTH sources (internal trace + external input):
      - Do M-revisions differ? → new vocabulary: "M-revision-path"
      - Do K-vectors differ? → new vocabulary: "K-trajectory"
      - Do dispositions differ? → new vocabulary: "disposition-consequence"
+     - Does external input suggest novel vocabulary? → integrate it
    
    Materiality check:
      If all paths lead to identical M, K, dispositions → spurious (collapse)
-     If paths differ → material alternative (lock in)
+     If paths differ (internal) → material alternative (lock in)
+     If external input enriches the picture → material alternative (integrate)
+     If internal trace and external input conflict → mid warrant (requires further inquiry)
    ```
 
 5. **Track S/A expansions**
@@ -304,20 +317,36 @@ Each task follows this pattern:
 ### 1. **Never Pre-Filter**
 Do not assume which alternatives are material. Detect all, then test.
 
-### 2. **Always Trace Consequences**
+### 2. **Always Trace Consequences** (Internal Discovery)
 For each alternative, compute the full inquiry path (peel, revise, measure, infer).
 
-### 3. **Discover Distinctions, Don't Assume Them**
-Compare outcomes. Let the differences that emerge define materiality.
+### 3. **Listen to the Membrane** (External Input)
+Watch for corrections, suggestions, novelty coming from outside the system.
+- From QueryDocket: does an external query suggest a different framing?
+- From attention_brief: does external feedback contradict the thin-spot diagnosis?
+- From modal_query: does the world suggest a branch that wasn't detected internally?
 
-### 4. **Track S/A Expansion**
+### 4. **Discover Distinctions, Don't Assume Them** (Integration)
+Compare outcomes from BOTH sources (internal trace + external input).
+Let the differences that emerge define materiality.
+
+### 5. **Track S/A Expansion** (from both sources)
 Document what new vocabulary (S) and new actions (A) became possible.
+- Internal source: vocabulary from traced consequences
+- External source: vocabulary from membrane input
+- Integrated: how do the two sources enrich each other?
 
-### 5. **Update Warrant Based on Discovery**
-Warrant reflects actual discovered differences, not initial assumptions.
+### 6. **Update Warrant Based on Discovery AND Reception**
+- Internal distinctions: warrant reflects traced evidence
+- External input: warrant starts lower (received, not derived), updates as it integrates
+- Aligned sources: high warrant (robust)
+- Conflicting sources: mid warrant (requires further inquiry)
 
-### 6. **Record Everything for Diachronic Learning**
-AlternativeSet persists so future inquiries can learn what distinctions matter.
+### 7. **Record Everything for Diachronic Learning**
+AlternativeSet persists so future inquiries can learn:
+- What distinctions matter (internal discovery)
+- What external input was valuable (membrane dialogue)
+- How internal and external sources interact
 
 ---
 

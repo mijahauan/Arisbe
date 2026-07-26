@@ -41,6 +41,10 @@ class AlternativeSet:
     of possible selections being considered, and the lifecycle tracking how
     the alternatives were narrowed (or re-emerged in a new form).
 
+    Growth happens from TWO sources:
+    - Internal discovery: tracing consequences, finding distinctions
+    - External reception: membrane input, teaching, corrections from outside
+
     Core semantics (encoded via current_selection cardinality):
     - len(current_selection) == 0: unresolved (no selection yet)
     - 0 < len(current_selection) < len(alternatives): partial (narrowed)
@@ -55,8 +59,15 @@ class AlternativeSet:
         emerged_at_state: State ID where alternatives first appeared
         resolved_at_state: State ID where alternatives were resolved (if ever)
         selection_path: Ordered list of state IDs through narrowing occurred
-        warrant: Confidence in the alternative-set itself (0.0–1.0)
-        source: Where the alternative-set originated (e.g., "unknown_verdict", "oracle")
+
+        Internal discovery (traced consequences):
+            warrant: Confidence in distinctions traced (0.0–1.0)
+            source: Where the alternative-set originated (e.g., "unknown_verdict")
+
+        External reception (membrane input):
+            external_input: Feedback/correction/novelty from outside the system
+            external_input_source: Where external input came from
+            external_warrant: Confidence in the external input (0.0–1.0, typically < 1.0)
     """
 
     # Identity
@@ -84,9 +95,14 @@ class AlternativeSet:
     resolved_at_state: Optional[str] = None
     selection_path: List[str] = field(default_factory=list)
 
-    # Metadata
+    # Internal discovery (traced consequences)
     warrant: float = 1.0
     source: str = "unspecified"
+
+    # External reception (membrane input, teaching, correction)
+    external_input: Optional[str] = None        # Feedback from membrane
+    external_input_source: str = "none"         # Where did external input come from?
+    external_warrant: float = 0.0               # Confidence in external input (0–1)
 
     # ===== Status Encoding (via current_selection cardinality) =====
 
@@ -142,6 +158,9 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            external_input=self.external_input,
+            external_input_source=self.external_input_source,
+            external_warrant=self.external_warrant,
         )
 
     def select(self, choice: str) -> "AlternativeSet":
@@ -174,6 +193,9 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            external_input=self.external_input,
+            external_input_source=self.external_input_source,
+            external_warrant=self.external_warrant,
         )
 
     def deepen(self, new_alternatives: Set[str]) -> "AlternativeSet":
@@ -209,6 +231,9 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            external_input=self.external_input,
+            external_input_source=self.external_input_source,
+            external_warrant=self.external_warrant,
         )
 
     def remerge_with(self, new_context: RelationalGraphWithCuts) -> "AlternativeSet":
@@ -236,6 +261,9 @@ class AlternativeSet:
             selection_path=self.selection_path,
             warrant=self.warrant,
             source=self.source,
+            external_input=self.external_input,
+            external_input_source=self.external_input_source,
+            external_warrant=self.external_warrant,
         )
 
     # ===== Serialization =====
@@ -262,6 +290,9 @@ class AlternativeSet:
             "selection_path": self.selection_path,
             "warrant": self.warrant,
             "source": self.source,
+            "external_input": self.external_input,
+            "external_input_source": self.external_input_source,
+            "external_warrant": self.external_warrant,
         }
 
     @staticmethod
@@ -294,6 +325,9 @@ class AlternativeSet:
             selection_path=data.get("selection_path", []),
             warrant=data.get("warrant", 1.0),
             source=data.get("source", "unspecified"),
+            external_input=data.get("external_input"),
+            external_input_source=data.get("external_input_source", "none"),
+            external_warrant=data.get("external_warrant", 0.0),
         )
 
 
