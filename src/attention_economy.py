@@ -267,22 +267,38 @@ ALTERNATIVE_SEVERITY = {"material": 8.0, "untraced": 4.0, "bare": 2.0}
 
 
 def wants_from_alternatives(register, *, round_idx: int = 0, cost: float = 1.0,
-                            s_register=None, source_record=None) -> List[Want]:
+                            s_register=None, source_record=None,
+                            chain=None, self_damping: float = 0.5,
+                            cross_damping: float = 0.5) -> List[Want]:
     """Open AlternativeRecords as wants, severity from the TRACED materiality
     (spec §6): material > untraced (the trace itself is a worthwhile reach) >
     bare; spurious not emitted. A distinction already standing in the
-    S-register reads at half severity — the S-register's first reader (V.5
-    closed). A reception nudges severity ONLY when it bears evidence AND its
-    source has a positive track record; untracked + agrees earns exactly
-    nothing (ruling R-B's teeth)."""
+    S-register damps severity — by ``self_damping`` when the record's OWN
+    trace admitted it (told apart by dereferencing ``traced_by`` → the trace
+    step's ``s_admitted`` params: the consumer re-reads licensed ink, the
+    record holds nothing), else by ``cross_damping`` (don't pay twice for a
+    distinction another trace earned). This is the reserved TEMPERAMENT dial
+    (author ruling 2026-07-26): ``self_damping=1.0`` = settle-first,
+    ``0.5`` = explore-leaning; defaults 0.5/0.5 are byte-identical to the
+    pre-knob wiring, with or without ``chain``. A reception nudges severity
+    ONLY when it bears evidence AND its source has a positive track record;
+    untracked + agrees earns exactly nothing (ruling R-B's teeth)."""
+    steps_by_id = ({s.step_id: s for s in chain.steps}
+                   if chain is not None else {})
     out: List[Want] = []
     for record in register.open_records():
         tier = record.materiality.tier if record.materiality else "untraced"
         if tier == "spurious":
             continue
         severity = ALTERNATIVE_SEVERITY[tier]
-        if s_register is not None and f"distinction:{record.relation}" in s_register:
-            severity *= 0.5
+        distinction = f"distinction:{record.relation}"
+        if s_register is not None and distinction in s_register:
+            factor = cross_damping
+            step = steps_by_id.get(record.traced_by)
+            if step is not None and distinction in (
+                    (step.parameters or {}).get("s_admitted") or []):
+                factor = self_damping
+            severity *= factor
         if source_record is not None:
             for rec in record.receptions:
                 if not rec.bears_evidence:

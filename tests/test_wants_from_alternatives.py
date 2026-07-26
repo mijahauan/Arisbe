@@ -118,3 +118,61 @@ class TestWantsFromAlternatives:
                    selection='(alpha "Dover")')
         reg = _register(rec)
         assert wants_from_alternatives(reg) == []
+
+
+class TestTemperamentKnob:
+    """The self-damping ruling (2026-07-26): reserved as a studiable dial.
+    self_damping=1.0 → settle-first; 0.5 → explore-leaning; defaults 0.5/0.5
+    byte-identical to the shipped wiring."""
+
+    def _two_trace_loop(self):
+        from egif_parser_dau import parse_egif
+        from proof_authoring import ProofChain
+        from world_scroll import wrap_m
+        from alternative_index import AlternativeRegister, record_from_trace_step
+        from alternative_trace import BoundedRegister, trace_batch
+        import dataclasses
+        law = '~[ (swan *x) ~[ (white x) ] ]'
+        wrapped, _ = wrap_m(parse_egif(f'(swan "Ciel") (white "Ciel") {law}'))
+        pc = ProofChain(wrapped)
+        s_reg, a_reg = BoundedRegister(32), BoundedRegister(32)
+        # Two unknowns of the SAME relation: the first trace admits
+        # distinction:swan (material), the second finds it already standing —
+        # its own s_admitted lacks it (the cross case, by construction).
+        batch = trace_batch(pc, [("swan", ("Dover",)), ("swan", ("Eira",))],
+                            s_register=s_reg, a_register=a_reg)
+        assert len(batch.results) == 2
+        chain = pc.to_chain()
+        trace_steps = [s for s in chain.steps
+                       if (s.parameters or {}).get("act") == "alternatives_traced"]
+        register = AlternativeRegister(capacity=8)
+        for step in trace_steps:
+            register.note(record_from_trace_step(step), round_idx=0)
+        return register, s_reg, chain
+
+    def test_defaults_byte_identical_with_and_without_chain(self):
+        register, s_reg, chain = self._two_trace_loop()
+        without = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg)}
+        with_chain = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg, chain=chain)}
+        assert without == with_chain
+        # shipped behavior: material 8.0 × 0.5 (distinction standing) = 4.0
+        assert all(v == 4.0 for v in without.values())
+
+    def test_settle_first_reads_self_admitted_at_full_severity(self):
+        register, s_reg, chain = self._two_trace_loop()
+        sev = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg, chain=chain,
+            self_damping=1.0, cross_damping=0.5)}
+        dover = alt_key("swan", ("Dover",))
+        eira = alt_key("swan", ("Eira",))
+        assert sev[dover] == 8.0     # own trace admitted the distinction
+        assert sev[eira] == 4.0      # distinction arrived from Dover's trace
+
+    def test_no_chain_cannot_distinguish_applies_cross(self):
+        register, s_reg, _ = self._two_trace_loop()
+        sev = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg,
+            self_damping=1.0, cross_damping=0.5)}
+        assert set(sev.values()) == {4.0}
