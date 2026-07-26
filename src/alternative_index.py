@@ -445,8 +445,10 @@ def _denial_stands(m, relation: str, labels: Tuple[Optional[str], ...]) -> bool:
 def _settle_from_chain(self, chain) -> List[str]:
     """Resolve every open record whose branch some acknowledged step settled
     (spec §2): scan forward from the record's emergence for the EARLIEST
-    acknowledged step whose to_state's m_view holds the atom (→ selection =
-    atom) or a sheet-level denial (→ selection = denial); cite that step."""
+    acknowledged step that INTRODUCES a settling answer — holds at to_state
+    but not at from_state — for either the atom (→ selection = atom) or a
+    sheet-level denial (→ selection = denial); cite that step. An
+    already-standing answer never picks up a bystander citation."""
     from world_scroll import m_view
     steps = list(chain.steps)
     index_of = {s.step_id: i for i, s in enumerate(steps)}
@@ -458,12 +460,16 @@ def _settle_from_chain(self, chain) -> List[str]:
         for s in steps[start:]:
             if not _acknowledged(s.parameters):
                 continue
-            m = m_view(chain.states[s.to_state_id])
-            if _atom_holds(m, rec.relation, rec.labels):
+            m_after = m_view(chain.states[s.to_state_id])
+            m_before = m_view(chain.states[s.from_state_id])
+            if (_atom_holds(m_after, rec.relation, rec.labels)
+                    and not _atom_holds(m_before, rec.relation, rec.labels)):
                 self.resolve(key, resolved_by=s.step_id, selection=atom_egif)
                 resolved.append(key)
                 break
-            if _denial_stands(m, rec.relation, rec.labels):
+            if (_denial_stands(m_after, rec.relation, rec.labels)
+                    and not _denial_stands(m_before, rec.relation,
+                                           rec.labels)):
                 self.resolve(key, resolved_by=s.step_id, selection=denial_egif)
                 resolved.append(key)
                 break
@@ -584,13 +590,26 @@ def run_alternative_record(record: AlternativeRecord, chain, *,
                     f"AS3: resolved_by {record.resolved_by} is not an "
                     "acknowledged M-act")
             else:
-                m = m_view(chain.states[s.to_state_id])
-                atom_settles = _atom_holds(m, record.relation, record.labels)
-                denial_settles = _denial_stands(m, record.relation, record.labels)
-                if record.selection == record.alternatives[0] and not atom_settles:
-                    violations.append("AS3: selected atom does not stand in M")
-                if record.selection == record.alternatives[1] and not denial_settles:
-                    violations.append("AS3: selected denial does not stand in M")
+                m_after = m_view(chain.states[s.to_state_id])
+                m_before = m_view(chain.states[s.from_state_id])
+                if record.selection == record.alternatives[0]:
+                    if not _atom_holds(m_after, record.relation, record.labels):
+                        violations.append(
+                            "AS3: selected atom does not stand in M")
+                    elif _atom_holds(m_before, record.relation, record.labels):
+                        violations.append(
+                            f"AS3: resolved_by {record.resolved_by} did not "
+                            "introduce the selected atom (bystander step)")
+                if record.selection == record.alternatives[1]:
+                    if not _denial_stands(m_after, record.relation,
+                                          record.labels):
+                        violations.append(
+                            "AS3: selected denial does not stand in M")
+                    elif _denial_stands(m_before, record.relation,
+                                        record.labels):
+                        violations.append(
+                            f"AS3: resolved_by {record.resolved_by} did not "
+                            "introduce the selected denial (bystander step)")
 
     # AS4 — honest horizon (informational, never a violation).
     if record.traced_by is None:

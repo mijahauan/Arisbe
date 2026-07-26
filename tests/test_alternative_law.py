@@ -227,3 +227,53 @@ class TestAS1Tightened:
         rebuilt = AlternativeRegister.rebuild_from_chain(chain)
         assert {r.key for r in recs} <= {r.key for r in rebuilt.records()}
         assert all(rebuilt.get(r.key).kind == "hypothetical" for r in recs)
+
+
+class TestAS3Introduction:
+    """AS3 checks introduced-by-step, not stands-at-step (spec §3, AC15):
+    a bystander acknowledged step whose from_state already held the answer
+    cannot be cited as the resolution."""
+
+    def _chain_two_admits(self):
+        from egif_parser_dau import parse_egif
+        from m_steps import admit_step, peel_step
+        from proof_authoring import ProofChain
+        from world_scroll import wrap_m
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        peel_step(pc, '(black "Dover")')
+        peel_id = pc.to_chain().steps[-1].step_id
+        admit_step(pc, '(black "Dover")', disposition="new_fact")
+        introducing_id = pc.to_chain().steps[-1].step_id
+        admit_step(pc, '(grey "Gull")', disposition="new_fact")
+        bystander_id = pc.to_chain().steps[-1].step_id
+        return pc, peel_id, introducing_id, bystander_id
+
+    def _record(self, peel_id, resolved_by=None, selection=None):
+        return AlternativeRecord(
+            key=alt_key("black", ("Dover",)), relation="black",
+            labels=("Dover",),
+            alternatives=('(black "Dover")', '~[ (black "Dover") ]'),
+            emerged_from=peel_id, resolved_by=resolved_by,
+            selection=selection)
+
+    def test_bystander_step_refused(self):
+        pc, peel_id, _intro, bystander = self._chain_two_admits()
+        rec = self._record(peel_id, resolved_by=bystander,
+                           selection='(black "Dover")')
+        report = run_alternative_record(rec, pc.to_chain())
+        assert any("AS3" in v and "introduce" in v for v in report.violations)
+
+    def test_introducing_step_passes(self):
+        pc, peel_id, intro, _ = self._chain_two_admits()
+        rec = self._record(peel_id, resolved_by=intro,
+                           selection='(black "Dover")')
+        assert run_alternative_record(rec, pc.to_chain()).ok
+
+    def test_settle_cites_the_introducing_step(self):
+        pc, peel_id, intro, _ = self._chain_two_admits()
+        reg = AlternativeRegister(capacity=8)
+        reg.note(self._record(peel_id), round_idx=0)
+        resolved = reg.settle_from_chain(pc.to_chain())
+        assert resolved == [alt_key("black", ("Dover",))]
+        assert reg.get(alt_key("black", ("Dover",))).resolved_by == intro
