@@ -178,6 +178,11 @@ class AlternativeRecord:
         if self.selection is not None and self.selection not in self.alternatives:
             raise ValueError(
                 f"selection {self.selection!r} is not one of the alternatives")
+        if self.materiality is not None and self.traced_by is None:
+            raise ValueError(
+                "materiality without traced_by — a discovered tier must cite "
+                "the trace step that earned it (index-over-ink; the AS2 "
+                "recompute law is unreachable without the pointer)")
 
     @property
     def status(self) -> str:

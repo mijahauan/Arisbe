@@ -91,6 +91,20 @@ class TestAlternativeRecord:
         names = {f.name for f in dataclasses.fields(AlternativeRecord)}
         assert "warrant" not in names and "external_warrant" not in names
 
+    def test_materiality_without_traced_by_refused(self):
+        # The final-review hole: stripping the trace pointer must not
+        # produce a law-evading record that still carries a tier.
+        with pytest.raises(ValueError, match="traced_by"):
+            self._rec(materiality=Materiality(tier="material"))
+
+    def test_materiality_without_traced_by_refused_via_replace(self):
+        # Belt-and-braces: frozen dataclass replace re-runs __post_init__.
+        traced = self._rec(traced_by="step-2",
+                           materiality=Materiality(tier="bare"))
+        import dataclasses as _dc
+        with pytest.raises(ValueError, match="traced_by"):
+            _dc.replace(traced, traced_by=None)
+
     def test_round_trips(self):
         r = self._rec(traced_by="step-2", materiality=Materiality(tier="material",
                       diverging=("white",)), receptions=(Reception(
