@@ -249,14 +249,27 @@ class TestAC16TheTwoNewWires:
         pc = ProofChain(wrapped)
         register, s_reg = self._wire(pc, thin_spot_step)
         dragon = alt_key("dragon", (None,))
+        fears = alt_key("fears", (None,))
         rec = register.get(dragon)
         assert rec.kind == "hypothetical"
         assert rec.materiality.tier == "material"   # asserting dragon derives fears
+        # fears has no law consequence of its own (asserting/denying it derives
+        # nothing beyond itself) — it must NOT read material. Before the
+        # question-pattern fix (Task 7), the skolemized asserted atom leaked
+        # into fears' own consequence set and both relations tied at
+        # "material", so the discrimination below held only by alphabetical
+        # tie-break, not by genuine materiality.
+        fears_rec = register.get(fears)
+        assert fears_rec.materiality.tier != "material"
+        assert fears_rec.materiality.tier == "bare"
         # the economy asks the material question first
         wants = wants_from_alternatives(register, s_register=None)
         econ = AttentionEconomy(musement_fraction=0.0)
         for w in wants:
             econ.register(w)
+        dragon_want = next(w for w in wants if w.key == (dragon,))
+        fears_want = next(w for w in wants if w.key == (fears,))
+        assert dragon_want.severity > fears_want.severity
         assert econ.choose(1, round_idx=1)[0].key == (dragon,)
         # resolution lands via admit ink; settle cites it; the law holds
         from m_steps import admit_step

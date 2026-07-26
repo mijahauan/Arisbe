@@ -166,6 +166,34 @@ def _atom_keys(atoms: Set[Tuple[str, Tuple[Optional[str], ...]]]
     return tuple(sorted(alt_key(r, labels) for r, labels in atoms))
 
 
+def _matches_question(
+    atom: Tuple[str, Tuple[Optional[str], ...]],
+    relation: str,
+    labels: Tuple[Optional[str], ...],
+) -> bool:
+    """Does ``atom`` match the ASKED question pattern (relation, labels) —
+    slot-wise, with a None (generic) slot matching any label?
+
+    For an all-constant question this is exact-match, identical to the old
+    ``atom_key_t`` exclusion. For a question with a generic slot, ``assert_fact``
+    skolemizes the generic to a fresh individual (e.g. ``_i1``) before the
+    branch is re-read off the materialized facts-EGI, so the asked atom never
+    equals its own post-skolemization key — the old exact-key exclusion missed
+    it and it leaked into the consequence set, reading every generic question
+    as "material" even with zero law consequence. Matching by pattern instead
+    excludes the asked atom itself under any skolemization, and — deliberately
+    — any OTHER same-relation atom that also matches the pattern (e.g. a second
+    skolem instance of the same open question): a question whose only
+    consequence is more instances of itself settles nothing beyond itself. A
+    derived atom of a DIFFERENT relation carrying the same skolem constant
+    (the genuine law consequence) still fails this match and remains a real
+    extra."""
+    rel, got = atom
+    if rel != relation or len(got) != len(labels):
+        return False
+    return all(l is None or l == g for l, g in zip(labels, got))
+
+
 @dataclass(frozen=True)
 class TraceResult:
     key: str
@@ -190,14 +218,17 @@ def trace_unknown(
 ) -> TraceResult:
     """Trace the assert/deny branches of an UNKNOWN on a dry-run copy of M
     (never written back) and DISCOVER the materiality — the Task-4 algorithm
-    (which withstood Examination V) in its new housing."""
+    (which withstood Examination V) in its new housing.
+
+    Consequence sets exclude the ASKED QUESTION PATTERN, not an exact atom
+    key (Task 7 fix): see ``_matches_question`` for why an exact key misses
+    a generic question's own skolemized atom and inflates materiality."""
     labels = tuple(labels)
     atom_egif, denial_egif = atom_and_denial_egif(relation, labels)
 
     base = m_view(m_egi)
     base_mat, base_report = materialize_egi(base)
     base_atoms = _sheet_atoms(base_mat)
-    atom_key_t = (relation, labels)
 
     true_egi = assert_fact(base, atom_egif)
     true_mat, true_report = materialize_egi(true_egi)
@@ -206,8 +237,10 @@ def trace_unknown(
     false_mat, false_report = materialize_egi(false_egi)
     false_atoms = _sheet_atoms(false_mat)
 
-    extra_t = true_atoms - base_atoms - {atom_key_t}
-    extra_f = false_atoms - base_atoms - {atom_key_t}
+    extra_t = {a for a in true_atoms - base_atoms
+               if not _matches_question(a, relation, labels)}
+    extra_f = {a for a in false_atoms - base_atoms
+               if not _matches_question(a, relation, labels)}
 
     k3_true: Optional[Tuple[int, int]] = None
     k3_false: Optional[Tuple[int, int]] = None
