@@ -16,7 +16,7 @@ from datetime import datetime
 
 from egi_core_dau import RelationalGraphWithCuts, create_empty_graph
 from egi_transformation_history import EGITransformationHistory
-from erotetic_doubt import Doubt
+from alternative_set import Doubt  # Backward-compat alias; Doubt = AlternativeSet
 from universe_of_discourse import UniverseOfDiscourse, UoDMetadata, UoDType, UoDCategory
 
 
@@ -60,17 +60,16 @@ def simple_uod(simple_egi, uod_metadata) -> UniverseOfDiscourse:
 
 @pytest.fixture
 def sample_doubt(simple_egi) -> Doubt:
-    """Create a sample doubt for testing."""
+    """Create a sample doubt for testing (using new AlternativeSet field names)."""
     return Doubt(
         id="d0",
-        presupposition=simple_egi,
-        erotetic_core=frozenset({"answer_a_hash", "answer_b_hash", "answer_c_hash"}),
-        current_answers=frozenset(),
-        status="unresolved",
-        emerged_at_state_id="s0",
-        resolved_at_state_id=None,
-        resolution_path=[],
+        context=simple_egi,
+        alternatives=frozenset({"answer_a_hash", "answer_b_hash", "answer_c_hash"}),
+        current_selection=frozenset(),
         kind="unknown_verdict",
+        emerged_at_state="s0",
+        resolved_at_state=None,
+        selection_path=[],
         warrant=0.8,
         source="test_fixture",
     )
@@ -78,22 +77,21 @@ def sample_doubt(simple_egi) -> Doubt:
 
 @pytest.fixture
 def multi_answer_doubt(simple_egi) -> Doubt:
-    """Create a doubt with multiple possible answers."""
+    """Create a doubt with multiple possible answers (using new AlternativeSet field names)."""
     return Doubt(
         id="d1",
-        presupposition=simple_egi,
-        erotetic_core=frozenset({
+        context=simple_egi,
+        alternatives=frozenset({
             "answer_x_hash",
             "answer_y_hash",
             "answer_z_hash",
             "answer_w_hash",
         }),
-        current_answers=frozenset(),
-        status="unresolved",
-        emerged_at_state_id="s1",
-        resolved_at_state_id=None,
-        resolution_path=[],
+        current_selection=frozenset(),
         kind="thin_spot",
+        emerged_at_state="s1",
+        resolved_at_state=None,
+        selection_path=[],
         warrant=0.9,
         source="test_fixture",
     )
@@ -180,14 +178,14 @@ class TestResolveDoubtAtState:
 
         # Check resolved state
         assert resolved.status == "resolved"
-        assert resolved.current_answers == frozenset({answer})
-        assert resolved.resolved_at_state_id == state_id
+        assert resolved.current_selection == frozenset({answer})
+        assert resolved.resolved_at_state == state_id
         assert simple_uod.all_doubts[sample_doubt.id].status == "resolved"
 
     def test_resolve_nonexistent_doubt_raises(self, simple_uod):
         """Test that resolving a nonexistent doubt raises ValueError."""
         state_id = simple_uod.history.current_state_id
-        with pytest.raises(ValueError, match="Doubt nonexistent not found"):
+        with pytest.raises(ValueError, match="not found in registry"):
             simple_uod.resolve_doubt_at_state("nonexistent", state_id, "answer_hash")
 
     def test_resolve_with_invalid_answer_raises(self, simple_uod, sample_doubt):
@@ -195,8 +193,8 @@ class TestResolveDoubtAtState:
         state_id = simple_uod.history.current_state_id
         simple_uod.record_doubt_at_state(state_id, sample_doubt)
 
-        # Try to resolve with answer not in erotetic_core
-        with pytest.raises(ValueError, match="not in erotetic_core"):
+        # Try to resolve with answer not in alternatives
+        with pytest.raises(ValueError, match="not in alternatives"):
             simple_uod.resolve_doubt_at_state(sample_doubt.id, state_id, "invalid_answer_hash")
 
     def test_resolve_records_at_state(self, simple_uod, sample_doubt):
@@ -225,23 +223,22 @@ class TestResolveDoubtAtState:
         resolved_1 = simple_uod.resolve_doubt_at_state(
             sample_doubt.id, state_id, "answer_a_hash"
         )
-        assert resolved_1.current_answers == frozenset({"answer_a_hash"})
+        assert resolved_1.current_selection == frozenset({"answer_a_hash"})
 
         # Reopen and resolve to different answer
         reopened = Doubt(
             id=sample_doubt.id,
-            presupposition=resolved_1.presupposition,
-            erotetic_core=resolved_1.erotetic_core,
-            current_answers=frozenset(),
-            status="unresolved",
-            emerged_at_state_id=resolved_1.emerged_at_state_id,
-            resolved_at_state_id=None,
-            resolution_path=list(resolved_1.resolution_path) + [state_id],
+            context=resolved_1.context,
+            alternatives=resolved_1.alternatives,
+            current_selection=frozenset(),
+            emerged_at_state=resolved_1.emerged_at_state,
+            resolved_at_state=None,
+            selection_path=list(resolved_1.selection_path) + [state_id],
             kind=resolved_1.kind,
             warrant=resolved_1.warrant,
             source=resolved_1.source,
         )
-        simple_uod.all_doubts[sample_doubt.id] = reopened
+        simple_uod.all_alternatives[sample_doubt.id] = reopened
 
         # Second resolution
         resolved_2 = simple_uod.resolve_doubt_at_state(
@@ -249,8 +246,8 @@ class TestResolveDoubtAtState:
         )
 
         # Latest resolution should be in registry
-        assert simple_uod.all_doubts[sample_doubt.id].current_answers == frozenset({"answer_b_hash"})
-        assert simple_uod.all_doubts[sample_doubt.id].resolved_at_state_id == state_id
+        assert simple_uod.all_doubts[sample_doubt.id].current_selection == frozenset({"answer_b_hash"})
+        assert simple_uod.all_doubts[sample_doubt.id].resolved_at_state == state_id
 
 
 # ===== Tests: Narrowing Doubts =====
@@ -269,14 +266,14 @@ class TestNarrowDoubtAtState:
         narrowed = simple_uod.narrow_doubt_at_state(multi_answer_doubt.id, state_id, narrowed_answers)
 
         # Check narrowed state
-        assert narrowed.erotetic_core == frozenset(narrowed_answers)
+        assert narrowed.alternatives == frozenset(narrowed_answers)
         assert narrowed.status == "partial"
-        assert state_id in narrowed.resolution_path
+        assert state_id in narrowed.selection_path
 
     def test_narrow_nonexistent_doubt_raises(self, simple_uod):
         """Test that narrowing a nonexistent doubt raises ValueError."""
         state_id = simple_uod.history.current_state_id
-        with pytest.raises(ValueError, match="Doubt nonexistent not found"):
+        with pytest.raises(ValueError, match="not found in registry"):
             simple_uod.narrow_doubt_at_state("nonexistent", state_id, {"answer_hash"})
 
     def test_narrow_with_no_overlap_raises(self, simple_uod, multi_answer_doubt):
@@ -284,7 +281,7 @@ class TestNarrowDoubtAtState:
         state_id = simple_uod.history.current_state_id
         simple_uod.record_doubt_at_state(state_id, multi_answer_doubt)
 
-        # Try to narrow to answers outside erotetic_core
+        # Try to narrow to answers outside alternatives
         with pytest.raises(ValueError, match="No overlap"):
             simple_uod.narrow_doubt_at_state(
                 multi_answer_doubt.id, state_id, {"invalid_answer_1", "invalid_answer_2"}
@@ -302,7 +299,7 @@ class TestNarrowDoubtAtState:
         )
 
         # Should only keep valid answers
-        assert frozenset({"answer_x_hash", "answer_y_hash"}) == narrowed.erotetic_core
+        assert frozenset({"answer_x_hash", "answer_y_hash"}) == narrowed.alternatives
 
     def test_narrow_records_at_state(self, simple_uod, multi_answer_doubt):
         """Test that narrowing records the doubt at the narrowing state."""
@@ -330,15 +327,15 @@ class TestNarrowDoubtAtState:
         narrowed_1 = simple_uod.narrow_doubt_at_state(
             multi_answer_doubt.id, state_id, {"answer_x_hash", "answer_y_hash", "answer_z_hash"}
         )
-        assert len(narrowed_1.erotetic_core) == 3
+        assert len(narrowed_1.alternatives) == 3
 
         # Second narrowing (even narrower)
         narrowed_2 = simple_uod.narrow_doubt_at_state(
             multi_answer_doubt.id, state_id, {"answer_x_hash", "answer_y_hash"}
         )
-        assert len(narrowed_2.erotetic_core) == 2
+        assert len(narrowed_2.alternatives) == 2
         # Resolution path should include the state
-        assert state_id in narrowed_2.resolution_path
+        assert state_id in narrowed_2.selection_path
 
 
 # ===== Tests: Querying Doubts =====
@@ -403,12 +400,12 @@ class TestDoubtLifecycle:
         """Test lifecycle of a doubt that emerges and stays at one state."""
         state_id = simple_uod.history.current_state_id
 
-        # Create a doubt with the correct emerged_at_state_id
+        # Create a doubt with the correct emerged_at_state
         doubt = Doubt(
             id="lifecycle_test_d0",
-            presupposition=simple_egi,
-            erotetic_core=frozenset({"answer_a", "answer_b"}),
-            emerged_at_state_id=state_id,
+            context=simple_egi,
+            alternatives=frozenset({"answer_a", "answer_b"}),
+            emerged_at_state=state_id,
         )
 
         simple_uod.record_doubt_at_state(state_id, doubt)
@@ -445,7 +442,7 @@ class TestDoubtLifecycle:
 
     def test_lifecycle_nonexistent_doubt_raises(self, simple_uod):
         """Test that querying lifecycle of nonexistent doubt raises ValueError."""
-        with pytest.raises(ValueError, match="Doubt nonexistent not found"):
+        with pytest.raises(ValueError, match="not found in registry"):
             simple_uod.doubt_lifecycle("nonexistent")
 
     def test_lifecycle_returns_tuples(self, simple_uod, sample_doubt):
@@ -463,7 +460,7 @@ class TestDoubtLifecycle:
             assert isinstance(doubt_entry, Doubt)
 
     def test_lifecycle_ordered(self, simple_uod, sample_doubt):
-        """Test that lifecycle maintains order through resolution_path."""
+        """Test that lifecycle maintains order through selection_path."""
         state_id = simple_uod.history.current_state_id
         simple_uod.record_doubt_at_state(state_id, sample_doubt)
 
