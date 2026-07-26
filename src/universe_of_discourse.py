@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from egi_core_dau import RelationalGraphWithCuts
 from egi_transformation_history import (
@@ -30,6 +30,7 @@ from egi_transformation_history import (
     StateSnapshot,
     TransformationStep,
 )
+from erotetic_doubt import Doubt
 
 
 class UoDType(Enum):
@@ -235,11 +236,15 @@ class UniverseOfDiscourse:
     
     # Core metadata
     metadata: UoDMetadata
-    
+
     # Synchronic aspect: current state
     current_egi: RelationalGraphWithCuts       # Current logical structure
     current_layout_deltas: Optional[Dict[str, Any]] = None  # User layout preferences
-    
+
+    # Doubt tracking (erotetic inquiry trajectory)
+    doubts_by_state: Dict[str, List[Doubt]] = field(default_factory=dict)  # Maps state_id → list of Doubts
+    all_doubts: Dict[str, Doubt] = field(default_factory=dict)  # Registry of all doubts ever (doubt_id → latest version)
+
     # Diachronic aspect: transformation history
     history: Optional[EGITransformationHistory] = None
     
@@ -531,9 +536,207 @@ class UniverseOfDiscourse:
         self._current_egif = None
         self._current_cgif = None
         self._current_clif = None
-        
+
         # Update metadata
         self.metadata.last_modified = datetime.now()
+
+    # ===== Doubt Tracking =====
+
+    def record_doubt_at_state(self, state_id: str, doubt: Doubt) -> None:
+        """Record that a doubt emerged at this state.
+
+        Adds the doubt to both doubts_by_state (indexed by state) and
+        all_doubts (global registry). If the doubt already exists in the
+        registry, the newer instance is kept.
+
+        Args:
+            state_id: State where doubt emerged
+            doubt: The Doubt instance to record
+
+        Effects:
+            - Adds doubt to doubts_by_state[state_id]
+            - Updates all_doubts[doubt.id] with this version
+            - Updates metadata.last_modified
+        """
+        # Record in state-indexed map
+        if state_id not in self.doubts_by_state:
+            self.doubts_by_state[state_id] = []
+        self.doubts_by_state[state_id].append(doubt)
+
+        # Record in global registry (latest version)
+        self.all_doubts[doubt.id] = doubt
+
+        # Update metadata
+        self.metadata.last_modified = datetime.now()
+
+    def resolve_doubt_at_state(
+        self, doubt_id: str, state_id: str, answer: str
+    ) -> Doubt:
+        """Record resolution of a doubt at this state.
+
+        Retrieves the doubt from the registry, calls resolve_to() with the
+        answer hash, updates the registry, and records the resolved version
+        at the state.
+
+        Args:
+            doubt_id: ID of doubt to resolve
+            state_id: State where resolution occurred
+            answer: EGI hash (string) of the chosen answer
+
+        Returns:
+            The resolved Doubt instance
+
+        Raises:
+            ValueError: If doubt_id not found or answer not in erotetic_core
+            KeyError: If state_id doesn't exist in history
+        """
+        if doubt_id not in self.all_doubts:
+            raise ValueError(f"Doubt {doubt_id} not found in registry")
+
+        # Retrieve current version
+        doubt = self.all_doubts[doubt_id]
+
+        # Resolve to the answer
+        resolved = doubt.resolve_to(answer)
+
+        # Update resolution metadata
+        resolved_with_state = Doubt(
+            id=resolved.id,
+            presupposition=resolved.presupposition,
+            erotetic_core=resolved.erotetic_core,
+            current_answers=resolved.current_answers,
+            status=resolved.status,
+            emerged_at_state_id=resolved.emerged_at_state_id,
+            resolved_at_state_id=state_id,  # Record resolution state
+            resolution_path=resolved.resolution_path,
+            kind=resolved.kind,
+            warrant=resolved.warrant,
+            source=resolved.source,
+        )
+
+        # Update registry
+        self.all_doubts[doubt_id] = resolved_with_state
+
+        # Record at state
+        if state_id not in self.doubts_by_state:
+            self.doubts_by_state[state_id] = []
+        self.doubts_by_state[state_id].append(resolved_with_state)
+
+        # Update metadata
+        self.metadata.last_modified = datetime.now()
+
+        return resolved_with_state
+
+    def narrow_doubt_at_state(
+        self, doubt_id: str, state_id: str, answers: Set[str]
+    ) -> Doubt:
+        """Narrow a doubt's erotetic core at this state.
+
+        Retrieves the doubt, narrows it to the provided answers, updates
+        the registry, and records the narrowed version at the state.
+
+        Args:
+            doubt_id: ID of doubt to narrow
+            state_id: State where narrowing occurred
+            answers: Set of answer hashes to narrow to
+
+        Returns:
+            The narrowed Doubt instance
+
+        Raises:
+            ValueError: If doubt_id not found or answers don't overlap with erotetic_core
+        """
+        if doubt_id not in self.all_doubts:
+            raise ValueError(f"Doubt {doubt_id} not found in registry")
+
+        # Retrieve current version
+        doubt = self.all_doubts[doubt_id]
+
+        # Narrow to the answers
+        narrowed = doubt.narrow_to(answers)
+
+        # Update resolution path if it's a new narrowing
+        new_path = list(narrowed.resolution_path)
+        if state_id not in new_path:
+            new_path.append(state_id)
+
+        narrowed_with_path = Doubt(
+            id=narrowed.id,
+            presupposition=narrowed.presupposition,
+            erotetic_core=narrowed.erotetic_core,
+            current_answers=narrowed.current_answers,
+            status=narrowed.status,
+            emerged_at_state_id=narrowed.emerged_at_state_id,
+            resolved_at_state_id=narrowed.resolved_at_state_id,
+            resolution_path=new_path,
+            kind=narrowed.kind,
+            warrant=narrowed.warrant,
+            source=narrowed.source,
+        )
+
+        # Update registry
+        self.all_doubts[doubt_id] = narrowed_with_path
+
+        # Record at state
+        if state_id not in self.doubts_by_state:
+            self.doubts_by_state[state_id] = []
+        self.doubts_by_state[state_id].append(narrowed_with_path)
+
+        # Update metadata
+        self.metadata.last_modified = datetime.now()
+
+        return narrowed_with_path
+
+    def doubt_lifecycle(self, doubt_id: str) -> List[Tuple[str, Doubt]]:
+        """Trace the full lifecycle of a doubt through the DAG.
+
+        Returns an ordered sequence of (state_id, doubt_version) tuples,
+        tracing how the doubt evolved through the UoD history.
+
+        Args:
+            doubt_id: ID of doubt to trace
+
+        Returns:
+            List of (state_id, Doubt) tuples in the order they appeared
+            in resolution_path + emerged_at_state_id
+
+        Raises:
+            ValueError: If doubt_id not found
+        """
+        if doubt_id not in self.all_doubts:
+            raise ValueError(f"Doubt {doubt_id} not found in registry")
+
+        doubt = self.all_doubts[doubt_id]
+        result: List[Tuple[str, Doubt]] = []
+
+        # Add emerged state first
+        if doubt.emerged_at_state_id:
+            result.append((doubt.emerged_at_state_id, doubt))
+
+        # Add resolution path states
+        for state_id in doubt.resolution_path:
+            if state_id != doubt.emerged_at_state_id:  # Avoid duplicates
+                if state_id in self.doubts_by_state:
+                    # Find the version at this state
+                    versions = [d for d in self.doubts_by_state[state_id] if d.id == doubt_id]
+                    if versions:
+                        result.append((state_id, versions[-1]))
+
+        return result
+
+    def doubts_at_state(self, state_id: str) -> List[Doubt]:
+        """Get all active doubts at a given state.
+
+        Returns all doubts that were recorded at this state, in the order
+        they were recorded. Returns a fresh copy to maintain immutability.
+
+        Args:
+            state_id: State to query
+
+        Returns:
+            List of Doubt instances at this state (may be empty)
+        """
+        return list(self.doubts_by_state.get(state_id, []))
 
 
 # ===== Backward Compatibility Aliases =====
