@@ -263,5 +263,40 @@ class QuarantineRegister:
         return q
 
 
+ALTERNATIVE_SEVERITY = {"material": 8.0, "untraced": 4.0, "bare": 2.0}
+
+
+def wants_from_alternatives(register, *, round_idx: int = 0, cost: float = 1.0,
+                            s_register=None, source_record=None) -> List[Want]:
+    """Open AlternativeRecords as wants, severity from the TRACED materiality
+    (spec §6): material > untraced (the trace itself is a worthwhile reach) >
+    bare; spurious not emitted. A distinction already standing in the
+    S-register reads at half severity — the S-register's first reader (V.5
+    closed). A reception nudges severity ONLY when it bears evidence AND its
+    source has a positive track record; untracked + agrees earns exactly
+    nothing (ruling R-B's teeth)."""
+    out: List[Want] = []
+    for record in register.open_records():
+        tier = record.materiality.tier if record.materiality else "untraced"
+        if tier == "spurious":
+            continue
+        severity = ALTERNATIVE_SEVERITY[tier]
+        if s_register is not None and f"distinction:{record.relation}" in s_register:
+            severity *= 0.5
+        if source_record is not None:
+            for rec in record.receptions:
+                if not rec.bears_evidence:
+                    continue
+                tr = source_record.track_record(rec.source)
+                if tr is not None and tr.hits > tr.misses:
+                    severity *= 1.25
+                    break                          # bounded, one-shot
+        out.append(Want(kind="alternative", key=(record.key,), payload=record,
+                        cost=cost, severity=severity,
+                        created_round=record.emerged_round))
+    return out
+
+
 __all__ = ["Want", "AttentionEconomy", "wants_from_docket", "wants_from_frontier",
-           "Horizon", "HorizonItem", "QuarantineRegister"]
+           "Horizon", "HorizonItem", "QuarantineRegister", "ALTERNATIVE_SEVERITY",
+           "wants_from_alternatives"]
