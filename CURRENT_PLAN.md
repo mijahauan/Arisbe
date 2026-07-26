@@ -1,6 +1,56 @@
 # Current Plan
 
-**Last Updated**: 2026-07-25 (latest) — **agenda items 5 + 4 — the reduction check, then the
+**Last Updated**: 2026-07-26 (latest) — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
+subagent build → merged to `main` (`52c31d0`, ff; doc pass `95e2963`). Tasks 5–6's blocking
+condition is MET: AC1–AC10 all green.** One sitting, full arc: pre-registered spec
+(`docs/superpowers/specs/2026-07-26-alternative-index-over-ink-design.md`, rulings R-A..R-F incl.
+the session's two author extensions — the pathology rider [depth misrepresentation = the *enforced*
+class, non-depth families under standing suspicion] and the two-apertures grounding [claimed
+standing stripped at the membrane; taxonomy = contextualization adequacy]); implementation plan
+(`docs/superpowers/plans/2026-07-26-alternative-index-over-ink.md`); then fresh implementer +
+independent reviewer per task with three real catches — a brief-defective LRU expectation (Task 3),
+a `_denial_stands` crash on non-self-contained cuts (Task 6, Critical, bite-verified fix), and the
+co-reference/dead-branch pair (Task 7, two Criticals: structural denial matching replaced
+`lift_cut`; the false-AS3-violation repro is now a pinned green test). Final whole-branch review:
+Ready-to-merge after one fix (`materiality ⇒ traced_by` — the strip-the-pointer lie refused at
+birth). **Full suite 4216 passed / 0 failed.** Shipped: `alternative_index.py` (alt_key ·
+Materiality vector · Reception + contextualization-adequacy classifier · AlternativeRecord ·
+bounded AlternativeRegister with snapshot/restore + settle_from_chain-citing-licensed-ink +
+rebuild_from_chain · AS1–AS4 law + attestation) + `alternative_trace.py` (V.4 dead: defining
+variables, verification parse, refuse-and-count; PEEL-twin `trace_step`; TRACE_ALTERNATIVES
+neutral) + producer (`SemanticResult.unknown_atoms`, two-site collection) + consumer
+(`wants_from_alternatives`: material 8 > untraced 4 > bare 2, S-register's first reader,
+untracked-agreement-earns-nothing pinned) + QuarantineRegister + tomos register sidecar (attested,
+atomic, raising) + the gate's trace-recompute obligation + falsifier + the AC1–AC10 loop test.
+**Retired wholesale** (−2831 net lines): `alternative_set.py`, `alternative_inquiry.py`,
+`erotetic_doubt.py`, the `Doubt` alias, the UoD alternative fields/methods, six old test files —
+every Exam V finding V.1–V.8 + amendables (a)–(f) verified dead in code (spec §7 table). Doc pass:
+ALTERNATIVE_SET_INTELLECTUAL_HISTORY re-pointed at the shipped shape (+ the dated "From Held
+Evidence to Indexed Evidence" section; free-will bullet re-written to the author's
+deliberative-interval formulation); inquiry-principle spec got the engineering-shape header note.
+
+**▶ AUTHOR-RULING DOCKET (from the final review):** the **self-damping question** — a material
+record damps against its OWN trace's `distinction:` admission to the S-register (in natural wiring
+material reads 4.0 = untraced; material > bare survives, so the loop's headline stands). Rule:
+intended ("the system already owns the distinction") or exclude the record's own trace admissions
+(the trace step's `s_admitted` params carry exactly what a fix needs)?
+
+**▶ FOLLOW-ON BATCH (none merge-blocking):** a trace-bearing corpus exemplar (de-vacuates the
+gate's parametrized obligation, currently skipping all 18 M-bearing UoDs, + discharges AC7's
+letter); AS1/AS3 tightenings (non-peel `emerged_from` passes silently; AS3 checks stands-at-step
+not introduced-by-step); `_ACK_ACTS` drift tripwire (⊆ the gate's M_ACTS); small cleanups
+(redundant `rels_t ^ rels_f` term, K3 re-materialization, `BoundedRegister(0)` off-by-one,
+escape-vs-refuse divergence from AC2's wording, receptions-are-snapshot-only docstring).
+
+**▶ QUEUED (author threads, do not fold until examined):** free will = the deliberative interval
+(`project_free_will_deliberative_interval` — accounting + uniqueness; posed this sitting, the
+intellectual-history bullet carries the working formulation) joins the commens-rung set.
+
+▶ **NEXT SESSION: Tasks 5–6 (thin spots; branch points) are UNBLOCKED** — replicate the proven
+wire per the standing rule, through the ruled self-damping question first. Or: the West basin map
+(the standing prior decision), or the follow-on batch. All commits local on `main`; not pushed.
+
+**Last Updated (prior)**: 2026-07-25 — **agenda items 5 + 4 — the reduction check, then the
 AlternativeSet arc: BUILT through Task 4, then EXAMINED, then RULED.** A multi-sitting arc
 (2026-07-24/25): **item 5** closed quickly (reduction tests added to
 `test_second_order_conservativity.py` — all three blessed exemplars reduce to B-min/Stage ⓪; B-full
