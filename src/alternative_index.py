@@ -338,8 +338,209 @@ def record_from_trace_step(step) -> AlternativeRecord:
         ))
 
 
+_ACK_ACTS = ("m_enlargement", "m_retraction", "m_revision",
+             "world_withdrawal", "m_discharge")
+
+
+def _acknowledged(params) -> bool:
+    act = (params or {}).get("act")
+    if act == "quotation":
+        return (params or {}).get("provenance") == "oracle-answer"
+    return act in _ACK_ACTS
+
+
+def _atom_holds(m, relation: str, labels: Tuple[Optional[str], ...]) -> bool:
+    """Does a sheet-level ground atom of ``m`` match (relation, labels)?
+    A generic slot (None) matches any binding."""
+    from eg_navigation import area_of
+    for e in sorted(m.E, key=lambda e: e.id):
+        if m.rel.get(e.id) != relation:
+            continue
+        if area_of(m, e.id) != m.sheet:
+            continue
+        got = tuple(m.get_vertex(v).label for v in m.nu.get(e.id, ()))
+        if len(got) != len(labels):
+            continue
+        if all(l is None or l == g for l, g in zip(labels, got)):
+            return True
+    return False
+
+
+def _denial_stands(m, denial_egif: str) -> bool:
+    """Does a SHEET-LEVEL cut of ``m`` match the denial shape? (Sheet-level
+    only: an entertained exhibit's inner ~[P] is nested and must not settle
+    anything — mention is not assertion.)"""
+    from eg_navigation import same_graph
+    from egif_parser_dau import parse_egif
+    from quotation_overlay import lift_cut
+    shape = parse_egif(denial_egif)
+    cut_ids = {c.id for c in m.Cut}
+    for cid in sorted(m.area.get(m.sheet, frozenset())):
+        if cid in cut_ids and same_graph(lift_cut(m, cid), shape):
+            return True
+    return False
+
+
+# --- settlement + rebuild (methods appended onto AlternativeRegister) --------
+
+def _settle_from_chain(self, chain) -> List[str]:
+    """Resolve every open record whose branch some acknowledged step settled
+    (spec §2): scan forward from the record's emergence for the EARLIEST
+    acknowledged step whose to_state's m_view holds the atom (→ selection =
+    atom) or a sheet-level denial (→ selection = denial); cite that step."""
+    from world_scroll import m_view
+    steps = list(chain.steps)
+    index_of = {s.step_id: i for i, s in enumerate(steps)}
+    resolved: List[str] = []
+    for key in [r.key for r in self.open_records()]:
+        rec = self._records[key]
+        start = index_of.get(rec.emerged_from, 0) if rec.emerged_from else 0
+        atom_egif, denial_egif = rec.alternatives[0], rec.alternatives[1]
+        for s in steps[start:]:
+            if not _acknowledged(s.parameters):
+                continue
+            m = m_view(chain.states[s.to_state_id])
+            if _atom_holds(m, rec.relation, rec.labels):
+                self.resolve(key, resolved_by=s.step_id, selection=atom_egif)
+                resolved.append(key)
+                break
+            if _denial_stands(m, denial_egif):
+                self.resolve(key, resolved_by=s.step_id, selection=denial_egif)
+                resolved.append(key)
+                break
+    return resolved
+
+
+def _rebuild_from_chain(chain, *, capacity: int = 64) -> "AlternativeRegister":
+    """Re-derive the whole register from the chain alone — the proof that the
+    index never became a second authority (spec §2, AC8)."""
+    from alternative_trace import UnrepresentableAtomError, atom_and_denial_egif
+    reg = AlternativeRegister(capacity=capacity)
+    for i, s in enumerate(chain.steps):
+        p = s.parameters or {}
+        if p.get("act") == "peel":
+            for rel, labels in (p.get("unknown_atoms") or []):
+                labs = tuple(None if l == "*" else l for l in labels)
+                try:
+                    atom, denial = atom_and_denial_egif(rel, labs)
+                except UnrepresentableAtomError:
+                    continue                      # was refused at trace time too
+                reg.note(AlternativeRecord(
+                    key=alt_key(rel, labs), relation=rel, labels=labs,
+                    alternatives=(atom, denial), emerged_from=s.step_id,
+                    emerged_round=i), round_idx=i)
+        elif p.get("act") == "alternatives_traced":
+            reg.note(record_from_trace_step(s), round_idx=i)
+    reg.settle_from_chain(chain)
+    return reg
+
+
+AlternativeRegister.settle_from_chain = _settle_from_chain
+AlternativeRegister.rebuild_from_chain = staticmethod(_rebuild_from_chain)
+
+
+# --- the law -----------------------------------------------------------------
+
+@dataclass(frozen=True)
+class AlternativeLawReport:
+    violations: Tuple[str, ...] = ()
+    horizon: Tuple[str, ...] = ()
+
+    @property
+    def ok(self) -> bool:
+        return not self.violations
+
+
+def _default_trace_fn(m_egi, relation, labels):
+    from alternative_trace import BoundedRegister, trace_unknown
+    return trace_unknown(m_egi, relation, labels,
+                         s_register=BoundedRegister(32),
+                         a_register=BoundedRegister(32)).materiality
+
+
+def run_alternative_record(record: AlternativeRecord, chain, *,
+                           trace_fn=None) -> AlternativeLawReport:
+    """AS1–AS4, non-raising (spec §4). ``trace_fn(m_egi, relation, labels)
+    -> Materiality`` defaults to the real trace with fresh registers (the
+    S/A registers never affect materiality, so recompute is register-free)."""
+    from world_scroll import m_view
+    trace_fn = trace_fn or _default_trace_fn
+    violations: List[str] = []
+    horizon: List[str] = []
+    steps_by_id = {s.step_id: s for s in chain.steps}
+    star_labels = ["*" if l is None else l for l in record.labels]
+
+    # AS1 — index resolves, content matches.
+    for ref_name in ("emerged_from", "traced_by", "resolved_by"):
+        ref = getattr(record, ref_name)
+        if ref is not None and ref not in steps_by_id:
+            violations.append(f"AS1: {ref_name}={ref!r} not in chain")
+    if record.emerged_from and record.emerged_from in steps_by_id:
+        p = steps_by_id[record.emerged_from].parameters or {}
+        if p.get("act") == "peel":
+            if [record.relation, star_labels] not in (p.get("unknown_atoms") or []):
+                violations.append(
+                    f"AS1: emerged_from step never surfaced {record.key}")
+    if record.traced_by and record.traced_by in steps_by_id:
+        p = steps_by_id[record.traced_by].parameters or {}
+        if p.get("act") != "alternatives_traced":
+            violations.append("AS1: traced_by is not a trace step")
+        elif (p.get("relation") != record.relation
+              or p.get("labels") != star_labels
+              or tuple(record.alternatives) != (p.get("atom_egif"),
+                                                p.get("denial_egif"))):
+            violations.append(
+                f"AS1: trace step params do not match record {record.key}")
+
+    # AS2 — the trace recomputes.
+    if (record.traced_by and record.traced_by in steps_by_id
+            and record.materiality is not None
+            and not any(v.startswith("AS1") for v in violations)):
+        step = steps_by_id[record.traced_by]
+        recomputed = trace_fn(chain.states[step.from_state_id],
+                              record.relation, record.labels)
+        if recomputed != record.materiality:
+            violations.append(
+                f"AS2: materiality does not recompute for {record.key} "
+                f"(recorded {record.materiality.tier!r}, "
+                f"recomputed {recomputed.tier!r})")
+
+    # AS3 — resolution licensed.
+    if record.resolved_by is not None:
+        if record.selection is None:
+            violations.append("AS3: resolved without a selection")
+        if record.resolved_by in steps_by_id:
+            s = steps_by_id[record.resolved_by]
+            if not _acknowledged(s.parameters):
+                violations.append(
+                    f"AS3: resolved_by {record.resolved_by} is not an "
+                    "acknowledged M-act")
+            else:
+                m = m_view(chain.states[s.to_state_id])
+                atom_settles = _atom_holds(m, record.relation, record.labels)
+                denial_settles = _denial_stands(m, record.alternatives[1])
+                if record.selection == record.alternatives[0] and not atom_settles:
+                    violations.append("AS3: selected atom does not stand in M")
+                if record.selection == record.alternatives[1] and not denial_settles:
+                    violations.append("AS3: selected denial does not stand in M")
+
+    # AS4 — honest horizon (informational, never a violation).
+    if record.traced_by is None:
+        horizon.append(f"untraced: {record.key}")
+    return AlternativeLawReport(violations=tuple(violations),
+                                horizon=tuple(horizon))
+
+
+def attest_alternative_record(record: AlternativeRecord, chain, *,
+                              trace_fn=None) -> None:
+    report = run_alternative_record(record, chain, trace_fn=trace_fn)
+    if not report.ok:
+        raise AlternativeLawViolation("; ".join(report.violations))
+
+
 __all__ = [
     "AlternativeLawViolation", "alt_key", "Materiality", "Reception",
     "TrackRecord", "SourceRecord", "UntrackedSources", "AlternativeRecord",
     "AlternativeRegister", "record_from_trace_step",
+    "AlternativeLawReport", "run_alternative_record", "attest_alternative_record",
 ]
