@@ -139,7 +139,12 @@ class UntrackedSources:
 # The record — an index over chain steps                                      #
 # --------------------------------------------------------------------------- #
 
-KINDS_BUILT = ("interrogative",)
+# The three built kinds share ONE witness — the interrogative {atom, denial}
+# pair (spec D-1: exhaustive + exclusive by construction) — differing only in
+# how they emerged (a peel's unknown / a thin-spot survey / a branch survey).
+# Further kinds remain refused until they declare their own construction
+# (V.8 discipline).
+KINDS_BUILT = ("interrogative", "hypothetical", "modal")
 
 
 @dataclass(frozen=True)
@@ -167,6 +172,10 @@ class AlternativeRecord:
             raise ValueError(
                 f"kind {self.kind!r} is not built — only {KINDS_BUILT} meets "
                 "the index-over-ink invariants today (V.8 discipline)")
+        if self.kind in ("hypothetical", "modal") and self.emerged_from is None:
+            raise ValueError(
+                f"a {self.kind!r} record requires emerged_from — its "
+                "legitimacy is the survey ink (spec D-6)")
         from egif_parser_dau import parse_egif
         for alt in self.alternatives:
             try:
@@ -225,7 +234,11 @@ class AlternativeRegister:
     """The standing, content-keyed, bounded register of open questions.
     A cache over the chain, never a second authority: records rebuild from
     the chain (Task 6's ``rebuild_from_chain``), so LRU displacement loses
-    no truth, only cache. Snapshot/restore on the docket template (V.6)."""
+    no truth, only cache. Snapshot/restore on the docket template (V.6).
+    Receptions are SNAPSHOT-ONLY: membrane arrivals were never chain steps,
+    so rebuild_from_chain cannot recover them — LRU displacement + rebuild
+    loses receptions (truth from the membrane, not from the chain).
+    Snapshot/restore is their only succession path."""
 
     def __init__(self, capacity: int = 64):
         self._capacity = capacity
@@ -354,6 +367,12 @@ def record_from_trace_step(step) -> AlternativeRecord:
 _ACK_ACTS = ("m_enlargement", "m_retraction", "m_revision",
              "world_withdrawal", "m_discharge")
 
+# The acts that lawfully SURFACE an open question (AS1): a peel's unknown,
+# or one of the two survey PEEL-twins. All three park their surfacings under
+# the params key "unknown_atoms" in the same [[rel, ["*"|label, …]], …]
+# shape, so AS1 checks one code path.
+_EMERGENCE_ACTS = ("peel", "thin_spots_surveyed", "branches_surveyed")
+
 
 def _acknowledged(params) -> bool:
     act = (params or {}).get("act")
@@ -453,7 +472,9 @@ def _settle_from_chain(self, chain) -> List[str]:
 
 def _rebuild_from_chain(chain, *, capacity: int = 64) -> "AlternativeRegister":
     """Re-derive the whole register from the chain alone — the proof that the
-    index never became a second authority (spec §2, AC8)."""
+    index never became a second authority (spec §2, AC8). NOTE: receptions
+    are SNAPSHOT-ONLY (membrane arrivals were never chain steps) — a rebuild
+    never recovers them; see AlternativeRegister's docstring."""
     from alternative_trace import UnrepresentableAtomError, atom_and_denial_egif
     reg = AlternativeRegister(capacity=capacity)
     for i, s in enumerate(chain.steps):
@@ -471,6 +492,10 @@ def _rebuild_from_chain(chain, *, capacity: int = 64) -> "AlternativeRegister":
                     emerged_round=i), round_idx=i)
         elif p.get("act") == "alternatives_traced":
             reg.note(record_from_trace_step(s), round_idx=i)
+        elif p.get("act") in ("thin_spots_surveyed", "branches_surveyed"):
+            from alternative_survey import records_from_survey_step
+            for rec in records_from_survey_step(s, round_idx=i):
+                reg.note(rec, round_idx=i)
     reg.settle_from_chain(chain)
     return reg
 
@@ -517,10 +542,13 @@ def run_alternative_record(record: AlternativeRecord, chain, *,
             violations.append(f"AS1: {ref_name}={ref!r} not in chain")
     if record.emerged_from and record.emerged_from in steps_by_id:
         p = steps_by_id[record.emerged_from].parameters or {}
-        if p.get("act") == "peel":
-            if [record.relation, star_labels] not in (p.get("unknown_atoms") or []):
-                violations.append(
-                    f"AS1: emerged_from step never surfaced {record.key}")
+        if p.get("act") not in _EMERGENCE_ACTS:
+            violations.append(
+                f"AS1: emerged_from={record.emerged_from!r} is not an "
+                f"emergence act (act={p.get('act')!r})")
+        elif [record.relation, star_labels] not in (p.get("unknown_atoms") or []):
+            violations.append(
+                f"AS1: emerged_from step never surfaced {record.key}")
     if record.traced_by and record.traced_by in steps_by_id:
         p = steps_by_id[record.traced_by].parameters or {}
         if p.get("act") != "alternatives_traced":

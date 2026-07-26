@@ -154,7 +154,6 @@ class TestSurveySteps:
         assert len(p["unknown_atoms"]) == 1
         assert len(p["refused_budget"]) >= 1     # named, never dropped
 
-    @pytest.mark.xfail(reason="KINDS_BUILT extended in Task 5", strict=True)
     def test_records_from_thin_spot_step_are_hypothetical(self):
         wrapped, _ = wrap_m(parse_egif(FIXTURE_M))
         pc = ProofChain(wrapped)
@@ -169,7 +168,6 @@ class TestSurveySteps:
         assert dragon.alternatives[0] == "(dragon *x)"
         assert dragon.alternatives[1] == "~[ (dragon *x) ]"
 
-    @pytest.mark.xfail(reason="KINDS_BUILT extended in Task 5", strict=True)
     def test_branch_survey_step_records_evidence(self):
         wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
         pc = ProofChain(wrapped)

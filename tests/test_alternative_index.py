@@ -79,9 +79,25 @@ class TestAlternativeRecord:
         with pytest.raises(ValueError, match="parse"):
             self._rec(alternatives=("grounding-A", "grounding-B"))
 
-    def test_non_interrogative_kind_refused(self):
-        with pytest.raises(ValueError, match="kind"):
-            self._rec(kind="modal")
+    def test_unbuilt_kind_refused(self):
+        with pytest.raises(ValueError, match="not built"):
+            AlternativeRecord(key='p("a")', relation="p", labels=("a",),
+                              alternatives=('(p "a")', '~[ (p "a") ]'),
+                              kind="practical")
+
+    def test_new_kinds_require_emerged_from(self):
+        # D-6: a hypothetical/modal record's legitimacy IS the survey ink.
+        # (relation "pred", not "p" — a single lowercase letter tokenizes as
+        # a bound variable per egif_parser_dau, not a relation name.)
+        for kind in ("hypothetical", "modal"):
+            with pytest.raises(ValueError, match="emerged_from"):
+                AlternativeRecord(key='pred("a")', relation="pred", labels=("a",),
+                                  alternatives=('(pred "a")', '~[ (pred "a") ]'),
+                                  kind=kind)
+            rec = AlternativeRecord(key='pred("a")', relation="pred", labels=("a",),
+                                    alternatives=('(pred "a")', '~[ (pred "a") ]'),
+                                    kind=kind, emerged_from="step-1")
+            assert rec.kind == kind
 
     def test_selection_must_be_an_alternative(self):
         with pytest.raises(ValueError, match="selection"):

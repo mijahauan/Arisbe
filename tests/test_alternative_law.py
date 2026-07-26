@@ -171,3 +171,59 @@ class TestRebuild:
         assert got.status == "resolved"
         assert got.traced_by == reg.get(rec.key).traced_by
         assert got.resolved_by == reg.get(rec.key).resolved_by
+
+
+class TestAS1Tightened:
+    """A non-emergence emerged_from is now a violation (the silent pass died
+    — spec 2026-07-26-close-the-arc §3, AC14)."""
+
+    def _chain_with_admit(self):
+        from egif_parser_dau import parse_egif
+        from m_steps import admit_step, peel_step
+        from proof_authoring import ProofChain
+        from world_scroll import wrap_m
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        peel_step(pc, '(black "Dover")')
+        peel_id = pc.to_chain().steps[-1].step_id
+        admit_step(pc, '(white "Ciel")', disposition="new_fact")
+        admit_id = pc.to_chain().steps[-1].step_id
+        return pc.to_chain(), peel_id, admit_id
+
+    def test_emerged_from_a_non_emergence_step_is_refused(self):
+        chain, _peel_id, admit_id = self._chain_with_admit()
+        rec = AlternativeRecord(
+            key=alt_key("black", ("Dover",)), relation="black",
+            labels=("Dover",),
+            alternatives=('(black "Dover")', '~[ (black "Dover") ]'),
+            emerged_from=admit_id)          # an admit is not an emergence
+        report = run_alternative_record(rec, chain)
+        assert any("AS1" in v and "emergence" in v for v in report.violations)
+
+    def test_peel_emergence_still_passes(self):
+        chain, peel_id, _ = self._chain_with_admit()
+        rec = AlternativeRecord(
+            key=alt_key("black", ("Dover",)), relation="black",
+            labels=("Dover",),
+            alternatives=('(black "Dover")', '~[ (black "Dover") ]'),
+            emerged_from=peel_id)
+        assert run_alternative_record(rec, chain).ok
+
+    def test_survey_emergence_passes_and_rebuild_reads_surveys(self):
+        from alternative_survey import thin_spot_step
+        from egif_parser_dau import parse_egif
+        from proof_authoring import ProofChain
+        from world_scroll import wrap_m
+        wrapped, _ = wrap_m(parse_egif(
+            '(swan "Ciel") ~[ (dragon *x) ~[ (fears x) ] ]'))
+        pc = ProofChain(wrapped)
+        thin_spot_step(pc)
+        chain = pc.to_chain()
+        from alternative_survey import records_from_survey_step
+        recs = records_from_survey_step(chain.steps[-1])
+        assert recs
+        for rec in recs:
+            assert run_alternative_record(rec, chain).ok
+        rebuilt = AlternativeRegister.rebuild_from_chain(chain)
+        assert {r.key for r in recs} <= {r.key for r in rebuilt.records()}
+        assert all(rebuilt.get(r.key).kind == "hypothetical" for r in recs)
