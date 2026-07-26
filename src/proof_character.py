@@ -100,7 +100,7 @@ AMPLIATIVE_RULES = frozenset({
 # honest about WHICH steps did the amplifying. QUOTE (B-min) joins it: a
 # quotation exhibits its ink without force — a mention asserts nothing, so
 # scribing one is an act, not an inference.
-NEUTRAL_RULES = frozenset({"PEEL", "QUOTE"})
+NEUTRAL_RULES = frozenset({"PEEL", "QUOTE", "TRACE_ALTERNATIVES"})
 
 # Derived episode steps whose expansions ARE visible (M_RESIDENCE §10, the
 # episode lifecycle in ink — each records its executed derivation):

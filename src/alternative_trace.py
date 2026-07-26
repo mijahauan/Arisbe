@@ -251,7 +251,79 @@ def trace_unknown(
         a_admitted=tuple(a_admitted), a_displaced=tuple(a_displaced))
 
 
+TRACE_ALTERNATIVES = "TRACE_ALTERNATIVES"
+
+
+def trace_step(pc, relation: str, labels: Sequence[Optional[str]], *,
+               s_register: BoundedRegister, a_register: BoundedRegister,
+               note: Optional[str] = None, branch: Optional[str] = None
+               ) -> TraceResult:
+    """Record the trace as a PEEL-twin chain step (ruling R-A): an identity
+    transform (fresh state, never a self-loop) whose params carry the trace
+    actually run against the chain's current state — earned at record time,
+    re-checkable forever (the gate recomputes it, Task 10)."""
+    tr = trace_unknown(pc.current, relation, labels,
+                       s_register=s_register, a_register=a_register)
+    m = tr.materiality
+    params = {
+        "act": "alternatives_traced", "earned": True,
+        "relation": relation,
+        "labels": ["*" if l is None else l for l in tr.labels],
+        "key": tr.key,
+        "atom_egif": tr.atom_egif, "denial_egif": tr.denial_egif,
+        "tier": m.tier, "diverging": list(m.diverging),
+        "extra_true": list(m.extra_true), "extra_false": list(m.extra_false),
+        "k3_true": list(m.k3_true) if m.k3_true is not None else None,
+        "k3_false": list(m.k3_false) if m.k3_false is not None else None,
+        "s_admitted": list(tr.s_admitted), "s_displaced": list(tr.s_displaced),
+        "a_admitted": list(tr.a_admitted), "a_displaced": list(tr.a_displaced),
+    }
+    pc.apply_derived(TRACE_ALTERNATIVES, lambda g: g,
+                     note=note or f"trace: {tr.key} → {m.tier}",
+                     params=params, branch=branch)
+    return tr
+
+
+@dataclass(frozen=True)
+class TraceBatch:
+    results: Tuple[TraceResult, ...]
+    refused_budget: Tuple[str, ...]        # keys refused by the trace budget
+    unrepresentable: Tuple[str, ...]       # reprs refused by rendering
+
+
+def trace_batch(pc, unknowns, *, s_register: BoundedRegister,
+                a_register: BoundedRegister, budget: int = 8) -> TraceBatch:
+    """Trace up to ``budget`` distinct unknowns (first-occurrence order);
+    the rest are REFUSED AND COUNTED (count-or-refuse, never silent).
+    Unrepresentable unknowns are counted separately."""
+    seen: Set[Tuple[str, Tuple[Optional[str], ...]]] = set()
+    results: List[TraceResult] = []
+    refused: List[str] = []
+    unrepresentable: List[str] = []
+    for relation, labels in unknowns:
+        key_t = (relation, tuple(labels))
+        if key_t in seen:
+            continue
+        seen.add(key_t)
+        try:
+            key = alt_key(relation, tuple(labels))
+        except Exception:
+            key = repr(key_t)
+        if len(results) >= budget:
+            refused.append(key)
+            continue
+        try:
+            results.append(trace_step(pc, relation, tuple(labels),
+                                      s_register=s_register,
+                                      a_register=a_register))
+        except UnrepresentableAtomError:
+            unrepresentable.append(key)
+    return TraceBatch(results=tuple(results), refused_budget=tuple(refused),
+                      unrepresentable=tuple(unrepresentable))
+
+
 __all__ = [
     "KyteProfile", "BoundedRegister", "UnrepresentableAtomError",
     "atom_and_denial_egif", "TraceResult", "trace_unknown",
+    "TRACE_ALTERNATIVES", "trace_step", "TraceBatch", "trace_batch",
 ]

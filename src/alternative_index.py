@@ -318,8 +318,28 @@ class AlternativeRegister:
         return reg
 
 
+def record_from_trace_step(step) -> AlternativeRecord:
+    """Rebuild the index entry from a recorded TRACE step's params alone —
+    the index is a cache over the chain, never a second authority."""
+    p = step.parameters or {}
+    if p.get("act") != "alternatives_traced":
+        raise ValueError(f"step {step.step_id} is not a trace step")
+    labels = tuple(None if l == "*" else l for l in p["labels"])
+    return AlternativeRecord(
+        key=p["key"], relation=p["relation"], labels=labels,
+        alternatives=(p["atom_egif"], p["denial_egif"]),
+        traced_by=step.step_id,
+        materiality=Materiality(
+            tier=p["tier"], diverging=tuple(p.get("diverging", ())),
+            extra_true=tuple(p.get("extra_true", ())),
+            extra_false=tuple(p.get("extra_false", ())),
+            k3_true=tuple(p["k3_true"]) if p.get("k3_true") is not None else None,
+            k3_false=tuple(p["k3_false"]) if p.get("k3_false") is not None else None,
+        ))
+
+
 __all__ = [
     "AlternativeLawViolation", "alt_key", "Materiality", "Reception",
     "TrackRecord", "SourceRecord", "UntrackedSources", "AlternativeRecord",
-    "AlternativeRegister",
+    "AlternativeRegister", "record_from_trace_step",
 ]

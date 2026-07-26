@@ -9,11 +9,15 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import pytest
 
+import eg_navigation as nav
+from alternative_index import record_from_trace_step
 from alternative_trace import (
     BoundedRegister, KyteProfile, TraceResult, UnrepresentableAtomError,
-    atom_and_denial_egif, trace_unknown,
+    atom_and_denial_egif, trace_batch, trace_step, trace_unknown, TRACE_ALTERNATIVES,
 )
 from egif_parser_dau import parse_egif
+from proof_authoring import ProofChain
+from world_scroll import m_view, wrap_m
 
 LAW = '~[ (swan *x) ~[ (white x) ] ]'
 M0 = f'(swan "Ciel") (white "Ciel") {LAW}'
@@ -113,3 +117,61 @@ class TestTraceUnknown:
         assert "distinction:swan" in tr.s_admitted
         assert "resolve:swan" in tr.a_admitted
         assert f"distinction:swan" in s.terms
+
+
+def _chain_from(m_egif: str) -> ProofChain:
+    wrapped, _ = wrap_m(parse_egif(m_egif))
+    return ProofChain(wrapped)
+
+
+class TestTraceStep:
+    def test_recorded_earned_and_identity(self):
+        pc = _chain_from(M0)
+        before = pc.current
+        s, a = _registers()
+        tr = trace_step(pc, "swan", ("Dover",), s_register=s, a_register=a)
+        step = pc.to_chain().steps[-1]
+        assert step.rule_name == TRACE_ALTERNATIVES
+        p = step.parameters
+        assert p["act"] == "alternatives_traced" and p["earned"] is True
+        assert p["tier"] == tr.materiality.tier == "material"
+        assert p["labels"] == ["Dover"]
+        assert p["key"] == 'swan("Dover")'
+        # Identity transform, fresh state, m_view untouched.
+        assert step.from_state_id != step.to_state_id
+        assert nav.same_graph(m_view(pc.current), m_view(before))
+
+    def test_trace_is_neutral_for_proof_character(self):
+        from proof_character import character_of_chain
+        pc = _chain_from(M0)
+        s, a = _registers()
+        trace_step(pc, "swan", ("Dover",), s_register=s, a_register=a)
+        assert character_of_chain(pc.to_chain()).character == "corollarial"
+
+    def test_record_from_trace_step(self):
+        pc = _chain_from(M0)
+        s, a = _registers()
+        trace_step(pc, "loves", ("Ciel", None), s_register=s, a_register=a)
+        step = pc.to_chain().steps[-1]
+        rec = record_from_trace_step(step)
+        assert rec.key == 'loves("Ciel",*)'
+        assert rec.labels == ("Ciel", None)
+        assert rec.traced_by == step.step_id
+        assert rec.status == "traced"
+
+    def test_batch_budget_count_or_refuse(self):
+        pc = _chain_from(M0)
+        s, a = _registers()
+        unknowns = [("swan", ("Dover",)), ("black", ("Dover",)),
+                    ("swan", ("Dover",))]          # duplicate → one trace
+        batch = trace_batch(pc, unknowns, s_register=s, a_register=a, budget=1)
+        assert len(batch.results) == 1
+        assert batch.refused_budget == ('black("Dover")',)
+
+    def test_batch_counts_unrepresentable(self):
+        pc = _chain_from(M0)
+        s, a = _registers()
+        batch = trace_batch(pc, [("said", ('a "quote"',))],
+                            s_register=s, a_register=a)
+        assert batch.results == ()
+        assert len(batch.unrepresentable) == 1
