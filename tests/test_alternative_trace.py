@@ -67,8 +67,10 @@ class TestBoundedRegister:
         r.admit("a"); r.admit("b"); r.admit("a"); r.admit("c")
         r2 = BoundedRegister.restore(r.snapshot())
         assert r2.snapshot() == r.snapshot()
-        # Order semantics survive: "b" is now the LRU term.
-        assert r2.admit("d") == "b"
+        # Order semantics survive restore: "a" (refreshed at seq 3) is older
+        # than "c" (seq 4), so it is the LRU victim — a restore that mangled
+        # the touch order would evict "c" instead.
+        assert r2.admit("d") == "a"
 
 
 class TestTraceUnknown:
