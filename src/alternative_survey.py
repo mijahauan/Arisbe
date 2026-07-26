@@ -134,5 +134,92 @@ def survey_branches(chain, *, upto: Optional[str] = None,
                         evidence=tuple(evidence))
 
 
+SURVEY_THIN_SPOTS = "SURVEY_THIN_SPOTS"
+THIN_SPOTS_ACT = "thin_spots_surveyed"
+SURVEY_BRANCHES = "SURVEY_BRANCHES"
+BRANCHES_ACT = "branches_surveyed"
+
+_KIND_BY_ACT = {THIN_SPOTS_ACT: "hypothetical", BRANCHES_ACT: "modal"}
+
+
+def _star(labels) -> List[str]:
+    return ["*" if l is None else l for l in labels]
+
+
+def thin_spot_step(pc, *, budget: int = 8, note: Optional[str] = None,
+                   branch: Optional[str] = None) -> ThinSpotSurvey:
+    """Record the thin-spot survey as a PEEL-twin identity step, earned at
+    record time: the scan actually runs against pc.current; params carry the
+    whole result; the gate recomputes it forever. Over-budget surfacings are
+    refused-and-counted, never dropped."""
+    from alternative_index import alt_key
+    survey = survey_thin_spots(pc.current)
+    surfaced = survey.unknowns[:budget]
+    refused = survey.unknowns[budget:]
+    params = {
+        "act": THIN_SPOTS_ACT, "earned": True, "budget": budget,
+        "unknown_atoms": [[r, _star(labels)] for r, labels in surfaced],
+        "refused_budget": [alt_key(r, labels) for r, labels in refused],
+        "thin_but_grounded": list(survey.thin_but_grounded),
+        "lonely_individuals": list(survey.lonely_individuals),
+    }
+    pc.apply_derived(SURVEY_THIN_SPOTS, lambda g: g,
+                     note=note or "thin-spot survey", params=params,
+                     branch=branch)
+    return survey
+
+
+def branch_survey_step(pc, *, budget: int = 8, at: Optional[str] = None,
+                       note: Optional[str] = None,
+                       branch: Optional[str] = None) -> BranchSurvey:
+    """Record the branch survey as a PEEL-twin identity step over the steps
+    recorded so far (recompute = re-survey the prefix before this step)."""
+    from alternative_index import alt_key
+    ref = at if at is not None else pc.current_state_id
+    survey = survey_branches(pc.to_chain(), at=ref)
+    surfaced = survey.unknowns[:budget]
+    refused = survey.unknowns[budget:]
+    keys = {alt_key(r, labels) for r, labels in surfaced}
+    params = {
+        "act": BRANCHES_ACT, "earned": True, "budget": budget, "at": ref,
+        "fork_states": list(survey.fork_states),
+        "unknown_atoms": [[r, _star(labels)] for r, labels in surfaced],
+        "refused_budget": [alt_key(r, labels) for r, labels in refused],
+        "evidence": [[k, list(ins), list(outs)]
+                     for k, ins, outs in survey.evidence if k in keys],
+    }
+    pc.apply_derived(SURVEY_BRANCHES, lambda g: g,
+                     note=note or "branch survey", params=params,
+                     branch=branch)
+    return survey
+
+
+def records_from_survey_step(step, *, round_idx: int = 0) -> List:
+    """Mint AlternativeRecords from a recorded survey step's params alone —
+    the survey twin of record_from_trace_step (the index stays a cache over
+    the chain). Kind by act (D-1: one pair, three emergences)."""
+    from alternative_index import AlternativeRecord, alt_key
+    from alternative_trace import UnrepresentableAtomError, atom_and_denial_egif
+    p = step.parameters or {}
+    kind = _KIND_BY_ACT.get(p.get("act"))
+    if kind is None:
+        raise ValueError(f"step {step.step_id} is not a survey step")
+    out: List[AlternativeRecord] = []
+    for rel, labels in (p.get("unknown_atoms") or []):
+        labs = tuple(None if l == "*" else l for l in labels)
+        try:
+            atom, denial = atom_and_denial_egif(rel, labs)
+        except UnrepresentableAtomError:
+            continue                      # refused at survey time too
+        out.append(AlternativeRecord(
+            key=alt_key(rel, labs), relation=rel, labels=labs,
+            alternatives=(atom, denial), kind=kind,
+            emerged_from=step.step_id, emerged_round=round_idx,
+            last_touched_round=round_idx))
+    return out
+
+
 __all__ = ["ThinSpotSurvey", "BranchSurvey", "survey_thin_spots",
-           "survey_branches"]
+           "survey_branches", "SURVEY_THIN_SPOTS", "THIN_SPOTS_ACT",
+           "SURVEY_BRANCHES", "BRANCHES_ACT", "thin_spot_step",
+           "branch_survey_step", "records_from_survey_step"]

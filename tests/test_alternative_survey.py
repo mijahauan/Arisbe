@@ -2,6 +2,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from egif_parser_dau import parse_egif
@@ -9,8 +11,10 @@ from proof_authoring import ProofChain
 from world_scroll import wrap_m
 
 from alternative_index import alt_key
-from alternative_survey import (BranchSurvey, ThinSpotSurvey, survey_branches,
-                                survey_thin_spots)
+from alternative_survey import (BRANCHES_ACT, THIN_SPOTS_ACT, BranchSurvey,
+                                ThinSpotSurvey, branch_survey_step,
+                                records_from_survey_step, survey_branches,
+                                survey_thin_spots, thin_spot_step)
 
 # One-instance relation (swan/white grounded), a zero-grounded law body
 # (dragon), its zero-grounded head (fears), and a lonely individual (Ciel
@@ -125,3 +129,69 @@ class TestBranchSurvey:
         ev_keys = {k for k, _, _ in s.evidence}
         assert alt_key("rain", (None,)) not in ev_keys
         assert ("calm", ("sea",)) in s.unknowns
+
+
+class TestSurveySteps:
+    def test_thin_spot_step_records_peel_shaped_params(self):
+        wrapped, _ = wrap_m(parse_egif(FIXTURE_M))
+        pc = ProofChain(wrapped)
+        thin_spot_step(pc)
+        step = pc.to_chain().steps[-1]
+        p = step.parameters
+        assert p["act"] == THIN_SPOTS_ACT and p["earned"] is True
+        assert ["dragon", ["*"]] in p["unknown_atoms"]
+        assert p["budget"] == 8 and p["refused_budget"] == []
+        assert "dog" in p["thin_but_grounded"]
+        assert "Rex" in p["lonely_individuals"]
+        # identity transform: m_view unchanged
+        assert step.from_state_id != step.to_state_id
+
+    def test_budget_refuses_and_counts(self):
+        wrapped, _ = wrap_m(parse_egif(FIXTURE_M))
+        pc = ProofChain(wrapped)
+        thin_spot_step(pc, budget=1)
+        p = pc.to_chain().steps[-1].parameters
+        assert len(p["unknown_atoms"]) == 1
+        assert len(p["refused_budget"]) >= 1     # named, never dropped
+
+    @pytest.mark.xfail(reason="KINDS_BUILT extended in Task 5", strict=True)
+    def test_records_from_thin_spot_step_are_hypothetical(self):
+        wrapped, _ = wrap_m(parse_egif(FIXTURE_M))
+        pc = ProofChain(wrapped)
+        thin_spot_step(pc)
+        step = pc.to_chain().steps[-1]
+        recs = records_from_survey_step(step, round_idx=3)
+        assert recs and all(r.kind == "hypothetical" for r in recs)
+        assert all(r.emerged_from == step.step_id for r in recs)
+        assert all(r.emerged_round == 3 for r in recs)
+        by_key = {r.key: r for r in recs}
+        dragon = by_key[alt_key("dragon", (None,))]
+        assert dragon.alternatives[0] == "(dragon *x)"
+        assert dragon.alternatives[1] == "~[ (dragon *x) ]"
+
+    @pytest.mark.xfail(reason="KINDS_BUILT extended in Task 5", strict=True)
+    def test_branch_survey_step_records_evidence(self):
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        from m_steps import admit_step
+        base = pc.current_state_id
+        admit_step(pc, '(cloudy "sky")', disposition="new_fact")
+        pc.at(base)
+        admit_step(pc, '(calm "sea")', disposition="new_fact")
+        pc.at(base)
+        branch_survey_step(pc, at=base)
+        step = pc.to_chain().steps[-1]
+        p = step.parameters
+        assert p["act"] == BRANCHES_ACT and p["at"] == base
+        assert base in p["fork_states"]
+        assert ["cloudy", ["sky"]] in p["unknown_atoms"]
+        recs = records_from_survey_step(step)
+        assert recs and all(r.kind == "modal" for r in recs)
+
+    def test_records_from_non_survey_step_refused(self):
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        from m_steps import admit_step
+        admit_step(pc, '(white "Ciel")', disposition="new_fact")
+        with pytest.raises(ValueError):
+            records_from_survey_step(pc.to_chain().steps[-1])
