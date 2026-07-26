@@ -1,6 +1,47 @@
 # Current Plan
 
-**Last Updated**: 2026-07-23 (latest) — **agenda #6 continued — West-in-kytē E3 (endogenous
+**Last Updated**: 2026-07-25 (latest) — **agenda items 5 + 4 — the reduction check, then the
+AlternativeSet arc: BUILT through Task 4, then EXAMINED, then RULED.** A multi-sitting arc
+(2026-07-24/25): **item 5** closed quickly (reduction tests added to
+`test_second_order_conservativity.py` — all three blessed exemplars reduce to B-min/Stage ⓪; B-full
+stays unjustified). **Item 4** grew from "do we model questions?" into the **AlternativeSet**
+architecture — erotetic doubt generalized to alternatives-held-in-abeyance across 7 deliberative
+kinds, UoD-embedded, with the inquiry principle (never pre-filter; TRACE consequences; bounded
+S/A refinement within a finite mortal kyte; two-source growth: internal discovery + membrane
+reception; `KyteProfile` = the species-parametrization seam). Built: `alternative_set.py` +
+UoD integration + tomos persistence + **Task 4** `alternative_inquiry.py` (`bd6bbab`, 302 tests,
+review clean).
+
+**Then the author called for a skeptical look before Task 5 — EXAMINATION V ran (4 independent
+panels, `docs/ADVERSARIAL_EXAMINATION.md` §V, `90eab83`). Verdict: the philosophy survived; the
+engineering shape did not. Tasks 5–6 BLOCKED.** Eight fundamental findings incl. two reproduced
+live bugs (`select_alternative_at_state` wipes the six new fields; existential UNKNOWNs silently
+corrupt to a constant `"None"` — the Beta seam), "warrant" vocabulary corruption (0.9-on-mere-
+agreement violates rises-only-by-surviving-challenge), scalar collapse vs the K-measure guard,
+unplumbed producer + write-only ledger, fake succession (no register persistence), the one
+unchecked overlay (no law/attestation/ascent path; traces off-book vs `entertain_episode`),
+stringly-typed disunity (Tasks 5/6's own pseudocode crashes Task 4's trace).
+
+**▶▶ AUTHOR RULINGS (2026-07-25/26):** (1) **INDEX-OVER-INK** — traces route through licensed
+episode-style moves; AlternativeSet becomes an index over real chain steps (the QuotationMark
+pattern) with a formal law + attestation hook; warrant floats leave the doctrinal namespace for a
+**materiality vector**. (2) **Link-by-key** for the docket relationship — AlternativeSet adopts
+the docket's content-derived identity `(relation, labels)` + a settlement wire; no subsumption
+(the live-run-proven docket stands). (3) **The membrane THREAT MODEL** (author extension): beyond
+the membrane lies also incomprehensibility, contradiction, absurdity, threat, malignant intention
+— defense is a standing attention cost (a vigilance reserve beside musement); external reception
+needs a taxonomy (legible-benign / contested / illegible→horizon / adversarial→quarantine) with
+trust from source **track record** (K1/PredictionLedger), never from the content's posture —
+agreement from an untracked source earns nothing. Both bugs die in the rebuild. The proving rule:
+ONE complete producer→consumer loop on Task 4's wire before Tasks 5–6 unblock.
+
+▶ **NEXT SESSION: draft the full pre-registered design spec for the index-over-ink re-housing**
+(inputs frozen: Examination V + the three rulings + the inquiry-principle doc + the Task 4 code as
+raw material). Then plan → subagent build per house discipline. Memory:
+`project_alternative_set_examination_v`. All commits local on `main`
+(`bd6bbab`→`90eab83` + spec/plan/principle commits); not yet pushed.
+
+**Last Updated (prior)**: 2026-07-23 — **agenda #6 continued — West-in-kytē E3 (endogenous
 partition) BUILT + MERGED (`main` @ `bfe9c69`) + RUN. RESULT: PE1/PE3/PE4 held, PE2 refuted, PE5
 refuted** (`runs/WEST_E3_LOG.md`; run 2026-07-23 17:38–23:27 CDT, ~5h49m, deterministic, canary
 PASS, all four ledgers replay clean). A full spec→plan→build→run arc in one sitting: spec
