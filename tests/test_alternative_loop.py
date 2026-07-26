@@ -203,3 +203,83 @@ def test_ac10_clean_namespace():
         assert not (root / "src" / name).exists()
     import alternative_index as ai
     assert not hasattr(ai, "Doubt")
+
+
+class TestAC11TemperamentOnTheLoop:
+    def test_defaults_byte_identical_and_dial_turns(self, loop):
+        register, s_reg = loop["register"], loop["s_reg"]
+        chain = loop["pc"].to_chain()
+        base = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg)}
+        with_chain = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg, chain=chain)}
+        assert base == with_chain
+        settle_first = {w.payload.key: w.severity for w in wants_from_alternatives(
+            register, s_register=s_reg, chain=chain, self_damping=1.0)}
+        swan = alt_key("swan", ("Dover",))
+        assert settle_first[swan] == 8.0        # own-trace admission undamped
+        assert base[swan] == 4.0                # shipped natural wiring
+
+
+class TestAC16TheTwoNewWires:
+    HYP_M = ('(swan "Ciel") (white "Ciel") '
+             '~[ (dragon *x) ~[ (fears x) ] ]')
+
+    def _wire(self, pc, survey_step_fn, **step_kw):
+        from alternative_survey import records_from_survey_step
+        survey_step_fn(pc, **step_kw)
+        step = pc.to_chain().steps[-1]
+        recs = records_from_survey_step(step)
+        register = AlternativeRegister(capacity=16)
+        for rec in recs:
+            register.note(rec, round_idx=0)
+        s_reg, a_reg = BoundedRegister(32), BoundedRegister(32)
+        batch = trace_batch(pc, [(r.relation, r.labels) for r in recs],
+                            s_register=s_reg, a_register=a_reg)
+        chain = pc.to_chain()
+        traced = [s for s in chain.steps
+                  if (s.parameters or {}).get("act") == "alternatives_traced"]
+        for ts in traced[-len(batch.results):]:
+            register.note(record_from_trace_step(ts), round_idx=0)
+        return register, s_reg
+
+    def test_hypothetical_wire(self):
+        from alternative_survey import thin_spot_step
+        wrapped, _ = wrap_m(parse_egif(self.HYP_M))
+        pc = ProofChain(wrapped)
+        register, s_reg = self._wire(pc, thin_spot_step)
+        dragon = alt_key("dragon", (None,))
+        rec = register.get(dragon)
+        assert rec.kind == "hypothetical"
+        assert rec.materiality.tier == "material"   # asserting dragon derives fears
+        # the economy asks the material question first
+        wants = wants_from_alternatives(register, s_register=None)
+        econ = AttentionEconomy(musement_fraction=0.0)
+        for w in wants:
+            econ.register(w)
+        assert econ.choose(1, round_idx=1)[0].key == (dragon,)
+        # resolution lands via admit ink; settle cites it; the law holds
+        from m_steps import admit_step
+        admit_step(pc, '(dragon "Smaug")', disposition="new_fact")
+        chain = pc.to_chain()
+        assert register.settle_from_chain(chain) == [dragon]
+        attest_alternative_record(register.get(dragon), chain)
+
+    def test_modal_wire(self):
+        from alternative_survey import branch_survey_step
+        from m_steps import admit_step
+        wrapped, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        pc = ProofChain(wrapped)
+        base = pc.current_state_id
+        admit_step(pc, '(cloudy "sky")', disposition="new_fact")
+        pc.at(base)
+        admit_step(pc, '(calm "sea")', disposition="new_fact")
+        pc.at(base)
+        register, _s = self._wire(pc, branch_survey_step, at=base)
+        cloudy = alt_key("cloudy", ("sky",))
+        assert register.get(cloudy).kind == "modal"
+        # commit one future on the survey line: the record settles citing it
+        admit_step(pc, '(cloudy "sky")', disposition="new_fact")
+        chain = pc.to_chain()
+        assert cloudy in register.settle_from_chain(chain)
+        attest_alternative_record(register.get(cloudy), chain)
