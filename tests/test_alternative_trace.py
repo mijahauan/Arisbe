@@ -222,6 +222,7 @@ class TestFollowOnCleanups:
             calls["n"] += 1
             return real(egi, **kw)
         monkeypatch.setattr(at, "materialize_egi", counting)
+        monkeypatch.setattr(mm, "materialize_egi", counting)
         m = parse_egif('(swan "Ciel")')
         tr = trace_unknown(m, "phoenix", ("Ciel",),
                            s_register=BoundedRegister(8),
