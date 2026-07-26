@@ -114,6 +114,23 @@ class TestSettlement:
         reg.note(rec, round_idx=0)
         assert reg.settle_from_chain(pc.to_chain()) == []
 
+    def test_settlement_survives_a_standing_entertained_exhibit(self):
+        """A standing entertained episode exhibit's outer cut becomes
+        sheet-level under m_view. _denial_stands must not crash scanning it
+        (lift_cut raises ValueError on a non-self-contained subtree) and
+        must not let it settle anything unrelated (mention is not
+        assertion)."""
+        from m_steps import entertain_step
+        pc = _chain()
+        rec, _ = _traced(pc)
+        reg = AlternativeRegister()
+        reg.note(rec, round_idx=0)
+        entertain_step(pc, '(white "Rex")')
+        admit_step(pc, '(mammal "Bob")', disposition="new_fact")
+        resolved = reg.settle_from_chain(pc.to_chain())    # must not raise
+        assert resolved == []
+        assert reg.get(rec.key).status != "resolved"
+
 
 class TestRebuild:
     def test_register_rebuilds_from_chain_alone(self):

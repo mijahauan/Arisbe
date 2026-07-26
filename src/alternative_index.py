@@ -338,6 +338,14 @@ def record_from_trace_step(step) -> AlternativeRecord:
         ))
 
 
+# INTENTIONAL narrowing vs the polarity gate's M_ACTS
+# (tests/test_corpus_polarity_discipline.py): "episode_entertained",
+# "episode_abandoned", and "m_refold" are omitted on purpose. None of the
+# three ever introduces sheet-level content that could settle an open
+# record (an entertained exhibit lives nested under a rider, an abandonment
+# and a refold change no sheet-level fact) — including them would only add
+# no-op scans. Revisit this list if the gate's M_ACTS ever grows a new
+# settling act.
 _ACK_ACTS = ("m_enlargement", "m_retraction", "m_revision",
              "world_withdrawal", "m_discharge")
 
@@ -376,8 +384,18 @@ def _denial_stands(m, denial_egif: str) -> bool:
     shape = parse_egif(denial_egif)
     cut_ids = {c.id for c in m.Cut}
     for cid in sorted(m.area.get(m.sheet, frozenset())):
-        if cid in cut_ids and same_graph(lift_cut(m, cid), shape):
-            return True
+        if cid not in cut_ids:
+            continue
+        try:
+            # a cut whose subtree is not self-contained (e.g. a standing
+            # entertained episode exhibit, whose outer cut is sheet-level
+            # under m_view but whose rider/copies reach the host cell's
+            # vertices) simply never matches — the same guard as
+            # quotation_overlay.find_cut_matching and world_scroll._find_exhibit
+            if same_graph(lift_cut(m, cid), shape):
+                return True
+        except Exception:
+            continue
     return False
 
 
