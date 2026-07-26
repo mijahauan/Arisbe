@@ -449,6 +449,90 @@ def test_a_doctored_trace_is_flagged():
         "the falsifier failed to bite — the gate would pass a doctored trace"
 
 
+@pytest.mark.parametrize("uod_id", _m_bearing_ids())
+def test_recorded_thin_spot_surveys_recompute_identically(tomos, uod_id):
+    """The PEEL discipline extended to the thin-spot survey: a recorded
+    survey re-runs from its own from_state and must reproduce its params."""
+    chain, _ = _chain_states(tomos, uod_id)
+    if chain is None:
+        pytest.skip("static board with no chain")
+    surveys = [s for s in chain.steps
+               if (s.parameters or {}).get("act") == "thin_spots_surveyed"]
+    if not surveys:
+        pytest.skip("no thin-spot survey steps")
+    from alternative_index import alt_key
+    from alternative_survey import survey_thin_spots
+    for step in surveys:
+        p = step.parameters
+        survey = survey_thin_spots(chain.states[step.from_state_id])
+        n = p["budget"]
+        expect = [[r, ["*" if l is None else l for l in labels]]
+                  for r, labels in survey.unknowns[:n]]
+        refused = [alt_key(r, labels) for r, labels in survey.unknowns[n:]]
+        assert (p["unknown_atoms"], p["refused_budget"],
+                p["thin_but_grounded"], p["lonely_individuals"]) == \
+            (expect, refused, list(survey.thin_but_grounded),
+             list(survey.lonely_individuals)), (
+            f"{uod_id}/{step.step_id}: recorded survey does not recompute")
+
+
+@pytest.mark.parametrize("uod_id", _m_bearing_ids())
+def test_recorded_branch_surveys_recompute_identically(tomos, uod_id):
+    chain, _ = _chain_states(tomos, uod_id)
+    if chain is None:
+        pytest.skip("static board with no chain")
+    surveys = [s for s in chain.steps
+               if (s.parameters or {}).get("act") == "branches_surveyed"]
+    if not surveys:
+        pytest.skip("no branch survey steps")
+    from alternative_index import alt_key
+    from alternative_survey import survey_branches
+    for step in surveys:
+        p = step.parameters
+        survey = survey_branches(chain, upto=step.step_id, at=p["at"])
+        n = p["budget"]
+        expect = [[r, ["*" if l is None else l for l in labels]]
+                  for r, labels in survey.unknowns[:n]]
+        keys = {e[0] for e in p["evidence"]}
+        ev = [[k, list(ins), list(outs)]
+              for k, ins, outs in survey.evidence if k in keys]
+        assert (p["fork_states"], p["unknown_atoms"], p["evidence"]) == \
+            (list(survey.fork_states), expect, ev), (
+            f"{uod_id}/{step.step_id}: recorded branch survey does not recompute")
+
+
+def test_a_doctored_survey_is_flagged():
+    """Falsifier: a survey step whose params claim an unknown the re-survey
+    does not surface must fail the recompute comparison."""
+    from egif_parser_dau import parse_egif
+    from proof_authoring import ProofChain
+    from world_scroll import wrap_m
+    from alternative_survey import survey_thin_spots, thin_spot_step
+    wrapped, _ = wrap_m(parse_egif(
+        '(swan "Ciel") ~[ (dragon *x) ~[ (fears x) ] ]'))
+    pc = ProofChain(wrapped)
+    thin_spot_step(pc)
+    chain = pc.to_chain()
+    step = chain.steps[-1]
+    doctored = dict(step.parameters)
+    doctored["unknown_atoms"] = doctored["unknown_atoms"] + [["unicorn", ["*"]]]
+    survey = survey_thin_spots(chain.states[step.from_state_id])
+    n = doctored["budget"]
+    expect = [[r, ["*" if l is None else l for l in labels]]
+              for r, labels in survey.unknowns[:n]]
+    assert doctored["unknown_atoms"] != expect     # the lie is visible
+
+
+def test_ack_acts_is_a_subset_of_the_gates_m_acts():
+    """Drift tripwire: alternative_index._ACK_ACTS deliberately narrows
+    M_ACTS (no-op settling scans omitted) but must never NAME an act the
+    gate does not acknowledge."""
+    from alternative_index import _ACK_ACTS
+    assert set(_ACK_ACTS) <= set(M_ACTS), (
+        "an _ACK_ACTS entry is unknown to the gate's M_ACTS — the two lists "
+        "have drifted")
+
+
 # --------------------------------------------------------------------------- #
 # 3b · the recorded derivation is earned, permanently (docket ⑤)               #
 #      — the PEEL-recomputation discipline extended to M-modifying acts:        #
