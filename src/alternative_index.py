@@ -556,9 +556,61 @@ def attest_alternative_record(record: AlternativeRecord, chain, *,
         raise AlternativeLawViolation("; ".join(report.violations))
 
 
+# --- reception classification (spec §5) -----------------------------------------
+
+_BREAKOUT_MARKER = "</data>"     # the fence the agon_llm quarantine neutralizes
+
+
+def classify_reception(source: str, stance: str, claim_egif: Optional[str], *,
+                       m_egi=None, flagged_sources: Sequence[str] = ()
+                       ) -> Reception:
+    """Classification = contextualization adequacy (spec §5): how much
+    checkable context arrived. Claimed standing is stripped at the membrane —
+    the classification routes attention, it never grants trust."""
+    if source in flagged_sources or (claim_egif and _BREAKOUT_MARKER in claim_egif):
+        return Reception(source=source, stance=stance,
+                         classification="adversarial", claim_egif=claim_egif,
+                         bears_evidence=False)
+    if claim_egif is None:
+        return Reception(source=source, stance=stance,
+                         classification="legible-benign", claim_egif=None,
+                         bears_evidence=False)
+    from egif_parser_dau import parse_egif
+    try:
+        claim = parse_egif(claim_egif)
+    except Exception:
+        return Reception(source=source, stance=stance,
+                         classification="illegible", claim_egif=claim_egif,
+                         bears_evidence=False)
+    if m_egi is not None:
+        from world_scroll import m_view
+        m = m_view(m_egi)
+        conflict = False
+        edges = list(claim.E)
+        cuts = list(claim.Cut)
+        if len(edges) == 1 and not cuts:
+            conflict = _denial_stands(m, f"~[ {claim_egif.strip()} ]")
+        elif len(cuts) == 1 and not edges:
+            inner = [x for x in claim.area.get(cuts[0].id, frozenset())]
+            inner_edges = [x for x in inner if x in {e.id for e in claim.E}]
+            if len(inner_edges) == 1:
+                eid = inner_edges[0]
+                labels = tuple(claim.get_vertex(v).label
+                               for v in claim.nu.get(eid, ()))
+                conflict = _atom_holds(m, claim.rel[eid], labels)
+        if conflict:
+            return Reception(source=source, stance=stance,
+                             classification="contested", claim_egif=claim_egif,
+                             bears_evidence=True)
+    return Reception(source=source, stance=stance,
+                     classification="legible-benign", claim_egif=claim_egif,
+                     bears_evidence=True)
+
+
 __all__ = [
     "AlternativeLawViolation", "alt_key", "Materiality", "Reception",
     "TrackRecord", "SourceRecord", "UntrackedSources", "AlternativeRecord",
     "AlternativeRegister", "record_from_trace_step",
     "AlternativeLawReport", "run_alternative_record", "attest_alternative_record",
+    "classify_reception",
 ]

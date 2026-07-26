@@ -223,5 +223,45 @@ def wants_from_frontier(episodes, *, round_idx: int = 0, cost: float = 1.0,
     ]
 
 
+class QuarantineRegister:
+    """The adversarial cell of the reception taxonomy (spec §5): bounded,
+    dedup'd by ref, drops counted, snapshot/restore — and deliberately NO
+    reattempt method (quarantine is not the Horizon; nothing leaves it
+    without a deliberate act)."""
+
+    def __init__(self, max_items: int = 1000):
+        self._max = max_items
+        self._items: Dict[str, dict] = {}
+        self.dropped = 0
+
+    def register(self, ref: str, *, source: str, reason: str,
+                 round_idx: int) -> bool:
+        if ref in self._items:
+            return False
+        if len(self._items) >= self._max:
+            self.dropped += 1
+            return False
+        self._items[ref] = {"source": source, "reason": reason,
+                            "round": round_idx}
+        return True
+
+    def refs(self) -> List[str]:
+        return sorted(self._items)
+
+    def settle(self, ref: str) -> None:
+        self._items.pop(ref, None)
+
+    def snapshot(self) -> dict:
+        return {"max": self._max, "dropped": self.dropped,
+                "items": {k: dict(v) for k, v in sorted(self._items.items())}}
+
+    @staticmethod
+    def restore(state: dict) -> "QuarantineRegister":
+        q = QuarantineRegister(max_items=int(state.get("max", 1000)))
+        q.dropped = int(state.get("dropped", 0))
+        q._items = {k: dict(v) for k, v in state.get("items", {}).items()}
+        return q
+
+
 __all__ = ["Want", "AttentionEconomy", "wants_from_docket", "wants_from_frontier",
-           "Horizon", "HorizonItem"]
+           "Horizon", "HorizonItem", "QuarantineRegister"]
