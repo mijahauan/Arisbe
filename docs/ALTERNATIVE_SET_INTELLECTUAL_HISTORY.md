@@ -25,7 +25,7 @@ Peirce grounded logic in *semiosis* — the triadic sign-relation of icon, index
 Peirce never formalized the structure of "holding alternatives." He had no calculus of the alternative-set itself, only narrative descriptions. His logic was still primarily syllogistic, with abduction grafted on philosophically but not computationally.
 
 **How we build on it:**
-AlternativeSet makes Peirce's doubt operational. The `kind` field encodes the semantic type of deliberation (interrogative, hypothetical, modal, agentive, epistemic, metacognitive). The `warrant` field carries Peirce's emphasis on fallibility — alternatives have degrees of assurance, not certainty. The lifecycle (emergence, narrowing, resolution, re-emergence) mirrors the abductive cycle.
+AlternativeSet makes Peirce's doubt operational. The `kind` field encodes the semantic type of deliberation (interrogative, hypothetical, modal, agentive, epistemic, metacognitive). Peirce's emphasis on fallibility is carried by the **materiality vector** — what a consequence trace *discovered* about the alternatives (material / bare / spurious, with the diverging relations named), never a degree-of-assurance scalar; assurance vocabulary ("warrant") stays with the repo's doctrinal gradient (posited → derived → withstood), which rises only by surviving challenge. The lifecycle (emergence, tracing, resolution, settlement) mirrors the abductive cycle, and every stage cites the chain step that earned it.
 
 ---
 
@@ -45,7 +45,7 @@ Modal logic seized on the insight that necessity and possibility are *relative t
 Kripke frames are **timeless**. They model a static space of possibilities, not a *diachronic process* of deliberation. There is no notion of how an agent's alternatives narrow through time, or how new alternatives emerge. The agent is absent — worlds exist independent of anyone holding them.
 
 **How we build on it:**
-AlternativeSet lives in a **DAG (directed acyclic graph)** — Arisbe's transformation history. Each state has alternatives; moving to a new state via rule application narrows or reopens them. The `selection_path` field maps onto the accessibility relation, but *temporally*. We add what Kripke lacked: **the dynamics of deliberation in the actual history of reasoning**.
+AlternativeSet lives in a **DAG (directed acyclic graph)** — Arisbe's transformation history. Each state has alternatives; moving to a new state via rule application narrows or reopens them. The record's step references (`emerged_from` → `traced_by` → `resolved_by`) map onto the accessibility relation, but *temporally* — the path is the chain itself, not a stored copy of it. We add what Kripke lacked: **the dynamics of deliberation in the actual history of reasoning**.
 
 ---
 
@@ -65,7 +65,7 @@ In the real world, we rarely have complete information. Agents reason under **de
 Default logic focuses on *rules and their revision*, not the *structure of alternatives themselves*. It doesn't model "which alternatives are currently under consideration" — it models what to infer given a belief set.
 
 **How we build on it:**
-AlternativeSet's `deepen()` method (adding new alternatives) models the abductive moment when a default fails and new hypotheses emerge. The `remerge_with()` method models the shift to a new context after a default is abandoned. Defaults are *implicit* in the UoD's history: which alternatives survived is the record.
+The abductive moment when a default fails is a *recorded challenge*: the counterexample arrives as a peel verdict or reception, the over-general law is relinquished by a licensed retraction, and the re-opened question stands as a fresh (or re-touched — same content key, the standing question) AlternativeRecord. Defaults are *implicit* in the UoD's history: which alternatives survived is the record.
 
 ---
 
@@ -85,7 +85,7 @@ An agent's beliefs are not a set of formulas, but a set of *possible worlds cons
 Hintikka's agents are **frozen in time**. Their belief-worlds don't evolve through reasoning or action. There's no notion of how an agent *learns* by narrowing alternatives, or how deliberation *changes* which worlds are still possible.
 
 **How we build on it:**
-AlternativeSet formalizes what Hintikka assumed: the *actual state of an agent's alternatives* at a point in the reasoning process. The `context` field is the presupposition (what must be true for this alternative-set to matter); `alternatives` is the set of possible outcomes under consideration. Embedding this in Arisbe's DAG adds the **diachronic dimension** Hintikka lacked — alternatives narrow and re-emerge as reasoning unfolds.
+AlternativeSet formalizes what Hintikka assumed: the *actual state of an agent's alternatives* at a point in the reasoning process. The presupposition (what must be true for this alternative-set to matter) is the chain state the record's `emerged_from` step points into — recoverable by id, never stored as a copy; `alternatives` is the set of possible outcomes under consideration. Embedding this in Arisbe's DAG adds the **diachronic dimension** Hintikka lacked — alternatives narrow and re-emerge as reasoning unfolds.
 
 ---
 
@@ -105,7 +105,7 @@ Classical logic has no way to express "at time t" or "in context c" or "by agent
 Labeled deductive systems are a framework, not a solution. They don't tell you *what* to label or *how* to use labels in reasoning about alternatives. They're a syntactic wrapper, not a semantic foundation.
 
 **How we build on it:**
-AlternativeSet's `emerged_at_state` and `selection_path` are labels — they anchor the alternative-set in the DAG of Arisbe's transformation history. The UoD itself is a labeled deductive system where **states are labels** and transformations obey label constraints (e.g., rules can only apply at compatible states).
+AlternativeRecord's step references (`emerged_from`, `traced_by`, `resolved_by`) are labels — they anchor the record in the DAG of Arisbe's transformation history. The UoD itself is a labeled deductive system where **states are labels** and transformations obey label constraints (e.g., rules can only apply at compatible states).
 
 ---
 
@@ -129,7 +129,7 @@ A **process** is a state machine that can **internally choose** (the process non
 Process algebra is **synchronous** — it models discrete, instantaneous transitions. It doesn't model the *reasoning process* itself, only concurrent systems. And it has no notion of **testing alternatives** — it just executes one and moves on.
 
 **How we build on it:**
-AlternativeSet models the **internal choice** — the agent's deliberative alternatives at a point in time. The `select()` method models the *commitment* to one branch. When an AlternativeSet is embedded in a rule-transformation (like Arisbe's Dau rules), the rule application models **external choice** — the system (logic, physics, other agents) responds to the choice made. The non-determinism is explicit: multiple selection paths can coexist as branches in the DAG.
+AlternativeSet models the **internal choice** — the agent's deliberative alternatives at a point in time. Commitment to one branch is a *licensed act on the chain* (an admission or discharge the record's `resolved_by` cites). The rule application models **external choice** — the system (logic, physics, other agents) responds to the choice made. The non-determinism is explicit: multiple selection paths can coexist as branches in the DAG.
 
 ---
 
@@ -154,7 +154,7 @@ Belief sets are ranked by *entrenchment* — some beliefs are harder to give up 
 AGM is *episodic* — each revision is instantaneous. There's no notion of an agent *holding multiple theories in mind simultaneously* while deciding between them. Revision models "I had belief K; now I have belief K*φ," not "I'm deliberating between K and K*φ."
 
 **How we build on it:**
-AlternativeSet's `narrow_to()` method models *partial revision* — the agent hasn't fully committed, just narrowed alternatives. The `select()` method is final commitment. The `warrant` field reflects entrenchment: core beliefs have high warrant, peripheral ones lower. Arisbe's DAG preserves the full history: you can see every alternative entertained and every step of narrowing, the **deliberative trace** that AGM leaves hidden.
+An open record with a traced materiality models *partial revision* — the agent hasn't committed, but the consequences of each branch are already derived and on the record. Final commitment is the licensed resolution (`resolved_by` citing the admitting or discharging step). Entrenchment's analogue is discovered, not declared: a *material* question (whose branches provably diverge in traced consequences) outranks a *bare* one in the attention economy, and the doctrinal warrant gradient — which rises only by surviving challenge — remains the repo's only assurance vocabulary. Arisbe's DAG preserves the full history: you can see every alternative entertained and every step of narrowing, the **deliberative trace** that AGM leaves hidden.
 
 ---
 
@@ -175,7 +175,7 @@ People don't reason with formal symbols; they reason with **mental models** — 
 Mental models are cognitive phenomena, not formal structures. Johnson-Laird gives no *calculus* of models, only psychological predictions. And models are **synchronic** — they don't explain how models are updated, revised, or reordered through time.
 
 **How we build on it:**
-AlternativeSet formalizes the structure of "multiple models held in mind." The `alternatives` field is the set of possible models. The `current_selection` field is the subset the agent is actively considering (Johnson-Laird's cognitive load). The `narrow_to()` and `deepen()` methods model how the set of models evolves as reasoning proceeds. By embedding this in Arisbe's DAG, we add the **temporal dimension**: you can see how the agent's model-space evolved through a reasoning episode.
+AlternativeSet formalizes the structure of "multiple models held in mind." The `alternatives` field is the set of possible models, and Johnson-Laird's cognitive load is now *engineering, not metaphor*: the register of open questions and the S/A vocabulary registers are **capacity-bounded** (`KyteProfile`), with least-recently-touched displacement counted rather than silent — a bounded mind that must reallocate to learn. By embedding this in Arisbe's DAG, we add the **temporal dimension**: you can see how the agent's model-space evolved through a reasoning episode, and rebuild it from the chain alone.
 
 ---
 
@@ -196,7 +196,7 @@ Classical semantics treats questions as *pragmatic* — outside the logic. Inqui
 Inquisitive semantics is still **static**. It gives the space of possible answers but not the *dynamics* of how an agent narrows answers through inference or learning. And it has no notion of *agent commitment* — at what point does a deliberating agent stop considering alternatives and commit?
 
 **How we build on it:**
-AlternativeSet embodies inquisitive semantics made dynamic. The `alternatives` field is the inquisitive content — the set of possible answers. The `context` is the presupposition (what must hold for the question to be coherent). The `kind: "interrogative"` marks this as a question. The `current_selection` field adds what inquisitive semantics lacks: *which answers has the agent already ruled out?* And the `resolution_path` traces how the agent narrowed from all alternatives to a single selected answer.
+AlternativeSet embodies inquisitive semantics made dynamic. The `alternatives` field is the inquisitive content — the set of possible answers (for the built interrogative kind, the atom and its denial: exhaustive and exclusive by construction). The presupposition is the chain state where the question emerged. The `kind: "interrogative"` marks this as a question. What inquisitive semantics lacks arrives as the record's step references: the trace that discovered which answers *differ in consequences*, and the `selection` + `resolved_by` pair naming how — and by what licensed act — the agent committed.
 
 ---
 
@@ -223,7 +223,7 @@ Each **tactic** applies an inference rule, eliminating a goal or breaking it int
 Proof assistants treat alternatives as a **computational device** for search, not a first-class semantic entity. Once a goal is closed, the alternative disappears from the record. There's no notion of *holding multiple proof paths in mind* or *revisiting earlier choices*.
 
 **How we build on it:**
-AlternativeSet models the **proof state** as a semantic object. The `alternatives` field is the set of possible next tactics (or proof strategies) at this stage. The `selection_path` is the sequence of tactics (choices) made so far. Crucially, by embedding this in Arisbe's DAG, we preserve the **full search tree** — all alternatives tried, all branches taken. This enables *meta-learning* about proof search: which strategies worked? Which led to dead ends? This is absent in proof assistants, where only the successful proof is kept.
+AlternativeSet models the **proof state** as a semantic object. The `alternatives` field is the set of possible next moves at this stage; the sequence of choices made so far *is* the chain of recorded steps the record indexes. Crucially, by embedding this in Arisbe's DAG, we preserve the **full search tree** — all alternatives tried, all branches taken. This enables *meta-learning* about proof search: which strategies worked? Which led to dead ends? This is absent in proof assistants, where only the successful proof is kept.
 
 ---
 
@@ -237,7 +237,7 @@ Each tradition contains a pitfall that AlternativeSet must dodge:
 
 **The Error:** Treating alternatives as a fixed space. Once a Kripke frame is defined, its possible worlds don't change; we just evaluate formulas in different worlds.
 
-**Lesson We Apply:** AlternativeSet is not timeless. It lives in a DAG — its alternatives *narrow and deepen through time* as reasoning unfolds. The `selection_path` tracks this evolution, making dynamics primary.
+**Lesson We Apply:** AlternativeSet is not timeless. It lives in a DAG — its alternatives *narrow and deepen through time* as reasoning unfolds. The chain of steps the record indexes tracks this evolution, making dynamics primary.
 
 ---
 
@@ -257,7 +257,7 @@ Each tradition contains a pitfall that AlternativeSet must dodge:
 
 **The Error:** Treating choice as something that happens *to* the system (the environment picks), not *by* the system (the agent decides). This loses agency — the distinction between "I decided" and "it happened to me."
 
-**Lesson We Apply:** AlternativeSet distinguishes **internal choice** (the agent selects via `select()`) from external pressure (the rule system transforms the EGI, narrowing what's logically possible). Both are recorded in the DAG, so the full causal story is preserved.
+**Lesson We Apply:** AlternativeSet distinguishes **internal choice** (the agent commits by a licensed act the record cites) from external pressure (the rule system transforms the EGI, narrowing what's logically possible). Both are recorded in the DAG, so the full causal story is preserved.
 
 ---
 
@@ -295,16 +295,16 @@ Each tradition contains a pitfall that AlternativeSet must dodge:
 
 The table below shows how AlternativeSet synthesizes all traditions:
 
-| Tradition | What It Held | AlternativeSet Field | How We Use It |
+| Tradition | What It Held | AlternativeRecord / register element | How We Use It |
 |-----------|---|---|---|
-| Peirce | Purpose (doubt, testing, abduction) | `kind: "interrogative"` | Semantics + fallibilism |
-| Kripke | Formal set of alternatives | `alternatives: FrozenSet[str]` | Core structure |
-| Reiter | Revision when defaults fail | `deepen()` method | Hypothesis expansion |
-| Hintikka | Agent's epistemic state | `context: EGI` + `alternatives` | Presupposition + possible answers |
-| Gabbay | Context-scoped reasoning | `emerged_at_state`, `selection_path` | Embedded in DAG labels |
-| Milner | Internal vs external choice | `select()` (internal) + rule transformation (external) | Deliberation + reasoning |
-| Gärdenfors | Evolution of beliefs | `current_selection` cardinality | Narrowing stages: unresolved → partial → resolved |
-| Johnson-Laird | Multiple models held in mind | `alternatives` + `current_selection` | Cognitive load made formal |
+| Peirce | Purpose (doubt, testing, abduction) | `kind: "interrogative"` + `materiality` | Semantics + fallibilism (discovered, never assumed) |
+| Kripke | Formal set of alternatives | `alternatives` (validated EGIF propositions) | Core structure |
+| Reiter | Revision when defaults fail | recorded challenge + the re-touched standing record (content key) | Hypothesis expansion |
+| Hintikka | Agent's epistemic state | the `emerged_from` chain state + `alternatives` | Presupposition + possible answers |
+| Gabbay | Context-scoped reasoning | `emerged_from` / `traced_by` / `resolved_by` step refs | Embedded in DAG labels |
+| Milner | Internal vs external choice | licensed resolution (internal) + rule transformation (external) | Deliberation + reasoning |
+| Gärdenfors | Evolution of beliefs | `status`: untraced → traced → resolved | Narrowing stages, each citing its step |
+| Johnson-Laird | Multiple models held in mind | `alternatives` + bounded registers (`KyteProfile`) | Cognitive load made engineering |
 | Ciardelli | Questions as semantic content | `alternatives` + `kind: "interrogative"` | Inquisitive semantics + dynamics |
 | Proof Assistants | Goal-directed proof search | `alternatives` as next choices | Full proof tree preserved in DAG |
 
@@ -337,11 +337,11 @@ This is absent in prior work. Kripke models are static. AGM revision is episodic
 ### 3. Peircean Grounding with Formal Precision
 
 **The novelty:** Peirce said inquiry is holding alternatives. But he had no *computable* formalization. We provide:
-1. A **data structure** (`AlternativeSet`) that encodes alternatives formally
-2. **Operations** (`narrow_to()`, `select()`, `deepen()`, `remerge_with()`) that enact deliberation
+1. A **data structure** (`AlternativeRecord`, in a bounded content-keyed register) that encodes alternatives formally — as an *index over the reasoning record*, never a second authority
+2. **Acts** that enact deliberation, each earned at record time: the consequence trace (a PEEL-twin chain step whose result recomputes forever), licensed resolution (an admission/discharge the record cites), settlement observed from the chain
 3. **Semantics** tied to purpose (`kind` field — interrogative, modal, agentive, etc.)
-4. **History preservation** — every choice is recorded in the DAG
-5. **Computable dynamics** — rules transform alternatives, just as they transform the EGI
+4. **History preservation** — every choice is recorded in the DAG, and the whole register rebuilds from the chain alone
+5. **A law** (AS1–AS4: the index resolves; the trace recomputes; resolution is licensed; the horizon is honest) with a boundary attestation hook — deliberation that cannot re-derive cannot stand
 
 This completes Peirce's vision: **inquiry made operational**.
 
@@ -352,7 +352,7 @@ This completes Peirce's vision: **inquiry made operational**.
 What AlternativeSet does *not* claim:
 
 - **Complete formalization of consciousness:** The structure of alternatives may be necessary for conscious deliberation, but it's not sufficient. Qualitative experience, unified awareness, subjective perspective — these remain open.
-- **Proof that free will exists:** AlternativeSet formalizes the structure of choice. Whether that choice is "free" (uncaused, genuinely open, responsible) is a philosophical question the formalism can't settle.
+- **A metaphysics of free will:** AlternativeSet formalizes the structure of choice; it does not adjudicate the universe's causal texture. What it *does* support is a practical, compatibilist description (author's formulation, 2026-07-26): freedom as **the determined situation of considering and decision** — the interval between the conception of options (the branching at a point of doubt) and the agentic resolution among them in an action necessary *for this agent in its particular history*. "Uncaused, genuinely open" choice is not required and not assumed — openness is the genuine UNKNOWN plus the real branching the DAG records, and responsibility rides on the **accounting** (the earned, re-derivable record of the deliberation) and the **uniqueness** (the decision is indexed to this agent's own bounded registers and history). The deeper examination of this reading remains queued.
 - **Solution to all reasoning problems:** AlternativeSet is a structure, not an algorithm. It doesn't tell you *which* alternative to select when multiple options are empirically equivalent.
 
 What it *does* provide:
@@ -370,11 +370,41 @@ From Peirce's philosophical insight — **inquiry is holding alternatives** — 
 
 1. **Recovered Peirce's vision**, stripped of the psychology and formalized with precision
 2. **Synthesized all the logic-family traditions** into one structure
-3. **Made it computable** — AlternativeSet is a frozen dataclass; deliberation is a sequence of immutable instances in Arisbe's DAG
+3. **Made it computable** — deliberation is a sequence of immutable records indexing real, re-checkable steps in Arisbe's DAG
 4. **Preserved diachronicity** — the full history of deliberation is kept, enabling meta-learning and retrospection
 5. **Grounded consciousness, free will, and agency** in a formal structure that can be reasoned about
 
 The reduction theorem that emerges is simple: **Everything reduces to holding and testing alternatives.** Whether you're solving a logic puzzle, deciding where to go for lunch, imagining counterfactuals, or reasoning about your own reasoning, the underlying structure is the same. AlternativeSet is that structure. Arisbe is its realization.
+
+---
+
+## From Held Evidence to Indexed Evidence (the 2026-07-26 re-housing)
+
+This document's first draft (2026-07-25) described an implementation in which the
+AlternativeSet *held* its own evidence: a `warrant` float carried assurance, a
+`selection_path` list carried history, and methods on the dataclass
+(`narrow_to()`, `select()`, `deepen()`, `remerge_with()`) enacted the lifecycle.
+**Examination V** (ADVERSARIAL_EXAMINATION §V, four independent panels) found
+that shape unsound while affirming the philosophy above: the warrant float
+corrupted the repo's doctrinal vocabulary (assurance granted on mere agreement,
+never challenge); a scalar collapsed distinct epistemic situations; the
+lifecycle methods silently wiped evidence at the moment of commitment; and the
+structure was the one overlay in the codebase with no law, no attestation hook,
+and no path into the reasoning record.
+
+The **index-over-ink re-housing** (spec 2026-07-26, built and merged the same
+day) resolved this by making the record *point instead of hold*: every
+evidentiary claim is a reference to a real chain step — the peel that surfaced
+the question (`emerged_from`), the trace that discovered its materiality
+(`traced_by`, an identity-transform step whose result the standing gate
+recomputes forever), the licensed act that resolved it (`resolved_by`). The
+register of open questions is a bounded cache over the chain, rebuildable from
+it; the AS1–AS4 law with its attestation hook makes a record that cannot
+re-derive impossible to persist; and assurance vocabulary returned to the
+doctrinal gradient where it lives. Nothing in the intellectual arc above had to
+change — which is the point. The traditions were right about *what deliberation
+is*; the correction was about *where its evidence must live*: in the reasoning
+record, earned, or nowhere.
 
 ---
 

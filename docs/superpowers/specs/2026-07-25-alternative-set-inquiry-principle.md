@@ -4,6 +4,17 @@
 **Date:** 2026-07-25  
 **Grounding:** Peircean pragmatism + bootstrap directed engagement
 
+> **Engineering-shape note (2026-07-26):** the *principle* in this document
+> (never pre-filter; trace consequences; materiality discovered, not assumed;
+> bounded-heterogeneous-mortal kytes) remains governing and unamended. The
+> *implementation shape* its examples use — `warrant`/`external_warrant`
+> floats, the 18-field `AlternativeSet` dataclass, `s_expansion` fields on the
+> record — was found unsound by Examination V (ADVERSARIAL_EXAMINATION §V) and
+> superseded by the **index-over-ink re-housing**:
+> `2026-07-26-alternative-index-over-ink-design.md` (built and merged
+> 2026-07-26; `alternative_index.py` + `alternative_trace.py`). Read the
+> examples below for the cycle they illustrate, not the field names they carry.
+
 ---
 
 ## Core Principle
