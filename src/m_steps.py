@@ -95,6 +95,10 @@ def peel_step(
         "winning_witness": result.winning_witness,
         "counterexample": result.counterexample,
         "summary": result.summary,
+        "unknown_atoms": [
+            [rel, ["*" if l is None else l for l in labels]]
+            for rel, labels in result.unknown_atoms
+        ],
     }
     pc.apply_derived(PEEL, lambda g: g,
                      note=note or f"peel: {result.summary}",

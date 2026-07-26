@@ -113,6 +113,10 @@ class SemanticResult:
     the generic line they name — so a viewer can highlight the deciding line of
     identity *on the drawing of G* (the token→individual binding says who; this
     says where). Present whenever a decisive witness/counterexample is.
+
+    ``unknown_atoms``: the structured doubt harvest — every atom the oracle
+    could not decide, constants labelled, generic slots ``None``; the producer
+    seam of the alternative-index loop (spec §6).
     """
 
     verdict: Verdict3
@@ -120,6 +124,7 @@ class SemanticResult:
     winning_witness: Optional[Dict[str, str]] = None
     counterexample: Optional[Dict[str, str]] = None
     witness_vertex_ids: Optional[Dict[str, str]] = None
+    unknown_atoms: Tuple[Tuple[str, Tuple[Optional[str], ...]], ...] = ()
 
     @property
     def holds(self) -> bool:
@@ -164,6 +169,7 @@ class SemanticGame:
             vid: ("x" if len(generics) == 1 else f"x{i + 1}")
             for i, vid in enumerate(generics)
         }
+        self._unknowns: set = set()
         transcript: List[str] = []
         verdict, binding = self._holds(egi.sheet, {}, depth=0, transcript=transcript)
         decisive = self._render_binding(binding) if binding else None
@@ -179,6 +185,7 @@ class SemanticGame:
             winning_witness=decisive if verdict is Verdict3.TRUE else None,
             counterexample=decisive if verdict is Verdict3.FALSE else None,
             witness_vertex_ids=decisive_ids if verdict is not Verdict3.UNKNOWN else None,
+            unknown_atoms=tuple(sorted(self._unknowns, key=repr)),
         )
 
     def _render_binding(self, binding) -> Optional[Dict[str, str]]:
@@ -240,6 +247,13 @@ class SemanticGame:
         # Open world: an unsatisfied existential might be satisfied by a larger M.
         if v is not Verdict3.TRUE and not self.closed:
             v = Verdict3.UNKNOWN
+            for eid in contents:
+                if eid in self._edge_ids:
+                    labels = tuple(self._const_label.get(vid)
+                                   for vid in self._egi.nu[eid])
+                    if any(l is None for l in labels):
+                        self._unknowns.add(
+                            (self._egi.get_relation_name(eid), labels))
         self._note(transcript, depth, pol, area_id, beta, v)
         return v, None
 
@@ -287,6 +301,9 @@ class SemanticGame:
             [(rel, verts)], bound=beta, constants=self._const_label))
         if present:
             return Verdict3.TRUE
+        if not self.closed and all(v in self._const_label for v in verts):
+            self._unknowns.add(
+                (rel, tuple(self._const_label[v] for v in verts)))
         return Verdict3.FALSE if self.closed else Verdict3.UNKNOWN
 
     # -- transcript ------------------------------------------------------------
