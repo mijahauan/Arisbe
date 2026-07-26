@@ -1794,3 +1794,155 @@ mandate; every decisive charge independently re-executed by the recording examin
 before entry. Full briefs: `runs/EXAMINATION_IV_BRIEFS/`. The verdicts await the
 author's rulings on the defect docket; the doc amendments are paste-ready in the
 briefs and proposed, not yet applied — per the house precedent.*
+
+---
+
+# Examination V — The AlternativeSet Architecture (pre-commitment review, 2026-07-25)
+
+## Preface
+
+Sessions of 2026-07-24/25 designed and built the **AlternativeSet** layer: a
+generalized erotetic structure ("alternatives held in abeyance" across seven
+deliberative kinds), embedded in the UoD as JSONL metadata, with Task 4
+(`src/alternative_inquiry.py`) wiring peel-UNKNOWNs into interrogative
+AlternativeSets whose consequences are *traced* (dry-run assert/deny branches,
+materialized and diffed) rather than assumed, through capacity-bounded S/A
+registers whose displacement is recorded as disuse-decay. Tasks 5 (thin spots)
+and 6 (branch points) were specified to replicate the pattern. The author asked,
+before Task 5: *does this foundation carry a flaw that would force a re-think?*
+
+Four independent panels examined it, each mandated to refute: **A** (warrant
+semantics), **B** (ink-vs-metadata), **C** (lifecycle integration), **D**
+(representation). The examiner who designed the architecture did not examine it.
+Panels B and C independently reproduced the same defect by direct execution —
+the convergences below are earned, not echoed.
+
+## The verdict in one line
+
+**The philosophy survived; the engineering shape did not.** Every panel
+independently affirmed the governing principle (never pre-filter; trace
+consequences; materiality discovered, not assumed; bounded-mortal-heterogeneous
+kytes) and the trace algorithm itself. Every panel also found the surrounding
+structure unsound to replicate. Task 5 is **blocked** pending the re-design
+below.
+
+## Fundamental findings (block Tasks 5–6)
+
+**V.1 — "Warrant" vocabulary corruption (Panel A).** The repo's doctrinal term
+(GLOSSARY: a categorical gradient ○ posited → ⛓ derived → ⚔ withstood, rising
+*only by surviving challenge*; the low-warrant import floor) already had ≥4
+divergent shapes (`provenance.standing_of` tag-maps, overlay `"low"` flags, the
+unreconciled `erotetic_doubt` float, `model_acts`' citation-string).
+`AlternativeSet.warrant`/`external_warrant` add two more floats, unreconciled.
+Sharpest violation: `external_warrant = 0.9` granted on *mere reported
+agreement* — no challenge survived — precisely the shortcut the floor exists to
+refuse.
+
+**V.2 — Scalar collapse (Panel A).** THE_MEASURE_OF_KNOWLEDGE guard #3 ("vector,
+never a scalar") is violated one module over from where it was ratified: a
+strongly-traced-but-externally-disputed question and a weakly-traced-uncontested
+one both land at `warrant == 0.5` — indistinguishable to any consumer. Both
+cases are pinned in the shipped test suite.
+
+**V.3 — Field-wiping at the commitment moment (Panels B+C, independently
+reproduced).** `universe_of_discourse.select_alternative_at_state` /
+`narrow_alternative_at_state` reconstruct the AlternativeSet with the old
+`Doubt`-era field list, silently resetting `consequence_description`,
+`s_expansion`/`s_decayed`, `a_expansion`/`a_decayed`, and the external-input
+trio to defaults — the evidentiary trail vanishes exactly when the question
+resolves. No test catches it.
+
+**V.4 — None-corruption on the Beta seam (Panel D, reproduced).** An UNKNOWN
+over an unwitnessed **existential** — the case `semantic_game` documents as
+central — reaches `_atom_egif` with a generic vertex (`None` label) and is
+silently rendered as the ground atom `(loves "Alba" "None")`: a *false constant
+named "None"*. The trace then computes warrant against garbage, with no error,
+refusal, or penalty. The structure does not know a name from a line of identity
+— the distinction Beta exists to draw. (Companion: `_atom_egif` also lacks
+escaping; a real-world label with an embedded quote crashes the parse.)
+
+**V.5 — The unplumbed chain and the write-only ledger (Panel C).**
+`note_unknowns` — the seam the whole wiring hangs from — has **no production
+caller**; neither do `interrogative_from_unknown` or the UoD lifecycle methods.
+`s_expansion`/`a_expansion` have **no reader** anywhere; the plan's own success
+criterion ("the system uses learned distinctions next round") has no
+implementing mechanism. Plumbing on unplumbed plumbing, recording what nothing
+consumes.
+
+**V.6 — Fake succession (Panel C).** `BoundedRegister` lacks the
+snapshot/restore pair every real standing register in the codebase carries
+(docket, disuse ledger, Horizon). At any segment/resume boundary the S/A
+registers reset to empty: **amnesia, not mortality-with-inheritance**. The
+principle doc's §10 (succession) is asserted philosophy with zero engineering.
+
+**V.7 — Discipline gap: the one unchecked overlay (Panel B).** The
+overlay-beside-the-EGI pattern is legitimate (layout deltas, ReferenceMark,
+QuotationMark) — but every sibling ships (i) a formal law (S1–S5; R1–R4), (ii)
+a boundary attestation hook, (iii) a chain-recorded ascent path into ink.
+AlternativeSet has none. Its hypothetical traces run off-book relative to
+`entertain_episode`/`m_steps` — the licensed machinery built for exactly this —
+so the polarity gate's tripwire cannot *see* them, and a recorded warrant is not
+re-derivable through any gate ("the record is earned" fails).
+
+**V.8 — Stringly-typed disunity (Panel D).** Task 4's alternatives are
+parseable EGIF propositions traced via `assert_fact`. Tasks 5/6's *own plan
+pseudocode* alternatives ("grounding-A", "future-branch-1") are opaque labels
+that **crash** that same trace call (reproduced). As specified, "unification"
+holds only at the dataclass shell; every operational verb would mean something
+different per kind. Related: ids are batch-positional (the same doubt seen twice
+gets different ids — "standing question" fails at the root), and the docket +
+AlternativeSet form two doubt-registers with no shared identity scheme.
+
+## Amendable findings
+
+(a) magic constants 0.9/0.1/0.5-cap — derive from the `PredictionLedger`/K1
+track-record discipline keyed by source, or mark placeholder; (b) `state_id`
+accepted with zero validation despite a docstring promising KeyError; (c)
+`context` is an `m_view`-flattened, freshly-id'd, non-replayable projection —
+full-M snapshot per item, O(N×|M|) storage, no staleness signal (the
+live-runner already solved this class of cost once); (d) "EGI hashes" docstring
+is false — identity is raw string equality, undecided vs `canonical_signature`;
+(e) no exclusivity/exhaustivity witness on a structure named for erotetic logic
+— the E3 pilot's own core contains a non-answer ("some other basin"), though
+Task 6's enumeration *could* be made genuinely exhaustive off
+`modal_query.reachable_states`; (f) `save_uod_with_alternatives` demotes a
+failed save to a printed warning.
+
+## What withstood
+
+The dry-run trace algorithm (deterministic, correctly implemented per its
+tests, M provably unmutated); the never-pre-filter/trace-consequences
+principle; the bounded-register mechanics *as mechanics* (displacement counted,
+LRU pinned); the conceptual frame (two-source growth across the membrane;
+bounded, heterogeneous, mortal kytes; `KyteProfile` as the species seam); and
+the overlay pattern *in principle*. No panel found the philosophy wrong — all
+four found it **unenforced**.
+
+## The decision fork (author's ruling required)
+
+1. **Index-over-ink** (Panel B's recommendation, the house pattern): hypothetical
+   traces route through — or are recorded as — licensed `entertain_episode`-style
+   moves; AlternativeSet becomes an *index over real chain steps* (as
+   QuotationMark indexes real ink), gaining a formal law + attestation hook +
+   gate visibility. Warrant fields renamed out of the doctrinal namespace (e.g.
+   `materiality`), split per V.2, or mapped onto the standing gradient.
+2. **Honest demotion**: AlternativeSet is declared advisory-unattested metadata
+   (like layout deltas) — never citable as derivation, excluded from warrant
+   vocabulary entirely, with V.3/V.4 fixed as plain bugs and the succession/
+   S-A-growth claims *retracted* from the principle doc rather than restated.
+3. **Subsumption question** (either way): decide whether DocketEntry (ephemeral
+   want) and AlternativeSet (persistent question) are one structure or two —
+   content-derived shared identity at minimum; Panel C's evidence favors
+   subsumption.
+
+Either fork fixes V.3 and V.4 immediately (they are bugs under any reading).
+Tasks 5–6 remain blocked until the fork is ruled and the chosen shape is proven
+end-to-end on Task 4's single wire — *one working producer→consumer loop before
+three parallel ones.*
+
+*Produced by four independent panels, 2026-07-25, at the author's request
+("make sure we don't commit ourselves to a fundamental structure with a major
+flaw"). Panels B and C reproduced V.3 independently; Panel D reproduced V.4 and
+V.8 by direct execution. The examiner who built the architecture recorded but
+did not conduct the examination. Dispositions await the author's ruling on the
+fork above.*
