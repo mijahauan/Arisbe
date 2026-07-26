@@ -400,6 +400,55 @@ def test_recorded_peel_verdicts_recompute_identically(tomos, uod_id):
             f"not recompute ({result.verdict.value!r}) — the record is not earned")
 
 
+@pytest.mark.parametrize("uod_id", _m_bearing_ids())
+def test_recorded_traces_recompute_identically(tomos, uod_id):
+    """The PEEL discipline extended to TRACE_ALTERNATIVES (spec §3): a
+    recorded trace re-runs from its own from_state and must reproduce the
+    recorded materiality — the anti-circularity invariant (AS2 at the gate)."""
+    chain, _ = _chain_states(tomos, uod_id)
+    if chain is None:
+        pytest.skip("static board with no chain")
+    traces = [s for s in chain.steps
+              if (s.parameters or {}).get("act") == "alternatives_traced"]
+    if not traces:
+        pytest.skip("no TRACE steps")
+    from alternative_trace import BoundedRegister, trace_unknown
+    for step in traces:
+        p = step.parameters
+        labels = tuple(None if l == "*" else l for l in p["labels"])
+        tr = trace_unknown(chain.states[step.from_state_id], p["relation"],
+                           labels, s_register=BoundedRegister(32),
+                           a_register=BoundedRegister(32))
+        m = tr.materiality
+        assert (m.tier, list(m.diverging), list(m.extra_true),
+                list(m.extra_false)) == \
+            (p["tier"], p["diverging"], p["extra_true"], p["extra_false"]), (
+            f"{uod_id}/{step.step_id}: recorded trace does not recompute — "
+            "the record is not earned")
+
+
+def test_a_doctored_trace_is_flagged():
+    """Falsifier: doctor a recorded tier and the recompute check must bite."""
+    from alternative_trace import BoundedRegister, trace_step, trace_unknown
+    from proof_authoring import ProofChain
+    from world_scroll import wrap_m
+    wrapped, _ = wrap_m(parse_egif(
+        '(swan "Ciel") (white "Ciel") ~[ (swan *x) ~[ (white x) ] ]'))
+    pc = ProofChain(wrapped)
+    trace_step(pc, "swan", ("Dover",), s_register=BoundedRegister(8),
+               a_register=BoundedRegister(8))
+    chain = pc.to_chain()
+    step = chain.steps[-1]
+    step.parameters["tier"] = "spurious"          # the doctoring
+    p = step.parameters
+    labels = tuple(None if l == "*" else l for l in p["labels"])
+    tr = trace_unknown(chain.states[step.from_state_id], p["relation"], labels,
+                       s_register=BoundedRegister(8),
+                       a_register=BoundedRegister(8))
+    assert tr.materiality.tier != p["tier"], \
+        "the falsifier failed to bite — the gate would pass a doctored trace"
+
+
 # --------------------------------------------------------------------------- #
 # 3b · the recorded derivation is earned, permanently (docket ⑤)               #
 #      — the PEEL-recomputation discipline extended to M-modifying acts:        #
