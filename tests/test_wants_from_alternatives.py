@@ -80,3 +80,41 @@ class TestWantsFromAlternatives:
         assert chosen[0].payload.relation == "alpha"
         fifo = sorted(wants, key=lambda w: (w.created_round, repr(w.key)))
         assert fifo[0].payload.relation == "bravo"
+
+    def test_tracked_negative_or_tied_source_earns_nothing(self):
+        class WeakSources:
+            def track_record(self, source):
+                from alternative_index import TrackRecord
+                if source == "loser":
+                    return TrackRecord(bets=4, hits=1, misses=3)
+                if source == "coinflip":
+                    return TrackRecord(bets=4, hits=2, misses=2)   # tie: hits > misses is False
+                return None
+        for src in ("loser", "coinflip"):
+            rec = _rec("alpha", "bare", receptions=(Reception(
+                source=src, stance="supports",
+                classification="legible-benign",
+                claim_egif='(alpha "Dover")', bears_evidence=True),))
+            reg = _register(rec)
+            wants = wants_from_alternatives(reg, source_record=WeakSources())
+            assert wants[0].severity == 2.0, src        # no bonus, no penalty
+
+    def test_bonus_is_one_shot_across_multiple_qualifying_receptions(self):
+        class GoodSources:
+            def track_record(self, source):
+                from alternative_index import TrackRecord
+                return TrackRecord(bets=4, hits=3, misses=1)
+        two = tuple(Reception(source=s, stance="supports",
+                              classification="legible-benign",
+                              claim_egif='(alpha "Dover")', bears_evidence=True)
+                    for s in ("s1", "s2"))
+        rec = _rec("alpha", "bare", receptions=two)
+        reg = _register(rec)
+        wants = wants_from_alternatives(reg, source_record=GoodSources())
+        assert wants[0].severity == 2.5                 # 2.0 * 1.25 exactly once
+
+    def test_resolved_records_are_not_emitted(self):
+        rec = _rec("alpha", "material", resolved_by="step-9",
+                   selection='(alpha "Dover")')
+        reg = _register(rec)
+        assert wants_from_alternatives(reg) == []
