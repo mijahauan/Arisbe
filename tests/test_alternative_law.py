@@ -131,6 +131,31 @@ class TestSettlement:
         assert resolved == []
         assert reg.get(rec.key).status != "resolved"
 
+    def test_denial_settles_despite_coreference_and_attests(self):
+        """Finding 2 repro: the admitted cell's "Dover" constant co-refers
+        between the swan atom and the black-denial's interior — the EGIF
+        parser interns it to ONE vertex at the LCA, so the denial's vertex
+        is not self-contained under the cut. The old lift_cut-based
+        _denial_stands raised and was swallowed, so settlement never fired
+        and AS3 spuriously rejected the resolution."""
+        pc = _chain()
+        s, a = BoundedRegister(32), BoundedRegister(32)
+        peel_step(pc, '(black "Dover")')
+        peel_id = pc.to_chain().steps[-1].step_id
+        trace_step(pc, "black", ("Dover",), s_register=s, a_register=a)
+        step = pc.to_chain().steps[-1]
+        rec = dataclasses.replace(record_from_trace_step(step),
+                                  emerged_from=peel_id)
+        reg = AlternativeRegister()
+        reg.note(rec, round_idx=0)
+        admit_step(pc, '(swan "Dover") ~[ (black "Dover") ]',
+                  disposition="new_fact")
+        resolved = reg.settle_from_chain(pc.to_chain())
+        assert resolved == [rec.key]
+        got = reg.get(rec.key)
+        assert got.selection == '~[ (black "Dover") ]'
+        attest_alternative_record(got, pc.to_chain())      # AS3 holds
+
 
 class TestRebuild:
     def test_register_rebuilds_from_chain_alone(self):

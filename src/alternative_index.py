@@ -374,28 +374,45 @@ def _atom_holds(m, relation: str, labels: Tuple[Optional[str], ...]) -> bool:
     return False
 
 
-def _denial_stands(m, denial_egif: str) -> bool:
-    """Does a SHEET-LEVEL cut of ``m`` match the denial shape? (Sheet-level
-    only: an entertained exhibit's inner ~[P] is nested and must not settle
-    anything — mention is not assertion.)"""
-    from eg_navigation import same_graph
-    from egif_parser_dau import parse_egif
-    from quotation_overlay import lift_cut
-    shape = parse_egif(denial_egif)
+def _denial_stands(m, relation: str, labels: Tuple[Optional[str], ...]) -> bool:
+    """Does a SHEET-LEVEL bare denial of (relation, labels) stand in m?
+    A bare denial is a sheet-level cut whose area holds exactly ONE edge and
+    NO nested cuts, with matching relation and argument labels (a generic
+    slot, None, matches a generic vertex; a constant slot matches by label —
+    read through nu regardless of where the vertex is homed, so a constant
+    co-referring with sheet facts still matches). Structural on purpose:
+    lift_cut demands a self-contained subtree, which a co-referring constant
+    or an entertained exhibit legally violates. Sheet-level-only keeps
+    mention inert: an exhibit's inner ~[P] is nested (the exhibit's own cut
+    is the sheet-level one, and it contains nested cuts, so it never reads
+    as a bare denial)."""
+    edge_ids = {e.id for e in m.E}
     cut_ids = {c.id for c in m.Cut}
     for cid in sorted(m.area.get(m.sheet, frozenset())):
         if cid not in cut_ids:
             continue
-        try:
-            # a cut whose subtree is not self-contained (e.g. a standing
-            # entertained episode exhibit, whose outer cut is sheet-level
-            # under m_view but whose rider/copies reach the host cell's
-            # vertices) simply never matches — the same guard as
-            # quotation_overlay.find_cut_matching and world_scroll._find_exhibit
-            if same_graph(lift_cut(m, cid), shape):
-                return True
-        except Exception:
+        contents = m.area.get(cid, frozenset())
+        inner_edges = [x for x in sorted(contents) if x in edge_ids]
+        inner_cuts = [x for x in contents if x in cut_ids]
+        if len(inner_edges) != 1 or inner_cuts:
             continue
+        eid = inner_edges[0]
+        if m.rel.get(eid) != relation:
+            continue
+        got = [m.get_vertex(v) for v in m.nu.get(eid, ())]
+        if len(got) != len(labels):
+            continue
+        ok = True
+        for want, vert in zip(labels, got):
+            if want is None:
+                if not vert.is_generic:
+                    ok = False
+                    break
+            elif vert.label != want:
+                ok = False
+                break
+        if ok:
+            return True
     return False
 
 
@@ -422,7 +439,7 @@ def _settle_from_chain(self, chain) -> List[str]:
                 self.resolve(key, resolved_by=s.step_id, selection=atom_egif)
                 resolved.append(key)
                 break
-            if _denial_stands(m, denial_egif):
+            if _denial_stands(m, rec.relation, rec.labels):
                 self.resolve(key, resolved_by=s.step_id, selection=denial_egif)
                 resolved.append(key)
                 break
@@ -536,7 +553,7 @@ def run_alternative_record(record: AlternativeRecord, chain, *,
             else:
                 m = m_view(chain.states[s.to_state_id])
                 atom_settles = _atom_holds(m, record.relation, record.labels)
-                denial_settles = _denial_stands(m, record.alternatives[1])
+                denial_settles = _denial_stands(m, record.relation, record.labels)
                 if record.selection == record.alternatives[0] and not atom_settles:
                     violations.append("AS3: selected atom does not stand in M")
                 if record.selection == record.alternatives[1] and not denial_settles:
@@ -586,14 +603,24 @@ def classify_reception(source: str, stance: str, claim_egif: Optional[str], *,
         from world_scroll import m_view
         m = m_view(m_egi)
         conflict = False
-        edges = list(claim.E)
-        cuts = list(claim.Cut)
-        if len(edges) == 1 and not cuts:
-            conflict = _denial_stands(m, f"~[ {claim_egif.strip()} ]")
-        elif len(cuts) == 1 and not edges:
-            inner = [x for x in claim.area.get(cuts[0].id, frozenset())]
-            inner_edges = [x for x in inner if x in {e.id for e in claim.E}]
-            if len(inner_edges) == 1:
+        claim_edge_ids = {e.id for e in claim.E}
+        claim_cut_ids = {c.id for c in claim.Cut}
+        sheet_ids = claim.area.get(claim.sheet, frozenset())
+        sheet_edges = [x for x in sheet_ids if x in claim_edge_ids]
+        sheet_cuts = [x for x in sheet_ids if x in claim_cut_ids]
+        if len(sheet_edges) == 1 and not sheet_cuts:
+            # the claim IS a bare atom — does M carry a standing denial of it?
+            eid = sheet_edges[0]
+            labels = tuple(claim.get_vertex(v).label
+                           for v in claim.nu.get(eid, ()))
+            conflict = _denial_stands(m, claim.rel[eid], labels)
+        elif len(sheet_cuts) == 1 and not sheet_edges:
+            # the claim IS a bare denial — does M carry the denied atom?
+            cid = sheet_cuts[0]
+            inner = claim.area.get(cid, frozenset())
+            inner_edges = [x for x in inner if x in claim_edge_ids]
+            inner_cuts = [x for x in inner if x in claim_cut_ids]
+            if len(inner_edges) == 1 and not inner_cuts:
                 eid = inner_edges[0]
                 labels = tuple(claim.get_vertex(v).label
                                for v in claim.nu.get(eid, ()))

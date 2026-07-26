@@ -200,6 +200,30 @@ class TestClassifyReception:
         r = classify_reception("witness", "supports", '(black "Ciel")', m_egi=m)
         assert r.classification == "contested" and r.bears_evidence
 
+    def test_contested_when_claim_is_a_denial_of_a_standing_fact(self):
+        """Finding 1 repro: m HOLDS the atom, the claim IS a denial of it —
+        edges/cuts used to be read off the claim's GLOBAL sets (a denial's
+        interior edge lands in the same global set), so the denial-claim
+        branch was unreachable and this misclassified legible-benign."""
+        from alternative_index import classify_reception
+        from egif_parser_dau import parse_egif
+        m = parse_egif('(black "Ciel")')
+        r = classify_reception("witness", "disputes", '~[ (black "Ciel") ]',
+                               m_egi=m)
+        assert r.classification == "contested" and r.bears_evidence
+
+    def test_contested_survives_constant_coreference(self):
+        """Finding 2 repro: the EGIF parser interns same-labelled constants
+        to ONE vertex at the LCA, so m's denial cut references a sheet-homed
+        "Ciel" vertex (co-referring with the swan fact). lift_cut demands a
+        self-contained subtree and raises — the old classifier missed the
+        conflict entirely."""
+        from alternative_index import classify_reception
+        from egif_parser_dau import parse_egif
+        m = parse_egif('(swan "Ciel") ~[ (black "Ciel") ]')
+        r = classify_reception("witness", "supports", '(black "Ciel")', m_egi=m)
+        assert r.classification == "contested" and r.bears_evidence
+
 
 class TestQuarantineRegister:
     def test_bounded_counted_never_reattempted(self):
