@@ -261,3 +261,81 @@ asserting it survives; `test_agon_evolution.py` adds the ledger-level pin unit
 + an end-to-end `run` pin. Full loop/decay/membrane/vault suite: 337 passed /
 1 skipped. Priors P1¹³–P5¹³ still the author's — P5¹³ is now *measurable*
 (the spine survives to the digest to be read in the audit lens).
+
+---
+
+## Disposal (2026-07-26, the author's rulings; the assistant writes the log)
+
+**The run being disposed:** three real-vault segments (seg1 2026-07-18, seg2
+2026-07-20, seg3 2026-07-21 11:16), 200 rounds each, ttl 120, P2¹³ instrument
+on. The F4¹³ journal-spine fix (commit `77b6521`) landed 2026-07-21 **16:39 —
+after all three segments** — so every digest truthfully reads
+`journal_entries: 0`; the fix never got a real-vault segment in this run.
+Prior artifacts backed up to `runs/run13/_backup_run1_predisposal/` (inside the
+gitignored tree) before any re-run touched the store.
+
+- **P1¹³ (retrodiction) — NOT INSTRUMENTED AT V0 (ruled).** The V0 driver has
+  no forecast-vs-frequency-baseline machinery; there is nothing to dispose
+  against. The prior was pre-registered for the vault *cycle*, and V0 (the
+  metadata membrane) never built that instrument. Carries forward to the stage
+  that builds it — not held, not refuted, honestly unmeasured.
+
+- **P2¹³ (legible questions) — pending the scoring pass (this sitting).** The
+  run wrote one P2¹³-mode note (5 questions, sealed forecasts in the ledger; 0
+  reveals / 0 answers / no ratings at run end). The author reports the note is
+  now marked; a post-fix re-run (launched this sitting, below) parses the note
+  first and records the marks. Note the criterion needs ≥2 segments of
+  comparator marks — one marked note cannot yet clear the ≥25-point bar by
+  itself; this sitting's scoring is the *first* of the two.
+
+- **P3¹³ (bounds hold) — HELD (ruled).** Direct console evidence at full vault
+  scale: |M| flat at 780 atoms across all three segments under real churn
+  (~6.8k atoms added *and* removed per segment — decay doing real work), the
+  horizon counted at 9,100 open / **0 dropped**, `max_const_len` pinned at 40,
+  `digested_labels` stable at 1,780. Texture worth naming: the horizon is
+  100% binary-extension items (9,100 of 9,100) — the not-yet-legible is
+  entirely the binary-relation frontier at V0.
+
+- **P4¹³ (provenance inquiry) — pending marks + a caveat.** The scheduling
+  tension the operator note named bit as predicted: with P2¹³ default-on, the
+  run's only note carried the 2+2 comparator questions *in place of* the V2a.1
+  provenance mix, so no authored-vs-collected verdict was ever put to the
+  author in note form this run. Disposing P4¹³ needs a `--no-p213` cycle (or
+  the author judging the verdicts directly in the audit lens). Not disposable
+  from this run's ink.
+
+- **P5¹³ (diachrony / K2 showcase) — BLOCKED-IN-THAT-RUN (ruled) + short
+  re-run authorized.** The segments predate the F4¹³ fix; the 50-year journal
+  spine never survived to a digest, so disposition-vs-mood had nothing to
+  measure. The fix is verified end-to-end at the exact repro regime on
+  fixture (spine holds at 5 entries, decades 1930s–2020s separated). The
+  author ruled: log as blocked, launch a short post-fix real-vault re-run
+  (one segment × 200 rounds, defaults), dispose from its digest. Launched
+  this sitting; digest to be appended below when it lands.
+
+**The post-fix re-run digest (launched 2026-07-26 ~22:09, completed
+2026-07-27 ~07:38 — a real-vault segment is ~9h, the "short" is one segment
+not three):**
+
+- **P5¹³'s substrate is NOW MEASURABLE — the journal spine held to the
+  digest.** `journal_entries: 1477` (was 0 in every pre-fix segment), with
+  the decades legibly separated: 1970s 37 · 1980s 271 · 1990s 111 · 2000s
+  129 · 2010s 540 · 2020s 389. |M| = 5,202 atoms — the pinned bedrock tier
+  (≈4,400 spine atoms, bounded by the journal's finite size, the intended
+  F4¹³ split) riding above a decaying working set (`m_removed: 1960` — ttl
+  still doing real work on the non-pinned tier); horizon 9,102 open /
+  0 dropped; `max_const_len` 40 holding. The audit-lens reading
+  (disposition-vs-mood on an author-picked topic) is the author's remaining
+  act; the spine is there to read.
+- **P2¹³/P4¹³ — the scoring pass found NO parseable marks.** The oracle
+  parsed the prior note and read **all 5 questions as `ignored`** (5
+  outcome rows, statuses {ignored: 5}; no ratings recorded; correctly wrote
+  no new note — "previous note awaits answers"). The author reports having
+  marked the note, so the likely story is mark format: the parser recovers
+  only `**A:** <text on the same line>` answers (decline synonyms count;
+  an empty `**A:**` = ignored) and `**R:** trivial` / `**R:** non-trivial`
+  ratings (the unedited `**R:** (trivial | non-trivial)` template = no
+  rating). Recovery path verified: `record_outcome_once` dedups on
+  (status, answer), so ignored→answered records cleanly on a re-poll once
+  the marks are in the recognized form. P2¹³/P4¹³ stay pending — honestly,
+  on a format mismatch, not on absent marks.

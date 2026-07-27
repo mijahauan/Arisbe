@@ -1,6 +1,50 @@
 # Current Plan
 
-**Last Updated**: 2026-07-26 (second sitting, latest) — **THE ARC IS CLOSED: Tasks 5–6 + the
+**Last Updated**: 2026-07-27 — **SITTING A EXECUTED + BOTH DISPOSITIONS LANDED + THE WEST
+E-SERIES CLOSED.** (1) **Sitting A (the two-strata reorganization) is BUILT + COMMITTED
+(`561f197`; book render-check passed, 46 chapters):** VISION_AND_SCOPE restratified (Stratum I
+§1–7 verbatim under its banner; Stratum II = §8 in the proposition-scribed-into-the-wider-EPG
+voice, the author's ruling quoted, five graded tributaries, open frontier named-not-folded) ·
+CONTRIBUTION_AND_PRIOR_ART gained "The graded concordance map" (11 rows: doubt-raised ·
+machinery-lacked · kytos-face · evidence · grade; formalization lineage set apart ungraded;
+refuted priors listed verbatim; promotion/fall conditions) · **docs/SYNECHISM_AND_CONTINUITY.md
+NEW** (connective-doctrine placement ruled; six operational re-descriptions graded; the
+7-row continuity ledger; supermultitudinous frontier named-not-claimed) · **THE_KYTOS
+rewritten** (deliberative organ + AS1–AS4 as its law; organs-are-indexes-never-stores;
+§1.1 membrane enriched; §1.2 two apertures + depth-misrepresentation the enforced pathology
+class, taxonomy itself an open AlternativeSet; §4 West re-graded MEASURED with refutations
+on the record; §5 ledger re-graded both directions incl. a Named-not-built rung; temperament
+axis). Author rulings this sitting: synechism = connective doctrine (not sixth tributary);
+map housed in CONTRIBUTION; ledger in the new doc; quote kept; prior IDs kept glossed; both
+added ledger rows kept; Conway split-graded (machinery built-and-gated / reading
+queued-conjecture). Book membership of the new doc = a Sitting B decision. (2) **E3c DISPOSED
+(`runs/WEST_E3C_LOG.md`; run ~9.6h overnight, canary PASS): PS1 REFUTED-as-finding — stranding
+is a positive-measure dear BASIN, not a knife-edge** (only 1/3 perturbations escaped to the
+10/1/1 family @ 102,287; two NEW dear optima 4/7/1 @ 119,301 + 7/4/1 @ 119,543 → known optima
+19 → 21; direction-selects echoed a third time); **PS2 held** (floor 101,411 confirmed twice).
+**THE WEST E-SERIES IS CLOSED at E3c (author ruling)** — further West work only via the
+spine's queued conjectures. (3) **RUN 13 disposal opened (`runs/RUN_13_LOG.md` §Disposal):
+P1¹³ not-instrumented-at-V0 (ruled) · P3¹³ HELD (ruled; |M| 780 flat, horizon 9,100/0
+dropped) · P4¹³ not-disposable-this-run (the P2¹³-default-on scheduling tension bit — needs a
+--no-p213 cycle) · P5¹³ blocked-in-that-run (ruled) + the authorized post-fix re-run RAN
+overnight (~9h): THE JOURNAL SPINE HELD — `journal_entries: 1477`, six decades separated
+(1970s–2020s), |M| 5,202 = pinned bedrock over decaying working set; the audit-lens
+disposition-vs-mood reading is the author's remaining act · P2¹³ scoring: the marked note
+parsed as ALL-IGNORED (mark-format mismatch, not absent marks — the **A:**/**R:** exact form
+shown to the author; `record_outcome_once` verified clean for re-scoring; rounds-0
+oracle-only re-score path verified on fixture — MUST back up the spine-bearing
+`vault_v0_seg1` before running it against the real store; prior run's artifacts already in
+`runs/run13/_backup_run1_predisposal/`).** (4) **NEW QUEUED PROJECT (author-posed): the
+reflexive run — a kytos models ITSELF** ("turn the doubt on itself, let the doubter come into
+view across the membrane") + the capacity/consciousness question (competition for internal
+attention + the super-linear |M| tax) — full framing in memory `project_kytos_self_model`;
+RUN-14-shaped, design sitting first; NOT folded into docs. ▶ **REMAINING THIS ARC:** author
+marks the note → rounds-0 re-score (with seg1 backup) → P2¹³ first-comparator reading; author
+reads the audit lens → P5¹³ disposal; then the session plan's S3 (the commens rung, nine
+queued threads — now with E3b/E3c evidence AND the Sitting A vocabulary in hand). Sitting B
+(EPG guide + ARISBE_IN_PRACTICE; book chapter + scholars + render) unchanged as S4/S5.
+
+**Last Updated (prior)**: 2026-07-26 (second sitting, latest) — **THE ARC IS CLOSED: Tasks 5–6 + the
 temperament knob + the follow-on batch BUILT + MERGED (`main` @ `6614b68`, ff; 13 commits, 9 SDD
 tasks, 5 fix loops all bite-verified). Full suite 4232 passed / 0 failed** (45 environmental
 Playwright-launch errors, branch-untouched, verified). Shipped: the **temperament knob**
