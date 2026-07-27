@@ -76,7 +76,10 @@ def main(argv=None) -> int:
     if uod_id is None:
         print("no vault_v0_seg* UoD found in the runs dir")
         return 1
-    uod = service.load_uod(uod_id)
+    # Geometry-free reading (atoms only) — no §3.3 obligation, so skip the
+    # load-boundary attestation: at vault scale (|V| ≈ 7k) the attest's
+    # layout pass takes minutes-to-hours, and this tool never draws.
+    uod = service.load_uod(uod_id, attest=False)
     if uod is None:
         print("uod not loadable")
         return 1
