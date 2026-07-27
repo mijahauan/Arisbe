@@ -177,6 +177,49 @@ so always read a tag in the document that introduces it.
 | **F1, F2, … (e.g. F1⁷)** | Findings from a live run; the superscript is the run number | `runs/RUN_<n>_LOG.md` |
 | **P1, P2, … (e.g. P2⁸)** | Pre-registered priors for a live run; superscript = run number. *(Separately, **P1–P5** in the correspondence contract are its five prover-agnostic properties.)* | `runs/RUN_<n>_LOG.md` · [CORRESPONDENCE_CONTRACT](CORRESPONDENCE_CONTRACT.md) |
 
+### The prior families — one letter-family per pre-registered experiment
+
+Every measured effort pre-registers its falsifiable predictions under its own short family, so a
+verdict ("PM4 refuted") is always traceable to the experiment that staked it. The family is
+**owned by the log or spec that introduces it** — read it there, never by pattern-matching the
+letters. Chronological:
+
+| Family | Experiment / effort | Verdicts live in |
+|---|---|---|
+| **P1⁽ⁿ⁾…** (superscripted) | The live-source runs 1–13 (Wikidata, weather, sports, the vault cycle). E.g. **P1¹³–P5¹³** = RUN 13, the-author-according-to-Arisbe; its findings are **F1¹³–F7¹³** | `runs/RUN_<n>_LOG.md` |
+| **S1–S5** (rung 1) | The attention-economy experiment (arithmetic world; the Fermat/F5 headline) — bootstrap rung 1 | [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3 |
+| **TS1–TS5** | The tutor loop — design-only, no run authorized | [TUTOR_LOOP](TUTOR_LOOP.md) |
+| **P1–P4** (bare) | West-in-kytē **E1** (federation vs monolith) | `runs/WEST_E1_LOG.md` |
+| **P1²–P4²** | West **E2** (the size sweep; superscript = *E2*, not run 2 — a known hazard) | `runs/WEST_E2_LOG.md` |
+| **PB1–PB5** | West **E2b** (calibration of the partition landscape) | `runs/WEST_E2B_LOG.md` |
+| **PE1–PE5** | West **E3** (endogenous partitioning — the meta-Agon over bucketings) | `runs/WEST_E3_LOG.md` |
+| **PM1–PM4** | West **E3b** (the basin map) | `runs/WEST_E3B_LOG.md` |
+| **PS1–PS2** | West **E3c** (the symmetry-breaking rider; closed the series) | `runs/WEST_E3C_LOG.md` |
+| **PW1–PW3, O1** | The journal watchlist aperture (V2b-lite; O1 is an open *observable*, not a prior) | the 2026-07-27 aperture spec (`docs/superpowers/specs/`) · `runs/RUN_13_LOG.md` |
+
+### The law families — standing obligations and ratified verdicts (not priors)
+
+These look like prior families but are different in kind: a prior is a bet a run settles once; a
+**law** is a standing obligation a gate re-checks forever, and a **ratified verdict set** is an
+author ruling on the record.
+
+| Family | What it is | Home |
+|---|---|---|
+| **AS1–AS4** | The AlternativeSet register's law: emergence-cited · materiality-implies-trace · settlement-cites-licensed-ink · bounded-and-counted | `alternative_index.py` · the 2026-07-26 index-over-ink spec · [THE_KYTOS](THE_KYTOS.md) §1 |
+| **S1–S5** (second-order) | The quotation/mention law: stratification · quote-equals-quoted · drawn read-back · horizon · trajectory. **Collides with rung-1 S1–S5 above** — always read in its home doc | the crossing/second-order docs (`second_order_check`) |
+| **A1–A4** | The crossing verdicts ratified 2026-07-16; **A3** = the conservativity gate (quoted ink licenses nothing). *(West E1's log separately uses A1–A3 for its declared assumptions.)* | the crossing decision briefs · `test_second_order_conservativity.py` |
+| **R1–R4** | The reference-node law (RESOLVE ≡ INLINED-AND-ATTESTED). *(Distinct from Rx prospects above.)* | [REFERENCE_AND_TRANSCLUSION_NODE](REFERENCE_AND_TRANSCLUSION_NODE.md) · `reference_resolution_check.py` |
+| **K1–K4** | The knowledge measure's components (severity-weighted record · durability, with K2□/K2◇ · compression · use) | [THE_MEASURE_OF_KNOWLEDGE](THE_MEASURE_OF_KNOWLEDGE.md) |
+| **AC1–AC17** | Acceptance criteria of the AlternativeSet specs (AC1–AC10 the producer→consumer loop; AC17 the corpus exemplar) | the 2026-07-26 specs · `test_alternative_loop.py` |
+| **V.1–V.8** | Examination V's findings (the AlternativeSet adversarial exam) | [ADVERSARIAL_EXAMINATION](ADVERSARIAL_EXAMINATION.md) §V |
+| **①–⑫** | Examination IV's defect docket | [ADVERSARIAL_EXAMINATION](ADVERSARIAL_EXAMINATION.md) §IV |
+| **U1–U25** | The web-UX persona docket (all shipped) | the 2026-07-09 UX docket record |
+| **Q-A … Q-E** | The author's queued cross-cutting questions | `CURRENT_PLAN.md` |
+
+**Stage labels** (not graded, but adjacent shorthand): **E1–E3c** the West experiment series ·
+**V0/V2a/V2b** the vault cycle's stages · **T0–T2** the tutor loop's staging · **B-min/B-full**
+the second-order crossing stages · **rung 0–2** the directed-engagement ladder.
+
 ### Common acronyms
 
 The letter-acronyms (EGI, UoD, DTO, ELK, …) are in **[Abbreviations](#abbreviations)** just above.
