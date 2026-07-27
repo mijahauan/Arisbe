@@ -1,0 +1,49 @@
+{
+  "annotations": [
+    {
+      "id": "ann_cb969fb5",
+      "scope": "uod",
+      "text": "(swan \"Dover\") (black \"Dover\")",
+      "author": null,
+      "created": null,
+      "tags": [
+        "audit-proposal"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_0f69db6e",
+      "scope": "uod",
+      "text": "Alternatives held in abeyance over the swan M: a peel's unknowns, a thin-spot survey's ungrounded law, and a branch survey's contested futures \u2014 all traced and indexed, never held as free-floating evidence (index-over-ink). M is itself revised along the way (two admits enlarge it, one settling the dragon question) \u2014 a dialogue over open questions, not just a static board.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "dialogue",
+        "demonstration",
+        "alternatives",
+        "trace",
+        "survey"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_1622f437",
+      "scope": "chain",
+      "text": "The dragon\u2192fears law is thin (zero grounded instances) until the final admit; the trace discovers its materiality BEFORE the ground arrives, and the register settlement afterwards cites the admitting step \u2014 discovery and resolution are separate, independently re-checkable acts.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "thin-spot",
+        "materiality",
+        "settlement"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    }
+  ]
+}

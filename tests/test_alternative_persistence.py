@@ -95,3 +95,26 @@ class TestRetirement:
         for cls in (AlternativeRecord, Materiality, Reception):
             names = {f.name for f in dc.fields(cls)}
             assert "warrant" not in names and "external_warrant" not in names
+
+
+class TestSwanAlternativesExemplar:
+    """AC17: the corpus exemplar exists, carries the trace/survey ink, and
+    its register attests at the boundary."""
+
+    def test_exemplar_carries_the_ink_and_attests(self):
+        from tomos_service import TomosService
+        svc = TomosService(Path(__file__).parent.parent / "tomos")
+        chain = svc.load_chain("swan_alternatives")
+        acts = [(s.parameters or {}).get("act") for s in chain.steps]
+        assert acts.count("alternatives_traced") >= 2
+        assert "thin_spots_surveyed" in acts
+        assert "branches_surveyed" in acts
+        register = svc.load_alternative_register("swan_alternatives")
+        assert len(register) >= 3
+        from alternative_index import attest_alternative_record
+        for rec in register.records():
+            attest_alternative_record(rec, chain)
+        resolved = [r for r in register.records() if r.status == "resolved"]
+        assert resolved                       # the dragon question closed
+        kinds = {r.kind for r in register.records()}
+        assert {"interrogative", "hypothetical", "modal"} <= kinds

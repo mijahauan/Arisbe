@@ -1,0 +1,19 @@
+{
+  "uod_id": "swan_alternatives",
+  "uod_type": "historical",
+  "name": "Alternatives traced \u2014 the swan's thin dragon",
+  "description": "The trace-bearing corpus exemplar (spec 2026-07-26-close-the-arc \u00a75, AC17): the standing swan M (swan\u2192white, plus a wholly ungrounded dragon\u2192fears law) meets a proposal about a new swan, Dover, who is black. A PEEL surfaces the proposal's unknowns; a thin-spot survey names the ungrounded dragon law as an open question; a budgeted trace batch discovers dragon's assertion is MATERIAL (it derives fears) while black is not. Two entertained futures \u2014 a weather turn and a fair passage \u2014 fork the diachronic DAG; a branch survey reads the contested weather as modal alternatives. Finally a dragon is attested (Smaug), and the register settles the dragon question, citing the admitting step. Every record in the sidecar register re-attests against the saved chain (AS1-AS4) \u2014 this is what de-vacuates the polarity gate's trace- and survey-recompute obligations, which every other corpus UoD skips for want of the ink.",
+  "category": "domain_model",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}

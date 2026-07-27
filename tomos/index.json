@@ -766,7 +766,22 @@
       "authors": [],
       "tags": [],
       "path": "universes/agon_evolution_swan"
+    },
+    {
+      "uod_id": "swan_alternatives",
+      "name": "Alternatives traced \u2014 the swan's thin dragon",
+      "category": "domain_model",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "universes/swan_alternatives"
     }
   ],
-  "last_updated": "2026-07-25T19:39:47.751865"
+  "last_updated": "2026-07-26T19:01:47.717565"
 }

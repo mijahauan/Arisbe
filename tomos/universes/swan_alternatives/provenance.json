@@ -1,0 +1,29 @@
+{
+  "theorem_source": {},
+  "proof_source": {
+    "kind": "authored",
+    "author": "Arisbe",
+    "system": "Peirce\u2013Sowa EGIF"
+  },
+  "method_sources": [
+    {
+      "type": "webpage",
+      "author": "Arisbe",
+      "title": "spec 2026-07-26-close-the-arc",
+      "bibkey": "arisbe2026closethearc",
+      "note": "index-over-ink alternatives: traces + surveys (AS1-AS4, D-1..D-3)"
+    }
+  ],
+  "warrant": {
+    "theorem": "low",
+    "derivation": "low"
+  },
+  "kind": "domain_model",
+  "formatted": {
+    "theorem": "",
+    "proof": "Original derivation by Arisbe (Peirce\u2013Sowa EGIF)",
+    "methods": [
+      "Arisbe. spec 2026-07-26-close-the-arc"
+    ]
+  }
+}

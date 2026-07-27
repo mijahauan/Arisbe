@@ -1,0 +1,146 @@
+{
+  "Cut": [
+    {
+      "id": "c_3d6fc39e"
+    },
+    {
+      "id": "c_3ef1d214"
+    },
+    {
+      "id": "c_7e3a9762"
+    },
+    {
+      "id": "c_826050a6"
+    },
+    {
+      "id": "c_918fe3e5"
+    },
+    {
+      "id": "c_f73e3535"
+    },
+    {
+      "id": "cut_0967d071"
+    },
+    {
+      "id": "cut_4ea14d9e"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_3fc2d2b1"
+    },
+    {
+      "id": "e_582a6918"
+    },
+    {
+      "id": "e_6e82e7cd"
+    },
+    {
+      "id": "e_7ca57c24"
+    },
+    {
+      "id": "e_975278a8"
+    },
+    {
+      "id": "e_a46bc42b"
+    },
+    {
+      "id": "e_c0e929e9"
+    }
+  ],
+  "V": [
+    {
+      "id": "v_3ed42472",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_7aa86054",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_e5b1675b",
+      "is_generic": false,
+      "label": "Smaug"
+    },
+    {
+      "id": "v_eaf1cf36",
+      "is_generic": false,
+      "label": "Ciel"
+    }
+  ],
+  "alphabet": null,
+  "area": {
+    "c_3d6fc39e": [
+      "e_975278a8",
+      "v_e5b1675b"
+    ],
+    "c_3ef1d214": [
+      "e_582a6918"
+    ],
+    "c_7e3a9762": [
+      "c_3ef1d214",
+      "e_6e82e7cd",
+      "v_3ed42472"
+    ],
+    "c_826050a6": [
+      "c_7e3a9762",
+      "c_f73e3535",
+      "e_3fc2d2b1",
+      "e_7ca57c24",
+      "v_eaf1cf36"
+    ],
+    "c_918fe3e5": [
+      "e_c0e929e9"
+    ],
+    "c_f73e3535": [
+      "c_918fe3e5",
+      "e_a46bc42b",
+      "v_7aa86054"
+    ],
+    "cut_0967d071": [],
+    "cut_4ea14d9e": [
+      "c_3d6fc39e",
+      "c_826050a6",
+      "cut_0967d071"
+    ],
+    "sheet_cddca1ae": [
+      "cut_4ea14d9e"
+    ]
+  },
+  "nu": {
+    "e_3fc2d2b1": [
+      "v_eaf1cf36"
+    ],
+    "e_582a6918": [
+      "v_3ed42472"
+    ],
+    "e_6e82e7cd": [
+      "v_3ed42472"
+    ],
+    "e_7ca57c24": [
+      "v_eaf1cf36"
+    ],
+    "e_975278a8": [
+      "v_e5b1675b"
+    ],
+    "e_a46bc42b": [
+      "v_7aa86054"
+    ],
+    "e_c0e929e9": [
+      "v_7aa86054"
+    ]
+  },
+  "rel": {
+    "e_3fc2d2b1": "swan",
+    "e_582a6918": "white",
+    "e_6e82e7cd": "swan",
+    "e_7ca57c24": "white",
+    "e_975278a8": "dragon",
+    "e_a46bc42b": "dragon",
+    "e_c0e929e9": "fears"
+  },
+  "rho": {},
+  "sheet": "sheet_cddca1ae"
+}
