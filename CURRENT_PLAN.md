@@ -119,13 +119,41 @@ half-sitting). Parallel author-side: RUN 13 disposal; vault answers → V2a.2 au
 S3/S4 gap if authorized). Principles: one arc per sitting; runs overnight between sittings; rulings
 interactive, execution delegated; every sitting ends pushed.
 
-▶ **NEXT SESSION (agenda ruled by the author at close): open with the two dispositions, then
-Sitting A.** (1) **RUN 13 disposal against P1¹³–P5¹³** (the author rules, the assistant writes the
-log; note P5¹³'s standing — the journal-spine fix landed *after* RUN 13's segments, so the K2
-showcase may read blocked-in-that-run / need a short re-run — dispose honestly); (2) **E3c
-disposition** (PS1 knife-edge / PS2 floor — the run will have finished overnight); (3) **Sitting A**
-(two-strata VISION + concordance map + synechism ledger + THE_KYTOS rewrite — rulings interactive,
-execution delegated). All commits on `main`, pushed at close.
+▶ **NEXT SESSION (ruled by the author at close, 2026-07-27): finalize RUN 13, then the
+COMMENS RUNG, and START SHARE — outreach to Sowa, Dau, West, Pietarinen.**
+
+**(1) RUN 13 finalization sequence** (mechanical, spans author-marking gaps — the known
+blocker: the oracle writes no new note while the newest awaits answers, and
+`Questions-2026-07-27.md` (2 questions) is unanswered):
+  a. Author answers (or waves off by deletion) the 07-27 note.
+  b. Overnight segment `--no-p213` → the V2a.1 provenance-mix note → author marks →
+     rounds-0 scoring (seg-backup discipline) → **P4¹³ disposal** (authored-vs-collected
+     agreement on the sample).
+  c. A later overnight segment with p213 on → the second comparator note → author's
+     **A:**/**R:** marks → **P2¹³ disposal** (≥25-point gap over ≥2 segments, or refuted).
+  d. Final RUN 13 disposal block written; P1¹³'s not-instrumented carry-forward noted for
+     the stage that builds retrodiction.
+
+**(2) The commens rung (S3)** — the nine queued threads, now with everything they were
+waiting for in hand: E3b/E3c basin evidence, Sitting A's vocabulary (two strata, graded
+map, synechism doc, rewritten KYTOS), AND the reflexive-run memory's four beats (B&L
+assigned-identity + the language rider bear directly on the commens threads). Threads: the
+four-doubts set (×6) · ethics-negotiated-in-the-commens · free-will/predestination ·
+synechism placement follow-ons.
+
+**(3) SHARE — accelerated by the author's ruling** ("share with 'the world', meaning Sowa,
+Dau, West, Pietarinen, to start"): the framed-outreach agenda item (#9) moves up. Raw
+material standing ready: the graded concordance map (≈ the publication list), the West
+run-log series E1–E3c (the West letter's spine), the FIDELITY/crossing docs (the
+Dau letter's), the EPG/Peirce docs (Pietarinen's), the CG/EGIF lineage (Sowa's), the
+rendered book. Sequencing question for the author at that sitting: whether Sitting B's
+propagation docs (the intellectual-history chapter, ARISBE_IN_PRACTICE's three registers,
+ARISBE_FOR_SCHOLARS) precede the letters (the letters would cite them) or the letters'
+drafting drives what Sitting B writes — recommend deciding at the Share sitting's open.
+Per-recipient framing = each letter voices the proposition to a competent interlocutor in
+their own vocabulary (wider-EPG voice: proposes, invites refutation, cites peels played).
+
+All commits on `main`, pushed at close.
 
 **Last Updated (prior)**: 2026-07-26 — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
 subagent build → merged to `main` (`52c31d0`, ff; doc pass `95e2963`). Tasks 5–6's blocking
