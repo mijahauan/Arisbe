@@ -675,6 +675,18 @@ of each principle (adherence and the obvious break — Galileo's telescope, the 
 the augurs' contest) are kept there and in the plain-language account
 [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md).
 
+**Gloss — "track the real," ruled (Examination VI, 2026-07-27).** The phrase this update
+leans on was examined at the commens rung and re-grounded by the author's ruling: "the
+real" is Berger & Luckmann's — **the objectivated products of participation**, apprehensible
+*because* objectivated, corresponding **not to the undifferentiated horizon but to the marks
+made in the effort to understand** — not a Kantian noumenon. So read, tracking it is
+unobjectionable, under two standing guards: never claim to apprehend what no one marks, and
+no uncontextualized telos (THE_COMMENS_AND_THE_COMMUNITY §7's direction-of-an-act register).
+The same examination re-billed the uptake duty's categorical form as *not derivable* —
+inherited with participation, negotiated at the commens level — with the conditional core
+(refusing uptake is measurably costly) the derivable part. Full record:
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Examination VI.
+
 **One correction this examination forces on the surrounding doctrine.** B set
 "context-free progress" against the wrong thing. A real **immanent operative tendency**
 — synechism's continuity, habit-taking, the growth of concrete reasonableness — is

@@ -224,9 +224,26 @@ has now **measured five times, each against pre-registered priors** — run logs
   27/36 starts (75% of the attractor mass) within 1.4% of the floor**; and **balance
   strands** — E2b's perfectly balanced round-robin 4/4/4 trough is itself a stranded
   optimum, 35% dear, that the walk cannot leave.
-- **E3c (the symmetry-breaking rider)** is **in flight** as this rewrite lands —
-  pre-registered (PS1 knife-edge / PS2 floor), disposition pending. Its result is
-  not predicted here.
+- **E3c (the symmetry-breaking rider — disposed 2026-07-27,** `runs/WEST_E3C_LOG.md`**).**
+  **PS1 refuted-as-finding: stranding is a positive-measure dear *basin*, not a
+  knife-edge** — only 1/3 perturbations of the stranded 4/4/4 escaped to the 10/1/1
+  family; two new dear optima raised the known count 19 → 21. **PS2 held** (the floor
+  101,411 confirmed twice). **The West E-series is closed at E3c** (author ruling) —
+  further West work only via the queued conjectures below.
+
+**Two reading disciplines, ruled at Examination VI (2026-07-27,**
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)**):** (1) *No teleology.* The
+exponents characterize *a* fitness landscape a modeler imposed, within one level, on the
+economic axis — never the arrow of social development. Three independent lines agree that
+there is no ladder: the apportionment conjecture predicts plural settlements, the E-series
+measured them (multi-basin, balance strands, stranding a positive-measure basin), and
+Graeber & Wengrow supply the historical form (many kinds of commens from the start). The
+contrast E3c sharpens is itself a finding: random perturbation rarely escapes a dear basin,
+while G&W's commens crossed basins *deliberately and reversibly* — **coordinated
+basin-crossing is what "politics" is in this vocabulary.** (2) *The economic axis is not
+the whole story.* What cost reads as a "dear" basin may be exactly what the
+identity/plausibility-structure axis is paying for (Examination VI, Unit I-D) — energetics
++ logic underdetermine commens behavior, and the missing axis is named in §5's ledger.
 
 **Still conjecture, honestly:** the scaling exponents **across levels** — E1–E3b
 measured one level (folder-kytē over a synthetic vault corpus; K1 was N/A throughout,
@@ -289,7 +306,8 @@ levels 5–7 applies here with full force.
   the intra-level scaling relations of §4 — federation's cost advantage as a scaling
   property (E1, E2), the interior partition optimum and its landscape (E2b, E3, E3b)
   — with the refuted priors on the record beside the held ones (P1² separation-only;
-  PB3; PE2; PE5; PM4-as-finding). E3c in flight, disposition pending.
+  PB3; PE2; PE5; PM4-as-finding; PS1 refuted-as-finding — stranding a positive-measure
+  dear basin). E3c disposed 2026-07-27; the E-series closed at E3c by author ruling.
 - **Evidenced:** the halting duals (RUN histories; the closed-proposer saturations);
   rate-determinism (ttl tuned per membrane across RUNS 1–12; F3¹³'s priced-out journal
   as a rate mismatch caught live); the reservoir asymmetry (RUN 13's digests).
@@ -306,6 +324,19 @@ levels 5–7 applies here with full force.
   whose default answers "untracked"; and the pathology taxonomy is enforced only for
   the depth class — the non-depth families (§1.2) stand as an open AlternativeSet,
   presumed non-empty, unenumerated.
+- **Named, not modeled (the two non-semiotic determinants — Examination VI,
+  2026-07-27):** (1) the **normative/identity axis** — identity/plausibility-structure
+  maintenance (Berger & Luckmann's universe-maintenance: M defended as a *home*, not as a
+  predictor; "acting against one's interest" = economic interest sacrificed to identity
+  interest) — the machinery names its cost (ledger misses, poise rigidity) and has no term
+  for the value bought; first measurable form = the reflexive run's
+  identity-persists-iff-addressed prior. (2) the **physical substrate** — present as
+  engineering fact (ttl, crash/resume, checkpoint cadence all substrate-shaped), absent as
+  represented fact: no kytos models it, and a substrate perturbation arrives with no
+  semiotic mark; the built doubt-loop models the *semiotic stratum only* and is not the
+  whole causal story of why a kytos acts or fails. Forward edges: the continuity ledger
+  (substrate shadows) and substrate telemetry via the reflexive run's attention-economy
+  self-model.
 - **Conjectured, honestly (queued-conjecture):** the scaling exponents *across
   levels*, the community level entirely, and open-membrane superlinearity (§4);
   poise's rate-linkage — that the trace-reading responds systematically to the four

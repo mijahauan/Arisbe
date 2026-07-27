@@ -175,7 +175,8 @@ the resultant system means for a just society, perhaps corresponding to John Raw
 to play, and who plays well."** That doubt's surviving position is the ground this whole
 section stands on: *gate the claim by the method, on its content — never the agent by
 identity or worth; ranking people by worth-as-inquirers swaps a method-gate (which tracks
-the truth) for an identity-gate (which tracks who's in the club); and every claim is owed
+the real — the marked, objectivated real of Examination VI, never an unmarked terminus)
+for an identity-gate (which tracks who's in the club); and every claim is owed
 its uptake.* The question this section answers is therefore: **what does a society built
 on Doubt 4's resolution look like, and how far does Rawls map onto it?**
 
@@ -210,7 +211,11 @@ on Doubt 4's resolution look like, and how far does Rawls map onto it?**
 - **Fair access is not derivable, and the record already ruled on it.** Examination III
   (FIDELITY_AND_DEPARTURES) found "fair access to the Game" *falls as a derivation*:
   every real inquiry is a method-gated forum, and it is submission to the method, not
-  universal access, that lets convergence track the real. What the discipline yields is
+  universal access, that lets convergence track the real. (Read "the real" per
+  Examination VI's marks doctrine, ruled 2026-07-27: the objectivated, *marked* real of
+  Berger & Luckmann — apprehensible because objectivated, corresponding to the marks made
+  in the effort to understand, never the undifferentiated horizon and never an
+  uncontextualized telos.) What the discipline yields is
   **procedural epistemic fairness** — claims judged by content, the anti-*ad hominem*
   duty of uptake, no worth-ranking of agents, no founder exemption. It does **not**
   yield the difference principle, primary goods, or distributive justice; Rawls needs
@@ -223,6 +228,16 @@ on Doubt 4's resolution look like, and how far does Rawls map onto it?**
   injustice, "the wrong of not even hearing someone out because of who they are."
   Identity-gating claims is the paradigm case, and the method-gate is its structural
   remedy. That is the ethical content the system actually carries, and it is strong.
+  **Examination VI re-billing (2026-07-27):** the *categorical* form of the duty — uptake
+  owed to all — is **not derivable either**; it takes the same billing Examination III
+  gave "fair access." What is derivable is the conditional core: refusing uptake is
+  measurably costly (the excluded counterexample is the black swan that would have refuted
+  the over-general law; uptake-refusal is the rigidity pole of poise), and the mechanism
+  level can measure that cost. The categorical duty is a commens-negotiated settlement —
+  **negotiated at the commens level, given at the member level**: inherited with
+  participation, never adopted by an individual act (the one unilateral move at that level
+  is exit). The bridge to Fricker is thereby *owned, not derived* — the same honest
+  register as the equal-dignity premise before it.
 - **Level 4 is where the politics lives.** The mechanism level (§3) learns *which
   resolution mechanisms produce durable knowledge* — and any deployment of that learning
   (whose sources count as reliable, whose consensus is discounted) allocates epistemic
@@ -232,7 +247,14 @@ on Doubt 4's resolution look like, and how far does Rawls map onto it?**
   mutual-co-evolution rung, BOOTSTRAP_AND_DIRECTED_ENGAGEMENT §3) is the point where
   the system stops merely knowing and starts *doing to others* — its ethics pass should
   take this section as its floor: consent, provenance, counted interventions, no
-  identity-gating, uptake owed.
+  identity-gating, uptake owed. Its floor *candidate*, ruled at Examination VI
+  (2026-07-27): the **Golden Rule**, membrane-poised — connecting received treatment
+  (S: the reception record) to enacted treatment (A: export policy), and grounded in a
+  **notion, not an actuality** — a remembrance of liked treatment plus an imagination of
+  possible treatment, an entertained exhibit never discharged. *Hope, definitionally: the
+  gap between the record and the entertained-better, held as action-guiding* — which is
+  why the rule recurs across otherwise incompatible commens: it requires no shared
+  theology, only the S/A anatomy every member has.
 
 ## 5 · Pedagogical corollaries — which parts of the scaffold bear weight
 

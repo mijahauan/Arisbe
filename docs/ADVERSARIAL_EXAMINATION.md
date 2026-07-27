@@ -1946,3 +1946,293 @@ flaw"). Panels B and C reproduced V.3 independently; Panel D reproduced V.4 and
 V.8 by direct execution. The examiner who built the architecture recorded but
 did not conduct the examination. Dispositions await the author's ruling on the
 fork above.*
+
+
+---
+
+# Examination VI — The Commens Rung (nine queued threads, examined and ruled 2026-07-27)
+
+## Preface
+
+This examination is the **commens rung** of the session plan (CURRENT_PLAN, S3): the nine
+threads queued across 2026-07-23/26 under the standing discipline *"do NOT fold into docs
+until examined."* The threads: the four-doubts set — **A** (the veil pierced both ways,
+asymmetrically) · **B** (what obligates uptake?) · **C** (the physical substrate under the
+doubt) · **D** (Berger & Luckmann's "what works" vs "what is right") · **E** (fractal
+recurrence; hierarchy vs heterarchy) · **F** (no teleology of the commens — Graeber &
+Wengrow); plus **G** (ethics negotiated in the commens; "track the real" as unexamined
+telos) · **H** (free will as the deliberative interval + the predestination disposal) ·
+**I** (the synechism follow-ons).
+
+Unlike Examinations I–V (independent adversarial panels), VI was conducted as an
+**examination sitting**: the examiner pressed each thread adversarially in brief, proposed a
+disposition, and the author ruled thread by thread — twice amending the proposed disposition
+in ways that strengthened it (Units I's rulings 1 and 2–3 below). Inputs in hand that the
+threads had been waiting for: the E3b/E3c basin evidence (`runs/WEST_E3B_LOG.md`,
+`runs/WEST_E3C_LOG.md`), Sitting A's vocabulary (the two strata, the graded concordance map,
+SYNECHISM_AND_CONTINUITY, the rewritten THE_KYTOS), and the reflexive-run framing's B&L
+beats (assigned identity; the language rider). All nine threads were disposed; the fold
+list at the end records where each ruling landed.
+
+## Unit I — the normative nerve (G · B · D)
+
+### G — "track the real": the marks doctrine (the author's ruling, verbatim in substance)
+
+The doubt: FIDELITY's Examination III update and THE_MEASURE_OF_KNOWLEDGE §4 both lean on
+"tracks the real" / "tracks the truth" — a phrase the author never ratified as telos, in
+tension with the correspondence-not-truth guards. Trichotomy posed: (a) smuggled realist
+telos, (b) framework-conditional, (c) itself commens-negotiated.
+
+**The author's ruling re-grounds the term rather than choosing among the three.** "Real,"
+in Berger & Luckmann's sense, refers to **the objectivated products of individuals
+participating in a society**: it has an apprehensible form and is *not* a Kantian noumenal
+thing-in-itself. It corresponds **"not to the undifferentiated horizon but to the marks we
+make in our efforts to understand."** Considered thus — as a social construct — *no
+objection stands against efforts to track it.* Two standing guards survive the ruling:
+
+1. **Never claim to apprehend what no one marks.** The horizon stays horizon.
+2. **No uncontextualized telos.** THE_COMMENS §7's direction-of-an-act register holds;
+   a bare "(which tracks the truth)" in running prose is exactly the sneak the guard
+   forbids.
+
+The machinery already instantiates the ruling: the horizon registers *are* the acknowledged
+unmarked; M and the ledgers *are* the marks; even the resolving membrane's "world's verdict"
+enters only as a recorded outcome — a mark. The measured instance preceded the ruling:
+a RUN 13 finding, F8¹³ — **"language led the life"**: the watchlist lens tracks *expression*, and what the
+vocabulary cannot carry, the record cannot hold (the language rider's commens-side twin:
+what the community cannot yet say, no member can yet be).
+
+### G′ — ethics as commens-negotiated apportionment (ratified, with the recalcitrance floor restated)
+
+The author's positive conjecture: fairness/ethics do not derive from the internal logic of
+a single kytos; they emerge in the commens as **apportionment of access to and distribution
+from the commons** — an economic/collective-semiotic negotiation answered differently in
+different social realities (insect societies' asymmetries; human history's near-total
+non-resemblance to equality; "**We hold** these truths" as the commons reference, with
+"self-evident" the political/ethical decision).
+
+**Ratified**, with two sharpenings from the examination and the rulings:
+
+- **Negotiated at the commens level, given at the member level** (see B below) — the two
+  sides of B&L objectivation, not a tension.
+- **The floor, restated per the marks doctrine:** a commens negotiates its *marking
+  practices* and its settlements; it does not choose the *content of what arrives to be
+  marked*. The PredictionLedger is the built instance — methods are negotiable, misses are
+  not votes. What a settlement *costs in durable K* is measurable
+  (`mechanism_principles` — the author's research program "how associations solved the
+  apportionment problem" is MEASURE §3's mechanism level writ large) and not up for
+  negotiation, even where the settlement itself is.
+
+### B — what obligates uptake? (not derivable; inherited with participation; the exit boundary; the Golden Rule)
+
+The doubt: Doubt 4 was settled with method-adherence, but the method originates in the
+commens — so why must the commens open itself to all? What obligates any duty of uptake?
+
+**The finding, ratified:** the categorical uptake duty is **not derivable** — it takes
+exactly the billing Examination III gave "fair access." What *is* derivable is the
+**conditional core**: refusing uptake is measurably costly (the excluded counterexample is
+the black swan that would have refuted the over-general law; uptake-refusal is the rigidity
+pole of poise), and the mechanism level can measure that cost. The categorical form is a
+commens-negotiated settlement — the apportionment conjecture applied reflexively.
+
+**The author's amendment — the binding is not an individual act.** The examiner's first
+disposition ("SHARE = binding ourselves by seeking admission") was corrected: like identity
+in the reflexive-run's B&L beat, the commens's settlements are **initially and fundamentally
+given**, not entered by an act — *"we participate in but do not originate our existence."*
+The one genuinely individual move at that level is **exit** — the existentialists'
+boundary, **suicide as its stark marker**; in kytos terms, a membrane closing itself is the
+single unilateral act, and THE_COMMENS §10 already names what it does to the commens
+(dissolves it, in however small a degree). Sovereignty lives neither in origination nor in
+the norms — only in continued participation.
+
+**The Golden Rule, entered as the membrane-poised exemplar** (the author's long-standing
+thread, ruled into the record here). The rule is *perfectly poised at the membrane,
+referencing both S and A*: it connects **what we experience others doing to us**
+(receptions — marks in the record) to **what we decide to do to others** (export policy).
+And it situates its basis in a **notion, not an actuality**: a remembrance of liked
+treatment plus an imagination of possible treatment — commonly in stark contrast to the
+remembrance — which constitutes *an excellent definitional example of simple hope*. In the
+built vocabulary: the rule runs on an **entertained exhibit, never a discharged one** —
+remembrance is reception ink, imagination is a hypothetical-kind alternative surveyed from
+it, and the rule acts on the entertained-better without the confirming peel discharge
+requires. **Hope, definitionally: the gap between the record and the entertained-better,
+held as action-guiding.** This is why the rule recurs across otherwise incompatible
+commens — it requires no shared theology, only the S/A anatomy every member has. It stands
+as the floor candidate for the rung-2 ethics pass.
+
+### D — "what works" vs "what is right" (insufficiency ratified; the identity axis named)
+
+**Ratified:** energetics + logic are insufficient to account for commens behavior — the
+evidence of acting against one's interest abounds. The missing axis is **named, not
+modeled**: *identity / plausibility-structure maintenance* (B&L's universe-maintenance —
+nihilation, therapy, the custodian experts — defends M as a *home*, not as a predictor).
+"Acting against one's interest" is then exact: economic/predictive interest sacrificed to
+identity interest; the machinery names the cost (ledger misses, poise rigidity) and has no
+term for the value bought. Consequences: an honesty-ledger entry (THE_KYTOS §5); a standing
+caution in the West-facing docs (the exponents characterize the economic axis only); and
+measurement routed through the reflexive run, whose **identity-persists-iff-addressed**
+prior is the missing term's first measurable form.
+
+## Unit II — structure of the pair (A · E) — *ruled: "Agree both"*
+
+### A — the veil, two modes and two grades
+
+The asymmetry the author suspected is real and has a precise form — the two directions fail
+*differently*:
+
+- **Outside → in** fails by **opacity of interior**: only marks cross the membrane; the
+  commens infers a kytos's M from what it expresses (RUN 13 lived it: the oracle inferring
+  the author's model from note-marks; F7¹³'s custody-invisible interior; F8¹³'s
+  expression ≠ belief).
+- **Inside → out** fails by **excess of exterior**: the landscape exceeds any interior's
+  capacity (|M| decay-bounded, the peel's super-linear tax, 9,104 horizon items open).
+  Local sense is all there is; `m_fragment`'s budget + named horizon is that fact built.
+
+**The two-grade refinement:** for a *record-complete* kytos (an Arisbe kytos, where the
+recomputation thesis holds — the chain replays exactly), handing over the chain pierces the
+expression gap entirely; what remains is the **economics** of reading it — opacity
+collapses into the reader's own excess-of-exterior. For a *record-exceeding* kytos (a
+human), the expression gap is in-principle: the interior outruns its marks — F8¹³ measured
+it. Mutual constitution is ratified as already-standing doctrine (§1 participation-sustains
++ assigned identity), with the veil as its *mechanism*: each side constitutes the other
+through marks neither fully commands.
+
+### E — form recurs, coupling is heterarchical — compatibly
+
+**Ratified:** the kytos anatomy is a **boundary-condition schema** (membrane · interior ·
+doubt-loop · horizon · budget · decay), **not a stack diagram** — which is *why* it can
+recur at every level while the couplings between instances stay messy. The heterarchy is
+documented in both directions: substrate reaches *up* (decay economics shaping M's
+content — thread C), the commens reaches *down* (vocabulary bounding what a member can
+mark; identity assigned), and E3's endogenous partition emerged from below inside a
+landscape imposed from above. The represent-across-levels drive is ratified as **hypostatic
+abstraction as the universal level-crossing operator** — semiosis seen from inside: what
+operates at level *n* is lifted into an object at level *n*+1 (quotation, the metalearning,
+the K-levels, the reflexive run are all this one move). West consequence: the framing is
+**load-bearing for within-level economics under an imposed landscape, silent on
+between-level coupling**. THE_KYTOS §5's "one ledger shape at every level" stays under
+standing suspicion — this examination does not discharge it.
+
+## Unit III — the correctives (C · F) — *ruled: "Ratify both"*
+
+### C — the substrate under the doubt (a named limit)
+
+The substrate is **present as engineering fact and absent as represented fact**, and naming
+that split is the disposition. Present: the TTL exists because save-time layout at vault
+scale takes tens of minutes (F1¹³); crash/resume, checkpointing, move-not-copy backups —
+the substrate has shaped design throughout. Absent: no kytos *models* it; a substrate
+perturbation arrives with no semiotic mark, indistinguishable from world-recalcitrance
+unless the operator marks it. The Peircean point cuts the author's way: Peirce's own doubt
+is embodied — a somatic irritation, not a proposition; what the machinery formalized is the
+*marked* kind of doubt only. **Ratified as a named limit** (the built doubt-loop models the
+semiotic stratum; it is not the whole causal story), with two forward edges and no build:
+(i) the continuity ledger is the home for the substrate's existing shadows (decay curves,
+budget rates, checkpoint cadence = discretized substrate); (ii) the reflexive run's
+attention-economy self-model extends one level down — substrate telemetry is where
+substrate first becomes *marked*, consistent with the marks doctrine. Bookkeeping: with D,
+the honesty ledger now carries **two acknowledged non-semiotic determinants** (the
+normative/identity axis; the physical substrate), both named-not-modeled.
+
+### F — no teleology of the commens (the triangulation)
+
+**Ratified**, on a triangulation stronger than when queued: the apportionment conjecture
+(Unit I) *predicts* plurality of settlements; the E-series *measured* it (W1/W2 in
+different N=3 basins ~18% apart, PE2 refuted; 19–21 distinct optima; balance strands; E3c:
+stranding is a **positive-measure dear basin, not a knife-edge**); Graeber & Wengrow supply
+the *historical* form (many kinds of commens from the start; seasonal switching; deliberate
+refusal of hierarchy). **Many viable settlements, no unique optimum, no ladder.** The
+load-bearing claim is the **negative** one — the denial of ascendance — not the sweeping
+narrative where the book's acknowledged faults live; graded accordingly in the concordance
+map (evidenced-history, negative claim only). Two refinements the built record adds:
+per D, what the economic axis reads as a "dear" basin may be exactly what the identity
+axis is paying for; and an honest tension recorded as a finding — E3c found only 1/3 of
+*random* perturbations escape the dear basin, while G&W's commens crossed basins
+*deliberately and reversibly*: **coordinated basin-crossing is what "politics" is in this
+vocabulary.** The standing caution, planted as reading discipline for every West-facing doc
+and the West letter: the exponents characterize *a* fitness landscape a modeler imposed,
+within one level, on the economic axis — never the arrow of social development.
+
+## Unit IV — agency and continuity (H · I) — *ruled: "Ratify H and I"*
+
+### H — the deliberative interval + the predestination disposal (survives the adversarial pass; four additions)
+
+The author's formulation stands: free will = the determined situation of considering and
+decision in the interval between the conception of options (branching at a point of doubt)
+and the agentic resolution among them — necessary for *this* agent in its particular
+history; the libertarian "uncaused" rejected as a smuggled miracle; responsibility =
+accounting + uniqueness. The predestination disposal stands on its three grounds (oddly
+expensive — foretelling pays the deciding cost twice; undecidable — no transcript mark
+distinguishes fated from taken; without practical import — the pragmatic maxim empties it:
+not false but EMPTY), targeting *foretelling*, not bare determinism. Four additions from
+the pass:
+
+1. **"Determined" upgraded from concession to ground.** Computational irreducibility means
+   the deliberation *is* the determination — no cheaper path to the outcome exists than the
+   considering itself. The interval is not where freedom hides *from* determinism; it is
+   **where determination happens**, nowhere else and no cheaper. Freedom = being the unique
+   locus where this determination is computed.
+2. **The luck objection, met by cumulative responsibility.** The strongest attack comes
+   from this sitting's own givenness ruling (identity assigned; existence not originated) —
+   if the decision is necessitated by an unchosen history, responsibility seems to regress
+   out of the agent. Answer: responsibility here was never desert-by-origination (that is
+   *causa sui* — the libertarian's miracle arriving from the other direction). It is
+   accounting-based and **earned cumulatively: responsibility is to the agent what warrant
+   is to a claim — earned by record, never by origin.** An agent that can survey its own
+   record and revise its habits (Peirce's self-control; the reflexive run) owns its later
+   decisions in increasing degree despite never owning its first. The exit boundary adds
+   the floor: each moment of not-exiting is the agent's.
+3. **The forecast/foretell distinction — the ledger out of the blast radius.** A forecast
+   is a **risked mark** — revisable, graded by hits and misses, made from inside
+   participation; the oracle notes' seals prove a forecast was made *before* the outcome,
+   never that the outcome was written. Forecasting is participation; foretelling is the
+   view from nowhere. The disposal condemns only the latter.
+4. **The accounting is sufficient, not exhaustive — and the guard binds the agent too.**
+   Per the marks doctrine, responsibility attaches to marks; the continuous interval
+   exceeds its record. The accounting proves the decision passed through this agent without
+   claiming a total transcript — a fourth anti-foretelling ground (even the agent holds no
+   completed record of its own interval), and the no-apprehension-of-the-unmarked guard
+   cuts inward: self-justification beyond one's record is claiming unmarked deliberation.
+
+The embodiment extension ("the way the world thinks, we find particularly embodied in each
+of us") and the commens tie (a completed foretelling requires the commens *finished* —
+un-constitutable) stand as posed; E3's multi-basin result remains their empirical teeth.
+
+### I — the synechism follow-ons (closed through this sitting's own rulings)
+
+- **Hierarchy-vs-heterarchy dissolves into synechism:** levels are **marks on continuous
+  organization, not walls in it** — Peirce's denial of absolute individuality generalized
+  to a denial of absolutely separate levels; the coupling looks messy only if the marks are
+  reified into strata. (Closes E's residue; cross-recorded in SYNECHISM.)
+- **E3's basins enter the continuity ledger** as a measured instance of
+  points-from-continua — condensation by history's marking — with F's refinement attached
+  (deliberate basin-crossing = politics).
+- **Ruling 1 is synechism operationalized** (the marked vs the undifferentiated horizon =
+  points-created-by-marking vs the acknowledged continuum) — cross-recorded.
+- **The supermultitudinous frontier stays named-not-claimed.** Nothing this sitting earned
+  touches it.
+
+## The fold (consequences executed at this sitting)
+
+- **THE_MEASURE_OF_KNOWLEDGE §4** — the "(which tracks the truth)" parenthetical
+  re-registered per the marks doctrine; the Fricker bridge re-billed (categorical duty
+  inherited-with-participation, not derived; conditional core derivable); the Golden Rule
+  entered as the rung-2 floor candidate.
+- **FIDELITY_AND_DEPARTURES** (Examination III update) — "track the real" glossed by
+  ruling 1.
+- **THE_COMMENS_AND_THE_COMMUNITY** — new §12 carrying the rulings that land there
+  (apportionment ratified-as-amended; givenness and the exit boundary; the Golden Rule;
+  the veil's two modes and two grades; the marks doctrine). §11's still-flagged verdicts
+  1, 2, and 6 are *touched* by these rulings but not resolved by them.
+- **THE_KYTOS** — §4 E3c disposed + the West-series close + the no-teleology reading
+  discipline; §5 the two named-not-modeled axes (identity maintenance; physical substrate).
+- **SYNECHISM_AND_CONTINUITY** — (e) upgraded with E3c + the ratified synechist reading;
+  (f) the deliberative-interval reading promoted from queued to examined-and-ratified;
+  levels-as-marks added; the basins ledger row.
+- **CONTRIBUTION_AND_PRIOR_ART** (the graded map) — the deliberative-interval row promoted
+  to ratified-doctrine (by this examination, per the map's own promotion rule); a Graeber &
+  Wengrow row added (negative claim only).
+
+*Conducted 2026-07-27, examiner-pressed and author-ruled thread by thread; the author's
+rulings on G (the marks doctrine) and B (givenness, the exit boundary, the Golden Rule as
+hope) reshaped the proposed dispositions and are quoted above in substance. All nine
+threads disposed; none remain queued.*

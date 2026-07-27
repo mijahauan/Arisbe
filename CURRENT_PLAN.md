@@ -1,6 +1,45 @@
 # Current Plan
 
-**Last Updated**: 2026-07-27 — **SITTING A EXECUTED + BOTH DISPOSITIONS LANDED + THE WEST
+**Last Updated**: 2026-07-27 (evening, second arc) — **THE COMMENS RUNG EXECUTED: EXAMINATION VI —
+ALL NINE QUEUED THREADS EXAMINED, RULED, AND FOLDED (one sitting).** Record:
+`docs/ADVERSARIAL_EXAMINATION.md` Examination VI (four units, examiner-pressed, author-ruled
+thread by thread). The rulings: **Unit I** — the **marks doctrine** (the author: "the real" =
+B&L's objectivated products of participation, apprehensible, corresponding "not to the
+undifferentiated horizon but to the marks we make"; tracking licensed under two guards — never
+apprehend the unmarked, no uncontextualized telos) · ethics-as-negotiated-apportionment RATIFIED
+as amended (**negotiated at the commens level, given at the member level**; marking practices
+negotiable, arrivals' content not) · the categorical uptake duty **not derivable** (Exam III's
+"fair access" billing; conditional core derivable; **exit the one unilateral act** — the
+existentialist boundary) · the **Golden Rule as membrane-poised exemplar** (S↔A; grounded in a
+notion not an actuality; *hope = the gap between the record and the entertained-better, held as
+action-guiding*; rung-2 floor candidate) · D's insufficiency ratified (identity/plausibility-
+structure maintenance = the named-not-modeled normative axis). **Unit II** — veil two-mode
+(opacity-of-interior vs excess-of-exterior) + two-grade (record-complete → economics;
+record-exceeding → in-principle gap, F8¹³ measured it) · form-recurs/coupling-heterarchical
+(schema-not-stack; represent-across-levels = hypostatic abstraction; West load-bearing
+within-level only). **Unit III** — substrate = named limit (present-as-engineering/absent-as-
+represented; 2nd named-not-modeled determinant; forward edges continuity-ledger + reflexive-run
+telemetry) · no-teleology ratified on the three-line triangulation (conjecture · E-series ·
+G&W), **politics = coordinated basin-crossing** recorded as a finding. **Unit IV** — the
+deliberative interval + predestination disposal ratified with four additions (irreducibility-as-
+ground; **responsibility earned cumulatively by record, never by origin**; forecast/foretell
+guard; accounting sufficient-not-exhaustive — binds the agent too) · synechism follow-ons closed
+(levels-as-marks; E3-basins reading promoted to ratified; supermultitudinous frontier untouched).
+**Folds landed:** MEASURE §4 (×3 incl. the re-registered "(which tracks the truth)") · FIDELITY
+Exam III gloss · THE_COMMENS **§12** (new, ratified; §11's 1/2/6 touched-not-resolved) ·
+THE_KYTOS §4 (E3c disposed into the doc + the two reading disciplines) + §5 (the two
+named-not-modeled non-semiotic determinants) · SYNECHISM (e) ratified-reading + (f) examined +
+**(g) levels-as-marks new** + the basins ledger row · CONTRIBUTION map (G&W row added
+negative-claim-only; deliberative-interval row **promoted to ratified-doctrine** per the map's
+own rule). Memories closed (four-doubts ×6, ethics-negotiated, free-will, synechism-thread).
+Meanwhile: **RUN 13 step (b) overnight `--no-p213` segment IN FLIGHT** (launched ~17:40 after
+the author answered the 07-27 note — 2/2 answers + 2/2 ratings parse clean; watchlist-run seg1
+moved to `_backup_watchlist_seg1_2026-07-27/`). **Next:** the author marks the provenance-mix
+note → P4¹³ disposal; then the p213 overnight → P2¹³; then SHARE (the letters now have Exam VI
+behind them: the marks doctrine + no-teleology discipline harden exactly the docs the letters
+cite).
+
+**Last Updated (prior)**: 2026-07-27 — **SITTING A EXECUTED + BOTH DISPOSITIONS LANDED + THE WEST
 E-SERIES CLOSED.** (1) **Sitting A (the two-strata reorganization) is BUILT + COMMITTED
 (`561f197`; book render-check passed, 46 chapters):** VISION_AND_SCOPE restratified (Stratum I
 §1–7 verbatim under its banner; Stratum II = §8 in the proposition-scribed-into-the-wider-EPG
@@ -125,21 +164,23 @@ COMMENS RUNG, and START SHARE — outreach to Sowa, Dau, West, Pietarinen.**
 **(1) RUN 13 finalization sequence** (mechanical, spans author-marking gaps — the known
 blocker: the oracle writes no new note while the newest awaits answers, and
 `Questions-2026-07-27.md` (2 questions) is unanswered):
-  a. Author answers (or waves off by deletion) the 07-27 note.
-  b. Overnight segment `--no-p213` → the V2a.1 provenance-mix note → author marks →
-     rounds-0 scoring (seg-backup discipline) → **P4¹³ disposal** (authored-vs-collected
+  a. ✅ DONE 2026-07-27 evening — author answered the 07-27 note (2/2 `**A:**` + 2/2
+     `**R:** trivial`; `parse_note` verified clean — both answers and ratings recognized,
+     nothing ignored/stray; the F5¹³ placeholder-append fix held).
+  b. ⏳ IN FLIGHT 2026-07-27 ~17:40 — overnight segment `--no-p213` launched (200 rounds,
+     ttl 120, watchlist channel open; console → `runs/run13/console_p4_noP213_2026-07-27.txt`;
+     seg-backup discipline: the watchlist-run seg1 MOVED to
+     `runs/run13/_backup_watchlist_seg1_2026-07-27/` + ledgers copied, disk at 95% so
+     move-not-copy). Its oracle pass will score the answered 07-27 note, then write the
+     V2a.1 provenance-mix note → author marks → **P4¹³ disposal** (authored-vs-collected
      agreement on the sample).
   c. A later overnight segment with p213 on → the second comparator note → author's
      **A:**/**R:** marks → **P2¹³ disposal** (≥25-point gap over ≥2 segments, or refuted).
   d. Final RUN 13 disposal block written; P1¹³'s not-instrumented carry-forward noted for
      the stage that builds retrodiction.
 
-**(2) The commens rung (S3)** — the nine queued threads, now with everything they were
-waiting for in hand: E3b/E3c basin evidence, Sitting A's vocabulary (two strata, graded
-map, synechism doc, rewritten KYTOS), AND the reflexive-run memory's four beats (B&L
-assigned-identity + the language rider bear directly on the commens threads). Threads: the
-four-doubts set (×6) · ethics-negotiated-in-the-commens · free-will/predestination ·
-synechism placement follow-ons.
+**(2) The commens rung (S3)** — ✅ **DONE 2026-07-27 evening: Examination VI** (see the top
+Last-Updated block). All nine threads examined, ruled, and folded in one sitting.
 
 **(3) SHARE — accelerated by the author's ruling** ("share with 'the world', meaning Sowa,
 Dau, West, Pietarinen, to start"): the framed-outreach agenda item (#9) moves up. Raw

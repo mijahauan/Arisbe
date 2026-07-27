@@ -359,6 +359,70 @@ below is settled doctrine.
    deep branching) could ever cross into modeling something institution-*like* in a stronger
    sense than "model-of," or whether that possibility should be left more explicitly open.
 
+## 12 · The commens rung — Examination VI rulings folded *[ratified, 2026-07-27]*
+
+The nine threads queued for the commens rung were examined and ruled at the 2026-07-27
+sitting; the full record is [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)
+Examination VI. What lands in *this* document, now ratified doctrine:
+
+**(a) The marks doctrine.** "The real," where the corpus speaks of tracking it, is Berger &
+Luckmann's: the **objectivated products of participation** — apprehensible *because*
+objectivated, corresponding **not to the undifferentiated horizon but to the marks made in
+the effort to understand**; no Kantian noumenon. Tracking it is unobjectionable under two
+standing guards: **never claim to apprehend what no one marks**, and **no uncontextualized
+telos** (§7's direction-of-an-act register). The horizon registers are the acknowledged
+unmarked; M and the ledgers are the marks; even a resolving membrane's "world's verdict"
+enters only as a mark. The measured instance: a RUN 13 finding, F8¹³ — "language led the
+life": the record holds what the vocabulary can carry.
+
+**(b) Ethics as commens-negotiated apportionment.** Fairness/ethics do not derive from the
+internal logic of a single kytos; they emerge in the commens as the **apportionment of
+access to and distribution from the commons** — answered differently in different social
+realities (insect societies' asymmetries; history's many experiments; "**We hold** these
+truths" as the commons reference, "self-evident" the political decision). Two sharpenings:
+settlements are **negotiated at the commens level and given at the member level** (the two
+sides of objectivation, §1); and the floor negotiation cannot reach — a commens negotiates
+its *marking practices*, never the *content of what arrives to be marked*, and what a
+settlement costs in durable knowledge is measurable (`mechanism_principles`) whether or not
+it is negotiated.
+
+**(c) Givenness, and the exit boundary.** The commens's settlements bind the way identity
+binds: **initially and fundamentally given, not derived or produced de novo** — *we
+participate in but do not originate our existence*. The categorical uptake duty is
+therefore **not derivable** (the same billing Examination III gave "fair access"); its
+derivable core is conditional (refusing uptake is measurably costly — the excluded
+counterexample, the rigidity pole of poise). The one genuinely individual move at this
+level is **exit** — the existentialists' boundary, suicide its stark marker; a membrane
+closing itself is the single unilateral act, and §10 already names its effect on the
+commens. Sovereignty lives neither in origination nor in the norms — only in continued
+participation.
+
+**(d) The Golden Rule, membrane-poised.** The rule references both S and A — connecting
+*what we experience others doing to us* (receptions, marks in the record) to *what we
+decide to do to others* (export policy) — and situates its basis in a **notion, not an
+actuality**: a remembrance of liked treatment plus an imagination of possible treatment,
+commonly in stark contrast. In the built vocabulary it runs on an **entertained exhibit,
+never a discharged one**; *hope, definitionally, is the gap between the record and the
+entertained-better, held as action-guiding*. It is the floor candidate for the rung-2
+ethics pass, and its substrate-free recurrence across incompatible commens follows from its
+requiring only the S/A anatomy every member has.
+
+**(e) The veil, two modes and two grades.** The commens/kytos veil is pierceable from both
+sides, **asymmetrically**: outside→in fails by *opacity of interior* (only marks cross the
+membrane; the commens infers M from expression), inside→out by *excess of exterior* (the
+landscape exceeds any interior's capacity; local sense is all there is). Two grades: for a
+**record-complete** kytos the expression gap closes when the chain is handed over — what
+remains is the *economics* of reading it; for a **record-exceeding** kytos (a human) the
+gap is in-principle — the interior outruns its marks. Mutual constitution (§1, §10) is
+thereby given its mechanism: each side constitutes the other through marks neither fully
+commands.
+
+**(f) What this section does *not* settle.** §11's still-flagged verdicts 1, 2, and 6 are
+*touched* by these rulings (the marks doctrine bears on 2; the levels-as-marks ruling in
+[SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md) bears on 6 — the
+instance→community boundary reads as *constitutive* — it takes two, reciprocating — rather
+than as a stratum wall) but none is resolved by them; they remain open verdicts.
+
 ## Cross-links
 
 [World-scroll](GLOSSARY.md#world-scroll) · [Kytos](GLOSSARY.md#kytos-the-semiotic-cell) ·

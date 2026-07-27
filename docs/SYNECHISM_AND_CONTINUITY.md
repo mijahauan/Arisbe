@@ -102,19 +102,24 @@ rationale reside in the objectivated institutionalizations, not in the seat's
 occupant) are that formulation operationalized. The commens is what a synechist
 *expects* where a nominalist expects an aggregate of self-contained minds.
 
-### (e) West scaling as measured synechism — *measured-with-priors* results, *queued-conjecture* reading
+### (e) West scaling as measured synechism — *measured-with-priors* results, *ratified-doctrine* reading (Examination VI)
 
-The West-in-kytē program's results are real and pre-registered: E1–E3b ran against
+The West-in-kytē program's results are real and pre-registered: E1–E3c ran against
 declared priors and the run logs record which held and which fell. The E3b basin map
 (`runs/WEST_E3B_LOG.md`) carries the honest complication: the **continuum of possible
 organizations condenses into discrete basins by history's marking** — all 36 starts
 terminate at the N=3 granularity, yet fragment into 19 distinct local optima, with a
-dominant family holding 75% of the attractor mass within 1.4% of the cost floor.
+dominant family holding 75% of the attractor mass within 1.4% of the cost floor — and
+E3c (`runs/WEST_E3C_LOG.md`) sharpened it: **stranding is a positive-measure dear basin,
+not a knife-edge** (known optima 19 → 21; the floor confirmed twice).
 Points-from-continua, observed in a cost landscape: the walk's history *marks* which
-of continuum-many organizations become actual. But the two levels must not be
-conflated — the measurements are **measured-with-priors**; the *synechist reading* of
-them (that this condensation instantiates continuity marking itself into discreteness)
-remains **queued-conjecture** even though what it reads is measured.
+of continuum-many organizations become actual. The two levels are still not conflated —
+the measurements are **measured-with-priors** — but the *synechist reading* (that this
+condensation instantiates continuity marking itself into discreteness) was **ratified at
+Examination VI** (2026-07-27, the commens rung): the basins enter the continuity ledger
+below, with the political refinement attached — random perturbation rarely escapes a dear
+basin, yet commens have crossed basins *deliberately and reversibly* (Graeber & Wengrow);
+**coordinated basin-crossing is what "politics" is in this vocabulary**.
 
 ### (f) The chain: discrete marks on continuous semiosis — *built-and-gated* machinery, *queued-conjecture* reading
 
@@ -124,9 +129,33 @@ The record is complete *as a record* (every licensed move accounted) while the
 **accounting never exhausts the deliberation**: nothing in a transcript marks which
 continuum of consideration lay between two steps, and no transcript distinguishes a
 fated step from a taken one. That gap is an anti-foretelling ground, and it feeds the
-deliberative-interval reading of agency. The free-will reading itself is
-**queued-conjecture** — named for the commens rung's examination, deliberately *not*
-folded into doctrine here.
+deliberative-interval reading of agency. The free-will reading was **examined and
+ratified at the commens rung** (Examination VI, 2026-07-27,
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Unit IV): the deliberative
+interval as the locus where determination *happens* (computational irreducibility);
+responsibility **earned cumulatively by record, never by origin**; the three-ground
+predestination disposal, with the forecast/foretell distinction keeping the ledger
+machinery out of its blast radius; and this item's gap confirmed as the fourth
+anti-foretelling ground — the accounting is *sufficient, not exhaustive*, and the
+no-apprehension-of-the-unmarked guard binds the agent too.
+
+### (g) Levels are marks, not walls — *ratified-doctrine* (Examination VI)
+
+The hierarchy-vs-heterarchy question (is a "higher" level's dependence on its substrate a
+simple stack or a different order of interconnectedness?) **dissolves into synechism**:
+levels are **marks on continuous organization, not walls in it** — Peirce's denial of
+absolute individuality, generalized to a denial of absolutely separate levels. The
+coupling between level-instances looks messy only if the marks are reified into strata:
+substrate reaches *up* (decay economics shaping M's content), the commens reaches *down*
+(vocabulary bounding what a member can mark; identity assigned), and both directions are
+documented in the built record. The kytos anatomy recurs across levels precisely because
+it is a **boundary-condition schema, not a stack diagram** — and the
+represent-across-levels drive is **hypostatic abstraction as the universal level-crossing
+operator**: what operates at level *n* lifted into an object at level *n*+1 (quotation,
+the metalearning, the K-levels, the reflexive run are all this one move). The marks
+doctrine itself (Examination VI ruling 1 — the real as the *marked*, objectivated;
+the horizon as the acknowledged unmarked) is this document's item (b) ratified from the
+commens side.
 
 ## The continuity ledger
 
@@ -144,6 +173,7 @@ shadow**. A discretization with no named shadow is a debt, not an economy.
 | **Layout coordinates** — discrete DTO geometry | the continuous plane of drawing | **regime-3 homotopy-class invariance**: any one drawing is a representative; the class is the fact (item (a) above) | `layout_dto.py` / `presentation_ops.py` / `correspondence_attestation.py`; `tests/test_presentation_ops.py` |
 | **Three-valued verdicts** — TRUE/FALSE/UNKNOWN | the continuum of evidential standing | **UNKNOWN as the honest middle** (sound open-world: absence never snaps to denial) + the transcript recording *how far* the peel got | `semantic_game.Verdict3`; `tests/test_semantic_game.py` |
 | **Live segments** — a world stream chopped into polls and checkpoints | the world's continuous delivery | queued-never-truncated batches; cross-segment episode accumulation; **the decay clock continuing, not resetting**, across checkpoint and resume | `live_runner.py` (segment/checkpoint/resume); `tests/test_live_runner.py` |
+| **Organizational basins** — discrete partition optima condensed from continuum-many possible organizations *(measured instance, ratified reading — Examination VI)* | the continuous space of possible apportionments | **history's marking recorded**: the walk's path determines which basin becomes actual (multi-basin, 21 known optima, balance strands, stranding a positive-measure basin); crossing recorded as a *deliberate coordinated act* — politics — never as gradient descent | `runs/WEST_E3_LOG.md` … `WEST_E3C_LOG.md` (pre-registered priors; author-disposed) |
 
 ## The scholarly frontier, named not claimed — *queued*
 
