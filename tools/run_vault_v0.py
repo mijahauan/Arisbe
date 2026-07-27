@@ -43,7 +43,9 @@ from probe_feed import _model_signature              # noqa: E402
 from proof_authoring import ProofChain                # noqa: E402
 from tomos_service import TomosService                # noqa: E402
 from universe_of_discourse import UoDCategory         # noqa: E402
-from vault_world import VaultFeed, VaultWorld, JOURNAL_SPINE_RELATIONS  # noqa: E402
+from vault_world import (                             # noqa: E402
+    JOURNAL_SPINE_RELATIONS, VaultFeed, VaultWorld, Watchlist, load_watchlist,
+)
 from world_scroll import find_world_scroll            # noqa: E402
 
 
@@ -148,8 +150,29 @@ def _decade_counts(atoms) -> dict:
     return dict(sorted(counts.items()))
 
 
+def _load_watchlist(root: Path, arg: Optional[str]) -> Optional[Watchlist]:
+    """The V2b-lite aperture's open/shut switch (spec:
+    docs/superpowers/specs/2026-07-27-journal-watchlist-aperture.md): an
+    explicit ``--watchlist`` path, else ``<root>/Arisbe/Watchlist.md`` IF
+    present — absence of the file means the channel stays shut (``None``:
+    no scan, no atoms, no digest keys). A file that EXISTS is returned even
+    when it yields zero usable terms, so an all-refused watchlist still
+    surfaces its ``watchlist_refused`` count in the digest (count-or-refuse
+    — a silent ``None`` there would swallow the refusals)."""
+    path = Path(arg) if arg else Path(root) / "Arisbe" / "Watchlist.md"
+    if not path.is_file():
+        if arg:
+            # The author named a file that isn't there — announce, never
+            # silently fall back to a closed channel. The echoed path is the
+            # author's own CLI argument, not vault content.
+            print(f"watchlist: {arg} absent - aperture closed")
+        return None
+    return load_watchlist(path)
+
+
 def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy,
-            feed: Optional[VaultFeed] = None) -> dict:
+            feed: Optional[VaultFeed] = None,
+            watchlist: Optional[Watchlist] = None) -> dict:
     """Aggregate counts only — reused from ``probe_feed._model_signature`` (the
     same sheet-atom reading the round loop itself uses) rather than re-deriving
     a second atom walk. No id/title/path ever appears in the return value.
@@ -175,14 +198,26 @@ def _digest(model_egi, horizon: Horizon, economy: AttentionEconomy,
     if feed is not None:
         out["m_added"] = feed.added
         out["m_removed"] = feed.removed
+    if watchlist is not None:
+        # Aggregate-only, binding (spec custody contract 5): counts of terms,
+        # refusals, mentions atoms in M, and distinct mentioned entries —
+        # never a per-term count, never an entry id. Per-term evidence lives
+        # only in M (the gitignored store), read locally by
+        # tools/report_watchlist.py.
+        out["watchlist_terms"] = len(watchlist.terms)
+        out["watchlist_refused"] = watchlist.refused
+        out["mentions_atoms"] = tally.get("mentions", 0)
+        out["entries_with_mentions"] = len({
+            labels[0] for rel, labels in atoms
+            if rel == "mentions" and labels})
     return out
 
 
 def _run_segment(
     root: Path, rounds: int, seg_idx: int, runs_dir: Path, model,
-    ttl: int,
+    ttl: int, watchlist: Optional[Watchlist] = None,
 ) -> Tuple[dict, object, VaultWorld, Horizon, EvolutionResult, AttentionEconomy]:
-    world = VaultWorld(root)
+    world = VaultWorld(root, watchlist=watchlist)
     economy = AttentionEconomy()
     horizon = Horizon()
     feed = VaultFeed(world, economy, horizon=horizon)
@@ -209,7 +244,8 @@ def _run_segment(
     # enter M or stdout.
     _merge_labels_sidecar(runs_dir, world.long_labels)
 
-    digest = _digest(res.uod.current_egi, horizon, economy, feed=feed)
+    digest = _digest(res.uod.current_egi, horizon, economy, feed=feed,
+                     watchlist=watchlist)
     digest["digested_labels"] = len(world.long_labels)
     # M carries between segments as the graph itself (docket ④): EGIF cannot
     # express per-cell vertex privacy or a banked quotation's sort, so a text
@@ -577,6 +613,12 @@ def main(argv=None) -> int:
                           "segment-save layout stays tractable; 0 disables — "
                           "unbounded M at vault scale makes the save-time layout "
                           "take tens of minutes and risks label occlusion)")
+    ap.add_argument("--watchlist", default=None,
+                     help="path to the author's Watchlist.md (V2b-lite — the "
+                          "journal watchlist aperture). Default: "
+                          "<root>/Arisbe/Watchlist.md IF present; when the "
+                          "file is absent the channel stays shut (no scan, "
+                          "no mentions atoms).")
     ap.add_argument("--note-date", default=None,
                      help="ISO date for the oracle note's filename/frontmatter "
                           "(V2a.1); defaults to today — the single sanctioned "
@@ -603,11 +645,14 @@ def main(argv=None) -> int:
     runs_dir.mkdir(parents=True, exist_ok=True)
     note_date = args.note_date or date.today().isoformat()
 
+    watchlist = _load_watchlist(root, args.watchlist)
+
     model = ""
     digest: dict = {}
     for seg in range(1, args.segments + 1):
         digest, model, world, horizon, res, economy = _run_segment(
-            root, args.rounds, seg, runs_dir, model, args.ttl)
+            root, args.rounds, seg, runs_dir, model, args.ttl,
+            watchlist=watchlist)
         if seg == args.segments:
             digest["oracle"] = _run_oracle(
                 root, runs_dir, args.fixture, note_date,

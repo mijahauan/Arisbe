@@ -6,6 +6,10 @@ Custody constraint (the author's ruling 2 + the vault's ``People/``/``Kith_Kin/`
 frontmatter date/tags, wikilinks, hashtags, file size/mtime. It never reads a note's
 body content into an emission. The fixture's ``Ideas/alpha.md`` and journal carry the
 sentinel word ``SENTINELBODY`` precisely so a body-content leak is test-detectable.
+One ruled exception (V2b-lite, the watchlist aperture — spec
+2026-07-27-journal-watchlist-aperture.md): with an author-supplied ``Watchlist.md``,
+JOURNAL entry text is tested for membership of the author's own terms (whole-word,
+case-insensitive) and nothing else — a lens, not a leak; no watchlist, no scan.
 
 This is the READER half only (Task 3): ``notes``/``note_id``/``note_facts``/
 ``attachment_items``/``probe_cost``. Task 4 appends the journal reader
@@ -96,7 +100,98 @@ ROOT_BUCKET = "(root)"
 # without this, the spine is read once then disuse-decayed out before an
 # end-of-segment digest (rounds >> ttl), reading `journal_entries: 0`. Passed to
 # `agon_evolution.run(pinned_relations=...)` so its atoms are exempt from decay.
-JOURNAL_SPINE_RELATIONS = frozenset({"journal_entry", "entry_date", "entry_lines"})
+# `mentions` (V2b-lite, the watchlist aperture) joins the same bedrock tier:
+# a mention is longitudinal evidence about a decade, not a working-set fact,
+# and its size is finite (≤ |entries| × |terms|) so the pin stays bounded.
+JOURNAL_SPINE_RELATIONS = frozenset(
+    {"journal_entry", "entry_date", "entry_lines", "mentions"})
+
+# -- the watchlist aperture (V2b-lite) ------------------------------------------------
+# The first content-bearing channel onto the journal, ruled open by the author
+# (spec: docs/superpowers/specs/2026-07-27-journal-watchlist-aperture.md, on
+# RUN 13's F7¹³). A lens, not a leak: entry text is read solely to test
+# membership of author-declared terms — whole-word, case-insensitive — and
+# nothing becomes an atom the author did not name in advance. Absence of the
+# watchlist file means the aperture stays shut (no scan, no atoms).
+
+_WL_HEADER_RE = re.compile(r"^##(?!#)\s*(.+?)\s*$")
+_WL_ITEM_RE = re.compile(r"^\s*[-*+]\s+(.+?)\s*$")
+
+
+class Watchlist:
+    """An ordered {group: [terms]} read from the author's ``Watchlist.md``.
+
+    Group names are the author's and treated opaquely. A term over the
+    40-char bounded-constant invariant (``_MAX_CONST``) is refused and
+    counted — never silently truncated (count-or-refuse): a truncated term
+    would match text the author never named."""
+
+    def __init__(self, groups: Dict[str, List[str]], refused: int = 0):
+        self.groups = groups
+        self.refused = refused
+        # One compiled pattern per distinct term (case-insensitive dedup so a
+        # term two groups share yields ONE mentions atom per entry, under its
+        # first-listed spelling). Word boundaries at BOTH ends — "sign" must
+        # never ride in on "design" or "signal" — and a phrase's internal
+        # whitespace is flexible so a line-wrapped phrase still counts.
+        self._patterns: List[Tuple[str, re.Pattern]] = []
+        seen: set = set()
+        for terms in groups.values():
+            for term in terms:
+                if term.lower() in seen:
+                    continue
+                seen.add(term.lower())
+                pat = re.compile(
+                    r"(?<!\w)"
+                    + r"\s+".join(re.escape(p) for p in term.split())
+                    + r"(?!\w)",
+                    re.IGNORECASE)
+                self._patterns.append((term, pat))
+
+    @property
+    def terms(self) -> List[str]:
+        return [t for t, _pat in self._patterns]
+
+    @property
+    def is_open(self) -> bool:
+        return bool(self._patterns)
+
+    def match(self, text: str) -> List[str]:
+        """The terms present in ``text`` (whole-word, case-insensitive), each
+        in its original watchlist spelling, in watchlist order."""
+        return [t for t, pat in self._patterns if pat.search(text)]
+
+
+def parse_watchlist(text: str) -> Watchlist:
+    """``##`` headers name groups; markdown list items under a header are
+    that group's terms. Items before any header have no group and are
+    ignored (they name nothing the format promises to scan for)."""
+    groups: Dict[str, List[str]] = {}
+    refused = 0
+    current: Optional[str] = None
+    for line in text.split("\n"):
+        h = _WL_HEADER_RE.match(line)
+        if h:
+            current = h.group(1)
+            groups.setdefault(current, [])
+            continue
+        item = _WL_ITEM_RE.match(line)
+        if item and current is not None:
+            term = item.group(1)
+            if len(term) > _MAX_CONST:
+                refused += 1
+                continue
+            groups[current].append(term)
+    return Watchlist(groups, refused)
+
+
+def load_watchlist(path: Path) -> Watchlist:
+    """An absent file is a CLOSED aperture, not an error — the author opens
+    the channel by creating the file, closes it by removing it."""
+    path = Path(path)
+    if not path.is_file():
+        return Watchlist({}, 0)
+    return parse_watchlist(_read_text(path))
 
 # -- journal date-lines --------------------------------------------------------------
 # Shape per the vault spec's two-timeline rule: a bare date-line is an event-time
@@ -184,12 +279,16 @@ class VaultWorld:
     """Reads a vault rooted at ``root`` into metadata-only EGIF facts. Deterministic:
     all walks sorted; mtime is read as data (not the wall clock)."""
 
-    def __init__(self, root: Path):
+    def __init__(self, root: Path, watchlist: Optional[Watchlist] = None):
         self.root = Path(root)
         # id → original for every constant that had to be digested to hold the
         # _MAX_CONST bound (F1¹³). Custody: originals live here (and in the
         # driver's gitignored sidecar), never in M.
         self.long_labels: Dict[str, str] = {}
+        # The V2b-lite aperture: None (or a closed Watchlist) keeps V0's
+        # custody line exactly — no journal prose is ever tested against
+        # anything. An open watchlist licenses ONLY the membership test.
+        self.watchlist = watchlist
 
     def _bounded(self, value: str) -> str:
         """An EGIF constant guaranteed ≤ _MAX_CONST chars — the F1¹³ invariant.
@@ -378,6 +477,16 @@ class VaultWorld:
         of whichever entry is currently open, and its ``(line_no, raw)`` — the
         date-line's shape only, never surrounding content — is returned as a
         second list."""
+        _raw, entries, flagged = self._journal_scan(relpath)
+        return entries, flagged
+
+    def _journal_scan(
+        self, relpath: str
+    ) -> Tuple[List[str], List[Tuple[str, int, int]], List[Tuple[int, str]]]:
+        """ONE file read → (raw_lines, entries, flagged) — the raw lines ride
+        along so the watchlist aperture can test an entry's text span without
+        a second read (the spec's "rides the existing single journal-file
+        read"); no caller outside this class ever sees them."""
         path = self.root / relpath
         raw_lines = _read_text(path).split("\n")
         if raw_lines and raw_lines[-1] == "":
@@ -406,7 +515,7 @@ class VaultWorld:
         if cur_date is not None:
             entries.append((cur_date, cur_line_no, cur_n))
 
-        return entries, flagged
+        return raw_lines, entries, flagged
 
     def journal_facts(self, relpath: str) -> str:
         """**Whole-file journal reader** — every entry in one conjunction.
@@ -438,10 +547,20 @@ class VaultWorld:
         **line-span** (the last line the batch's entries cover minus the
         first) — the feed's affordable per-batch cost proxy (F3¹³), the same
         shape as :meth:`probe_cost`'s byte-based formula but for a batch that
-        has no file size of its own. One call to :meth:`journal_entries`
+        has no file size of its own. One call to :meth:`_journal_scan`
         (one file read) regardless of how many batches result; batches cover
-        every entry exactly once, in file order."""
-        entries, _flagged = self.journal_entries(relpath)
+        every entry exactly once, in file order.
+
+        The watchlist aperture (V2b-lite) rides here: when the world carries
+        an OPEN watchlist, each entry's text span (the body lines under its
+        date-line) is tested for term membership as its batch is prepared —
+        the one licensed content read — and the batch's conjunction gains
+        ``(mentions "<entry-id>" "<term>")`` atoms, the term in the author's
+        own spelling. A closed/absent watchlist leaves the conjunctions
+        byte-identical to V0's."""
+        raw_lines, entries, _flagged = self._journal_scan(relpath)
+        scan = self.watchlist if (
+            self.watchlist is not None and self.watchlist.is_open) else None
         out: List[Tuple[str, int]] = []
         for i in range(0, len(entries), batch_size):
             group = entries[i:i + batch_size]
@@ -451,6 +570,14 @@ class VaultWorld:
                 atoms.append(f'(journal_entry "{eid}")')
                 atoms.append(f'(entry_date "{eid}" "{event_date}")')
                 atoms.append(f'(entry_lines "{eid}" "{n_lines}")')
+                if scan is not None:
+                    # raw_lines is 0-indexed; line_no is the 1-based date-line,
+                    # so the body span is exactly the n_lines lines after it.
+                    span_text = "\n".join(
+                        raw_lines[line_no:line_no + n_lines])
+                    for term in scan.match(span_text):
+                        atoms.append(
+                            f'(mentions "{eid}" "{self._bounded(term)}")')
             first_line = group[0][1]
             last_date, last_line_no, last_n = group[-1]
             span = (last_line_no + last_n) - first_line
@@ -601,4 +728,7 @@ class VaultFeed(ProbeDirectedFeedBase):
             return None
 
 
-__all__ = ["VaultWorld", "VaultFeed", "METADATA_ONLY_DIRS", "JOURNAL_SPINE_RELATIONS"]
+__all__ = [
+    "VaultWorld", "VaultFeed", "METADATA_ONLY_DIRS", "JOURNAL_SPINE_RELATIONS",
+    "Watchlist", "parse_watchlist", "load_watchlist",
+]
