@@ -11,7 +11,7 @@
 > layered, role-aware on-ramp (assumes no logic background, then branches by expertise). For the
 > developer-facing module map and commands, see [../CLAUDE.md](../CLAUDE.md).
 >
-> *Last consolidated: 2026-07-02.*
+> *Last consolidated: 2026-07-02; §8 trajectory refreshed 2026-07-26.*
 
 ---
 
@@ -254,12 +254,12 @@ The full annotated module map, the commands, and the test inventory live in
 
 ## 8. Trajectory
 
-The near-term arc: **consolidate** (this pass), then decide the **protected-core** question, then the
-two safe near-term builds the in-view-set work teed up (a *ground/legend panel* and a *render-M*
-neighborhood view), with one **architectural fork** waiting on an author decision (a first-class
-reference/transclusion node that would touch the core data model). The long-running UX arc is the
-**newcomer / EGIF-authoring on-ramp**. The named research frontier is **second-order logic about the
-graphs**. All of this, sequenced with dependencies, is [ROADMAP.md](ROADMAP.md).
+*(2026-07-26.)* The consolidation-era items this section used to narrate — the protected-core
+question, render-M, the reference/transclusion node, the newcomer on-ramp — are discharged; see
+[ROADMAP.md](ROADMAP.md)'s Discharged tail for the full record. Current work proceeds under
+ROADMAP's four workstreams (**Understand · Share · Run · Use**), which is where day-to-day
+sequencing now lives. A structural re-consolidation of this document itself — splitting it into two
+strata, the instrument and the program — is pending; that rewrite is not done here.
 
 ---
 

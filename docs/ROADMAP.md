@@ -89,7 +89,7 @@ first is (author decision)**, not made here:
 | ii | Modality without Gamma | The diachronic branching DAG read as a Kripke frame with no modal mark in the ink — [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) | A modal-logic or philosophy-of-logic journal, or a Peirce-studies venue (e.g. *Transactions of the Charles S. Peirce Society*) |
 | iii | Conservative mention-ascent ("thirdness kept") | The B-min quotation crossing as a scoped, conservative slice of Gamma — expressive power unchanged (Dau Ch. 26's reduction), iconicity the only honest motive to cross at all | The same Peirce-studies venue as (ii), or a higher-order-logic venue interested in conservative extensions |
 | iv | The EPG as live model-development architecture | `agon_evolution.py` → `agon_llm.py` → `agon_metalearning.py` → the membranes → `live_runner.py` as a working automated-theory-revision loop over live sources | A knowledge-representation or multi-agent-systems venue (e.g. KR), or the belief-revision (AGM) community directly |
-| v | The measure and the kytos | [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) + [THE_KYTOS.md](THE_KYTOS.md) as a fractal, vector-valued (never scalar-over-agents) knowledge measure, with the West correspondence as the named quantitative frontier | A cognitive-science or complexity-science venue interested in scaling laws applied to knowledge/institution measures |
+| v | The measure and the kytos | [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) + [THE_KYTOS.md](THE_KYTOS.md) as a fractal, vector-valued (never scalar-over-agents) knowledge measure, with the West correspondence as the named quantitative frontier — now carrying executed evidence (E1–E3b) rather than a conjecture | A cognitive-science or complexity-science venue interested in scaling laws applied to knowledge/institution measures |
 
 **Next action:** hold the sweep as a standing docket; surface the five candidates to the author
 for the first-paper ruling once the sweep has stabilized the vocabulary each draft would need.
@@ -118,10 +118,17 @@ splits into S (interior) and A (interaction).
   proposal/doubt rate, horizon size, severity-weighted yield exist individually but are not read
   together the way S's numbers are. **Next action:** an A-side dashboard/digest parallel to the
   existing S-side digests, so poise (doctrine §4) can be read from data rather than inferred.
-- **Payoff.** Once S and A are both legible per-instance, the Q-B apportionment / West experiment
-  (one big Arisbe vs. distributed kytē + a coordinator, doctrine §5) becomes actually runnable —
-  it needs measurable S, measurable A, and a measurable allocation between them on *multiple*
-  instances at once, which this workstream is what supplies.
+- **Payoff — the West-in-kytē program has run.** The Q-B apportionment / West experiment (one big
+  Arisbe vs. distributed kytē + a coordinator, doctrine §5) is no longer hypothetical: **E1**
+  (federation vs. monolith, paired) — all four priors held, FED ~5.2× cheaper at equal K2; **E2**
+  (size sweep) — β_mono 1.277 > β_fed(I) 1.025, a 25× coordinator-discipline cost spread; **E2b**
+  (calibration) — an interior optimum N\*=3, a decay-incoherence wall; **E3** (endogenous
+  partition, a meta-Agon over bucketings) — converges to a granularity, not a unique partition
+  (multi-basin); **E3b** (basin map) — 19 local optima, one dominant 10/1/1 cost family capturing
+  75% of the attractor mass, the balance-strands finding, PM4's sparsity prior refuted. Program
+  doc: [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md); logs `runs/WEST_E1_LOG.md`,
+  `WEST_E2_LOG.md`, `WEST_E2B_LOG.md`, `WEST_E3_LOG.md`, `WEST_E3B_LOG.md`. **Next:** rider E3c
+  (symmetry-breaking, pre-registered in the E3b spec §10) — running.
 - **Gate:** any push-back-on-source behavior (directed engagement rung 2, #17 below) needs its own
   outward-facing ethics pass **before** it ships, independent of the rest of this workstream.
 
@@ -173,10 +180,11 @@ traceability, slotted under the workstream it now belongs to.
   work this workstream is doing anyway.
 - **#9 — Layout-perf frontier.** Super-linear layout cost beyond ~127 axioms; the 130-cut COLORE
   density closure imports as data but stays undrawn. Belongs to Run because it is an S-side
-  (interior) scaling limit directly relevant to the Q-B/West experiment's cost curves. The
-  display-side mitigation (adaptive-scope / semantic-zoom) is tracked separately in
-  [ADAPTIVE_SCOPE_VIEWER.md](ADAPTIVE_SCOPE_VIEWER.md). **Next action:** none scheduled; re-triage
-  alongside the Q-B experiment design.
+  (interior) scaling limit directly relevant to the West-in-kytē program's cost curves (E1–E3b,
+  above — now executed, not hypothetical). The display-side mitigation (adaptive-scope /
+  semantic-zoom) is tracked separately in [ADAPTIVE_SCOPE_VIEWER.md](ADAPTIVE_SCOPE_VIEWER.md).
+  **Next action:** none scheduled; re-triage against E3c and whatever the commens-rung follow-on
+  needs.
 - **#17 — Directed engagement, rung 2 (mutual co-evolution / pushing back on the source).**
   Staged in [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §3: rung
   0 (tropism + docket) is built; rung 1 (the economy-of-research ordering of reaches) shipped
@@ -266,6 +274,14 @@ Done items, one line each. Full build history lives in `CURRENT_PLAN.md` and the
   warrant-gradient / context-reflex / correspondence-chord / dragons UX threads; the FOLIO/DLCore
   coverage levers; the OWL/RDF import breadth; the modality-without-Gamma and level-zero doctrine
   passes; the web-presentation fidelity audit (2026-06-26).
+- **AlternativeSet index-over-ink re-housing.** 2026-07-26, `main`@`52c31d0`: `alternative_index.py`
+  + `alternative_trace.py` — the AS1–AS4 law, materiality as a vector, the membrane reception
+  taxonomy; retired `alternative_set`/`alternative_inquiry`/`erotetic_doubt`; every Examination V
+  finding against the old shape is now dead code.
+- **The arc close.** 2026-07-26, `main`@`6614b68`: the temperament knob (author ruling: a reserved
+  dial, defaults byte-identical), the hypothetical/modal survey producers, the AS1/AS3 tightenings,
+  and the `swan_alternatives` exemplar de-vacuating the gate's trace+survey recompute obligations.
+  Suite 4232/0.
 
 ---
 
@@ -289,3 +305,16 @@ here rather than only in `runs/`.
   thin-data leg, the decay-refusal crash-loop already fixed on `main` ahead of the live evidence).
   **The disposal ruling against the pre-registered priors is the author's** — this ROADMAP records
   the run as closed and the data as landed, not any particular disposition of the priors.
+- **West-in-kytē E1 — disposed 2026-07-22.** Federation vs. monolith, paired. All four priors
+  held; FED ~5.2× cheaper at equal K2. [runs/WEST_E1_LOG.md](../runs/WEST_E1_LOG.md).
+- **West-in-kytē E2 — disposed 2026-07-22.** Size sweep. β_mono 1.277 > β_fed(I) 1.025; a 25×
+  cost spread from coordinator scan discipline alone. [runs/WEST_E2_LOG.md](../runs/WEST_E2_LOG.md).
+- **West-in-kytē E2b — disposed 2026-07-23.** Calibration. Interior optimum N\*=3; coherence broke
+  by decay at N=1, not by the broker. [runs/WEST_E2B_LOG.md](../runs/WEST_E2B_LOG.md).
+- **West-in-kytē E3 — disposed 2026-07-23.** Endogenous partition (meta-Agon over bucketings).
+  Converges to a granularity, not a unique partition — multi-basin.
+  [runs/WEST_E3_LOG.md](../runs/WEST_E3_LOG.md).
+- **West-in-kytē E3b — disposed 2026-07-26.** Basin map. 19 local optima; one dominant 10/1/1 cost
+  family capturing 75% of the attractor mass; PM4's sparsity prior refuted-as-finding.
+  [runs/WEST_E3B_LOG.md](../runs/WEST_E3B_LOG.md).
+- **West-in-kytē E3c — in flight.** Symmetry-breaking rider, pre-registered in the E3b spec §10.

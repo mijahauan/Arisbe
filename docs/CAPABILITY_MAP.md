@@ -7,7 +7,7 @@
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [ROADMAP.md](ROADMAP.md) ·
 > [GLOSSARY.md](GLOSSARY.md). Developer module map: [../CLAUDE.md](../CLAUDE.md).
 >
-> *Kept current — see individual row dates (latest: 2026-07-16).*
+> *Kept current — see individual row dates (latest: 2026-07-26).*
 
 **Status legend**
 - **SHIPPED** — working, with a passing test home.
@@ -199,6 +199,46 @@ make next — made operational as an attention economy over candidate reaches, w
 | Reference / transclusion node | SHIPPED (increment 1, intra-UoD) | `reference_node.py`, `reference_resolution_check.py` → `test_reference_node.py`, `test_reference_glyph.py`, `test_reference_resolution_check.py` | Form-2 reference edge + overlay mark, additive (`egi_core_dau` untouched); the law `RESOLVE ≡ INLINED-AND-ATTESTED` proven (R1–R4) before building. Cross-UoD *use* (scroll-import) deferred to the B-min core opening; the *mention* side is exercised overlay-first by the quotation stratum (next row). ROADMAP #3. |
 | Second-order quotation overlay (Stage ⓪ of the crossing) | SHIPPED 2026-07-15 | `quotation_overlay.py`, `second_order_check.py` → `test_quotation_overlay.py`, `test_second_order_check.py` | The first build rung of the crossing verdicts ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md), 2026-07-16): `QuotationMark` — a proposition-sorted name in the host graph + a serialisable overlay beside the EGI (`quotations.json`, the `reference_node` pattern; no protected-core change) — with a resolver seam (inline EGIF / chain-step record / corpus-UoD mention), boundary hooks bridging into the `second_order_check` law (S1 stratification read off the *drawn* enclosure; S2 quote-equals-quoted + the correspondence check (§3.3) one level down; S5 per state; S4 horizons named; **S3 skip-named** until B-min puts the sort in the drawing), and a dotted-oval render glyph (pure chrome, off by default). Three blessed corpus exemplars: `swan_third_tense` (the withdrawn law as exhibit — present without force; S5 names s4–s7), `forcing_forces` (`(forces s φ)` under the Montague rider — every claim recomputed via the peel/`settlement` before scribing; the trichotomy as trajectory-relative resolution), `peirce_law_commentary` (cross-UoD mention with the real Peirce 1885 citation). |
 | Second-order core (stage ① B-min — the authorized core opening) | SHIPPED 2026-07-16 | `egi_core_dau.py` (`sort`/`quotation` maps + `with_sort`/`with_quotation`/`with_quotation_binding`/`without_quotation`), `formal_transformation_rules.py` (`_rebuild_graph`, `_refuse_quotation_boundary`), `second_order_reader.py`, `second_order_limits.py`, `eg_reader.py` (`assign_second_order_marks`, second-order `read_drawing`), `correspondence_attestation.py` (committed-convention checks) → `test_second_order_core.py`, `test_rules_second_order.py`, `test_second_order_reader.py`, `test_second_order_conservativity.py`, `test_use_mention_fork.py` | The one genuine protected-core edit of the crossing (SECOND_ORDER_CORE_OPENING §5 step 2 + §7 build note): sort-on-incidence + graph-valued area as parallel `ρ`-pattern maps (first-order graphs bit-identical); the six Dau rules sort-preserving with the quotation boundary **opaque** (mention, not use — ERA takes the whole exhibit or nothing; DC− refuses a dotted oval as half a double cut; IT± refuse the apparatus; the rebuild also repairs the historical alphabet/rho drop, with the alphabet growing to cover lawful new vocabulary); the committed drawn convention (dotted stroke + sort badge + attachment tie, the `order_label` idiom) held total by §3.3; **S3 (read-back one order up) CHECKED** via the second-order reader on `swan_third_tense`/`forcing_forces` (cross-UoD mention = sort-half + named horizon); the A3 conservativity gate (invisibility / erasure-projection / rules-restraint tiers — the quoted layer licenses nothing); linear generators refuse loudly, corpus surfaces serve the first-order projection + named limit; the use/mention fork's mention half discharged (use = scroll-only, the deferral pinned as a test). Named limits: no linear sort syntax, no quotation-in-quotation, no IT± of exhibits. Next: ② B-full (native element kind, ν-hookable blank). |
+
+---
+
+## J.1 West-in-kytē — *the apportionment program, executed*
+
+The Q-B apportionment / West experiment (doctrine §5): one big Arisbe vs. distributed kytē + a
+coordinator, measured. Design of record: [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).
+
+| Capability | Status | Home (src → test) | Note |
+|---|---|---|---|
+| Synthetic vault generator | SHIPPED | `vault_generator.py` → (exercised by the West test suite) | Deterministic, structure-only synthetic vault (folders/notes/cross-links) — the West program's reproducible substrate, seed-parametrized. |
+| West measure (cost + K-readers) | SHIPPED | `west_measure.py` → `test_west_measure.py` | `CountingMaterializer`/`TracingMaterializer` (peel-cost instrumentation), `CostBreakdown`/`QualityReading`/`read_quality`, `MemberCostReading`/`read_member_costs`, `PowerLawFit`/`fit_power_law` (the β scaling exponent), `round_robin_buckets` + `link_aware_buckets`, `UCurveReading`/`read_ucurve`. The shared cost/K2/K3/\|M\| vocabulary every West run reads through. |
+| West coordinator | SHIPPED | `west_coordinator.py` → `test_west_coordinator.py` | `Coordinator`: the attributed-cell digest protocol federated members report through, a cross-member consistency scan, coverage accounting, and the broker (arbitrates contested cells). The coordination-tax currency E1–E3 measure against. |
+| West experiment (E1/E2) | SHIPPED 2026-07-22 | `west_experiment.py` → `test_west_experiment.py`, `test_west_experiment_e3.py` | `run_mono`/`run_fed` — paired monolith-vs-federation runs. E1 (federation vs. monolith): all four priors held, FED ~5.2× cheaper at equal K2. E2 (size sweep): β_mono 1.277 > β_fed(I) 1.025, a 25× coordinator-scan-discipline cost spread. Drivers `tools/run_west_e1.py`, `tools/run_west_e2.py`, `tools/run_west_e2b.py` (calibration: interior optimum N\*=3). |
+| West meta-Agon (E3) | SHIPPED 2026-07-23 | `west_meta_agon.py` → `test_west_meta_agon.py` | The endogenous-partition walk: `split_moves`/`merge_moves`/`slate_moves`, `MemoEvaluator` (memoized cost/quality), `run_meta_walk`/`replay_walk`, the broker-quality gate (`find_biting_regime`/`run_broker_quality`), `assemble_e3_report`. A meta-Agon over folder-bucketings — converges to a granularity, not a unique partition (multi-basin). Driver `tools/run_west_e3.py`. |
+| West basin map (E3b) | SHIPPED 2026-07-26 | `west_basin_map.py` → `test_west_basin_map.py`, `test_run_west_e3b_driver.py` | `structured_starts`/`contiguous_compositions`, `map_basins` (steepest-descent walk from every start) + watershed inversion, `distinct_optima`, `assemble_basin_report` (the PM1–PM4 verdicts). Headline: 19 local optima, one dominant 10/1/1 cost family capturing 75% of the attractor mass, PM4's sparsity prior refuted-as-finding. Driver `tools/run_west_e3b.py`. |
+| West symmetry-breaking rider (E3c) | IN FLIGHT 2026-07-26 | `tools/run_west_e3c.py` → `test_run_west_e3c_driver.py` | Pre-registered in the E3b spec §10 (PS1/PS2): does a minimal perturbation of a stranded bucketing escape to the cheap family? Running. |
+
+Evidence: `runs/WEST_E1_LOG.md`, `WEST_E2_LOG.md`, `WEST_E2B_LOG.md`, `WEST_E3_LOG.md`,
+`WEST_E3B_LOG.md`.
+
+---
+
+## J.2 Alternatives — *index-over-ink, the deliberation register*
+
+The AlternativeSet as an index over real chain steps (not a store of evidence) — the record holds
+pointers into gate-checked history, re-checked forever. Design of record:
+`docs/superpowers/specs/2026-07-26-alternative-index-over-ink-design.md`.
+
+| Capability | Status | Home (src → test) | Note |
+|---|---|---|---|
+| Alternative index | SHIPPED 2026-07-26 | `alternative_index.py` → `test_alternative_index.py`, `test_alternative_law.py`, `test_alternative_persistence.py` | `alt_key`, Materiality as a **vector** (never a scalar), `Reception` + a contextualization-adequacy classifier, `AlternativeRecord` (three kinds, each carrying one `{atom, denial}` witness), the bounded `AlternativeRegister` (settle-by-introducing-ink, `rebuild_from_chain`), the **AS1–AS4 law** + its attest hook. No field named `warrant` — that word stays doctrinal, never a code attribute. |
+| Alternative trace | SHIPPED 2026-07-26 | `alternative_trace.py` → `test_alternative_trace.py` | The dry-run consequence trace (the PEEL-twin, ruling R-A): a generic slot becomes a defining variable (`*x`, never the string `"None"`), question-pattern exclusion, every emitted atom verification-parsed (count-or-refuse on the unrepresentable), `KyteProfile`, `BoundedRegister` (snapshot/restore like every other standing register). `TRACE_ALTERNATIVES` chain step. |
+| Alternative survey | SHIPPED 2026-07-26 | `alternative_survey.py` → `test_alternative_survey.py` | Thin-spot + branch PEEL-twin surveys (the hypothetical/modal survey producers); D-2 (zero-grounded) and D-3 (contested-not-held) reception classes. |
+| Producer / consumer wiring | SHIPPED | `semantic_game.py` (`unknown_atoms`, producer) → `attention_economy.py` (`wants_from_alternatives`, consumer) → `test_wants_from_alternatives.py` | The peel's unresolved atoms feed the attention economy as `Want`s; the **temperament dial** governs how eagerly they're taken up (author ruling: a reserved knob, defaults byte-identical). |
+| Corpus sidecar | SHIPPED | `alternatives.jsonl` (per-UoD, alongside the chain history) | Attested at the tomos boundary like `quotations.json`; never inlined into the EGI. |
+| Exemplar | SHIPPED 2026-07-26 | `swan_alternatives` (via the corpus builders) | De-vacuates the gate's trace+survey recompute obligations — a real chain the AS1–AS4 checks bite on, not a fixture. |
+
+Gate: `test_corpus_polarity_discipline.py`'s recompute obligations (AC1–AC10, the Tasks 5–6
+producer→consumer loop) + `test_alternative_loop.py`. Suite state at close: 4232/0.
 
 ---
 
