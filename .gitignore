@@ -271,3 +271,4 @@ runs/west_e3*
 # E3b (same pattern: outputs ignored, the tracked run log spared).
 runs/west_e3b*
 !runs/WEST_E3B_LOG.md
+runs/west_e3c*

@@ -1,6 +1,73 @@
 # Current Plan
 
-**Last Updated**: 2026-07-26 (latest) — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
+**Last Updated**: 2026-07-26 (second sitting, latest) — **THE ARC IS CLOSED: Tasks 5–6 + the
+temperament knob + the follow-on batch BUILT + MERGED (`main` @ `6614b68`, ff; 13 commits, 9 SDD
+tasks, 5 fix loops all bite-verified). Full suite 4232 passed / 0 failed** (45 environmental
+Playwright-launch errors, branch-untouched, verified). Shipped: the **temperament knob**
+(`wants_from_alternatives` self_damping/cross_damping split per the author's reserve-as-dial ruling —
+defaults 0.5/0.5 byte-identical; self-vs-cross told apart by re-reading the trace step's
+`s_admitted` ink) · **`alternative_survey.py`** (two PEEL-twin survey producers: thin-spot [D-2
+zero-grounded only] + branch [D-3 contested-not-held], peel-shaped `unknown_atoms` params,
+recompute-forever) · **the `hypothetical`/`modal` kinds** (one {atom, denial} witness, three
+emergences — D-1; D-6 requires survey ink) · **AS1 tightened** (non-emergence `emerged_from` refused)
++ **AS3 tightened** (introduced-by-step; bystander citations refused; settle aligned) · trace
+cleanups (BoundedRegister(0) refuses-and-counts; K3 reads the trace's own reports; diverging
+simplified; D-5 revised to refuse-and-count doctrine after live parser evidence) · gate extensions
+(both survey recompute obligations + falsifier + `_ACK_ACTS ⊆ M_ACTS` tripwire) · the
+**`swan_alternatives` corpus exemplar** (all three recompute obligations now execute NON-SKIPPED;
+shelved via an earned `dialogue` tag). **Review catches worth the record:** the K3 test that
+couldn't bite (dual-patch fix); the D-3 filter tests that didn't isolate (mutation-verified fix);
+**the skolem-leak** (every generic-label trace read "material" — fixed by question-pattern
+exclusion, constant-label behavior byte-identical); the gate's evidence-omission blind spot (keys
+now derived from recompute); the exemplar shelving miss. Final whole-branch review (opus):
+**Ready-to-merge**, zero Critical/Important, six deferred Minors triaged accepted-debt, one new
+Minor (duplicated `_sheet_ground_atoms` helper — simplify candidate).
+
+**Same sitting — the WEST THREAD MOVED TWO STEPS:** (1) **E3b was discovered already-run** (the
+~23.3h basin-map sweep completed silently 2026-07-25 21:10 during the AlternativeSet sittings) and
+**DISPOSED** (`runs/WEST_E3B_LOG.md`, author disposition dated): **PM1/PM2/PM3 held, PM4
+refuted-as-finding** — 36 structured starts ALL terminate at N=3 (granularity converges absolutely);
+19 distinct optima (bucketing fragments); one dominant 10/1/1 cost family holds 75% of the attractor
+mass within 1.4% of the floor (cost concentrates); **balance strands** (E2b's round-robin 4/4/4
+trough is itself a stranded optimum 35% dear); no cheaper basin than E3's W2 was hiding; arm-i
+control mislabel noted (cosmetic). (2) **Rider E3c (symmetry-breaking) pre-registered + LAUNCHED**
+(E3b spec §10: three single-folder perturbations of the stranded 4/4/4; PS1 knife-edge = every
+perturbed terminus escapes the dear band < 118,865; PS2 floor ≥ 101,411; driver + smoke contract
+tests green; running in background → `runs/west_e3c_run1/e3c_full.txt`, disposition next sitting).
+
+**Spine-doc audit + mechanical pass (`91ca499`):** ROADMAP's West-as-future falsehoods fixed +
+standing-runs gained the five West entries + Discharged tail gained index-over-ink + arc-close;
+CAPABILITY_MAP gained §J.1 West + §J.2 Alternatives subsystem blocks; VISION §8 stale trajectory
+replaced with an honest pointer (its real rewrite is the reorganization sitting's).
+
+**▶▶ THE REORGANIZATION PROGRAM (author-ruled this sitting; full scope in memory
+`project_vision_reorganization_two_strata`):** the vision has expanded into a NEXUS (Conway/aLife ·
+West scalar→vector · Berger & Luckmann · the AlternativeSet unification · the deliberative-interval
+reading of agency) with **synechism/continuity as the connective doctrine** (regime-3 = homotopy;
+the continuity ledger of discretizations). **VOICE RULING: Stratum II is a proposition scribed into
+the wider EPG** (author: "this fundamentally describes my view of what we're doing"). Two sittings:
+**Sitting A (vocabulary)** = two-strata VISION + concordance map with grades + synechism ledger +
+**THE_KYTOS rewrite** (deliberative organ; enriched membrane; apertures/pathology class;
+organs-are-indexes; temperament axis; West re-graded MEASURED). **Sitting B (propagation)** = the
+book's **generous intellectual-history chapter** (traditions as doubts-raised + machinery-lacked) +
+**EPG guide revision** (probe-verified: zero mentions of UNKNOWN/trace/entertain/⊥-door — needs the
+UNKNOWN-afterlife, episode-in-ink, mechanical doubt arm, §3 vocabulary) + **ARISBE_IN_PRACTICE
+three registers** (app / autonomous-kytos-under-your-direction / kytē-in-association, honestly
+graded) + ARISBE_FOR_SCHOLARS second-storey revision (→ Share).
+
+**▶ SESSION PLAN (author asked for apportionment):** S2 = Sitting A (open with the E3c
+disposition). S3 = the commens rung (nine queued threads — the four-doubts set + ethics-negotiated +
+free-will/predestination [extended this sitting: embodiment + the three-ground predestination
+disposal] + synechism placement — with E3b/E3c evidence in hand). S4 = Sitting B1 (EPG guide +
+ARISBE_IN_PRACTICE). S5 = Sitting B2 (book chapter + scholars doc + render). S6 = Share (#8/#9,
+half-sitting). Parallel author-side: RUN 13 disposal; vault answers → V2a.2 authorization (slots
+S3/S4 gap if authorized). Principles: one arc per sitting; runs overnight between sittings; rulings
+interactive, execution delegated; every sitting ends pushed.
+
+▶ **NEXT SESSION: Sitting A.** E3c disposition first (ten minutes, the run will have finished),
+then the vocabulary sitting. All commits on `main`; push offered at close.
+
+**Last Updated (prior)**: 2026-07-26 — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
 subagent build → merged to `main` (`52c31d0`, ff; doc pass `95e2963`). Tasks 5–6's blocking
 condition is MET: AC1–AC10 all green.** One sitting, full arc: pre-registered spec
 (`docs/superpowers/specs/2026-07-26-alternative-index-over-ink-design.md`, rulings R-A..R-F incl.
