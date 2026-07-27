@@ -761,6 +761,13 @@ def parse_note(text: str) -> ParsedNote:
         else:
             answers[qid] = answer
         rating = (qm.group("rating") or "").strip().lower()
+        # Real-vault edit pattern (RUN 13, 2026-07-27): the author appended
+        # their rating AFTER the rendered placeholder rather than replacing
+        # it — "**R:** (trivial | non-trivial) non-trivial". The template
+        # invites exactly that edit, so strip the literal placeholder
+        # wherever it sits and read what remains; an untouched placeholder
+        # still normalizes to "" = unrated, exactly as before.
+        rating = rating.replace("(trivial | non-trivial)", "").strip()
         if rating in _RATING_VALUES:
             ratings[qid] = rating
 

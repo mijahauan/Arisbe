@@ -339,3 +339,54 @@ not three):**
   (status, answer), so ignored→answered records cleanly on a re-poll once
   the marks are in the recognized form. P2¹³/P4¹³ stay pending — honestly,
   on a format mismatch, not on absent marks.
+
+**Scoring completed (2026-07-27, same sitting, two real-vault edit-pattern
+findings fixed under it):**
+
+- **The answers landed on the second pass** (author re-marked; rounds-0
+  oracle-only invocation with the spine-bearing seg1 backed up and restored
+  around it): 5/5 `answered`, 5 reveals, **5 banked** into
+  `vault_v0_author_model`; a fresh 2-question note written.
+- **F5¹³ (parser) — the placeholder-append edit pattern.** The author's
+  `**R:**` marks read as unrated because the rating was appended AFTER the
+  rendered placeholder (`**R:** (trivial | non-trivial) non-trivial`) — an
+  edit the template itself invites. Fixed same sitting: `parse_note` strips
+  the literal placeholder before matching (untouched placeholder still =
+  unrated); regression test added; oracle suite 104/104.
+- **P2¹³, segment 1 of ≥2 — NO SEPARATION:** docket 1/2 non-trivial (50%)
+  vs template-random 1/2 (50%) — a 0-point gap against the ≥25-point bar;
+  the fifth question rides outside the comparator arms. Ceiling canary
+  clean (3/5 = 60% non-trivial overall < 90% — the segment is informative).
+  The criterion needs a second comparator segment from a real (non-empty-
+  economy) run before it can be disposed either way.
+- **F6¹³ (instrument practicality) — the audit lens does not scale to a
+  segment chain cold.** `/organon/uods/{id}/audit` materializes every state
+  from scratch: measured ~53 s/state on seg1 (|V|≈3.5k, |E|≈6.4k) × 2,164
+  steps ≈ 33 h for one ribbon. The live loop never pays this (its
+  `IncrementalMaterializer` carries the fixpoint across rounds); the route
+  has no such carry. Reading used instead: a **sampled headless ribbon**
+  (17 states, materialization skipped — sound here because the vault M
+  holds ground facts only, no Horn laws). Also found: the side-store's
+  inner `universes/index.json` (2026-07-18, stale) points `vault_v0_seg1`
+  at a dead nested artifact — the correct service root is `runs/run13`.
+- **P5¹³ dry-run — the disposition half reads TRUE:** proposal
+  `(links *x "People/Charles Sanders Peirce.md")` enters M at ~state 135
+  and **holds through state 2,164** under live decay (the segment erased
+  1,960 atoms; not these); `(links *x "Semiotics.md")` enters ~state 1,217
+  and holds. The semiotics web (Concept.md, Abduction.md, Conceptual
+  Graphs.md linking in) is a habit in the record's own terms.
+- **F7¹³ (the content-distribution finding — the author's, verbatim
+  concern):** the structural membrane's sensors are anti-correlated with
+  where the life's evidence lives. The vault's Obsidian-native note-per-idea
+  regions read well (the semiotics disposition above); but the **journal —
+  decades of observation recorded sequentially, not broken into notes —
+  holds the richest evidence of both exemplar topics, and at V0 its
+  *content* is custody-invisible by design** (dates and line-spans only).
+  Concretely: the mood exemplar (a worldview inhabited in youth, abandoned
+  20–30 years ago) has **zero structural ink** — no match in M or in the
+  1,785-label decode map after ~120 notes seen. The mood half of P5¹³
+  cannot be read from structure alone; it waits on either a wider scan
+  (if era-markers exist as files), an author-named structural marker, or a
+  **content aperture the author has not yet authorized** (a V2b design
+  decision, not a defect of the run). Disposition of P5¹³ pending the
+  author's choice among those paths.

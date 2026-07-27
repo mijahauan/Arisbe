@@ -283,6 +283,31 @@ class TestP213Instrument:
         assert parsed.answers == {"q1": "yes", "q2": "no"}
         assert "declined" not in parsed.answers.get("q2", "")
 
+    def test_rating_appended_after_placeholder_recovered(self):
+        """Real-vault edit pattern (RUN 13, 2026-07-27): the author appends
+        the rating AFTER the rendered placeholder instead of replacing it —
+        ``**R:** (trivial | non-trivial) non-trivial`` — and the mark must
+        still be recovered; an untouched placeholder stays unrated."""
+        text = _three_question_note()
+        text = text.replace(
+            f"*Forecast (sealed):* `sha256:{seal('collected')}`\n"
+            "**A:**\n**R:** (trivial | non-trivial)",
+            f"*Forecast (sealed):* `sha256:{seal('collected')}`\n"
+            "**A:** yes\n**R:** (trivial | non-trivial) non-trivial",
+        )
+        text = text.replace(
+            f"*Forecast (sealed):* `sha256:{seal('fragment')}`\n"
+            "**A:**\n**R:** (trivial | non-trivial)",
+            f"*Forecast (sealed):* `sha256:{seal('fragment')}`\n"
+            "**A:** no\n**R:** (trivial | non-trivial) trivial",
+        )
+        # q3's **R:** line left as the unedited placeholder -> still unrated
+
+        parsed = parse_note(text)
+        assert parsed.ratings == {"q1": "non-trivial", "q2": "trivial"}
+        assert "q3" not in parsed.ratings
+        assert parsed.answers == {"q1": "yes", "q2": "no"}
+
     def test_wants_from_docket_is_called_and_key_traceable(self):
         docket = _FakeDocket([
             _FakeEntry(key=("read", "Journal/unique-marker.md"),
