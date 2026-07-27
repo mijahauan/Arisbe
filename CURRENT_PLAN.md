@@ -38,11 +38,22 @@ oracle-only re-score path verified on fixture — MUST back up the spine-bearing
 reflexive run — a kytos models ITSELF** ("turn the doubt on itself, let the doubter come into
 view across the membrane") + the capacity/consciousness question (competition for internal
 attention + the super-linear |M| tax) — full framing in memory `project_kytos_self_model`;
-RUN-14-shaped, design sitting first; NOT folded into docs. ▶ **REMAINING THIS ARC:** author
-marks the note → rounds-0 re-score (with seg1 backup) → P2¹³ first-comparator reading; author
-reads the audit lens → P5¹³ disposal; then the session plan's S3 (the commens rung, nine
-queued threads — now with E3b/E3c evidence AND the Sitting A vocabulary in hand). Sitting B
-(EPG guide + ARISBE_IN_PRACTICE; book chapter + scholars + render) unchanged as S4/S5.
+RUN-14-shaped, design sitting first; NOT folded into docs. **(5) THE EVENING ARC — THE
+JOURNAL WATCHLIST APERTURE (V2b-lite) RULED IN, BUILT, RUN, AND P5¹³ DISPOSED (all
+2026-07-27):** the author's F7¹³ concern (structure ≠ content; the journal holds the
+decades) → ruling "try option 3, terms" → pre-registered spec (PW1–PW3 + O1, `4e7e2be`) →
+TDD build (21 tests incl. custody canary, `69a2195`) → author-edited 17-term two-group
+watchlist → one 60-round real-vault segment → **PW1 HELD (mood cutoff 9.0× vs ≥5× bar) ·
+PW2 HELD (disposition rising monotonically into the 2020s) · PW3 held (no-live-decay note)
+· O1: 17 terms reach 15.4% of entries** → **F8¹³** (fade earlier than testimony; author's
+fork ruling: "language led the life") → **P5¹³ DISPOSED, spirit-satisfied** (the K2
+disposition-vs-mood separation delivered in event time; F6¹³ the honest lens caveat). Also:
+P2¹³ seg-1 comparator scored (no separation, 50/50; needs seg 2) after the F5¹³
+placeholder-append parse fix; the CI e3b hard-coded-path fix + tests/ portability guard
+(`af5eb13`); GLOSSARY gained the prior/law family index + alphabetized Key terms. RUN 13
+residue: P2¹³ seg 2 (p213 overnight) · P4¹³ (`--no-p213` overnight) — then S3 (the commens
+rung, with E3b/E3c evidence AND the Sitting A vocabulary in hand). Sitting B (EPG guide +
+ARISBE_IN_PRACTICE; book chapter + scholars + render) unchanged as S4/S5.
 
 **Last Updated (prior)**: 2026-07-26 (second sitting, latest) — **THE ARC IS CLOSED: Tasks 5–6 + the
 temperament knob + the follow-on batch BUILT + MERGED (`main` @ `6614b68`, ff; 13 commits, 9 SDD

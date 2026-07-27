@@ -390,3 +390,64 @@ findings fixed under it):**
   **content aperture the author has not yet authorized** (a V2b design
   decision, not a defect of the run). Disposition of P5¹³ pending the
   author's choice among those paths.
+
+---
+
+## The watchlist aperture run + P5¹³ DISPOSED (2026-07-27, evening)
+
+**The author ruled the aperture in** ("Let's try option 3 first based on terms") —
+pre-registered spec `docs/superpowers/specs/2026-07-27-journal-watchlist-aperture.md`
+(PW1–PW3 + O1 set before any scan), built TDD same sitting (21 tests incl. the
+custody canary; commit `69a2195`), watchlist drafted into the vault for the
+author's editing (17 terms, two groups: `disposition` = the semiotics cluster,
+`mood` = the Christian-era cluster; God/faith excluded by ruling as
+secular-noise risks). Run: one 60-round real-vault segment (~3.5 h; the
+spine-bearing seg1 backed up first). Digest: `watchlist_terms: 17`,
+`watchlist_refused: 0`, **`mentions_atoms: 337`, `entries_with_mentions: 227`**
+of 1,477; horizon 9,104 / 0 dropped.
+
+**The table** (rates = mentions ÷ entries-in-decade; author-reviewed, copied by hand):
+
+| decade | 1970s | 1980s | 1990s | 2000s | 2010s | 2020s |
+|---|---|---|---|---|---|---|
+| entries | 37 | 271 | 111 | 129 | 540 | 389 |
+| disposition | 0.000 | 0.004 | 0.027 | 0.054 | 0.070 | **0.134** |
+| mood | 0.243 | **0.594** | 0.063 | 0.116 | 0.046 | 0.049 |
+| coverage (O1) | 0.162 | 0.339 | 0.063 | 0.124 | 0.100 | 0.134 |
+
+**Verdicts (author-ruled):**
+
+- **PW1 HELD** — mood rate ≤1990s ≈ 0.423 vs ≥2010s ≈ 0.047: **9.0×** against
+  the pre-registered ≥5× bar.
+- **PW2 HELD** — disposition nonzero in five decades incl. both recent, and
+  **monotonically rising** 1980s→2020s (0.004→0.134): a habit not merely
+  standing but deepening.
+- **PW3 HELD**, with the honest note: the 60-round run never crossed ttl
+  (`m_removed: 0`), so live decay pressure was not exercised — the mentions
+  pin's proof is its gated fixture pair (pin vs unpinned control).
+- **O1 (reported, not judged):** 17 terms reach 15.4% of all entries; 33.9% of
+  the 1980s. Simple terms carry a lot.
+
+**F8¹³ (the timeline texture + the author's reading).** The mood's language
+collapses 1980s→1990s (0.594→0.063, ~35 years ago) — *earlier* than the
+testimony's "abandoned about 20–30 years ago" (≈1996–2006) — with a 2000s
+echo (0.116) before the low plateau. The spec's pre-registered fork, ruled by
+the author: **"language led the life"** — the lens measures *expression*, not
+belief; the era's vocabulary left the writing before the commitment itself
+ended, and the remembered timeline stands. (Secondary texture, unruled: the
+1990s are a trough for BOTH groups and for coverage — that decade's entries
+sit outside both vocabularies.)
+
+**P5¹³ — DISPOSED (author's ruling): spirit satisfied.** The K2 showcase the
+prior wanted — one disposition standing (indeed growing) across decades, one
+mood that faded, legibly separated on the journal's 50-year span — is
+delivered in **event time** by the aperture's table, alongside the run-time
+sampled ribbons (the semiotics/Peirce link-web entering M and holding under
+live decay while 1,960 working-set atoms fell). The prior's letter ("in the
+audit lens") is noted as satisfied through the event-time instrument + the
+sampled headless ribbons, with F6¹³ (the audit route's cold-materialization
+cost at segment scale) the honest reason a browser lens reading was not used.
+
+**RUN 13 standing after this disposal:** P1¹³ not-instrumented-at-V0 · P2¹³
+segment 1 of ≥2 scored (no separation) · P3¹³ HELD · P4¹³ awaiting a
+`--no-p213` cycle · **P5¹³ DISPOSED (held-in-spirit via the aperture)**.
