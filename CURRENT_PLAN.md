@@ -64,8 +64,13 @@ half-sitting). Parallel author-side: RUN 13 disposal; vault answers → V2a.2 au
 S3/S4 gap if authorized). Principles: one arc per sitting; runs overnight between sittings; rulings
 interactive, execution delegated; every sitting ends pushed.
 
-▶ **NEXT SESSION: Sitting A.** E3c disposition first (ten minutes, the run will have finished),
-then the vocabulary sitting. All commits on `main`; push offered at close.
+▶ **NEXT SESSION (agenda ruled by the author at close): open with the two dispositions, then
+Sitting A.** (1) **RUN 13 disposal against P1¹³–P5¹³** (the author rules, the assistant writes the
+log; note P5¹³'s standing — the journal-spine fix landed *after* RUN 13's segments, so the K2
+showcase may read blocked-in-that-run / need a short re-run — dispose honestly); (2) **E3c
+disposition** (PS1 knife-edge / PS2 floor — the run will have finished overnight); (3) **Sitting A**
+(two-strata VISION + concordance map + synechism ledger + THE_KYTOS rewrite — rulings interactive,
+execution delegated). All commits on `main`, pushed at close.
 
 **Last Updated (prior)**: 2026-07-26 — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
 subagent build → merged to `main` (`52c31d0`, ff; doc pass `95e2963`). Tasks 5–6's blocking
