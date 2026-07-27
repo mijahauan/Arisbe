@@ -7,6 +7,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+REPO = Path(__file__).resolve().parent.parent
+
 
 def test_run_west_e3b_driver_smoke():
     """Run the driver in smoke mode; verify exit code, required fields, and custody."""
@@ -15,7 +17,7 @@ def test_run_west_e3b_driver_smoke():
         result = subprocess.run(
             ["uv", "run", "python", "tools/run_west_e3b.py", "--smoke",
              "--dest", str(dest)],
-            cwd="/Users/mjh/Sync/GitHub/Arisbe",
+            cwd=str(REPO),
             capture_output=True,
             text=True,
         )
