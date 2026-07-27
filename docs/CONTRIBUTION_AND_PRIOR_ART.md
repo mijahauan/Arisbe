@@ -9,7 +9,8 @@
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) · [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
 >
-> *Consolidated: 2026-06-27.*
+> *Consolidated: 2026-06-27 · "The graded concordance map" added 2026-07-26 (the two-strata
+> reorganization sitting).*
 
 ---
 
@@ -238,6 +239,8 @@ instructive as the agreements. The design consequences live in
   and action spaces is city-shaped. The honest differentiator: West's laws emerge from
   energy optimization under physical network constraints; whether *semiotic* networks
   obey analogous constraints is a conjecture Arisbe is positioned to test, not assume.
+  *(Since tested five times: the West-in-kytē program E1–E3b, 2026-07-22→26 — see "The
+  graded concordance map" below for the verdicts, including the refuted priors.)*
 
 - **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
   Schmidhuber; Oudeyer & Kaplan).** The machine-learning face of the same loop. The **TD
@@ -301,6 +304,64 @@ instructive as the agreements. The design consequences live in
 *Confidence note: the mappings above are the project's own readings (2026-07-17, assistant-
 drafted, author-reviewed), made at the level of structural role — no claim is made that any
 of these programs influenced Arisbe's design or vice versa.*
+
+---
+
+## The graded concordance map
+
+*(Added 2026-07-26, at the two-strata reorganization sitting.)* This map is the **graded,
+evidential sharpening** of the prose concordances above: the same neighbors, now read as the
+evidence table for Stratum II's nexus thesis — *the operational Peirce core (signs + sound
+transformation + earned record) is the common formal substrate the twentieth-century traditions
+lacked; each is a tributary, a partial view of Peirce's program*. That thesis is voiced as **a
+proposition scribed into the wider Endoporeutic Game**: it proposes, never asserts; refutation is
+a lawful, invited move; and **the grades below are the proposition's warrant annotations** —
+which is why every refuted prior is *listed*, never hidden (a refuted prior is a peel already
+played, and part of the proposition's honesty). The grades stay a vector over rows, never a
+ranking of the traditions — the same guard as "vector, never a scalar" in
+[THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md). The connective doctrine that lets one
+map carry rows of such different kinds — continuity across the discretizations — is treated in
+[SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md); the anatomy the "face of the kytos"
+column refers to is [THE_KYTOS.md](THE_KYTOS.md).
+
+**The formalization lineage is not a row.** Roberts, Zeman, Shin, and Sowa, culminating in
+**Dau's** *Mathematical Logic with Diagrams*, are **distinct in kind** from every tradition
+below: they are Stratum I's guarantor — the mathematics that makes the instrument sound — not a
+concordance mapped onto it. The tributaries raised doubts and lacked machinery; the formalization
+lineage *is* the machinery's warrant, credited in the verdict table at the top of this document
+and never graded here.
+
+| Tradition | The doubt it raised | The machinery it lacked | Face of the kytos | Arisbe evidence | Grade |
+|---|---|---|---|---|---|
+| von Neumann / Conway / aLife | Can iterated simple steps yield unscripted global order? | Semantics and negotiation — dynamics under a fixed rule; no assertion, no negotiated outcome | The doubt-cycle as a *round of a game* | `agon_evolution.py` (gate `test_agon_evolution.py`); the open-membrane runs (`runs/`); the halting duals ([THE_KYTOS.md](THE_KYTOS.md)) | **built-and-gated** (the loop) · **queued-conjecture** (the open-endedness *reading* — that the negotiated sheet achieves what fixed rules cannot is not yet a measured claim) |
+| Ashby / Conant (cybernetics) | Must every good regulator be a model of its world? | An assertion calculus — the model held, with no licensed way to assert, retract, or test it | Interior M | The M-residence discipline ([M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)); `world_scroll.py`; the peel (`semantic_game.py`); gate `test_corpus_polarity_discipline.py` | **built-and-gated** |
+| West (*Scale*) | Do aggregated units obey discoverable scaling laws? | What the unit *does* — economics of the unit without its semantic work; the scalar→vector return-gift | Budget & rates — the kytē's metabolism | Measured **five times** (`runs/WEST_E1_LOG.md` … `WEST_E3B_LOG.md`; program [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md)): E1 all four priors held, FED ~5.2× cheaper at equal K2 · E2 β_mono 1.277 > β_fed(I) 1.025; 25× cost spread from coordinator scan discipline · E2b interior N\*=3; coherence broke by decay at N=1 · E3 endogenous partition → N=3 granularity, multi-basin · E3b all 36 starts → N=3; 19 optima; the 10/1/1 family = 75% attractor mass within 1.4% of floor. **Refuted/limited priors listed:** P1² separation-only · PB3 refuted (broker never fired) · PB4 undetermined · PE2, PE5 refuted · PM4 refuted | **measured-with-priors** |
+| Berger & Luckmann | How does the subjective become objective — objectivation, institutionalization? | Mechanism — a description of typification with nothing that executes it | The commens — the community-of-kytē face | [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2(c) (judgment objectivated, never owned); the E1–E3 federation runs as the first instrumented step | **ratified-doctrine** |
+| Popper / Campbell (evolutionary epistemology) | Knowledge grows by conjecture and refutation | A record — selection with no earned, replayable transcript | The doubt-cycle's disposal arm — the project level of the fractal | The `Pⁿ`/`Fⁿ` run-log discipline itself (`runs/`): pre-registered priors, mechanical verdicts, author disposal | **measured-with-priors** *(as practice — the discipline is exercised on every run, not itself a measured claim)* |
+| Uexküll / Hoffmeyer (biosemiotics) | The organism's world is its sign-repertoire — the Umwelt | Soundness — a membrane with no calculus behind it | Membrane + horizon | [THE_KYTOS.md](THE_KYTOS.md) (the membrane doctrine, incl. the reception taxonomy and the two apertures); the vocabulary-bounded horizon ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)); vault custody (`vault_world.py`) | **ratified-doctrine** |
+| AGM / TMS (belief revision) | How does a rational corpus absorb a contradiction? | Ink — postulate-constrained operators with no drawn, derivation-carrying step | Interior M's revision moves (and decay) | `model_revision.py` + `m_steps.py` (licensed ERA/INS, derivations recorded); gate `test_corpus_polarity_discipline.py` | **built-and-gated** |
+| Friston / active inference | Perception and action as one economy of prediction error | A deliberative record — a gradient flow keeps no inspectable chain | Budget & rates — the attention economy | `attention_economy.py`; the alternatives-in-abeyance register (`alternative_index.py`, AS1–AS4 attestation; gate `test_alternative_persistence.py`) | **built-and-gated** *(the concordance stays a concordance — cited neighbor, never load-bearing vocabulary)* |
+| Erotetics (Hamblin / Belnap / Wiśniewski) | The question as a first-class logical object | An economy of attention — no cost, severity, or decay on the standing question | The abeyance register of the doubt-cycle | `alternative_index.py` / `alternative_trace.py` / `alternative_survey.py`; the `swan_alternatives` corpus exemplar; full history in [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md) (this row links to it, never duplicates it) | **built-and-gated** |
+| The deliberative-interval reading of agency | Is freedom the determined considering between branching-at-doubt and licensed resolution? | — (named, deliberately unexamined) | The quasi-mind — the agentive face | None claimed: named for the commens rung. Any "operational model of consciousness / free will" reading of this map stays in this row | **queued-conjecture** |
+
+**The four grades** (never flattened into one scale):
+
+- **built-and-gated** — shipped code in `src/`, held by a standing test gate in `tests/` that
+  would fail if the correspondence claimed here broke; re-checked on every suite run.
+- **measured-with-priors** — a pre-registered prior run against the built system, its mechanical
+  verdict logged and author-disposed in a run log under `runs/`; refuted priors stay in the row.
+- **ratified-doctrine** — an author-ruled doctrine document: a reading the project commits to in
+  prose, carrying no measurement claim.
+- **queued-conjecture** — named and deliberately unexamined; on the docket for a future sitting,
+  with no evidence claimed.
+
+How a grade changes: **promotion is only by the author's ruling** — a queued-conjecture becomes
+ratified-doctrine by a ruling at a sitting, and reaching a measured grade additionally requires a
+pre-registered run (priors logged *before* the run executes), while built-and-gated requires
+shipped code under a standing gate. A grade can also **fall**: a deleted or vacuously-passing
+gate demotes built-and-gated, and a measured row whose run log cannot be replayed or whose
+priors were registered after the fact reverts to conjecture. Either movement is itself a move
+in the wider game, recorded where the evidence lives.
 
 ---
 

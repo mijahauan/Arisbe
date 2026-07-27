@@ -1,9 +1,11 @@
 # Arisbe — Vision & Scope
 
-> **What this is.** A thin top-down orientation to the whole project: what Arisbe is, the one
-> problem it exists to solve, what is bedrock and non-negotiable, who it is for, what is in and out
-> of scope, and where it is going. It is deliberately short and **links out** to the deep docs rather
-> than restating them. Read this first; then follow the pointers.
+> **What this is.** A thin top-down orientation to the whole project, carried in **two strata**:
+> the *instrument* (what Arisbe is, the one problem it exists to solve, what is bedrock and
+> non-negotiable, who it is for, what is in and out of scope) and the *program* (what the author
+> proposes the instrument is for at the largest scale — voiced as a proposition, graded, open to
+> refutation). It is deliberately short and **links out** to the deep docs rather than restating
+> them. Read this first; then follow the pointers.
 >
 > **Companion documents:** [CAPABILITY_MAP.md](CAPABILITY_MAP.md) (what works today, where it lives,
 > what guards it) · [ROADMAP.md](ROADMAP.md) (what's next, in order) · [GLOSSARY.md](GLOSSARY.md)
@@ -11,9 +13,29 @@
 > layered, role-aware on-ramp (assumes no logic background, then branches by expertise). For the
 > developer-facing module map and commands, see [../CLAUDE.md](../CLAUDE.md).
 >
-> *Last consolidated: 2026-07-02; §8 trajectory refreshed 2026-07-26.*
+> *Last consolidated: 2026-07-02; restructured into two strata 2026-07-26.*
 
 ---
+
+## The two strata, and the load-order
+
+*(Author's ruling, 2026-07-26: the vision is **stratified, not replaced**.)*
+
+- **Stratum I — the instrument** (§1–§7): what Arisbe is and the commitments that make it
+  trustworthy — doing logic in pictures, Dau's bedrock, the correspondence check (§3.3 of
+  [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)), the three
+  regimes, the earned-record discipline. Unchanged in substance.
+- **Stratum II — the program** (§8): what the author proposes this instrument amounts to at
+  the largest scale — voiced not as claims of the project but as **a proposition scribed
+  into a wider game**, graded point by point.
+
+**The load-order is a rule, not a mood: the instrument licenses the program, never the
+reverse.** No Stratum II ambition may bend a Stratum I commitment. A reader who wants only a
+rigorous Existential Graph environment may stop at the end of Stratum I and lose nothing.
+
+---
+
+## Stratum I — the instrument
 
 ## 1. What Arisbe is
 
@@ -252,24 +274,139 @@ The full annotated module map, the commands, and the test inventory live in
 
 ---
 
-## 8. Trajectory
+## Stratum II — the program
 
-*(2026-07-26.)* The consolidation-era items this section used to narrate — the protected-core
-question, render-M, the reference/transclusion node, the newcomer on-ramp — are discharged; see
-[ROADMAP.md](ROADMAP.md)'s Discharged tail for the full record. Current work proceeds under
-ROADMAP's four workstreams (**Understand · Share · Run · Use**), which is where day-to-day
-sequencing now lives. A structural re-consolidation of this document itself — splitting it into two
-strata, the instrument and the program — is pending; that rewrite is not done here.
+## 8. The program — a proposition scribed into the wider game
+
+### The voice this stratum is written in
+
+Stratum II is not a platform of assertions. It is **a proposition scribed into the wider
+Endoporeutic Game (EPG)** — the game in which Arisbe itself is the proposal, and the
+traditions and communities named below are the other players. That framing entered on
+2026-07-17 as a licensing device (the corollary "Arisbe itself as a proposition in the wider
+EPG" — [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) §4,
+walking through the door [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)'s corollary
+on the larger game deliberately left open). The author's ruling of 2026-07-26 promotes it to
+**self-description**: *"this fundamentally describes my view of what we're doing."* The
+consequences are written into everything below:
+
+- **The vision proposes; it does not assert.** The proposition is held to the same posture as
+  any model M inside the loop: correspondence with the record, never truth.
+- **The pre-registered priors and run logs are peels already played** — moves of this very
+  game, on the record in `runs/`.
+- **Refutation is a lawful, invited move** — a competent refutation would be the game
+  *working*, not the game lost.
+- **The grades (below) are the proposition's warrant annotations** — its earned, revisable
+  standing, never a glow in the ink.
+- **Publication and outreach are voicing the doubt to competent interlocutors** — not
+  decoration but the only route to a judgment the project cannot make for itself, since
+  judgment is objectivated, never owned
+  ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2(c)).
+
+### The nexus thesis
+
+**Arisbe proposes:** the operational Peirce core — *signs + sound transformation + earned
+record* — is the common formal substrate that a family of twentieth-century traditions lacked;
+those traditions are **tributaries**, partial views of Peirce's own program, each of which
+found a real phenomenon and each of which was missing the substrate on which its finding could
+be scribed, transformed soundly, and held to a record. That is a strong thesis — which is
+exactly why it is voiced as a proposition and graded point by point rather than flattened into
+one claim; the claim-by-claim examination lives in
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md), §"The graded concordance map".
+
+### The five tributaries
+
+1. **Conway and artificial life — open-endedness.** Where the Game of Life runs closed, fixed
+   rules, Arisbe's sheet is open and *negotiated*: a generation is a round of the game, and
+   the only bound is selection from outside the membrane. *[machinery built-and-gated — the
+   automated Agon loop and its live membranes,
+   [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md); the open-endedness
+   reading itself queued-conjecture — not yet a measured claim.]*
+2. **West's *Scale* — the scaling of knowledge systems.** West's scalar optimand (energy)
+   becomes a vector (the knowledge measure), and the question becomes measurable: experiments
+   E1–E3b ran against pre-registered priors — federation ~5.2× cheaper than the monolith at
+   equal durability (`runs/WEST_E1_LOG.md`); self-partitioning converging to an interior
+   granularity N=3 from all 36 starts, 19 distinct optima, one dominant cost family carrying
+   75% of the attractor mass, the balanced partition stranded (`runs/WEST_E3B_LOG.md`).
+   *[measured-with-priors — [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
+3. **Berger & Luckmann — objectivation across membranes.** What confronts participants as
+   facticity is sustained only by participation; ratified into house doctrine as *judgment is
+   objectivated, never owned* ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
+   §2(c)). *[ratified-doctrine.]*
+4. **The AlternativeSet unification.** Erotetics, truth maintenance, attention, and
+   threat-response read as one structure — deliberation as holding alternatives — carried as
+   an index over real chain steps, re-checkable forever. *[built-and-gated —
+   `alternative_index` / `alternative_trace` / `alternative_survey` under the standing corpus
+   gate; [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md).]*
+5. **The deliberative-interval reading of agency.** Freedom read as the determined considering
+   between branching-at-doubt and licensed resolution — the interval the diachronic record
+   actually draws. *[queued-conjecture — deliberately unexamined; see the open frontier
+   below.]*
+
+### The connective doctrine — synechism
+
+Continuity is not a sixth tributary; it is the **medium the five flow in** — the reason one
+anatomy recurs across scales rather than five separate stories needing five separate glues.
+The full treatment (including the continuity ledger of the codebase's own discretizations)
+lives in [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md), §"The continuity ledger".
+
+### The recurring unit — the kytos
+
+The unit that recurs across the tributaries' scales — membrane, interior model, doubt-loop,
+horizon, budget and rates, decay — is the **kytos**, the semiotic cell:
+[THE_KYTOS.md](THE_KYTOS.md) is its anatomy. At agentive levels it hosts a Peircean
+quasi-mind.
+
+### The grading discipline
+
+Four grades, never flattened into one flat claim:
+
+| Grade | Meaning |
+|---|---|
+| **built-and-gated** | shipped in the codebase, guarded by a standing test gate |
+| **measured-with-priors** | run against pre-registered priors, verdicts on the record |
+| **ratified-doctrine** | the author's ruled doctrine, carried in a design-of-record |
+| **queued-conjecture** | named and held, deliberately not yet examined |
+
+The grades are the proposition's **warrant annotations** — where each strand currently stands,
+never what it is worth. The most exposed phrase in the program's vicinity — an "operational
+model of consciousness / free will" — is and remains **queued-conjecture**; nothing in this
+stratum asserts it.
+
+### The open frontier — named, not folded
+
+Queued for the commens rung, deliberately **not** folded into doctrine here: the four-doubts
+set (since grown to six threads: the veil's sides, the uptake duty's origin, the physical
+substrate under "doubt", what-works vs what-is-right, the fractal form under heterarchical
+coupling, no-teleology);
+ethics-negotiated-in-the-commens (whether "convergence tracks the real" was ever the goal, or
+a smuggled terminus); and free will with the predestination disposal (the deliberative
+interval examined properly, not merely named). Naming these here is the honesty move the
+grading discipline requires; folding them in would be a grade violation.
 
 ---
 
-## 9. How this spine is maintained
+## 9. Trajectory
+
+*(2026-07-26.)* The consolidation-era items this section used to narrate — the protected-core
+question, render-M, the reference/transclusion node, the newcomer on-ramp — are discharged;
+see [ROADMAP.md](ROADMAP.md)'s Discharged tail. The structural re-consolidation this section
+previously announced as pending — splitting this document into two strata, the instrument and
+the program — **landed 2026-07-26, in this rewrite**. Day-to-day sequencing lives under
+ROADMAP's four workstreams (**Understand · Share · Run · Use**).
+
+---
+
+## 10. How this spine is maintained
 
 This document and its two companions are a **consolidation** of material that is otherwise distributed
 across `docs/`, `tests/`, and the session log. They are thin by design:
 
 - **VISION_AND_SCOPE** changes only when a *commitment* changes (a new non-negotiable, a scope
   decision, a principle).
+- **Stratum II changes only when the author rules a program-level commitment** — a new
+  tributary, a grade change, a change of voice. Grades are never promoted, and tributaries
+  never added, on anyone's initiative but the author's ruling.
 - **CAPABILITY_MAP** is a living table — update the relevant row when a capability ships or its status
   changes.
 - **ROADMAP** is the working backlog — re-order and prune as priorities move.
