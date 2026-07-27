@@ -232,47 +232,6 @@ The letter-acronyms (EGI, UoD, DTO, ELK, …) are in **[Abbreviations](#abbrevia
 Concise, linkable entries for the specialized vocabulary the book uses (each introduced on first
 use and linked here). The conceptual groupings below under *Terms* give fuller context.
 
-### Peel
-**Peel** — to read a graph *from the outside in* against a model M (the interpretation register's
-core move), yielding a three-valued verdict plus a witness or counterexample. The term follows
-**Sowa**: *"Graphist and Grapheus would take turns **peeling off** negations and mapping subgraphs
-of g to M"* (Sowa 2011, *From Existential Graphs to Conceptual Graphs*). (Not, as far as we can
-verify, Peirce's own word.) In the corpus every recorded verdict is an explicit, forever-recomputable
-`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-retract_from_m-revise_m-and-the-episode-steps).
-
-### Episode
-**Episode** — one play of the Endoporeutic Game: *given a model M, then a proposition G* (peel →
-decide). Previously called an "inning."
-
-### Endoporeutic
-**Endoporeutic** — Peirce's own word for reading a graph **from the outside in**, as a transaction
-between a defender (Graphist) and a skeptic (Grapheus). Arisbe's Agon makes it operational.
-
-### Dicisign and Argument
-**Dicisign / Argument** — two of Peirce's classes of sign by the interpretant they call for (the
-third trichotomy: **Rheme / Dicisign / Argument**). A **Dicisign** (or Dicent) asserts a
-proposition — it is the kind of sign that is true or false. An **Argument** is a sign whose
-interpretant presents it *as the conclusion of a lawful process*; it carries its own inferential
-genesis. Two Existential Graphs identical in form assert the same Dicisign (proposition) but may be
-different Arguments (reached by different derivations) — the distinction on which meaning-by-history
-turns. See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
-
-### Hypostatic abstraction
-**Hypostatic abstraction** — Peirce's operation of turning a predicate into a subject ("hard" ⟶
-"hardness"; a dyadic relation into a triadic one via an abstract intermediary), so that predicates
-and propositions become objects one can quantify over. His route from first- to higher-order logic —
-the ascent operator at the heart of the **[second-order frontier](SECOND_ORDER_FRONTIER.md)** —
-realized in miniature and *reversibly* by `definitions.py` (a defined relation names a graph and
-unfolds back). Widely read as an early anticipation of category theory.
-
-### Reification
-**Reification** (Berger & Luckmann, *The Social Construction of Reality*, 1966) — treating a
-humanly produced, history-bound product as if it were a natural, given, authorless fact, forgetting
-its genesis; made easy by **sedimentation** (long use effaces a meaning's path-bound origin). In
-Arisbe the guarded-against case is *reifying a history*: lifting a telos a derivation-path merely
-*implies* out of the diachronic record and scribing it on the blank sheet as an earned assertion —
-the field guide's [dragon 9](FIELD_GUIDE_AND_DRAGONS.md). See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
-
 ### Agonothetes
 **Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third
 player but the function that turns a true/false outcome into an act of inquiry (a theorem
@@ -281,40 +240,23 @@ function is *reified as an agent acting on the outcome* (`LLMAgonothetes`) — s
 contestant, and never overruling the mechanically-decided outcome. Canonical account:
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 
-### Scroll
-**Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
-assertion.
+### Broken cut
+**Broken cut** — Peirce's 1903 Gamma mark (a cut with "many little interruptions"): the graph on
+its area is *contingent* — ◇¬. Arisbe draws no such mark; the same four modal statuses are read
+off the branching derivation DAG (the `broken_cut_square` exemplar,
+[GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §2).
 
-### Kytos (the semiotic cell)
-**Kytos** (κύτος, *vessel* — the root of "cell"; plural **kytē** (κύτη, third-declension neuter — as pathos → pathē)) — the recurring unit of
-doubt-driven semiosis: a membrane (which both bounds and animates), an interior model M, the
-doubt→probe→test→dispose→decay loop, a horizon of the not-yet-legible, and a budget with its
-rates. One anatomy at many scales — atom, law, model, mechanism, project, person-model,
-community — with the knowledge measure transporting across them. What a kytos hosts at
-agentive levels is a **quasi-mind** (Peirce's *Prolegomena* term for any sufficiently unified
-sign-system); the instructive contrast is Leibniz's windowless monad — the kytos is all
-windows. Ratified 2026-07-19; design-of-record
-[THE_KYTOS.md](THE_KYTOS.md). Umwelt / functional circle / Markov blanket remain
-*concordances* (cited neighbors), never house vocabulary.
+### Closed world
+**Closed world** — reading a model as *asserted-complete*: what M does not assert is FALSE. The
+open-world default instead reads a miss as UNKNOWN (an honest abstention). The Agon's
+interpretation register offers both.
 
-### World-scroll
-**World-scroll** — the standing structure in which a domain model M resides: since the second
-relocation (M-residence memo §9, ratified and built 2026-07-16), `~[ ~[cell] … ~[ ] ]` — M's
-elements live in **cut-wrapped cells at level 2** (evenly-enclosed, *positive*: the register of
-in-context agreement), siblings of at least one **empty cut** (the hold, and any scars — one kind),
-whose presence keeps the outer negation vacuously true, so the standing structure asserts nothing.
-Under the validity discipline nothing contingent stands at depth 0 — the sheet is the world's
-level, carrying only what the calculus itself delivers. The change-asymmetry sits at the
-fallibilist pole: **enlarging** M is one licensed **INS of a closed cell** into W (each admitted
-batch its own cell); **retracting** — whether refutation-driven or disuse-fading, distinguished
-only by the recorded disposition — is one licensed **ERA inside a cell** (erasure is sound at even
-depth), the emptied husk standing as a visible scar; **full replacement** (the rare case — a husk
-is a cut at odd depth, not ERA-licensed) remains the world-withdrawal triple ERA · DC+ · INS, the
-DAG keeping the withdrawn world. Recognition is structural, never annotational
-(`src/world_scroll.py`: one sheet cut whose children are all cuts, at least one empty); every
-reader reaches M's content through `m_view` (the union of the cells' interiors; identity for a
-bare sheet-level fixture). See
-[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9.
+---
+
+### Closure
+**Closure (closed subgraph)** — a selection fit to be transformed as a unit: it contains every
+element structurally inseparable from what was picked (a line of identity cannot be cut in half).
+The rules act on closed selections only.
 
 ### Commens
 **Commens** (Peirce, the 1906 Lady Welby letters — "all that is, and must be, well understood
@@ -329,6 +271,37 @@ institutionalization and the commens are **community-level emergents**, above th
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md),
 [World-scroll](#world-scroll), [Kytos](#kytos-the-semiotic-cell),
 [Mention-ascent](#mention-ascent).
+
+### Dicisign and Argument
+**Dicisign / Argument** — two of Peirce's classes of sign by the interpretant they call for (the
+third trichotomy: **Rheme / Dicisign / Argument**). A **Dicisign** (or Dicent) asserts a
+proposition — it is the kind of sign that is true or false. An **Argument** is a sign whose
+interpretant presents it *as the conclusion of a lawful process*; it carries its own inferential
+genesis. Two Existential Graphs identical in form assert the same Dicisign (proposition) but may be
+different Arguments (reached by different derivations) — the distinction on which meaning-by-history
+turns. See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
+
+### Disposition
+**Disposition** — the Agonothetes' ruling on what an episode's outcome *does to the record*: each
+entry in the taxonomy (new_fact, generalization, challenge_to_M, redundancy, rejection, …) names a
+structural move, and the model-revising subset carries its Peircean mode (induction / deduction /
+abduction / convention). Nothing enters the model except under a disposition.
+
+### Disuse-decay
+**Disuse-decay** — the only bound on an unbounded sheet: a fact no round has re-delivered for a set
+span is erased from the developing model M. **Atom-level** since 2026-07-03 (the affirmed rulebook:
+the habit is the *fact* — `(place_of_birth Adam Cambridge)` — not the relation name, which is only
+vocabulary; use = re-delivery, so one warm fact no longer keeps its name-siblings alive). Decay is
+*not* evidence against a claim (it is excluded from durability statistics); it is the working-set
+discipline that keeps a live run's per-round cost flat.
+
+### Endoporeutic
+**Endoporeutic** — Peirce's own word for reading a graph **from the outside in**, as a transaction
+between a defender (Graphist) and a skeptic (Grapheus). Arisbe's Agon makes it operational.
+
+### Episode
+**Episode** — one play of the Endoporeutic Game: *given a model M, then a proposition G* (peel →
+decide). Previously called an "inning."
 
 ### The explicit M-steps: PEEL, ADMIT_TO_M, RETRACT_FROM_M, REVISE_M, and the episode steps
 **PEEL / ADMIT_TO_M / RETRACT_FROM_M / REVISE_M / ENTERTAIN / DISCHARGE_TO_M / ABANDON_EPISODE**
@@ -354,21 +327,71 @@ the standing gate `tests/test_corpus_polarity_discipline.py`, which recomputes e
 verdict, re-asserts every discharge citation, and refuses any silent M-change (the m_view
 tripwire).
 
-### Scribe
-**Scribe** (verb) — to draw/assert a graph on the sheet (Peirce's term for inscribing a graph).
+### Floor
+**Floor** — a baseline that may not be gone under. The *correctness floor* (Dau's calculus); the
+*low-warrant floor* every import starts at; the *philosophical floor* (attest correspondence, not
+truth).
 
-### Recto
-**Recto** — the asserted face of the sheet (an evenly-enclosed, *positive* area). Its complement is
-the **verso**.
+### Gate ① and gate ②
+**Gate ① / gate ②** — the workshop's two one-way doors: gate ① *fixes the graph* (from clay to a
+fixed meaning that changes only by the six rules); gate ② *fixes the chain* (the derivation is
+complete and becomes read-only). Nothing passes either gate silently.
 
-### Verso
-**Verso** — the negated face (an oddly-enclosed, *negative* area), one cut deeper than the recto.
+### Grapheus
+**Grapheus** — the skeptic's role in the Endoporeutic Game: the authority for the model M who
+contests the Graphist's proposal. Arisbe ships an automated Grapheus (minimax over the semantic
+game). See [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
 
-### Tincture
-**Tincture** — Peirce's Gamma colourings of areas (his modal/higher-order experiments). Arisbe
-treats Gamma-as-modality as out of scope — and demonstrates the modal work carried instead by
-the diachronic branching history, on Peirce's own figures
-([GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md)).
+### Graphist
+**Graphist** — the proposer's role in the Endoporeutic Game: the player who scribes a graph and
+must defend it. In the automated game, the doubt-driven proposer. See
+[ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+
+### Horizon
+**Horizon** — what lies just beyond the part currently in view: open-world unknowns, or the part of a
+model a graph does not touch — reported honestly, never silently dropped.
+
+### Horn rule
+**Horn rule** — a law of the shape "if body then head" (`~[ B ~[ H ] ]`, range-restricted) that
+forward-chaining can apply mechanically; the fragment of M that *materialization* turns into
+plain facts so the syllogism works.
+
+### Hypostatic abstraction
+**Hypostatic abstraction** — Peirce's operation of turning a predicate into a subject ("hard" ⟶
+"hardness"; a dyadic relation into a triadic one via an abstract intermediary), so that predicates
+and propositions become objects one can quantify over. His route from first- to higher-order logic —
+the ascent operator at the heart of the **[second-order frontier](SECOND_ORDER_FRONTIER.md)** —
+realized in miniature and *reversibly* by `definitions.py` (a defined relation names a graph and
+unfolds back). Widely read as an early anticipation of category theory.
+
+### Iteration and deiteration
+**Iteration / deiteration** — the paired rules IT+ and IT−: iteration copies a subgraph into an
+area nested inside its own; deiteration removes a copy that is governed by an identical original.
+
+### Kytos (the semiotic cell)
+**Kytos** (κύτος, *vessel* — the root of "cell"; plural **kytē** (κύτη, third-declension neuter — as pathos → pathē)) — the recurring unit of
+doubt-driven semiosis: a membrane (which both bounds and animates), an interior model M, the
+doubt→probe→test→dispose→decay loop, a horizon of the not-yet-legible, and a budget with its
+rates. One anatomy at many scales — atom, law, model, mechanism, project, person-model,
+community — with the knowledge measure transporting across them. What a kytos hosts at
+agentive levels is a **quasi-mind** (Peirce's *Prolegomena* term for any sufficiently unified
+sign-system); the instructive contrast is Leibniz's windowless monad — the kytos is all
+windows. Ratified 2026-07-19; design-of-record
+[THE_KYTOS.md](THE_KYTOS.md). Umwelt / functional circle / Markov blanket remain
+*concordances* (cited neighbors), never house vocabulary.
+
+### Materialize
+**Materialize** — forward-chain a model's Horn rules to their least fixed point, so a model
+authored as *facts + rules* is testable as plain facts. A model is the facts; rules are a theory.
+
+### Membrane
+**Membrane** — the boundary where the sheet meets the world — the one place error is corrected
+(the Popperian image behind the low-warrant import discipline). In the *automated* Endoporeutic
+Game the membrane is a concrete component: the proposer that carries outside claims into the
+game, one per round. A **closed** membrane replays a fixed pool; an **open** membrane admits the
+world — *raise-only* (dated discourse, with no way to check it against the world), *raise-and-resolve*
+(predictions the world later settles), and *wiki-dispute* (edit wars ending in an editorial
+resolution). See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
 
 ### Mention-ascent
 **Mention-ascent** (this term **retires the earlier name "the second-order crossing"**) —
@@ -398,50 +421,42 @@ arbitrary depth composes from this one cut→vertex device. See
 [SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md),
 [CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md).
 
-### Broken cut
-**Broken cut** — Peirce's 1903 Gamma mark (a cut with "many little interruptions"): the graph on
-its area is *contingent* — ◇¬. Arisbe draws no such mark; the same four modal statuses are read
-off the branching derivation DAG (the `broken_cut_square` exemplar,
-[GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §2).
+### Peel
+**Peel** — to read a graph *from the outside in* against a model M (the interpretation register's
+core move), yielding a three-valued verdict plus a witness or counterexample. The term follows
+**Sowa**: *"Graphist and Grapheus would take turns **peeling off** negations and mapping subgraphs
+of g to M"* (Sowa 2011, *From Existential Graphs to Conceptual Graphs*). (Not, as far as we can
+verify, Peirce's own word.) In the corpus every recorded verdict is an explicit, forever-recomputable
+`PEEL` chain step — see [the explicit M-steps](#the-explicit-m-steps-peel-admit_to_m-retract_from_m-revise_m-and-the-episode-steps).
 
-### Would-be / de inesse
-**Would-be** vs **de inesse** — Peirce's two readings of a conditional (*Prolegomena* 1906, CP
-4.546): *de inesse* is the material conditional on one sheet ("too easily true" — it holds if the
-antecedent merely never occurs); the *would-be* is the strict reading, a habit holding across
-every course of experience. In Arisbe the would-be is □G over a branching DAG of courses (the
-`would_be_courses` exemplar, [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §4).
+### Poise
+**Poise** — the automated game's health observable, read off windows of a run: engagement (still
+taking the world in), settlement (dispositions stabilizing), absorption (stumbles recovered from).
+Its failure poles are **rigidity** (nothing changes anything) and **thrash** (nothing settles).
+Perspectival and comparative — never a target.
 
-### Teridentity
-**Teridentity** — a three-way point of identity: a branch where one line of identity meets two
-others (three "hooks" at one spot).
+### Recto
+**Recto** — the asserted face of the sheet (an evenly-enclosed, *positive* area). Its complement is
+the **verso**.
 
-### Floor
-**Floor** — a baseline that may not be gone under. The *correctness floor* (Dau's calculus); the
-*low-warrant floor* every import starts at; the *philosophical floor* (attest correspondence, not
-truth).
+### Reification
+**Reification** (Berger & Luckmann, *The Social Construction of Reality*, 1966) — treating a
+humanly produced, history-bound product as if it were a natural, given, authorless fact, forgetting
+its genesis; made easy by **sedimentation** (long use effaces a meaning's path-bound origin). In
+Arisbe the guarded-against case is *reifying a history*: lifting a telos a derivation-path merely
+*implies* out of the diachronic record and scribing it on the blank sheet as an earned assertion —
+the field guide's [dragon 9](FIELD_GUIDE_AND_DRAGONS.md). See [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 
-### Membrane
-**Membrane** — the boundary where the sheet meets the world — the one place error is corrected
-(the Popperian image behind the low-warrant import discipline). In the *automated* Endoporeutic
-Game the membrane is a concrete component: the proposer that carries outside claims into the
-game, one per round. A **closed** membrane replays a fixed pool; an **open** membrane admits the
-world — *raise-only* (dated discourse, with no way to check it against the world), *raise-and-resolve*
-(predictions the world later settles), and *wiki-dispute* (edit wars ending in an editorial
-resolution). See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+### Scribe
+**Scribe** (verb) — to draw/assert a graph on the sheet (Peirce's term for inscribing a graph).
 
-### Disposition
-**Disposition** — the Agonothetes' ruling on what an episode's outcome *does to the record*: each
-entry in the taxonomy (new_fact, generalization, challenge_to_M, redundancy, rejection, …) names a
-structural move, and the model-revising subset carries its Peircean mode (induction / deduction /
-abduction / convention). Nothing enters the model except under a disposition.
+### Scroll
+**Scroll** — a nested double cut `~[ M ~[ P ] ]` reading "P given M"; the Alpha home of conditional
+assertion.
 
-### Disuse-decay
-**Disuse-decay** — the only bound on an unbounded sheet: a fact no round has re-delivered for a set
-span is erased from the developing model M. **Atom-level** since 2026-07-03 (the affirmed rulebook:
-the habit is the *fact* — `(place_of_birth Adam Cambridge)` — not the relation name, which is only
-vocabulary; use = re-delivery, so one warm fact no longer keeps its name-siblings alive). Decay is
-*not* evidence against a claim (it is excluded from durability statistics); it is the working-set
-discipline that keeps a live run's per-round cost flat.
+### Seam
+**Seam** — the boundary between two Universes of Discourse, or the point where a reference/transclusion
+crosses from one graph into another.
 
 ### Stickiness
 **Stickiness** — whether a move survived to the end of a run: a generalization later relinquished
@@ -449,11 +464,23 @@ by play reads *not sticky* (durability evidence), while a fact erased by disuse-
 sticky nor unsticky (no evidence either way). Stick-rates by resolution mechanism are how the game
 learns *which kind of settling produces durable knowledge*.
 
-### Poise
-**Poise** — the automated game's health observable, read off windows of a run: engagement (still
-taking the world in), settlement (dispositions stabilizing), absorption (stumbles recovered from).
-Its failure poles are **rigidity** (nothing changes anything) and **thrash** (nothing settles).
-Perspectival and comparative — never a target.
+### Style ladder
+**Style ladder** — how presentation is persisted: a default style → sparse hand-tuned exemplar
+deltas → an extrapolated regularity crystallised onto untouched siblings.
+
+### Teridentity
+**Teridentity** — a three-way point of identity: a branch where one line of identity meets two
+others (three "hooks" at one spot).
+
+### Tincture
+**Tincture** — Peirce's Gamma colourings of areas (his modal/higher-order experiments). Arisbe
+treats Gamma-as-modality as out of scope — and demonstrates the modal work carried instead by
+the diachronic branching history, on Peirce's own figures
+([GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md)).
+
+### Tomos
+**Tomos** (Greek "volume") — the on-disk corpus of canonical EG examples (with EGIF/CGIF/CLIF/FOPL
+variants) under `tomos/`; the source of truth and the round-trip test bed.
 
 ### Tropism
 **Tropism** — the model's own state directing which sources to re-engage (empirically mandated by
@@ -462,71 +489,44 @@ backing what M currently holds — decay-adjacent first — so a later denial ca
 still-standing target. Passive ingestion never revisits, so without tropism the durability of
 settled claims goes untested.
 
-### Seam
-**Seam** — the boundary between two Universes of Discourse, or the point where a reference/transclusion
-crosses from one graph into another.
-
-### Horizon
-**Horizon** — what lies just beyond the part currently in view: open-world unknowns, or the part of a
-model a graph does not touch — reported honestly, never silently dropped.
-
-### Style ladder
-**Style ladder** — how presentation is persisted: a default style → sparse hand-tuned exemplar
-deltas → an extrapolated regularity crystallised onto untouched siblings.
-
-### Warrant
-**Warrant / standing** — a graph's epistemic status as a *gradient*: **posited** → **derived** →
-**withstood**. Rises by surviving challenge; can fall. "Fact" = the last-standing trajectory, never
-a property of the ink.
+### Verso
+**Verso** — the negated face (an oddly-enclosed, *negative* area), one cut deeper than the recto.
 
 ### Voidness
 **Voidness** — the failure mode of an *integrity* (formation) breach: marks that embed no consistent
 object at all — *"not even wrong"* (attributed to Wolfgang Pauli), as opposed to a graph that is
 well-formed but false.
 
-### Tomos
-**Tomos** (Greek "volume") — the on-disk corpus of canonical EG examples (with EGIF/CGIF/CLIF/FOPL
-variants) under `tomos/`; the source of truth and the round-trip test bed.
+### Warrant
+**Warrant / standing** — a graph's epistemic status as a *gradient*: **posited** → **derived** →
+**withstood**. Rises by surviving challenge; can fall. "Fact" = the last-standing trajectory, never
+a property of the ink.
 
-### Graphist
-**Graphist** — the proposer's role in the Endoporeutic Game: the player who scribes a graph and
-must defend it. In the automated game, the doubt-driven proposer. See
-[ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
+### World-scroll
+**World-scroll** — the standing structure in which a domain model M resides: since the second
+relocation (M-residence memo §9, ratified and built 2026-07-16), `~[ ~[cell] … ~[ ] ]` — M's
+elements live in **cut-wrapped cells at level 2** (evenly-enclosed, *positive*: the register of
+in-context agreement), siblings of at least one **empty cut** (the hold, and any scars — one kind),
+whose presence keeps the outer negation vacuously true, so the standing structure asserts nothing.
+Under the validity discipline nothing contingent stands at depth 0 — the sheet is the world's
+level, carrying only what the calculus itself delivers. The change-asymmetry sits at the
+fallibilist pole: **enlarging** M is one licensed **INS of a closed cell** into W (each admitted
+batch its own cell); **retracting** — whether refutation-driven or disuse-fading, distinguished
+only by the recorded disposition — is one licensed **ERA inside a cell** (erasure is sound at even
+depth), the emptied husk standing as a visible scar; **full replacement** (the rare case — a husk
+is a cut at odd depth, not ERA-licensed) remains the world-withdrawal triple ERA · DC+ · INS, the
+DAG keeping the withdrawn world. Recognition is structural, never annotational
+(`src/world_scroll.py`: one sheet cut whose children are all cuts, at least one empty); every
+reader reaches M's content through `m_view` (the union of the cells' interiors; identity for a
+bare sheet-level fixture). See
+[M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9.
 
-### Grapheus
-**Grapheus** — the skeptic's role in the Endoporeutic Game: the authority for the model M who
-contests the Graphist's proposal. Arisbe ships an automated Grapheus (minimax over the semantic
-game). See [AUTOMATED_GRAPHEUS.md](AUTOMATED_GRAPHEUS.md).
-
-### Horn rule
-**Horn rule** — a law of the shape "if body then head" (`~[ B ~[ H ] ]`, range-restricted) that
-forward-chaining can apply mechanically; the fragment of M that *materialization* turns into
-plain facts so the syllogism works.
-
-### Materialize
-**Materialize** — forward-chain a model's Horn rules to their least fixed point, so a model
-authored as *facts + rules* is testable as plain facts. A model is the facts; rules are a theory.
-
-### Gate ① and gate ②
-**Gate ① / gate ②** — the workshop's two one-way doors: gate ① *fixes the graph* (from clay to a
-fixed meaning that changes only by the six rules); gate ② *fixes the chain* (the derivation is
-complete and becomes read-only). Nothing passes either gate silently.
-
-### Closure
-**Closure (closed subgraph)** — a selection fit to be transformed as a unit: it contains every
-element structurally inseparable from what was picked (a line of identity cannot be cut in half).
-The rules act on closed selections only.
-
-### Iteration and deiteration
-**Iteration / deiteration** — the paired rules IT+ and IT−: iteration copies a subgraph into an
-area nested inside its own; deiteration removes a copy that is governed by an identical original.
-
-### Closed world
-**Closed world** — reading a model as *asserted-complete*: what M does not assert is FALSE. The
-open-world default instead reads a miss as UNKNOWN (an honest abstention). The Agon's
-interpretation register offers both.
-
----
+### Would-be / de inesse
+**Would-be** vs **de inesse** — Peirce's two readings of a conditional (*Prolegomena* 1906, CP
+4.546): *de inesse* is the material conditional on one sheet ("too easily true" — it holds if the
+antecedent merely never occurs); the *would-be* is the strict reading, a habit holding across
+every course of experience. In Arisbe the would-be is □G over a branching DAG of courses (the
+`would_be_courses` exemplar, [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) §4).
 
 ## Terms
 
