@@ -202,3 +202,43 @@ halts the build for authorization.
    redefinition.
 4. **Pre-register structural priors (PM1–PM4) + emit the descriptive map** — keep the Pⁿ/Fⁿ
    discipline while the map is the deliverable.
+
+---
+
+## 10 · Rider E3c — symmetry-breaking (pre-registered 2026-07-26, commissioned by the E3b disposition)
+
+**Question.** E3b Finding 2 (the mechanism sketch): *balance strands; asymmetry funnels*. The
+balanced round-robin `4/4/4` is a terminal local optimum at 137,129 — 35% dearer than the floor —
+and its near-balanced neighbours merge into the dear `3/8/1` family. Is that strandedness
+**knife-edge** (any single-folder asymmetry escapes to the cheap band) or **basin-like** (the dear
+region has attracting width around the balanced point)?
+
+**Cells (three, deterministic, no RNG).** Take the round-robin N=3 bucketing over the E3 corpus
+(same vault: `seed=20260721`, F0=12 — the exact `4/4/4` optimum row of the map). For the three
+ordered bucket pairs `(0→1)`, `(1→2)`, `(2→0)`: move the **lexicographically first folder** of the
+source bucket into the destination bucket (result sizes `3/5/4` as a multiset), canonicalize, and
+descend each through the **verbatim E3 Arm-N walk** (θ=0.20, merge_k=3, max_rounds=20, R=325,
+ttl=120) on one shared `MemoEvaluator`. Note: the walk's move vocabulary is split/merge only, so a
+perturbed start can never *rebalance* to `4/4/4` — escape vs strand is decided by which basin the
+descent finds, not by re-entry.
+
+**Pre-registered priors:**
+
+- **PS1 (knife-edge).** Every perturbed start terminates at cost **< 118,865** (the dear band's
+  floor — the cheapest dear optimum in the E3b map). *Refuted if any perturbed walk terminates
+  ≥ 118,865* — then the strandedness is basin-like: the dear region attracts a neighbourhood, not
+  just the symmetric point, and "balance strands" must weaken to "the dear basins have width".
+- **PS2 (floor consistency).** No perturbed walk terminates **below 101,411** (PM3's floor).
+  *Refuted* = a genuine new-best finding; report the bucketing (by sizes).
+
+Report per cell: terminus sizes, cost, cheap-family membership (10/1/1 shape or not), and the
+`shortlist_shadowed` diagnostic on each terminus. Determinism canary: cell `(0→1)` re-run with a
+fresh memo must reproduce moves/final/cost exactly.
+
+**Custody + honesty:** numbers-only stdout (sizes, never folder names); one seed, one topology,
+one discipline — the same reachable-structure caveat as the map (§6); three perturbations sample
+the 24-member single-move neighbourhood of `4/4/4`, they do not enumerate it (the pair set and
+the first-folder rule are fixed here, in advance).
+
+**Driver:** `tools/run_west_e3c.py` (reuses `west_basin_map`/`west_meta_agon` machinery verbatim;
+no `src/` change). Expected wall: a few hours (three cold-memo walks + terminus checks).
