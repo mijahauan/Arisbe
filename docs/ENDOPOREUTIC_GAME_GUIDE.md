@@ -1400,9 +1400,9 @@ when doubt arrives, and not to pretend it isn't there when it does.
 
 ## Situated Meaning: One Sign, Many Games
 
-The preceding sections establish that meaning is produced by the triadic
-cycle: the Graphist proposes, the Grapheus resists, the Agonothetes
-interprets.  But there is a stronger claim implicit in the framework: **a
+The preceding sections establish that the triadic cycle produces meaning: the
+Graphist proposes, the Grapheus resists, the Agonothetes
+interprets.  But a stronger claim lies implicit in the framework: **a
 single play of the EPG — one "episode" — situates the meaning of every term
 it touches in a way that is simultaneously context-dependent and formally
 precise.**
@@ -1425,57 +1425,57 @@ The game does not merely translate.  If M also contains knowledge about
 English idiom ("cat got your tongue," "it's raining cats and dogs"), the game
 will encounter propositions where "cat" does *not* map to 猫 — stalemates
 and contradictions that reveal the boundaries of the cross-linguistic
-correspondence.  Each such failure is itself a meaning: the places where
-the mapping breaks are as informative as the places where it holds.
+correspondence.  Each such failure carries a meaning of its own — the places
+where the mapping breaks inform as much as the places where it holds.
 
 **2. A student learning conceptual graphs via "the cat is on the mat."**
 
-M is the formal apparatus of Conceptual Graph theory — type hierarchies,
+M consists of the formal apparatus of Conceptual Graph theory — type hierarchies,
 relation definitions, the syntax of Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)).  "Cat" enters the game not as an
 animal but as a *type label*: a node in a type lattice, an exemplar concept
 used to illustrate the machinery.  The Graphist proposes:
-`[Cat: #]→(On)→[Mat: #]`.  The game tests whether this is well-formed
-against M (the CG formalism), not whether there is an actual cat on an
+`[Cat: #]→(On)→[Mat: #]`.  The game tests whether this reads as well-formed
+against M (the CG formalism), not whether an actual cat sits on an
 actual mat.
 
 The Agonothetes produces a *metalinguistic* Interpretant: "cat" means
 "a convenient concept node that illustrates how types, referents, and
-relations interact in the formalism."  The feline content is almost
-irrelevant; what matters is the formal structure.
+relations interact in the formalism."  The feline content hardly matters;
+the formal structure does.
 
 **3. A person whose beloved pet cat has just died.**
 
-M is dense with particulars: this cat's name, habits, personality, the years
-of companionship, the specific textures of grief.  "Cat" in this M is not a
+M runs dense with particulars: this cat's name, habits, personality, the years
+of companionship, the specific textures of grief.  "Cat" in this M names not a
 type but an *individual* — saturated with affect, irreducible to a category.
 The Graphist proposes something — perhaps "(Alive *x)" with respect to this
 individual — and the game fails.  The Grapheus wins: M no longer supports
 the proposition.
 
 The Agonothetes produces an Interpretant shaped by loss.  The meaning of
-"cat" here is not a definition but a weight — the significance of what the
-sign used to map to and no longer does.  The game's formal machinery
+"cat" here amounts not to a definition but to a weight — the significance of
+what the sign used to map to and no longer does.  The game's formal machinery
 captures this: the failure of IT- (the element no longer maps to M) *is* the
 formal expression of absence.
 
 **4. A person whose pet parakeet was eaten by the neighbor's cat.**
 
-M includes: "neighbor's cat killed my parakeet," emotional attachment to the
-bird, anger at the cat and perhaps the neighbor.  "Cat" is understood as
+M includes "neighbor's cat killed my parakeet," emotional attachment to the
+bird, anger at the cat and perhaps the neighbor.  "Cat" here reads as
 predator, threat, instrument of loss.  The Graphist proposes
 "(Dangerous *x)" where *x* is bound to Cat.  Against this M, the game
 succeeds — IT- maps the proposition to the killing event.
 
 The Agonothetes produces an Interpretant colored by adversarial experience.
 "Cat" means something very different here than in case 3, even though both
-involve grief and a specific animal.  The difference is entirely in M — the
+involve grief and a specific animal.  The difference lies entirely in M — the
 Grapheus — and therefore entirely in what the game can derive.
 
 **5. A parasitologist studying toxoplasmosis.**
 
-M is the domain of parasitology: *Toxoplasma gondii*, the feline definitive
+M covers the domain of parasitology: *Toxoplasma gondii*, the feline definitive
 host, oocyst shedding in cat feces, the parasite's lifecycle, zoonotic
-transmission pathways, seroprevalence data.  "Cat" is understood as a
+transmission pathways, seroprevalence data.  "Cat" reads as a
 *biological vector* — the only definitive host in which the parasite
 completes its sexual reproduction cycle.
 
@@ -1488,9 +1488,9 @@ classification.
 
 **6. Us, using "cat" as an example to define and describe the EPG.**
 
-M is the EPG framework itself — the sections above, the triadic structure,
-the game mechanics.  "Cat" enters as a *pedagogical device*: a familiar
-concept used to illustrate how meaning is situated by the game.  The
+M consists of the EPG framework itself — the sections above, the triadic
+structure, the game mechanics.  "Cat" enters as a *pedagogical device*, a
+familiar concept used to illustrate how the game situates meaning.  The
 Graphist proposes: "the word 'cat' demonstrates situated meaning."  The game
 tests this against M (the EPG formalism).
 
@@ -1502,8 +1502,8 @@ without special machinery.
 
 ### What the Six Games Show
 
-The sign-vehicle is identical in every case: "cat," three letters, one
-syllable.  What changes is **M** — the Grapheus, the domain against which
+The sign-vehicle stays identical in every case: "cat," three letters, one
+syllable.  **M** changes — the Grapheus, the domain against which
 the sign is tested.  And because M changes, everything downstream changes:
 
 - The **game tree** differs: different depths, different branches, different
@@ -1514,12 +1514,12 @@ the sign is tested.  And because M changes, everything downstream changes:
   weight of grief, predatory threat, epidemiological function, reflexive
   meta-example.
 
-Yet each meaning is **formally precise** within its game.  The parasitologist's
-"cat" is not vague; it is exactly what M (the parasitology domain) entails
-under the game's rules.  The bereaved owner's "cat" is not vague; it is
-exactly what M (the personal history with this animal) entails and fails to
-entail.  The precision is not reduced by the context-dependence; it is
-*produced* by it.
+Yet each meaning holds **formally precise** within its game.  The parasitologist's
+"cat" carries no vagueness; it names exactly what M (the parasitology domain)
+entails under the game's rules.  The bereaved owner's "cat" carries no vagueness
+either; it names exactly what M (the personal history with this animal) entails
+and fails to entail.  Context-dependence does not reduce the precision; it
+*produces* it.
 
 ### The Pragmatic Maxim
 
@@ -1531,13 +1531,13 @@ This is Peirce's **pragmatic maxim** made operational:
 > (W 3:266)
 
 Each play of the EPG reveals *some* of the practical effects of "cat" —
-the ones that are relevant to the particular M and the particular inquiry.
+the ones relevant to the particular M and the particular inquiry.
 The parasitologist's game reveals the epidemiological effects.  The
 bereaved owner's game reveals the effects of absence.  The student's game
 reveals the formal-structural effects.
 
 No single game captures the *whole* meaning of "cat" — that would require
-playing the game against every possible M, which is Peirce's ideal limit.
+playing the game against every possible M, which marks Peirce's ideal limit.
 But each game captures a **legitimate, precise, situated** portion of the
 meaning.
 
@@ -1549,11 +1549,11 @@ the ideal end of inquiry.  But does it?
 ### Against Convergence: Inquiry Changes the World
 
 The final interpretant, as Peirce conceived it, assumes that inquiry
-asymptotically approaches a fixed reality — that there is a stable target
+asymptotically approaches a fixed reality — that a stable target stands
 toward which the community of inquiry converges given sufficient time and
-honesty.  This is structurally identical to Teilhard de Chardin's **Omega
-Point**: the idea that evolution converges on an ultimate state of
-consciousness.  Both posit a teleological attractor: a fixed point toward
+honesty.  This matches Teilhard de Chardin's **Omega Point** structurally:
+the idea that evolution converges on an ultimate state of
+consciousness.  Both posit a teleological attractor, a fixed point toward
 which the process tends.
 
 The difficulty is this: **our interpretations change the reality in which
@@ -1581,18 +1581,18 @@ At every scale, interpretation feeds back into reality:
 
 The target moves because the inquirer is *in* the world, not observing it
 from outside.  Every Agonothetes judgment that enriches M also enriches (or
-disturbs) the reality that M models.  M' is not a better approximation of a
-fixed world; M' is an adequate-for-now model of a world that M' itself has
-helped to change.
+disturbs) the reality that M models.  M' does not give a better approximation
+of a fixed world.  M' gives an adequate-for-now model of a world that M'
+itself has helped to change.
 
 ### Stability and Transformation
 
-This is not chaos.  There is genuine stability — without it, no game could
+This is not chaos.  Genuine stability holds — without it, no game could
 be played, no M could be relied upon, no IT- could succeed.  The
-transformation rules work because the formal structure is stable: the six
-rules, the polarity system, the cut semantics.  The biological world is
+transformation rules work because the formal structure stays stable: the six
+rules, the polarity system, the cut semantics.  The biological world stays
 stable enough that "cats are definitive hosts" remains true across many
-games.  The laws of physics are stable enough to ground engineering.
+games.  The laws of physics stay stable enough to ground engineering.
 
 But the stability that enables transformation is itself subject to
 transformation.  This is the mechanism of **evolution** — biological,
@@ -1609,11 +1609,11 @@ cultural, conceptual:
 
 We have no reason to believe that, upon sufficient reflection and
 interaction, any part of the stability of the world is immune from
-transformation.  The "laws" of physics are stable across human timescales
+transformation.  The "laws" of physics hold stable across human timescales
 but may not be fundamental.  The biological categories ("cat," "bird,"
-"parasite") are stable across ecological timescales but shift across
-evolutionary ones.  Even formal systems — M itself — evolve as the concepts
-and relations within them are revised through inquiry.
+"parasite") hold stable across ecological timescales but shift across
+evolutionary ones.  Even formal systems — M itself — evolve as inquiry
+revises the concepts and relations within them.
 
 ### What Replaces the Final Interpretant?
 
@@ -1622,8 +1622,8 @@ If there is no fixed point of convergence, what does the EPG aim at?
 Not *truth as correspondence to a static reality*, but **adequacy for the
 ongoing inquiry** — belief that is warranted *now*, that enables action
 *now*, that is held *in readiness for revision* when the next doubt arrives.
-This is closer to Peirce's own **fallibilism** than the final interpretant
-is:
+This runs closer to Peirce's own **fallibilism** than the final interpretant
+does:
 
 > "Do not block the way of inquiry." (CP 1.135)
 
@@ -1632,13 +1632,14 @@ has an endpoint — even an ideal one.  Fallibilism, taken seriously, says:
 there is no endpoint.  There is only the next game, played on ground that
 the last game helped to shape.
 
-What the EPG provides is not convergence but **accountability**: every move
+The EPG provides not convergence but **accountability**: every move
 is recorded, every derivation is inspectable, every judgment is situated in
 a specific M and a specific inquiry.  When the ground shifts — when new
 experience, new encounters, or the consequences of our own actions create
-new doubts — the record is there.  The UoD's transformation history is not
-a path converging on truth; it is a **trail through an evolving landscape**,
-honest about where it has been and open about where it might go next.
+new doubts — the record stands there.  The UoD's transformation history
+traces no path converging on truth.  It leaves a **trail through an evolving
+landscape**, honest about where it has been and open about where it might go
+next.
 
 ### The Pragmatic Corrective
 
@@ -1648,8 +1649,8 @@ whenever inquiry confronts its own limits.
 
 **The pathology of cynicism: "You never really know anything."**
 
-This is the nihilistic misreading of fallibilism.  If no M is final, if
-every belief is subject to revision, if the ground itself shifts — then
+This gives the nihilistic misreading of fallibilism.  If no M stands final,
+if every belief admits revision, if the ground itself shifts — then
 (the argument goes) nothing is genuinely known.  All knowledge is merely
 provisional, merely approximate, merely contingent.  The word "merely" does
 all the damage.
@@ -1659,39 +1660,39 @@ understanding — theorems derived, contradictions exposed, predictions
 confirmed, practices refined.  The parasitologist's M enables real public
 health interventions.  The engineer's M enables real bridges.  The
 bereaved owner's M enables real grief and real healing.  That M may be
-revised tomorrow does not mean it is worthless today.  A map that is
-adequate for the current journey is not defective because the landscape may
+revised tomorrow does not make it worthless today.  A map adequate for the
+current journey suffers no defect because the landscape may
 change.  The cynical move — discounting all knowledge because no knowledge
 is absolute — confuses *revisability* with *unreliability*.  They are not
 the same.
 
 In EPG terms: the Graphist's proposals succeed or fail against a real
-Grapheus.  IT- maps or it does not.  The game's honesty is not diminished
-by the fact that M will evolve.  What was proved in this game was genuinely
+Grapheus.  IT- maps or it does not.  M's evolving does not diminish the
+game's honesty.  What was proved in this game was genuinely
 proved, given this M, using these rules, recorded in this transcript.
 
 **The pathology of absolutism: "This is the one Truth."**
 
-This is the dogmatic response to the desire for certainty.  If fallibilism
-is uncomfortable, one can escape the discomfort by declaring some M to be
+This gives the dogmatic response to the desire for certainty.  If fallibilism
+discomfits, one can escape the discomfort by declaring some M
 final — the one true God, the one true philosophy, the one true political
 system, the one true leader.  The move is always the same: elevate a
 particular M to the status of unquestionable ground, and block inquiry into
 that ground itself.
 
 The EPG answers: no M is immune from challenge.  The Grapheus resists
-proposals that contradict it, but the Grapheus is itself the product of
-prior Agonothetes judgments — each of which was situated, each of which was
-adequate-for-then, none of which was final.  To declare an M absolute is to
-block the way of inquiry (CP 1.135) — it is Peirce's method of authority
+proposals that contradict it, but the Grapheus itself issues from
+prior Agonothetes judgments — each situated, each
+adequate-for-then, none final.  To declare an M absolute blocks the way of
+inquiry (CP 1.135).  It amounts to Peirce's method of authority
 dressed in metaphysical clothing.
 
-In EPG terms: absolutism is the refusal to let the Graphist propose
+In EPG terms: absolutism refuses to let the Graphist propose
 anything that challenges M.  But the framework's integrity depends on the
 Graphist's freedom to propose *anything* — including proposals that
 contradict the deepest commitments of M.  The game may reject the proposal
 (M may win), but the game must be *played*.  The moment certain propositions
-are declared unquestionable, the system ceases to be inquiry and becomes
+are declared unquestionable, the system ceases to inquire and becomes
 dogma.
 
 **The middle ground: we know something, but we will never know everything.**
@@ -1707,9 +1708,9 @@ know something, and we will never know everything.**
   interpretations change it, and the stability that grounds our knowledge
   is itself subject to transformation.
 
-This is not a compromise or a hedge.  It is the only position consistent
-with both the reality of knowledge and the reality of change.  The
-relationship between reliability and revision is not antagonistic but
+This amounts to no compromise and no hedge.  It names the only position
+consistent with both the reality of knowledge and the reality of change.
+Reliability and revision do not stand antagonistic but
 *enabling*:
 
 - **Reliability enables revision** — it does not block it.  You can only
@@ -1744,8 +1745,8 @@ unspeakable Truth of the world: the totality that is, prior to and
 independent of anything we say about it.  The sheet is *true* — not
 because we have verified it, but because it is the ground on which
 verification becomes possible.  It commits to the world's reality without
-claiming to articulate any of its content.  It is the ultimate reliability:
-the ground that enables everything that follows.
+claiming to articulate any of its content.  It gives the ultimate reliability
+— the ground that enables everything that follows.
 
 This is the **stability** of the preceding discussion.  The world is there.
 It is real.  It is not our construction.  The sheet says so, silently, by
@@ -1771,9 +1772,9 @@ negative context enclosed within a positive one:
 ```
 
 DC+ does not assert anything about the world.  It creates **the space in
-which assertion becomes possible**.  The double cut is logically
+which assertion becomes possible**.  The double cut stays logically
 transparent (it contributes nothing to truth value) but epistemologically
-decisive: it situates all future speech within a structure that makes that
+decisive.  It situates all future speech within a structure that makes that
 speech *contestable*.
 
 This is the moment where inquiry begins.  Not with a claim, but with the
@@ -1809,10 +1810,10 @@ in M', precisely because it was never sheltered from challenge.
   Agonothetes    = Understanding produced    (knowledge, adequate for now)
 ```
 
-The entire epistemological arc — from the reality of the world, through the
-opening of inquiry, through the falsifiability of our claims, through the
-testing of those claims, to the understanding that results — is encoded in
-the axiomatics of Existential Graphs.  Peirce did not need to argue for
+The axiomatics of Existential Graphs encode the entire epistemological arc —
+from the reality of the world, through the opening of inquiry, through the
+falsifiability of our claims, through the testing of those claims, to the
+understanding that results.  Peirce did not need to argue for
 this position philosophically and then build a notation that illustrates it.
 The notation *is* the position.  The philosophy is in the mathematics.
 
@@ -1853,9 +1854,9 @@ from the Agonothetes (the Interpretant — the understanding that the game
 produces and that feeds forward into both the next inquiry and the world
 that inquiry inhabits).
 
-The sign "cat" is simple.  The games it can play are inexhaustible — not
-because the meaning is infinitely deep, but because the world in which the
-sign operates is inexhaustibly responsive to what we make of it.
+The sign "cat" is simple.  The games it can play run inexhaustible — not
+because the meaning goes infinitely deep, but because the world in which the
+sign operates responds inexhaustibly to what we make of it.
 
 ---
 
@@ -1863,7 +1864,7 @@ sign operates is inexhaustibly responsive to what we make of it.
 
 If the triadic framework (Graphist / Grapheus / Agonothetes = Representamen /
 Object / Interpretant) is genuinely grounded in Peirce's architectonic, it
-should not be limited to the formal game.  It should illuminate sign-processes
+should not stop at the formal game.  It should illuminate sign-processes
 wherever they occur.  The following sections explore — speculatively, as rough
 validity checks — whether the framework fits other domains of inquiry.
 
@@ -1876,30 +1877,31 @@ operates between quasi-minds, not within a single consciousness.
 
 The triadic framework maps directly:
 
-- A **book** communicates.  The author's text is the Graphist-function
-  (producing signs).  The reader's existing knowledge is the Grapheus-function
-  (the domain against which the text is tested).  The understanding the reader
-  produces — which is *not* identical to the author's intention — is the
-  Agonothetes-function.  A book read by a novice and the same book read by an
-  expert produce different Agonothetes-judgments because the Grapheus differs.
+- A **book** communicates.  The author's text serves the Graphist-function
+  and produces signs.  The reader's existing knowledge serves the
+  Grapheus-function, the domain against which the text gets tested.  The
+  understanding the reader produces — *not* identical to the author's
+  intention — serves the Agonothetes-function.  A book read by a novice and
+  the same book read by an expert produce different Agonothetes-judgments
+  because the Grapheus differs.
 
-- A **law** operates.  The legislature's enactment is the Graphist-function.
-  The facts of a particular case are the Grapheus-function.  The judge's
+- A **law** operates.  The legislature's enactment serves the Graphist-function.
+  The facts of a particular case serve the Grapheus-function.  The judge's
   interpretation — which may establish precedent, overturn prior readings,
-  or identify ambiguity — is the Agonothetes-function.  The law's meaning
-  is not fixed at enactment; it grows through the iterated application of
+  or identify ambiguity — serves the Agonothetes-function.  The law's meaning
+  does not fix at enactment.  It grows through the iterated application of
   the triadic cycle across cases.
 
-- A **scientific paper** proposes.  The paper's claims are the Graphist-
-  function.  The existing literature and experimental evidence are the
+- A **scientific paper** proposes.  The paper's claims serve the Graphist-
+  function.  The existing literature and experimental evidence serve the
   Grapheus-function.  The community's response — acceptance, replication,
-  critique, revision — is the Agonothetes-function.  Peer review is a
-  formalized Endoporeutic Game.
+  critique, revision — serves the Agonothetes-function.  Peer review amounts
+  to a formalized Endoporeutic Game.
 
 The framework fits because it *is* Peirce's sign-triad applied to inquiry.
-Quasi-minds are precisely the entities between which the triadic process
-operates.  The Endoporeutic Game is a formalization of the process; the
-quasi-mind interactions are the process in the wild.
+Quasi-minds name precisely the entities between which the triadic process
+operates.  The Endoporeutic Game formalizes the process; the
+quasi-mind interactions show the process in the wild.
 
 ### Simple Understanding and Expert Understanding
 
@@ -1910,11 +1912,11 @@ a novice's M_n and an expert's M_e.
 
 - M_n is sparse — few facts, few implications, shallow structure.
 - Many proposals are **independent** of M_n (stalemate → new fact).  The
-  game terminates quickly because there is little for the Grapheus to
+  game terminates quickly because little exists for the Grapheus to
   challenge and little for IT- to map.
-- The Agonothetes-function is coarse: the novice can distinguish "yes,"
+- The Agonothetes-function stays coarse: the novice can distinguish "yes,"
   "no," and "I don't know" but has few intermediate categories.
-- The game tree is shallow and narrow.
+- The game tree stays shallow and narrow.
 
 **The expert's game:**
 
@@ -1923,16 +1925,16 @@ a novice's M_n and an expert's M_e.
 - The same proposal G may be a **theorem** (derivable through a long chain
   of IT- and DC- steps), a **refinement** of an existing result, or a subtle
   **contradiction** that the novice's M_n could not detect.
-- The Agonothetes-function is nuanced: the expert can distinguish refinement
+- The Agonothetes-function runs nuanced: the expert can distinguish refinement
   from generalization, conditional acceptance from provisional hypothesis,
   a genuine contribution from a rediscovery of known results.
-- The game tree is deep and richly branched.
+- The game tree runs deep and richly branched.
 
 **Learning is the iterated growth of M through successive games.**  The
 novice's M_n becomes the expert's M_e through thousands of Agonothetes
 judgments, each enriching the Grapheus for the next round.  The expert is
 not someone who has a *different* process of understanding but someone whose
-Grapheus is deep enough that the Agonothetes can produce fine-grained
+Grapheus runs deep enough that the Agonothetes can produce fine-grained
 distinctions.
 
 This suggests a testable prediction: the quality of understanding scales with
@@ -1951,9 +1953,9 @@ neither culture anticipated.
 navigation; culture B has deep knowledge of agriculture.  A navigational
 claim from A tested against B's M produces stalemate (independence) — not
 because the claim is wrong but because B's M has no basis to evaluate it.
-The Agonothetes-function here is: accept as new fact on A's authority, or
-hold as hypothesis pending B's own investigation.  This is Case 3a in the
-taxonomy — empirical enlargement.
+The Agonothetes-function here has two paths: accept as new fact on A's
+authority, or hold as hypothesis pending B's own investigation.  This lands
+on Case 3a in the taxonomy — empirical enlargement.
 
 **Scenario: overlapping but different frameworks.**  Culture A models illness
 as imbalance of humors; culture B models illness as microbial infection.
@@ -1972,7 +1974,7 @@ reject; it *interprets* the nature of the disagreement and facilitates a
 disposition that may involve revising either M, holding both as alternatives,
 or constructing a third framework that subsumes both.
 
-Cross-cultural understanding is the case where the Agonothetes must operate
+Cross-cultural understanding marks the case where the Agonothetes must operate
 at its most sophisticated — and where a purely boolean game (true/false)
 would be most impoverished.
 
@@ -1993,9 +1995,9 @@ a person's past, present, and future understanding.
 This framing illuminates several familiar phenomena:
 
 - **Diary-keeping and journaling** are forms of the Endoporeutic Game played
-  across time.  The journal entry is the Graphist's proposal; re-reading it
-  years later tests it against a changed M; the insight produced is the
-  Agonothetes-function.
+  across time.  The journal entry serves as the Graphist's proposal;
+  re-reading it years later tests it against a changed M; the insight
+  produced serves the Agonothetes-function.
 
 - **Education** (as in Scenario 5 of the practical exemplars) is the
   *guided* application of the cycle: the teacher structures the Graphist's
@@ -2005,7 +2007,7 @@ This framing illuminates several familiar phenomena:
 - **Self-contradiction across time** ("How could I have believed that?") is
   a game in which the present self's enriched M exposes a claim the past
   self held as a theorem but which the present self can refute.  The
-  discomfort is the Agonothetes registering a genuine conflict between
+  discomfort marks the Agonothetes registering a genuine conflict between
   temporal selves.
 
 Peirce himself anticipated this with his notion of the **community of
@@ -2018,7 +2020,7 @@ is the iterated Graphist–Grapheus–Agonothetes cycle applied across time.
 
 The framework appears to fit — not as a loose analogy but as a structural
 correspondence.  In every case examined, the three functions (assertive,
-critical, interpretive) are present and irreducible.  Removing any one
+critical, interpretive) stand present and irreducible.  Removing any one
 collapses the process:
 
 - Without the Graphist: no proposals, no growth — a static archive.
@@ -2026,11 +2028,11 @@ collapses the process:
 - Without the Agonothetes: no interpretation, no significance — a contest
   with a winner but no understanding.
 
-This structural necessity is exactly what Peirce's semiotic predicts.  The
-sign-triad is irreducible because meaning-making is irreducibly triadic.
-The Endoporeutic Game is one formalization of this process; the quasi-mind
+Peirce's semiotic predicts exactly this structural necessity.  The
+sign-triad stays irreducible because meaning-making runs irreducibly triadic.
+The Endoporeutic Game gives one formalization of this process; the quasi-mind
 interactions, the novice-to-expert trajectory, the cross-cultural encounter,
-and the temporal self are other instances of the same triadic engine.
+and the temporal self give other instances of the same triadic engine.
 
 These observations remain speculative and would benefit from more rigorous
 treatment.  But as rough validity checks, they suggest that the triadic
@@ -2080,9 +2082,9 @@ remove and simplify.
 
 ### Reasoning across a role reversal
 
-Removing a negation reverses the roles — its mechanism is *The Outside-In
-Process* and *Role Reversal as Descent* in Part I. Strategically, this means
-both players must reason about
+Removing a negation reverses the roles; *The Outside-In Process* and
+*Role Reversal as Descent* in Part I give the mechanism. Strategically, both
+players must therefore reason about
 the consequences of a move not just for the current position but for the
 position they may find themselves defending *after* a role switch — the former
 Skeptic becomes the Proposer who must defend the contrary graph.
@@ -2196,7 +2198,7 @@ The arena drives the same `EndoporeuticGame` engine shown above over the
 `/agon` routes (`new_game` / `apply_move` / `concede` / `legal_areas`), with
 hot-seat play (one user drives both roles) and a post-game disposition
 selector. *(An earlier `src/game_repl.py` terminal REPL was removed; the engine
-API above is the headless entry point if you want to script a game.)* The game
+API above serves as the headless entry point if you want to script a game.)* The game
 also plays with no one at the keyboard — the autonomous loop in
 `src/agon_evolution.py` / `src/agon_llm.py` runs whole campaigns headless
 ([AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)).
@@ -2222,8 +2224,8 @@ print(ProofSerializer.to_text(state.history))
 
 ### Peirce's Game Semantics
 
-The Endoporeutic Game formalizes Peirce's insight that the *meaning* of a logical
-graph is given by the *strategies available to the players*. A graph is **true** if
+The Endoporeutic Game formalizes Peirce's insight that the *strategies available
+to the players* give the *meaning* of a logical graph. A graph is **true** if
 the Graphist has a winning strategy; **false** if the Grapheus has one; **undetermined**
 if neither can force a win.
 
@@ -2241,15 +2243,14 @@ This dialogical interpretation makes EG a precursor to:
 ### Dau's Formalization
 
 Dau (2006) provides the mathematical foundation in Chapter 21 of
-*The Logic System of Concept Graphs with Negations*. The key insight is that
-the six transformation rules, constrained by polarity, create a complete
-proof system: any semantically valid entailment can be demonstrated through
-game play.
+*The Logic System of Concept Graphs with Negations*. The six transformation
+rules, constrained by polarity, create a complete proof system — game play
+can demonstrate any semantically valid entailment.
 
 ### The Pragmatic Turn
 
-What distinguishes the EPG from a standard proof system is its **pragmatic**
-character. The post-game negotiation (Part II) connects the formal
+Its **pragmatic** character distinguishes the EPG from a standard proof
+system. The post-game negotiation (Part II) connects the formal
 game to Peirce's broader theory of inquiry:
 
 - **Belief fixation**: The game outcome fixes or disturbs belief
@@ -2273,8 +2274,8 @@ project holds that the same shape recurs one level up: **Arisbe itself is a
 proposition scribed into a wider Endoporeutic Game**, whose other players
 are the traditions and communities the program addresses.
 [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §8 (Stratum II) *is* that
-proposition, voiced and graded; its pre-registered priors and run logs are
-peels already played, and a competent refutation would be the game
+proposition, voiced and graded; its pre-registered priors and run logs stand
+as peels already played, and a competent refutation would be the game
 *working*, not the game lost. Judgment on the proposition is objectivated,
 never owned ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
 §2(c)), and there is no "final" (§7 of the same document).

@@ -1,6 +1,26 @@
 # Current Plan
 
-**Last Updated**: 2026-07-28 (overnight, fifth arc) — **THE VOICE PROJECT OPENED + THE
+**Last Updated**: 2026-07-28 (sixth arc) — **THE VOICE PASS IS COMPLETE: ALL 47 BOOK
+CHAPTERS RE-VOICED INTO THE AUTHOR'S VOICE + THE FOUR LETTERS DRAFTED.** Every chapter in
+`docs/_quarto.yml` now reads in the author's voice, distilled from his journal at his
+direction (E-Prime lean — his own rule, minimize "to be," unpack what "is" hides; concrete
+anchor first; aphorism/accumulation rhythm; real questions; light allusion; no
+bold-taxonomy compression). **Discipline held throughout and verified mechanically:**
+headings byte-identical in all 39 touched files (anchors intact), quotations verbatim
+(one agent even caught and repaired a Peirce quotation a killed pass had re-wrapped),
+contract clauses/verdict tables/grade labels/measured numbers/commands/EGIF/code frozen,
+lengths within ±1%. Book renders 47/47; quality gates + 152 core tests green at every
+commit. **Two chapters excluded by design, for the author's ruling:**
+ARISBE_CORE_API_REFERENCE (auto-generated — edits would vanish on regeneration) and
+ADVERSARIAL_EXAMINATION (a *record* of examinations; re-voicing a record tampers with what
+it records). **One pre-existing defect surfaced** (not introduced): FIELD_GUIDE's compass
+says "Four headings" above five bullets — the author's to fix. The pass ran across three
+spend-limit interruptions (two overnight, one mid-morning); the surviving work was
+checkpoint-committed at each wall, and nothing was lost. **The four letter drafts**
+(`docs/share/LETTER_*_DRAFT.md`) await his markup; the voice profile lives in session
+memory, correctable by him.
+
+**Last Updated (prior)**: 2026-07-28 (overnight, fifth arc) — **THE VOICE PROJECT OPENED + THE
 OVERNIGHT RE-VOICING, INTERRUPTED BY THE SPEND LIMIT.** The author asked (2026-07-28)
 whether the assistant can write in his voice — letters first, then all documentation —
 and pointed at his journal as evidence. Done overnight: (1) a **voice profile** distilled
