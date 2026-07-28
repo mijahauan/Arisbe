@@ -2,57 +2,57 @@
 
 ## Overview
 
-This document provides comprehensive documentation for the implementation of Frithjof Dau's Chapter 18 [FOPL](GLOSSARY.md#fopl) (First Order Predicate Logic) to Existential Graph translation system in the Arisbe framework.
+This document describes how the Arisbe framework implements Frithjof Dau's Chapter 18 [FOPL](GLOSSARY.md#fopl) (First Order Predicate Logic) to Existential Graph translation system.
 
 ## Implementation Status
 
-The translator (`Chapter18FOPLTranslator` — Ψ: FOPL→EGI, Φ: EGI→FOPL) is implemented and
-in production use as the FOPL generator behind the linear-form view
-(`web_api/services/linear_forms.py`) and inside `z3_semantic_validator.py`. It has **no
-dedicated test file** — see "Testing — the honest picture" below for what actually exercises
+The translator (`Chapter18FOPLTranslator`, Ψ: FOPL→EGI and Φ: EGI→FOPL) runs in production
+as the FOPL generator behind the linear-form view
+(`web_api/services/linear_forms.py`) and inside `z3_semantic_validator.py`. It carries **no
+dedicated test file**. See "Testing — the honest picture" below for what actually exercises
 it today.
 
 ### Key Components
 
-1. **Translation Framework** (`src/chapter18_fopl_translation.py`) — a single
-   module; there is no separate "enhanced" module.
+1. **Translation Framework** (`src/chapter18_fopl_translation.py`) — one
+   module. No separate "enhanced" module exists.
    - Complete FOPL parser with lexical analysis and recursive descent parsing
      (`FOPLLexer`, `FOPLParser`, `parse_fopl_formula`)
    - Ψ translation: FOPL formulas → Existential Graph Instances ([EGIs](GLOSSARY.md#egi)) (`Chapter18FOPLTranslator.psi_translate`)
    - Φ translation: EGIs → FOPL formulas (`phi_translate` / `egi_to_fopl`)
    - Module-level convenience wrappers: `fopl_to_egi`, `egi_to_fopl`
-   - Variable-sharing detection, existential vertex merging, and round-trip
-     fidelity are built into this one translator
+   - This one translator carries variable-sharing detection, existential vertex
+     merging, and round-trip fidelity
    - Support for all logical operators: ∧, ∨, ¬, →, ∃, ∀, .=
 
-2. **Testing — the honest picture.** There is no `tests/test_chapter18_*` file and no unit
-   test that calls `Chapter18FOPLTranslator`/`fopl_to_egi`/`egi_to_fopl`/`psi_translate`/
+2. **Testing — the honest picture.** No `tests/test_chapter18_*` file exists, and no unit
+   test calls `Chapter18FOPLTranslator`/`fopl_to_egi`/`egi_to_fopl`/`psi_translate`/
    `phi_translate` directly. What actually exercises this module today:
    - `web_api/services/linear_forms.py` registers `egi_to_fopl` (the Φ direction) as the
-     `"fopl"` linear-form entry generated for every EGI the web app renders. Because each
-     format is generated **defensively** (`_generate_one` catches and isolates a failing
-     generator's exception rather than raising), the FOPL path runs incidentally in every
-     test that exercises `linear_forms()` — `tests/test_linear_forms.py`,
+     `"fopl"` linear-form entry generated for every EGI the web app renders. The view
+     generates each format **defensively** — `_generate_one` catches and isolates a failing
+     generator's exception rather than raising — so the FOPL path runs incidentally in every
+     test that exercises `linear_forms()`: `tests/test_linear_forms.py`,
      `tests/test_ergasterion_freeform.py`, `tests/test_organon_routes.py`,
      `tests/test_glossary_routes.py`, `tests/test_ergasterion_compose_routes.py`,
      `tests/test_branching_chain.py`, `tests/test_second_order_conservativity.py`,
-     `tests/test_ergasterion_challenge.py`, `tests/test_import_routes.py` — but **none of
-     them assert the `"fopl"` entry's `ok`/`text` content**; only `egif`/`cgif`/`clif` are
-     checked. A broken Φ translation would report `ok: false` in its own isolated entry and
-     no test would fail.
+     `tests/test_ergasterion_challenge.py`, `tests/test_import_routes.py`. But **none of
+     them assert the `"fopl"` entry's `ok`/`text` content**; they check only
+     `egif`/`cgif`/`clif`. A broken Φ translation would report `ok: false` in its own
+     isolated entry, and no test would fail.
    - `z3_semantic_validator.py` imports the translator for SMT-backed semantic checks, but
      has no dedicated test file either.
    - `chapter20_syntactic_equivalence_fixes.py` also imports it, but that module itself
-     imports a nonexistent `chapter18_enhanced_translation` and is not imported by any live
-     `src`/`tests`/`tools` code — dead code, not evidence of coverage.
+     imports a nonexistent `chapter18_enhanced_translation`, and no live
+     `src`/`tests`/`tools` code imports it in turn. Dead code, not evidence of coverage.
    - `tests/test_induction_proofs.py:173` cites `chapter18_fopl_translation` only in a
      comment justifying a hand-derived EGIF schema, not as an executed test.
 
-   **Net: the Ψ/Φ translation is production-wired but untested** — no assertion anywhere
-   confirms its output is correct. The "Testing Results" and "Performance Characteristics"
-   sections below describe an aspirational suite, not one that exists; treat every
-   percentage/complexity claim in them as unverified until a real `tests/test_chapter18_*`
-   is written.
+   So **the Ψ/Φ translation stands production-wired but untested**. No assertion anywhere
+   checks its output for correctness. The "Testing Results" and "Performance Characteristics"
+   sections below describe an aspirational suite rather than one that exists. Treat every
+   percentage and complexity claim in them as unverified until someone writes a real
+   `tests/test_chapter18_*`.
 
 ## Translation Rules (Dau's Ψ Mapping)
 
@@ -129,7 +129,7 @@ fopl_back = translator.phi_translate(egi)
 
 ## Format Consistency
 
-The translation system ensures consistency across all supported formats:
+The translation system keeps consistency across all supported formats:
 
 - **EGIF**: Existential Graph Interchange Format
 - **CGIF**: Conceptual Graph Interchange Format  
@@ -139,10 +139,10 @@ All formats maintain semantic equivalence and support round-trip translation.
 
 ## Testing Results
 
-**Unverified.** As established under "Implementation Status" above, no test suite exercises
+**Unverified.** As "Implementation Status" above establishes, no test suite exercises
 this module's correctness directly. The claims below describe the *design intent* of the
-translator (what the Ψ/Φ mapping is supposed to guarantee), not a measured or attested
-result — do not cite them as verified figures until real tests exist.
+translator, meaning what the Ψ/Φ mapping ought to guarantee. They report no measured or
+attested result. Do not cite them as verified figures until real tests exist.
 
 ### Translation Consistency (design intent, not measured)
 - Atomic Formulas — intended: exact translation
@@ -179,7 +179,7 @@ Works with all existing parsers and generators:
 ## Advanced Features
 
 ### Variable Sharing Detection
-The translator automatically detects variables that appear in multiple contexts and handles them appropriately:
+The translator itself detects variables that appear in multiple contexts, and handles them appropriately:
 
 ```python
 # Shared variable 'x' properly handled
@@ -214,8 +214,8 @@ The system provides comprehensive error handling for:
 
 ## Performance Characteristics
 
-**Unverified — no benchmark backs these figures.** Removed pending a real measurement; see
-"Implementation Status" above for what is actually confirmed about this module.
+**Unverified. No benchmark backs these figures.** Removed pending a real measurement. See
+"Implementation Status" above for what stands confirmed about this module.
 
 ## Future Extensions
 
@@ -233,15 +233,15 @@ The system provides comprehensive error handling for:
 
 ## Conclusion
 
-The Chapter 18 FOPL translation module implements Dau's Ψ/Φ mapping and is wired into
-production (`web_api/services/linear_forms.py`, `z3_semantic_validator.py`). It has **not**
-been independently tested: no dedicated test file exists, and the incidental exercise it
-gets through the linear-form view's defensive per-format generation asserts nothing about
-its output.
+The Chapter 18 FOPL translation module implements Dau's Ψ/Φ mapping and runs in
+production (`web_api/services/linear_forms.py`, `z3_semantic_validator.py`). It remains
+**untested** by any independent check. No dedicated test file exists, and the incidental
+exercise it gets through the linear-form view's defensive per-format generation asserts
+nothing about its output.
 
 **Status**: implemented, production-wired, **untested**
 **Compliance**: unverified against Dau Chapter 18 (no test suite checks this)
 **Integration**: imported by Chapters 16 & 17-adjacent modules (`z3_semantic_validator.py`);
-`chapter20_syntactic_equivalence_fixes.py`'s import is dead code (imports a nonexistent
-sibling module, itself unused)
+`chapter20_syntactic_equivalence_fixes.py`'s import counts as dead code (it imports a
+nonexistent sibling module, and nothing uses it)
 **Testing**: none dedicated — see "Testing — the honest picture" above

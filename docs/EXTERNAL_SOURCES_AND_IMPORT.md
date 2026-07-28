@@ -30,8 +30,8 @@ single discipline supplies the reason:
 So an import is **admitted, comprehended, and attested — never asserted true.**
 Arisbe parses it (it carries a determinate meaning), checks it for correspondence
 (the picture and the text agree), and attributes it bibliographically (the trace
-of the un-hosted dialogue it came from). One thing alone lifts an item above the
-floor: **surviving the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game** — see
+of the un-hosted dialogue it came from). An item rises above the floor by one
+route alone. It must **survive the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game** — see
 [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) §4.
 
 Two consequences deserve stating up front:
@@ -64,10 +64,10 @@ doorways:
 | **C. Live sources** | a stream the world keeps writing: Wikidata statements and its recent-changes feed | **the automated Endoporeutic Game's membranes** (`wikidata_source.py` → `live_runner.py`) — each claim enters by being *played*, not filed | low; each claim is peeled and disposed on entry |
 
 In family A a *translator brings a file across*; in family B a *human brings a
-page across*. Both land on the same floor (§1); they differ only in who does the
-reading. Family C, added 2026-07, differs in kind. The source remains *ongoing*,
-and the game itself serves as the doorway. A polled statement does not get saved.
-It enters the automated game as a proposal, faces testing against the developing
+page across*. Both land on the same floor (§1), and they differ only in who does
+the reading. Family C, added 2026-07, differs in kind. The source keeps running,
+and the game itself serves as the doorway. Nobody saves a polled statement. It
+enters the automated game as a proposal, faces testing against the developing
 model M, and comes in (or doesn't) under a named disposition, with disuse-decay
 bounding what accumulates. The claim's entry record *is* its game record. See
 [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §10 and
@@ -79,8 +79,8 @@ bounding what accumulates. The claim's entry record *is* its game record. See
 
 An **ontology amounts to a terminological box ([T-box](GLOSSARY.md#t-box))**, and every T-box axiom already
 takes an EG shape the corpus knows. So an ontology imports as the **conjunction of
-its axioms on one sheet** — a single `kind=ontology` UoD, browsable in Organon and
-playable as a model **M** in Agon.
+its axioms on one sheet**. One `kind=ontology` UoD holds it, browsable in Organon
+and playable as a model **M** in Agon.
 
 | Axiom (Description Logic ([DL](GLOSSARY.md#dl))) | EG shape |
 |---|---|
@@ -119,19 +119,19 @@ theory (with the skip-report in its warnings).
 
 ### The honest-partial-translation discipline
 
-The floor applied to import: **bring across what's EG-expressible; report
-everything else by construct; never silently truncate.**
+Applied to import, the floor asks three things: **bring across what's
+EG-expressible; report everything else by construct; never silently truncate.**
 
 - Constructs left behind — cardinality, union, complement, `AllValuesFrom`,
   datatypes, functional/key axioms, annotations, modal/higher-order SUO-KIF — get
   **counted and reported by operator** in the UoD's annotation. (`⊑ owl:Thing`
   drops as trivial; `Declaration(…)` counts as vocabulary, not as a skip.) No
   silent cap that would read as "imported all of SUMO."
-- **Function terms are relationalised on import** (`_relationalize_functions`): a
-  nested application `(f t₁…tₙ)`, which the protected CLIF parser can't take in
-  argument position, lifts to its graph atom `∃z (f …args… z)`, the
-  meaning-preserving EG reading of a function (Dau, ICCS 2007). This happens at the
-  importer boundary and leaves the protected lexer untouched.
+- **Import relationalises function terms** (`_relationalize_functions`). A nested
+  application `(f t₁…tₙ)`, which the protected CLIF parser can't take in argument
+  position, lifts to its graph atom `∃z (f …args… z)`, the meaning-preserving EG
+  reading of a function (Dau, ICCS 2007). The work happens at the importer
+  boundary and leaves the protected lexer untouched.
 
 These reductions, the COLORE wrinkles they fixed (block-comment headers,
 alpha-renaming reused bound variables, `cl-comment` annotations), and the worked
@@ -141,11 +141,11 @@ landings (`porphyry_tree`, `foaf_core`, `sumo_upper`, `colore_between`,
 
 ### Closing the loop — an import is a real M
 
-An imported ontology is not inert reference. In Agon it is a **model M** you can
-ask a question of: `theory_query.entails` decides whether a universal G is a
-**theorem of the theory** (subsumption / intersection / transitivity), by
-freeze-a-fresh-witness over a pure T-box. So the round trip is: *import a file →
-draw and attest it → decide a theorem against it.* See
+An imported ontology does not sit as inert reference. In Agon it serves as a
+**model M** you can ask a question of. `theory_query.entails` decides whether a
+universal G counts as a **theorem of the theory** (subsumption / intersection /
+transitivity), by freeze-a-fresh-witness over a pure T-box. So the round trip
+runs *import a file → draw and attest it → decide a theorem against it.* See
 [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) §6.2 and
 [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 
@@ -169,25 +169,26 @@ CGIF / CLIF / FOPL), and Arisbe:
 
 A `CorrespondenceViolation` at admit-time **refuses** the import rather than shelve
 a graph that means something other than it says. (Route: `web_api/routes/imports.py`;
-service: `import_service`.) This is fair access + method-gate together: it gates
-*what* is proposed, not *who* proposes it.
+service: `import_service`.) Here fair access and the method-gate work as one. The
+doorway gates *what* someone proposes, never *who* proposes it.
 
 ### 4b. From English, not logic — the NL→logic front door
 
-When the source is prose, turning English into a logical form is a separate, noisy
-job best left to a language model — **"the LLM proposes, Arisbe disposes."** Agon's
-plain-English door (`/agon/propose-nl`, the ✶ Translate button) drafts an EGIF from
-a sentence, shows the reading, and splits *vocabulary-miss* from *fact-miss* — but
-Arisbe's contribution begins only once a candidate logical form exists, to *verify*,
-*draw*, *interpret*, and *keep its warrant*. See [NL_TO_LOGIC.md](NL_TO_LOGIC.md).
+When the source comes as prose, turning English into a logical form remains a
+separate, noisy job, best left to a language model — **"the LLM proposes, Arisbe
+disposes."** Agon's plain-English door (`/agon/propose-nl`, the ✶ Translate button)
+drafts an EGIF from a sentence, shows the reading, and splits *vocabulary-miss*
+from *fact-miss*. Arisbe's own contribution begins only once a candidate logical
+form exists, and then it can *verify*, *draw*, *interpret*, and *keep its warrant*.
+See [NL_TO_LOGIC.md](NL_TO_LOGIC.md).
 
 ### 4c. The reading desk (forward edge — not yet a single surface)
 
-The interactive human counterpart to the §3 translators: a person reading a book
-transcribes a graph **and its provenance** through the UI — draw/enter the EG (or
+The interactive human counterpart to the §3 translators. A person reading a book
+transcribes a graph **and its provenance** through the UI: draw or enter the EG (or
 paste a linear form), fill the provenance bundle (kind, citation,
 transcribed-vs-authored, warrant stays `low`) and annotations, watch it §3.3-attest
-live, and save to scratch or send to Agon. The building blocks exist (the workshop
+live, then save to scratch or send to Agon. The building blocks exist (the workshop
 editor, `save_provenance` / `save_annotations`, the parsers); the dedicated
 provenance/annotation surface does not. [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)
 §6, [ORGANON_IMPORT_WALKTHROUGH.md](archived/ORGANON_IMPORT_WALKTHROUGH.md).
@@ -196,7 +197,7 @@ provenance/annotation surface does not. [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_
 
 ## 5. The tool & module map
 
-Everything in one place (the deep behaviour is in the linked docs):
+Everything in one place (the linked docs carry the deep behaviour):
 
 | Concern | Where | Notes |
 |---|---|---|
@@ -219,33 +220,34 @@ the round-trip matrix) live in [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.
 
 ## 6. The forward edges (stated honestly)
 
-- **The reading desk** — the interactive by-hand transcription surface (§4c). The
-  biggest near-term gap: today every corpus item was built by a Python tool; the
-  human path through the UI is not yet a single surface.
+- **The reading desk** — the interactive by-hand transcription surface (§4c). This
+  remains the biggest near-term gap. Today a Python tool built every corpus item,
+  and the human path through the UI has not yet become a single surface.
 - **A web import-doorway notation for multi-axiom ontologies** — the `/import` page
-  takes one linear form; a real ontology is many axioms, and flattening it into one
-  "linear form" would lose the skip-report. Not yet surfaced.
+  takes one linear form. A real ontology carries many axioms, and flattening them
+  into one "linear form" would lose the skip-report. Not yet surfaced.
 - **Manchester OWL syntax** — no maintained Python parser; deferred (the Functional
   and RDF front ends cover the realistic paths).
-- **Layout performance for large theories** — a 100+-axiom ontology *attests* but is
-  super-linear to *draw* (the 127-axiom SUMO ground taxonomy: ~74 s, 250 cuts).
-  Large taxonomies live as **spines + translators** today; *M is data — draw only
-  the contested fragment.* This is a real layout-performance frontier.
+- **Layout performance for large theories** — a 100+-axiom ontology *attests*, but
+  drawing it costs super-linear time (the 127-axiom SUMO ground taxonomy: ~74 s,
+  250 cuts). Large taxonomies live as **spines + translators** today; *M is data —
+  draw only the contested fragment.* A real layout-performance frontier stands here.
 - **Warrant lifecycle** — wiring the `low → tested` transition to an actual Agon
-  outcome (blocked until Agon emits outcomes), so a graph that survives the game is
-  re-saved at `tested` with the game record as its proof-of-standing.
+  outcome (blocked until Agon emits outcomes), so a graph that survives the game
+  gets re-saved at `tested`, carrying the game record as its proof-of-standing.
 
 ---
 
 ## 7. The one-paragraph summary
 
 Outside information enters Arisbe through two doorways onto a single floor.
-**Formal files** (OWL / RDF / SUO-KIF / CLIF / COLORE) are *translated* — each
-T-box axiom is already an EG shape — into a `kind=ontology` UoD, bringing across
-the EG-expressible ground and **reporting by construct** what it can't, then
-becoming a real model M you can decide theorems against. **Human-read material**
-(textbooks, websites, papers) enters as a linear form through `/import` with a
-bibliographic citation, or — once the reading desk is built — by hand with full
-provenance. Either way it is **admitted at low warrant, attested for
-correspondence, attributed to its source, and never asserted true.** Warrant rises
-only by surviving the Agon; nothing is ever frozen above the blank sheet.
+**Formal files** (OWL / RDF / SUO-KIF / CLIF / COLORE) get *translated* into a
+`kind=ontology` UoD, since each T-box axiom already takes an EG shape. The
+translation brings across the EG-expressible ground and **reports by construct**
+what it can't, and what lands becomes a real model M you can decide theorems
+against. **Human-read material** (textbooks, websites, papers) enters as a linear
+form through `/import` with a bibliographic citation, or — once the reading desk
+exists — by hand with full provenance. Either way it is **admitted at low warrant,
+attested for correspondence, attributed to its source, and never asserted true.**
+Warrant rises only by surviving the Agon; nothing ever freezes above the blank
+sheet.

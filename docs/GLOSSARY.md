@@ -8,8 +8,8 @@
 > [ROADMAP.md](ROADMAP.md).
 >
 > **Lost in the shorthand?** The **[Notation & reference numbers](#notation--reference-numbers)**
-> section below decodes `§3.3`, `§7`, and the `Gx` / `Rx` / `Fⁿ` / `Pⁿ` tracking IDs — the one
-> place the symbols are spelled out.
+> section below decodes `§3.3`, `§7`, and the `Gx` / `Rx` / `Fⁿ` / `Pⁿ` tracking IDs. It spells
+> every symbol out in one place.
 
 ---
 
@@ -51,7 +51,7 @@
 
 ## Abbreviations
 
-The acronyms the book uses, each expanded on first use and linked here. Headings are the
+The acronyms the book uses, each expanded on first use and linked here. The headings serve as the
 link targets (e.g. a first use renders *Existential Graph Instance ([EGI](GLOSSARY.md#egi))*).
 
 ### EG
@@ -149,16 +149,16 @@ optional tension layout.
 
 ## Notation & reference numbers
 
-> **The one place the shorthand is decoded.** Arisbe's documents use three kinds of terse
-> reference a newcomer can't be expected to track. Here is what each means and where its full
-> description lives. **Rule of thumb: a bare "§N" always means a *section of the document you
-> are reading*; a cross-document reference always names the document** — write
+> **The one place that decodes the shorthand.** Arisbe's documents use three kinds of terse
+> reference a newcomer can't be expected to track. This section says what each means and where
+> its full description lives. **As a rule of thumb, a bare "§N" always means a *section of the
+> document you are reading*, while a cross-document reference always names the document.** Write
 > "LINEAR_GRAPHICAL_CORRESPONDENCE §7", not a bare "§7".
 
 ### Named anchors — section numbers that are really *concepts*
 
-A few section numbers are used so often they function as names. Prefer the name; the number is
-just a bookmark into the anchor's home document.
+A few section numbers recur so often that they function as names. Prefer the name. The number
+serves only as a bookmark into the anchor's home document.
 
 | You'll see | Read it as | Full description |
 |---|---|---|
@@ -169,11 +169,11 @@ just a bookmark into the anchor's home document.
 
 ### Reference numbers — the project's own work-tracking IDs
 
-These letter-number tags are **development tracking, not concepts**: they index findings, gaps,
-and prospects in the lab-notebook documents. You never need them to understand Arisbe — but when
-one appears, here is its register. **A letter is reused across registers** (both prospects and the
-consolidate/adopt task track use "R"; both a run's priors and the correspondence contract use "P"),
-so always read a tag in the document that introduces it.
+These letter-number tags carry **development tracking, not concepts**. They index findings, gaps,
+and prospects in the lab-notebook documents. You never need them to understand Arisbe. When one
+appears, though, this table names its register. **A letter recurs across registers** (both
+prospects and the consolidate/adopt task track use "R"; both a run's priors and the correspondence
+contract use "P"), so always read a tag in the document that introduces it.
 
 | Tag | Meaning | Register |
 |---|---|---|
@@ -186,9 +186,9 @@ so always read a tag in the document that introduces it.
 ### The prior families — one letter-family per pre-registered experiment
 
 Every measured effort pre-registers its falsifiable predictions under its own short family, so a
-verdict ("PM4 refuted") is always traceable to the experiment that staked it. The family is
-**owned by the log or spec that introduces it** — read it there, never by pattern-matching the
-letters. Chronological:
+verdict ("PM4 refuted") always traces back to the experiment that staked it. **The log or spec
+that introduces a family owns it.** Read it there, never by pattern-matching the letters. The
+table runs chronologically.
 
 | Family | Experiment / effort | Verdicts live in |
 |---|---|---|
@@ -205,9 +205,9 @@ letters. Chronological:
 
 ### The law families — standing obligations and ratified verdicts (not priors)
 
-These look like prior families but are different in kind: a prior is a bet a run settles once; a
-**law** is a standing obligation a gate re-checks forever, and a **ratified verdict set** is an
-author ruling on the record.
+These resemble the prior families but differ in kind. A prior stakes a bet a run settles once. A
+**law** names a standing obligation a gate re-checks forever, and a **ratified verdict set**
+stands as an author ruling on the record.
 
 | Family | What it is | Home |
 |---|---|---|
@@ -228,7 +228,7 @@ the second-order crossing stages · **rung 0–2** the directed-engagement ladde
 
 ### Common acronyms
 
-The letter-acronyms (EGI, UoD, DTO, ELK, …) are in **[Abbreviations](#abbreviations)** just above.
+The letter-acronyms (EGI, UoD, DTO, ELK, …) live in **[Abbreviations](#abbreviations)** just above.
 **CI** = continuous integration (the automated test run that guards every change).
 
 ---

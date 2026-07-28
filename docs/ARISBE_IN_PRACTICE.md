@@ -20,17 +20,18 @@ Charles Sanders Peirce called his Existential Graphs "moving pictures of
 thought." He meant that literally. A graph does not depict a
 proposition the way a bar chart depicts some numbers; the graph
 **is** the proposition, drawn — a sign you can reason *in*, not merely look at.
-To assert something is to [scribe](GLOSSARY.md#scribe) it on the sheet; to prove something is to
-transform the picture by rules that never let it say something false; to ask
-what a claim means is to play it out against what you already hold true.
+To assert something means to [scribe](GLOSSARY.md#scribe) it on the sheet. To prove
+something, transform the picture by rules that never let it say something
+false. To ask what a claim means, play it out against what you already hold
+true.
 
 Arisbe provides an environment for **doing logic in pictures, not pictures of
 logic** — Peirce's vision made operational. You draw, transform, and contest
 Existential Graphs directly, as diagrams that evolve over a course of inquiry.
 Frithjof Dau's formalization stands underneath as the **guarantor of
 correctness**, the bedrock that makes "the picture never lies" a theorem rather
-than a hope. But the *aim* remains Peirce's: to think in pictures, and to let
-the picture and the sentence be two faces of one and the same thought.
+than a hope. But the *aim* remains Peirce's: to think in pictures, and to hold
+the picture and the sentence as two faces of one and the same thought.
 
 That last clause names the engineering heart of the system, and every persona
 below leans on it: Arisbe holds the **drawn form** and the **written form** of a
@@ -63,14 +64,14 @@ of what it models.
    machinery running *as a loop* against a source you point it at (your own
    notes, a live public feed), with you ruling on what the record shows rather
    than making every move. The loops are built and have completed logged runs;
-   what they produce is a track record, never a claim to truth.
+   they produce a track record, never a claim to truth.
 3. **Kytē in association** (Part IV) — many such units federated. Here the
-   grading is strictest: what exists is *one* instance **modeling**
+   grading runs strictest: *one* instance exists, **modeling**
    association and measuring its economics under pre-registered priors. A
    simulated federation is not a community, and this document will not
    pretend otherwise.
 
-*("Kytos" — plural "kytē" — is the project's name for its recurring
+*("Kytos", plural "kytē", names the project's recurring
 membrane-and-loop unit of inquiry: a bounded interior model, a doubt-cycle
 that revises it, and a membrane through which a world reaches it. The anatomy
 lives in [THE_KYTOS.md](THE_KYTOS.md); for this document it suffices that register
@@ -112,23 +113,23 @@ shipped, and now sit under "Now."
 
 ## The teacher
 
-**Maria teaches introductory logic.** She is tired of students who can push
+**Maria teaches introductory logic.** She has tired of students who can push
 symbols around a truth table but cannot say what an implication *means*. She
-wants logic to be something her students *do*, not a notation they decode.
+wants her students to *do* logic rather than decode a notation.
 
 **Now.** Maria opens **Organon** and pulls up a worked proof — Peirce's Law,
 Barbara, the uniqueness of a group identity — each a real chain of sound steps
 she can walk forward and back. She drops a small domain model in front of the
 class ("every mammal is warm-blooded; dogs are mammals…") and in **Agon** lets a
 student propose a claim and watch the game *unwrap* it from the outside in until
-it resolves to a theorem, a contradiction, or a genuinely new fact — now against
-an **automated opponent** (the machine plays the model side optimally), with the
-running play and its verdict shown move by move. She can hand a student a target
+it resolves to a theorem, a contradiction, or a genuinely new fact. The class now
+plays an **automated opponent** — the machine plays the model side optimally —
+with the running play and its verdict shown move by move. She can hand a student a target
 graph and let **challenge mode** grade a freehand attempt against it, with a
 **legible diff** that says, in the student's own vocabulary, *exactly* where the
 attempt and the target part ways — wrong scope, missing line of identity,
-arguments in the wrong order. Nothing on screen is a static slide; every diagram
-is live and inspectable.
+arguments in the wrong order. Nothing on screen sits as a static slide; every
+diagram stays live and inspectable.
 
 **When complete.** A fully constructive *proof mode* to complement the
 model-checking game, so a challenge can be played as "find the derivation," with
@@ -147,28 +148,28 @@ supplies the assessment (freehand drawings graded in the student's own
 vocabulary, the same method for the newcomer and the expert); and the **four
 linear forms** (EGIF, CGIF, CLIF, FOPL) supply the bridge to whatever notation
 the rest of the curriculum speaks — the same graph, four sentences, provably
-one object. A ready-made sequence of session plans is in
-[TEACHING_PACK.md](TEACHING_PACK.md).
+one object. [TEACHING_PACK.md](TEACHING_PACK.md) holds a ready-made sequence of
+session plans.
 
 ## The student
 
 **Amara is learning, not performing.** She does not yet trust her own reasoning,
-and abstract rules slide off her. She needs to *see* why a step is allowed and to
-be caught — kindly and immediately — when it is not.
+and abstract rules slide off her. She needs to *see* why the rules allow a step,
+and to be caught — kindly and immediately — when they do not.
 
 **Now.** In **Ergasterion** Amara composes a graph by hand on a freeform canvas:
 she places relations, draws cuts as ovals, drags lines of identity. Then she
 asks the graph **"what do you say?"** — and it reads itself back as a determinate
 sign with its linear form shown, *or* tells her, in the vocabulary of graphs,
-why it is not yet well-formed (a line dangling into nothing, two cuts improperly
-overlapping). A **Graph↔Argument** switch makes the difference between a sketch
+why it does not yet stand well-formed (a line dangling into nothing, two cuts
+improperly overlapping). A **Graph↔Argument** switch makes the difference between a sketch
 and a committed claim unmistakable: you cannot apply a rule to an unfixed
 drawing, nor silently change the meaning of a fixed one. She practises the six
-transformation rules with every application validated against the mathematics,
-and **challenge mode** turns practice into a game she can win — reproduce *this*
-graph, and get told precisely how close she is (the trickiest targets are marked
-with a 🐉, the field guide's "dragons," and a wrong attempt hands her back the
-antidote). And because a lone graph is so easy to misread, a small **context
+transformation rules, every application validated against the mathematics.
+**Challenge mode** turns practice into a game she can win: reproduce *this*
+graph, and get told precisely how close she came. The trickiest targets carry a
+🐉, the field guide's "dragons," and a wrong attempt hands her back the
+antidote. And because a lone graph is so easy to misread, a small **context
 panel** rides alongside every picture, answering the beginner's first question —
 *what whole is this a fragment of, and on whose sheet does it stand?* — with the
 chain of cuts that enclose whatever she clicks. She never mistakes an extract for
@@ -188,12 +189,12 @@ conclusions become another's premises.
 
 **Now.** Kwame studies two corpora side by side in **Organon**, identifies the
 shared concept, and in **Ergasterion** builds a bridging argument. He tests it in
-**Agon**, which *sorts* it: this part is a theorem of the merged model, this part
+**Agon**, which *sorts* it: this part a theorem of the merged model, this part
 a reasonable extension to be agreed, this part an open conjecture needing
 evidence the game cannot supply. He moves a claim between Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))
 without loss; imports external material through a doorway that admits it honestly
 at **low warrant** — parsed and attributed, never asserted true; and reads the
-full provenance of any corpus item. Real ontologies are already in hand as
+full provenance of any corpus item. Real ontologies already stand ready as
 models to contest against — SUMO, BFO, FOAF, SKOS, Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)) — imported through the
 Web Ontology Language ([OWL](GLOSSARY.md#owl))/Resource Description Framework ([RDF](GLOSSARY.md#rdf))→CLIF→EGI pipeline. He can ask the **interpretation register** "given this
 world M, does G hold?" (true / false / *unknown*, with a witness or
@@ -213,7 +214,7 @@ not*. The badge ranks the **claim**, never the person who entered it.
 opponents — the import pipeline exists; those adapters do not — and a fuller
 warrant lifecycle that records *how much* a claim has been challenged and by
 whom. (Wikidata has already crossed this line, but in the second register: it
-is wired as a *live source* the autonomous loop runs against — see Part III —
+stands wired as a *live source* the autonomous loop runs against — see Part III —
 rather than a corpus Kwame browses.) Research becomes a diachronic record of
 inquiry — not a pile of results, but a documented history of how a community
 tested its way to them.
@@ -232,7 +233,7 @@ protected test suite that must always pass; correctness is not advisory. She
 reads the **correspondence invariant** as a runtime attestation that *refuses*
 any (picture, proposition) pair that does not denote one object — an operational
 claim about the iconicity of Existential Graphs ([EGs](GLOSSARY.md#eg)) she can try to break by running the module.
-Layout is a *projection* of a coordinate-free structure, so she can swap the Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk))
+Layout serves as a *projection* of a coordinate-free structure, so she can swap the Eclipse Layout Kernel ([ELK](GLOSSARY.md#elk))
 engine for the experimental "tension" engine that draws a line of identity as a
 single taut thread through the cut nest — the authentic Peircean single-line
 reading. Beyond proof, she has the **semantic game** (truth-in-a-model,
@@ -255,15 +256,15 @@ rest of the **mathematics horizon** — universal generalization via a Dau-nativ
 scaffold tactic, applied to real mathematics (ZFC separation, Peirce's 1881 axioms
 of arithmetic). *(This track is well advanced: the fold/unfold definition layer and
 the graph-with-holes **schema node** have both shipped, the soundness homework for
-universal generalization is done, and draft fixtures exist; the remaining frontier is
+universal generalization stands done, and draft fixtures exist; the remaining frontier stays
 **schema-drawing/§3.3** (the correspondence check) — drawing a hole and attesting it.)* The system becomes a
 place to *do new mathematics* in pictures, not only to
 reproduce known proofs.
 
 ## The physician
 
-**Dr. Okonkwo reasons under a body of clinical knowledge** that is large,
-revisable, and occasionally self-contradictory. She does not want a black box
+**Dr. Okonkwo reasons under a body of clinical knowledge** — large, revisable,
+occasionally self-contradictory. She does not want a black box
 that outputs a diagnosis; she wants to see *which* of her commitments forces a
 conclusion, and to be shown — explicitly — when a new finding contradicts the
 rules she has trusted.
@@ -277,8 +278,8 @@ and, crucially, an honest *unknown* when her knowledge neither confirms nor
 denies. When a new observation collides with an existing rule, the disposition
 taxonomy lays out the genuine options — reject the finding, revise the rule, hold
 it as a hypothesis — exactly the move clinical knowledge makes when a textbook
-generalization meets a real exception. Nothing auto-asserts; the judgment is
-hers. And in **Organon** an **audit lens** replays that standing question against
+generalization meets a real exception. Nothing auto-asserts; the judgment
+remains hers. And in **Organon** an **audit lens** replays that standing question against
 each successive version of her knowledge, drawing the verdict at every step and
 flagging exactly where it flips and which revision flipped it — each transition
 labelled by its disposition and Peircean mode (induction / deduction / abduction).
@@ -286,31 +287,32 @@ labelled by its disposition and Peircean mode (induction / deduction / abduction
 **When complete.** A large medical ontology (SNOMED) as the standing model, with
 guideline rules materialized so the reasoning fires automatically; and the
 warrant lifecycle keeping a record of which clinical rules have withstood
-challenge and which remain provisional. The result is reasoning that is
+challenge and which remain provisional. The reasoning becomes
 **auditable**: not "the system said so," but a drawn, inspectable chain from
 accepted premises to a defensible conclusion — and an honest account of where
-that chain is still open. *(This applied-clinical loop is the least-exercised of
+that chain still lies open. *(This applied-clinical loop remains the least-exercised of
 the personas; the machinery is built, the domain modelling is the work ahead.)*
 
 ## The editor (Peirce scholar)
 
-**Étienne is preparing Peirce for publication.** His problem is not invention but
-**fidelity**: Peirce's graphs survive as hand-drawn marks across thousands of
-manuscript pages, and a critical edition needs each rendered faithfully,
-captioned, attributed, and typeset to professional standard. This is the persona
-the LaTeX package [`egpeirce.sty`](references/egpeirce.sty.txt) (and its
-[documentation](references/Egpeirce%20Documentation.pdf)) was written to serve.
+**Étienne is preparing Peirce for publication.** His problem lies not in
+invention but in **fidelity**: Peirce's graphs survive as hand-drawn marks across
+thousands of manuscript pages, and a critical edition needs each rendered
+faithfully, captioned, attributed, and typeset to professional standard. The
+LaTeX package [`egpeirce.sty`](references/egpeirce.sty.txt) (and its
+[documentation](references/Egpeirce%20Documentation.pdf)) was written to serve
+exactly this persona.
 
-**Now.** Étienne transcribes a manuscript diagram into a linear form he is sure
-of — EGIF, CGIF, or CLIF — loads it into Arisbe, where it parses to a formal Existential Graph Instance ([EGI](GLOSSARY.md#egi))
+**Now.** Étienne transcribes a manuscript diagram into a linear form he trusts
+— EGIF, CGIF, or CLIF — loads it into Arisbe, where it parses to a formal Existential Graph Instance ([EGI](GLOSSARY.md#egi))
 and renders in a chosen style (a **Peirce-authentic** style alongside the Dau and
-Sowa conventions). Because layout is a free, presentation-only regime, he can
+Sowa conventions). Because layout forms a free, presentation-only regime, he can
 nudge vertices, reshape a cut, and reroute a ligature by hand to match the
 *spatial arrangement of the original page* — and the correspondence attestation
-guarantees that all this hand-adjustment is pure appearance: it never changes
+guarantees that all this hand-adjustment stays pure appearance. It never changes
 what the graph asserts. He round-trips a graph between linear forms to
 cross-check his transcription, and carries the manuscript's provenance — source,
-date, page — as typed metadata on the corpus item. And once it is verified he
+date, page — as typed metadata on the corpus item. And once verified he
 **exports it to publication-ready LaTeX/TikZ** — an *authentic-Peirce* rendering
 (oval cuts, heavy lines of identity, hooks; pure TikZ, plain `pdflatex`, no
 PSTricks) generated *from* the §3.3-attested graph, so the printed figure provably
@@ -319,11 +321,11 @@ provenance, and **batch export** that assembles many graphs into one document (a
 appendix of figures, or a worked proof as a multi-figure derivation). He drops the
 result straight into the edition.
 
-**When complete.** What remains are two conveniences *around* that export: an
+**When complete.** Two conveniences remain, both *around* that export: an
 **overlay-comparison mode** to fade between Peirce's scan and the recreation, and
 the **by-hand reading desk** — an interactive transcription surface that captures
 the graph *and* its scholarly apparatus (provenance, editorial annotations, variant
-readings) together. The promise is already kept for the figure itself: the printed
+readings) together. Arisbe already keeps the promise for the figure itself: the printed
 graph and the manuscript graph denote the same thought, and the apparatus says so, citably.
 (See [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md).)
 
@@ -332,19 +334,19 @@ graph and the manuscript graph denote the same thought, and the apparatus says s
 Seven people, one sheet. The teacher wants logic *done*; the student wants to be
 *caught*; the researcher wants the *seam* between domains; the logician wants the
 mathematics *exact*; the physician wants reasoning that is *auditable*; the
-editor wants fidelity that is *citable*. What lets one system serve them all is
-the single commitment underneath: **the picture and the proposition are the same
+editor wants fidelity that is *citable*. One commitment underneath lets a single
+system serve them all: **the picture and the proposition are the same
 sign, and Arisbe keeps them so.** Peirce supplies the aim; Dau supplies the
 guarantee; the personas supply the reasons it matters.
 
-And they share one more thing, easy to miss because it is built so deep: **the
+And they share one more thing, easy to miss because it lies so deep: **the
 graph is judged, never the grapher.** A claim earns its standing by passing the
 *method* — the rules, the §3.3 check, the contest — *on its content*, whoever
 drew it. The newcomer's graph and the expert's graph meet exactly the same
 scrutiny; the doorway gates *what* you propose, not *who* you are; the warrant
 badge reports how a *claim* has fared, never the worth of a person. The opposite —
-dismissing a claim because of who made it rather than testing it — is the one move
-the system is built to refuse (it has a name in the wider world: *epistemic
+dismissing a claim because of who made it rather than testing it — names the one
+move the system refuses by construction (the wider world calls it *epistemic
 injustice*). Adherence: the augurs were rightly demoted by **losing the contest**.
 Breaking: refusing to look through Galileo's telescope because of who was holding
 it. *(The argument behind this — and where it parts from the grand "ladder of
@@ -356,8 +358,8 @@ progress" readings of Peirce — is told in
 # Part II — Register 1 in practice: six scenarios
 
 The personas above describe *who*; these scenarios show *how the cycle feels*, in
-language meant for anyone. Each is a concrete instance of one of the game's
-outcome cases (the formal account is in
+language meant for anyone. Each gives a concrete instance of one of the game's
+outcome cases (the formal account lives in
 [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md); its Part II gives the
 scenario-by-scenario mapping).
 
@@ -371,11 +373,11 @@ In **Organon** she reviews the three assertions. In **Ergasterion** she
 constructs the proposal "Biscuit needs temperature regulation during surgery." In
 **Agon** the game unwraps it from the outside in: Biscuit is a dog (the client
 brought one) → dogs are mammals (established) → mammals are warm-blooded → 
-warm-blooded animals need regulation. Every link checks out: the claim is a
-**theorem** — already implicit in what she knew. The conclusion can be added to
+warm-blooded animals need regulation. Every link checks out. The claim stands as
+a **theorem**, already implicit in what she knew. The conclusion can go into
 the patient's record.
 
-*This is deduction* — drawing out what is already contained in what you know. The
+*Deduction* — drawing out what is already contained in what you know. The
 Agon did not surprise her; it confirmed her reasoning was sound.
 
 ## Scenario 2: Something genuinely new — *empirical enlargement*
@@ -387,13 +389,13 @@ bill, diving from a branch.
 
 **Organon** has no matching entry. In **Ergasterion** he describes the bird and
 drafts an identification: "Azure Kingfisher." In **Agon** the game reaches a
-**stalemate** — not because anything is wrong, but because the proposal is
-*independent* of existing knowledge: it neither contradicts nor follows. Since
-the claim is compatible with everything known and he has direct observational
-evidence, he accepts it as a **new fact**; the knowledge base grows.
+**stalemate** — not because anything is wrong, but because the proposal stands
+*independent* of existing knowledge: it neither contradicts nor follows. The
+claim stays compatible with everything known and he has direct observational
+evidence, so he accepts it as a **new fact**; the knowledge base grows.
 
-*This is empirical enlargement* — the game's role was not to prove or refute but
-to *sort* the proposal: consistent with, and independent of, what was known —
+*Empirical enlargement* — the game's role was not to prove or refute but
+to *sort* the proposal: consistent with, and independent of, what was known, and
 exactly the condition under which a new fact can be accepted.
 
 ## Scenario 3: A contradiction that teaches — *knowledge revision*
@@ -406,12 +408,12 @@ abundantly.
 In **Agon** her claim **contradicts** the established knowledge — but a
 contradiction is not a verdict. The game's interpretive function lays out the
 options: reject the proposal, revise the knowledge base, or hold it as a
-hypothesis pending investigation. The evidence is real, so the group **revises**:
+hypothesis pending investigation. The evidence holds, so the group **revises**:
 "tomatoes require adequate light" replaces "tomatoes require full sun," and
 "reflective mulch can supplement light" is added.
 
-*This is knowledge revision* — the hardest and most powerful outcome. The old
-rule was not wrong; it was *incomplete*, and the game exposed the incompleteness
+*Knowledge revision* — the hardest and most powerful outcome. The old
+rule was not wrong, only *incomplete*, and the game exposed the incompleteness
 and guided the repair.
 
 ## Scenario 4: Building an argument — *a mixed verdict*
@@ -421,29 +423,30 @@ accepted positions (green spaces cool the air; cooler air lowers energy costs;
 lower costs raise property values; the lot is residential and currently a
 drain), she builds a six-step argument to "a park is a net financial benefit."
 
-In **Agon** the argument *sorts*: steps 1–4 are a **theorem** of what the council
-already accepts; step 5 ("higher values → higher tax revenue") is a **reasonable
-extension** they could agree to add; step 6 ("revenue exceeds cost") is an **open
-conjecture** needing financial projections the game cannot supply. Keiko now
-knows exactly where her argument is strong and where it needs evidence.
+In **Agon** the argument *sorts*: steps 1–4 form a **theorem** of what the council
+already accepts; step 5 ("higher values → higher tax revenue") stands as a
+**reasonable extension** they could agree to add; step 6 ("revenue exceeds cost")
+remains an **open conjecture** needing financial projections the game cannot
+supply. Keiko now knows exactly where her argument holds strong and where it
+needs evidence.
 
-*Real arguments are rarely pure deductions.* The Agon tells you which parts are
-certain, which are plausible-but-need-agreement, and which are open — far more
-useful than "valid / invalid."
+*Real arguments are rarely pure deductions.* The Agon tells you which parts hold
+certain, which stand plausible-but-need-agreement, and which remain open — far
+more useful than "valid / invalid."
 
 ## Scenario 5: A course of study — *learning through inquiry*
 
 **Amara learns zoology** through guided investigation rather than lecture. Week 1
 establishes a small model (mammals warm-blooded; reptiles cold-blooded; …). Week
-2: "can whales regulate their temperature?" — "whales are mammals" is a **new
-fact** they accept on authority, after which the rest follows as a **theorem**,
+2: "can whales regulate their temperature?" — "whales are mammals" enters as a
+**new fact** they accept on authority, after which the rest follows as a **theorem**,
 and she understands *why*. Week 3: "are all sea creatures cold-blooded?" — a
 **contradiction** with "whales are warm-blooded," so she learns to refute by
 counterexample. Week 4: "some fish regulate partially" — a contradiction she
 resolves by **revising** the rule. 
 
-*Education is not the transfer of facts.* It is the guided construction of
-understanding through proposing, testing, and revising — each [episode](GLOSSARY.md#episode) leaving her
+*Education is not the transfer of facts.* It consists in the guided construction
+of understanding through proposing, testing, and revising — each [episode](GLOSSARY.md#episode) leaving her
 with a richer model and the experience of having reasoned her way to it.
 
 ## Scenario 6: Bridging two bodies of knowledge — *a merged theorem*
@@ -454,10 +457,10 @@ revenue → infrastructure → population growth). He wants to know whether
 "preserving wetlands supports population growth."
 
 In **Organon** he finds the shared concept — "coastal communities." In
-**Ergasterion** he builds the bridging chain. In **Agon** each step is a theorem
-within its domain, and the critical link holds because the domains share that
-concept: the conclusion is a **theorem of the merged model**. The two bases are
-now connected by an explicit chain, recorded for further inquiry.
+**Ergasterion** he builds the bridging chain. In **Agon** each step counts as a
+theorem within its domain, and the critical link holds because the domains share
+that concept, so the conclusion stands as a **theorem of the merged model**. An
+explicit chain now connects the two bases, recorded for further inquiry.
 
 *Interdisciplinary insight* works not by blurring boundaries but by finding the
 precise logical links between well-understood domains.
@@ -477,13 +480,13 @@ dispose the findings. Three personas below are not projections; each has
 completed, logged runs behind it (`runs/`).
 
 One honesty note before the personas, because it governs everything here:
-what a loop produces is a **track record, never truth**. The correspondence
+a loop produces a **track record, never truth**. The correspondence
 check attests that the drawn and written record match; the run log shows what
 was tested and how it fared; nothing in the machinery can promote either into
 "true." Where a large language model participates (optional, for proposing
 and defending claims in natural language), every one of its moves is reduced
 to a checkable calculus artifact and re-verified before it counts — *the LLM
-argues, the calculus decides*. And every change to the model M is an
+argues, the calculus decides*. And every change to the model M happens as an
 acknowledged, licensed act a standing test gate re-checks; nothing reaches M
 silently.
 
@@ -496,36 +499,36 @@ without ever being handed the diary itself.
 **Now.** Noor points the loop at the vault under a strict **custody
 constraint**: it reads *structure only* — paths, folders, dates, tags, links,
 sizes — never the body of a note, and its console reports counts, never
-titles. The journal gets a two-timeline reading (the date a note claims is an
+titles. The journal gets a two-timeline reading (the date a note claims makes an
 *event-time* assertion, distinct from when it was written). Out of what
 arrives, the loop builds a bounded model of the vault's shape and mints
 **standing questions** where the model runs thin. Periodically it writes one
 **oracle note** back into the vault — at most five questions, each carrying a
 *sealed* forecast of the answer (a salted hash, revealed and re-checked only
 after Noor answers) — and Noor replies in the note itself, in ordinary
-markdown. Answers are scored against the sealed forecasts; declining to
-answer is a first-class outcome, not an error; an accepted answer enters the
-author-model only by the same licensed, quoted, gate-checked step as any
-other assertion. What Noor gets is a running, honest picture of what her own
-vault's *structure* predicts about her attention — and a question queue that
+markdown. The loop scores answers against the sealed forecasts; declining to
+answer counts as a first-class outcome, not an error; an accepted answer enters
+the author-model only by the same licensed, quoted, gate-checked step as any
+other assertion. Noor gets a running, honest picture of what her own
+vault's *structure* predicts about her attention, plus a question queue that
 has already priced which answers would teach the loop most.
 
 ## The live-source watcher
 
-**Danil watches a public knowledge base** (the wired live source is
-Wikidata) and wants to see what a sound record does when the world's edits —
+**Danil watches a public knowledge base** (Wikidata, the wired live source)
+and wants to see what a sound record does when the world's edits —
 including its edit wars — flow through it.
 
 **Now.** Danil starts a bounded run: statements arrive as facts with their
 provenance (a referenced statement carries more standing than a bare one),
 ranks arrive as resolutions, competing values arrive as live contestation.
 The loop disposes each arrival through the same taxonomy a human player uses
-— new fact, generalization, challenge to the model — and the striking part is
-what needs no intelligence at all: when a value is deprecated and a
+— new fact, generalization, challenge to the model — and the striking part
+needs no intelligence at all. When a value is deprecated and a
 reliably-sourced replacement stands, the loop **overturns the bare value
 mechanically**, retracting exactly the defeated atom by a licensed erasure.
-Disuse-decay keeps the model bounded to the engaged slice of the feed;
-segments are checkpointed so a crash loses minutes, not the run; a
+Disuse-decay keeps the model bounded to the engaged slice of the feed; the
+loop checkpoints segments so a crash loses minutes, not the run; a
 **legibility tripwire** watches for the failure mode where entity labels
 silently degrade to opaque identifiers. Afterward Danil reads the result in
 Organon through the standing lenses — the audit lens replaying a question
@@ -538,8 +541,8 @@ branch from what held on *some*.
 question is not "what does the model say?" but "which ways of settling
 disputes produce knowledge that *lasts*?"
 
-**Now.** Every run keeps its episodes: what was proposed, what the verdict
-was, which disposition the panel chose, and — the part that matters — whether
+**Now.** Every run keeps its episodes: what was proposed, which verdict came
+back, which disposition the panel chose, and — the part that matters — whether
 the move **stuck** or was later overturned, with decay-erasures honestly
 excluded from the stickiness accounting rather than counted as refutations.
 Over a run built from recorded edit disputes, the meta-learning layer reports
@@ -547,44 +550,44 @@ stick-rates *by resolution mechanism* — in the logged runs, claims settled by
 a reliable source proved durable where claims settled by bare consensus did
 not — plus a friction map of the most contested ground and a **poise**
 reading (is the loop engaging and settling, or thrashing, or gone rigid?).
-Around all of it sits the project's own discipline: a run's priors are
-**pre-registered before it executes**, verdicts are mechanical, refuted
-priors stay on the record, and the author's disposal is a separate, recorded
-act. Ines is reading a research-programme record — Lakatos kept honest by
+Around all of it sits the project's own discipline: a run's priors stand
+**pre-registered before it executes**, verdicts run mechanical, refuted
+priors stay on the record, and the author's disposal comes as a separate,
+recorded act. Ines reads a research-programme record — Lakatos kept honest by
 machinery.
 
-**When complete.** The browser arena and the autonomous loops are still two
+**When complete.** The browser arena and the autonomous loops remain two
 surfaces: the loops run headless, with instrument-panel lenses in Organon but
 no arena view of a live run. Directing a loop mid-flight — steering its
-attention economy interactively rather than by configuration — is designed
+attention economy interactively rather than by configuration — stands designed
 but not surfaced.
 
 ---
 
 # Part IV — Register 3: kytē in association
 
-The third register is where the grading must be strictest, so this part
+The third register demands the strictest grading, so this part
 opens with the disclaimer the other two only gestured at: **Arisbe has never
-run as a community.** What exists is *one* instance **modeling** association —
+run as a community.** *One* instance exists, **modeling** association —
 simulated federations of units inside a single system, with one coordinator
 and one clock. A federation whose members are all simulated by one process is
 not a society, any more than a weather model is weather; the sociological
-tradition the project leans on here (Berger & Luckmann) is explicit that
+tradition the project leans on here (Berger & Luckmann) states explicitly that
 institutions arise only in *reciprocal* typification between actors, which
 cannot occur inside an individual. The project holds that line: the
 coordinator in the experiments below is a switchboard, not a society, and a
 negotiation the system plays against itself models a parliament without
 constituting one. (The doctrine — what a real commens would require, and what
-"judgment objectivated, never owned" means — is
+"judgment objectivated, never owned" means — lives in
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).)
 
 What *has* been done, within that limit, is measurement. **The E-series**
 (five experiments and a rider, 2026-07-22 → 27) asked Geoffrey West's
 question — do aggregated units obey discoverable scaling laws? — of units
-whose metabolism is knowledge maintenance rather than energy: one big
+whose metabolism consists of knowledge maintenance rather than energy: one big
 reasoner holding everything, versus a federation of bounded reasoners with a
 coordinator. Every experiment ran against priors registered before it
-executed, and the refuted priors are kept on the record beside the held ones:
+executed, and the refuted priors stay on the record beside the held ones:
 
 - **Federation beat monolith ~5.2× on cost at equal durability** (E1) — and
   retained more, because one attention budget over everything decays out what
@@ -608,23 +611,23 @@ executed, and the refuted priors are kept on the record beside the held ones:
 
 Two disciplines govern how those results may be read. First, **no
 teleology**: the exponents and basins characterize one synthetic landscape a
-modeler imposed — a real-corpus corroboration is deferred, and nothing here
+modeler imposed — a real-corpus corroboration remains deferred, and nothing here
 is an arrow of social development (the project's Graeber & Wengrow row is a
 negative claim only: many viable settlements, no ladder). Second, the
-sociable reading stays graded: that deliberate, reversible basin-crossing is
-what *politics* names is recorded as a finding about the model, not about
-history.
+sociable reading stays graded: the claim that deliberate, reversible
+basin-crossing is what *politics* names stands recorded as a finding about the
+model, not about history.
 
 ## The population experimenter
 
 The E-series opens a use case the original personas were written without:
 **studying populations of reasoning units as an experimental subject in their
-own right**. The pieces are already instruments, not promises. Each unit's
-economics is parameterized — its decay horizon, its attention budget, the
-severity weights that order what it probes next, and a **temperament dial**
-(how strongly a unit damps re-raising a distinction its *own* record already
-admitted versus one another unit's record earned — the novelty knob, in two
-independent settings). The population's arrangement is parameterized too:
+own right**. The pieces already work as instruments, not promises. Each unit's
+economics takes parameters — its decay horizon, its attention budget, the
+severity weights that order what it probes next, and a **temperament dial**.
+The dial says how strongly a unit damps re-raising a distinction its *own* record
+already admitted, versus one another unit's record earned — the novelty knob, in
+two independent settings. The population's arrangement takes parameters too:
 member count, partition, coordination discipline. And the readouts exist on
 both scales: per-unit cost ledgers and the durability/compression/use
 measures below them; population-level granularity, basin structure, and
@@ -637,15 +640,15 @@ suspected.
 now ask: at which temperament settings does a population's granularity
 optimum move? Do resource-starved units go rigid before they thrash? Does a
 population of high-novelty units fragment into more basins or fewer? Every
-run is seed-replayable, every verdict mechanical, every prior registered
+run replays from its seed, every verdict runs mechanical, every prior registered
 before execution — the same discipline the E-series itself was held to.
 
-**When complete.** Honestly graded: the E-series harness is the *first
+**When complete.** Honestly graded: the E-series harness stands as the *first
 instance* of this laboratory, built for one family of questions (partition
 economics), and the temperament dial has not yet been swept in a population
 run (the project's own docket names that study). A general
 population-experiment surface — vary any per-unit parameter across a
-population and read the instruments — is the direction, not yet the shipped
+population and read the instruments — names the direction, not yet the shipped
 thing.
 
 - **The self-contained methods note** (what the unit is operationally, what
@@ -658,7 +661,7 @@ thing.
 
 **When complete.** Association in earnest — separate instances holding
 attributed cells of one another's judgments, a commens that no member owns —
-is named, designed against, and not built. It is the register the project
+is named, designed against, and not built. It remains the register the project
 will not claim until there are genuinely two of it.
 
 ---
@@ -668,17 +671,17 @@ will not claim until there are genuinely two of it.
 Every scenario follows the same pattern: **Know** (study what is established) →
 **Make** (construct a claim) → **Contest** (test it — does it follow, contradict,
 extend, or open a question?) → **Integrate** (add a fact, revise a rule, flag a
-hypothesis, record a refutation). This is Peirce's vision of logic as a **living
-practice** — not a static catalogue of truths but an ongoing process in which
-knowledge grows, corrects itself, and deepens through assertion, challenge, and
-resolution. And it is one cycle across all three registers: what a person plays
+hypothesis, record a refutation). This names Peirce's vision of logic as a
+**living practice** — not a static catalogue of truths but an ongoing process in
+which knowledge grows, corrects itself, and deepens through assertion, challenge,
+and resolution. And one cycle runs across all three registers: what a person plays
 by hand in the first, a directed loop runs autonomously in the second, and the
 third measures when many such loops are made to share the work.
 
 The participants need not be logicians. The formal machinery — the graph
 structures, the transformation rules, the game protocol — handles the rigour.
-What participants bring is clarity about what they know, honesty about what they
-claim, and willingness to revise when the evidence demands it: the habits of
+Participants bring clarity about what they know, honesty about what they
+claim, and willingness to revise when the evidence demands it — the habits of
 good reasoning Peirce spent his life trying to cultivate.
 
 ---

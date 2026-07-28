@@ -17,10 +17,11 @@ This guide moves in four parts, from machinery to meaning to practice:
   implementation, and the literature.
 
 For a non-technical, narrative on-ramp, read
-[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) first: six everyday scenarios (a
-vet, a birdwatcher, a gardener, a town planner, a class, a research group) that
-show the same cycle without the formalism. Each scenario there gives a concrete
-instance of an outcome in Part II's taxonomy (the mapping is given there).
+[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) first. It runs six everyday
+scenarios — a vet, a birdwatcher, a gardener, a town planner, a class, a
+research group — that show the same cycle without the formalism. Each scenario
+there gives a concrete instance of an outcome in Part II's taxonomy, and the
+mapping appears there.
 
 ---
 
@@ -28,9 +29,9 @@ instance of an outcome in Part II's taxonomy (the mapping is given there).
 
 The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game serves as Arisbe's **end game** — the part of the arc left
 deliberately *not finished*. This guide describes the full framework; most of
-it remains theory and design-ahead. What actually runs today? Here is the
-split, to keep the reader honest. Banners further down mark design-only
-material in place.
+it remains theory and design-ahead. What actually runs today? The split below
+keeps the reader honest, and banners further down mark design-only material
+where it stands.
 
 **Built today — Agon V1 (shipped 2026-06-01):**
 
@@ -42,18 +43,19 @@ material in place.
 - The **Agon arena** at `/agon` (`web_api/routes/agon.py` +
   `web_viewer/agon.html`) — interactive **hot-seat** play (one user drives both
   roles); the engine enforces each role's territory.
-- The post-game **open disposition taxonomy** (`web_api/services/agonothetes.py`):
-  nothing auto-asserts — the user, *as Agonothetes*, chooses the outcome's
-  meaning, and only an asserting disposition writes to the corpus.
+- The post-game **open disposition taxonomy** (`web_api/services/agonothetes.py`).
+  Nothing auto-asserts. The user, *as Agonothetes*, chooses what the outcome
+  means, and only an asserting disposition writes to the corpus.
 - §3.3 correspondence attestation on every framed graph before play.
 - 16 exemplar scenarios in `tests/test_epg_exemplar_scripts.py`.
 
-**Built since (2026-06-11):** the inner **semantic game** is now a first-class API
-(`src/semantic_game.py`) and is wired into Agon as the **interpretation register** —
+**Built since (2026-06-11):** the inner **semantic game** now stands as a first-class API
+(`src/semantic_game.py`), wired into Agon as the **interpretation register** —
 the [episode](GLOSSARY.md#episode) *given M, then G* (choose M → [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against M → decide). The
-*constructive* direction (INS/IT+/DC+) is now located as **making in Ergasterion**,
-not an Agon mode: the eliminative peel is the game, additive construction is the
-workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
+*constructive* direction (INS/IT+/DC+) now belongs to **making in Ergasterion**
+rather than to an Agon mode. The eliminative peel makes the game; additive
+construction belongs to the workshop.
+See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 
 **The Frontier — as first mapped here (2026-06-11). Since then most of it has been built:**
 
@@ -83,13 +85,13 @@ workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
 - A **frontend** for the interpretation register — **shipped** (the Agon model
   picker, render-M, and the verdict reading strip).
 
-The **tropism** module — M's own state directing *which* sources to re-engage — is
-now **built** (increment 1, the warm-set re-poll: `src/tropism.py`, 2026-07-02). The
+The **tropism** module — M's own state directing *which* sources to re-engage — now
+stands **built** (increment 1, the warm-set re-poll: `src/tropism.py`, 2026-07-02). The
 two executed live runs (`runs/RUN_1_LOG.md`, `runs/RUN_2_LOG.md`) found that passive
 ingestion never revisits, so only directed re-engagement can test the durability of
-what the game settles; the live crawl+tropism session (run 3) is still ahead. Still
-open: the tropism's musement pole, and the browser arena itself remains hot-seat
-(the autonomous game runs headless).
+what the game settles. The live crawl+tropism session (run 3) still lies ahead. Two
+things remain open: the tropism's musement pole, and the browser arena, which stays
+hot-seat while the autonomous game runs headless.
 
 ---
 
@@ -103,10 +105,10 @@ The Endoporeutic Game ([EPG](GLOSSARY.md#epg)) gives Peirce's dialogical **inter
 Existential Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
 It does not serve as a proof procedure. Proof and interpretation, though
 related, serve different purposes and follow different procedures. The EPG
-provides the interpretive method: given a proposed graph G and a domain model M, the game
+supplies the interpretive method. Given a proposed graph G and a domain model M, the game
 determines whether G holds in M by systematically unwrapping G using only the
-eliminative rules IT- and DC- until the graph either disappears entirely or
-cannot be reduced further.
+eliminative rules IT- and DC-, until the graph either disappears entirely or
+resists further reduction.
 
 > "The interpretation of existential graphs is *endoporeutic*, that is, proceeds
 > inwardly; so that a nest sucks the meaning from without inwards unto its
@@ -119,13 +121,13 @@ of the contest"), carries the interpretive dimension of the game — the purpose
 for which the contest exists and the understanding it produces.
 
 The game amounts to more than a proof checker. It serves as a **model of
-inquiry**: its outcomes drive the growth, revision, and correction of knowledge
+inquiry**, and its outcomes drive the growth, revision, and correction of knowledge
 within a Universe of Discourse. Both players reference a model **M** consisting
 of a set of individuals **D** and a set of relations **R** over **D**. New
-graphs need not originate from M — M develops as the Graphist and Grapheus
-consider new graphs and how or whether they fit with M. A model has to start
-somewhere: it may pre-exist or it may begin as an empty sheet (the assertion of
-a double negative providing the initial context).
+graphs need not originate from M. M develops as the Graphist and Grapheus
+consider new graphs and weigh how, or whether, they fit with M. A model has to start
+somewhere. It may pre-exist, or it may begin as an empty sheet, where the assertion of
+a double negative provides the initial context.
 
 ### Prerequisites
 
@@ -158,9 +160,9 @@ area. The game proceeds **endoporeutically** — reading the graph from outside 
 - At **positive** (even-depth) areas: the Skeptic chooses
 - At **negative** (odd-depth) areas: the Proposer chooses
 
-This reflects the semantic reading: universal claims (negative contexts) are
-defended by the Proposer against *any* challenge; existential claims (positive
-contexts) are attacked by the Skeptic who must find a *specific* counterexample.
+This reflects the semantic reading. The Proposer defends universal claims
+(negative contexts) against *any* challenge; the Skeptic attacks existential
+claims (positive contexts) and must find a *specific* counterexample.
 
 ### The Outside-In Process
 
@@ -223,9 +225,9 @@ The EPG terminates in exactly one of two ways:
    the three EPG operations can eliminate, or an atomic portion fails to map
    onto M. The Grapheus wins: G does not hold in M.
 
-There is no draw in the formal sense: the game either runs to empty or
-terminates at an irreducible remainder. Stalemate in the *logical* taxonomy
-(§Taxonomy of Game Outcomes) refers to the pragmatic situation where G is
+No draw exists in the formal sense. The game either runs to empty or halts at
+an irreducible remainder. Stalemate in the *logical* taxonomy
+(§Taxonomy of Game Outcomes) names the pragmatic situation where G stands
 independent of M — neither provable nor refutable — which appears formally as
 a failure to map, not as a failure to terminate.
 
@@ -235,9 +237,9 @@ a failure to map, not as a failure to terminate.
 
 Before the mechanics of play, one distinction clears up most confusion about the
 EPG — including why the Overview above speaks of "two eliminative rules" (IT-,
-DC-) while Arisbe ships all six. The EPG unifies **two formalisms** that are
-often treated separately, and they answer different questions. Understanding
-their relationship is the key to the rest of this guide.
+DC-) while Arisbe ships all six. The EPG unifies **two formalisms** often
+treated separately, and they answer different questions. Their relationship
+unlocks the rest of this guide.
 
 ### The Semantic Evaluation Game (Inner Layer)
 
@@ -254,32 +256,31 @@ a **semantic game** with four rules:
 4. **Winning strategy** — The graph is true in the model if and only if the
    Graphist has a winning strategy.
 
-This game is **recursive**, **boolean** (true/false), and **always terminates**
-(the graph is finite, so the descent bottoms out at atomic spots). It is purely
-evaluative — no transformation rules appear. It answers the question: *is this
-graph true in this model?*
+This game runs **recursive**, **boolean** (true/false), and **always terminates**
+— the graph stays finite, so the descent bottoms out at atomic spots. It
+evaluates and nothing more; no transformation rules appear. It answers one
+question: *is this graph true in this model?*
 
 ### The Transformation Game (Strategic Layer)
 
 Dau's six rules — INS, ERA, IT+, IT-, DC+, DC- — constitute a separate
 **proof-theoretic** system. Players use these rules to manipulate the graph
-structure: the Graphist strengthens and propagates; the Grapheus simplifies
+structure. The Graphist strengthens and propagates; the Grapheus simplifies
 and erases.
 
-The transformation rules are not moves *in* the semantic game; they are the
-**strategic reasoning** by which a player constructs or demonstrates a winning
-(or losing) position. They answer the question: *can we show that the Graphist
-has (or lacks) a winning strategy?*
+The transformation rules do not count as moves *in* the semantic game. They
+carry the **strategic reasoning** by which a player constructs or demonstrates
+a winning (or losing) position. They answer a different question: *can we show
+that the Graphist has (or lacks) a winning strategy?*
 
 ### The Bridge: IT- as Semantic Mapping
 
-The connection between the two layers is **deiteration (IT-)**. In the
-semantic game, reaching an atomic spot and checking its truth-value against
-the model is the termination condition. In the transformation game, the
-corresponding operation is IT-: if a subgraph at the current level is
-identical to something in M at an ancestor level, IT- deiterates it —
-removing it as "already accounted for." This is the proof-theoretic way of
-saying "this content is true in M."
+**Deiteration (IT-)** connects the two layers. In the semantic game, reaching
+an atomic spot and checking its truth-value against the model ends the
+descent. In the transformation game, IT- does the corresponding work: if a
+subgraph at the current level matches something in M at an ancestor level,
+IT- deiterates it — removing it as "already accounted for." That amounts to
+the proof-theoretic way of saying "this content is true in M."
 
 The Graphist wins when all positive content has been deiterated (mapped to M)
 or shown to be structurally tautological. The Grapheus wins when some positive
@@ -303,26 +304,25 @@ Semantic game result (true/false)
   → integration into UoD
 ```
 
-This is why the Agonothetes is not reducible to either player's perspective:
-it operates at a meta-level, interpreting the *significance* of the game's
-mechanical result.
+Neither player's perspective can absorb the Agonothetes. It works at a
+meta-level, interpreting what the game's mechanical result *signifies*.
 
 ### Design Implications
 
 This two-layer structure resolves several architectural concerns:
 
 - **Non-boolean outcomes**: The semantic game IS boolean. The taxonomy of
-  outcomes is a higher-level interpretation applied by the Agonothetes after
+  outcomes sits a level higher, and the Agonothetes applies it after
   the game completes. The boolean result determines the *logical* status;
   the Agonothetes determines what it *means* in context.
 
 - **Termination**: The semantic game always terminates because graphs are
   finite. Pietarinen: "the graphs are finite... the interaction will come to
   a halt in a finite number of steps." The transformation game may involve
-  strategic choices about when to stop, but the underlying evaluation is
-  guaranteed to bottom out.
+  strategic choices about when to stop, but the underlying evaluation bottoms
+  out regardless.
 
-- **When to descend**: In the semantic game, descent is immediate — each
+- **When to descend**: In the semantic game, descent comes immediately — each
   step peels off one layer of the nest. In the transformation game, players
   may prepare before descending (DC+, INS to set up structures). The
   preparation IS the strategic reasoning; the descent IS the evaluation.
@@ -338,7 +338,7 @@ This two-layer structure resolves several architectural concerns:
 ## The Game as Tree Traversal
 
 The same mechanics, stated formally as a data-structure walk — the framing the
-implementation actually uses. The game is, in effect, a **tree traversal** of the
+implementation actually uses. The game amounts, in effect, to a **tree traversal** of the
 EGI's hierarchical structure. The `HierarchicalIndex` (sheet → cuts → nested cuts
 → ...) defines the tree. The game reads it **outside-in, depth-first**.
 
@@ -346,20 +346,20 @@ At each node in the traversal:
 
 - **The polarity** (even depth = positive, odd depth = negative) determines
   who has initiative
-- **The content** (edges and vertices juxtaposed in that area) is what the
+- **The content** (edges and vertices juxtaposed in that area) names what the
   current player must address
-- **The children** (nested cuts) are sub-trees to be traversed when reached
+- **The children** (nested cuts) stand as sub-trees, traversed when reached
 
 ### Role Reversal as Descent
 
-"Removing a negation to reverse roles" is not a separate operation and not a
-rule application — it is simply **descending one level in the tree**. When the
+"Removing a negation to reverse roles" names neither a separate operation nor a
+rule application. It amounts simply to **descending one level in the tree**. When the
 traversal crosses a cut boundary, the depth increments, the polarity flips,
 and the player with initiative changes. That *is* the role reversal.
 
 ### Sub-Games
 
-A complicated graph involves **sub-games** as the tree is traversed.
+A complicated graph involves **sub-games** as the traversal proceeds.
 Each sub-game corresponds to a sub-tree rooted at some cut:
 
 - The Agonothetes opens a sub-game when the traversal descends into a cut
@@ -373,7 +373,7 @@ sub-game** until the process unwraps the whole graph.
 
 ### The ∀/∃ Alternation
 
-The asymmetry of the game is the ∀/∃ alternation in the game tree:
+The game's asymmetry lies in the ∀/∃ alternation in the game tree:
 
 - **Positive node** (Grapheus has initiative): The content is *asserted*
   (conjunction of juxtaposed elements). The Grapheus can challenge **any**
@@ -387,9 +387,9 @@ The burden lies more heavily on the Graphist than on the Grapheus. The
 Graphist must show that *every* part of the graph makes sense with respect
 to M. The Grapheus needs only identify a part that does not map directly.
 
-However, a failure to map does not necessarily doom the graph. It means
-that the proposed graph does not map *simply* onto M — but the taxonomy
-of outcomes (Part II) tells us what this can signify:
+However, a failure to map does not necessarily doom the graph. It means only
+that the proposed graph does not map *simply* onto M, and the taxonomy
+of outcomes (Part II) tells us what that can signify:
 
 - If the unmapped content **internally contradicts** itself, the graph
   is in genuine trouble (Case 5).
@@ -401,17 +401,17 @@ of outcomes (Part II) tells us what this can signify:
   enhance the UoD (Case 8).
 
 The game *sorts* the graph into the appropriate taxonomic category. A
-"failure" at a sub-game level is not necessarily a failure of the whole
-proposal — it is information about how the proposal relates to M.
+"failure" at a sub-game level need not mean a failure of the whole
+proposal. It carries information about how the proposal relates to M.
 
 ### Where M Lives
 
-M resides in the game context (iterated there by the Agonothetes during
-setup) so that the deiteration rule (IT-) permits showing content "maps
-to M": if a subgraph in the current area is identical to something in M at
-an ancestor level, IT- can deiterate it — demonstrating the mapping. The
-Graphist wins a sub-game when all positive content has been resolved this
-way: everything either maps to M or is structurally tautological.
+M resides in the game context, iterated there by the Agonothetes during
+setup, so that the deiteration rule (IT-) permits showing content "maps
+to M." If a subgraph in the current area matches something in M at
+an ancestor level, IT- can deiterate it, and that demonstrates the mapping. The
+Graphist wins a sub-game when all positive content has resolved this
+way — everything either maps to M or reads as structurally tautological.
 
 ---
 
@@ -419,28 +419,28 @@ way: everything either maps to M or is structurally tautological.
 
 > **⚠️ Frontier (design-only).** The Agon V1 engine implements the *interpretive*
 > game (outside-in unwrapping with IT-/DC-). The *constructive* proof mode
-> described in this section — building toward a target with INS/IT+/DC+ — is not
-> a separate wired mode today; it is described here as the symmetric design. The
-> six rules themselves are implemented (`formal_transformation_rules.py`); what
-> is not yet wired is a proof-direction game loop with its own role assignment.
+> described in this section — building toward a target with INS/IT+/DC+ — has no
+> separate wired mode today. It stands here as the symmetric design. The
+> six rules themselves ship (`formal_transformation_rules.py`); what remains
+> unwired is a proof-direction game loop with its own role assignment.
 
 Proof and interpretation share the same six Dau transformation rules and the
-same polarity system, but their purposes and procedures are opposite in
-direction. The EPG unwraps a graph to test whether it holds in M. Proof
+same polarity system, but their purposes and procedures run in opposite
+directions. The EPG unwraps a graph to test whether it holds in M. Proof
 *constructs* a derivation showing that G must follow from M — it builds toward
 a target rather than eliminating toward emptiness.
 
 ### Purpose
 
-Given a domain model M and a proposed graph G, a **proof** is a finite
+Given a domain model M and a proposed graph G, a **proof** consists of a finite
 sequence of EGIs, each following from the previous by exactly one rule
 application, that derives G from M (or derives a tautology from the blank
 sheet). The proof demonstrates that G is *necessarily* true whenever M is
 true — it cannot be otherwise.
 
-This is a stronger claim than the EPG result. The EPG answers: "Does G hold
+That claims more than the EPG result. The EPG answers: "Does G hold
 in M?" Proof answers: "Must G hold in every model that satisfies M?" Both
-questions are important; they are not the same question.
+questions matter; they do not amount to the same question.
 
 ### Rules and Polarity
 
@@ -456,9 +456,8 @@ Proof uses all six Dau transformation rules, partitioned by polarity:
 | Double Cut elimination | DC- | Any area |
 
 The **constructive rules** — INS, IT+, DC+ — add structure. The **eliminative
-rules** — ERA, IT-, DC- — remove structure. Both directions are available
-because proof must be able to move in either direction to find a path from the
-premises to the conclusion.
+rules** — ERA, IT-, DC- — remove structure. Proof needs both directions to
+find a path from the premises to the conclusion.
 
 ### Player Roles in Proof
 
@@ -476,15 +475,15 @@ information inward. The Grapheus works in positive areas because that is where
 existential claims and consequents reside — simplifying structure and exposing
 what the Graphist must actually deliver.
 
-DC+ and DC- are available to both players in any area as meaning-preserving
+Both players may use DC+ and DC- in any area, as meaning-preserving
 structural operations.
 
 ### The Proof Frame and Termination
 
-A proof that G follows from M is typically structured as a demonstration that
+A proof that G follows from M typically takes the form of a demonstration that
 `~[ M ~[ G ] ]` reduces to the blank sheet. This reads as ¬(M ∧ ¬G) = M → G.
-If the game from this starting position reaches the empty sheet, the proof is
-complete: G is a theorem of M.
+If the game from this starting position reaches the empty sheet, the proof
+stands complete, and G counts as a theorem of M.
 
 A proof terminates when:
 
@@ -514,11 +513,11 @@ The two methods address the same logical territory from opposite directions:
 | **Grapheus moves** | IT-, DC- in positive areas | ERA, IT-, DC- in positive areas |
 | **Result** | Semantic: G holds (or not) in *this* M | Logical: G holds in *every* M satisfying the premises |
 
-The EPG outcome informs whether a proof is worth attempting: if the EPG
-returns a win for the Graphist in the given M, there is evidence that a proof
-may exist. If the EPG returns a stalemate, G is independent of M and no proof
-is possible. The EPG is the interpretive gate; proof is the formal
-certification.
+The EPG outcome informs whether a proof is worth attempting. If the EPG
+returns a win for the Graphist in the given M, some evidence suggests a proof
+may exist. If the EPG returns a stalemate, G stands independent of M and no
+proof is possible. The EPG serves as the interpretive gate; proof serves as
+the formal certification.
 
 ---
 
@@ -542,51 +541,51 @@ The game *determines* the logical relationship between G and M:
 
 ### The third verdict: UNKNOWN — and its afterlife
 
-In the implemented peel (`semantic_game.evaluate`) the verdict is
+In the implemented peel (`semantic_game.evaluate`) the verdict runs
 **three-valued Kleene: TRUE, FALSE, or UNKNOWN** — sound under the open
-world. The "stalemate" row above is the game-theoretic face of UNKNOWN:
+world. The "stalemate" row above shows the game-theoretic face of UNKNOWN:
 neither player can force a win *on the current M*. The cases 3a–3e below
-describe what may then be *done*; but the verdict itself is no longer a
+describe what may then be *done*. But the verdict itself no longer marks a
 terminus. Since the AlternativeSet arc (2026-07-26), **an UNKNOWN begins a
 career** as a first-class standing question, carried in the
-**AlternativeSet** — the structure where the project's several trains of
-thought (the question as logical object, the attention economy, modality,
-the deliberative interval, mention-ascent) meet as one record
+**AlternativeSet**. That structure gathers several of the project's trains of
+thought into one record — the question as logical object, the attention
+economy, modality, the deliberative interval, mention-ascent
 ([VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §8, "The unification joint";
 [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md)).
-The career:
+The career runs as follows.
 
 - **Born from the peel.** The peel's own undecided atoms
   (`SemanticResult.unknown_atoms`) mint an **interrogative alternative
   record** — the {atom, denial} pair — citing the very peel step that
   surfaced it (`emerged_from`). The record holds no evidence, only pointers
-  to gate-checked chain steps, re-checkable forever (**index-over-ink**:
-  the QuotationMark pattern applied to deliberation).
+  to gate-checked chain steps, re-checkable forever. This is
+  **index-over-ink**, the QuotationMark pattern applied to deliberation.
 - **Traced for materiality.** A dry-run consequence trace (`alternative_trace`,
   a PEEL-twin chain step whose result recomputes forever) discovers what
-  would follow from each answer; **material** questions — whose answers'
-  consequences differ — are told apart from **bare** ones. Materiality is a
-  vector, never a scalar; reception is held beside it, never folded in.
+  would follow from each answer. **Material** questions, whose answers'
+  consequences differ, stand apart from **bare** ones. Materiality reads as a
+  vector, never a scalar, and reception stands beside it, never folded in.
 - **Priced.** The attention economy reads the standing register
-  (`wants_from_alternatives`: material above untraced above bare, damped by
-  severity, cost, decay, and the temperament dial) — the open question
+  (`wants_from_alternatives` ranks material above untraced above bare, damped
+  by severity, cost, decay, and the temperament dial). The open question then
   *competes for the inquirer's next probe* instead of evaporating.
 - **Settled only by ink.** The record resolves only by citing a licensed
   chain step that *introduced* the answer (the AS1–AS4 law: the index
   resolves; the trace recomputes; resolution is licensed; the horizon is
-  honest). Settlement is observed from the chain, never declared by fiat.
+  honest). Settlement is read off the chain, never declared by fiat.
 
-The stalemate is thus the *opening* of the richest case, not its close: the
-game's UNKNOWN is the doubt engine's raw material (Part III, "Doubt as
+The stalemate thus *opens* the richest case rather than closing it. The
+game's UNKNOWN supplies the doubt engine's raw material (Part III, "Doubt as
 Prime Mover"). A full worked career — questions born from a peel's UNKNOWN,
-surveyed, traced, and settled by licensed ink — is in the corpus as the
+surveyed, traced, and settled by licensed ink — sits in the corpus as the
 `swan_alternatives` exemplar.
 
 ### II. Pragmatic Outcomes
 
-Each logical outcome opens different pragmatic paths — this is where the game
-drives inquiry rather than merely classifying propositions. The Agonothetes
-presides over the post-game negotiation that determines which path is taken.
+Each logical outcome opens different pragmatic paths. Here the game drives
+inquiry rather than merely classifying propositions. The Agonothetes presides
+over the post-game negotiation that settles which path gets taken.
 
 #### Case 1 — G Proved (Theorem)
 
@@ -613,9 +612,9 @@ presides over the post-game negotiation that determines which path is taken.
 #### Case 3 — G Independent (Stalemate — the UNKNOWN verdict)
 
 This is the richest case — it corresponds to **genuinely new knowledge** that M
-alone cannot adjudicate. (Its verdict-level treatment — the career an UNKNOWN
-now begins — is "The third verdict" above; the paths here are the
-dispositions the Agonothetes may select at its own risk:)
+alone cannot adjudicate. (For its verdict-level treatment, the career an
+UNKNOWN now begins, see "The third verdict" above. The paths here name the
+dispositions the Agonothetes may select at its own risk.)
 
 - **3a. New empirical fact**: G describes an observation. Both players agree to
   admit G into M — one rule-licensed INS of a closed **cell** into the standing
@@ -672,10 +671,10 @@ Real-world proposals are often complex:
 
 ### V. The Taxonomy in the Practical Scenarios
 
-The six everyday scenarios in [ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) are
-not separate examples — each is a concrete play that lands on one of the cases
-above. The narrative version drops the formalism; this table is the bridge back
-to it:
+The six everyday scenarios in [ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) do
+not stand as separate examples. Each plays out concretely and lands on one of
+the cases above. The narrative version drops the formalism; this table bridges
+back to it:
 
 | Scenario (practice doc) | Outcome | Mode |
 |---|---|---|
@@ -695,13 +694,13 @@ here for the formal account.
 
 ### Semiotic Grounding
 
-Peirce's semiotics holds that a sign is irreducibly **triadic**: it consists
-of a *representamen* (the sign-vehicle), an *object* (what the sign stands
-for), and an *interpretant* (the understanding the sign produces). No dyad
-suffices. A representamen without an object is empty form; a representamen
-confronting an object without an interpretant is a mark checked against the
-world but producing no understanding. The triad is the minimal structure of
-meaning.
+Peirce's semiotics holds that a sign works irreducibly **triadically**. It
+consists of a *representamen* (the sign-vehicle), an *object* (what the sign
+stands for), and an *interpretant* (the understanding the sign produces). No
+dyad suffices. A representamen without an object remains empty form; a
+representamen confronting an object without an interpretant amounts to a mark
+checked against the world that produces no understanding. The triad gives the
+minimal structure of meaning.
 
 The Endoporeutic Game recapitulates this triad:
 
@@ -711,31 +710,31 @@ The Endoporeutic Game recapitulates this triad:
 | **Object** | **Grapheus** | The domain, the world-as-known, what the sign is tested against |
 | **Interpretant** | **Agonothetes** | The understanding that the contest produces — how the proposal relates to the known |
 
-Without the Agonothetes, the game is formally complete but semiotically
-barren: it yields true or false, but no growth of understanding. Without
-the Grapheus, the Graphist produces signs that are never tested — unchecked
-speculation. Without the Graphist, there is a domain with interpretive
-capacity but nothing proposed — knowledge that never grows.
+Without the Agonothetes, the game stands formally complete but semiotically
+barren. It yields true or false and no growth of understanding. Without
+the Grapheus, the Graphist produces signs that never get tested — unchecked
+speculation. Without the Graphist, a domain sits with interpretive
+capacity and nothing proposed — knowledge that never grows.
 
 The term **Agonothetes** — literally "organizer of the contest" — comes from
 the ancient Greek title for those who organized athletic games, festivals,
 and competitions. The agonothetes did not compete; they established the
 conditions under which the contest could take place, ensured the rules were
 followed, and declared what the outcome meant. In the EPG, the Agonothetes
-is not a third *player* but the **telic function** of the game: the purpose
-for which the contest exists and the understanding it produces.
+serves not as a third *player* but as the **telic function** of the game —
+the purpose for which the contest exists and the understanding it produces.
 
-Peirce himself did not name this third function in his game — he was working
-at the level of formal semantics, where the boolean outcome (true/false) is
-the relevant output. But his own semiotic framework demands it. A sign
-process that terminates at a dyad is degenerate in Peircean terms. The
-Agonothetes names what Peirce left implicit: the interpretant of the
-game-as-semiosis.
+Peirce himself did not name this third function in his game. He worked
+at the level of formal semantics, where the boolean outcome (true/false)
+counts as the relevant output. But his own semiotic framework demands it. A
+sign process that terminates at a dyad reads as degenerate in Peircean terms.
+The Agonothetes names what Peirce left implicit — the interpretant of the
+game as semiosis.
 
 Note that the user of Arisbe straddles *both* player roles — the same person
 proposes (Graphist) and challenges (Grapheus), as when playing chess against
-oneself. The Agonothetes is therefore not the user-as-observer but the
-**meaning-making function** that the game serves: it is what transforms the
+oneself. The Agonothetes therefore names not the user as observer but the
+**meaning-making function** that the game serves. It transforms the
 mechanical contest into an act of inquiry.
 
 ### What the Agonothetes Does
@@ -746,8 +745,8 @@ The Agonothetes manifests in three phases of the game:
 
 Everything happens within one **Universe of Discourse** ([UoD](GLOSSARY.md#uod)), where more
 than one domain model may exist. The **Agonothetes sets the terms** — choosing the particular
-reference model M the round will test a proposed graph G against. This is its *before-the-play*
-framing act (the *after* act being the selection of a fate from the outcome).
+reference model M the round will test a proposed graph G against. That counts as its
+*before-the-play* framing act; the *after* act selects a fate from the outcome.
 
 > **Who chooses M — ✅ RULED (the author, 2026-07-21): the Agonothetes chooses.** Canonical
 > account: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3. The
@@ -764,35 +763,35 @@ framing act (the *after* act being the selection of a fate from the outcome).
 > outcome mean?* after. Played by a human, this is where her own posture — in the dialogue and
 > toward the world — enters the record.
 
-The interpretive frame — the structure the game will unwind — is:
+The interpretive frame — the structure the game will unwind — looks like this:
 
 ```
 ~[ M  ~[ G ] ]
 ```
 
 This reads as ¬(M ∧ ¬G) = **M → G**. Constructing this frame may require
-proof-mode operations (DC+, IT+, INS) that are outside the EPG procedure
-itself; the Agonothetes oversees that construction before the interpretive
-game begins. Once the frame is in place, the EPG proceeds using only IT- and
+proof-mode operations (DC+, IT+, INS) that lie outside the EPG procedure
+itself, and the Agonothetes oversees that construction before the interpretive
+game begins. Once the frame stands, the EPG proceeds using only IT- and
 DC- from the outside in.
 
-The game will determine whether G holds in M, contradicts M, is independent
-of M, or falls into one of the other taxonomic categories (§Taxonomy of Game
-Outcomes).
+The game will determine whether G holds in M, contradicts M, stands
+independent of M, or falls into one of the other taxonomic categories
+(§Taxonomy of Game Outcomes).
 
 **During the game — keeping the record (never refereeing):**
 
-1. **No move validation — because none is needed.** There is **no move-by-move
-   judge of legality**: every EGI→EGI transformation is guaranteed lawful by
-   the calculus itself — the six Dau rules, held to the correspondence check
+1. **No move validation — because none is needed.** **No move-by-move
+   judge of legality exists.** The calculus itself guarantees every EGI→EGI
+   transformation lawful — the six Dau rules, held to the correspondence check
    (§3.3 of
    [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)).
    A move that would be illegal cannot be scribed at all, so the players'
-   conduct cannot be illegal and there is nothing to referee. This is the
+   conduct cannot be illegal and nothing remains to referee. This follows the
    ratified "no referee" ruling of
-   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3;
-   an earlier draft of this guide gave the Agonothetes a move-validation
-   duty, and that assignment is withdrawn.
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
+   An earlier draft of this guide gave the Agonothetes a move-validation
+   duty; that assignment is withdrawn.
 2. **Mapping facilitation**: when the Proposer maps exposed elements to M,
    the peel resolves the mapping mechanically against the domain oracle. If
    the Proposer legitimately claims a **new entity** not present in M, the
@@ -801,18 +800,18 @@ Outcomes).
 3. **Traversal tracking**: The Agonothetes tracks the path through the tree
    (which areas have been resolved, which sub-games are in progress) and
    records the outcome of each sub-game in the transcript.
-4. **Record-keeping**: The official game transcript is maintained via
-   `ProofSerializer`, including the traversal path, each sub-game's outcome,
+4. **Record-keeping**: `ProofSerializer` maintains the official game
+   transcript, including the traversal path, each sub-game's outcome,
    and the final disposition.
 
 **After the game — producing understanding:**
 
-This is the Agonothetes' most essential function — the one that makes it
+This function matters most of the three — the one that makes the Agonothetes
 the Interpretant. The game has produced its outcome: the Graphist has
-a winning strategy, or the Grapheus does — or neither can force a win on
+a winning strategy, or the Grapheus does, or neither can force a win on
 the current M (the UNKNOWN verdict; see "The third verdict" in the
-Taxonomy). But what does this *mean* for the knowledge base? The
-Agonothetes selects — at its own risk — what the result comes to in
+Taxonomy). But what does that *mean* for the knowledge base? The
+Agonothetes selects, at its own risk, what the result comes to in
 context:
 
 | Disposition | When | Effect on M |
@@ -826,8 +825,8 @@ A sub-graph might include a new fact or a new explanation that throws the
 whole into doubt without frankly contradicting M. Or it might contradict M
 outright, yet the participants might agree to hold the graph as a hypothesis
 or alternative pending confirmation or refutation by further evidence. The
-taxonomy of outcomes (Part II) covers these possibilities; the Agonothetes
-is the function by which the game result is interpreted and acted upon.
+taxonomy of outcomes (Part II) covers these possibilities. The Agonothetes
+names the function that interprets the game result and acts on it.
 
 The replay function (side-by-side or step-by-step) allows participants to
 review the sequence of transformations, both for successful derivations and
@@ -839,25 +838,25 @@ for instances of illustrative errors.
 
 Under the M-residence discipline
 ([M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
-§9–§10), the episode's frame is not scratch-work beside the record — **every
-phase of the episode is a licensed act drawn on the sheet**, and the
-dispositions of Part II execute as real rule applications:
+§9–§10), the episode's frame does not sit as scratch-work beside the record.
+**Every phase of the episode is a licensed act drawn on the sheet**, and the
+dispositions of Part II execute as real rule applications.
 
-- **ENTERTAIN** (`entertain_episode`): the exhibit `~[ M′ ~[P] ~[ ] ]` — "if
-  M then P" — is built *inside the agreed context* by genuine rules: DC+
+- **ENTERTAIN** (`entertain_episode`): genuine rules build the exhibit
+  `~[ M′ ~[P] ~[ ] ]` — "if M then P" — *inside the agreed context*. DC+
   opens the arena, IT+ copies M's relevant ink, INS scribes the guarded
-  proposal, and one **empty inner cut stands as the vacuity rider**: while
-  it stands, the exhibit asserts nothing — the proposal is *present without
-  force*. (The episode theorem: the DC+ must land in an even context at
+  proposal, and one **empty inner cut stands as the vacuity rider**. While
+  it stands, the exhibit asserts nothing, and the proposal remains *present
+  without force*. (The episode theorem: the DC+ must land in an even context at
   depth ≥ 2 — an odd area gives no arena, and at depth 0 the discharge
-  would be unreachable by soundness.) Entertaining is Peirce's auxiliary
-  line — a known insertion; a chain that later discharges through one reads
+  would be unreachable by soundness.) Entertaining amounts to Peirce's auxiliary
+  line, a known insertion; a chain that later discharges through one reads
   *theorematic*, not corollarial.
 - **DISCHARGE** (`discharge_episode`): drawn modus ponens — IT− · IT− · DC−
   — with P landing in M **derived, never inserted**. The licence flows
-  through the standing hold (the **⊥-door**: an empty cut among the
-  world-scroll's cells is falsum in scope, and falsum licenses scribing
-  anything) — which is exactly why **licence ≠ certification**: the
+  through the standing hold, the **⊥-door**: an empty cut among the
+  world-scroll's cells reads as falsum in scope, and falsum licenses scribing
+  anything. That is exactly why **licence ≠ certification**. The
   recorder *refuses* a discharge that cannot cite a confirming peel
   (`confirmed_by`), and the standing corpus gate re-runs every cited
   verdict forever. Nothing reaches M through the ⊥-door unrecorded.
@@ -865,12 +864,12 @@ dispositions of Part II execute as real rule applications:
   put down without residue, its having-been-entertained still on the
   record.
 
-The same discipline runs through every M-changing disposition: admission is
+The same discipline runs through every M-changing disposition. Admission takes
 one licensed INS-of-cell into the standing world-scroll, retraction one
 licensed ERA inside a cell, each chain step carrying its acknowledged act
 and its executed derivation, all held by the standing polarity gate
-(`tests/test_corpus_polarity_discipline.py`). The taxonomy of fates is not
-commentary *about* the record — it is *executed in* the record.
+(`tests/test_corpus_polarity_discipline.py`). The taxonomy of fates offers no
+commentary *about* the record. It is *executed in* the record.
 
 ---
 
@@ -885,32 +884,32 @@ function of inquiry?
 ### Situational Definitions
 
 The UoD architecture document establishes that the fundamental entity in
-Arisbe is not a static graph but the **diachronic process** of evolving
+Arisbe lies not in a static graph but in the **diachronic process** of evolving
 logical discourse — the film, not the photograph.  Within this process, the
 three game roles occupy distinct temporal positions:
 
-**Grapheus — the past.**  The Grapheus is the domain model M: everything
-that has been established through prior inquiry, every Agonothetes judgment
-that has been rendered and accepted, every fact imported and every theorem
-proved.  M is the *sediment* of previous understanding.  It is not passive
-— it actively resists proposals that contradict it, and it actively supports
-proposals that align with it — but it is, by the time any particular game
-begins, already settled.  In the UoD's diachronic process, the Grapheus is
-what *was*: the world-as-already-known.
+**Grapheus — the past.**  The Grapheus *is* the domain model M — everything
+established through prior inquiry, every Agonothetes judgment rendered and
+accepted, every fact imported and every theorem
+proved.  M forms the *sediment* of previous understanding.  It does not sit
+passive: it actively resists proposals that contradict it and actively
+supports proposals that align with it.  But by the time any particular game
+begins, it has already settled.  In the UoD's diachronic process, the Grapheus
+holds what *was*: the world-as-already-known.
 
-**Graphist — the present.**  The Graphist is the active moment of inquiry:
-the point at which something new is introduced into the discourse.  The
-Graphist exists at the boundary between the known and the not-yet-known.
-Every proposal G is an act of semiosis — the creation of a sign that may or
-may not find its object in M.  In the UoD's diachronic process, the Graphist
+**Graphist — the present.**  The Graphist marks the active moment of inquiry,
+the point at which something new enters the discourse.  The
+Graphist stands at the boundary between the known and the not-yet-known.
+Every proposal G performs an act of semiosis — the creation of a sign that may
+or may not find its object in M.  In the UoD's diachronic process, the Graphist
 is what *is happening*: the inquiry in progress, the hypothesis ventured,
 the claim put forward.
 
 **Agonothetes — the future.**  Not in a predictive sense, but in a telic
-one: the Agonothetes is what the game is *for*.  It is the understanding
-that the process aims to produce.  Each Agonothetes judgment, once rendered,
-becomes part of M (the Grapheus) for subsequent inquiry.  The Agonothetes is
-therefore the pivot between one cycle of inquiry and the next — the point
+one: the Agonothetes is what the game is *for*.  It names the understanding
+the process aims to produce.  Each Agonothetes judgment, once rendered,
+becomes part of M (the Grapheus) for subsequent inquiry.  The Agonothetes
+therefore pivots between one cycle of inquiry and the next — the point
 at which the diachronic process turns.  In the UoD's diachronic process, the
 Agonothetes is what *comes to be*: the growth of understanding that feeds
 forward into the next round.
@@ -928,7 +927,7 @@ UoD's architecture:
 
 **Graphist — the assertive function.**
 
-The Graphist embodies the *creative* dimension of inquiry: the capacity to
+The Graphist embodies the *creative* dimension of inquiry — the capacity to
 produce new signs, to propose what has not yet been tested.  Functionally:
 
 - Constructs representations (graphs) — translating intuitions, observations,
@@ -943,12 +942,12 @@ produce new signs, to propose what has not yet been tested.  Functionally:
 - Embodies the assertive function: *putting claims forward* so they can be
   tested
 
-Without the Graphist, the UoD is a closed archive — knowledge that never
+Without the Graphist, the UoD becomes a closed archive — knowledge that never
 grows, a Grapheus with nothing to test.
 
 **Grapheus — the critical function.**
 
-The Grapheus embodies the *constraining* dimension of inquiry: the resistance
+The Grapheus embodies the *constraining* dimension of inquiry — the resistance
 of reality-as-known to unchecked assertion.  Functionally:
 
 - Tests signs against the domain — M is not an inert database but an active
@@ -963,12 +962,12 @@ of reality-as-known to unchecked assertion.  Functionally:
 - Embodies the critical function: *checking, constraining, pruning* so that
   only warranted assertions survive
 
-Without the Grapheus, the UoD is unchecked speculation — a Graphist producing
-signs that are never tested, assertion without resistance.
+Without the Grapheus, the UoD becomes unchecked speculation — a Graphist
+producing signs that never get tested, assertion without resistance.
 
 **Agonothetes — the interpretive function.**
 
-The Agonothetes embodies the *telic* dimension of inquiry: the purpose for
+The Agonothetes embodies the *telic* dimension of inquiry — the purpose for
 which the contest exists.  Functionally:
 
 - Before the game: establishes the conditions of inquiry — what M is (a
@@ -990,7 +989,7 @@ understanding — a contest with a winner but no significance.
 
 ### The Cycle
 
-The three functions form a cycle that is the engine of inquiry:
+The three functions form a cycle — the engine of inquiry:
 
 ```
   Grapheus (past)           Graphist (present)
@@ -1017,8 +1016,8 @@ Agonothetes cycle, each round building on the last.
 
 ## Bootstrapping M: From Scratch and From Import
 
-The cycle diagram (§The Cycle) raises an immediate practical question: where
-does M come from in the first place?  There are two fundamental pathways,
+The cycle diagram (§The Cycle) raises an immediate practical question.  Where
+does M come from in the first place?  Two fundamental pathways answer it,
 and each illuminates something different about the framework.
 
 ### From Scratch: Emergence from the Empty Sheet
@@ -1026,8 +1025,8 @@ and each illuminates something different about the framework.
 Can one imagine this starting from nothing — like Conway's Game of Life —
 and watching it grow?
 
-Yes.  Start with **M = the empty sheet**: no facts, no implications, no
-structure.  The first game is trivial:
+Yes.  Start with **M = the empty sheet** — no facts, no implications, no
+structure.  The first game runs trivially:
 
 1. The Graphist proposes G₁ (say, "Birds fly").
 2. The Grapheus has nothing — M is empty.  There is nothing for IT- to map
@@ -1066,21 +1065,21 @@ The fourth game:
    except penguins"), then M₄ ≠ M₃ — a genuine restructuring.
 
 **The analogy to Conway's Game of Life holds in structure but differs in
-agency.**  In GoL, the rules are applied mechanically to initial conditions;
+agency.**  In GoL, the rules apply mechanically to initial conditions, and
 patterns emerge without choice.  In the EPG, the Graphist *chooses* what to
 propose and the Agonothetes *interprets* the result.  But the structural
-parallel is real:
+parallel holds:
 
 - **Simple local rules** (the six transformation rules, the polarity-based
   turn system) produce **complex global behavior** (a growing, self-
   correcting knowledge base).
 - **Emergence** happens: M develops structure that no single proposal
   contained — implications, chains of inference, exceptions, taxonomies.
-- **The richness of the game scales with M**: early games are trivial;
+- **The richness of the game scales with M**: early games run trivially;
   later games involve deep tree traversals and multi-step proofs.  This
-  is the novice-to-expert trajectory viewed diachronically.
+  traces the novice-to-expert trajectory diachronically.
 
-The from-scratch pathway is the *pedagogical* mode — ideal for building
+The from-scratch pathway serves as the *pedagogical* mode — ideal for building
 understanding of a domain by constructing it piece by piece, seeing each
 implication and contradiction as it arises.  Scenario 5 in the practical
 exemplars (Amara's zoology course) illustrates this: each lesson adds to M,

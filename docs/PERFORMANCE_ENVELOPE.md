@@ -1,14 +1,14 @@
 # Performance Envelope — how big, how fast, where the walls are
 
-> This is the single place the real numbers live. They were previously scattered
-> across dated run logs and the capability map; here they are collected, with the
-> shape of the input that governs each. Disposes gap **G7** of
+> The real numbers live here, in one place. They sat scattered across dated run
+> logs and the capability map; here they stand collected, with the shape of the
+> input that governs each. Disposes gap **G7** of
 > [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md).
 
-**The one thing to understand first:** Arisbe's costs scale with the *shape* of
-the graph, not just its size. A 50-element chain is cheap; a 50-element
+**Understand this first.** Arisbe's costs scale with the *shape* of
+the graph, not just its size. A 50-element chain costs little; a 50-element
 **star** (one individual touched by many relations — the Wikidata-entity shape)
-was, before the fixes below, catastrophic. Every performance wall we hit was a
+ran catastrophic before the fixes below. Every performance wall we hit came of a
 wrong-complexity algorithm exposed by a hub-shaped input, and every one was
 fixed by making the algorithm exact-but-cheaper — never by approximating.
 
@@ -24,15 +24,15 @@ fixed by making the algorithm exact-but-cheaper — never by approximating.
 | **Peel / model-check one G** | small M | large materialized M | \|M\| (facts) | Forward-chains M's Horn fragment each call; see the live-run wall. |
 | **One live-game round** | \|M\| ≈ tens | \|M\| in the hundreds | \|M\| | Super-linear; bounded operationally by disuse-decay (below). |
 
-For anything past "comfortable," the honest move is to reach for the
+For anything past "comfortable," the honest move reaches for the
 coordinate-free `/structure` route (which never lays out geometry) or the
-adaptive-scope overview lens, not to force a full ELK draw.
+adaptive-scope overview lens, rather than forcing a full ELK draw.
 
 ## The walls we hit — and how each was removed
 
-Each of these was a real, measured pathology on a hub-shaped input, fixed by an
+Each of these names a real, measured pathology on a hub-shaped input, fixed by an
 **exact** algorithm change (bit-identical or provably-equal output), not an
-approximation. This is the project's performance doctrine: *own the
+approximation. The project's performance doctrine reads: *own the
 dimensionality, don't round it off.*
 
 | Wall | Before | After | Fix | Date |
@@ -44,18 +44,18 @@ dimensionality, don't round it off.*
 
 ## Known-heavy shapes (still real limits)
 
-Not everything is fixed to instant. These are the honest remaining costs:
+Not everything runs instant. The remaining costs, honestly named:
 
 - **ELK on a deep/wide taxonomy.** A 250-cut ontology (SUMO upper) **chokes ELK
-  at ~74 s** for a full drawing. The mitigation is real and shipped: the
+  at ~74 s** for a full drawing. The mitigation exists and has shipped. The
   coordinate-free `/structure` route returns the same taxonomy in milliseconds
-  because it produces *structure*, not a picture; and the adaptive-scope overview
+  because it produces *structure*, not a picture, and the adaptive-scope overview
   lens collapses deep cuts into placeholders. Draw the whole thing only when you
   need the whole picture.
-- **A large persistent M in a live game is flat but heavy.** Round compute is
-  now flat (no super-linear tail), but a *persistent* ~1,000-atom model costs
+- **A large persistent M in a live game runs flat but heavy.** Round compute now
+  runs flat (no super-linear tail), but a *persistent* ~1,000-atom model costs
   **~3–10 min per checkpoint segment** (layout + attest + peel at that scale) —
-  finding F2ᵇ from run 5b. Flat ≠ cheap. This is why the live runner
+  finding F2ᵇ from run 5b. Flat ≠ cheap. So the live runner
   **checkpoints and prunes** rather than holding the whole proof chain in RAM.
 
 ## Live-run throughput (measured, field conditions)
@@ -69,8 +69,8 @@ From the executed Wikidata runs (`runs/RUN_*_LOG.md`):
   for API etiquette), not compute-limited, once the compute walls above were
   removed.
 - **What keeps it bounded:** disuse-decay caps \|M\| (atom-level TTL) so per-round
-  cost, memory, and disk stay flat across an arbitrarily long run; segments are
-  checkpointed and the in-RAM chain is dropped. See
+  cost, memory, and disk stay flat across an arbitrarily long run; the runner
+  checkpoints each segment and drops the in-RAM chain. See
   [runs/OPERATIONS.md](../runs/OPERATIONS.md) for the operator's view.
 
 ## How to reproduce / measure

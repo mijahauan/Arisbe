@@ -6,22 +6,22 @@ search 2026-06-11; ontology-as-M / terminological box ([T-box](GLOSSARY.md#t-box
 oracle scale steps 4–6 (cache → [horizon](GLOSSARY.md#horizon) → SPARQL) · **Drafted**: 2026-06-11
 
 > **On *rendering* M** (vs. holding it): see [`THE_MINIMAL_IN_VIEW_SET.md`](THE_MINIMAL_IN_VIEW_SET.md) §3, §11.
-> M is axis (iii) of the scale problem; the answer is to draw only the relevant *neighborhood* G touches (the
-> oracle's ego-graph slice) with a horizon map-symbol — never M in full. "M queried, not held" is itself the
-> extended-mind / long-term-working-memory precedent (cues, not content).
+> M stands as axis (iii) of the scale problem. Draw only the relevant *neighborhood* G touches,
+> the oracle's ego-graph slice, with a horizon map-symbol, and never M in full. "M queried, not held" carries
+> its own precedent in the extended mind and in long-term working memory — cues, not content.
 
 > **One regime (updated 2026-07-16, sweep #2 — the second relocation).** Corpus *and* live
 > loops now hold M's elements in **cells at even depth** of the standing
-> [world-scroll](GLOSSARY.md#world-scroll) `~[ ~[cell] … ~[ ] ]` — nothing contingent stands at
-> depth 0; enlargement is one licensed INS of a closed cell and retraction one licensed ERA
-> inside a cell — with every M-change an explicit rule-licensed step and every verdict a
+> [world-scroll](GLOSSARY.md#world-scroll) `~[ ~[cell] … ~[ ] ]`. Nothing contingent stands at
+> depth 0. Enlargement takes one licensed INS of a closed cell, retraction one licensed ERA
+> inside a cell, so every M-change becomes an explicit rule-licensed step and every verdict a
 > recomputable `PEEL` step (see
 > [M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md) §9).
-> Every reader in this document — the oracle, materialization, the theory query, render-M —
+> The oracle, materialization, the theory query, render-M — every reader in this document
 > goes through `world_scroll.m_view`, which serves M's own content either way (identity for a
 > bare sheet-level fixture). So where this document says M's "sheet-level" atoms, read *M's own
 > content*: the union of the cells' interiors for a resident M, the sheet for a bare fixture.
-> Verdict semantics are unchanged — the episode was always "given M, then G".
+> Verdict semantics stay unchanged. The episode always meant "given M, then G".
 
 > The question this answers: the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game tests a proposal G against a
 > domain model **M** — "the outside" that enables the outside-in interpretation.
@@ -30,8 +30,8 @@ oracle scale steps 4–6 (cache → [horizon](GLOSSARY.md#horizon) → SPARQL) �
 > much is enough, and what does the contact surface look like, without getting
 > lost or overwhelmed?
 
-This note is the design-of-record for that contact surface. It does not specify
-an implementation; it fixes the *shape* of the problem and the first step.
+This note serves as the design-of-record for that contact surface. It specifies
+no implementation. It fixes the *shape* of the problem and the first step.
 
 Related: [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) (where M comes
 from, the outside-in process), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)
@@ -44,10 +44,10 @@ from, the outside-in process), [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md
 ## 1. The reframe: M is *queried*, not *held*
 
 The game guide already fixes the one operation the game performs against the
-domain: a **graph homomorphism** — "the Proposer must show a mapping between *g*
-and the objects and relations in M," where *g* is a negation-free outermost
-piece of the proposal. That is the *entire* contact surface. The outside-in
-process never asks M to enumerate itself; it asks a bounded sequence of strictly
+domain, a **graph homomorphism**: "the Proposer must show a mapping between *g*
+and the objects and relations in M," where *g* names a negation-free outermost
+piece of the proposal. That marks the *entire* contact surface. The outside-in
+process never asks M to enumerate itself. It asks a bounded sequence of strictly
 local questions:
 
 - *Does this negation-free subgraph map into you?* (positive area)
@@ -55,10 +55,10 @@ local questions:
 
 Everything reduces to localized membership / homomorphism / witness queries.
 
-So the contact surface is **an oracle interface, not a bulk import.** The game
-engine stays Existential Graph Instance ([EGI](GLOSSARY.md#egi))-native and source-agnostic; behind the oracle sits whatever can
+So the contact surface amounts to **an oracle interface, not a bulk import.** The game
+engine stays Existential Graph Instance ([EGI](GLOSSARY.md#egi))-native and source-agnostic. Behind the oracle sits whatever can
 answer those queries — the local [tomos](GLOSSARY.md#tomos) corpus, a Wikidata SPARQL endpoint, a
-SNOMED service, a WordNet lookup. The consequence is the whole point:
+SNOMED service, a WordNet lookup. The consequence matters most:
 
 > "Enough" stops being a property of M's *coverage* and becomes a property of
 > *what the proposal actually touches.* You never load the ontology; you resolve
@@ -86,28 +86,28 @@ when the backing does.
 
 1. **Vocabulary-bounded.** The proposal's signature (its predicates and
    individuals) seeds the whole interaction. You only ever touch terms the graph
-   mentions, plus their *[scrolls](GLOSSARY.md#scroll)* (a nested double cut — "if … then") — and subsumption is already a scroll in the
-   corpus model, so the relevant **type spine** around those terms is the only
+   mentions, plus their *[scrolls](GLOSSARY.md#scroll)* (a nested double cut — "if … then"). Subsumption already stands as a scroll in the
+   corpus model, so the relevant **type spine** around those terms gives you the only
    hierarchy you need, never the instance mass beneath it. An ego-graph of
    radius *n* around the signature, not the ontology.
 
-2. **The open-world horizon is a feature, not a gap.** The game already makes
-   "M neither confirms nor denies" a *first-class verdict* — the
-   stalemate/independence case that becomes a new fact. So **M never needs to be
-   closed to play.** Incompleteness is exactly what distinguishes deduction
-   (confirmed) from empirical enlargement (unknown-but-consistent) from
-   contradiction (denied). Beyond the horizon the honest answer is "unknown," and
-   the game is built to do something meaningful with it.
+2. **The open-world horizon counts as a feature, not a gap.** The game already makes
+   "M neither confirms nor denies" a *first-class verdict*, the
+   stalemate or independence case that becomes a new fact. So **M never needs to be
+   closed to play.** Incompleteness draws exactly the distinction between deduction
+   (confirmed), empirical enlargement (unknown-but-consistent), and
+   contradiction (denied). Beyond the horizon the honest answer reads "unknown," and
+   the game was built to do something meaningful with it.
 
 3. **Demand-driven materialization.** As the outside-in walk reaches an atom,
    resolve it lazily and cache it into a session-local working model with a
-   provenance tag. M grows *only along the path the inquiry actually took* —
-   which is the guide's "M develops as the players consider new graphs." The
-   working model is the diachronic UoD accreting, one resolved query at a time.
+   provenance tag. M grows *only along the path the inquiry actually took*,
+   matching the guide's "M develops as the players consider new graphs." The
+   working model amounts to the diachronic UoD accreting, one resolved query at a time.
 
-This is also just Peirce: the "outside" that enables outside-in interpretation is
-**collateral experience**, which is always finite, indexical, and brought to bear
-*as needed*. The horizon is not a compromise on an ideal; it *is* the model of
+This also comes straight from Peirce. The "outside" that enables outside-in
+interpretation means **collateral experience**, always finite, always indexical,
+brought to bear *as needed*. The horizon does not compromise an ideal. It *models*
 how a situated interpreter stands.
 
 ---
@@ -116,28 +116,28 @@ how a situated interpreter stands.
 
 - **Horizon radius, widenable mid-game.** Start with the *n*-hop neighborhood
   around the signature; when a query reaches the edge, **"widen the horizon"
-  becomes an explicit, recorded move**, not a silent re-config. The reach is
-  visible in the transcript.
+  becomes an explicit, recorded move**, not a silent re-config. The transcript
+  shows the reach.
 
 - **Open vs. closed regions.** Some refutations need closure ("these are *all*
   the mammals" → refute by exhaustion); most reasoning does not. Each imported
-  fragment declares whether it is **asserted-complete** (negation-as-failure
+  fragment declares itself either **asserted-complete** (negation-as-failure
   valid here → `DENIED` is reachable) or **sampled** (unknown ≠ false → only
-  `UNKNOWN`). That declaration is the *only* place closed-world semantics live:
-  local, explicit, and earned. You get exhaustive refutation exactly where you
+  `UNKNOWN`). That declaration marks the *only* place closed-world semantics live:
+  local, explicit, earned. You get exhaustive refutation exactly where you
   have claimed completeness and nowhere else.
 
 ---
 
 ## 4. Choosing the outside is a *move*, not config
 
-The deepest form of the worry — "who decides what's relevant, and won't it be
-arbitrary?" — is resolved by making **the choice of M the opening move of the
-game**: an [Agonothetes](GLOSSARY.md#agonothetes) act (the role that turns the
+The worry runs deepest as a question. Who decides what's relevant, and won't it be
+arbitrary? Making **the choice of M the opening move of the game** answers it, as
+an [Agonothetes](GLOSSARY.md#agonothetes) act (the role that turns the
 game's outcome into an act of inquiry). *"I will test this against Wikidata,
 neighborhood radius 2, this fragment asserted-complete."* Recorded, warranted,
-contestable. Relevance *is* a judgment; the honest place for it is owned by
-someone and open to challenge, not buried in a config file.
+contestable. Relevance *is* a judgment. The honest place for it belongs to
+someone and stands open to challenge, not buried in a config file.
 
 > **Who chooses M — ✅ RULED (the author, 2026-07-21): the Agonothetes chooses.** Canonical
 > account: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3. §3 fixes the
@@ -150,37 +150,37 @@ someone and open to challenge, not buried in a config file.
 > reconciled to the same account). The **dual** question — *in what M does this G fit?* — is the
 > **inverse pivot** (§7 below), ranging the peel across candidate models.
 
-It composes with the warrant gradient: M enters as **low-warrant backdrop** —
+It composes with the warrant gradient. M enters as **low-warrant backdrop**,
 not "true," merely "available to map against." Nothing imported pollutes the
-corpus; the game's **verdict** is what confers warrant. *Attest correspondence,
+corpus. The game's **verdict** confers warrant. *Attest correspondence,
 not truth* already protects this boundary.
 
 ---
 
 ## 4a. The Alpha home of the episode: the scroll, and model-revision as INS
 
-The [episode](GLOSSARY.md#episode) "given M, then G" is not an extra-systematic frame bolted onto the
-calculus — it has a home in Alpha. "P given M" is the **scroll**
+The [episode](GLOSSARY.md#episode) "given M, then G" does not bolt an extra-systematic frame onto the
+calculus. It has a home in Alpha. "P given M" draws as the **scroll**
 `cut[ M cut[P] ]` = M → P: P sits at *even* depth inside (affirmed-relative-to-M),
 M at *odd* depth, in a **negative** context. Two consequences make the register
 honest:
 
-- **Choosing M, and revising it, are sound moves — not stance-taking.** Because M
-  is in a negative context, the **Insertion rule (INS)** licenses freely adding
-  conditions to it. Strengthening the antecedent — refining or revising the model
-  under which you assert G — is INS operating on the antecedent, a permission of
-  the calculus, not an extra-logical "new stand." This is the Alpha-level warrant
+- **Choosing M, and revising it, count as sound moves, not stance-taking.** Because M
+  sits in a negative context, the **Insertion rule (INS)** licenses freely adding
+  conditions to it. Strengthening the antecedent means refining or revising the model
+  under which you assert G, and that runs INS on the antecedent — a permission of
+  the calculus, not an extra-logical "new stand." Here lies the Alpha-level warrant
   for "the choice of M is a *move*" (§4) and for the diachronic *"free to
   demote"*: model revision *is* insertion into the conditioning context.
-- **The asymmetry is the epistemology.** Erase freely where things are affirmed
+- **The asymmetry carries the epistemology.** Erase freely where things are affirmed
   (positive), insert freely where things are conditioned (negative). G held under
-  M is *logically defeasible* by construction.
+  M stands *logically defeasible* by construction.
 
 So the semantic-game episode (`src/semantic_game.py`, `src/theory_query.py`,
-`/agon/interpret`) and the inverse pivot (§7) are reading and revising a scroll.
-The full argument is in
-[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5; it is the
-Alpha grounding of the philosophy this document and
+`/agon/interpret`) and the inverse pivot (§7) read and revise a scroll.
+The full argument runs in
+[LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5. It grounds in
+Alpha the philosophy this document and
 [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) have been asserting.
 
 ---
@@ -189,9 +189,9 @@ Alpha grounding of the philosophy this document and
 
 Web Ontology Language ([OWL](GLOSSARY.md#owl))→Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))→EGI layout is super-linear (~74s at 127 axioms, observed). So **never
 bulk-translate to graphs.** Keep M in native/CLIF form behind the oracle and
-translate to a *drawn* EGI only the fragment that enters the **visible** game —
-the part the user actually watches get unwrapped. The contested graph is the one
-thing that must be a picture; M may answer as data.
+translate to a *drawn* EGI only the fragment that enters the **visible** game,
+the part the user actually watches get unwrapped. Only the contested graph must
+be a picture. M may answer as data.
 
 ---
 
@@ -202,7 +202,7 @@ tomos corpus**, because the homomorphism machinery already exists
 (`graph_isomorphism_engine`, `same_graph`). Prove the demand-driven loop
 end-to-end on a tiny neighborhood, with provenance-tagged caching, *before*
 pointing it at anything SNOMED-scale. Then add exactly **one** external backing
-(Wikidata SPARQL is the cleanest contract) behind the same interface. If the
+(Wikidata SPARQL offers the cleanest contract) behind the same interface. If the
 abstraction holds across "local corpus" and "remote SPARQL," it will hold for
 the rest.
 
@@ -238,18 +238,18 @@ Sequence:
    ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) clarification 1): a model
    M authored as *facts + Horn-shaped rules* is forward-chained to its **least
    Herbrand model** (the closure of everything the rules entail over the facts), and
-   *that* is what the peel checks against. Keeps the peel pure model-checking while
+   the peel checks against *that*. Keeps the peel pure model-checking while
    making M "as full as possible." Reuses `match_atoms`; depends on nothing beyond
    steps 1–2. Precondition for ontology-as-M (T-box rules must be materialized to be
    testable).
 4. Provenance-tagged session working-model (the demand-driven cache).
 5. Horizon radius + open/closed declaration as M-selection parameters.
 6. One remote backing (`SparqlOracle`, Wikidata) behind the same interface.
-   *(Realized differently: Wikidata went live as a **source feeding M** — statements
-   ingested by `src/wikidata_source.py` into the automated game's developing model,
-   which is then materialized and peeled locally — rather than as a SPARQL oracle
-   answering `resolve` at peel time. The `SparqlOracle` seat behind the interface
-   remains open.)*
+   *(Realized differently. Wikidata went live as a **source feeding M**:
+   `src/wikidata_source.py` ingests statements into the automated game's developing
+   model, which then gets materialized and peeled locally, rather than as a SPARQL
+   oracle answering `resolve` at peel time. The `SparqlOracle` seat behind the
+   interface remains open.)*
 
 ### 6.1 Materialization spec (step 3)
 
@@ -268,13 +268,13 @@ an honest **skip-report** of the rules left unmaterialized.
   bare fact (no scroll) is already in M′.
 - **The fixpoint.** Repeatedly: for each Horn rule, find every binding of B into the
   current facts (this is exactly `match_atoms`), and add H's atoms under that binding;
-  stop when a pass adds nothing. **Termination is guaranteed** — function-free,
-  range-restricted rules generate no new individuals, so the Herbrand base is finite
+  stop when a pass adds nothing. **Termination is guaranteed**: function-free,
+  range-restricted rules generate no new individuals, so the Herbrand base stays finite
   (Datalog).
 - **Soundness + the closed pairing.** The least Herbrand model is the unique minimal
   model of the Horn theory, so model-checking a *positive* query against M′ equals the
-  theory's entailment. For queries with cuts (negation), this is closed-world /
-  stratified-negation — which is exactly why materialization pairs with the **closed**
+  theory's entailment. For queries with cuts (negation), this reads closed-world or
+  stratified-negation, which is exactly why materialization pairs with the **closed**
   regime (§3): materialize, then close, then peel.
 - **Honest skip-report.** Mirrors the Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) import's report ([[project_ontology_import]]):
   every non-Horn rule is named and left to the contest/deduction game, never silently
@@ -286,11 +286,11 @@ an honest **skip-report** of the rules left unmaterialized.
 
 ### 6.2 Theory query — deciding a T-box theorem (ontology-as-M) — BUILT 2026-06-12
 
-Materialization makes the peel work for an **A-box-bearing** model: Porphyry carries
+Materialization makes the peel work for an **A-box-bearing** model. Porphyry carries
 `(Man "Socrates")`, so materializing derives Socrates is Animal/Living/Body/Substance,
 and a proposal about Socrates model-checks correctly. But a real **T-box ontology** —
-the SUMO upper spine, the FOAF schema, Porphyry's genus ladder — is almost entirely
-*rules* over few or no individuals. Materializing SUMO's 43 subsumption axioms derives
+the SUMO upper spine, the FOAF schema, Porphyry's genus ladder — consists almost
+entirely of *rules* over few or no individuals. Materializing SUMO's 43 subsumption axioms derives
 **0 facts** (no individuals to chain over → the empty model). A subsumption proposal
 `~[ (Object *x) ~[ (Entity x) ] ]` then reads **vacuously TRUE** closed (the *wrong*
 reason — a nonsense universal `~[ (Object *x) ~[ (Flibbertigibbet x) ] ]` reads TRUE
@@ -315,17 +315,18 @@ model, so a head atom is derivable iff the Horn theory entails it.
 **Honest residue.** A *positive* is always `TRUE` (derivation is sound regardless of
 what was skipped). A *negative* is `FALSE` only when M is **wholly Horn**; if M carries
 non-Horn axioms materialization had to skip, a negative is `UNKNOWN` — the Horn
-fragment can't prove G, but the skipped axioms might bear on it. This is exactly right
-on the corpus: `Man ⊑ Beast` over Porphyry reads `UNKNOWN`, because Porphyry's
+fragment can't prove G, but the skipped axioms might bear on it. The corpus bears this
+out exactly: `Man ⊑ Beast` over Porphyry reads `UNKNOWN`, because Porphyry's
 Man/Beast **disjointness** (`~[ (Beast z) (Man z) ]`) is a skipped non-Horn denial that
 is precisely what would settle it.
 
 **Wiring.** `/agon/interpret` (and the standalone `_interpret_payload`), when
 `materialize` is set and G is a universal Horn scroll, returns a `theorem` block beside
-the extensional `verdict` — the authoritative "is G a theorem of M (the theory)?"
-answer. This is the deduction the design-of-record (`GENERATION_AND_TESTING.md`
+the extensional `verdict`, the authoritative "is G a theorem of M (the theory)?"
+answer. Here stands the deduction the design-of-record (`GENERATION_AND_TESTING.md`
 clarification 1) routes to "the contest/deduction game": the peel stays pure
-model-checking; the theory query is the inference step that makes a T-box testable.
+model-checking, and the theory query supplies the inference step that makes a T-box
+testable.
 Verified end-to-end on `sumo_upper` (subsumption theorems), `porphyry_tree` (the ladder
 + the disjointness residue), and `foaf_core` (typing chains through subsumption:
 `knows(y,z) → Person(y) → Agent(y)`). Tests: `tests/test_theory_query.py` (16).
@@ -338,21 +339,21 @@ Verified end-to-end on `sumo_upper` (subsumption theorems), `porphyry_tree` (the
 range the peel across the candidate models (the curated examples + the corpus UoDs,
 optionally materialized), and rank by relationship — **holds** (at home / a theorem),
 **partial** (some of G at home; the residue is its contribution), **independent**, or
-**contradicts**. The partial-map residue (below) is surfaced concretely — e.g. a
+**contradicts**. The partial-map residue (below) shows concretely: a
 proposal `(coastal C) (generates_tourism C)` reads *partial* in the wetland model with
-residue `(generates_tourism C)`. The interface needed no change to `resolve`/the peel:
-the forward episode already parameterizes on M, so the inverse is iteration plus a
-coarse sheet-atom fit score. Original sketch below.
+residue `(generates_tourism C)`. The interface needed no change to `resolve` or to the
+peel. The forward episode already parameterizes on M, so the inverse amounts to
+iteration plus a coarse sheet-atom fit score. Original sketch below.
 
-The forward game is *given M, test G*. There is an inverse worth naming because
+The forward game runs *given M, test G*. An inverse deserves naming, because
 it matches a real and common experience: **an idea that makes sense while you are
-still searching for the context in which it does.** You have the graph; you are
-hunting the frame that licenses it.
+still searching for the context in which it does.** You have the graph. You hunt
+the frame that licenses it.
 
-In Peircean terms the forward game is deduction (does it follow?) shading into
-induction (is it consistent with the sample?); the inverse is **abduction** — the
-search for the hypothesis-context that would make a surprising-but-sensible graph
-*a matter of course.*
+In Peircean terms the forward game runs as deduction (does it follow?) shading into
+induction (does it sit consistently with the sample?). The inverse runs as
+**abduction**, the search for the hypothesis-context that would make a
+surprising-but-sensible graph *a matter of course.*
 
 The oracle abstraction inverts cleanly:
 
@@ -360,19 +361,20 @@ The oracle abstraction inverts cleanly:
 - **Inverse:** G fixed → search candidate backings / horizons for an M where
   `resolve(G)` succeeds, and **rank by how well G maps.**
 
-The ranking is the payload, because the useful answer is rarely a clean yes/no:
+The ranking carries the payload, because the useful answer rarely comes as a clean
+yes/no:
 
 | Outcome | Meaning |
 |---|---|
 | **Full map** | G is already a theorem of M — "at home here; you knew it implicitly." |
-| **Partial map** | G maps *except* for a residue. The residue **is the contribution** — what G would newly add to that UoD. The search finds the home *and* isolates what is novel about moving in. |
-| **No map in reach** | Genuinely alien — or the horizon is too small, looping back to "widen the horizon." |
+| **Partial map** | G maps *except* for a residue. The residue **is the contribution**: what G would newly add to that UoD. The search finds the home *and* isolates what is novel about moving in. |
+| **No map in reach** | Genuinely alien — or the horizon sits too small, looping back to "widen the horizon." |
 
-This is **context-retrieval-by-abduction** over the same oracle. It directly
+This amounts to **context-retrieval-by-abduction** over the same oracle. It directly
 serves two things already in the personas: the **researcher** finding the seam
-between domains (rather than being told which two to bridge), and **"contribution
-as a new fact in the UoD"** — discovered by search rather than asserted by hand.
+between domains rather than being told which two to bridge, and **"contribution
+as a new fact in the UoD"**, discovered by search rather than asserted by hand.
 
-Not to be built now; recorded so the `DomainOracle` interface is designed to
-admit it later (it already does — the inverse needs only iteration over backings
-plus a partial-map scorer, no change to `resolve` itself).
+Not to be built now, but recorded so the `DomainOracle` interface admits it
+later. It already does: the inverse needs only iteration over backings
+plus a partial-map scorer, no change to `resolve` itself.

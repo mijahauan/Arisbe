@@ -7,21 +7,22 @@ reasoning backends (DLCore + FOLIO + the Existential Graph Instance ([EGI](GLOSS
 
 ## The idea
 
-Turning English into logic is two problems, and they want opposite tools:
+Turning English into logic poses two problems, and they want opposite tools:
 
-1. **English → a *candidate* logical form** — the noisy parse. LLMs are good at this and bad at
-   guaranteeing the result means anything.
-2. **candidate form → verified / interpreted / drawable proposition** — Arisbe's home turf. The
-   correspondence engine, the [peel](GLOSSARY.md#peel) (reading it from the outside in against the model), the soundness [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
+1. **English → a *candidate* logical form** — the noisy parse. LLMs do this well. They guarantee
+   nothing about whether the result means anything.
+2. **candidate form → verified / interpreted / drawable proposition** — Arisbe's home turf. Here
+   stand the correspondence engine, the [peel](GLOSSARY.md#peel) (reading it from the outside in against the model), and the soundness [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
 
-So Arisbe is the **interpretant / verifier behind the parser, not the parser**. It should never
-become a wide-coverage semantic parser; its contribution begins once a candidate form exists.
-This is the **FoVer** architecture — *LLM proposes, Arisbe disposes* — and the import↔Agon arc
-already embodied it for linear forms; the LLM front-end extends it to natural language.
+So Arisbe serves as the **interpretant / verifier behind the parser, not the parser**. It should
+never become a wide-coverage semantic parser; its contribution begins once a candidate form
+exists. The **FoVer** architecture names this arrangement — *LLM proposes, Arisbe disposes*. The
+import↔Agon arc already embodied it for linear forms, and the LLM front-end extends it to
+natural language.
 
 ## The boundary (load-bearing)
 
-The division of labour is strict and is what keeps the addition sound:
+The division of labour stays strict, and that strictness keeps the addition sound:
 
 | The **LLM** does | Arisbe does |
 |---|---|
@@ -30,31 +31,31 @@ The division of labour is strict and is what keeps the addition sound:
 | declare its vocabulary (predicates→arities, constants) | reconcile that vocabulary against M |
 | flag a sentence it can't express (`unmappable`) | test the proposal against M (the peel) |
 
-The LLM **never produces an EGI and never asserts truth.** A malformed candidate is *reported*
-(`parse_error`), never repaired. An LLM that hallucinates a predicate is caught by a
-declared-vs-used cross-check. The whole "disposing" half is deterministic and was already
-built and tested before the LLM was wired in.
+The LLM **never produces an EGI and never asserts truth.** Arisbe *reports* a malformed candidate
+(`parse_error`) and never repairs it. A declared-vs-used cross-check catches an LLM that
+hallucinates a predicate. The disposing side runs deterministically throughout, and it stood
+built and tested before anyone wired the LLM in.
 
-This proposer seat is now **one of three LLM seats**. The automated Endoporeutic Game
-(`src/agon_llm.py`) puts an LLM in each role — Graphist (voice a doubt), Grapheus (defend the
-model), Agonothetes (judge among the votes) — and every seat honors the same boundary: each
-LLM move is reduced to a calculus artifact and re-checked before it counts (*the LLM argues,
-the calculus decides*). This chapter's contract (`nl_to_logic`) is the shared reduction path
-all three roles use. See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
+This proposer seat now stands as **one of three LLM seats**. The automated Endoporeutic Game
+(`src/agon_llm.py`) puts an LLM in each role. The Graphist voices a doubt, the Grapheus defends
+the model, the Agonothetes judges among the votes. Every seat honors the same boundary: Arisbe
+reduces each LLM move to a calculus artifact and re-checks it before it counts (*the LLM argues,
+the calculus decides*). This chapter's contract (`nl_to_logic`) supplies the shared reduction
+path all three roles use. See [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
 
 ## Vocabulary-miss vs fact-miss
 
-The distinction the NL-parse use case turns on (and the reason the front-end waited until the
-backend could make it):
+The NL-parse use case turns on one distinction, and the front-end waited until the backend could
+draw it:
 
-- **vocabulary miss** — G uses a predicate M never defined: *"M can't even address that"* — the
-  integrity-gate "not even wrong". Surfaced by `reconcile()` as `out_of_signature`
+- **vocabulary miss** — G uses a predicate M never defined: *"M can't even address that"*, the
+  integrity-gate "not even wrong". `reconcile()` surfaces it as `out_of_signature`
   (via `dl_reasoning.ontology_signature`).
-- **fact miss** — G speaks M's vocabulary but the fact isn't entailed: *"M can't confirm that"* —
-  the open-world `UNKNOWN`/`FALSE` the peel returns.
+- **fact miss** — G speaks M's vocabulary, but M does not entail the fact: *"M can't confirm
+  that"*, the open-world `UNKNOWN`/`FALSE` the peel returns.
 
-Conflating these would drown the register in undiagnosable UNKNOWNs; separating them is what
-makes "in what world does this make sense?" answerable.
+Conflating these would drown the register in undiagnosable UNKNOWNs. Separating them lets us
+answer "in what world does this make sense?"
 
 ## The API (`src/nl_to_logic.py`)
 
@@ -80,14 +81,14 @@ interpret_against(prop, M, closed=True)["verdict"]   # the peel: true | false | 
 
 - `propose(nl, *, vocabulary_hint=None, model="claude-opus-4-8", client=None)` — calls Claude
   via the `anthropic` SDK with **forced-tool structured output** (the `emit_fol` tool), adaptive
-  thinking. The SDK import is **guarded by `ANTHROPIC_AVAILABLE`** (like `folio_fol`'s
-  `Z3_AVAILABLE`); the `client` is injectable so tests need no network. Any API/parse error is
-  captured into the returned `Proposal` — `propose` never raises.
-- `build_proposal(...)` — the deterministic core; reused by both `propose` and the `--no-llm`
-  path. Derives the vocabulary from the AST when none is declared.
+  thinking. The SDK import stays **guarded by `ANTHROPIC_AVAILABLE`** (like `folio_fol`'s
+  `Z3_AVAILABLE`), and the `client` stays injectable, so tests need no network. Any API or parse
+  error lands in the returned `Proposal`; `propose` never raises.
+- `build_proposal(...)` — the deterministic core, which both `propose` and the `--no-llm` path
+  reuse. It derives the vocabulary from the AST when none is declared.
 - `reconcile(proposal, model_egif) -> VocabReport` — the vocabulary-miss split.
-- `interpret_against(proposal, model_egif, *, closed, materialize) -> dict` — the peel; mirrors
-  the route helper `_interpret_payload` (returns verdict / transcript / witness / counterexample).
+- `interpret_against(proposal, model_egif, *, closed, materialize) -> dict` — the peel. It mirrors
+  the route helper `_interpret_payload` and returns verdict / transcript / witness / counterexample.
 
 ## The CLI (`tools/nl_to_logic_cli.py`)
 
@@ -101,19 +102,19 @@ uv run python tools/nl_to_logic_cli.py --nl "Every mammal is warm-blooded" \
     --model-example teacher-mammals
 ```
 
-Model picks: `--model-example <id>` (curated `agon_models`), `--model-uod <id>` (a corpus Universe of Discourse ([UoD](GLOSSARY.md#uod))),
-or `--model-egif <…>` (raw). Prints the candidate FOL + vocabulary, the EGIF, the
+Pick the model with `--model-example <id>` (curated `agon_models`), `--model-uod <id>` (a corpus Universe of Discourse ([UoD](GLOSSARY.md#uod))),
+or `--model-egif <…>` (raw). The CLI prints the candidate FOL + vocabulary, the EGIF, the
 vocabulary-reconciliation, and the verdict + witness/counterexample.
 
 ## The web route (`POST /agon/propose-nl`)
 
-Takes `{nl, model_egif|model_uod, closed, materialize, model?}` and returns the proposal
+The route takes `{nl, model_egif|model_uod, closed, materialize, model?}` and returns the proposal
 (`fol`, `egif`, `predicates`, `confidence`, `unmappable`, `parse_error`, `vocab_mismatch`) plus,
 when it parsed, the `vocabulary` reconciliation and the `interpretation` (the peel). An
-unmappable sentence or a malformed candidate returns `parsed: false` with the reason — a
-successful response, not an error (the honest "can't say that here" surface). Nothing is
-asserted or persisted: the proposal sits at **LOW [warrant](GLOSSARY.md#warrant)** and earns warrant only by
-withstanding Agon (the import↔Agon floor — the correspondence check (§3.3) attests *correspondence, not truth*).
+unmappable sentence or a malformed candidate returns `parsed: false` with the reason. That counts
+as a successful response, not an error — the honest "can't say that here" surface. Nothing gets
+asserted or persisted. The proposal sits at **LOW [warrant](GLOSSARY.md#warrant)** and earns warrant only by
+withstanding Agon (the import↔Agon floor, where the correspondence check (§3.3) attests *correspondence, not truth*).
 
 ## Setup
 
@@ -127,20 +128,20 @@ test except the opt-in live one run with the SDK absent.
 
 ## Tests
 
-- `tests/test_nl_to_logic.py` (12 + 1 key-gated live) — the LLM is mocked (a fake client
-  returning a canned `emit_fol` payload). Pins: round-trip into the right EGI via `same_graph`;
+- `tests/test_nl_to_logic.py` (12 + 1 key-gated live) — a fake client mocks the LLM, returning a
+  canned `emit_fol` payload. It pins the round-trip into the right EGI via `same_graph`;
   malformed → reported, not crashed; `unmappable` honestly unbuilt; API-failure capture;
-  declared≠used flag; the reconcile split; the peel verdict + a cross-check that
+  declared≠used flag; the reconcile split; and the peel verdict, with a cross-check that
   `interpret_against` agrees with `/agon/interpret`'s `_interpret_payload`.
-- `tests/test_propose_nl_route.py` (5) — the route end to end with the LLM mocked at
+- `tests/test_propose_nl_route.py` (5) — the route end to end, with the LLM mocked at
   `nl_to_logic._default_client`.
 
 ## Out of scope (named fast-follows)
 
 - **Multi-candidate disambiguation** — emit G1,G2,G3 (several readings of an ambiguous sentence),
-  test each against M, rank by verdict: *disambiguation by interpretation, not parser
-  confidence* — the distinctively-Peircean use no LLM-only pipeline can do.
+  test each against M, rank by verdict. That amounts to *disambiguation by interpretation, not
+  parser confidence*, the distinctively-Peircean use no LLM-only pipeline can do.
 - **LOW-warrant persistence** — admit a tested proposal via `/import/admit` as a
   `LITERATURE_EXAMPLE` UoD carrying its NL source + LLM provenance as the bibliographic trace.
-- The bidirectional reading is already half-built elsewhere: **one G against M1,M2,M3** is the
-  existing inverse pivot (`/agon/where-it-holds`).
+- The bidirectional reading already stands half-built elsewhere. **One G against M1,M2,M3** names
+  the existing inverse pivot (`/agon/where-it-holds`).

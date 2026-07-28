@@ -11,12 +11,12 @@
 
 **Status legend**
 - **SHIPPED** — working, with a passing test home.
-- **PARTIAL** — built and useful, but a frontier/edge case is documented as open.
+- **PARTIAL** — built and useful, but a frontier or edge case stands documented as open.
 - **DESIGNED** — specified in docs, not yet built.
 - **OUT** — explicitly not being built (with a reason; see [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §5).
 
-> *Status is conservative: "SHIPPED" only where a passing test exists. Where CLAUDE.md and the code
-> disagreed during consolidation, the code won.*
+> *Status stays conservative. "SHIPPED" appears only where a passing test exists. Where CLAUDE.md
+> and the code disagreed during consolidation, the code won.*
 
 ---
 
@@ -150,9 +150,9 @@
 
 ## H. The automated Endoporeutic Game — *model development against sources*
 
-The game played autonomously under the incorruptible mechanical referee: a proposer (the
+The game plays autonomously under the incorruptible mechanical referee. A proposer (the
 *membrane*) voices a claim, the [peel](GLOSSARY.md#peel) tests it against the developing model M,
-a panel negotiates a disposition, the model revises, disuse decays what fell from use. Design of
+a panel negotiates a disposition, the model revises, and disuse decays what fell from use. Design of
 record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
 [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).
 
@@ -172,9 +172,9 @@ record: [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md) ·
 
 ## I. Directed engagement — *the action arm (bootstrap rungs)*
 
-The Minimal Predictive Automaton's *missing fifth* — the action arm that chooses *which* reach to
-make next — made operational as an attention economy over candidate reaches, with pluggable
-"worlds" behind one `Proposer` socket. Design of record:
+The Minimal Predictive Automaton's *missing fifth* names the action arm that chooses *which* reach
+to make next. It runs as an attention economy over candidate reaches, with pluggable worlds behind
+one `Proposer` socket. Design of record:
 [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md).
 
 | Capability | Status | Home (src → test) | Note |
@@ -204,8 +204,8 @@ make next — made operational as an attention economy over candidate reaches, w
 
 ## J.1 West-in-kytē — *the apportionment program, executed*
 
-The Q-B apportionment / West experiment (doctrine §5): one big Arisbe vs. distributed kytē + a
-coordinator, measured. Design of record: [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).
+The Q-B apportionment / West experiment (doctrine §5) measures one big Arisbe against distributed
+kytē plus a coordinator. Design of record: [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).
 
 | Capability | Status | Home (src → test) | Note |
 |---|---|---|---|
@@ -224,8 +224,8 @@ Evidence: `runs/WEST_E1_LOG.md`, `WEST_E2_LOG.md`, `WEST_E2B_LOG.md`, `WEST_E3_L
 
 ## J.2 Alternatives — *index-over-ink, the deliberation register*
 
-The AlternativeSet as an index over real chain steps (not a store of evidence) — the record holds
-pointers into gate-checked history, re-checked forever. Design of record:
+The AlternativeSet serves as an index over real chain steps, not a store of evidence. The record
+holds pointers into gate-checked history, re-checked forever. Design of record:
 `docs/superpowers/specs/2026-07-26-alternative-index-over-ink-design.md`.
 
 | Capability | Status | Home (src → test) | Note |
@@ -264,7 +264,7 @@ producer→consumer loop) + `test_alternative_loop.py`. Suite state at close: 42
 ## The protected-core set (authoritative)
 
 The **14** modules guarded by `tools/core_protection_system.py` (require `.core_modification_authorized`
-to modify) — the genuine calculus core. This is the **actual** list from the source:
+to modify) make up the genuine calculus core. The **actual** list below comes from the source:
 
 `egi_core_dau` · `egi_io` · `hierarchical_index` · `universe_of_discourse` ·
 `egi_transformation_history` · `formal_transformation_rules` · `rule_interaction` ·
@@ -272,8 +272,9 @@ to modify) — the genuine calculus core. This is the **actual** list from the s
 `single_object_ligature_detector` · **`correspondence_attestation`** · **`presentation_ops`** ·
 **`natural_layout`**.
 
-> **Set history (2026-06-27):** the three correspondence enforcers were **added** (decision (a) — the
-> runtime guards of the central invariant); the six EGIF/CGIF/CLIF parsers/generators were **removed**
-> (decision (b) — application-level I/O, not the calculus; the rules don't import them; guarded instead
-> by the corpus round-trip tests in CI). Net 17 → 20 → 14. The set's inline comments now double as the
-> bedrock note — there is no separate CODEOWNERS file (it wouldn't fire in a solo, no-PR workflow).
+> **Set history (2026-06-27):** decision (a) **added** the three correspondence enforcers, the
+> runtime guards of the central invariant. Decision (b) **removed** the six EGIF/CGIF/CLIF
+> parsers/generators as application-level I/O rather than the calculus; the rules don't import them,
+> and the corpus round-trip tests in CI guard them instead. Net 17 → 20 → 14. The set's inline
+> comments now double as the bedrock note. No separate CODEOWNERS file exists, since it wouldn't
+> fire in a solo, no-PR workflow.

@@ -1,26 +1,26 @@
 # DAG-Based Transformation History Architecture
 
 **Last Updated**: 2025-10-14
-**Status**: Foundational Architecture Document — describes `egi_transformation_history.py`'s
+**Status**: Foundational Architecture Document. It describes `egi_transformation_history.py`'s
 `EGITransformationHistory`, the in-memory DAG model. A second, newer chain representation now
-also exists: `tomos_service.py`'s `TransformationChain`/`ChainStep` (the slim on-disk shape
-persisted as `history/chain.jsonl` for a saved UoD — see CLAUDE.md's `tomos_service.py` entry).
-The two are **not** the same object: `TransformationChain` is *not* a hydration of
-`EGITransformationHistory` — it's a separate, simpler, corpus-persistence-oriented model
-(steps carry `from_state_id`/`to_state_id`/`branch_id` directly rather than the adjacency-list
-`state_to_outgoing_steps` structure documented below). This document covers only the older,
-in-memory `EGITransformationHistory`.
+also exists, `tomos_service.py`'s `TransformationChain`/`ChainStep`, the slim on-disk shape
+persisted as `history/chain.jsonl` for a saved UoD (see CLAUDE.md's `tomos_service.py` entry).
+The two do **not** name the same object. `TransformationChain` does *not* hydrate
+`EGITransformationHistory`; it stands as a separate, simpler model oriented toward corpus
+persistence, whose steps carry `from_state_id`/`to_state_id`/`branch_id` directly rather than
+the adjacency-list `state_to_outgoing_steps` structure documented below. This document covers
+only the older, in-memory `EGITransformationHistory`.
 
 ## Overview
 
-The Universe of Discourse ([UoD](GLOSSARY.md#uod)) history model now supports **branching development** through a **Directed Acyclic Graph ([DAG](GLOSSARY.md#dag))** structure. This enables realistic inquiry workflows where multiple paths can be explored from any historical state.
+The Universe of Discourse ([UoD](GLOSSARY.md#uod)) history model now supports **branching development** through a **Directed Acyclic Graph ([DAG](GLOSSARY.md#dag))** structure. That opens realistic inquiry workflows, where any historical state affords several paths to explore.
 
 ## Why DAG Instead of Linear?
 
 **Linear History Limitations:**
 
 - Real inquiry involves exploration and backtracking
-- Alternative proof paths cannot be represented
+- No representation for alternative proof paths
 - "What if?" scenarios require creating separate UoDs
 - No way to compare different approaches from same starting point
 
@@ -57,23 +57,23 @@ class EGITransformationHistory:
 
 1. **Single Root**: Every DAG has one initial state (root)
 2. **Acyclic**: No cycles (validated during construction)
-3. **Multiple Paths**: Many paths can exist from root to any state
+3. **Multiple Paths**: Many paths may run from root to any state
 4. **Branch Points**: States with multiple outgoing edges tracked explicitly
 
 ## API
 
 ### Creating Branches
 
-Every branch is tagged with a `HistoryBranchType` naming *why* it exists, not just that it
+Every branch carries a `HistoryBranchType` naming *why* it exists, not merely that it
 does:
 
 - **`LINEAR`** — the default, non-branching main line; a state sequence with no fork.
-- **`EXPLORATION`** — a temporary "what if?" side path, expected to be abandoned or merged
-  back rather than kept as a permanent alternative.
+- **`EXPLORATION`** — a temporary "what if?" side path, which one expects to abandon or merge
+  back rather than keep as a permanent alternative.
 - **`ALTERNATIVE`** — a durable alternative proof or approach, kept alongside the main line
   for comparison (e.g. two independent derivations of the same result).
-- **`ROLLBACK`** — a branch created by returning to an earlier state and continuing from
-  there, distinguishing "I backed up and redid this" from a forward exploration.
+- **`ROLLBACK`** — a branch made by returning to an earlier state and continuing from
+  there, which distinguishes "I backed up and redid this" from a forward exploration.
 
 ```python
 # Branch from any historical state
@@ -199,7 +199,7 @@ compare_approaches(branch_a, branch_b)
 
 - Linear sequences still work exactly as before
 - `state_sequence` and `step_sequence` maintained for compatibility
-- New DAG features are opt-in (use branching methods explicitly)
+- New DAG features stay opt-in (use branching methods explicitly)
 - All existing code continues to work unchanged
 
 ## Implementation Details
@@ -222,7 +222,7 @@ def get_all_paths_from_root(target_state) -> List[List[str]]:
 
 ### Branch Point Detection
 
-Automatically tracked when states gain multiple children:
+The model tracks these automatically when states gain multiple children:
 
 ```python
 # When adding transformation
@@ -232,15 +232,15 @@ if len(state_to_outgoing_steps[current_state]) > 1:
 
 ### Cycle Prevention
 
-DAG structure prevents cycles:
+The DAG structure prevents cycles:
 
-- Each state has at most one incoming edge (from parent)
+- Each state carries at most one incoming edge (from parent)
 - Multiple outgoing edges allowed (branching)
 - Path finding includes cycle detection
 
 ## Export/Import
 
-DAG structure fully serializable:
+The DAG structure serializes fully:
 
 ```python
 export_data = history.export_history_data()
@@ -324,15 +324,15 @@ Test coverage: `tools/test_history_dag.py`
 ## Future Enhancements
 
 1. **Merge Branches**: Combine alternative paths
-2. **Diff Views**: Compare states across branches (today's diff is per-step only — each
-   transformation's own `+N/−N` summary, not a cross-branch state comparison)
+2. **Diff Views**: Compare states across branches (today's diff runs per-step only, giving
+   each transformation's own `+N/−N` summary rather than a cross-branch state comparison)
 
 **Shipped, no longer future (2026-07-16):** branch labels and branch colors, via
-`src/chain_branches.py`'s `branch_report`/`BranchReport` (human labels from the recorded
-`branch_id`, "main"/"branch N" fallback, and per-branch step counters — "a counter never
-aggregates incompatible futures") surfaced in the Organon chain player as a ⑂ chip strip
-(`src/web_viewer/organon.html`) and as branch-colored edges/pills in the derivation-DAG lens
-(`src/web_viewer/js/derivation-dag-lens.js`'s `colorOf(branch_id)`). See
+`src/chain_branches.py`'s `branch_report`/`BranchReport`. It supplies human labels from the
+recorded `branch_id`, a "main"/"branch N" fallback, and per-branch step counters — "a counter
+never aggregates incompatible futures". These surface in the Organon chain player as a ⑂ chip
+strip (`src/web_viewer/organon.html`) and as branch-colored edges and pills in the
+derivation-DAG lens (`src/web_viewer/js/derivation-dag-lens.js`'s `colorOf(branch_id)`). See
 [UI_TRANSPARENCY_CHARTER.md](UI_TRANSPARENCY_CHARTER.md)'s branch-orientation entry.
 5. **Branch Metrics**: Success rates, path lengths
 6. **Automatic Pruning**: Remove abandoned branches
@@ -346,6 +346,6 @@ aggregates incompatible futures") surfaced in the Organon chain player as a ⑂ 
 
 ## Summary
 
-The DAG-based history model enables realistic inquiry workflows while maintaining 100% backward compatibility. Branch from any state, explore alternatives, and preserve full reasoning context—all within a single Universe of Discourse.
+The DAG-based history model opens realistic inquiry workflows while maintaining 100% backward compatibility. Branch from any state, explore alternatives, and preserve full reasoning context, all within a single Universe of Discourse.
 
-**Key Benefit**: Inquiry is not linear—now the UoD model reflects that reality.
+**Key Benefit**: Inquiry does not proceed in a line. Now the UoD model reflects that reality.

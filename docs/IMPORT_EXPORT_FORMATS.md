@@ -1,7 +1,7 @@
 # Import/Export Format Support
 
 ## Overview
-Arisbe supports **8 interchange formats** for importing and exporting Existential Graphs, enabling interoperability with other systems, literature sources, and academic publications.
+Arisbe reads and writes **8 interchange formats** for Existential Graphs, so a graph travels between Arisbe and other systems, literature sources, and academic publications.
 
 ---
 
@@ -111,7 +111,7 @@ fopl_text = egi_to_fopl(egi)
 - Educational contexts
 - Logic textbook examples
 
-**Note**: This is Dau's formal translation, not a naive conversion
+**Note**: Dau's formal translation, not a naive conversion
 
 ---
 
@@ -207,7 +207,7 @@ svg_content = renderer.render_to_svg_string(dto, egi, style)
 - Web display
 - Print output
 
-**Note**: SVG is export-only (visual representation, not data)
+**Note**: SVG exports only; it carries a visual representation, not data
 
 ---
 
@@ -228,7 +228,7 @@ latex_content = export_tikz(dto, egi, standalone=True, style=dto.style)
 tikz_picture = export_tikz(dto, egi, standalone=False, style=dto.style)
 ```
 
-In the web app this is reached through `export_service.render_export(...,
+The web app reaches this through `export_service.render_export(...,
 fmt="tikz")`.
 
 **Use Cases**:
@@ -247,7 +247,7 @@ fmt="tikz")`.
 - Text escaping for LaTeX
 
 **Note**: 
-LaTeX/TikZ is export-only (visual representation, not data)
+LaTeX/TikZ exports only; it carries a visual representation, not data
 
 ---
 
@@ -326,13 +326,13 @@ Import Universe of Discourse
 
 ## Usage Examples
 
-> **⚠️ PLANNED API.** The `ImportExportManager` shown below is **not yet
-> implemented** — it sketches the unified import/export manager listed under
-> "Organon Integration 🔄" above. Today, importing happens through the `/import`
+> **⚠️ PLANNED API.** The `ImportExportManager` shown below **does not yet
+> exist**. It sketches the unified import/export manager listed under
+> "Organon Integration 🔄" above. Today importing happens through the `/import`
 > route (linear forms at low [warrant](GLOSSARY.md#warrant)) and exporting through
-> `export_service.render_export(...)` / the export route; the individual
-> parsers/generators (`egif_parser_dau`, `cgif_generator_dau`, …) are callable
-> directly. Treat this section as a design sketch.
+> `export_service.render_export(...)` or the export route, and the individual
+> parsers/generators (`egif_parser_dau`, `cgif_generator_dau`, …) answer a direct
+> call. Treat this section as a design sketch.
 
 ### Import Literature (EGIF)
 
@@ -384,8 +384,8 @@ manager.export_uod(uod, format='uod_json', file_path='output.uod.json')
 - DOT (Graphviz)
 - PNG/JPEG (raster images)
 
-(RDF/OWL import has already shipped — `tools/owl_to_clif.py`, `tools/rdf_to_owl.py`,
-`domain_model_importer.py` — see [EXTERNAL_SOURCES_AND_IMPORT.md §3](EXTERNAL_SOURCES_AND_IMPORT.md#family-a-formal-files-and-ontologies).)
+(RDF/OWL import has already shipped in `tools/owl_to_clif.py`, `tools/rdf_to_owl.py`, and
+`domain_model_importer.py`; see [EXTERNAL_SOURCES_AND_IMPORT.md §3](EXTERNAL_SOURCES_AND_IMPORT.md#family-a-formal-files-and-ontologies).)
 
 ---
 
@@ -420,4 +420,4 @@ Arisbe supports **8 formats** for interoperability:
 - **2 JSON formats**: EGI-only, Full UoD
 - **2 visual formats**: SVG, LaTeX/TikZ
 
-All parsers/generators are **production-ready** and tested. Organon integration is the next step to expose these capabilities to users.
+All parsers/generators stand **production-ready** and tested. Organon integration remains the next step, the one that puts these capabilities in users' hands.

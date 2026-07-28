@@ -7,11 +7,11 @@
 
 Arisbe takes for its fundamental entity **not** a static Existential Graph Instance ([EGI](GLOSSARY.md#egi)) diagram, but the **Universe of Discourse ([UoD](GLOSSARY.md#uod))**, the diachronic process of logical reasoning itself.
 
-The design turns on one key insight: a single EGI stands as a **synchronic snapshot** (a photograph) within the larger **diachronic process** (the film) of evolving logical discourse.
+One insight carries the design. A single EGI stands as a **synchronic snapshot**, a photograph, within the larger **diachronic process**, the film, of evolving logical discourse.
 
-This understanding lifts Arisbe from a diagram editor to a **formal reasoning environment**, one in which justification, transformation history, and logical process count as first-class citizens.
+That understanding lifts Arisbe from a diagram editor to a **formal reasoning environment**, one where justification, transformation history, and logical process count as first-class citizens.
 
-For the Peircean reading of *why* the diachronic chain is the unit of meaning — a reasoning episode as a **chain of semiosis**, every rule application an attestation event — see [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md).
+Why should the diachronic chain count as the unit of meaning? A reasoning episode amounts to a **chain of semiosis**, and every rule application marks an attestation event. [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) gives the Peircean reading.
 
 ---
 
@@ -155,7 +155,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
    - Export proof sequences (YAML, formal proofs)
    - Publish to external formats
 
-**Metaphor**: The library and archives - holds published proceedings, enables reading, citation, export
+**Metaphor**: The library and archives, holding published proceedings and enabling reading, citation, export
 
 **User Actions**:
 
@@ -189,7 +189,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
    - Document intent and justification
    - Ready for challenge by Agon
 
-**Metaphor**: Researcher's private lab - run experiments, work out ideas on whiteboard
+**Metaphor**: Researcher's private lab, running experiments and working out ideas on a whiteboard
 
 **User Actions**:
 
@@ -228,7 +228,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
    - Maintain diachronic coherence
    - Preserve logical provenance
 
-**Metaphor**: Official conference room - researcher presents validated findings, formally added to record
+**Metaphor**: Official conference room, where a researcher presents validated findings and they go formally onto the record
 
 **The Endoporeutic Game**:
 
@@ -328,11 +328,11 @@ class UniverseOfDiscourse:
     history: Optional[EGITransformationHistory]
 ```
 
-The earlier `GraphEntity` (`src/graph_entity.py`) was **renamed** to
+The earlier `GraphEntity` (`src/graph_entity.py`) took the name
 `UniverseOfDiscourse`, and `EntityMetadata`/`EntityCategory` became
 `UoDMetadata`/`UoDCategory`; the "Recommended Refinement" this section once
 proposed now stands **done**. The model carries both the synchronic
-(`current_egi`) and diachronic (`history`) aspects; persistence runs through
+(`current_egi`) and diachronic (`history`) aspects. Persistence runs through
 `TomosService` (`save_uod`/`load_uod`, and `save_uod_with_chain`/`load_chain`
 for a worked chain). For the live developer API see `src/tomos_service.py`,
 [CORE_API_USAGE_GUIDE.md](CORE_API_USAGE_GUIDE.md), and
@@ -616,12 +616,12 @@ tomos/
 
 ## Implementation Strategy
 
-> **Status (2026-06-08):** this roadmap is largely realized. The
+> **Status (2026-06-08):** this roadmap stands largely realized. The
 > `UniverseOfDiscourse` model, `UoDCategory`, layout deltas, and the
-> UoD-centric `TomosService` (Phases 2–3) are built; all three web modes —
-> Organon, Ergasterion, Agon (Phase 4) — are live; the Endoporeutic Game
-> engine + Agon V1 arena (Phase 5) shipped 2026-06-01. The phase list below is
-> retained as the original plan and its day-estimates as history.
+> UoD-centric `TomosService` (Phases 2–3) are built. All three web modes,
+> Organon, Ergasterion, and Agon (Phase 4), run live, and the Endoporeutic
+> Game engine with the Agon V1 arena (Phase 5) shipped 2026-06-01. The phase
+> list below remains as the original plan, its day-estimates as history.
 
 ### Phase 1: Conceptual Alignment (Current)
 - ✅ Document philosophical foundation (this document)
@@ -666,16 +666,16 @@ tomos/
 
 ## Success Criteria
 
-> **Status (2026-07-20):** this checklist was written alongside the original Phase 1–6 plan
+> **Status (2026-07-20):** this checklist accompanied the original Phase 1–6 plan
 > above and, like it, predates the build. Per the doc's own §"Implementation Strategy" note,
-> the roadmap is largely realized — `UniverseOfDiscourse`, the `(EGI, LayoutDeltas)` state
+> the roadmap stands largely realized. `UniverseOfDiscourse`, the `(EGI, LayoutDeltas)` state
 > pairs, UoD-centric `TomosService`, and all three web modes (Organon/Ergasterion/Agon) are
-> built and live. Rather than hand-check items whose truth has drifted since 2025-10-14, the
-> current, maintained answer to "does the system meet these criteria" is
-> [CAPABILITY_MAP.md](CAPABILITY_MAP.md) — in particular its "E. The three web modes" section
+> built and live. Rather than hand-check items whose truth has drifted since 2025-10-14, look
+> to [CAPABILITY_MAP.md](CAPABILITY_MAP.md), which carries the current, maintained answer to
+> "does the system meet these criteria": in particular its "E. The three web modes" section
 > (Organon SHIPPED, Ergasterion SHIPPED, Agon PARTIAL-V1 with the interpretation register
 > SHIPPED separately) and "D. Diachronic / provenance". The categories below (Conceptual
-> Clarity / Data Model / Tomos Organization / Module Functionality / User Experience) are kept
+> Clarity / Data Model / Tomos Organization / Module Functionality / User Experience) remain
 > as the original framing of *what* to check, not as a current pass/fail record.
 
 ---
@@ -722,18 +722,18 @@ From Peirce: Read the graph from **outside to inside** (ἔνδον = "within", 
 - Grapheus tries to reduce to True (empty sheet)
 - Graphist defends with counter-moves
 
-This method embodies the **dialogical nature of inquiry** - truth emerges through contest and justification, not passive acceptance.
+This method embodies the **dialogical nature of inquiry**. Truth emerges through contest and justification, not through passive acceptance.
 
 ---
 
 ## Conclusion
 
-> **Status (2025-10-14, original conclusion — superseded):** the paragraphs below are this
+> **Status (2025-10-14, original conclusion — superseded):** the paragraphs below carry this
 > document's original closing argument, written before any of the three modes existed. They
-> are retained as the doc's historical framing, not a current capability claim. For what the
+> remain as the doc's historical framing, not as a current capability claim. For what the
 > system actually does today, see [CAPABILITY_MAP.md](CAPABILITY_MAP.md).
 
-By establishing the **Universe of Discourse** as the fundamental entity, Arisbe transcends the limitations of diagram editors and becomes a **true logical reasoning environment**.
+Taking the **Universe of Discourse** as the fundamental entity carries Arisbe past the limitations of diagram editors and into a **true logical reasoning environment**.
 
 **Key Achievements**:
 
@@ -745,12 +745,12 @@ By establishing the **Universe of Discourse** as the fundamental entity, Arisbe 
 
 **The Paradigm Shift**:
 
-- **Before**: EGI is a static diagram to be edited
-- **After**: UoD is a dynamic process; EGI is a frame in that process
+- **Before**: the EGI stands as a static diagram to be edited
+- **After**: the UoD runs as a dynamic process, and the EGI names a frame within it
 
 **The Result**:
 
-A system that honors Peirce's vision of "moving pictures of thought" - not merely rendering static diagrams, but supporting the **living process of logical inquiry**.
+A system that honors Peirce's vision of "moving pictures of thought", not merely rendering static diagrams but supporting the **living process of logical inquiry**.
 
 ---
 

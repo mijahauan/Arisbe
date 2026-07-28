@@ -1,16 +1,16 @@
 # Troubleshooting — the refusal index
 
 > **What this is.** When Arisbe refuses to do something, it refuses *for a reason stated in
-> Existential-Graph vocabulary* — a refusal is a correctness feature, not a crash. This page
-> catalogues every refusal a user or integrator meets, what it means, and what to do. It is
-> the twin of the design docs: those say *why* the guarantees exist; this says *what you see
-> when one bites*. (Disposed from the STORM documentation audit, G2, 2026-07-06.)
+> Existential-Graph vocabulary*. A refusal counts as a correctness feature, not a crash. This
+> page catalogues every refusal a user or integrator meets, what it means, and what to do. It
+> stands as the twin of the design docs. Those say *why* the guarantees exist; this says *what
+> you see when one bites*. (Disposed from the STORM documentation audit, G2, 2026-07-06.)
 
 ## The two kinds of "no"
 
 Arisbe distinguishes **ill-formed** ("this cannot be read as a graph at all") from
 **well-formed but refused** ("this is a graph, but the move you asked for is not licensed
-here"). The first is a parse/validity error; the second is the calculus protecting a
+here"). The first names a parse or validity error. The second shows the calculus protecting a
 guarantee. Knowing which you hit tells you whether to fix your *input* or your *move*.
 
 ## The refusal catalogue
@@ -33,15 +33,15 @@ guarantee. Knowing which you hit tells you whether to fix your *input* or your *
 
 A live run adds an operator's view of the same refusals. A checkpoint that fails the correspondence check (§3.3) under
 `checkpoint_refusal="skip"` is **counted and quarantined** (`refused_seg<n>.json` beside the
-state file), and the run continues — never a silent skip, never an unattested write. A crash
-is caught by the driver's supervisor and auto-resumed from the last checkpoint. Fetch errors
-from a live source are counted (`fetch_errors`) and the poll retried next cycle. The
+state file), and the run continues — never a silent skip, never an unattested write. The
+driver's supervisor catches a crash and auto-resumes from the last checkpoint. Fetch errors
+from a live source get counted (`fetch_errors`) and the poll retried next cycle. The
 per-segment digest surfaces all of these; see `AUTOMATED_ENDOPOREUTIC_GAME.md` §10 and the
 `runs/RUN_*_LOG.md` notebooks. (A consolidated operator runbook is queued — audit G5.)
 
 ## When it really is a bug
 
-The refusals above are *designed*. If you hit an unhandled exception (a traceback, not a
-structured refusal), that's a bug — see `CONTRIBUTING.md` for where it goes. The fastest
-triage: does the message name an EG concept (a cut, a ligature, an area, a phase)? Then it's
-a guarantee refusing. Is it a raw Python traceback? Then it's ours to fix.
+The refusals above come *designed*. If you hit an unhandled exception (a traceback, not a
+structured refusal), that counts as a bug — see `CONTRIBUTING.md` for where it goes. Triage it
+quickly. Does the message name an EG concept (a cut, a ligature, an area, a phase)? Then a
+guarantee refuses. Does a raw Python traceback greet you instead? Then it falls to us to fix.

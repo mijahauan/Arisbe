@@ -1,30 +1,29 @@
 # The Soundness Boundary — proven vs. tested vs. attested vs. argued
 
-> A logician or evaluator's first question is not "does it work?" but *"on what
-> does each guarantee rest?"* This page draws the line explicitly: which claims
-> are **proven** (mathematics, by Dau's formalization), which are **machine-verified**
-> (a test that fails if the claim is false), which are **attested at runtime**
-> (checked at every boundary event, not just in CI), and which are **argued**
+> A logician or evaluator asks first not "does it work?" but *"on what
+> does each guarantee rest?"* This page draws the line explicitly. Some claims
+> stand **proven** (mathematics, by Dau's formalization), some **machine-verified**
+> (a test that fails if the claim is false), some **attested at runtime**
+> (checked at every boundary event, not just in CI), and some **argued**
 > (careful prose, not machine-checked). It disposes gap **G8** of
-> [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md). Externally re-checking these claims
-> is the subject of prospect **R1** (proof certificates) — see the last section.
+> [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md). Prospect **R1** (proof certificates)
+> takes up the re-checking of these claims from outside — see the last section.
 
-The guiding distinction of the whole project: **Arisbe attests *correspondence*,
+The whole project turns on one distinction. **Arisbe attests *correspondence*,
 not *truth*.** A graph that passes the correspondence check (§3.3) says "this picture and this proposition
-denote the same mathematical object" — it says *nothing* about whether that
-proposition is true. Truth is earned separately, through the Agon (testing) or a
-warranting chain. Keep that in view while reading the table: the guarantees below
-are guarantees of *formation and sound transformation*, not of correctness of
-content.
+denote the same mathematical object," and says *nothing* about whether that
+proposition holds true. Truth gets earned separately, through the Agon (testing) or
+a warranting chain. Keep that in view while reading the table. The guarantees below
+guarantee *formation and sound transformation*, not correctness of content.
 
 ## The four tiers
 
 | Tier | What it means | If it's wrong… |
 |---|---|---|
-| **Proven** | A theorem of Frithjof Dau's formalization of Existential Graphs (the guarantor of correctness — non-negotiable bedrock). Arisbe *implements* it. | Mathematics is wrong (it isn't); or our implementation diverges from the proof — which the next tier catches. |
+| **Proven** | A theorem of Frithjof Dau's formalization of Existential Graphs (the guarantor of correctness — non-negotiable bedrock). Arisbe *implements* it. | Mathematics is wrong (it isn't), or our implementation diverges from the proof, which the next tier catches. |
 | **Machine-verified** | A property enforced by code and checked by a test that would fail if the property were violated. Runs in CI. | A red test. The mathematical-core suite must always be green. |
 | **Attested at runtime** | Checked at every boundary event in production, not only in CI — refused, not merely logged. | A `CorrespondenceViolation` / `Regime3Violation` raised at the save/load/apply boundary; the write aborts. |
-| **Argued** | Established by careful prose and worked examples, not by a machine check. Honest, load-bearing, but not certified. | A reader disagrees; it is a claim to be examined, and the docs invite that examination. |
+| **Argued** | Established by careful prose and worked examples, not by a machine check. Honest, load-bearing, but not certified. | A reader disagrees. The claim stands open to examination, and the docs invite it. |
 
 ## The matrix
 
@@ -54,20 +53,20 @@ content.
   (See [MANIFEST_AND_MEANING](MANIFEST_AND_MEANING.md): the blank sheet is the
   only unconditioned truth; everything else is posited at low warrant until it
   withstands the Agon.)
-- **Not completeness of the model-checker.** The peel is *model-checking*, not
-  inference; it decides truth-in-a-supplied-model, not validity. Validity over a
-  theory is a separate, narrower tool (`theory_query.entails`, sound + Horn-complete).
+- **Not completeness of the model-checker.** The peel does *model-checking*, not
+  inference. It decides truth-in-a-supplied-model, not validity. Validity over a
+  theory needs a separate, narrower tool (`theory_query.entails`, sound + Horn-complete).
 - **Not that every linear form generates in every notation.** A graph that
-  round-trips in EGIF may not (yet) generate cleanly in CGIF/CLIF; that failure
-  is reported per-notation, never silently swallowed.
-- **Not the web tier.** Auth, concurrency, and multi-tenancy are out of scope by
+  round-trips in EGIF may not (yet) generate cleanly in CGIF/CLIF; the report
+  names that failure per-notation, never swallowing it silently.
+- **Not the web tier.** Auth, concurrency, and multi-tenancy stay out of scope by
   design — see [DEPLOYMENT_AND_MULTIUSER](DEPLOYMENT_AND_MULTIUSER.md).
 
 ## What an external re-checker would need (prospect R1)
 
-Today the machine-verified tier is verified *by our own tests*. A skeptical third
-party who wanted to certify Arisbe's claims independently — without trusting our
-test suite — would need three things, and the first two already exist:
+Today our own tests verify the machine-verified tier. What would a skeptical third
+party need in order to certify Arisbe's claims independently, without trusting our
+test suite? Three things, and the first two already exist.
 
 1. **A prover-agnostic contract** stating the properties precisely, so a
    different implementation could be checked against the same spec. →
@@ -75,21 +74,22 @@ test suite — would need three things, and the first two already exist:
    shapes, the failure taxonomy, the tomos dataset card, MIT-licensed).
 2. **A callable referee** that reduces every claim to a re-checkable calculus
    artifact. → the **MCP verifier** (`check_egif` / `peel` / `apply_rule` /
-   `validate_step` / `attest`), content-addressed so ids are stable across
+   `validate_step` / `attest`), content-addressed so ids stay stable across
    parses. See [MCP_VERIFIER.md](MCP_VERIFIER.md). *The LLM (or any external
    agent) argues; the calculus decides.*
-3. **Proof certificates** — the open direction. A rule application currently
+3. **Proof certificates**, the open direction. A rule application currently
    *is* sound (Dau) and *is* checked (our test), but it does not yet emit a
    standalone, independently-checkable **certificate** of that step. Emitting one
-   (e.g. a machine-checkable transcript a third-party verifier could replay
-   without Arisbe) would move the "machine-verified" rows toward
-   "externally-certified." This is prospect R1 in
-   [PROSPECTS_MULTIPERSPECTIVE.md](PROSPECTS_MULTIPERSPECTIVE.md).
+   — say a machine-checkable transcript a third-party verifier could replay
+   without Arisbe — would move the "machine-verified" rows toward
+   "externally-certified." Prospect R1 in
+   [PROSPECTS_MULTIPERSPECTIVE.md](PROSPECTS_MULTIPERSPECTIVE.md) names it.
 
-The honest summary: **the mathematics is proven, the implementation is
-machine-verified and runtime-attested, and the philosophy is argued in the
-open.** The remaining frontier is not "is it sound?" but "can a stranger confirm
-that without trusting us?" — and that frontier is named, scoped, and half-built.
+The honest summary runs this way. **The mathematics stands proven, the
+implementation machine-verified and runtime-attested, and the philosophy argued in
+the open.** The remaining frontier lies not in "is it sound?" but in "can a
+stranger confirm that without trusting us?" — and that frontier stands named,
+scoped, and half-built.
 
 ---
 *Related:* [CAPABILITY_MAP](CAPABILITY_MAP.md) · [CORRESPONDENCE_CONTRACT](CORRESPONDENCE_CONTRACT.md) ·

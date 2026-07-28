@@ -71,9 +71,9 @@ Match Peirce's actual spatial arrangement from the notebook
 \end{tikzpicture}
 ```
 
-*(The TikZ above is the exporter's actual output for this graph — every
-oval is a `cut_bounds` from the §3.3-attested layout, every `\egloi` runs
-from the man's vertex to a predicate hook, so the printed picture provably
+*(The TikZ above shows the exporter's actual output for this graph. Every
+oval comes from a `cut_bounds` in the §3.3-attested layout, and every `\egloi`
+runs from the man's vertex to a predicate hook, so the printed picture provably
 denotes the same EGI. See [`src/peirce_latex.py`](../src/peirce_latex.py).)*
 
 ### **Workflow B: Drawing-First (Visual → Text)**
@@ -135,33 +135,34 @@ turns that into the two forms a scholar needs:
 - a **BibTeX entry** (`@unpublished{peirceMS280, …}`), the CSL `type` mapped to the
   right entry type.
 
-It **fabricates nothing**: an absent field is omitted, and a graph with no recorded
-source honestly reports `has_source: false` (an original Arisbe graph has nothing
-external to cite). Exposed at `GET /export/citation?uod_id=…`, and — the load-bearing
-join with the export — `POST /export` with `cite: true` (or the **"cite" checkbox** in
-Organon's export panel) stamps the citation as a `\footnotesize` caption **under** the
-authentic-Peirce figure. The caption is ink *outside* the `tikzpicture`, so `cut_bounds`
-and the correspondence check (§3.3) are untouched (the tikzpicture body is byte-identical with or without it).
+It **fabricates nothing**: it omits an absent field, and a graph with no recorded
+source honestly reports `has_source: false`, since an original Arisbe graph has
+nothing external to cite. `GET /export/citation?uod_id=…` exposes it. The
+load-bearing join with the export comes at `POST /export` with `cite: true` (or the
+**"cite" checkbox** in Organon's export panel), which stamps the citation as a
+`\footnotesize` caption **under** the authentic-Peirce figure. The caption stays ink
+*outside* the `tikzpicture`, so `cut_bounds`
+and the correspondence check (§3.3) remain untouched; the tikzpicture body comes out byte-identical with or without it.
 
 **Batch export (an appendix of figures).** `export_peirce_document` assembles
 several corpus UoDs into one authentic-Peirce LaTeX document, each a captioned figure
 (name + its citation), reusing the same figure-stacking as the worked-chain document.
 `POST /export/document` takes a list of `uod_ids` and honestly reports any it skipped.
-(The single-derivation companion, `export_peirce_chain` / `POST /export/chain`, already
-existed — one figure per proof step.)
+The single-derivation companion, `export_peirce_chain` / `POST /export/chain`, already
+existed, one figure per proof step.
 
 ### Deliberately not built (and why)
 
 - **Export from Ergasterion:** the scholarly export lives in **Organon**, the attested
-  archive — by the mode contract a graph reaches the citable corpus only through Agon,
-  so a regime-1 Ergasterion *draft* has no provenance to cite and "publication-ready"
+  archive. By the mode contract a graph reaches the citable corpus only through Agon,
+  so a regime-1 Ergasterion *draft* has no provenance to cite, and "publication-ready"
   would misrepresent its standing. Export a graph by sending it to the corpus first.
 - **Handwriting font / ink-bleed:** the hand-drawn *waver* and round-capped heavy
-  lines already evoke ink; a matched handwriting font is cosmetic and niche.
+  lines already evoke ink; a matched handwriting font stays cosmetic and niche.
 - **A separate template library:** the seeded corpus exemplars + the in-app primer
   already give a scholar canonical graphs to start from; a separate
   `tomos/templates/peirce/` would duplicate them.
-- **Overlay comparison against the original scan:** genuinely unbuilt, but niche — it
+- **Overlay comparison against the original scan:** genuinely unbuilt, but niche. It
   needs an original-scan upload path and a fade slider, a sizeable UI feature for a
   narrow verification use; revisit if a scholar asks.
 
@@ -196,14 +197,15 @@ the corpus graph `peirce_cp_4_394_man_mortal` — the man–mortal scroll, `(Hum
 \end{document}
 ```
 
-Every oval is a `cut_bounds` from the §3.3-attested `LayoutDTO`, every `\egloi` runs
-from the constant's vertex to a predicate hook, and the `\footnotesize` line is the
-**scholarly citation** built from the UoD's provenance (`scholarly_citation.citation_for`)
-— so the printed figure provably denotes the EGI *and* carries its attribution.
-`\usepackage{tikz}` is the only hard dependency; the `arisbe-eg` macros are inlined.
+Every oval comes from a `cut_bounds` in the §3.3-attested `LayoutDTO`, every `\egloi`
+runs from the constant's vertex to a predicate hook, and the `\footnotesize` line
+carries the **scholarly citation** built from the UoD's provenance
+(`scholarly_citation.citation_for`). So the printed figure provably denotes the EGI
+*and* carries its attribution.
+`\usepackage{tikz}` remains the only hard dependency; the `arisbe-eg` macros arrive inlined.
 
 **Compiled Result:** a tightly-cropped, publication-ready vector PDF (the `article`
-class is the automatic fallback on minimal TeX installs without `standalone.cls`).
+class serves as the automatic fallback on minimal TeX installs without `standalone.cls`).
 
 **Run it yourself** (from the repository root; verified 2026-07-27 — the export
 produces a `.tex` that `pdflatex` compiles to a PDF with no packages beyond `tikz`):
