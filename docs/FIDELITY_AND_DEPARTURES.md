@@ -63,28 +63,28 @@ author's own voice, below.
 
 ## 1. The devotion — what Arisbe takes from Peirce wholesale
 
-State the debt first, because the departures are unintelligible without it. None
-of these is hedged; they are the [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
+State the debt first, because without it the departures make no sense. None
+of these comes hedged; together they form the [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).
 
 - **The aim.** Peirce did not build the graphs to draw logic prettily but to
   *analyze reasoning* — a "moving picture of thought," a "rough and generalized
   diagram of the Mind," in service of the lifelong hope that better analysis of
   inference yields clearer inference. Arisbe inherits the instrument **and the
-  hope** ([CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md)). This is the whole point
-  of the project; everything else is means.
+  hope** ([CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md)). This remains the whole point
+  of the project; everything else serves as means.
 
-- **The instrument.** The Existential Graphs themselves — Alpha (the cut, the
-  sheet, juxtaposition) and Beta (the line of identity) — are taken as given, in
-  Dau's rigorous formalization. The six transformation rules are Dau's; the
-  soundness of every step is non-negotiable bedrock. Arisbe does not improve
+- **The instrument.** Arisbe takes the Existential Graphs themselves — Alpha (the
+  cut, the sheet, juxtaposition) and Beta (the line of identity) — as given, in
+  Dau's rigorous formalization. The six transformation rules come from Dau; the
+  soundness of every step stands as non-negotiable bedrock. Arisbe does not improve
   Peirce's calculus; it implements it faithfully and builds outward.
 
 - **The semiotic.** A sign stands for an object to an interpretant which is
   itself a further sign — *semiosis*, triadic and unbounded. Arisbe's deepest
-  architectural thesis is that an Existential Graph ([EG](GLOSSARY.md#eg)) derivation **is a chain of semiosis**: each
+  architectural thesis holds that an Existential Graph ([EG](GLOSSARY.md#eg)) derivation **is a chain of semiosis**: each
   state a sign, each rule application a warranted interpretant. The chain, not
-  the snapshot, is the unit of meaning. This reading is offered as Peircean in
-  spirit, not as a quotation, and the codebase is organized around it.
+  the snapshot, serves as the unit of meaning. The author offers this reading as
+  Peircean in spirit, not as a quotation, and organizes the codebase around it.
 
 - **The dialogical test.** "[Endoporeutic](GLOSSARY.md#endoporeutic)" is Peirce's own word for reading a
   graph from the outside in, as a transaction between a defender and a skeptic.

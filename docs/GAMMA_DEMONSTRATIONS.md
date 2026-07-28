@@ -37,8 +37,8 @@ Three corpus UoDs carry the demonstrations:
 
 ## 2 · D1: the broken-cut square (`broken_cut_square`)
 
-Peirce's own Fig. 1 (Lowell IV) is a broken cut around **"It rains"**: not the denial of
-rain, but *"it is possible that it does not rain"* (CP 4.410, convention C10). Combining
+Peirce's own Fig. 1 (Lowell IV) draws a broken cut around **"It rains"**. It does not deny
+rain; it says *"it is possible that it does not rain"* (CP 4.410, convention C10). Combining
 broken and solid cuts yields the four traditional modes (CP 2.382: *possibile,
 impossibile, contingens, necessarium*). The exemplar realizes all four as verdicts of one
 branching derivation, with no mark:
@@ -56,7 +56,7 @@ branching derivation, with no mark:
 | broken cut around solid cut around g | ◇g — "possible" | `(rains)`, `(mist)` on some sheet, not all | the amber **◇ Possible** column |
 | solid cut around g inside a broken-cut denial, i.e. ¬◇g | □¬g — "impossible" | `(thunders)` on no reachable sheet | absent from both columns |
 
-*Possibility is branching, necessity is convergence* — the doctrine's slogan is here a
+*Possibility is branching, necessity is convergence.* Here the doctrine's slogan becomes a
 picture you can open: Organon → `broken_cut_square` → the modal lens (columns) and the
 derivation-DAG lens (the diamond itself).
 
@@ -66,21 +66,21 @@ The Syllabus (Ms 478, p. 158) gives the broken cut its own transformation regime
 trajectory semantics validates precisely the moves Peirce licensed:
 
 - **R6 cut-conversion.** *(a)* An **evenly enclosed** solid cut may be *half-erased* into
-  a broken cut — semantically ¬g ⊨ ◇¬g, a weakening, legal in a positive place. *(b)* An
-  **oddly enclosed** broken cut may be *filled up* into a solid cut — the dual
-  strengthening in a negative place. Both are theorems of the trajectory reading (a solid
-  denial is strictly stronger than a contingency claim).
+  a broken cut. Semantically ¬g ⊨ ◇¬g, a weakening, legal in a positive place. *(b)* An
+  **oddly enclosed** broken cut may be *filled up* into a solid cut, the dual
+  strengthening in a negative place. Both hold as theorems of the trajectory reading,
+  since a solid denial stands strictly stronger than a contingency claim.
 - **His worked inferences** (Lowell IV; Roberts pp. 83–84): □g ⊨ g (Figs. 2→4), □g ⊨ ◇g
   (Figs. 2→5), □¬g ⊨ ¬g (Figs. 6→8). On the reflexive `over="states"` reading these hold
-  on every frame — they are the T-axioms, and `tests/test_gamma_demonstrations.py`
+  on every frame; they amount to the T-axioms, and `tests/test_gamma_demonstrations.py`
   checks them on the exemplar's frame.
 - **His caution** (CP 4.519): g and ◇□g "can neither of them be inferred from the other."
-  On this very frame, `(rains)` holds at the base while ◇□rains fails — the test
+  On this very frame, `(rains)` holds at the base while ◇□rains fails. The test
   exhibits it by iterating `modal_query.necessarily(base=w)` over the reachable worlds.
 - **What he withheld**: no iteration/deiteration across a broken cut (R3/R4). In the
-  trajectory reading nothing needs to cross, because there is no drawn boundary to
-  cross — the modality is the DAG's shape, and the open problem Peirce was actually
-  wrestling with there (a line of identity crossing into a possibility) is the
+  trajectory reading nothing needs to cross, because no drawn boundary exists to
+  cross. The modality lives in the DAG's shape, and the open problem Peirce actually
+  wrestled with there (a line of identity crossing into a possibility) amounts to the
   trans-world-identity frontier of §7 below.
 
 ## 4 · D3: the would-be (`would_be_de_inesse` · `would_be_courses`)
@@ -88,25 +88,25 @@ trajectory semantics validates precisely the moves Peirce licensed:
 The centerpiece. Peirce's proposition P (*Prolegomena*, CP 4.546): **"There is some
 married woman who will commit suicide in case her husband fails in business."**
 
-**P de inesse** (`would_be_de_inesse`) is the material reading on one synchronic sheet —
-two generic lines of identity (the woman, the husband) declared on the sheet and
-threading into a scroll:
+**P de inesse** (`would_be_de_inesse`) reads P materially, on one synchronic sheet. Two
+generic lines of identity (the woman, the husband) stand declared on the sheet and
+thread into a scroll:
 
 ```
 (married_woman *w) (husband *h w) ~[ (fails_in_business h) ~[ (commits_suicide w) ] ]
 ```
 
 Pure Beta. And, as Peirce complains, *too easily true*: it holds if the husband merely
-never fails — no connection between failure and suicide is asserted (CP 4.546, 4.549;
+never fails, and asserts no connection between failure and suicide (CP 4.546, 4.549;
 Roberts p. 96 gives the two-move derivation from "some married man does not fail").
-Open it in Organon: the modal lens rightly reports **no branching frame** — a synchronic
-sheet has nothing for ◇/□ to range over. The de inesse reading is all there is.
+Open it in Organon and the modal lens rightly reports **no branching frame** — a
+synchronic sheet has nothing for ◇/□ to range over. The de inesse reading is all there is.
 
-**The would-be** (`would_be_courses`) is what Peirce reached for with the tinctures: his
-blue-tinted figure (Ms 490; Roberts p. 89) asserts *"It is not possible that a man fails
-in business without suiciding"* — a strict implication. Here the tinted possibility is a
-branching DAG of **courses of experience**: prosperity; ruin (failure and the suicide);
-prosperity-then-late-ruin. Each edge is a `new_fact` revision — the assertoric register,
+**The would-be** (`would_be_courses`) delivers what Peirce reached for with the tinctures.
+His blue-tinted figure (Ms 490; Roberts p. 89) asserts *"It is not possible that a man fails
+in business without suiciding"* — a strict implication. Here the tinted possibility becomes
+a branching DAG of **courses of experience**: prosperity; ruin (failure and the suicide);
+prosperity-then-late-ruin. Each edge marks a `new_fact` revision — the assertoric register,
 what a course of experience admits, not what the rules derive. The would-be
 
 ```
@@ -114,30 +114,30 @@ G = ~[ (fails_in_business "Otto") ~[ (commits_suicide "Clara") ] ]
 ```
 
 peels **TRUE at every reachable world**: □G, the strict implication, drawn as a habit of
-every course rather than a colour on one sheet. The contrast proposal
-`~[ (fails_in_business "Otto") ~[ (prospers "Otto") ] ]` is refuted by the ruin course —
+every course rather than a colour on one sheet. The ruin course refutes the contrast
+proposal `~[ (fails_in_business "Otto") ~[ (prospers "Otto") ] ]` —
 ◇ only, with a named counterexample world. And the de inesse trap stays visible
-per-world: at the prosperity worlds G is TRUE *merely because Otto has not failed* — the
+per-world: at the prosperity worlds G reads TRUE *merely because Otto has not failed*. The
 lens shows exactly the emptiness Peirce diagnosed, world by world.
 
 Read it: Organon → `would_be_courses` → modal lens. The proposal box pre-fills with G
-(the UoD's declared `audit-proposal`); the verdict banner reads **□G**; each world in the
-strip is drawn (the pictures themselves) and badged with G's verdict there. The audit
+(the UoD's declared `audit-proposal`); the verdict banner reads **□G**; the strip draws
+each world (the pictures themselves) and badges it with G's verdict there. The audit
 lens shows the same conditional as a verdict ribbon along the history.
 
 ## 5 · D4: the book of separate sheets
 
 In the same Lowell lecture, Peirce proposed replacing the sheet of assertion with "a book
-of separate sheets, tacked together at points, if not otherwise connected" (CP 4.512) —
-the upper sheet the universe of existents, the deeper leaves "altogether different
-universes with which our discourse has to do" (CP 4.514). He set the idea aside as not
-yet "convenient to work with" — and Roberts notes it became central to his last revision
-of EG.
+of separate sheets, tacked together at points, if not otherwise connected" (CP 4.512).
+The upper sheet serves as the universe of existents; the deeper leaves, as "altogether
+different universes with which our discourse has to do" (CP 4.514). He set the idea aside
+as not yet "convenient to work with", and Roberts notes it became central to his last
+revision of EG.
 
-Arisbe's Universe of Discourse **is** that book, built without a new mark: each DAG state
-is a leaf; the transitions are the tacking-together; the storyboard and time-stack lenses
-flip through the leaves in order, and the derivation-DAG lens shows the whole binding at
-once. This is not an analogy added after the fact — the UoD architecture
+Arisbe's Universe of Discourse **is** that book, built without a new mark. Each DAG state
+serves as a leaf; the transitions do the tacking-together; the storyboard and time-stack
+lenses flip through the leaves in order, and the derivation-DAG lens shows the whole
+binding at once. This is no analogy added after the fact. The UoD architecture
 ([UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md](UNIVERSE_OF_DISCOURSE_ARCHITECTURE.md)) was
 built for diachronic reasoning, and the book-of-sheets image lands on it exactly. The
 "moving pictures of thought" are the pages turning.

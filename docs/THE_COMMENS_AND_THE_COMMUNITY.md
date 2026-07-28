@@ -4,8 +4,8 @@
 > the UoD/commens distinction, why institutionalization cannot occur in an individual, the
 > three Endoporeutic Game (EPG) roles as a *model* of that institution, the S/A
 > parameterization and its West correspondence, the refusal of "final," and the standing
-> statement that the higher-order frontier is deliberately not crossed. The author's spine is
-> ratified doctrine; assistant elaborations are carried but marked `*[flagged]*` and gathered
+> statement that the higher-order frontier is deliberately not crossed. The author's spine
+> stands as ratified doctrine; assistant elaborations remain carried but marked `*[flagged]*` and gathered
 > in [§11](#11--open-verdicts) for later ruling. **Not in `_quarto.yml`** — book membership
 > deferred to workstream B.
 >

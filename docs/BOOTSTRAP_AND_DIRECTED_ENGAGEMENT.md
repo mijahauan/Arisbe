@@ -74,12 +74,12 @@ other names:
 | **Growth of *S* and *A* themselves** | *S* grows: open-vocabulary membranes, label resolution turning opaque ids legible, the horizon promoting the not-yet-legible; *A* grows: the crawl growing its own frontier, the docket's Q-tiers shrinking `inexpressible`; the **sign-space** grows: the alphabet widening under INS, hypostatic abstraction at B-min | PARTIAL (see §1.1) |
 | **Action space *A* (exercised)** | **Missing.** Arisbe predicts, probes, and revises — but it never *intervenes*: no reach is chosen by expected yield, and nothing pushes back on the source | NOT BUILT |
 
-Three places where Arisbe's shape is *deliberately richer* than the automaton, worth
-keeping: the three-valued verdict (UNKNOWN ≠ doubt — an open-world abstention the
-delta-arithmetic collapses); the disposition taxonomy (remodeling that *records what kind
-of move it was*, so the chain of semiosis stays legible — the whole point of "moving
-pictures of thought" over a weight update); and the update rule itself — the MPA, like
-Conway's Life, updates by a **fixed rule**, where Arisbe's remodeling is a **negotiated
+In three places Arisbe's shape runs *deliberately richer* than the automaton, each worth
+keeping. First, the three-valued verdict: UNKNOWN ≠ doubt — an open-world abstention the
+delta-arithmetic collapses. Second, the disposition taxonomy: remodeling that *records what
+kind of move it was*, so the chain of semiosis stays legible — the whole point of "moving
+pictures of thought" over a weight update. Third, the update rule itself. The MPA, like
+Conway's Life, updates by a **fixed rule**; Arisbe remodels by a **negotiated
 disposition** ("outcomes are negotiable, not determined" —
 AUTOMATED_MODEL_DEVELOPMENT §1, which carries the full Game-of-Life correspondence and
 its instructive breaks: death = relinquishment/decay, and closed dynamics on Life's

@@ -1,29 +1,29 @@
 # Freeform composition, fix-as-read, and correspondence learning
 
 A design arc for the Ergasterion composing phase, decided in conversation
-2026-06-10. Companion to `docs/COMPOSITION_WORKFLOW_SPEC.md` (which fixes the
-phase model) — this records *what composition becomes* and why.
+2026-06-10. It accompanies `docs/COMPOSITION_WORKFLOW_SPEC.md`, which fixes the
+phase model; this document records *what composition becomes* and why.
 
 ## The arc, in three moves
 
-1. **Freeform composition.** While composing the base graph, elements are **ink,
-   not logic**: graphical marks (labelled spots, lines, closed cut-curves) that
-   you position freely, with no live Existential Graph Instance ([EGI](GLOSSARY.md#egi)) and no live interpretation. The order of
+1. **Freeform composition.** While you compose the base graph, elements remain
+   **ink, not logic**: graphical marks (labelled spots, lines, closed cut-curves)
+   that you position freely, with no live Existential Graph Instance ([EGI](GLOSSARY.md#egi)) and no live interpretation. The order of
    placement carries no meaning; the view holds only presence, position, and
-   removal (spec §2.3). A cut is just a drawn curve — erase it and its contents
+   removal (spec §2.3). A cut amounts to a drawn curve — erase it and its contents
    stay exactly where they are; drag a mark across a boundary to change its area.
    The structural rigidity of the old live-EGI model (a cut *owns* its contents,
-   well-formedness refusals on every action) is gone, because there is no
-   structure yet — only geometry. This is the project's own thesis applied to
-   composition: *logic in pictures*, and *the drawn shape is authoritative for
+   well-formedness refusals on every action) falls away, because no structure
+   exists yet — only geometry. Composition here obeys the project's own thesis:
+   *logic in pictures*, and *the drawn shape is authoritative for
    containment* (see those memories).
 
 2. **Fix = read.** Crossing gate ① **reads the drawing into a determinate sign**:
    run `eg_reader.read_drawing(dto)` → recover the EGI (area tree + incidence +
    argument order, *from geometry alone*) → check syntactic validity → show the
-   linear forms ("tell you what it says") and §3.3-attest. Composition is silent;
-   fixing is when the picture *speaks*. (On-demand "read it now" gives feedback
-   before committing, so the author is never flying blind.)
+   linear forms ("tell you what it says") and §3.3-attest. Composition stays
+   silent; at fixing the picture *speaks*. (On-demand "read it now" gives feedback
+   before committing, so the author never flies blind.)
 
 3. **Challenge mode — correspondence, learned by doing.** Present a linear form,
    challenge the author to draw it freehand, then `read_drawing` their drawing and

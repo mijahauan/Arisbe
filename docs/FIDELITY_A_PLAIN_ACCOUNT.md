@@ -88,38 +88,40 @@ the cosmos.
 ## Doubt 2 — What can a blank page actually say?
 
 **What stirred the doubt.** Logic textbooks often say: *to draw a graph on the
-sheet is to assert it as true.* The blank page, on this telling, is the home of
-plain assertion — you write "the cat is on the mat," and there it stands, asserted.
+sheet is to assert it as true.* The blank page, on this telling, houses plain
+assertion. You write "the cat is on the mat," and there it stands, asserted.
 
 **How it was expressed.** The author suspected this runs two very different things
 together. The page bears **form** — the scaffolding of *if-then*, the cuts, the
-structures that are valid no matter what the world is like. But a bare *contingent*
-claim (something that just happens to be true or false, like the cat's whereabouts)
-is a different kind of thing. The deepest version of the doubt: on the rules of the
-game, you cannot even *legally place* a bare contingent claim, naked, on the page.
+structures that hold valid no matter what the world looks like. But a bare
+*contingent* claim (something that just happens to be true or false, like the cat's
+whereabouts) belongs to a different kind. At its deepest the doubt said that on the
+rules of the game you cannot even *legally place* a bare contingent claim, naked,
+on the page.
 
-This sounds technical; it is actually simple. The rules of Peirce's system are
-lopsided in a precise way: in a **positive** position (not inside an odd number of
-cuts) you may *erase* freely but not *add*; to *add* a new claim, you must be in a
-**negative** position — inside a cut. So a fresh claim can only enter the picture
+This sounds technical; it turns out simple. The rules of Peirce's system run
+lopsided in a precise way. In a **positive** position (not inside an odd number of
+cuts) you may *erase* freely but not *add*; to *add* a new claim, you must stand in
+a **negative** position — inside a cut. So a fresh claim can only enter the picture
 **conditioned** — tucked inside the "if" part of an if-then, where it can still be
-challenged and swept away. The only thing that sits on the page wholly
-unconditioned is **the blank itself — which asserts nothing at all.**
+challenged and swept away. Only one thing sits on the page wholly unconditioned —
+**the blank itself, which asserts nothing at all.**
 
-**How we argued it out.** An earlier round had *conceded* a gap: surely, a critic
+**How we argued it out.** An earlier round had *conceded* a gap. Surely, a critic
 said, the "if" part (the model you reason under) had to get onto the page *somehow*,
-and *that* first placing was an unconditioned assertion. On re-examination, that
-concession was **too generous.** There is no unconditioned placing. A claim is built
-up *from the blank* by legal, meaning-preserving steps — open a cut, place the
+and *that* first placing amounted to an unconditioned assertion. On re-examination,
+that concession proved **too generous.** No unconditioned placing exists. A claim
+grows *from the blank* by legal, meaning-preserving steps — open a cut, place the
 claim inside it, carry it where it must apply, open the next cut — and at no point
-does a bare claim land naked on the page. What the rules *don't* fix is *which*
-claim you bring; but that was never a gap. *Which* model of the world to reason
-under is the real, proper business of inquiry, settled out in the world and in
+does a bare claim land naked on the page. The rules *don't* fix *which* claim you
+bring; but that never amounted to a gap. *Which* model of the world to reason
+under remains the real, proper business of inquiry, settled out in the world and in
 argument — not something the calculus was ever supposed to hand you.
 
-**What changed.** A conceded weakness was **closed**: the thesis "every assertion
-is always-already conditioned, inside" turned out to be **gapless**, not almost-true.
-And Arisbe now does, by construction, what the textbooks omit: it **marks the [seam](GLOSSARY.md#seam)**
+**What changed.** The examination **closed** a conceded weakness: the thesis "every
+assertion is always-already conditioned, inside" turned out **gapless**, not
+almost-true. And Arisbe now does, by construction, what the textbooks omit — it
+**marks the [seam](GLOSSARY.md#seam)**
 between two registers that they print flush together —
 - what you **derived** (earned step by truth-preserving step — a *proof*), versus
 - what you **posited** (brought in as a premise, admitted at low [warrant](GLOSSARY.md#warrant), to be
@@ -146,22 +148,22 @@ pictures to handle *possibility* and *necessity* — a project he called *Gamma*
 with new marks like a "broken cut." He never finished it, and a century of readers
 have treated finishing it as the great unsolved problem.
 
-**How it was expressed.** The author's claim: *no new mark is needed.* Modern logic
-already knows how to talk about possibility and necessity — by talking about many
-*worlds* and which ones are reachable from which. And Arisbe already has the
-worlds, drawn out in the open: its evolving record keeps a whole library of
+**How it was expressed.** The author claimed that *no new mark is needed.* Modern
+logic already knows how to talk about possibility and necessity — by talking about
+many *worlds* and which ones are reachable from which. And Arisbe already holds the
+worlds, drawn out in the open. Its evolving record keeps a whole library of
 universes and the legal transitions between them.
 
 **How we argued it out.** The prosecution forced one honest retreat. An early draft
 boasted that this approach captures "everything" the modern symbols express. That
 over-reached — it leans on a theorem that holds for a *simpler* fragment than the
-one Arisbe actually uses once it carries identity across worlds. So the **boast was
-withdrawn**: the claim is now *adequacy*, not *completeness*, with the harder cases
-named honestly as a frontier (they turn out to be questions about the graphs
+one Arisbe actually uses once it carries identity across worlds. So we **withdrew
+the boast**. The claim now reads *adequacy*, not *completeness*, with the harder
+cases named honestly as a frontier (they turn out to be questions about the graphs
 *themselves*, a higher-order matter — not about possibility at all).
 
-**What changed.** The architecture stood; the rhetoric around it was trimmed to what
-can be defended. "No new modal mark" survived untouched.
+**What changed.** The architecture stood; we trimmed the rhetoric around it to what
+we can defend. "No new modal mark" survived untouched.
 
 **The principle in action.**
 - *Adherence:* you say "the same person who is here could have been there" by
@@ -178,32 +180,32 @@ can be defended. "No new modal mark" survived untouched.
 
 ## Doubt 4 — Ladders of worth: who gets to play, and who plays well
 
-This was the hardest, and the one the author cared about most. It is worth telling
-slowly, because the resolution moved more than once.
+This one proved the hardest, and the one the author cared about most. It deserves a
+slow telling, because the resolution moved more than once.
 
 **What stirred the doubt.** The grand hopeful pictures of inquiry — Peirce's
 "final opinion," Teilhard de Chardin's "Omega Point" — quietly **fuse two things**:
 *competence* (how good a method or a stage of knowledge is) with *worth* (how near
 to the truth, how advanced, even how *holy* its people are). Later comes to mean
 better comes to mean *nearer* comes to mean *worth more*. The author challenged that
-fusion: a later stage may well be a **better instrument**, but its inhabitants are
-not **better souls**, and a child, an earlier age, or a layperson stands at no
-greater *distance in worth*.
+fusion. A later stage may well serve as a **better instrument**, but its inhabitants
+do not rank as **better souls**, and a child, an earlier age, or a layperson stands
+at no greater *distance in worth*.
 
 **The first resolution — and its weak spot.** The prosecution granted a great deal.
-That one age's instruments are genuinely better than another's — experiment over
-augury, abolition over slavery as moral knowledge — is a real, *ordinal* advance (a
+That one age's instruments genuinely surpass another's — experiment over augury,
+abolition over slavery as moral knowledge — counts as a real, *ordinal* advance (a
 "better-than," with no need for a final "best"). So the author had to *concede the
-competence-vector*. What remained was the narrower claim: don't convert that into a
-ladder of **worth**. But that narrower claim, as then stated, rested on an
-**imported premise** — "all signifying agents have equal dignity" — which the
-project had not earned. It was flagged, honestly, as a value smuggled in warm.
+competence-vector*. The narrower claim remained — don't convert that into a ladder
+of **worth**. But that narrower claim, as then stated, rested on an **imported
+premise** — "all signifying agents have equal dignity" — which the project had not
+earned. We flagged it, honestly, as a value smuggled in warm.
 
 **The author's better move — "fair access to the Game."** Dissatisfied with leaning
 on an unearned premise, the author reframed it. The capacity **to mean anything at
-all** — to make and read signs — is the *ticket of admission* to the Game (call the
-Game "inquiry," or "meaning-making" itself). **Competence is only how well you play
-once you are in.** We would not put a child in charge of a nuclear reactor — but
+all** — to make and read signs — serves as the *ticket of admission* to the Game
+(call the Game "inquiry," or "meaning-making" itself). **Competence names only how
+well you play once you are in.** We would not put a child in charge of a nuclear reactor — but
 that says nothing about whether the child is *allowed to mean*, *allowed to be
 heard*. Local skill does not add up to universal authority; local clumsiness does
 not add up to universal silence. Is there any general ground to bar a
@@ -223,12 +225,12 @@ claims:
 
 And the clever supporting move — "if you gate who belongs to the community, you make
 'the truth' just whatever your in-group settles on" — *backfired*. What keeps a
-verdict honest is not throwing the doors open; it is **the method** — replication,
+verdict honest? Not throwing the doors open, but **the method** — replication,
 testing, answering to evidence. The gate that tracks the truth is **the method
 applied to the claim**, not a club deciding who is worthy.
 
 But the critics handed back something **stronger and more defensible than either the
-imported premise or the slogan.** Here is the position that survived, and it is now
+imported premise or the slogan.** Here stands the position that survived, now
 Arisbe's:
 
 > **Gate the *claim* by the *method*, on its *content* — never the *agent* by
@@ -238,20 +240,20 @@ Arisbe's:
 > *uptake* — a fair test of its content before we dismiss it because of who said
 > it.**
 
-That last duty — **uptake** — is the positive thing the author was really reaching
-for. Refusing it has a name: *epistemic injustice*, the wrong of not even hearing
-someone out because of who they are.
+That last duty — **uptake** — names the positive thing the author was really
+reaching for. Refusing it has a name: *epistemic injustice*, the wrong of not even
+hearing someone out because of who they are.
 
 **What changed.** The worth-ladder objection no longer needs the imported "equal
 dignity." It now follows from something the realist *and* the author both accept:
 *only method-on-content tracks the truth, so ranking agents by worth is precisely
 the move that corrupts it.* (This still rests on caring about inquiry in the first
-place — but so does the opposing view, so the ground is level.) And the project
+place — but so does the opposing view, so the ground lies level.) And the project
 gained a positive obligation it had lacked: **give the claim a hearing.**
 
 **The principles in action.**
 - *Gate the claim, not the agent.*
-  - *Adherence:* in Arisbe's contest arena, a proposal is tested by the rules
+  - *Adherence:* in Arisbe's contest arena, the rules test a proposal
     **whoever drew it**; the badge it earns describes the *graph*, never the person.
     A newcomer's graph and an expert's graph face the very same scrutiny.
   - *Breaking:* "we needn't test that — look who's proposing it." Galileo's
@@ -289,10 +291,11 @@ exactly as intended:
   cut, where it can still be challenged" (Doubt 2).
 - "Equal dignity grounds the refusal of worth-ladders" → "method-on-content is the
   only honest gate; never rank agents by worth; owe every claim its uptake" (Doubt 4).
-- Doubt 3 ("no new mark for modality") stood — only an overstated boast was trimmed.
+- Doubt 3 ("no new mark for modality") stood — we trimmed only an overstated boast.
 
-**In Arisbe.** The doubts were not merely settled on paper; they are **built in**.
-- Every served picture is checked so that what is *drawn* and what is *said* denote
+**In Arisbe.** The doubts were settled not merely on paper — Arisbe **builds them
+in**.
+- Arisbe checks every served picture so that what is *drawn* and what is *said* denote
   the same thing — *correspondence* — and that check makes **no claim about truth**.
   (A picture can be perfectly faithful to a false proposition.)
 - A graph reaches the permanent collection only by being **tested in the contest**,
@@ -301,27 +304,27 @@ exactly as intended:
   derived / withstood challenge) — it ranks **claims, never people.** Read as a
   ladder of personal worth, the badge would itself be one of the field guide's
   "dragons."
-- The **doorway** lets anyone bring a graph in at low warrant: it gates *what* is
-  proposed, not *who* proposes it — fair access and method-gate, together.
+- The **doorway** lets anyone bring a graph in at low warrant. It gates *what*
+  someone proposes, not *who* proposes it — fair access and method-gate, together.
 - A small **"context" panel** now travels with every picture in the interface,
   answering the beginner's first question — *what whole is this a fragment of, and
-  on whose page does it stand?* — so a graph is never mistaken for a free-floating
+  on whose page does it stand?* — so no one mistakes a graph for a free-floating
   thought.
 
 **In our reading of Peirce.** He emerges *more* right, not less. His "community of
-inquiry" is unlimited across *time* and across *those who submit to the method* —
+inquiry" runs unlimited across *time* and across *those who submit to the method* —
 not a free-for-all, and not a closed club. His late insight that **to assert is to
-take responsibility** — to expose yourself to being wrong — is exactly the seam the
-textbooks lost. And his blank sheet was never empty: it is already a graph, already
+take responsibility** — to expose yourself to being wrong — names exactly the seam
+the textbooks lost. And his blank sheet was never empty — already a graph, already
 a commitment.
 
-**In our reading of the tradition.** The traditions that present Peirce are honored
-and *corrected* on specific, named points: where they upgraded a **hope** into a
+**In our reading of the tradition.** We honor the traditions that present Peirce
+and *correct* them on specific, named points: where they upgraded a **hope** into a
 fact (Doubt 1), where they left the **seam** between proof and premise unmarked
 (Doubt 2), where they treated finishing **Gamma** as the great task (Doubt 3), and
 where they let competence **fuse** into worth (Doubt 4). On one point the tradition
-corrected *us* — that it is the **method**, not open admission, that keeps a verdict
-honest (Doubt 4). That, too, is recorded.
+corrected *us* — that the **method**, not open admission, keeps a verdict
+honest (Doubt 4). That, too, stands recorded.
 
 **The one thread through all of it.** Call it *contextual honesty*: always ask what
 context — what cut, what page, what given, what method — delivers a picture's

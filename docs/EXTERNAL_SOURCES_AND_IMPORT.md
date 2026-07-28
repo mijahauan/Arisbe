@@ -2,10 +2,10 @@
 
 > **What this is.** The single legible account of how material from *outside*
 > Arisbe gets *in* — published **ontologies** (Web Ontology Language ([OWL](GLOSSARY.md#owl)) / Resource Description Framework ([RDF](GLOSSARY.md#rdf)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) / Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)))
-> and material read by a human from **textbooks, websites, and papers**. The
-> machinery is real but scattered across several docs and tools; this doc is the
-> **consolidating map**: what enters, *at what [warrant](GLOSSARY.md#warrant)*, *attributed how*,
-> *attested how*, and what is honestly **not** brought across. It links out rather
+> and material a human reads in **textbooks, websites, and papers**. The
+> machinery exists, but it lies scattered across several docs and tools. This doc
+> serves as the **consolidating map**: what enters, *at what [warrant](GLOSSARY.md#warrant)*, *attributed how*,
+> *attested how*, and what honestly does **not** come across. It links out rather
 > than restating.
 >
 > **Read alongside:** [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the
@@ -20,33 +20,34 @@
 
 ## 1. The floor — one rule that governs every import
 
-Everything that enters Arisbe from outside enters at **low warrant**, and the
-reason is a single discipline:
+Everything that enters Arisbe from outside enters at **low warrant**, and a
+single discipline supplies the reason:
 
 > Arisbe attests that an Existential Graph ([EG](GLOSSARY.md#eg))'s **drawn form and its linear form denote the same
 > mathematical object** (the correspondence check, §3.3). It does **not** assert that the proposition is
 > *true*. A classical theorem and a synthetic test graph arrive at the same floor.
 
-So an import is **admitted, comprehended, and attested — never asserted true.** It
-is parsed (it has a determinate meaning), checked for correspondence (the picture
-and the text agree), and bibliographically attributed (the trace of the un-hosted
-dialogue it came from). The only thing that lifts an item above the floor is
-**surviving the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game** — see
+So an import is **admitted, comprehended, and attested — never asserted true.**
+Arisbe parses it (it carries a determinate meaning), checks it for correspondence
+(the picture and the text agree), and attributes it bibliographically (the trace
+of the un-hosted dialogue it came from). One thing alone lifts an item above the
+floor: **surviving the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game** — see
 [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) §4.
 
-Two consequences worth stating up front:
+Two consequences deserve stating up front:
 
-- **Provenance and annotations are outside §3.3.** They describe the *source*; they
-  are not signs in the graph. (Consulting a source is not itself a sign.)
+- **Provenance and annotations stand outside §3.3.** They describe the *source*;
+  they do not function as signs in the graph. (Consulting a source is not itself a
+  sign.)
 - **No fabricated citation, ever.** A synthetic exemplar must never carry a made-up
-  page number; pinning one on would be the un-attested truth-claim the floor
+  page number; pinning one on would amount to the un-attested truth-claim the floor
   forbids (enforced by `tests/test_corpus_conformance.py`). The provenance model
   keeps three independent facts apart — **import kind**, *transcribed-vs-authored*,
   *cited-vs-synthetic* — and they must not be collapsed.
 
-This floor is the same one Popper's falsifiability lives under here: import admits
-a fragment at low warrant with a bibliographic record, and the [**membrane**](GLOSSARY.md#membrane) between
-the sheet and the world is the only place error is corrected
+Popper's falsifiability lives under this same floor here: import admits a fragment
+at low warrant with a bibliographic record, and the [**membrane**](GLOSSARY.md#membrane) between
+the sheet and the world remains the only place where error gets corrected
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)).
 
 ---
@@ -62,13 +63,13 @@ doorways:
 | **B. Human-read material** | a graph (or proposition) a person reads in a book, on a website, in a paper | **the `/import` linear-form doorway** + (future) the by-hand reading desk | low |
 | **C. Live sources** | a stream the world keeps writing: Wikidata statements and its recent-changes feed | **the automated Endoporeutic Game's membranes** (`wikidata_source.py` → `live_runner.py`) — each claim enters by being *played*, not filed | low; each claim is peeled and disposed on entry |
 
-Family A is a *translator bringing a file across*; family B is a *human bringing a
+In family A a *translator brings a file across*; in family B a *human brings a
 page across*. Both land on the same floor (§1); they differ only in who does the
-reading. Family C — added 2026-07 — is different in kind: the source is *ongoing*,
-and the doorway is the game itself. A polled statement is not saved; it is proposed
-into the automated game, tested against the developing model M, and enters (or
-doesn't) under a named disposition, with disuse-decay bounding what accumulates.
-The claim's entry record *is* its game record. See
+reading. Family C, added 2026-07, differs in kind: the source remains *ongoing*,
+and the doorway is the game itself. A polled statement does not get saved; it
+enters the automated game as a proposal, faces testing against the developing
+model M, and comes in (or doesn't) under a named disposition, with disuse-decay
+bounding what accumulates. The claim's entry record *is* its game record. See
 [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §10 and
 [CAPABILITY_MAP.md](CAPABILITY_MAP.md) §H.
 

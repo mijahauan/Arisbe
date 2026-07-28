@@ -86,22 +86,23 @@ reader.
 
 ## 2. Peirce: there is no contextless scribing
 
-In Peirce there is *no* contextless scribing, for a reason the mainstream
-alpha/beta presentations bury: **the blank sheet is itself a graph.** It is not an
-empty stage; it represents — asserts — the universe of discourse. (In the Beta
+In Peirce no contextless scribing exists, for a reason the mainstream
+alpha/beta presentations bury: **the blank sheet is itself a graph.** It serves as
+no empty stage; it represents — asserts — the universe of discourse. (In the Beta
 part a bare line of identity scribed alone already says "something exists"; the
-blank is read as granted truth, the empty cut as falsity.) The sheet is an
-**index** of the universe — the object-side collateral hookup. A graph-like form
-is never floating free over a neutral plane; the plane is already an assertion,
-and to scribe on it is to add to a universe the sheet already posits.
+blank reads as granted truth, the empty cut as falsity.) The sheet functions as an
+**index** of the universe, the collateral hookup on the object side. A graph-like
+form never floats free over a neutral plane. The plane already carries an
+assertion, and to scribe on it adds to a universe the sheet already posits.
 
-The richest articulation is the late Peirce — the **Phemic Sheet** of the
-*Prolegomena to an Apology for Pragmaticism* (1906), where the Sheet of Assertion
-is a communicative surface between two parties, the universe "well understood
-between" them and in part *created* in the exchange. There, scribing-as-assertion
-is analyzed not as a formal stipulation but as a normative act: **to assert is to
-*assume responsibility*** — to expose oneself to penalty should it fail (the oath,
-the notary). Three conditions convert a graph-like form into a *proper* EG:
+The richest articulation comes from the late Peirce, in the **Phemic Sheet** of
+the *Prolegomena to an Apology for Pragmaticism* (1906), where the Sheet of
+Assertion serves as a communicative surface between two parties, the universe
+"well understood between" them and in part *created* in the exchange. There Peirce
+analyzes scribing-as-assertion not as a formal stipulation but as a normative act:
+**to assert is to *assume responsibility*** — to expose oneself to penalty should
+it fail (the oath, the notary). Three conditions convert a graph-like form into a
+*proper* EG:
 
 1. a **universe** agreed between the parties — the sheet as index (object);
 2. the **conventions** fixing juxtaposition = conjunction, cut = negation, line =
@@ -109,9 +110,9 @@ the notary). Three conditions convert a graph-like form into a *proper* EG:
 3. the **act** of scribing as assertion — an assumption of responsibility by an
    utterer before an interpreter (the enacted, dialogical dimension).
 
-A scribed replica is a *proper* EG only when all three obtain. Absent them you
-have an unbounded graph-like form — the representamen alone, assertorically and
-modally silent. This is the same factoring that runs through
+A scribed replica counts as a *proper* EG only when all three obtain. Absent them
+you have an unbounded graph-like form: the representamen alone, assertorically and
+modally silent. The same factoring runs through
 [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md): mode and assertion are not
 in the marks.
 
@@ -120,7 +121,7 @@ in the marks.
 ## 3. The level-0 theorem: no unenclosed contingent proposition is derivable
 
 No legitimate sequence of transformations can start from the blank sheet and yield
-an *unenclosed contingent* proposition. The claim is robust because **it falls out
+an *unenclosed contingent* proposition. The claim holds robustly because **it falls out
 of soundness, not merely the permission set:** the blank denotes truth (the empty
 conjunction); the rules are truth-preserving; so every graph derivable from the
 blank is *valid*. An unenclosed atom asserts a *contingent* proposition; a
@@ -138,7 +139,7 @@ So the demonstrative apparatus never yields the textbook cat-on-mat picture.
 
 ## 4. The two registers, and the seam the literature leaves unmarked
 
-EG actually has two registers, and conflating them is the literature's real fault:
+EG actually carries two registers, and the literature's real fault lies in conflating them:
 
 - **Demonstrative use** — start from the blank, apply permissions, derive
   theorems. Michael's level-0 theorem holds *here*, provably, from soundness.
@@ -153,62 +154,62 @@ EG actually has two registers, and conflating them is the literature's real faul
   cuts and the blank.
 
 The cat-on-mat *is* a well-formed graph; it denotes its asserted proposition
-perfectly. What it is **not** is a *derived* graph — it is a **posited assertion**,
-a premise, which could never be a product of the calculus it is drawn next to. The
-books' sin is to print it in the assertoric register, flush against the
+perfectly. But it does not stand as a *derived* graph. It stands as a **posited
+assertion**, a premise, which could never come out of the calculus it sits drawn
+next to. The books sin by printing it in the assertoric register, flush against the
 demonstrative permissions, **without marking the seam** — so the reader cannot tell
-"someone asserts this, take it as given" from "the system delivers this." Two
-categorically different **provenances** — *posited-under-[warrant](GLOSSARY.md#warrant)* versus
-*derived-truth-preservingly* — erased by one undifferentiated drawing.
+"someone asserts this, take it as given" from "the system delivers this." One
+undifferentiated drawing erases two categorically different **provenances**:
+*posited-under-[warrant](GLOSSARY.md#warrant)* versus *derived-truth-preservingly*.
 
-**Arisbe already marks the seam the literature elides.** The two provenances are
-two things the architecture keeps distinct by construction:
+**Arisbe already marks the seam the literature elides.** The architecture keeps
+the two provenances distinct by construction:
 
-- *Derived-truth-preservingly* = the **chain of sound steps**
+- *Derived-truth-preservingly* names the **chain of sound steps**
   ([CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md)): each link inherits the blank
   sheet's warrant through a truth-preserving rule.
-- *Posited-under-warrant* = a premise admitted at **LOW warrant** — **import**
+- *Posited-under-warrant* names a premise admitted at **LOW warrant**: **import**
   (parsed, attested for correspondence, *never asserted true*; bibliographic
   attribution as the trace of the un-hosted dialogue; **embedded by `INS` into a
   negative context**, not laid bare on the recto), or a graph **sent to Agon** to be
-  tested. Warrant from the calculus is nil here; it comes from outside — the utterer's
-  exposure — and rises only by **withstanding challenge**
+  tested. Warrant from the calculus amounts to nil here; it comes from outside, from
+  the utterer's exposure, and rises only by **withstanding challenge**
   ([import doorway + the floor](MANIFEST_AND_MEANING.md)).
 
 The responsibility analysis fixes where warrant lives in each register, and the
 asymmetry is total: a theorem needs no assumption of responsibility (it inherits
-truth); a posited premise has no calculus-warrant at all, so its warrant must come
-from the act of putting it where it can be knocked down.
+truth); a posited premise carries no calculus-warrant at all, so its warrant must
+come from the act of putting it where it can be knocked down.
 
 ---
 
 ## 5. The scroll, the gapless construction of the given — and "free to demote"
 
 What context embeds an assertion so that it *keeps* its exposure rather than
-escaping to a bare recto? Not a single cut — `cut[P]` asserts ¬P, too strong. The
-structure that does it is the **scroll**:
+escaping to a bare recto? A single cut will not serve — `cut[P]` asserts ¬P, too
+strong. The **scroll** does the work:
 
 > `cut[ M cut[P] ]`  =  M → P  =  "P, given the model M."
 
-P now sits at *even* depth **inside** the scroll — affirmed-relative-to-M, not
-flat; M sits at *odd* depth, in a **negative** context. And here is the payoff that
+P now sits at *even* depth **inside** the scroll, affirmed-relative-to-M, not
+flat; M sits at *odd* depth, in a **negative** context. Here lies the payoff that
 grounds Arisbe's whole interpretation register in Alpha:
 
 - **Because M is in a negative context, the Insertion rule (INS) lets you freely
   add conditions to it.** Refining or revising the model under which you assert P —
-  *strengthening the antecedent* — is **not** an extra-systematic act of "taking a
-  new stand." It is a **sound permission of the calculus**: INS operating on the
-  antecedent. The diachronic *"free to demote"* of
+  *strengthening the antecedent* — counts **not** as an extra-systematic act of
+  "taking a new stand." It stands as a **sound permission of the calculus**: INS
+  operating on the antecedent. The diachronic *"free to demote"* of
   [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §8 thus has a **formal home**:
   model revision is insertion into the conditioning context.
 - The Alpha asymmetry, read as an epistemology: **erase freely where things are
   affirmed (positive context), insert freely where things are conditioned (negative
   context).** The fallibility wanted as a uniform regime *is* that asymmetry.
 
-This is exactly the [episode](GLOSSARY.md#episode) Arisbe already runs. The scroll `cut[ M cut[G] ]` is
-the Alpha shape of **"given M, then G"** — the interpretation register's episode
+Arisbe already runs exactly this [episode](GLOSSARY.md#episode). The scroll `cut[ M cut[G] ]` gives
+the Alpha shape of **"given M, then G"**, the interpretation register's episode
 ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md), `src/semantic_game.py`,
-`src/theory_query.py`, `/agon/interpret`). Model-revision-as-INS-on-M is the
+`src/theory_query.py`, `/agon/interpret`). Model-revision-as-INS-on-M supplies the
 Alpha-level warrant for treating the choice and refinement of M as a *move*
 (§4 there), and for `src/liveness.py`'s reversible retire/revive. The philosophy
 the corpus has been asserting now has its place in the calculus.
@@ -229,10 +230,10 @@ the corpus has been asserting now has its place in the calculus.
 
 ### How a given enters: the construction from the blank
 
-The scroll is not *derived* from the blank as a theorem — a contingent `M → P` is not
-valid, so soundness forbids it at the recto (§3). What *is* built from the blank, by
-legal moves, is the **place** the given occupies — and the given is then *put there* by
-the one rule that introduces content:
+The scroll does not arrive *derived* from the blank as a theorem — a contingent
+`M → P` is not valid, so soundness forbids it at the recto (§3). What the legal moves
+*do* build from the blank is the **place** the given occupies; the one rule that
+introduces content then *puts the given there*:
 
 1. **`DC+`** inserts a double cut (a sound equivalence, legal anywhere) — opening a
    **negative ring**.
@@ -243,14 +244,15 @@ the one rule that introduces content:
 4. **`DC+`** again opens the next ring, for the next conditional layer.
 
 At no step does a contingent predicate land naked on the positive recto; the recto
-stays **nothing but cuts** — the earlier-settled shape of a truth-preserving UoD (all
-cuts, no exposed predicate). A domain model is either **built from scratch** this way
-or **imported and embedded** — `INS` dropping it into a negative context — where it
-becomes a *running, dialogical, world-tested* contingency, sweepable by `ERA` from a
-positive context. Never an unconditioned foundation. And `assertion-4` — the conceded
-worry that the antecedent M is itself an *unconditioned* posit — dissolves here: it
-conflated "the calculus cannot fix *which* M" (true, and the proper contingency) with
-"the calculus cannot *place* M" (false — `INS` places it; see §8 and the closing note).
+stays **nothing but cuts**, the earlier-settled shape of a truth-preserving UoD (all
+cuts, no exposed predicate). A domain model either gets **built from scratch** this
+way or arrives **imported and embedded**, `INS` dropping it into a negative context,
+where it becomes a *running, dialogical, world-tested* contingency, sweepable by
+`ERA` from a positive context. Never an unconditioned foundation. And `assertion-4`,
+the conceded worry that the antecedent M is itself an *unconditioned* posit,
+dissolves here: it conflated "the calculus cannot fix *which* M" (true, and the
+proper contingency) with "the calculus cannot *place* M" (false — `INS` places it;
+see §8 and the closing note).
 
 **Two worked cases.**
 

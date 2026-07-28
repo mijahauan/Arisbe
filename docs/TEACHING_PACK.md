@@ -1,20 +1,20 @@
 # Teaching Pack — running an Existential-Graphs course on Arisbe
 
-> For the instructor. Arisbe was built as a research instrument, but its grader,
+> For the instructor. Arisbe began as a research instrument, but its grader,
 > its challenge ladder, and its worked-chain exemplars add up to a genuine
-> teaching surface: students **draw** logic instead of typing it, and the engine
+> teaching surface. Students **draw** logic instead of typing it, and the engine
 > **grades by meaning, not by pixels**. This page shows what exists today, the
 > pedagogy it supports, how to author your own problem sets keyed to a syllabus,
-> how to grade a stack of submissions, and — honestly — what an LMS would still
+> how to grade a stack of submissions, and, honestly, what an LMS would still
 > have to add. It disposes documentation-gap **G6** of [STORM_DOCS_AUDIT.md](STORM_DOCS_AUDIT.md).
 
 ## The model of good teaching we're building toward
 
-The gold standard for *teaching* EG is a worked, step-by-step derivation where
-**each step applies exactly one permission and is drawn on its own page** — an
-animation of thought. The finest example we know is Dr. Marc Champagne's
-*"Thirty-Nine Exercises in Existential Graphs"* (PHIL 1150), whose structure is
-worth stealing wholesale:
+What does good EG teaching look like? The gold standard remains a worked,
+step-by-step derivation where **each step applies exactly one permission and is
+drawn on its own page** — an animation of thought. The finest example we know
+comes from Dr. Marc Champagne's *"Thirty-Nine Exercises in Existential Graphs"*
+(PHIL 1150), whose structure merits stealing wholesale:
 
 - **A first hand-out states the arguments in words** — 20 of them, walking the
   propositional canon: modus ponens, modus tollens, double negation,
@@ -22,26 +22,26 @@ worth stealing wholesale:
   destructive dilemma, De Morgan.
 - **A second hand-out redraws them as graphs** — premises and conclusion as
   ovals-and-letters; the student supplies the steps.
-- **Each solution is an animation:** one graph per page, each captioned with the
-  single permission applied — *Deiterate · Erase · Double cut · Insert ·
-  Iterate*, ending in *Conclusion*.
+- **Each solution unfolds as an animation:** one graph per page, each captioned
+  with the single permission applied — *Deiterate · Erase · Double cut ·
+  Insert · Iterate*, ending in *Conclusion*.
 - **Two registers:** *direct* derivations (transform premises into the
   conclusion) and *indirect* derivations (assume the conclusion **false**, then
   drive to a **contradiction** — Champagne's lovely coinage, a *"contrapiction"*:
   the same graph asserted and denied at once).
 
-Arisbe's contribution is to make those hand-drawn animations **machine-generated
-and machine-checked**: every step is a sound Dau rule, every intermediate graph
-is §3.3-attested (picture = proposition), and the whole chain replays as a
-storyboard. What a professor draws by hand for one argument, Arisbe produces —
-correctly, and for any argument — from a proof script.
+Arisbe's contribution makes those hand-drawn animations **machine-generated
+and machine-checked**. Every step applies a sound Dau rule, every intermediate
+graph is §3.3-attested (picture = proposition), and the whole chain replays as a
+storyboard. What a professor draws by hand for one argument, Arisbe produces
+from a proof script — correctly, and for any argument.
 
 ### One vocabulary note, up front (Peirce's five ↔ Dau's six)
 
 Champagne (following Peirce) names **five permissions**: insertion, erasure,
 iteration, deiteration, double-cut. Arisbe (following Dau, its guarantor of
-correctness) uses **six rules**, which are the same moves with the double-cut
-split by direction:
+correctness) uses **six rules** — the same moves, with the double-cut split by
+direction:
 
 | Peirce/Champagne permission | Arisbe/Dau rule(s) |
 |---|---|
@@ -68,11 +68,11 @@ pitfalls in Peirce's own terms.
 
 ## Authoring your own problem set (keyed to a syllabus)
 
-The challenge bank is a curated Python list today (`CHALLENGE_BANK` in
+Today the challenge bank lives as a curated Python list (`CHALLENGE_BANK` in
 `challenge_mode.py`) — ten rungs, hand-authored, each a `Challenge` dataclass.
 To build a set for *your* syllabus, add rows; the routes and the in-app ladder
-follow automatically (this is the same "one place, everything follows" pattern
-the linear-format registry uses).
+follow automatically. The linear-format registry works the same way: declare in
+one place, and everything follows.
 
 ```python
 Challenge(
@@ -95,19 +95,20 @@ Challenge(
 2. **Always verify your target against the parser and FOPL.** A teaching EGIF
    that looks right can be subtly wrong. Round-trip it (`same_graph` after
    parse→generate) and check its FOL reading (`egi_to_fol`) before you assign it.
-   This is the standing lesson from the field guide — *never hand a class an
+   The field guide teaches this as its standing lesson — *never hand a class an
    unverified graph.*
 
-A ready-made scaffold: the **20 Champagne arguments** map directly onto Arisbe
-targets. Author them as a `difficulty`-ordered bank (propositional first, then
-the dilemmas), attach the matching dragon/antidote, and you have a
+For a ready-made scaffold, the **20 Champagne arguments** map directly onto
+Arisbe targets. Author them as a `difficulty`-ordered bank (propositional first,
+then the dilemmas), attach the matching dragon/antidote, and you have a
 correspondence-graded version of the classic hand-out. The propositional
 exemplars (`tools/build_propositional_exemplars.py`) already cover the same rule
 inventory — read them for the canonical worked solutions.
 
 ## Grading a stack of submissions
 
-The grader is a pure function, so batch grading is a loop — no session, no state:
+The grader works as a pure function, so batch grading amounts to a loop — no
+session, no state:
 
 ```python
 from challenge_mode import get_challenge, grade
@@ -122,16 +123,16 @@ for student, submission_egif in submissions:          # submission = the fixed E
           [f.message for f in report.findings])       # the legible, per-difference feedback
 ```
 
-Because grading is **content-aligned isomorphism**, two correct answers that
-look nothing alike both pass, and a near-miss comes back with *why* in EG terms
-("Q is in the wrong cut" / "the argument order of `loves` is reversed"), not a
-diff of coordinates. That legible-diff feedback is the pedagogical payload:
-students learn from *how* they were wrong.
+Because grading rests on **content-aligned isomorphism**, two correct answers
+that look nothing alike both pass, and a near-miss comes back with *why* in EG
+terms ("Q is in the wrong cut" / "the argument order of `loves` is reversed"),
+not a diff of coordinates. That legible-diff feedback carries the pedagogical
+payload. Students learn from *how* they were wrong.
 
 For freehand (drawn) submissions rather than typed EGIF, run each through
 `fix-drawing` first (`drawing_to_egi.build_egi_from_drawing`) to recover the EGI,
-then grade as above; an ill-formed drawing returns validity feedback
-(`drawing_validity`) instead of a grade, which is itself instructive.
+then grade as above. An ill-formed drawing returns validity feedback
+(`drawing_validity`) instead of a grade — and that feedback itself instructs.
 
 ## What a student hands in — the gradeable artifacts
 

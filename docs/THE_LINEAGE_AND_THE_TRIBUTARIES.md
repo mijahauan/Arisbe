@@ -106,15 +106,15 @@ formalization — the graph-with-cuts structure Arisbe's data model implements,
 the six transformation rules (erasure, insertion, iteration and
 de-iteration, double-cut addition and removal) with soundness proved, and
 the translations between graphs and first-order formulas that anchor the
-linear side of the correspondence. Arisbe's engine is Dau's calculus,
-deliberately unimproved; the protected core test suite exists to keep it so.
-Two honesty notes belong in the record beside the credit: Dau is the
-de-facto standard formalization *for software*, but not uncontested in
-philosophy — the standard survey literature treats Zeman, Roberts, and Shin
-and omits him — and, as far as the project could find, no machine-checked
-formalization of his calculus exists anywhere; Arisbe's executable test
-suite is the closest operational guarantor located, and a true mechanization
-is named as a field contribution waiting to be made.
+linear side of the correspondence. Arisbe's engine runs Dau's calculus,
+deliberately unimproved, and the protected core test suite exists to keep it
+so. Two honesty notes belong in the record beside the credit. Dau stands as
+the de-facto standard formalization *for software*, though not uncontested in
+philosophy: the standard survey literature treats Zeman, Roberts, and Shin
+and omits him. And, as far as the project could find, no machine-checked
+formalization of his calculus exists anywhere. Arisbe's executable test
+suite serves as the closest operational guarantor located, and a true
+mechanization waits as a field contribution to be made.
 
 **Ahti-Veikko Pietarinen** holds a special position: he is both lineage and
 living interlocutor. His *Signs of Logic* (2006) and related work formalized

@@ -1,12 +1,12 @@
 # Getting Started with Arisbe — a layered, role-aware on-ramp
 
-> **What this is.** The written front door for a new user. It starts assuming
+> **What this is.** The written front door for a new user. It assumes
 > **no logic or mathematics background at all**, gets you to a running system and
-> your first graph, and then **branches** to what each kind of reader needs next —
+> your first graph, and then **branches** to what each kind of reader needs next:
 > a curious newcomer, an **ontologist**, a **logician**, a **mathematician**, or a
-> **Peirce scholar**. It is deliberately a *map of doors*, not a manual: each
-> section is short and **links out** to the deep doc, the in-app surface, or the
-> module that does the real work.
+> **Peirce scholar**. It works deliberately as a *map of doors*, not a manual.
+> Each section stays short and **links out** to the deep doc, the in-app surface,
+> or the module that does the real work.
 >
 > **Companions:** [VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) (what/why/scope) ·
 > [GLOSSARY.md](GLOSSARY.md) (terms + a contributor reading order) ·
@@ -21,14 +21,14 @@
 
 ## 0. What Arisbe is, in three sentences
 
-Arisbe is an environment for **doing logic in pictures, not pictures of logic** —
-Charles Sanders Peirce's "moving pictures of thought" made operational. You draw,
-transform, and contest **Existential Graphs** ([EGs](GLOSSARY.md#eg)) directly; the picture *is* the
-reasoning, not an illustration of reasoning done elsewhere. Peirce is the **aim**;
-Frithjof Dau's formalization is the **guarantor of correctness** underneath.
+Arisbe gives you an environment for **doing logic in pictures, not pictures of
+logic** — Charles Sanders Peirce's "moving pictures of thought" made operational.
+You draw, transform, and contest **Existential Graphs** ([EGs](GLOSSARY.md#eg)) directly; the picture *is* the
+reasoning, not an illustration of reasoning done elsewhere. Peirce sets the **aim**;
+Frithjof Dau's formalization serves as the **guarantor of correctness** underneath.
 
 If you read nothing else first, read the one-page
-[FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md): there are only **four
+[FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md). You need only **four
 marks** (a sheet, a cut, nested cuts, a line), and you can draw all of logic that
 matters here with a pen.
 
@@ -41,14 +41,14 @@ browser.
 
 ### Run it
 
-Dependencies are managed by **uv** (Python 3.12):
+**uv** manages the dependencies (Python 3.12):
 
 ```bash
 uv sync --extra dev --extra web         # one-time setup (the web extra carries FastAPI/uvicorn)
 uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
 ```
 
-Then open <http://localhost:8000/> and click **"New here?"** — the in-app **primer**
+Then open <http://localhost:8000/> and click **"New here?"**. The in-app **primer**
 draws a handful of first graphs with the real engine (a scroll, an empty cut) and
 deep-links you into practice.
 
@@ -78,9 +78,9 @@ web app:
 
 Arisbe **attests correspondence, never truth.** It guarantees your *picture and
 your sentence say the same thing*; it never claims either is *true of the world*.
-Truth is earned elsewhere — by surviving challenge, in the Agon — and can be lost
-again. Hold that and you will not misread anything below. (The deep version:
-[MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).)
+You earn truth elsewhere — by surviving challenge, in the Agon — and you can lose
+it again. Hold that and you will not misread anything below. (The deep account
+lives in [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).)
 
 ---
 

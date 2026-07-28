@@ -9,22 +9,23 @@ Repository: <https://github.com/mijahauan/Arisbe>
 
 ## In one paragraph
 
-Arisbe is an environment for **doing logic in pictures, not pictures of logic** —
-Charles Sanders Peirce's "moving pictures of thought" made operational. A user
-asserts, transforms, and contests Existential Graphs directly, as diagrams that
-evolve; Frithjof Dau's formalization is the guarantor of correctness. The
-**central engineering and research problem** the system exists to solve is the
-**inerrant correspondence between an Existential Graph ([EG](GLOSSARY.md#eg))'s linear written form and its graphical
-drawn form** — picture and proposition denoting the same mathematical object
-across every transformation, every re-layout, every edit, every round-trip. The
-system is real and running: a transformation engine over Dau's six rules, a
-runtime correctness attestation, a curated corpus of worked proofs and imported
+Arisbe offers an environment for **doing logic in pictures, not pictures of
+logic**. It makes Charles Sanders Peirce's "moving pictures of thought"
+operational. A user asserts, transforms, and contests Existential Graphs
+directly, as diagrams that evolve; Frithjof Dau's formalization guarantees
+correctness. The system exists to solve one **central engineering and research
+problem**: the **inerrant correspondence between an Existential Graph
+([EG](GLOSSARY.md#eg))'s linear written form and its graphical drawn form** —
+picture and proposition denoting the same mathematical object across every
+transformation, every re-layout, every edit, every round-trip. The system
+exists and runs: a transformation engine over Dau's six rules, a runtime
+correctness attestation, a curated corpus of worked proofs and imported
 ontologies, three working modes (archive, workshop, and an [Endoporeutic](GLOSSARY.md#endoporeutic)-Game
-arena), and — since mid-2026 — the game running *autonomously* against live
-sources, all behind a browser interface. It now also carries a second storey:
-a stated research program, voiced as a proposition and graded point by point.
-Both storeys are frankly unfinished in well-marked places, which is part of
-why this introduction exists.
+arena), and, since mid-2026, the game running *autonomously* against live
+sources, all behind a browser interface. It now also carries a second storey,
+a stated research program voiced as a proposition and graded point by point.
+Both storeys remain frankly unfinished in well-marked places, which partly
+explains why this introduction exists.
 
 ## Why the correspondence problem is the heart of it
 

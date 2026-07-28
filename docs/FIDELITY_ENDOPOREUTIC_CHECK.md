@@ -105,66 +105,68 @@ keeps the literal two-player form.
 **2.3 Truth as a "habit of a tolerable stable nature."** The deepest
 correspondence, and the one that reaches the present frontier. Peirce identifies
 truth with the existence of a *stable habit*, not a static satisfaction
-relation. Arisbe's meta-learning layer measures precisely habit stability —
+relation. Arisbe's meta-learning layer measures precisely that stability:
 [stickiness](GLOSSARY.md#stickiness), mechanism durability, decay-aware
-stick-rates — and the two executed live runs found that passive ingestion never
-re-tests a settled habit at all (nothing is ever revisited), which mandated the
-**[tropism](GLOSSARY.md#tropism)** module: the model's own state directing
-re-engagement, so that a settled habit is deliberately re-exposed to the world
-that could break it. In 1905 vocabulary: if truth is a habit of tolerably
-stable nature, a system that never re-tests its habits never engages the
-question of truth at all. The warm-set re-poll is the operational form of asking
-whether a habit is "tolerably stable."
+stick-rates. The two executed live runs found that passive ingestion never
+re-tests a settled habit at all — nothing ever gets revisited — and that
+finding mandated the **[tropism](GLOSSARY.md#tropism)** module, in which the
+model's own state directs re-engagement, so that a settled habit deliberately
+meets again the world that could break it. Put in the 1905 vocabulary: if truth
+consists in a habit of tolerably stable nature, a system that never re-tests
+its habits never engages the question of truth at all. The warm-set re-poll
+gives operational form to the question whether a habit stays "tolerably
+stable."
 
 **2.4 Meaning as consequences — both registers.** The MS 280 formula, with its
-explicit pairing of *experimental facts* and *inferential propositions*, is
-Arisbe's two registers: the Agon's testing/interpretation register delivers the
-experimental side (the peel against a model, dispositions, model revision), and
-the transformation chains deliver the inferential side.
-[CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) is the "outward-looking,
-indefinitely-progressing principle for meaning" made structural: the chain, not
-the isolated graph, is the unit of meaning. The diachronic Universe of Discourse
-is meaning-as-consequences as a data structure, and the modal reading
-([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)) even gives the formula's
-"under all circumstances" a mechanical form — necessity as convergence across
-every legal trajectory.
+explicit pairing of *experimental facts* and *inferential propositions*,
+amounts to Arisbe's two registers. The Agon's testing/interpretation register
+delivers the experimental side (the peel against a model, dispositions, model
+revision), and the transformation chains deliver the inferential side.
+[CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) makes the "outward-looking,
+indefinitely-progressing principle for meaning" structural: the chain, not the
+isolated graph, serves as the unit of meaning. The diachronic Universe of
+Discourse embodies meaning-as-consequences as a data structure, and the modal
+reading ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)) even gives the
+formula's "under all circumstances" a mechanical form. Necessity there reads as
+convergence across every legal trajectory.
 
 **2.5 The Context Principle, operationalized.** "A proposition that has no
 consequences is meaningless." [Disuse-decay](GLOSSARY.md#disuse-decay) enacts
-this on the living sheet: a relation that stops participating in any round —
-that ceases to have consequences in the ongoing dialogue — is erased. The
-connection was not designed from this passage; finding it already implemented is
-the kind of convergence a reality check is for.
+this on the living sheet: when a relation stops participating in any round —
+when it ceases to have consequences in the ongoing dialogue — the sheet erases
+it. Nobody designed the connection from this passage; finding it already
+implemented supplies the kind of convergence a reality check exists to catch.
 
-**2.6 Ligature scope-indifference.** The paper's Figures 3–4 — three drawings,
-one proposition; spots become bound the moment the ligature extends to them,
-regardless of drawn scope — are exactly the three-regime correspondence
-doctrine: those variants are a *single* EGI, `same_graph` judges by incidence
-and area rather than by ink, presentation operations move the ink freely, and
-the per-ligature crossing-sequence invariant keeps the topology honest across
-all of it.
+**2.6 Ligature scope-indifference.** The paper's Figures 3–4 give three
+drawings of one proposition: spots become bound the moment the ligature extends
+to them, regardless of drawn scope. The three-regime correspondence doctrine
+holds exactly this. Those variants form a *single* EGI; `same_graph` judges by
+incidence and area rather than by ink; presentation operations move the ink
+freely; and the per-ligature crossing-sequence invariant keeps the topology
+honest across all of it.
 
 **2.7 Common ground, constructed and shown.** The paper's players hold a common
 ground "well understood between the two of them," without which the discoursing
 fails. Arisbe renders that condition inspectable rather than presumed: the
 render-M legend shows exactly how G's and M's vocabularies meet, the fragment
-shows the neighborhood of M that G touches, and an **addressability gap** is
-reported — the honest failure mode when common ground is absent
+shows the neighborhood of M that G touches, and the report names any
+**addressability gap** — the honest failure mode when common ground is absent
 ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)).
 
 ## 3 · Divergences
 
-The first two are standing doctrine — chosen, argued, and recorded elsewhere;
-this section only registers that they are divergences *from this account too*.
+The first two stand as doctrine, chosen, argued, and recorded elsewhere; this
+section only registers that they count as divergences *from this account too*.
 
 **3.1 Two-valued game over a held M → three-valued game over a queried M.**
 Pietarinen's players evaluate against a completed model held in common
-knowledge; truth is the existence of a total winning strategy. Arisbe's M is
-**queried, not held** ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)): the
-peel returns Kleene three-valued verdicts, and UNKNOWN is a sound abstention at
-the open-world horizon. The verdict-with-witness is therefore a strategy
-*certificate over the queried fragment*, not a total strategy. This is the
-price, willingly paid, of playing the game against partial, low-warrant,
+knowledge; truth there consists in the existence of a total winning strategy.
+Arisbe's M stays **queried, not held**
+([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)): the peel returns Kleene
+three-valued verdicts, and UNKNOWN counts as a sound abstention at the
+open-world horizon. The verdict-with-witness therefore amounts to a strategy
+*certificate over the queried fragment*, not a total strategy. Arisbe pays that
+price willingly, for the sake of playing the game against partial, low-warrant,
 world-facing models — and where the paper assumes common ground as given,
 Arisbe constructs and displays it (§2.7).
 
@@ -173,49 +175,50 @@ satisfied with it" (MS 280: 29). Arisbe refuses that equation everywhere: the
 correspondence attestation vouches for *correspondence, not truth*
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)), and surviving the Agon
 yields **warrant** (the ⚔ *withstood* badge), never Truth. This departs from
-the quoted passage while staying close to Peirce's long-run fallibilism; it is
-the same floor [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) defends.
+the quoted passage while staying close to Peirce's long-run fallibilism;
+[FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) defends the same floor.
 
 **3.3 The game has been lifted a level.** The paper's players choose semantic
 values *inside* one evaluation. The automated Endoporeutic Game's players argue
-*around* the evaluation — about what a verdict should do to M (dispositions,
+*around* the evaluation, about what a verdict should do to M (dispositions,
 revision, branching). The semantic game survives intact inside the loop as the
-incorruptible mechanical peel; the outer game is a different game, one the paper
-does not describe. The lift is half-licensed by the account itself (the Grapheus
+incorruptible mechanical peel; the outer game remains a different game, one the
+paper does not describe. The account itself half-licenses the lift (the Grapheus
 "authorises modifications"; meaning includes the experimental register), but the
-distinction is worth keeping crisp: **the calculus plays Peirce's game; the
+distinction deserves keeping crisp: **the calculus plays Peirce's game; the
 agents play a game about its outcomes.**
 
 **3.4 The third player.** The Agonothetes (judge) has no counterpart in the
-two-player make-believe — and could not: Pietarinen's players never disagree
-about a verdict, because the model settles it. The judge exists precisely
-because the *outer* game (what to do with a verdict) admits irreducible
-disagreement, which is resolved by judgment or carried forward as a branch of
-the diachronic record.
+two-player make-believe, and could not have one: Pietarinen's players never
+disagree about a verdict, because the model settles it. The judge exists
+precisely because the *outer* game (what to do with a verdict) admits
+irreducible disagreement. Judgment resolves it, or the diachronic record
+carries it forward as a branch.
 
 **3.5 Continuity — the honest residue.** The paper's continuous predicates and
-its topological reading of graph-morphing (synechism; §5) are mostly beyond
+its topological reading of graph-morphing (synechism; §5) lie mostly beyond
 Arisbe's scope. Two small, real implementations of the continuity intuition
-exist — the ligature crossing-sequence invariant is deliberately *topological,
+exist: the ligature crossing-sequence invariant stays deliberately *topological,
 not metric*, and the tension layout reads a line of identity as a taut
-continuous thread — but no more is claimed.
+continuous thread. The check claims no more.
 
 ## 4 · What the check says about the trend
 
-The direction of the implementation — dialogical, outside-in, refusing
+The implementation moves in one direction: dialogical, outside-in, refusing
 normal-form compilation, habit-centered, meaning-as-consequences, common ground
-constructed rather than presumed — is the endoporeutic side of the
-compositionality argument the paper stages against Shin, held consistently from
-the evaluation engine to the drawing doctrine. The divergences that matter
-(3.1, 3.2) are chosen and defended elsewhere in the spine; the lift of the game
-(3.3, 3.4) is an *extension* the source half-anticipates rather than a
-contradiction of it; the residue (3.5) is named.
+constructed rather than presumed. That direction lands on the endoporeutic side
+of the compositionality argument the paper stages against Shin, and it holds
+consistently from the evaluation engine to the drawing doctrine. The
+divergences that matter (3.1, 3.2) stand chosen and defended elsewhere in the
+spine; the lift of the game (3.3, 3.4) counts as an *extension* the source
+half-anticipates rather than a contradiction of it; the residue (3.5) stands
+named.
 
-One forward-looking corroboration deserves its own sentence: the account's
-identification of truth with a *stable habit* independently vouches for the
-arc's newest mandate — that only directed re-engagement (tropism) can test the
-durability of what the game settles. The 1905 formulation and the 2026 run
-finding say the same thing.
+One forward-looking corroboration deserves its own sentence. The account
+identifies truth with a *stable habit*, and that identification independently
+vouches for the arc's newest mandate — that only directed re-engagement
+(tropism) can test the durability of what the game settles. The 1905
+formulation and the 2026 run finding say the same thing.
 
 ---
 

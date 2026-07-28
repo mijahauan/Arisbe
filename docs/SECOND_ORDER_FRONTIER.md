@@ -24,47 +24,48 @@ employed prerequisite, and the landscape verdict read as Peircean doctrine.*
 
 ## The constraint that defines the frontier
 
-Arisbe's whole value, as [MODALITY_WITHOUT_GAMMA](MODALITY_WITHOUT_GAMMA.md) puts it, is that the
-apparatus of advanced logic is **"drawn rather than hidden in a metalanguage."** That is the
-non-negotiable here. The goal is not "add second-order logic to Arisbe by any means"; it is **do
-second-order logic *as a picture*** — the fundamental correlate of keeping the project Peircean.
+Arisbe's whole value, as [MODALITY_WITHOUT_GAMMA](MODALITY_WITHOUT_GAMMA.md) puts it, lies in an
+apparatus of advanced logic **"drawn rather than hidden in a metalanguage."** That admits no
+negotiation here. We do not aim to "add second-order logic to Arisbe by any means"; we aim to **do
+second-order logic *as a picture***. That aim stands as the fundamental correlate of keeping the
+project Peircean.
 
-This gives us a sharp design test, and it is simply the correspondence check (§3.3) raised one
-order: **can the second-order device be drawn, and read back off the drawing, so the picture *is*
+This gives us a sharp design test, and the test amounts to the correspondence check (§3.3) raised
+one order: **can the second-order device be drawn, and read back off the drawing, so the picture *is*
 the second-order proposition?** A guide that can only supply an off-sheet symbolic type annotation
-fails the test — that is "pictures of logic," the thing Arisbe exists not to be. A guide whose
-control apparatus has an iconic, drawable, readable-back form passes. Every candidate below is
-judged first by this criterion, not by its symbolic elegance.
+fails the test; that amounts to "pictures of logic," the thing Arisbe exists not to be. A guide whose
+control apparatus takes an iconic, drawable, readable-back form passes. We judge every candidate
+below first by this criterion, not by its symbolic elegance.
 
 ## What Peirce built of Gamma-as-second-order
 
 Gamma (from the 1903 Lowell Lectures, revised in unpublished manuscripts up to his death in 1914)
 bundled three ambitions later readers pull apart: **modal logic**, **second-order logic**, and
-**metalanguage** (graphs about graphs). The non-modal, second-order strand has real, *drawable*
-devices — not merely gestures:
+**metalanguage** (graphs about graphs). The non-modal, second-order strand carries real, *drawable*
+devices, not merely gestures:
 
-- **A second-order line of identity.** Peirce's device (in Sowa's reconstruction of the late
-  manuscripts, esp. MS 514): an ordinary line of identity, which denotes an *individual*, is
-  replaced by a **dotted / lightly-drawn line attached to a dotted oval containing a whole
-  proposition** — so the line denotes not an individual but a *proposition, quality, or
-  abstraction*. That is a drawable second-order variable, already iconic.
-- **The graph of a graph (metalanguage).** "A proposition about a proposition" arises when **the
-  blank of a rhema is filled with a proposition** instead of a name — Peirce's way to assert
-  *about* assertions, i.e. to reason about the graphs themselves.
-- **[Hypostatic abstraction](GLOSSARY.md#hypostatic-abstraction) — the ascent operator.** This is the heart of it and the most Peircean
+- **A second-order line of identity.** In Sowa's reconstruction of the late manuscripts (esp.
+  MS 514), Peirce replaces an ordinary line of identity, which denotes an *individual*, with a
+  **dotted / lightly-drawn line attached to a dotted oval containing a whole proposition**; the
+  line then denotes not an individual but a *proposition, quality, or abstraction*. That gives a
+  drawable second-order variable, already iconic.
+- **The graph of a graph (metalanguage).** "A proposition about a proposition" arises when a
+  proposition, instead of a name, fills **the blank of a rhema**. By this move Peirce asserts
+  *about* assertions — that is, he reasons about the graphs themselves.
+- **[Hypostatic abstraction](GLOSSARY.md#hypostatic-abstraction) — the ascent operator.** Here lies the heart of it, and the most Peircean
   part. Turning a predicate into a subject — "hard" ⟶ "hardness," a dyadic relation into a triadic
   one via an abstract intermediary — *is* the move that treats predicates as objects one can then
-  quantify over. Peirce held it to be logically central; it is widely read as an early
+  quantify over. Peirce held it to be logically central; scholars widely read it as an early
   **anticipation of category theory**.
 - **The tinctured graphs (1906) and a hinted "Delta" part (c. 1911).** Late in life he tried to
   *replace* Alpha/Beta/Gamma with a single **tinctured** system in which the tincture (colour /
   shading) of an area marks which *universe* — actual, possible, intentional — its subjects range
-  over. That is a **sortal / typing** instinct rendered as ink on the sheet. He also floated a
-  fourth "Delta" part. Both were left as sketches.
+  over. That shows a **sortal / typing** instinct rendered as ink on the sheet. He also floated a
+  fourth "Delta" part. Both remained sketches.
 
-Two things stand out. First, Peirce's second-order apparatus was *already diagrammatic* — a dotted
-line, a dotted oval, a tincture — so his own instinct honored our constraint. Second, the primary
-material is largely **late, unpublished manuscripts**; the definitive modern edition is Pietarinen's
+Two things stand out. First, Peirce's second-order apparatus already worked *diagrammatically* — a
+dotted line, a dotted oval, a tincture — so his own instinct honored our constraint. Second, the
+primary material consists largely of **late, unpublished manuscripts**; the definitive modern edition remains Pietarinen's
 *Logic of the Future* (De Gruyter), whose Volume 3 gathers the late Gamma / tinctured work.
 
 ## The state at his death — unfinished, not mistaken

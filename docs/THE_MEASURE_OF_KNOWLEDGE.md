@@ -110,10 +110,9 @@ calibration, coherence, coverage, and evidential independence are named
 **The author's seed:** *"I think it has components corresponding to a fractal
 structure."*
 
-The reading that cashes this out (assistant's, flagged): the same
-doubt → test → dispose → decay cycle operates **self-similarly at every level**, and each
-level's knowledge is measured by the *same ledger shape* (K1–K4 transport across
-scales):
+The reading that cashes this out comes from the assistant, flagged as such: the same
+doubt → test → dispose → decay cycle operates **self-similarly at every level**, and the
+*same ledger shape* measures each level's knowledge (K1–K4 transport across scales):
 
 1. **Atom** — a fact's re-delivery record (the usage ledger);
 2. **Law** — a generalization tested against instances (the peel; stickiness);
@@ -124,32 +123,32 @@ scales):
    (the `Pⁿ`/`Fⁿ` run-log discipline), the author as Graphist against the world's
    Grapheus.
 
-Each level is a compressed re-instance of the one below — a self-similar generative
-cycle with a **scale-transportable measure**, which is a reasonable formal cash-out of
-"fractal." The *syntax* mirrors it: recursively nested cuts, cells within the standing
-world-scroll, quotation ovals within cells at B-min — graphs about graphs is knowledge
-about knowledge — with the A3 conservativity gate (the standing crossing invariant) as
-the guarantee that no level corrupts the one beneath it. The recursion has a floor and a
-discipline, which natural fractals lack.
+Each level re-instances the one below in compressed form, a self-similar generative
+cycle with a **scale-transportable measure** — which makes a reasonable formal cash-out
+of "fractal." The *syntax* mirrors it: recursively nested cuts, cells within the
+standing world-scroll, quotation ovals within cells at B-min. Graphs about graphs
+amount to knowledge about knowledge, and the A3 conservativity gate (the standing
+crossing invariant) guarantees that no level corrupts the one beneath it. The recursion
+has a floor and a discipline, which natural fractals lack.
 
 **Three further senses (the author's, 2026-07-18).** The author extended the reading in
 three directions the level-ladder alone doesn't capture:
 
 1. **The Endoporeutic Game is itself recursive** — the peel plays *sub-EPGs* as it
-   traverses the proposed graph, one game per nested context, outside-in: the syntax
-   recursion (cuts within cuts) and the game recursion (games within games) are the
-   same descent. The fractal is not only *between* levels; it is *inside* a single
+   traverses the proposed graph, one game per nested context, outside-in. The syntax
+   recursion (cuts within cuts) and the game recursion (games within games) run as one
+   descent. The fractal lives not only *between* levels; it lives *inside* a single
    evaluation.
 2. **The diachronic DAG's branches are parallel chains of semiosis** — each root→leaf
-   path a self-similar trajectory of the same doubt-cycle, diverging where dispositions
-   disagreed (the branch-on-disagreement machinery) and sometimes reconverging: the
-   fractal in *time*, not just in scale. **Modal K2 BUILT 2026-07-19:**
+   path traces a self-similar trajectory of the same doubt-cycle, diverging where
+   dispositions disagreed (the branch-on-disagreement machinery) and sometimes
+   reconverging. This gives the fractal in *time*, not just in scale. **Modal K2 BUILT 2026-07-19:**
    `modal_query.durability_modality` reads K2 along this branching sense —
    "necessary" (K2□, durable on every reachable trajectory), "possible" (K2◇,
    durable on some but not all), or "absent" — composing the module's existing
    `possibly`/`necessarily` over the diachronic DAG rather than a single line.
-3. **Communities of Arisbes** — the horizontal dimension: multiple instances
-   collaborating in modeling each other and the world around them, each an
+3. **Communities of Arisbes** — the horizontal dimension. Multiple instances
+   collaborate in modeling each other and the world around them, each an
    author-according-to-the-other at the system grain, playing the same game between
    themselves that each plays with its membranes. Unbuilt; named here as the fractal's
    social axis.

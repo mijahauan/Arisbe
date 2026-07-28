@@ -2,8 +2,8 @@
 
 *For someone just starting with Peirce's graphs, or just starting with Arisbe.
 No prior logic required. The deep, technical, historical treatments live in the
-companion docs (named at the end); this is the on-ramp and the map of where
-beginners — and famous experts, and Peirce himself — tend to fall in.*
+companion docs (named at the end); this guide serves as the on-ramp and the map
+of the places where beginners, famous experts, and Peirce himself tend to fall in.*
 
 Old maps wrote **hic sunt dracones** — "here be dragons" — at the edges of the
 known, where ships were lost. Existential Graphs have a handful of such places:

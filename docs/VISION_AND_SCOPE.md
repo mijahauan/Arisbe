@@ -382,16 +382,17 @@ honest) serves as the deliberative organ's law in [THE_KYTOS.md](THE_KYTOS.md).
 
 ### The connective doctrine — synechism
 
-Continuity is not a sixth tributary; it is the **medium the five flow in** — the reason one
-anatomy recurs across scales rather than five separate stories needing five separate glues.
+Continuity does not stand as a sixth tributary; it serves as the **medium the five flow in** —
+the reason one anatomy recurs across scales rather than five separate stories needing five
+separate glues.
 The full treatment (including the continuity ledger of the codebase's own discretizations)
 lives in [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md), §"The continuity ledger".
 
 ### The recurring unit — the kytos
 
 The unit that recurs across the tributaries' scales — membrane, interior model, doubt-loop,
-horizon, budget and rates, decay — is the **kytos**, the semiotic cell:
-[THE_KYTOS.md](THE_KYTOS.md) is its anatomy. At agentive levels it hosts a Peircean
+horizon, budget and rates, decay — bears the name **kytos**, the semiotic cell.
+[THE_KYTOS.md](THE_KYTOS.md) gives its anatomy. At agentive levels it hosts a Peircean
 quasi-mind.
 
 ### The grading discipline
@@ -405,16 +406,16 @@ Four grades, never flattened into one flat claim:
 | **ratified-doctrine** | the author's ruled doctrine, carried in a design-of-record |
 | **queued-conjecture** | named and held, deliberately not yet examined |
 
-The grades are the proposition's **warrant annotations** — where each strand currently stands,
-never what it is worth. The most exposed phrase in the program's vicinity — an "operational
-model of consciousness / free will" — is and remains **queued-conjecture**; nothing in this
-stratum asserts it.
+The grades serve as the proposition's **warrant annotations** — they record where each strand
+currently stands, never what it is worth. The most exposed phrase in the program's vicinity — an
+"operational model of consciousness / free will" — stands as **queued-conjecture** and remains
+so; nothing in this stratum asserts it.
 
 ### The commens rung — examined, and what remains open
 
-The threads this section formerly held queued — the four-doubts set (grown to six threads),
-ethics-negotiated-in-the-commens, and free will with the predestination disposal — were
-**examined and ruled at the commens rung** (2026-07-27,
+This section formerly held several threads queued: the four-doubts set (grown to six threads),
+ethics-negotiated-in-the-commens, and free will with the predestination disposal. All of them
+met **examination and ruling at the commens rung** (2026-07-27,
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Examination VI), and the rulings
 folded where they belong: the marks doctrine, ethics-as-negotiated-apportionment, givenness
 and the exit boundary, the Golden Rule membrane-poised, and the veil's two modes and grades
@@ -422,19 +423,19 @@ in [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §12; th
 deliberative interval in the tributary grading above; levels-as-marks in
 [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md).
 
-Still open, named here per the grading discipline: THE_COMMENS §11's flagged verdicts 1, 2,
+What stays open, named here per the grading discipline: THE_COMMENS §11's flagged verdicts 1, 2,
 and 6 (touched by the rulings, resolved by none); the supermultitudinous frontier
 (SYNECHISM_AND_CONTINUITY, untouched); the two **named-not-modeled determinants**
 (identity/plausibility-structure maintenance, and the physical substrate —
 [THE_KYTOS.md](THE_KYTOS.md) §5); and the queued **reflexive run** (a kytos modeling itself
-— design sitting first). Folding any of these in now would be a grade violation.
+— design sitting first). Folding any of these in now would count as a grade violation.
 
 ---
 
 ## 9. Trajectory
 
 *(2026-07-26.)* The consolidation-era items this section used to narrate — the protected-core
-question, render-M, the reference/transclusion node, the newcomer on-ramp — are discharged;
+question, render-M, the reference/transclusion node, the newcomer on-ramp — now stand discharged;
 see [ROADMAP.md](ROADMAP.md)'s Discharged tail. The structural re-consolidation this section
 previously announced as pending — splitting this document into two strata, the instrument and
 the program — **landed 2026-07-26, in this rewrite**. Day-to-day sequencing lives under
@@ -444,17 +445,17 @@ ROADMAP's four workstreams (**Understand · Share · Run · Use**).
 
 ## 10. How this spine is maintained
 
-This document and its two companions are a **consolidation** of material that is otherwise distributed
-across `docs/`, `tests/`, and the session log. They are thin by design:
+This document and its two companions serve as a **consolidation** of material otherwise distributed
+across `docs/`, `tests/`, and the session log. They stay thin by design:
 
 - **VISION_AND_SCOPE** changes only when a *commitment* changes (a new non-negotiable, a scope
   decision, a principle).
 - **Stratum II changes only when the author rules a program-level commitment** — a new
-  tributary, a grade change, a change of voice. Grades are never promoted, and tributaries
-  never added, on anyone's initiative but the author's ruling.
-- **CAPABILITY_MAP** is a living table — update the relevant row when a capability ships or its status
-  changes.
-- **ROADMAP** is the working backlog — re-order and prune as priorities move.
+  tributary, a grade change, a change of voice. Grades get promoted, and tributaries added, on
+  no one's initiative but the author's ruling.
+- **CAPABILITY_MAP** functions as a living table — update the relevant row when a capability ships
+  or its status changes.
+- **ROADMAP** holds the working backlog — re-order and prune as priorities move.
 
 `CURRENT_PLAN.md` remains the chronological session log / working handoff; this spine is the
-*structural* view that the log is not meant to provide.
+*structural* view that the log does not aim to provide.

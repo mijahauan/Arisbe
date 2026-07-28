@@ -29,24 +29,24 @@
 
 ## 1 · The unit, named
 
-A **kytos** is the recurring unit of doubt-driven semiosis:
+A **kytos** names the recurring unit of doubt-driven semiosis:
 
-- a **membrane** — the boundary across which a world delivers and resists; the sole
-  source of the irritation that drives the interior, and the sole bound on its growth
-  (*the membrane both bounds and animates*). What the membrane does to an arriving
-  claim is now doctrine of its own — §1.1;
+- a **membrane** — the boundary across which a world delivers and resists. It serves
+  as the sole source of the irritation that drives the interior, and as the sole bound
+  on its growth (*the membrane both bounds and animates*). What the membrane does to
+  an arriving claim now stands as doctrine of its own (§1.1);
 - an **interior model M** — resident, revisable, warranted by record;
 - the **loop** — doubt → probe → test → dispose → decay, conducted under licensed
   moves with an honest ledger;
 - the **deliberative organ** — where an UNKNOWN opens a *career* instead of
   terminating: alternatives held in abeyance (atom *and* denial, neither asserted);
-  **traced materiality** (a record's weight is a dry-run consequence trace,
-  re-checkable forever — never a posited score); **bounded S/A capacities** (the
+  **traced materiality** (a record's weight rests on a dry-run consequence trace,
+  re-checkable forever, never on a posited score); **bounded S/A capacities** (the
   S-register of admitted distinctions and the A-register of open alternatives, both
   bounded-and-counted); and **settlement-by-ink** (a record resolves only by citing
-  an earliest-introducing acknowledged chain step). The organ's law is **AS1–AS4**:
-  emergence-cited · materiality-implies-trace · settlement-cites-licensed-ink ·
-  bounded-and-counted. Machinery: `src/alternative_index.py`,
+  an earliest-introducing acknowledged chain step). The organ answers to one law,
+  **AS1–AS4**: emergence-cited · materiality-implies-trace ·
+  settlement-cites-licensed-ink · bounded-and-counted. Machinery: `src/alternative_index.py`,
   `src/alternative_trace.py`, `src/alternative_survey.py`; gates
   `test_corpus_polarity_discipline.py` + `test_alternative_persistence.py`; corpus
   exemplar `swan_alternatives`. Grade: **built-and-gated**. Lineage:
@@ -54,60 +54,63 @@ A **kytos** is the recurring unit of doubt-driven semiosis:
   design-of-record: the index-over-ink spec (2026-07-26);
 - a **horizon** — the register of the not-yet-legible, retained and counted, where
   tomorrow's sensor space waits;
-- a **budget and its rates** — the economy of research allocating scarce attention;
-  four rates (world change, processing, answering, decay) fix the regime, and **poise**
-  is a trace-reading we conjecture responds to their ratios (the linkage is unmeasured);
+- a **budget and its rates** — the economy of research allocating scarce attention.
+  Four rates (world change, processing, answering, decay) fix the regime, and **poise**
+  names a trace-reading we conjecture responds to their ratios (the linkage remains
+  unmeasured);
 - **decay** — the turnover that keeps the interior sized to the *engaged* world, and
   the reason a closed kytos does not freeze but fades.
 
 **The anatomical laws.** Two laws hold of every organ, at every scale, with equal
-standing. **Bounded-and-counted:** every register is capacity-bounded, and nothing is
-ever silently dropped — displacement, refusal, and deferral are named and counted.
-**Organs are indexes, never stores:** an organ holds *pointers* to gate-checked chain
-ink — the peel that surfaced a question, the trace that weighed it, the licensed act
-that resolved it — never copies of evidence; whatever cannot be rebuilt from the chain
-is cache, not authority. The honest exception is **receptions**: what arrived at the
-membrane is snapshot-only by nature (the sender's chain is not ours to replay), so it
-is held *beside* the record, visible and counted, never folded into materiality.
+standing. **Bounded-and-counted:** every register carries a capacity bound, and
+nothing ever drops silently — displacement, refusal, and deferral get named and
+counted. **Organs are indexes, never stores:** an organ holds *pointers* to
+gate-checked chain ink — the peel that surfaced a question, the trace that weighed it,
+the licensed act that resolved it — never copies of evidence. Whatever cannot be
+rebuilt from the chain counts as cache, not authority. One honest exception remains:
+**receptions**. What arrived at the membrane stays snapshot-only by nature (the
+sender's chain is not ours to replay), so it stands *beside* the record, visible and
+counted, never folded into materiality.
 
-**The gloss:** a semiotic cell. **The tenant:** at agentive levels, what a kytos hosts
-is a **quasi-mind** in Peirce's sense (the *Prolegomena*'s term for any sufficiently
-unified sign-system capable of determination by signs; two quasi-minds are welded in
-every sign). The kytos is the anatomy; the quasi-mind is the inhabitant.
+The plain gloss reads: a semiotic cell. And the tenant? At agentive levels, what a
+kytos hosts is a **quasi-mind** in Peirce's sense (the *Prolegomena*'s term for any
+sufficiently unified sign-system capable of determination by signs; two quasi-minds
+are welded in every sign). The kytos supplies the anatomy; the quasi-mind inhabits it.
 
-**The named contrast:** Leibniz's **monad** also mirrors its whole from a point of
-view — but the monad is *windowless*, and the kytos is all windows: nothing in it
-exists except by traffic across its membrane. The kytos is the anti-monad.
+One contrast deserves its name. Leibniz's **monad** also mirrors its whole from a
+point of view — but the monad stays *windowless*, while the kytos consists of nothing
+but windows: nothing in it exists except by traffic across its membrane. The kytos is
+the anti-monad.
 
 ### 1.1 · The membrane, enriched
 
-What crosses the membrane is thought-product stripped of the chain that earned it —
-objectivation seen from the receiving side: construction history invisible, the
-product presenting as bare facticity. The membrane's doctrine (design-of-record:
+What crosses the membrane arrives as thought-product stripped of the chain that
+earned it: objectivation seen from the receiving side. The construction history stays
+invisible; the product presents as bare facticity. The membrane's doctrine (design-of-record:
 `docs/superpowers/specs/2026-07-26-alternative-index-over-ink-design.md`):
 
-- **The reception taxonomy — contextualization adequacy.** An arriving claim is
+- **The reception taxonomy — contextualization adequacy.** An arriving claim gets
   classified by how much checkable context arrived with it: *legible-benign*
   (traceable like native content) · *contested* (conflicts with what stands — held
   open for disposal) · *illegible* (routed to the horizon, re-attemptable as
   context accrues) · *adversarial* (context counterfeited — quarantined, bounded
-  and counted, never auto-reattempted). Context-poverty is not pathology; an honest
+  and counted, never auto-reattempted). Context-poverty is no pathology; an honest
   orphan waits at the horizon.
-- **Trust from track record, never posture.** A source's influence is exactly its
-  record of resolved bets and no more; untracked-and-agrees earns *nothing*, and a
-  posture-only reception (stance without new checkable content) increments a visible
-  counter and moves nothing — the political play made inert. The persistent
-  source-keyed registry remains a named follow-on (a seam whose default answers
-  "untracked").
+- **Trust from track record, never posture.** A source's influence amounts to
+  exactly its record of resolved bets and no more. Untracked-and-agrees earns
+  *nothing*; a posture-only reception (stance without new checkable content)
+  increments a visible counter and moves nothing. The political play goes inert.
+  The persistent source-keyed registry remains a named follow-on (a seam whose
+  default answers "untracked").
 - **The vigilance reserve.** Beside the musement reservation (the economy's
   protected fraction for undirected play) stands its dual: a reserve of attention
-  for watching the membrane itself — the budget line adversarial classification
-  draws on. Named; its calibration awaits a live hostile source.
+  for watching the membrane itself, the budget line adversarial classification
+  draws on. It stands named; its calibration awaits a live hostile source.
 - **Claimed standing is stripped at the membrane.** Whatever posture a product
-  arrives with — expert confidence, agreement, "everyone knows" — its asserted
-  warrant is stripped at entry: it enters at odd depth (mention, entertainment,
+  arrives with — expert confidence, agreement, "everyone knows" — the entry strips
+  its asserted warrant. The product enters at odd depth (mention, entertainment,
   index) and re-earns standing inside through the same recorded disciplines as
-  native content. The membrane is the polarity-discipline boundary.
+  native content. The membrane serves as the polarity-discipline boundary.
 
 ### 1.2 · The two apertures and the depth pathology class
 
@@ -115,31 +118,31 @@ The membrane admits through **two lawful apertures** — roughly, what arrives a
 *claim-to-stand* and what arrives as *material-to-entertain*:
 
 1. **Inside — insertion in a negative context.** The calculus licenses scribing
-   anything at odd depth (the ⊥-door). Not a defect: it is where hypothesis,
+   anything at odd depth (the ⊥-door). This names no defect. Here hypothesis,
    imagination, and entertained contraries lawfully live, each held *from its
-   context*. Stability rests on the polarity discipline, not on prevention: nothing
+   context*. Stability rests on the polarity discipline, not on prevention — nothing
    crosses from odd to even depth except by a recorded, licensed, re-checkable move.
 2. **Outside — objectivated products arriving context-poor.** The receiving kytos
-   cannot check an arrival by the sender's constraints; it can only re-contextualize
+   cannot check an arrival by the sender's constraints. It can only re-contextualize
    at its own expense (trace, peel, re-derive) or lean on track record as compressed
-   context — partial, never a substitute.
+   context, partial and never a substitute.
 
-**Depth misrepresentation is the enforced pathology class:** presenting content at,
-or as at, a polarity it has not earned. A lie is entertained (or nowhere-standing)
-content presented as discharged; a fallacy is an odd-depth move dressed as
-even-depth; the internalized "ill rationale" is an arrival whose claimed standing was
-taken at face value. Enforcement is the standing recompute obligations plus the
-stripping rule of §1.1 — what cannot re-derive cannot stand as derivation.
+**Depth misrepresentation** names the enforced pathology class: presenting content
+at, or as at, a polarity it has not earned. A lie presents entertained (or
+nowhere-standing) content as discharged; a fallacy dresses an odd-depth move as
+even-depth; the internalized "ill rationale" arrives with its claimed standing taken
+at face value. Enforcement rests on the standing recompute obligations plus the
+stripping rule of §1.1: what cannot re-derive cannot stand as derivation.
 
-**Standing suspicion (the author's rider):** other pathology families, originating
-from something besides depth, must be presumed to exist — of *attention*
+**Standing suspicion (the author's rider).** Other pathology families, originating
+from something besides depth, must be presumed to exist: of *attention*
 (agenda-setting by omission; noisy-TV capture), of *identity* (equivocation — one
 word riding two content-keys), of *pacing* (rumination and thrash, poise's named
 poles) — none depth-shaped. **The taxonomy of pathologies is itself an open
-AlternativeSet** — a question the system holds, not a settled enumeration; what this
+AlternativeSet** — a question the system holds, not a settled enumeration. What this
 machinery cannot detect it must not define away. This partially discharges the
-standing kyto-pathologies agenda item; the remainder — the cross-map onto the
-dragons — stays named-open.
+standing kyto-pathologies agenda item; the remainder, the cross-map onto the
+dragons, stays named-open.
 
 ## 2 · Kytē all the way up — the fractal instantiation
 

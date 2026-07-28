@@ -23,44 +23,44 @@ where we take other guides, and the rule that the crossing must stay a **drawing
 
 ## The thesis, flatly
 
-**Gamma, conceived as a *modal* extension, is not a problem Arisbe needs to
+**Gamma, conceived as a *modal* extension, poses no problem Arisbe needs to
 solve.** Beta Existential Graphs in their full Arisbe-*diachronic* form — the
-sheet plus the rule-governed history of sheets, plus the corpus of universes —
+sheet, plus the rule-governed history of sheets, plus the corpus of universes —
 express the work of the modern □ and ◇ *with no new modal mark*, and express it
-with *better clarity*, because the apparatus those operators quietly presuppose is
-**drawn** rather than hidden in a metalanguage. *(Scope, post-examination — see §3
+with *better clarity*, because the apparatus those operators quietly presuppose
+stands **drawn** rather than hidden in a metalanguage. *(Scope, post-examination — see §3
 and [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §4: the "expresses
 everything □/◇ express, no gap" guarantee is exact for **propositional** modal
 logic via van Benthem; the first-order-with-identity modality the §2 construction
 features lies beyond that theorem and carries its own declared commitments. The
 load-bearing claim — **no new mark** — is untouched; the unconditional
 completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
-the [tinctures](GLOSSARY.md#tincture) (Peirce's Gamma colourings) to carry modality on a single static sheet; the *modal* load they were
-meant to bear is carried by the diachronic structure Arisbe already maintains and
-attests — though "without remainder" is too strong, and the honest ledger of what is
-and isn't carried is set out below ("What not using Gamma costs").
+the [tinctures](GLOSSARY.md#tincture) (Peirce's Gamma colourings) to carry modality on a single static sheet; the diachronic
+structure Arisbe already maintains and attests carries the *modal* load they were
+meant to bear — though "without remainder" claims too much, and the ledger below
+sets out honestly what is and isn't carried ("What not using Gamma costs").
 
-**One thing to say plainly up front, since it is the heart of the credit owed.**
-"No modal *mark* needed" is **not** a verdict that Gamma is worthless or unworkable.
-Peirce's broken cut has been *rehabilitated*: Zeman (1964) connected it to S4/S5, and
+**One thing needs saying plainly up front, for it carries the heart of the credit owed.**
+"No modal *mark* needed" amounts to **no** verdict that Gamma is worthless or unworkable.
+Peirce's broken cut has been *rehabilitated*. Zeman (1964) connected it to S4/S5, and
 Ma & Pietarinen (2018) give sound-and-complete graphical (broken-cut) calculi for a
 family of fifteen normal modal logics — Peirce's own apparatus, needing only three
-added rules. Arisbe's choice to draw the frame instead is a **defensible
+added rules. Arisbe's choice to draw the frame instead stands as a **defensible
 architectural decision**, not a refutation of Gamma; it forgoes a real virtue the
 broken cut keeps (the on-sheet topological perspicuity of the modal operator itself),
-and that cost is named, not hidden — see "What Gamma keeps," below.
+and we name that cost rather than hide it — see "What Gamma keeps," below.
 
-This is not a stance dressed as a result. It rides on a settled fact of modal
-model theory — the **standard translation** of modal logic into first-order
-logic (van Benthem) — and it leaves a precise residue. The residue is **not** modal
-and **not** a tincture: it is *second-order logic about the graphs themselves*, and
-that — not Gamma — is the real frontier.
+This does not amount to a stance dressed as a result. It rides on a settled fact
+of modal model theory — the **standard translation** of modal logic into
+first-order logic (van Benthem) — and it leaves a precise residue. The residue
+proves **not** modal and **not** a tincture; it consists of *second-order logic
+about the graphs themselves*, and that — not Gamma — marks the real frontier.
 
 ---
 
 ## 1. The construction: a modal operator is a drawn quantifier over a frame
 
-A modal operator is not primitive content. It is shorthand for quantification
+A modal operator carries no primitive content. It abbreviates quantification
 over a **Kripke frame** — a set of worlds *W*, an accessibility relation *R*
 between them, and a valuation. The **standard translation** ST makes this
 explicit, sending a modal formula to a first-order formula with a free
@@ -70,15 +70,15 @@ world-variable:
 > ST(◇φ, w)  =  ∃w′ ( R(w, w′) ∧ ST(φ, w′) )
 
 The operators vanish into ordinary ∀ and ∃ over the frame. And ∀/∃ over a
-relation is exactly what Beta Existential Graph ([EG](GLOSSARY.md#eg)) draws. So the only thing standing between Beta
-EG and modal expressivity is *a representation of the frame* — and that is
-precisely what Arisbe's diachronic architecture supplies natively, in two
+relation is exactly what Beta Existential Graph ([EG](GLOSSARY.md#eg)) draws. So the one thing standing between Beta
+EG and modal expressivity remains *a representation of the frame* — and Arisbe's
+diachronic architecture supplies precisely that natively, in two
 readings:
 
 - **The trajectory reading** (provability / derivability modality). Worlds are
   **sheets** — the immutable Existential Graph Instance ([EGI](GLOSSARY.md#egi)) states; *R* is the **legal-transition relation**
   of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" is "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" and "□φ"
-  is "every legal trajectory scribes φ." This is the diachronic gloss the
+  is "every legal trajectory scribes φ." This gives the diachronic gloss the
   conversation reaches by a different road: *possibility is the **branching** of
   legal trajectories, necessity is their **convergence**, and the only necessity
   is to follow the rules.* That sentence **is** the standard translation under the
@@ -91,7 +91,7 @@ readings:
 
 - **The alethic reading** (□ = true in all accessible worlds). Worlds are the
   corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**; *R* is an accessibility relation drawn
-  **among** them. The corpus is already a *library of universes*, mutually
+  **among** them. The corpus already forms a *library of universes*, mutually
   inconsistent without contradiction (MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #5). Modal force becomes the
   [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's quantification over the choice of M — which the interpretation
   register already performs (`/agon/where-it-holds`, the inverse pivot across
@@ -99,7 +99,7 @@ readings:
   relativization to M does the modal work the older syntactic operators reached
   for, the same way Kripke/Hintikka relativization to worlds does.*
 
-Either way, **□ and ◇ become Beta quantifiers over a frame that is on the sheet**,
+Either way, **□ and ◇ become Beta quantifiers over a frame that lies on the sheet**,
 not operators whose meaning lives off-stage.
 
 ---
