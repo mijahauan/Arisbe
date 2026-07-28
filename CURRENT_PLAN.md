@@ -196,6 +196,35 @@ their own vocabulary (wider-EPG voice: proposes, invites refutation, cites peels
 
 All commits on `main`, pushed at close.
 
+▶ **ADDENDUM (session close, 2026-07-27 late): NEXT SESSION = SITTING B1, the doc-update
+sitting, with the ruled split and one author-posed question.**
+
+**(i) The Share split (ruled this close):** the EPG guide + ARISBE_FOR_SCHOLARS are
+**prerequisites** (landing pages that currently misrepresent the work — the guide predates
+UNKNOWN-afterlife / episode-in-ink / ⊥-door / the §3 two-players-no-referee ruling; the
+scholars doc predates Stratum II and Exam VI); the intellectual-history chapter +
+ARISBE_IN_PRACTICE's three registers are **letter-shapeable** — draft the four letter
+skeletons (Sowa · Dau · West · Pietarinen) first as internal drafts, let each expose what its
+recipient must find behind the link, then write those two docs against the need-list, then
+send.
+
+**(ii) The author-posed question for the sitting (2026-07-27, verbatim concern): "I wonder
+that the AlternativeSet doesn't figure larger, as it seems to have provided a kind of
+unification among several strong trains of thought not presented before."** Assistant's
+concurring diagnosis, to be acted on: the spine docs' skeletons were consolidated 2026-06-27;
+the arc closed 2026-07-26 — so it has been folded in as *additions* (CAPABILITY_MAP §J.2, a
+map row, ledger rows), never as *reorganization*. But the arc is the **unifying joint** where
+five trains meet: erotetics (the question as first-class object) × the attention economy
+(severity/cost/decay on the standing question) × modality (◇-contested branch surveys) ×
+the deliberative interval (the interval's considering IS the trace + record ink — ratified
+at Exam VI) × mention-ascent (index-over-ink = the QuotationMark pattern applied to
+deliberation) — and Exam VI added a sixth: **hope runs on it** (the Golden Rule's
+imagination = a hypothetical-kind alternative). Candidate promotions for the sitting:
+the EPG guide's UNKNOWN-afterlife section told AS-first; ARISBE_FOR_SCHOLARS presenting
+erotetics-with-economics + index-over-ink as a headline novel contribution; VISION/Stratum II
+re-voicing it from one-tributary-among-five to the unification the tributaries meet in;
+GLOSSARY reading-order placement.
+
 **Last Updated (prior)**: 2026-07-26 — **the INDEX-OVER-INK RE-HOUSING: spec → plan → 11-task
 subagent build → merged to `main` (`52c31d0`, ff; doc pass `95e2963`). Tasks 5–6's blocking
 condition is MET: AC1–AC10 all green.** One sitting, full arc: pre-registered spec
