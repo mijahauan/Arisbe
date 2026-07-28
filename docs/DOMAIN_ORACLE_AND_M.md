@@ -97,7 +97,7 @@ when the backing does.
    closed to play.** Incompleteness draws exactly the distinction between deduction
    (confirmed), empirical enlargement (unknown-but-consistent), and
    contradiction (denied). Beyond the horizon the honest answer reads "unknown," and
-   the game was built to do something meaningful with it.
+   we built the game to do something meaningful with it.
 
 3. **Demand-driven materialization.** As the outside-in walk reaches an atom,
    resolve it lazily and cache it into a session-local working model with a
@@ -213,11 +213,11 @@ Sequence:
    `resolve(g)` is a conjunctive-query homomorphism of a negation-free `g` into a
    model's asserted (sheet-level) atoms, returning `CONFIRMED` (with a `Mapping`)
    / `UNKNOWN` (open) / `DENIED` (closed); constants match by label, argument
-   order respected via `nu`, provenance names the model that answered, a cut in
-   `g` is refused. `witness(relation, partial_binding)` offers individuals for the
-   negative-area pick. Built directly on the public EGI API, not the protected
-   isomorphism engine (a negation-free `g` has no cuts, so the embedding is small
-   and well-defined).
+   order respected via `nu`, provenance names the model that answered, and the
+   oracle refuses a cut in `g`. `witness(relation, partial_binding)` offers
+   individuals for the negative-area pick. It builds directly on the public EGI
+   API, not the protected isomorphism engine (a negation-free `g` has no cuts, so
+   the embedding is small and well-defined).
 2. **[DONE 2026-06-11]** The semantic-game [seam](GLOSSARY.md#seam) — `src/semantic_game.py`,
    `tests/test_semantic_game.py` (18 tests). `evaluate(egi, oracle)` reads G
    outside-in and asks the oracle (`match_atoms` / `individuals`, added to the
@@ -235,10 +235,10 @@ Sequence:
    [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md).)*
 3. **[DONE — `src/model_materialization.py`, `tests/test_model_materialization.py`] Materialize the model — facts + rules → the fullest extensional M.**
    See §6.1. Resolves the "model-checking, not inference" limit
-   ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) clarification 1): a model
-   M authored as *facts + Horn-shaped rules* is forward-chained to its **least
-   Herbrand model** (the closure of everything the rules entail over the facts), and
-   the peel checks against *that*. Keeps the peel pure model-checking while
+   ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md) clarification 1):
+   materialization forward-chains a model M authored as *facts + Horn-shaped rules*
+   to its **least Herbrand model** (the closure of everything the rules entail over
+   the facts), and the peel checks against *that*. Keeps the peel pure model-checking while
    making M "as full as possible." Reuses `match_atoms`; depends on nothing beyond
    steps 1–2. Precondition for ontology-as-M (T-box rules must be materialized to be
    testable).
@@ -247,7 +247,7 @@ Sequence:
 6. One remote backing (`SparqlOracle`, Wikidata) behind the same interface.
    *(Realized differently. Wikidata went live as a **source feeding M**:
    `src/wikidata_source.py` ingests statements into the automated game's developing
-   model, which then gets materialized and peeled locally, rather than as a SPARQL
+   model, which the loop then materializes and peels locally, rather than as a SPARQL
    oracle answering `resolve` at peel time. The `SparqlOracle` seat behind the
    interface remains open.)*
 
@@ -277,8 +277,8 @@ an honest **skip-report** of the rules left unmaterialized.
   stratified-negation, which is exactly why materialization pairs with the **closed**
   regime (§3): materialize, then close, then peel.
 - **Honest skip-report.** Mirrors the Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) import's report ([[project_ontology_import]]):
-  every non-Horn rule is named and left to the contest/deduction game, never silently
-  dropped. The user sees precisely how much of M the peel can and cannot use.
+  the report names every non-Horn rule and leaves it to the contest/deduction game,
+  never silently dropping it. The user sees precisely how much of M the peel can and cannot use.
 - **Wiring.** A standalone `src/model_materialization.py` (`materialize_egi(egi) →
   (facts_egi, report)`), reused at M-construction time: `CorpusOracle.from_egif(...,
   materialize=True)` and an opt-in on the `/agon/interpret` path, so a corpus UoD or a
@@ -321,7 +321,7 @@ Man/Beast **disjointness** (`~[ (Beast z) (Man z) ]`) is a skipped non-Horn deni
 is precisely what would settle it.
 
 **Wiring.** `/agon/interpret` (and the standalone `_interpret_payload`), when
-`materialize` is set and G is a universal Horn scroll, returns a `theorem` block beside
+the caller sets `materialize` and G is a universal Horn scroll, returns a `theorem` block beside
 the extensional `verdict`, the authoritative "is G a theorem of M (the theory)?"
 answer. Here stands the deduction the design-of-record (`GENERATION_AND_TESTING.md`
 clarification 1) routes to "the contest/deduction game": the peel stays pure
@@ -375,6 +375,6 @@ serves two things already in the personas: the **researcher** finding the seam
 between domains rather than being told which two to bridge, and **"contribution
 as a new fact in the UoD"**, discovered by search rather than asserted by hand.
 
-Not to be built now, but recorded so the `DomainOracle` interface admits it
+We do not build it now, but record it so the `DomainOracle` interface admits it
 later. It already does: the inverse needs only iteration over backings
 plus a partial-map scorer, no change to `resolve` itself.

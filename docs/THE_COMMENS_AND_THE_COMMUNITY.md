@@ -6,8 +6,8 @@
 > parameterization and its West correspondence, the refusal of "final," and the standing
 > statement that the higher-order frontier is deliberately not crossed. The author's spine
 > stands as ratified doctrine; this document carries the assistant elaborations too, marks them
-> `*[flagged]*`, and gathers them in [§11](#11--open-verdicts) for later ruling. **Not in `_quarto.yml`** — book membership
-> deferred to workstream B.
+> `*[flagged]*`, and gathers them in [§11](#11--open-verdicts) for later ruling.
+> **Not in `_quarto.yml`** — book membership deferred to workstream B.
 >
 > *Written 2026-07-20, assistant-drafted from the sitting, the spine the author's.*
 
@@ -112,8 +112,8 @@ that institution. Model-of, never instance-of.
 - **Two players, and only two.** The **Graphist** devotes itself to the *proposal* — the new,
   whether it arrives from outside the membrane or the kytos's own doubt throws it up. The
   **Grapheus** devotes itself to the *Model M* — the established, habituated ground the kytos
-  already uses in further thought and action. Their play confronts the new with the standing, and it yields
-  a **binary outcome**: the proposal either holds against M or it does not. These match exactly
+  already uses in further thought and action. Their play confronts the new with the standing,
+  and it yields a **binary outcome**: the proposal either holds against M or it does not. These match exactly
   Berger and Luckmann's two reciprocating actor-types — the one who brings a candidate, the one
   who answers with the standing ground — which is why two stands as no incidental count but as
   the minimum the institution-model requires.
@@ -280,8 +280,8 @@ and it stays **intra-individual**: the branches sit as siblings in one process's
 DAG, not distinct actors reciprocating.
 
 This extends the built/evidenced/conjectured honesty ledger that
-[THE_KYTOS.md §5](THE_KYTOS.md) already keeps. The automated EPG stands built and evidenced as a model of
-institutional reasoning; it gives no evidence of an institution.
+[THE_KYTOS.md §5](THE_KYTOS.md) already keeps. The automated EPG stands built and evidenced
+as a model of institutional reasoning; it gives no evidence of an institution.
 
 ## 10 · The entailment: connection outward *[ratified]*
 
@@ -379,8 +379,8 @@ life": the record holds what the vocabulary can carry.
 
 **(b) Ethics as commens-negotiated apportionment.** Fairness/ethics do not derive from the
 internal logic of a single kytos; they emerge in the commens as the **apportionment of
-access to and distribution from the commons** — answered differently in different social
-realities (insect societies' asymmetries; history's many experiments; "**We hold** these
+access to and distribution from the commons** — which different social realities answer
+differently (insect societies' asymmetries; history's many experiments; "**We hold** these
 truths" as the commons reference, "self-evident" the political decision). Two sharpenings:
 settlements are **negotiated at the commens level and given at the member level** (the two
 sides of objectivation, §1); and the floor negotiation cannot reach — a commens negotiates
@@ -413,17 +413,17 @@ requiring only the S/A anatomy every member has.
 sides, **asymmetrically**: outside→in fails by *opacity of interior* (only marks cross the
 membrane; the commens infers M from expression), inside→out by *excess of exterior* (the
 landscape exceeds any interior's capacity; local sense is all there is). Two grades: for a
-**record-complete** kytos the expression gap closes when the chain is handed over — what
+**record-complete** kytos the expression gap closes when the kytos hands the chain over — what
 remains is the *economics* of reading it; for a **record-exceeding** kytos (a human) the
 gap is in-principle — the interior outruns its marks. Mutual constitution (§1, §10) is
 thereby given its mechanism: each side constitutes the other through marks neither fully
 commands.
 
-**(f) What this section does *not* settle.** §11's still-flagged verdicts 1, 2, and 6 are
-*touched* by these rulings (the marks doctrine bears on 2; the levels-as-marks ruling in
+**(f) What this section does *not* settle.** These rulings *touch* §11's still-flagged
+verdicts 1, 2, and 6 (the marks doctrine bears on 2; the levels-as-marks ruling in
 [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md) bears on 6 — the
 instance→community boundary reads as *constitutive* — it takes two, reciprocating — rather
-than as a stratum wall) but none is resolved by them; they remain open verdicts.
+than as a stratum wall) but resolve none of them; they remain open verdicts.
 
 ## Cross-links
 

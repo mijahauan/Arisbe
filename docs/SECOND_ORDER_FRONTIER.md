@@ -31,7 +31,7 @@ second-order logic *as a picture***. That aim stands as the fundamental correlat
 project Peircean.
 
 This gives us a sharp design test, and the test amounts to the correspondence check (§3.3) raised
-one order: **can the second-order device be drawn, and read back off the drawing, so the picture *is*
+one order: **can we draw the second-order device, and read it back off the drawing, so the picture *is*
 the second-order proposition?** A guide that can only supply an off-sheet symbolic type annotation
 fails the test; that amounts to "pictures of logic," the thing Arisbe exists not to be. A guide whose
 control apparatus takes an iconic, drawable, readable-back form passes. We judge every candidate
@@ -39,8 +39,8 @@ below first by this criterion, not by its symbolic elegance.
 
 ## What Peirce built of Gamma-as-second-order
 
-Gamma (from the 1903 Lowell Lectures, revised in unpublished manuscripts up to his death in 1914)
-bundled three ambitions later readers pull apart: **modal logic**, **second-order logic**, and
+Gamma (from the 1903 Lowell Lectures, which he revised in unpublished manuscripts up to his death in
+1914) bundled three ambitions later readers pull apart: **modal logic**, **second-order logic**, and
 **metalanguage** (graphs about graphs). The non-modal, second-order strand carries real, *drawable*
 devices, not merely gestures:
 
@@ -139,8 +139,8 @@ Peirce himself already half-drew the most Peirce-continuous crossing. His **tinc
 which *universe* a subject ranges over. Generalized, a tincture (or an equivalent iconic sort-mark)
 becomes a **drawable sortal layer**: the sort of a spot's line says whether it denotes an
 individual, a proposition, or an abstraction. The comprehension discipline, borrowed from type
-theory, then becomes a **rule about which sorts may attach to which**, enforced *on the drawing*
-exactly as containment and incidence are enforced today. That is:
+theory, then becomes a **rule about which sorts may attach to which**, and Arisbe enforces it *on the
+drawing* exactly as it enforces containment and incidence today. That is:
 
 1. **Keep** Peirce's dotted-line / abstraction device and his tincture-as-sort instinct.
 2. **Borrow** from type theory *only* the stratification that blocks paradox — realized as a
@@ -155,7 +155,7 @@ exactly as containment and incidence are enforced today. That is:
    P1–P5 one order up and states the law S1–S4 — **and it is already checkable**: the de-risking
    harness `src/second_order_check.py` runs the law on candidate quotations (the paradox floor S1
    drawn as an enclosure rule = dragon 9), with `tests/test_second_order_check.py` showing the
-   falsifiers bite. So the frontier stands *de-risked before the protected core is opened*, exactly as
+   falsifiers bite. So the frontier stands *de-risked before we open the protected core*, exactly as
    `reference_resolution_check` de-risked the reference node.
 4. **Mark the departure** — precisely where Peirce's manuscript trail ends (drawing a second-order
    claim) and the borrowed floor begins (which claims are well-formed).
@@ -196,8 +196,8 @@ the earlier name "the second-order crossing" — see GLOSSARY.md) have shipped:
   parallel `sort`/`quotation` ρ-pattern maps + constructors, `formal_transformation_rules.py`'s
   sort-preserving/quotation-opaque six rules, `second_order_reader.py`, `second_order_limits.py`,
   `eg_reader.py`'s second-order `read_drawing`): the one genuine protected-core edit of the
-  crossing so far. First-order graphs stay bit-identical; the committed drawn convention (dotted
-  stroke + sort badge + attachment tie) is held total by the correspondence check (§3.3); **S3
+  crossing so far. First-order graphs stay bit-identical; the correspondence check (§3.3) holds the
+  committed drawn convention (dotted stroke + sort badge + attachment tie) total; **S3
   (read-back one order up) is now CHECKED** on `swan_third_tense`/`forcing_forces`; the A3
   conservativity gate (invisibility / erasure-projection / rules-restraint) holds corpus-wide;
   linear generators refuse loudly (`SecondOrderNotInLinearForm`) rather than emit a false
@@ -229,8 +229,8 @@ pre-crossing reconnaissance, now historical, not as an open question:
   calculus draw a *quantified* claim over graphs. Full **self-modeling**
   ([MEANING_BY_HISTORY](MEANING_BY_HISTORY.md), Phase D) needs exactly that quantified step, so
   that phase still waits on B-full. And there **dragon 9 becomes a formal constraint**: a
-  self-assessment may be drawn only *enclosed* (a would-be under a cut), never flat on the sheet,
-  enforced by the modal reading (□ = convergence of all trajectories, unassertible from one
+  self-assessment may be drawn only *enclosed* (a would-be under a cut), never flat on the sheet;
+  the modal reading enforces it (□ = convergence of all trajectories, unassertible from one
   history).
 
 ## Marking the departure (the method)
@@ -244,25 +244,25 @@ This frontier gets the treatment [FIDELITY_AND_DEPARTURES](FIDELITY_AND_DEPARTUR
 - **Swap:** the *unfinished mechanism* — for the paradox-control floor Peirce lacked, drawn as a
   sortal well-formedness discipline rather than a symbolic type calculus.
 - **Flag:** the exact line — *Peirce leads to drawing a second-order claim; he stops at which claims
-  are well-formed* — recorded here and echoed at the point of implementation, so no reader mistakes
-  the borrowed floor for Peirce's own.
+  are well-formed*. We record it here and echo it at the point of implementation, so no reader
+  mistakes the borrowed floor for Peirce's own.
 
-**The frontier is crossed.** Second-order logic — in its mention-ascent form — is now drawn
-tractably and read back with the correspondence contract intact one order up. The contract
+**The frontier is crossed.** Arisbe now draws second-order logic — in its mention-ascent form —
+tractably and reads it back with the correspondence contract intact one order up. The contract
 ([SECOND_ORDER_CORRESPONDENCE_CONTRACT.md](SECOND_ORDER_CORRESPONDENCE_CONTRACT.md)) stands
-written, its law runs on real candidates (`second_order_check.py`), and both decisions this
-document once posed as open — which comprehension floor, and how much to open the core — were
-ratified by the author 2026-07-16 ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)) and
-built as Stage ⓪ + B-min (above). What remains is the **B-full** rung: widening ν to a native
+written, and its law runs on real candidates (`second_order_check.py`). Both decisions this
+document once posed as open — which comprehension floor, and how much to open the core — the
+author ratified 2026-07-16 ([CROSSING_DECISION_BRIEFS.md](CROSSING_DECISION_BRIEFS.md)), and
+Stage ⓪ + B-min carried them out (above). What remains is the **B-full** rung: widening ν to a native
 graph-valued element kind rather than the additive overlay B-min used. That poses a fresh
-marginal-value question (the ladder's originally-stated hinge, S3, was discharged already at
-B-min), not a re-opening of whether to cross at all.
+marginal-value question (B-min already discharged the ladder's originally-stated hinge, S3),
+not a re-opening of whether to cross at all.
 
 ## Sources & further reading
 
 **Primary (Peirce).** The late Gamma / tinctured manuscripts are largely unpublished; the definitive
 edition is Ahti-Veikko Pietarinen (ed.), *[Logic of the Future: Writings on Existential Graphs](https://www.researchgate.net/profile/Ahti-Pietarinen/publication/380054782_Introduction_to_the_Theory_of_Existential_Graphs_Volumes_31_and_32)*
-(De Gruyter), esp. Vol. 3. Peirce's own late tutorial is reconstructed in John Sowa,
+(De Gruyter), esp. Vol. 3. John Sowa reconstructs Peirce's own late tutorial in
 *[Peirce's Tutorial on Existential Graphs](https://www.jfsowa.com/pubs/egtut.pdf)* (from MS 514) — the
 source for the dotted-line / dotted-oval second-order device.
 

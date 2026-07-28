@@ -71,7 +71,7 @@ When the two come apart, the system has failed its central purpose — *not beca
   contract. Read it before touching anything that produces or consumes an `(EGI, drawing)` pair.
 - **Tested** — `tests/test_correspondence_invariant.py` (the six correspondence test shapes (LINEAR_GRAPHICAL_CORRESPONDENCE §7) against the corpus).
 - **Attested at runtime** — `correspondence_attestation.attest_correspondence(egi, dto)` raises
-  `CorrespondenceViolation`; hooked into the web serving + save/load boundaries.
+  `CorrespondenceViolation`; the web serving and save/load boundaries call it.
 
 One discipline governs all of this: **correspondence is attested, never truth.** The correspondence check (§3.3) certifies that *this linear
 form and this drawing denote the same graph*. That amounts to internal consistency, *not* a claim that either
@@ -80,14 +80,14 @@ wrong"). Truth settles elsewhere — in use, in the Agon. See
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md).
 
 A third correspondence has recently joined the doctrine: **diagram ↔ narration** (a narrated proof is
-a chain of Discourse Representation Structures ([DRSs](GLOSSARY.md#drs)), and a DRS *is* a Beta EG). It serves as a measurement/validation lens, not yet surfaced in
-the UI — see [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10.
+a chain of Discourse Representation Structures ([DRSs](GLOSSARY.md#drs)), and a DRS *is* a Beta EG). It serves as a measurement/validation lens; the UI
+does not surface it yet — see [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) §10.
 
 ---
 
 ## 3. Bedrock — the non-negotiables
 
-These commitments may **not** be traded away. Everything else remains negotiable engineering.
+**No one** may trade these commitments away. Everything else remains negotiable engineering.
 
 1. **Dau's calculus is the correctness [floor](GLOSSARY.md#floor) (the baseline that may not be gone under).** All six transformation rules (ERA, INS, IT+, IT−,
    DC+, DC−) run in full compliance, Beta-aware. The mathematical core test suite must
@@ -129,18 +129,18 @@ A re-audit this pass (2026-06-27) found, and the author then acted:
   the two **most-imported** modules in `src/` (28 and 31 importers) — yet they stood **unprotected**.
 - The real guard lies in the **core test subset** (the fast gate), not the name-match speed-bump.
 
-→ **Decision taken (2026-06-27):** *(a, "keep + extend")* `correspondence_attestation.py`,
-`presentation_ops.py`, and `natural_layout.py` were **added** to the protected set — so the §3.3 enforcers
-now require authorization to change; *(b, "trim")* the six EGIF/CGIF/CLIF parsers/generators were
-**removed** as application-level I/O the calculus doesn't import (guarded instead by corpus round-trip
-tests in CI). Net **17 → 14** modules, now the genuine calculus core. *(c, "replace with a CODEOWNERS-style
-note") was declined:* CODEOWNERS routes PR reviews and would not fire in a solo, no-PR workflow — instead
+→ **Decision taken (2026-06-27):** *(a, "keep + extend")* the author **added**
+`correspondence_attestation.py`, `presentation_ops.py`, and `natural_layout.py` to the protected set — so
+the §3.3 enforcers now require authorization to change; *(b, "trim")* he **removed** the six
+EGIF/CGIF/CLIF parsers/generators as application-level I/O the calculus doesn't import (corpus round-trip
+tests in CI guard them instead). Net **17 → 14** modules, now the genuine calculus core. *(c, "replace
+with a CODEOWNERS-style note") he declined:* CODEOWNERS routes PR reviews and would not fire in a solo, no-PR workflow — instead
 the protected set's inline comments now **double as the bedrock note**, one artifact that both documents
-*and* enforces. The pre-commit gate is kept because its real job in an AI-assisted solo workflow — making
+*and* enforces. We keep the pre-commit gate because its real job in an AI-assisted solo workflow — making
 an inadvertent edit to the calculus impossible to miss — is one neither a doc-note nor CODEOWNERS can do.
-*(The corpus-wide `test_correspondence_*` suites were **not** added to the fast gate: minutes-long, far
-past its <30s budget; they run in CI, and the invariant is guarded at commit time by the module
-protection.)* See [ROADMAP.md](ROADMAP.md) #1.
+*(The corpus-wide `test_correspondence_*` suites stayed **out** of the fast gate: minutes-long, far
+past its <30s budget; they run in CI, and the module protection guards the invariant at commit
+time.)* See [ROADMAP.md](ROADMAP.md) #1.
 
 ---
 
@@ -181,8 +181,8 @@ Resource Description Framework ([RDF](GLOSSARY.md#rdf)) import as a *bridge*; an
 - **Reading a raster image** (photo/scan/hand-drawn ink → EGI). The hard inverse problem, explicitly
   deferred. (Note: reading a *structured* freeform drawing — typed marks on the canvas — **is** in
   scope and shipped; only pixels stay out.) See [EXACT_CORRESPONDENCE.md](EXACT_CORRESPONDENCE.md).
-- **The Qt desktop GUI.** Archived to `archive/qt-gui-2025/` (May 2026); the web app now serves as the
-  canonical UI.
+- **The Qt desktop GUI.** We archived it to `archive/qt-gui-2025/` (May 2026); the web app now serves as
+  the canonical UI.
 
 ### Deferred — wanted, not yet built
 Manchester OWL syntax (no maintained Python parser); the tropism's **musement pole** and
@@ -216,7 +216,7 @@ scoping serves an adopter better than a broad claim:
 What Arisbe uniquely offers *instead*, and where it serves as the right tool: a working notation in
 which humans read and manipulate first-order logic **as pictures** with a machine-checked
 guarantee that the picture cannot lie about its logic; a diachronic record where "fact" names
-the defeasible last-standing trajectory and every revision is attested; and a dialogical
+the defeasible last-standing trajectory and which attests every revision; and a dialogical
 game in which a claim earns standing by withstanding challenge, played by humans or by LLMs
 under an incorruptible mechanical referee. For teaching quantifier scope and negation, for
 scholarly reproduction of Peirce's graphs, for auditing how a model's verdicts changed as
@@ -235,8 +235,8 @@ The invariants a contributor should internalize before changing anything:
 - **Correspondence-or-suspend** — assert nothing whose picture and proposition have not been
   attested to match; suspend the invariant only in regime-1 composition.
 - **Attest, don't assert** — the system certifies correspondence, not truth.
-- **Polarity in words, not hue** — a region's positive/negative polarity is named in words, never
-  smuggled in by colour (colour would invite reading actuality off the ink).
+- **Polarity in words, not hue** — Arisbe names a region's positive/negative polarity in words and
+  never smuggles it in by colour (colour would invite reading actuality off the ink).
 - **Warrant is a gradient** — posited / derived / withstood; it rises and falls; nothing stands exempt
   from being drawn back under a cut and challenged again.
 - **The blank sheet is the only unconditioned thing** — and it asserts nothing. No contingent
@@ -424,7 +424,7 @@ deliberative interval in the tributary grading above; levels-as-marks in
 [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md).
 
 What stays open, named here per the grading discipline: THE_COMMENS §11's flagged verdicts 1, 2,
-and 6 (touched by the rulings, resolved by none); the supermultitudinous frontier
+and 6 (the rulings touched them; none resolved them); the supermultitudinous frontier
 (SYNECHISM_AND_CONTINUITY, untouched); the two **named-not-modeled determinants**
 (identity/plausibility-structure maintenance, and the physical substrate —
 [THE_KYTOS.md](THE_KYTOS.md) §5); and the queued **reflexive run** (a kytos modeling itself
@@ -451,8 +451,8 @@ across `docs/`, `tests/`, and the session log. They stay thin by design:
 - **VISION_AND_SCOPE** changes only when a *commitment* changes (a new non-negotiable, a scope
   decision, a principle).
 - **Stratum II changes only when the author rules a program-level commitment** — a new
-  tributary, a grade change, a change of voice. Grades get promoted, and tributaries added, on
-  no one's initiative but the author's ruling.
+  tributary, a grade change, a change of voice. Only the author's ruling promotes a grade or
+  adds a tributary.
 - **CAPABILITY_MAP** functions as a living table — update the relevant row when a capability ships
   or its status changes.
 - **ROADMAP** holds the working backlog — re-order and prune as priorities move.

@@ -207,7 +207,8 @@ ground (a choice at parity), and the co-grounding analogy (won) — not the orig
 *nearer* than another (the no-ladder claim) — and had it **examined over four
 rounds** (as "Perspective B"; see the **Corollary** at the end of this document and
 the full record in [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)
-"Examination II"), which left it **largely absorbed back into this departure**. Three things survive. The
+"Examination II"), which left it **largely absorbed back into this departure**.
+Three things survive. The
 **metric** terminus dissolves (this departure's first-order result). The
 context-free **comparative efficacy-vector** stands *conceded* (structural realism — only
 the summit was ever a non-locution, never the vector). And the one genuine residue remains
@@ -442,7 +443,8 @@ draws sameness rather than predicating it, and the teridentity spot lets three
 lines meet without any symbol intruding.
 
 **Where it fails, and it does fail.** One can *assert* an identity by joining
-lines. One cannot **infer** it. Look at Peirce's own arithmetic (1881): trichotomy says
+lines. One cannot **infer** it. Look at Peirce's own arithmetic (1881): trichotomy
+says
 *any two numbers are ordered — or they are the same*, and antisymmetry says *if
 x ≤ y and y ≤ x then x = y*. Both put an identity in the **consequent of a scroll**.
 And a ligature cannot be the head of an implication: a line is drawn or it is not;
@@ -590,8 +592,8 @@ strongest case against each departure and the rulings, lives in
 lost its original headline ("inquiry does not converge") and its first lever (the
 regulative/constitutive distinction), keeping a narrower, sharper claim resting on
 one named open joint; Departures II and III survive as scope-corrections. The
-examination met the standard. The departures now stand on tested terms, with their debts
-booked in the open.
+examination met the standard. The departures now stand on tested terms, with their
+debts booked in the open.
 
 ---
 

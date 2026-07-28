@@ -1,6 +1,24 @@
 # Current Plan
 
-**Last Updated**: 2026-07-28 (sixth arc) — **THE VOICE PASS IS COMPLETE: ALL 47 BOOK
+**Last Updated**: 2026-07-28 (seventh arc) — **TWO AUTHOR NOTES ACTED ON: the EPG guide's
+build-chronology retired, and ACTIVE VOICE added as his second stated rule + swept through
+the book.** (1) The Endoporeutic guide's status section read as a development log
+(shipped-dates, "Built since", a frontier list whose every item then said *shipped*); it now
+reads **"What runs, and what remains open"** — what runs grouped by what a reader asks for,
+then three honest limits (hot-seat arena vs headless loops · WordNet/SNOMED unwired ·
+tropism at increment 1). Same facts, no chronology; the stale "most of it remains theory and
+design-ahead" claim (which its own list contradicted) retired. Its heading changed — verified
+first that only generated `_book/` output referenced the old anchor. (2) **Active voice** now
+stands in the voice profile and the re-voicing brief as rule 2 beside the "to be" rule, with
+a **false-agency guard** (never invent an actor; keep the agentless passive where naming a
+doer would overclaim — "no prior art was found" survives verbatim). Seven agents swept 21
+chapters for voice alone: **~340 passive constructions evaluated, ~160 converted**;
+book-wide passive-shape count 407 → 338, of which **180 sit in the two excluded-by-design
+docs**, so the 45 swept chapters now carry ~158 between them, most of those legitimate
+(frozen contract clauses, ruled verdicts, deliberate parallels). Headings byte-identical
+everywhere except the one intended change; render 47/47; gates + 152 core tests green.
+
+**Last Updated (prior)**: 2026-07-28 (sixth arc) — **THE VOICE PASS IS COMPLETE: ALL 47 BOOK
 CHAPTERS RE-VOICED INTO THE AUTHOR'S VOICE + THE FOUR LETTERS DRAFTED.** Every chapter in
 `docs/_quarto.yml` now reads in the author's voice, distilled from his journal at his
 direction (E-Prime lean — his own rule, minimize "to be," unpack what "is" hides; concrete
