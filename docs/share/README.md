@@ -26,8 +26,17 @@ Contents:
   calibrated voice profile; awaiting his revision and hand):
   [LETTER_SOWA_DRAFT.md](LETTER_SOWA_DRAFT.md) ·
   [LETTER_DAU_DRAFT.md](LETTER_DAU_DRAFT.md) ·
-  [LETTER_WEST_DRAFT.md](LETTER_WEST_DRAFT.md) ·
+  [LETTER_WEST_DRAFT.md](LETTER_WEST_DRAFT.md) **(HELD — do not send)** ·
   [LETTER_PIETARINEN_DRAFT.md](LETTER_PIETARINEN_DRAFT.md)
+
+  **The West letter is held by the author's ruling of 2026-07-28** ("we cannot
+  write West, yet"). Drafting it triggered a code-level audit that refuted the
+  three claims it rested on, and exposed a mis-mapping — a monolith has no
+  counterpart as a *terminal unit*; a MONO correlate would live at the level of
+  a whole community competing for a niche. See the draft's own header and
+  [WEST_IN_KYTE_PROGRAM](../WEST_IN_KYTE_PROGRAM.md) §8. **A worked example of
+  the outreach voice doing its job**: writing to a competent interlocutor forced
+  a re-reading of the floor, and the floor failed before the letter went.
 - [LETTER_SOWA_SKELETON.md](LETTER_SOWA_SKELETON.md) — the conceptual-graphs /
   interchange-format lineage; the correspondence invariant as the proposition.
 - [LETTER_DAU_SKELETON.md](LETTER_DAU_SKELETON.md) — the guarantor; the three

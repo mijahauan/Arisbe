@@ -1,25 +1,47 @@
 # Letter draft — Geoffrey West
 
-**Status: internal draft in the author's voice (2026-07-28), built from
-[LETTER_WEST_SKELETON](LETTER_WEST_SKELETON.md). Not for sending until the
-author revises and signs.**
+**Status: HELD — NOT TO BE SENT (author's ruling, 2026-07-28): "we cannot write
+West, yet. More work remains."** The draft stays on the record as the artifact
+whose drafting exposed the problem, not as a letter awaiting polish.
+
+**Why it stopped.** A code-level audit, run at the author's challenge while he
+revised this draft, found that the three claims it leans on do not survive:
+the *invariant terminal unit* was imposed by the design (fixed folder size,
+fixed per-member round budget) rather than discovered; *at equal durability*
+rests on a K2 that can only read 1.0 or undefined on this harness; and the
+*vector return-gift* names four components of which three sat pinned at
+constants and the fourth was never computed. Beneath those, the federation's
+members never communicate, nothing in the runs reasons, and the cost meter
+charges the size of a fact set rather than any work done on it.
+
+**And the mis-mapping the author named**, which is the reason more drafting
+would not have helped: **MONO has no counterpart as a terminal unit.** A
+monolith is not a larger organism but a single unit made big — the one thing
+West's networks never do. A MONO correlate would live at the level of the
+community as a whole, plausibly competing with another community for a niche;
+that is also where the selection pressure his exponents depend on would come
+from.
+
+The full audit, the mis-mapping, and the conditions a proper terminal-unit test
+would have to meet are recorded in
+[WEST_IN_KYTE_PROGRAM](../WEST_IN_KYTE_PROGRAM.md) §8. Nothing here is wasted:
+the letter did its job by failing before it was sent.
 
 ---
 
 Dear Dr. West,
 
-*Scale* asks a question sharp enough to act on: do aggregated units obey
-discoverable scaling laws, and what does the economics of the unit determine?
-I took the question seriously enough to measure it — in a domain your book
-does not cover — and I write to report the measurements and to offer a
-conjecture back. Every prior below went on the record before its run
-executed, and the refuted ones stay in the tables beside the held ones.
+Thank you.  *Scale* opened a whole path of thinking I'd never walked before. The question: "do aggregated terminal units obey
+discoverable scaling laws, and what does the economics of the unit determine?" has lately motivated my attempt to apply it to a domain your book
+does not iexplicitly cover - thinking, semiotic agents — and I write to report the measurements and to offer a
+conjecture back. **Every prior below went on the record before its run
+executed, and the refuted ones stay in the tables beside the held ones.**
 
-The units in question maintain knowledge rather than metabolize energy. Each
+The terminal unit in question -- I named it Kytos (κύτος, vessel, the root of "cell") -- "metabolizes" knowledge rather than energy. Each
 one holds a bounded, revisable model of a document corpus, tests what
-arrives, and forgets what falls from use; I compare one large unit holding
-everything against a federation of small units with a coordinator. The
-five experiments and a rider, in one paragraph:
+arrives, and forgets what falls from use; I compare one large kytos holding
+everything against a federation of smaller kytē with a coordinator. **The
+five experiments and a rider, in one paragraph:**
 
 At matched size and equal durability of what they retain, the federation ran
 about 5.2 times cheaper than the monolith — and retained more, because a
@@ -27,7 +49,7 @@ single attention budget stretched over everything forgets most of it. Across
 an 8× size sweep the monolith's cost grew with exponent 1.28 against the
 federation's 1.02, and a 25-fold cost spread at the largest size traced to
 coordinator scan discipline alone — while the cost of the terminal unit
-stayed invariant to a tenth of a percent, which I read as your invariant
+stayed invariant to a tenth of a percent, which I read as comparable to your invariant
 terminal unit, observed in a new substrate. The optimum turned out interior
 (three buckets, neither monolith nor finest split), and when the system
 re-partitioned itself under its own economics, every walk converged to that

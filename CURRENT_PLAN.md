@@ -1,6 +1,35 @@
 # Current Plan
 
-**Last Updated**: 2026-07-28 (seventh arc) — **TWO AUTHOR NOTES ACTED ON: the EPG guide's
+**Last Updated**: 2026-07-28 (eighth arc) — **THE WEST LETTER IS HELD, AND THE E-SERIES'
+INTERPRETIVE LAYER NEEDS A CORRECTION PASS (the author's ruling: "we cannot write West,
+yet. More work remains").** Drafting the letter provoked the author's questions — do the
+kytē exchange with each other or only the coordinator? do they reason? doesn't the vector
+proposal depend on "use"? — and two code-level audits (with instrumented probes) answered
+badly: **members never communicate** (sequential, isolated; the coordinator afterwards
+copies relation *names*, 22 cells at F=4; `route`'s result discarded; `consistency_scan`'s
+body is `pass`; from E2 the tax is a closed-form replay) · **nothing reasons**
+(`rules_applied = 0`, `derived_facts = 0` every round; the peel's verdict read by no agent)
+· **K2 is degenerate** (`stuck=False` structurally unreachable, so "at equal durability"
+carries no weight) · **cost = Σ_rounds |M|**, size not work, so the 5.2× tracks F+1 by
+arithmetic · **terminal-unit invariance was imposed** (`NOTES_PER_FOLDER=40`,
+`R = 25·(F+1)`), not discovered · **"use" = re-delivery**, with work-use uncomputable
+(no provenance) and K4 absent from every log, source file, and test. **The author's
+diagnosis, the load-bearing insight:** a group of kytē makes no community without
+communication; the metabolized stuff of interest is what they communicate and jointly
+maintain *between* them plus what each retains/reasons-on/forgets; and **MONO has no
+counterpart as a terminal unit** — a monolith is a single unit made big, which West's
+networks never do, so **a MONO correlate lives at the level of a whole community, plausibly
+competing with another for a niche** (which also supplies the selection pressure his
+exponents need and these runs lack). Recorded in **WEST_IN_KYTE_PROGRAM §8** (the audit,
+the mis-mapping, and the six conditions a proper terminal-unit test must meet); the draft's
+header and `docs/share/README.md` carry the hold. **Note the run logs reported straight** —
+the overstatement accumulated *above* them (E2's finding 5, THE_KYTOS §4, the
+concordance-map row), and the grading discipline did not catch it. **▶ AWAITING THE
+AUTHOR'S RULING: the grade correction**, since that map's own rule moves a grade only by
+his ruling. Standing lesson: the outreach voice worked as designed — writing to a competent
+interlocutor forced a re-reading of the floor, and the floor failed before the letter went.
+
+**Last Updated (prior)**: 2026-07-28 (seventh arc) — **TWO AUTHOR NOTES ACTED ON: the EPG guide's
 build-chronology retired, and ACTIVE VOICE added as his second stated rule + swept through
 the book.** (1) The Endoporeutic guide's status section read as a development log
 (shipped-dates, "Built since", a frontier list whose every item then said *shipped*); it now

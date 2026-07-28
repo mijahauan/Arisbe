@@ -171,3 +171,103 @@ design knob. Shaped by §4 and by whatever E2's curves show:
 - **Standing caveats:** synthetic ≠ real corpus topology (a deferred real-vault check); the community
   rung is modelled, never constituted (THE_COMMENS); "one ledger shape suffices at every level" is a
   flagged conjecture the community rung is precisely where a skeptic should attack (THE_KYTOS §5).
+
+---
+
+## 8 · The audit of 2026-07-28 — what the E-series does *not* establish
+
+*(Written after a code-level audit run while drafting the West letter, at the
+author's challenge. Nothing here changes a grade; grades move only by the
+author's ruling. This section records what the instrument actually did, so no
+later reader inherits a claim the floor will not carry.)*
+
+The run logs reported straight. The overstatement accumulated **above** them —
+in the interpretive language of E2's finding 5, in THE_KYTOS §4, in the
+concordance-map row, and worst in the letter draft. Four findings, each
+verified in code and two of them by instrumented probe:
+
+1. **The federation never communicates.** Members run sequentially, each in
+   full isolation, and each finishes before the next begins. Afterwards the
+   coordinator *reads* the finished models and copies out their distinct
+   relation **names** — at F=4, twenty-two cells, six names crossed with four
+   folders. No facts cross, nothing returns to a member, and the broker's
+   routing result is discarded by every caller. `consistency_scan`'s loop body
+   is `pass`; from E2 onward the coordinator tax is a closed-form replay rather
+   than an executed scan.
+2. **Nothing reasons.** The corpus carries ground metadata and no laws, so
+   every round measures `rules_applied = 0`, `derived_facts = 0`. The peel runs
+   and its verdict is never read by any panel agent. K3 = 0.0 records the
+   absence of anything to derive, not a property of an arrangement.
+3. **"At equal durability" carries no weight.** K2 can only read 1.0 or
+   undefined on this harness: the non-decay erasures require agents that cannot
+   fire on this feed, and decay-erased episodes are excluded from the
+   stick-rate by construction. In probe, 40% of admissions were erased and did
+   not count. The parity gate compares 1.0 against 1.0.
+4. **The cost meter charges size, not work.** Cost = Σ over rounds of |M|,
+   charged even where a cache hit does no work. A monolith running R rounds
+   against one accumulating model pays ≈ c·R²/2; a federation splitting those
+   rounds across F+1 members pays ≈ c·R²/2(F+1). The observed ratios track F+1
+   (3.96 against 5 in probe; 5.2 against 7 in E1), decay blunting the
+   quadratic.
+
+**Terminal-unit invariance was imposed, not discovered.** E2 fixes
+`NOTES_PER_FOLDER = 40` and sets `R = 25·(F+1)` "so every member performs
+exactly 25 rounds at every F." Each unit therefore holds a fixed slice and
+spends a fixed budget across the whole sweep, and the measured 1.0012 max/min
+confirms the harness is deterministic. West's invariant terminal unit is an
+empirical surprise — the network reorganizes as mass grows, yet capillaries
+stay the same size. Ours is an assumption confirmed.
+
+### The mis-mapping (the author's diagnosis, 2026-07-28)
+
+The deeper fault sits in the comparison itself. **MONO has no counterpart as a
+terminal unit.** In West's framework the terminal unit is the capillary and the
+organism is the network that feeds it; the scaling law relates an
+organism-level rate to organism size. A monolith is not a larger organism — it
+is a single unit made big, which is the one thing West's networks never do.
+Comparing FED to MONO therefore compares an organism to an inflated cell, and
+answers no question about terminal units.
+
+If a MONO correlate exists, it lives **at the level of the community as a
+whole** — one community measured against another, plausibly competing for an
+ecological niche. That relocation matters twice over. It puts the scaling
+question where West asks it (how does a *community's* rate scale with its
+size?), and it supplies the selection pressure his exponents depend on:
+biological and urban exponents arise from optimization under constraint, and
+nothing in these runs selects between arrangements at all.
+
+### What the metabolized stuff actually is
+
+Also the author's, and it names what the harness omitted. The metabolism of
+interest consists of **what the kytē communicate and jointly maintain as an
+objective reality between them**, together with **what each retains, reasons
+on, and forgets internally** — M and its facts, the standing questions
+(AlternativeSets), deductions, inductions, abductions, generalizations,
+specifications. The E-series exercised the storing and the forgetting. It
+exercised none of the reasoning, and none of the between.
+
+### What a proper terminal-unit test requires
+
+Named here so the next attempt starts honest, not so it starts soon:
+
+- **Communication between units**, carrying content rather than a vocabulary
+  census — otherwise no community exists to scale, per THE_COMMENS.
+- **Laws in the corpus**, so units derive rather than only accumulate; K3 above
+  zero is the signal that anything is being metabolized at all.
+- **Provenance in the materializer** — the support set behind a derived atom —
+  so that *use* can mean an atom doing work rather than an atom arriving again.
+  Today's `delivered_atom_keys` defines use as re-delivery and says in its own
+  docstring that inference-use was "deliberately not taken here."
+- **A live K2**, which needs a membrane with world-teeth: some way for a
+  standing item to be defeated by something other than the decay clock.
+- **Community-level scaling** — the size swept being the number of
+  communicating units, with the terminal unit's invariance left free to emerge
+  or fail rather than pinned by construction.
+- **Selection between communities**, if the exponents are to mean what they
+  mean in *Scale*.
+
+Until then the honest statement of the E-series is narrow and still worth
+something: *partitioning a maintenance workload across bounded units lowers
+total upkeep under a size-charging meter, and how much depends overwhelmingly
+on the coordinator's scan discipline rather than on the partition* — E2's own
+finding, in its own words.
