@@ -1214,9 +1214,9 @@ drives the Graphist to propose G in the first place?  The bootstrapping
 section demonstrates growth *given* proposals — but where do the proposals
 come from?
 
-Peirce's answer, in "The Fixation of Belief" (1877), is unequivocal:
-**doubt**.  Belief is a settled habit of action — a state in which we know
-how to go on.  Doubt is the irritation that disrupts the habit: something
+Peirce answers unequivocally in "The Fixation of Belief" (1877):
+**doubt**.  Belief names a settled habit of action — a state in which we know
+how to go on.  Doubt names the irritation that disrupts the habit: something
 does not fit, something surprises, something resists.  Inquiry is the
 struggle to pass from the irritation of doubt to the settlement of belief.
 The sole purpose of inquiry is the fixation of belief; the sole cause of
@@ -1230,7 +1230,7 @@ In the EPG framework, doubt manifests in several distinct ways:
 
 The most fundamental source.  The user observes something that M does not
 predict, encounters a case M does not cover, or witnesses an outcome M
-says should not happen.  This is *external* to the formal system — it comes
+says should not happen.  This lies *external* to the formal system.  It comes
 from the user's engagement with the world.  The formal system cannot
 generate it; it can only receive it when the user translates the experience
 into a proposal G.
@@ -1245,15 +1245,15 @@ grass.  The experience generates doubt; the doubt motivates the proposal
 
 **2. Internal inconsistency — M contradicts itself.**
 
-A sufficiently rich M may harbor contradictions that are not immediately
-apparent.  Two individually plausible assertions may jointly imply something
-false.  This form of doubt is *discoverable through the game itself* — it
+A sufficiently rich M may harbor contradictions that do not show
+immediately.  Two individually plausible assertions may jointly imply something
+false.  The game itself *discovers* this form of doubt — it
 emerges when the game traversal encounters a contradiction during a proof
 attempt.
 
-In Peircean terms: this is the self-correcting nature of inquiry.  M is
-not a static monument but a living structure that can expose its own flaws
-when pressed.  The game is the pressing.
+In Peircean terms: this is the self-correcting nature of inquiry.  M stands
+not as a static monument but as a living structure that can expose its own
+flaws when pressed.  The game is the pressing.
 
 Example: M contains "all birds fly" and "penguins are birds."  No
 contradiction is visible until someone proposes "penguins do not fly" and the
@@ -1262,13 +1262,13 @@ Agonothetes must confront the conflict.
 **3. Encounter with another M — the other talks back.**
 
 Another person, culture, text, or one's own past self presents claims that
-conflict with one's current M.  This is the cross-cultural case and the
+conflict with one's current M.  This covers the cross-cultural case and the
 temporal-self case from the validity checks.  The doubt arises not from the
 world directly but from discovering that another coherent perspective
 disagrees with one's own.
 
-In Peircean terms: this is the community of inquiry.  No individual M is
-privileged; the long-run convergence of inquiry depends on exposure to
+In Peircean terms: this is the community of inquiry.  No individual M holds
+privilege; the long-run convergence of inquiry depends on exposure to
 alternative perspectives.
 
 Example: importing a medical ontology that models illness differently from
@@ -1277,10 +1277,10 @@ am wrong" but "we cannot both be right in the same way."
 
 **4. Formal incompleteness — M has gaps.**
 
-M may be consistent but *incomplete*: there are well-formed questions it
+M may be consistent but *incomplete* — well-formed questions exist that it
 cannot answer.  The game terminates in stalemate (independence), and the
-Agonothetes must decide whether the gap matters.  Some gaps are benign
-(M has no opinion on matters outside its domain); others are significant
+Agonothetes must decide whether the gap matters.  Some gaps stay benign
+(M has no opinion on matters outside its domain); others matter
 (M should have an answer but does not).
 
 In Peircean terms: this is the abductive moment — the recognition that
@@ -1292,7 +1292,7 @@ The question "what guarantees doubt?" contains a hidden assumption — that
 belief is the natural state and doubt the exception requiring explanation.
 Peirce inverts this.  Any finite M in contact with an inexhaustible world
 is *necessarily* incomplete and *probably* inconsistent in ways not yet
-exposed.  Doubt is not something to be artificially generated; it is the
+exposed.  Doubt needs no artificial generation.  It stands as the
 **natural condition** of any inquirer who has not stopped paying attention.
 
 What needs explaining is not doubt but its temporary absence — the
@@ -1309,18 +1309,18 @@ The struggle ends when belief is fixed — until the next doubt.
 
 ### What This Means for Arisbe
 
-The architectural implication is that the system does not need a mechanism
-to *create* doubt.  Doubt comes from the user's engagement with the world,
+Architecturally, then, the system needs no mechanism to *create* doubt.
+Doubt comes from the user's engagement with the world,
 from the internal tensions of a growing M, and from encounter with external
 M's (imported ontologies, other users, literature).  What the system needs
-is:
+instead:
 
 1. **Receptivity** — the ability to accept new proposals at any time
    (the Graphist function is always available).
 
 2. **Honesty** — the game must faithfully report contradictions,
    independence, and failures, not paper over them.  A system that always
-   says "consistent" is Peirce's method of tenacity: fixing belief by
+   says "consistent" practices Peirce's method of tenacity: fixing belief by
    refusing to acknowledge doubt.
 
 3. **Memory** — the UoD's transformation history must preserve the record
@@ -1332,18 +1332,18 @@ is:
    inside their own settled beliefs.
 
 What an earlier draft of this section could only imagine as "automated
-doubt detection" is now **built — the doubt engine, with two arms** — and
-the surfaced doubt is a first-class object rather than a notification:
+doubt detection" now stands **built — the doubt engine, with two arms** — and
+the surfaced doubt counts as a first-class object rather than a notification.
 
 - **The mechanical arm — the surveys** (`alternative_survey.py`). The
   *thin-spot survey* turns only **zero-grounded** relations and law-bodies
   into standing questions (a one-instance relation's existential already
-  holds — it is named on the docket recordless, not made a question that
+  holds, so the docket names it recordless rather than making a question that
   would be born settled). The *branch survey* turns up ground atoms
   **◇-contested across the diachronic DAG's reachable leaves** — held in
   some legal futures, absent in others, in the trajectory reading of
   [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) — and not already
-  settled at the reference state. Both surveys are PEEL-twins: recorded as
+  settled at the reference state. Both surveys run as PEEL-twins, recorded as
   identity chain steps whose parameters carry the whole result, recomputed
   forever by the standing corpus gate.
 - **The LLM arm — the Graphist's attention brief** (`agon_llm.py`). The
@@ -1355,34 +1355,34 @@ the surfaced doubt is a first-class object rather than a notification:
 Either way, the surfaced doubt lands in the same structure — an
 **alternative record** whose `kind` records *how it emerged*: interrogative
 from a peel's own UNKNOWN, hypothetical from a thin-spot survey, modal from
-a branch survey ("The third verdict," Part II). It is then traced for
-materiality, priced by the attention economy (severity · cost · decay, with
+a branch survey ("The third verdict," Part II). The record is then traced for
+materiality and priced by the attention economy (severity · cost · decay, with
 a **temperament dial** — explore-leaning vs settle-first — deliberately
-reserved as a tunable rather than ruled), and settleable only by licensed
-ink.
+reserved as a tunable rather than ruled), and only licensed ink can settle
+it.
 
 Such a mechanism does not *create* doubt — Peirce is clear that artificial
-paper doubt is sterile — it *surfaces* doubts genuinely present in M's
-structure but not yet noticed.  This is the system as intellectual
-conscience: not inventing problems but pointing out the ones already there
-— and now keeping a ledger of them, so that an unanswered question decays,
+paper doubt is sterile.  It *surfaces* doubts genuinely present in M's
+structure but not yet noticed.  Here the system works as intellectual
+conscience: not inventing problems but pointing out the ones already there,
+and now keeping a ledger of them, so that an unanswered question decays,
 competes, and returns instead of being forgotten.
 
 ### The Fixation of Belief in Arisbe
 
 Peirce distinguishes four methods of fixing belief: tenacity, authority,
-the *a priori* method, and the method of science.  Only the last is self-
-correcting.  The EPG, if implemented honestly, embodies the method of
+the *a priori* method, and the method of science.  Only the last corrects
+itself.  The EPG, if implemented honestly, embodies the method of
 science:
 
-- **Tenacity** (holding fast regardless of evidence) is blocked by the
+- **Tenacity** (holding fast regardless of evidence) runs aground on the
   Grapheus: M resists proposals that contradict it, and the game will
   expose the contradiction.
-- **Authority** (accepting belief because an authority dictates it) is
-  blocked by the game's transparency: every step is recorded, every
+- **Authority** (accepting belief because an authority dictates it)
+  founders on the game's transparency: every step is recorded, every
   derivation is inspectable, no assertion is immune from challenge.
 - **The *a priori* method** (accepting what seems "agreeable to reason")
-  is blocked by the Grapheus's indifference to elegance: M does not care
+  meets the Grapheus's indifference to elegance: M does not care
   whether G is beautiful, only whether it maps.
 - **The method of science** (fixing belief by submitting it to something
   independent of what we think about it) is what the game *is*: the
@@ -1390,11 +1390,11 @@ science:
   for the Graphist's preferences — tests, and the Agonothetes interprets
   honestly.
 
-The guarantee of doubt, then, is not a mechanism within the system but a
-condition of its use: that the user remains in contact with the world, with
-other inquirers, and with their own evolving experience.  The system's job
-is to make the cycle as faithful, transparent, and productive as possible
-when doubt arrives — and to not pretend it isn't there when it does.
+The guarantee of doubt, then, lies not in a mechanism within the system but
+in a condition of its use — that the user remains in contact with the world,
+with other inquirers, and with their own evolving experience.  The system's
+job is to make the cycle as faithful, transparent, and productive as possible
+when doubt arrives, and not to pretend it isn't there when it does.
 
 ---
 

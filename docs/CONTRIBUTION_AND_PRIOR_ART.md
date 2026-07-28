@@ -145,7 +145,7 @@ instruct as much as the agreements. The design consequences live in
   twice. *The Reflex Arc Concept in Psychology* (1896) dismantled the linear
   stimulus–response picture in favor of a **continuous perception–action loop**: actions
   dictate what stimuli arrive, and the current internal state dictates how they get
-  interpreted. That circuit the directed-engagement design closes. His later
+  interpreted. The directed-engagement design closes that circuit. His later
   "indeterminate situation" (*Logic*, 1938) names the membrane's raw deliverance before it
   becomes a legible proposal. We state this here so the newer concordances below read as
   *corroborations of a Peircean design*, not as its sources.
@@ -258,7 +258,7 @@ instruct as much as the agreements. The design consequences live in
   curiosity inverts the drive, making reward = **compression progress**, so the agent *seeks
   out* what it cannot yet predict in order to resolve it. That means doubt-seeking, not
   merely doubt-resolving, which Arisbe's musement pole and docket of doubts implement in
-  recorded form. Two honest differences again. RL's learning signal stays a scalar folded
+  recorded form. Two honest differences hold here. RL's learning signal stays a scalar folded
   into weights, where Arisbe's arrives as a *disposition with a recorded mode and
   derivation*. And the curiosity literature carries its own hard lesson: target learning
   *progress*, never raw error, else the noisy TV captures the agent. The
@@ -404,24 +404,24 @@ earned.** A four-component vector quantifies it, each component with a running i
 - **K4 — use**: the habit exercised (atom-level disuse-decay — the operational form of
   "knowledge exists only while it works").
 
-Three guards are part of the measure's definition, not afterthoughts: **never truth**
-(the record self-certifies warranted reliability in context — the same posture as the
+Three guards belong to the measure's definition, not to its afterthoughts: **never truth**
+(the record self-certifies warranted reliability in context, the same posture as the
 correspondence invariant, which attests correspondence, not truth); **never a target**
-(a knowledge-score optimized directly Goodharts; it is an instrument); and **never a
-scalar over agents** (the components stay a vector over knowledge-items and models —
-an aggregate ranking of *inquirers* would rebuild the worth-ladder the project's
-Fidelity examinations dissolved; competence ≠ worth is a category-fact).
+(a knowledge-score optimized directly Goodharts; it serves as an instrument); and **never a
+scalar over agents** (the components stay a vector over knowledge-items and models; an
+aggregate ranking of *inquirers* would rebuild the worth-ladder the project's Fidelity
+examinations dissolved, and competence ≠ worth remains a category-fact).
 
-The measure is **scale-transportable**, which cashes out the author's observation that
-knowledge has a fractal structure: the same doubt → test → dispose → decay cycle runs
+The measure stays **scale-transportable**, which cashes out the author's observation that
+knowledge has a fractal structure. The same doubt → test → dispose → decay cycle runs
 at the level of the atom, the law, the model, the mechanism (knowledge about
 knowledge-formation, with its own stick-rates), and the project itself (the
-pre-registered-priors run discipline) — one ledger shape at every scale, with the drawn
-syntax mirroring it (cuts within cuts, cells within the world-scroll, quotation ovals
-within cells) and the conservativity gate guaranteeing no level corrupts the one
+pre-registered-priors run discipline). One ledger shape holds at every scale, the drawn
+syntax mirrors it (cuts within cuts, cells within the world-scroll, quotation ovals
+within cells), and the conservativity gate guarantees that no level corrupts the one
 beneath. The recursion runs *inside* a single evaluation too (the endoporeutic game
-plays sub-games at every nested context), *across time* (the history's branches are
-parallel chains of the same cycle), and — prospectively — *socially* (communities of
+plays sub-games at every nested context), *across time* (the history's branches run as
+parallel chains of the same cycle), and, prospectively, *socially* (communities of
 such systems modeling each other). A recursion with a floor and a discipline, which
 natural fractals lack.
 
@@ -430,12 +430,12 @@ natural fractals lack.
 ## Does Arisbe materially improve the field?
 
 **Yes — modestly and specifically, as a systems/operationalization contribution, not as new logic.**
-It is of genuine interest because it occupies a niche the surveyed landscape leaves empty: a
-maintained, Beta-complete, Dau-faithful, interactive EG environment whose distinguishing idea — the
-continuously-attested correspondence between the drawn and written forms — has no located prior art.
-Its broader value is making a cluster of established theory (the EG≅DRS bridge, the endoporeutic
+It holds genuine interest because it occupies a niche the surveyed landscape leaves empty: a
+maintained, Beta-complete, Dau-faithful, interactive EG environment whose distinguishing idea, the
+continuously-attested correspondence between the drawn and written forms, has no located prior art.
+Its broader value lies in making a cluster of established theory (the EG≅DRS bridge, the endoporeutic
 game, the modal standard translation, operational iconicity) *actually runnable and inspectable* in
-one place. The honest framing for any external write-up: **"we did not invent these ideas; we built
+one place. For any external write-up the honest framing runs: **"we did not invent these ideas; we built
 the first system that makes them hold together, faithfully and checkably, in working software"** —
 with the correspondence invariant as the one place a stronger originality claim is warranted.
 
