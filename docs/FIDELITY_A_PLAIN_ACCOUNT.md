@@ -4,72 +4,75 @@
 it out, what changed in the challenger's mind, and what changed in Arisbe. Written
 for a curious general reader. No prior logic required.*
 
-*This is the front door. The rigorous record lives in four companion documents —
+*This account serves as the front door. The rigorous record lives in four
+companion documents, pointed to throughout —
 [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md),
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md),
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md), and the
-beginner's [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md) — and is
-pointed to throughout. This account is meant to be readable on its own.*
+beginner's [FIELD_GUIDE_AND_DRAGONS.md](FIELD_GUIDE_AND_DRAGONS.md). This
+account should read well on its own.*
 
 ---
 
 ## The page you reason on
 
-Arisbe is a tool for **doing logic in pictures** — Charles Sanders Peirce's
+Arisbe lets you **do logic in pictures** — Charles Sanders Peirce's
 "moving pictures of thought." You need only four things to follow this account:
 
-- A **sheet** — a page you draw on. Drawing something on it is *asserting* it.
-- A **cut** — a closed curve. To put something inside a
-  cut is to **deny** it. One cut means "not."
+- A **sheet** — a page you draw on. Drawing something on it *asserts* it.
+- A **cut** — a closed curve. Putting something inside a
+  cut **denies** it. One cut means "not."
 - **Nested cuts** — a cut inside a cut. Two cuts, with a claim between them,
   read as **"if … then …"**. (This shape has a name — the *[scroll](GLOSSARY.md#scroll)* — but you can
   just think "if-then.")
-- A **line** — a heavy line joining things means "this is the *same* one." It is
-  how the pictures say "something exists" and "the very same thing."
+- A **line** — a heavy line joining things means "this is the *same* one." The
+  line gives the pictures their way of saying "something exists" and "the very
+  same thing."
 
-That is the whole alphabet. Everything below can be drawn with it.
+That exhausts the alphabet. You can draw everything below with it.
 
-A second thing to know is **how the conversation worked**. The author of this
-project came to Peirce as an admirer — *faithful* to the logic, which a
-mathematician (Frithjof Dau) had already proven correct. His doubts were not about
-whether the logic is sound. They were about what the logic, and the scholarly
-*traditions* that present it, quietly **assume** — assumptions that get smuggled in
+You also need to know **how the conversation worked**. The author of this
+project came to Peirce as an admirer, *faithful* to the logic, which a
+mathematician (Frithjof Dau) had already proven correct. His doubts never touched
+the logic's soundness. They concerned what the logic, and the scholarly
+*traditions* that present it, quietly **assume** — assumptions smuggled in
 alongside the mathematics and passed off as part of it.
 
 So we did something unusual. Each time a doubt arose, we wrote it down as a precise
-charge, and then **hired our own prosecutors** — independent critics instructed to
-*refute, not flatter* — to attack it. We kept only what survived good arguments,
-and we let go of the rest, **including positions the author liked.** What follows is
-the story of four doubts, what the prosecution did to each, and where each came to
-rest.
+charge, and then **hired our own prosecutors** to attack it — independent critics
+instructed to *refute, not flatter*. We kept only what survived good arguments,
+and we let go of the rest, **including positions the author liked.** What follows
+tells the story of four doubts, what the prosecution did to each, and where each
+came to rest.
 
 ---
 
 ## Doubt 1 — Does inquiry have to arrive somewhere?
 
-**What stirred the doubt.** Peirce has a famous, beautiful idea: *the real* is what
-the community of inquirers would eventually agree on, if inquiry went on long
+**What stirred the doubt.** Peirce left a famous, beautiful idea: *the real* names
+what the community of inquirers would eventually agree on, if inquiry went on long
 enough. Many who came after him hardened this into a promise — that inquiry is
 *guaranteed* to converge on a final, true picture of the world, and that we are
 getting nearer to it.
 
-**How it was expressed.** The author's charge: that hardening turns a *hope* into a
-settled *fact*, and nothing licenses the upgrade. "Inquiry will converge" is itself
-one more belief held *inside* inquiry — so it cannot be cashed in as a result
-*about* inquiry from the outside.
+**How it was expressed.** The author charged that this hardening turns a *hope*
+into a settled *fact*, and that nothing licenses the upgrade. "Inquiry will
+converge" stands as one more belief held *inside* inquiry, so it cannot be cashed
+in as a result *about* inquiry from the outside.
 
-**How we argued it out.** The prosecution landed a fair hit: the same solvent
-dissolves the *opposite* claim too. "Inquiry will *never* converge" is also a belief
-held inside inquiry, equally uncashable. Fallibilism — the humility that any belief
+**How we argued it out.** The prosecution landed a fair hit. The same solvent
+dissolves the *opposite* claim too. "Inquiry will *never* converge" also lives
+inside inquiry, equally uncashable. Fallibilism — the humility that any belief
 might be wrong — humbles *both* sides equally. So the author cannot assert
 non-convergence as a settled truth either.
 
-**What changed.** The strong claim was **demoted**: from "inquiry does not converge"
-(asserted) to "convergence and non-convergence are both in-inquiry standings,
-neither cashable — and Arisbe *prefers* the open picture without claiming to have
-proven it." What *survived* intact is the humbler, sharper point: **there is no
-referee's chair** — no vantage outside all inquiry from which anyone could read off
-the final score. That is a limit on us, not a metaphysics about the cosmos.
+**What changed.** The strong claim got **demoted**. "Inquiry does not converge"
+(asserted) gave way to "convergence and non-convergence are both in-inquiry
+standings, neither cashable — and Arisbe *prefers* the open picture without
+claiming to have proven it." The humbler, sharper point *survived* intact:
+**there is no referee's chair** — no vantage outside all inquiry from which anyone
+could read off the final score. That names a limit on us, not a metaphysics about
+the cosmos.
 
 **The principle in action.**
 - *Adherence:* treating "we are converging on the truth" and "we are not" as two

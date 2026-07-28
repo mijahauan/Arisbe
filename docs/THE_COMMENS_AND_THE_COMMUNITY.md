@@ -23,21 +23,21 @@
 
 ## 1 · The pair: UoD and commens *[ratified]*
 
-The Universe of Discourse (UoD) is the immediately accessible, controllable, and attested
+The Universe of Discourse (UoD) names the immediately accessible, controllable, and attested
 internal model *inside* a [kytos](THE_KYTOS.md#1--the-unit-named)'s membrane — what a kytos
-*thinks with*. It is what Arisbe already builds: the synchronic EGI plus its diachronic
+*thinks with*. Arisbe already builds it: the synchronic EGI plus its diachronic
 history, internalized and attested at the [§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 boundary.
 
-The commens is the pair's other half, and it is not an Arisbe structure. It is the
+The commens forms the pair's other half, and it is not an Arisbe structure. It names the
 between/outside/before/after that makes communication possible without being possessed —
-interacted-with, never internalized. It is a **regulative** concept, not something to be
-operationalized: there is no data structure in this codebase, and there should never be one,
-called "the commens."
+interacted-with, never internalized. It works as a **regulative** concept, not something to
+operationalize: no data structure in this codebase carries the name "the commens," and none
+ever should.
 
 **The category-mistake warning, stated explicitly:** the attested corpus is the
-*internalized* UoD, **not** the commens. Naming the corpus "the commens" was an error made and
-corrected in this sitting, and it is the single most important sentence in this document —
+*internalized* UoD, **not** the commens. Naming the corpus "the commens" was an error, made and
+corrected in this sitting. No sentence in this document matters more than this warning;
 every other section depends on keeping the two apart.
 
 **The commens is a social construct** (author, 2026-07-20), in Berger and Luckmann's precise

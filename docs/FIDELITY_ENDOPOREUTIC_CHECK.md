@@ -3,13 +3,13 @@
 > **What this is.** A reality check of Arisbe's implementation against a published
 > scholarly account of Peirce's semantics for Existential Graphs — Ahti-Veikko
 > Pietarinen's "The Compositionality of Concepts and Peirce's Pragmatic Logic"
-> (2005). Requested by the author mid-arc (2026-07-03), while the automated
-> Endoporeutic Game was being extended with the tropism module. A companion to
+> (2005). The author requested it mid-arc (2026-07-03), while work extended the
+> automated Endoporeutic Game with the tropism module. It stands as a companion to
 > [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md): where that document
 > states Arisbe's departures from *Peirce*, this one checks the implementation
-> against *the literature's reading of Peirce* — one careful witness of it — and
-> records what corresponds, what diverges, and whether the divergences were chosen
-> or accidental.
+> against *the literature's reading of Peirce*, in the person of one careful
+> witness, and records what corresponds, what diverges, and whether the
+> divergences were chosen or accidental.
 
 *The source: Pietarinen, Ahti-Veikko (2005). "The Composition of Concepts and
 Peirce's Pragmatic Logic", in E. Machery, M. Werning and G. Schurz (eds), **The
@@ -25,18 +25,18 @@ quoted there.*
 
 Arisbe's engine-room vocabulary — the peel, the Graphist and Grapheus, the
 Endoporeutic Game, truth-as-habit — descends from Peirce through secondary
-literature, working notes, and the project's own dogfooding. A fair question at
-any point in that descent is whether the implementation still corresponds to
-what the scholarship says Peirce built. This note answers for one substantial
-witness: Pietarinen's 2005 account of the **Endoporeutic Principle** (EP) and
+literature, working notes, and the project's own dogfooding. Does the
+implementation still correspond to what the scholarship says Peirce built? The
+question stays fair at any point in that descent. This note answers for one
+substantial witness: Pietarinen's 2005 account of the **Endoporeutic Principle** (EP) and
 the two-player semantic game, written against the backdrop of the
 compositionality debate (Shin's proposal to re-found EGs on an inside-out,
 negation-normal-form reading).
 
-What the check can claim is *correspondence with a reading*, not proof of
-fidelity to Peirce himself — the same modesty
+The check can claim *correspondence with a reading*, not proof of fidelity to
+Peirce himself — the same modesty
 [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §0 owes the tradition.
-What it found, in one line: **the implementation sits squarely on the
+In one line, it found that **the implementation sits squarely on the
 endoporeutic side of the argument the paper stages, and its two significant
 divergences are standing doctrine, not drift.**
 
@@ -44,27 +44,27 @@ divergences are standing doctrine, not drift.**
 
 Pietarinen's reconstruction has five load-bearing parts:
 
-1. **The Endoporeutic Principle.** Interpretation proceeds **outside-in**: the
-   outermost cuts are evaluated against the model *M* first, then the inner,
-   contextually-constrained ones; values instantiated at a ligature's outermost
-   extremity propagate inward (the *selectives*). Crucially, the EP "was not a
+1. **The Endoporeutic Principle.** Interpretation proceeds **outside-in**:
+   evaluation takes the outermost cuts against the model *M* first, then the
+   inner, contextually-constrained ones; values instantiated at a ligature's
+   outermost extremity propagate inward (the *selectives*). Crucially, the EP "was not a
    matter of reading the graphs, but a necessary consequence of the
    diagrammatisation" (§3) — "a nest sucks the meaning from without inwards unto
    its centre, as a sponge absorbs water" (MS 650: 18).
-2. **The two-player game.** Evaluation is a make-believe dialogue between the
-   **Graphist** (utterer; scribes the graphs, proposes modifications; the
-   verifier) and the **Grapheus** (interpreter; **authorises the
-   modifications**). Choices are assigned by polarity: existential selections to
+2. **The two-player game.** Evaluation proceeds as a make-believe dialogue
+   between the **Graphist** (utterer; scribes the graphs, proposes
+   modifications; the verifier) and the **Grapheus** (interpreter; **authorises
+   the modifications**). Polarity assigns the choices: existential selections to
    the verifier, universal to the falsifier, with role-swap under cuts (§2).
-3. **Truth as habit.** Truth of a graph is the existence of a winning strategy
-   for the Graphist — in Peirce's own terms "a habit … of a tolerable stable
+3. **Truth as habit.** Truth of a graph consists in the existence of a winning
+   strategy for the Graphist — in Peirce's own terms "a habit … of a tolerable stable
    nature" (MS 280: 30). The players share **common knowledge of the universe of
    discourse** — a common ground without which the discoursing could not proceed.
-   (This Pietarinen restatement is the **scholarly citation** behind Arisbe's own
+   (This Pietarinen restatement serves as the **scholarly citation** behind Arisbe's own
    settled two-player account; read
    [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3 as the canonical
    frame — Graphist = proposal-side, Grapheus = Model-M-side, binary outcome, no referee, the
-   Agonothetes not a player but the risked fate-selector. The citation is not contradicted:
+   Agonothetes not a player but the risked fate-selector. The citation stands uncontradicted:
    §3 names by *devotion* what Pietarinen names by *game role*.)
 4. **Meaning as consequences.** "The meaning of any graph-instance is the
    meaning of the sum total or aggregate of all the propositions which that
@@ -76,30 +76,31 @@ Pietarinen's reconstruction has five load-bearing parts:
    graphs to negation-normal form and read them inside-out, the paper argues the
    EP is constitutive: alternatives multiply the rule set and lose the dialogical
    structure; and the ligature examples (three drawings, one proposition — §6,
-   Figs. 3–4) show binding is by **ligature extension**, not syntactic scope.
+   Figs. 3–4) show that binding proceeds by **ligature extension**, not syntactic scope.
 
 ## 2 · Correspondences
 
 **2.1 The peel is the EP.** `semantic_game.evaluate` reads a graph outside-in by
 negation layer, querying the oracle at each negation-free stratum and recording
-the march in a transcript — the operational form of the sponge passage. Equally
-important is what the implementation *refuses*: evaluation never compiles to a
-normal form. The graph is walked as asserted, on its own area tree, which is the
-EP taken as constitutive rather than as one reading among several. The wider
-correspondence doctrine ([EXACT_CORRESPONDENCE.md](EXACT_CORRESPONDENCE.md): the
-cut *is* its drawn curve; containment is read off the drawn shape) is the same
-commitment applied to the picture itself.
+the march in a transcript. This gives the sponge passage its operational form.
+What the implementation *refuses* matters just as much: evaluation never
+compiles to a normal form. The evaluation walks the graph as asserted, on its
+own area tree, taking the EP as constitutive rather than as one reading among
+several. The wider correspondence doctrine
+([EXACT_CORRESPONDENCE.md](EXACT_CORRESPONDENCE.md): the cut *is* its drawn
+curve; containment is read off the drawn shape) applies the same commitment to
+the picture itself.
 
-**2.2 The two players, correctly assigned.** The paper's division of labor —
-Graphist scribes and proposes, Grapheus *authorises the modifications* — is
-preserved end to end. In the automated game
+**2.2 The two players, correctly assigned.** The paper divides the labor — the
+Graphist scribes and proposes, the Grapheus *authorises the modifications* —
+and that division survives end to end. In the automated game
 ([ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)) the Graphist role
 proposes (voices a doubt, scribes G) and the Grapheus role authorises how M may
 revise (votes the minimal disposition). The truth-functional choice-making by
 polarity — the *selectives* — lives in the peel and in the automated Grapheus'
-minimax over it: the structured `winning_witness` / `counterexample` are the
-recorded plays of the paper's conventions 2–4, and the contest register's
-hot-seat game is the literal two-player form.
+minimax over it. The structured `winning_witness` / `counterexample` record the
+plays of the paper's conventions 2–4, and the contest register's hot-seat game
+keeps the literal two-player form.
 
 **2.3 Truth as a "habit of a tolerable stable nature."** The deepest
 correspondence, and the one that reaches the present frontier. Peirce identifies

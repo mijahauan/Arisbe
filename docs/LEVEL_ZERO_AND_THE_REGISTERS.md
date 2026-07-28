@@ -21,11 +21,11 @@ second part of a 2026-06 conversation, archived at
 
 ## The thesis, flatly
 
-**The blank sheet is the only unconditioned thing — and it asserts nothing.** It is
-the sole fixed point: true by *withholding*, committing to nothing. Everything else a
+**The blank sheet is the only unconditioned thing — and it asserts nothing.** It stands
+as the sole fixed point, true by *withholding*, committing to nothing. Everything else a
 graph can carry, it carries **conditioned** — brought to bear from the blank by legal
 moves, and therefore always-already *inside*, under the exposure of a negative context,
-never floating free on the bare recto. In consequence there is **no unconditioned posit
+never floating free on the bare recto. In consequence **no unconditioned posit stands
 anywhere.**
 
 The claim has a demonstrative half and an assertoric half, and the calculus closes the
@@ -44,23 +44,23 @@ The claim has a demonstrative half and an assertoric half, and the calculus clos
   where it must bear · `DC+` opens the next), and stays running, dialogical,
   world-tested, and **sweepable** (`ERA` from a positive context — "free to demote").
 
-"Assertion" is thus not a graphical permission that lives at even depth; it is a name
-for what a scribing *does* in the hands of an utterer before an interpreter, and the
-only place a scribing can *legally* do it is inside, where it can still be wrong. No
-honorific attached to content at even depth can buy what only the six rules grant. The
-formal fact (no contingent graph originates naked on the positive recto) and the
-epistemic posture (no incorrigible saying) are the same fact seen twice.
+"Assertion" thus names no graphical permission living at even depth; it names what a
+scribing *does* in the hands of an utterer before an interpreter, and the only place a
+scribing can *legally* do it is inside, where it can still be wrong. No honorific
+attached to content at even depth can buy what only the six rules grant. The formal
+fact (no contingent graph originates naked on the positive recto) and the epistemic
+posture (no incorrigible saying) amount to the same fact seen twice.
 
 What the calculus does **not** supply is the *content* — *which* model M, *which*
-premise. That is **not a gap but the proper contingency**, answered in the world and in
+premise. That names **not a gap but the proper contingency**, answered in the world and in
 the Agon (§5–§6). The one standing obligation it leaves is **contextual honesty**:
 tracking *what* context — what nesting, what regime, what given — delivers a graph's
 interpretive meaning. That obligation *is* the central correspondence problem, the field
 guide's "context reflex," the three regimes, and the correspondence check (§3.3), all at once.
 
-This vindicates an unease that is *correct*, not a misunderstanding: the literature's
-"[scribe](GLOSSARY.md#scribe) on the sheet = assert" compresses a real bifurcation, and the compression is the
-source of the trouble.
+This vindicates an unease that proves *correct*, not a misunderstanding. The literature's
+"[scribe](GLOSSARY.md#scribe) on the sheet = assert" compresses a real bifurcation, and the trouble grows
+from that compression.
 
 ---
 

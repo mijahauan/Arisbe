@@ -1,6 +1,6 @@
 # Linear–Graphical Correspondence: The Central Invariant
 
-**Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) are in place.
+**Status**: Active contract — stated, tested, and runtime-attested (last revised 2026-06-07). The §7 property tests (`tests/test_correspondence_invariant.py`) and the §3.3 runtime hook (`src/correspondence_attestation.py`, wired into the web layout service) stand in place.
 
 **Scope**: Specification of the correspondence between an Existential Graph Instance ([EGI](GLOSSARY.md#egi))'s linear written form and its graphical drawn form. This document defines the contract that every other workstream (transformation rules, layout, rendering, sessions, the three modes, the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game) must respect.
 
@@ -10,11 +10,11 @@
 
 ## 1. Why this document exists
 
-Arisbe's primary aim is bringing Peirce's "moving pictures of thought" to life — logic done *in* pictures, not pictures of logic. Dau's formalization guarantees the *logical* correctness of every step; this document specifies the contract that guarantees the *pictures* say what the logic says.
+Arisbe aims above all to bring Peirce's "moving pictures of thought" to life — logic done *in* pictures, not pictures of logic. Dau's formalization guarantees the *logical* correctness of every step; this document specifies the contract that guarantees the *pictures* say what the logic says.
 
 We call that contract the **linear–graphical correspondence**: in any state asserted to mean something, the linear written form of an EGI and its graphical drawn form denote the same mathematical object. When they fail to denote the same object, the system has failed its central purpose — not because the logic is wrong (Dau guarantees that), but because the picture and the proposition have come apart.
 
-This spec is the source of truth for:
+This spec serves as the source of truth for:
 
 - Property tests that audit correspondence (`tests/test_correspondence_invariant.py`, all six §7 shapes against the [tomos](GLOSSARY.md#tomos) corpus).
 - Design reviews of features touching parse, generate, layout, render, transform, or undo/redo.
@@ -51,17 +51,17 @@ But graphical space is itself two-layered, and this distinction is load-bearing:
 
 This split matters because the correspondence has to hold *through the projection*. A 2-D drawing that obeys the conventions can be unambiguously parsed back to the natural representation, and from there to the EGI. A 2-D drawing that *silently* breaks a convention is a correspondence failure — even if the underlying logical map is intact. Conventions are part of the contract.
 
-The Obsidian 3-D graph-viewer analogy is apt. Dropping the planarity constraint in display dissolves artifacts of planar embedding (forced crossings, arbitrary sibling ordering) without changing the underlying logical content. A 3-D view of an EGI is the *same* graph under a different projection. Choosing among projections is presentation freedom, not logical mutation.
+The Obsidian 3-D graph-viewer analogy fits. Dropping the planarity constraint in display dissolves artifacts of planar embedding (forced crossings, arbitrary sibling ordering) without changing the underlying logical content. A 3-D view of an EGI is the *same* graph under a different projection. Choosing among projections is presentation freedom, not logical mutation.
 
 ---
 
 ## 3. The correspondence map
 
-The map runs in both directions, and each direction has different obligations.
+The map runs in both directions, and each direction carries different obligations.
 
 ### 3.0 What correspondence *is*: integrity, not truth
 
-Before the directions and the property table, the shape of the thing. The
+Before the directions and the property table comes the shape of the thing. The
 correspondence is best understood as an **embedding**: the assignment of
 figures to logical elements must *preserve and reflect* the EGI's relational
 structure — containment, incidence-with-order, identity (the W-partition),
@@ -110,7 +110,7 @@ Two failures must be kept apart:
 - **Not even wrong** — *void*: the marks embed no consistent object at all; no
   re-reading rescues them. (The line that lies about what it crosses.)
 
-Integrity is the wall between them. Below it: not yet a sign. Above it: a sign —
+Integrity forms the wall between them. Below it, not yet a sign. Above it, a sign —
 free to be reordered, recontextualized, tested, and *to be wrong*. This is the
 engineering reading of MANIFEST_AND_MEANING's "**we attest correspondence,
 never truth**": gate 1 held deliberately apart from gate 3. And it scopes
@@ -122,12 +122,12 @@ inquiry probes and expands. Exploration suspends *assertion*, never the
 
 ### 3.0.1 Two legs, two guards — what is attested at runtime and what in CI
 
-"Linear *and* graphical denote the same object" is, mechanically, a **triangle**:
-the EGI is the apex, and the invariant has two legs — **EGI ↔ drawing** and
+Mechanically, "linear *and* graphical denote the same object" forms a **triangle**:
+the EGI stands at the apex, and the invariant has two legs — **EGI ↔ drawing** and
 **EGI ↔ linear form** (EGIF/CGIF/CLIF). The linear↔graphical relation the title
-names is mediated through the EGI; it holds exactly when both legs hold (the linear-form leg covers Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))). The two
-legs are real and are guarded by **two different mechanisms**, and the difference
-is principled — it tracks the *drift surface*, not the importance:
+names is mediated through the EGI; it holds exactly when both legs hold (the linear-form leg covers Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))). Both
+legs are real, and **two different mechanisms** guard them. The difference
+follows a principle — it tracks the *drift surface*, not the importance:
 
 | Leg | Guard | When | Why this guard suffices |
 |---|---|---|---|
@@ -136,23 +136,24 @@ is principled — it tracks the *drift surface*, not the importance:
 
 So `attest_correspondence` guards only the drawing leg — confirmed by construction
 (`src/correspondence_attestation.py` imports `LayoutDTO`, never a parser/generator).
-The linear leg is closed entirely by the round-trip suites
-(`tests/test_properties_round_trip.py`, `…cgif_clif_round_trip.py`, `test_tomos_parsing.py`).
+The round-trip suites
+(`tests/test_properties_round_trip.py`, `…cgif_clif_round_trip.py`, `test_tomos_parsing.py`)
+close the linear leg entirely.
 One leg rides a fallible optimizer (needs runtime attestation); the other rides an
 infallible-once-tested translator (needs only CI). Together they close the triangle.
 
 **This is why the protected core looks the way it does.** The runtime §3.3 enforcers
-(`correspondence_attestation`, `presentation_ops`, `natural_layout`) are bedrock —
-a silent edit disables a *runtime* guarantee nothing else replaces — and are in the
+(`correspondence_attestation`, `presentation_ops`, `natural_layout`) serve as bedrock —
+a silent edit disables a *runtime* guarantee nothing else replaces — and sit in the
 protected set. The EGIF/CGIF/CLIF parsers/generators are **not**: they sit on the
-test-guarded leg, where a regression is caught deterministically by the round-trip
-suite, so they were removed from the set (2026-06-27). The protected core thus maps
+test-guarded leg, where the round-trip suite catches a regression deterministically,
+so they were removed from the set (2026-06-27). The protected core thus maps
 onto *the calculus + the runtime drift surface*, which is exactly the leg of this
 triangle that can fail per-instance.
 
 **One honest caveat.** There is, today, **no runtime attestation that a linear form
 shown in the UI matches the EGI** — the `LinearFormPanel` trusts the generator's
-tested correctness. That is sound *because* generation is deterministic. If a future
+tested correctness. That remains sound *because* generation is deterministic. If a future
 linear renderer became non-deterministic (e.g. a stylistic or LLM-assisted
 serialization), that leg would lose its correct-by-construction guarantee and would
 have to **move to runtime attestation** alongside the drawing leg.
@@ -171,7 +172,7 @@ The geometric realization (positions, ligature curves, cut bounds) is then a *pr
 
 Given a drawing, recover the EGI it represents. Today this direction is *trivially closed*: Arisbe never has to parse pixels back into logic, because every drawing it shows was rendered from an EGI it already holds. The "drawing" and its source EGI are co-resident; the `LayoutDTO` carries the structural information directly.
 
-The harder version of this problem — a user *draws* a graph with a stylus and the system must recover the EGI from pixel input — is a future regime. The spec accommodates it without committing to it: under that regime, the parse direction becomes a real obligation, and the projection conventions become *rules the user's drawing must obey* in order to be parseable.
+The harder version of this problem — a user *draws* a graph with a stylus and the system must recover the EGI from pixel input — remains a future regime. The spec accommodates it without committing to it: under that regime, the parse direction becomes a real obligation, and the projection conventions become *rules the user's drawing must obey* in order to be parseable.
 
 ### 3.3 What "faithful map" requires
 
@@ -212,13 +213,13 @@ Within a canonical graph, the user may freely alter the drawing in ways that tou
 
 Regime 3 is genuinely a free dimension and should be **always available**, even in strict regime 2 contexts. The system must be able to *prove* that a regime-3 operation hasn't touched the EGI (a structural-equality check on `(EGI_before, EGI_after)` is the cheap version).
 
-The research question of *which* presentations best support human comprehension lives entirely in regime 3, and is unblocked by the invariant rather than constrained by it. It is its own legitimate study — how aesthetic choices, projection choices, and convention choices affect how readily and accurately humans interpret diagrammatic logic.
+The research question of *which* presentations best support human comprehension lives entirely in regime 3, and is unblocked by the invariant rather than constrained by it. It stands as its own legitimate study — how aesthetic choices, projection choices, and convention choices affect how readily and accurately humans interpret diagrammatic logic.
 
 ---
 
 ## 5. The hard cases — where the map is most stressed
 
-These are the cases where invariant violations have historically arisen, and where future work needs the most care.
+Here invariant violations have historically arisen; here future work needs the most care.
 
 ### 5.1 Cut containment under regeneration
 
@@ -226,7 +227,7 @@ When a transformation changes the EGI, layout is regenerated. The new layout mus
 
 ### 5.2 Ligatures across cut boundaries (Beta)
 
-The W-partition is a combinatorial fact; a ligature path is a planar fact. Issues #5, #9, and #11 all concern variants of this single problem. A ligature must enter and exit each cut boundary at well-defined points, must visit *every* area where its vertex occurrences live and *no others*, must rearrange cleanly when the cut topology changes (#11 in particular), and must preserve the W-mapping under transformation. This is the densest source of correspondence bugs and the densest source of recent correctness work.
+The W-partition is a combinatorial fact; a ligature path is a planar fact. Issues #5, #9, and #11 all concern variants of this single problem. A ligature must enter and exit each cut boundary at well-defined points, must visit *every* area where its vertex occurrences live and *no others*, must rearrange cleanly when the cut topology changes (#11 in particular), and must preserve the W-mapping under transformation. This remains the densest source of correspondence bugs and the densest source of recent correctness work.
 
 ### 5.3 Sibling cut ordering and ligature crossings
 
@@ -234,15 +235,15 @@ Two sibling cuts at the same depth have no logical left/right ordering, but a 2-
 
 ### 5.4 Predicate hook order
 
-`ν` is ordered (a predicate's arguments have an order); the drawing must reflect that order distinctly so a reader can tell which hook is argument 1 vs. argument 2. This is a small but real correspondence obligation, and one that becomes more visible the more arity an EGI uses.
+`ν` is ordered (a predicate's arguments have an order); the drawing must reflect that order distinctly so a reader can tell which hook is argument 1 vs. argument 2. This correspondence obligation stays small but real, and it grows more visible the more arity an EGI uses.
 
 ### 5.5 The `LayoutDeltas` free dimension — and the structural impossibility of regime-3 abuse
 
-Regime 3 operations must be **structurally incapable** of changing the EGI. This is not a "check after the fact" — it's a constraint on how regime-3 operations are *defined*.
+Regime 3 operations must be **structurally incapable** of changing the EGI. This does not mean a check after the fact; it constrains how regime-3 operations are *defined*.
 
-The EG-semantic basis: objects are undefined outside their area. A vertex in area `A` is meaningful as an occurrence-in-`A`; the same identity may also have an occurrence in area `B`, and the ligature between them is the assertion that they are the same identity. A ligature crossing into and out of a cut is therefore not a single object flowing through regions — it is an *equivalence assertion* between distinct in-area occurrences. A user gesture that appears to "drag a vertex across a cut boundary" is not a coordinate update; it would, if completed, define a new object in a new area and violate the EGI.
+The basis comes from EG semantics: objects are undefined outside their area. A vertex in area `A` is meaningful as an occurrence-in-`A`; the same identity may also have an occurrence in area `B`, and the ligature between them is the assertion that they are the same identity. A ligature crossing into and out of a cut is therefore not a single object flowing through regions — it is an *equivalence assertion* between distinct in-area occurrences. A user gesture that appears to "drag a vertex across a cut boundary" is not a coordinate update; it would, if completed, define a new object in a new area and violate the EGI.
 
-The consequence: a gesture that *would* change `area`, alter the W-partition, change predicate hook count or order, or otherwise touch the structural data is *by definition* not a regime-3 operation. The system must:
+In consequence, a gesture that *would* change `area`, alter the W-partition, change predicate hook count or order, or otherwise touch the structural data is *by definition* not a regime-3 operation. The system must:
 
 - Expose regime 3 as a closed algebra over the projection alone — operations whose effect on the `(EGI, projection)` pair is provably restricted to the projection component.
 - Refuse or redirect any gesture that would cross a regime boundary. An attempted area-crossing drag should snap back, prompt the appropriate transformation-rule dialog, or simply not be accepted as a regime-3 input.

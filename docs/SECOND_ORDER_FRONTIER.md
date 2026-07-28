@@ -14,14 +14,13 @@ employed prerequisite, and the landscape verdict read as Peircean doctrine.*
 
 > **What this is.** [MODALITY_WITHOUT_GAMMA](MODALITY_WITHOUT_GAMMA.md) takes the *modal* half of
 > Peirce's Gamma off the table (the diachronic DAG is the Kripke frame — no broken cuts, no
-> tinctures). What remains of Gamma is the genuinely hard half: **second-order logic — graphs about
-> graphs, quantification over predicates, abstraction.** This document maps that frontier the way the
-> project maps every departure: establish exactly how far Peirce himself got, let a century of logic
-> say where he leads and where he trails off, and **mark the boundary** where his manuscripts end and
-> we take other guides. The governing constraint throughout — the one that keeps this Peirce-centered
-> — is that the crossing must be done **in drawing**: second-order logic as a *moving picture of
-> thought*, visually and practically tractable, never a symbolic type-annotation bolted onto the
-> sheet.
+> tinctures). What remains of Gamma amounts to the genuinely hard half: **second-order logic — graphs
+> about graphs, quantification over predicates, abstraction.** This document maps that frontier the
+> way the project maps every departure. Establish exactly how far Peirce himself got. Let a century of
+> logic say where he leads and where he trails off. Then **mark the boundary** where his manuscripts
+> end and we take other guides. One constraint governs throughout, and it keeps this Peirce-centered:
+> the crossing must happen **in drawing** — second-order logic as a *moving picture of thought*,
+> visually and practically tractable, never a symbolic type-annotation bolted onto the sheet.
 
 ## The constraint that defines the frontier
 

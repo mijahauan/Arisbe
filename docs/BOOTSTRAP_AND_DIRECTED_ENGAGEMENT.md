@@ -26,27 +26,27 @@
 > read *off* this machinery — knowledge defined and measured, its fractal levels, the
 > ethical and pedagogical corollaries).
 >
-> *Written 2026-07-17. Design only — nothing new is built by this doc; everything cited as
-> built carries its module name. Readings that are the assistant's are flagged as such.*
+> *Written 2026-07-17. Design only — this doc builds nothing new; everything cited as
+> built carries its module name. Where a reading belongs to the assistant, it carries a flag.*
 
 ---
 
 ## 1 · The Minimal Predictive Automaton, mapped onto what is built
 
-The author's sketch: a system initialized from outside with a sensor space *S*, an action
+The author sketched a system initialized from outside with a sensor space *S*, an action
 space *A*, and an internal transition model *M*; a perception–action cycle (read sign →
 generate interpretant-as-prediction → interact → experience); **doubt defined strictly as
 prediction error** (the delta between predicted and experienced next state); and remodeling
 (abduction) triggered exactly when doubt is nonzero.
 
-**Lineage (attribution, recorded 2026-07-17).** The MPA is not a novel architecture but the
-**convergence point of four traditions**, and the doc owes each its credit: **American
+**Lineage (attribution, recorded 2026-07-17).** The MPA does not stand as a novel
+architecture; it marks the **convergence point of four traditions**, and the doc owes each its credit: **American
 pragmatism** — Peirce's *The Fixation of Belief* (1877) formalized the engine (inquiry
 driven by the *irritation of doubt*, ending in a settled habit of action), and Dewey's
 *The Reflex Arc Concept in Psychology* (1896) dismantled linear stimulus–response in favor
 of the continuous perception–action loop (our actions dictate what stimuli we receive);
 **cybernetics** — Wiener (1948) made feedback the general mechanism, and Ashby's
-**Homeostat** (1948) was the first *physical* implementation of remodeling driven by
+**Homeostat** (1948) gave the first *physical* implementation of remodeling driven by
 environmental friction (ultrastability: out-of-bounds variables trigger re-randomized
 internal wiring until equilibrium returns — doubt as a voltage); **predictive processing**
 — Helmholtz's *unconscious inference* (1860s) through Friston's free-energy principle
@@ -59,7 +59,7 @@ is the doubt-delta exactly (and expected TD error = 0, the update's fixed point,
 settled belief). Full entries in
 [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
 
-Laid against the codebase, the automaton is about four-fifths built — scattered, under
+Laid against the codebase, the automaton stands about four-fifths built — scattered, under
 other names:
 
 | MPA element | Arisbe realization | Status |

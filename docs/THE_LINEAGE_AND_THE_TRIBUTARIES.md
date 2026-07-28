@@ -1,20 +1,21 @@
 # The Lineage and the Tributaries: An Intellectual History
 
-> **What this is.** The book's history chapter: where Arisbe's ideas came
-> from, told generously and precisely — and told as *two different kinds* of
-> ancestry, because the project owes two different kinds of debt. The
-> **formalization lineage** (Roberts, Zeman, Shin, Sowa, culminating in Dau)
-> is the mathematics that makes the instrument sound: it is the machinery's
-> *warrant*, and it is never graded, ranked, or mapped — only credited. The
-> **tributary traditions** (cybernetics, artificial life, erotetics,
-> evolutionary epistemology, belief revision, biosemiotics, the sociology of
-> knowledge, active inference, scaling science, and the rest) each raised a
-> genuine doubt and each lacked a piece of machinery; this chapter tells each
-> one's story with the phenomenon credited *first* and the lack named second.
-> The claim that binds the tellings together — that one operational core is
-> the substrate they were all missing — is voiced at the end as a
-> **proposition, not an assertion**: testable by practitioner recognition,
-> with refutation invited in the text.
+> **What this is.** The book's history chapter. It tells where Arisbe's
+> ideas came from, generously and precisely, and it tells that story as
+> *two different kinds* of ancestry, because the project owes two different
+> kinds of debt. The **formalization lineage** (Roberts, Zeman, Shin, Sowa,
+> culminating in Dau) supplies the mathematics that makes the instrument
+> sound. That lineage serves as the machinery's *warrant*, and it never gets
+> graded, ranked, or mapped — only credited. The **tributary traditions**
+> (cybernetics, artificial life, erotetics, evolutionary epistemology,
+> belief revision, biosemiotics, the sociology of knowledge, active
+> inference, scaling science, and the rest) each raised a genuine doubt and
+> each lacked a piece of machinery; this chapter tells each one's story with
+> the phenomenon credited *first* and the lack named second. The claim that
+> binds the tellings together — that one operational core supplies the
+> substrate they were all missing — speaks at the end as a **proposition,
+> not an assertion**, testable by practitioner recognition, with refutation
+> invited in the text.
 >
 > **Companions:** [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md)
 > (the claim-by-claim verdicts, the graded concordance map — this chapter's

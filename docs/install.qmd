@@ -23,8 +23,8 @@ uv sync --extra dev --extra web
 
 `uv sync` is exact: the **`web`** extra carries FastAPI and uvicorn (the web viewer and the
 route tests need them), and **`dev`** carries the test/quality tooling. If you omit an extra,
-`uv sync` will *prune* it — so install both. No manual virtual-environment activation is
-needed; prefix commands with `uv run`, or `source .venv/bin/activate` once if you prefer.
+`uv sync` will *prune* it, so install both. You need no manual virtual-environment
+activation; prefix commands with `uv run`, or `source .venv/bin/activate` once if you prefer.
 
 ## Run the web viewer (the canonical UI)
 
@@ -75,24 +75,25 @@ quarto preview docs
 ```
 
 The rendered HTML site lands in `docs/_book/`. When that directory exists, the running web
-app serves it at **<http://localhost:8000/book/>**, so the book and the in-app help are the
-same artifact — never maintained twice.
+app serves it at **<http://localhost:8000/book/>**, so the book and the in-app help remain
+one artifact, never maintained twice.
 
 > The generated outputs (`docs/_book/`, `docs/.quarto/`) are not checked in; run
 > `quarto render docs` after pulling to refresh them.
 
 ## The HTTP API
 
-The web app is a FastAPI service, so the **complete, live, machine-readable API reference is
-served by the running server** — no separate document to fall out of date:
+The web app runs as a FastAPI service, so **the running server serves the complete, live,
+machine-readable API reference**, with no separate document to fall out of date:
 
 - **<http://localhost:8000/docs>** — interactive Swagger UI (browse and *try* every route).
 - **<http://localhost:8000/openapi.json>** — the OpenAPI 3 spec (80+ routes across
   `/organon`, `/ergasterion`, `/agon`, `/export`, `/import`, `/primer`), for generating a
   client or wiring an integration.
 
-`ARISBE_CORE_API_REFERENCE.md` documents the **Python** core API; the two are complementary —
-HTTP for integrating *with* a running Arisbe, the Python reference for building *inside* it. A
+`ARISBE_CORE_API_REFERENCE.md` documents the **Python** core API; the two complement each
+other: HTTP for integrating *with* a running Arisbe, the Python reference for building
+*inside* it. A
 curated schema for the highest-traffic routes and their structured error bodies is queued;
 meanwhile `TROUBLESHOOTING.md` catalogues the error/refusal vocabulary an integrator will
 meet.
@@ -106,9 +107,9 @@ UID=$(curl -s localhost:8000/organon/uods | jq -r '.data[0].uod_id')
 curl -s "localhost:8000/organon/uods/$UID" | jq '{egif: .data.linear_forms.egif, svg_len: (.data.svg|length)}'
 ```
 
-Every response is a `{success, data|error}` envelope; the interactive Swagger UI (`/docs`)
-lets you build up a longer flow — parse → render → transform → save — route by route.
-Deployment note: the corpus and scratch roots default to `<repo>/tomos` and `<repo>/scratch`
-and are overridable with the `ARISBE_TOMOS` / `ARISBE_SCRATCH` environment variables; the app
-is a **local single-user** server (no auth/multi-tenancy) unless you put your own gateway in
-front of it.
+Every response arrives as a `{success, data|error}` envelope; the interactive Swagger UI
+(`/docs`) lets you build up a longer flow — parse → render → transform → save — route by
+route. A note on deployment: the corpus and scratch roots default to `<repo>/tomos` and
+`<repo>/scratch`, overridable with the `ARISBE_TOMOS` / `ARISBE_SCRATCH` environment
+variables; the app runs as a **local single-user** server (no auth/multi-tenancy) unless you
+put your own gateway in front of it.

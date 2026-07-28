@@ -22,6 +22,12 @@ make for itself, since judgment is objectivated, never owned
 
 Contents:
 
+- **The four letter drafts in the author's voice** (2026-07-28, from the
+  calibrated voice profile; awaiting his revision and hand):
+  [LETTER_SOWA_DRAFT.md](LETTER_SOWA_DRAFT.md) ·
+  [LETTER_DAU_DRAFT.md](LETTER_DAU_DRAFT.md) ·
+  [LETTER_WEST_DRAFT.md](LETTER_WEST_DRAFT.md) ·
+  [LETTER_PIETARINEN_DRAFT.md](LETTER_PIETARINEN_DRAFT.md)
 - [LETTER_SOWA_SKELETON.md](LETTER_SOWA_SKELETON.md) — the conceptual-graphs /
   interchange-format lineage; the correspondence invariant as the proposition.
 - [LETTER_DAU_SKELETON.md](LETTER_DAU_SKELETON.md) — the guarantor; the three

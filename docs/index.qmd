@@ -1,14 +1,14 @@
 # Preface {.unnumbered}
 
-**Arisbe** is an environment for *doing logic in pictures, not pictures of logic* — Charles
-Sanders Peirce's "moving pictures of thought" made operational, with Frithjof Dau's
-formalization as the guarantor of correctness.
+**Arisbe** offers an environment for *doing logic in pictures, not pictures of logic*. It
+makes Charles Sanders Peirce's "moving pictures of thought" operational, with Frithjof
+Dau's formalization standing as the guarantor of correctness.
 
-The central engineering and research problem the system exists to solve is the **inerrant
+The system exists to solve one central engineering and research problem: the **inerrant
 correspondence between an existential graph's linear written form and its graphical drawn
-form** — picture and proposition denoting the same mathematical object across every
-transformation, every layout, every edit, every round-trip. That contract is the book's
-spine; it gets its own chapter in Part I and is treated in depth in Part IV.
+form**. Picture and proposition must denote the same mathematical object across every
+transformation, every layout, every edit, every round-trip. That contract forms the book's
+spine; Part I gives it its own chapter, and Part IV treats it in depth.
 
 ## How this book is organized
 
@@ -26,14 +26,14 @@ a linear read and task-oriented lookup:
 
 ## One source, two renders
 
-This book is built with [Quarto](https://quarto.org) from the project's own documentation. The
-same source renders to:
+This book comes from the project's own documentation, built with
+[Quarto](https://quarto.org). The same source renders to:
 
 - a **browseable web help** (an HTML site, also served in-app — see *Install & run*), and
 - a **book** (PDF and epub).
 
-The reader chapters are the canonical docs that live under `docs/`, selected and ordered here;
-the project's design-of-record, roadmap, and session notes stay in the repository and are
-deliberately excluded from the reader's book.
+The reader chapters consist of the canonical docs that live under `docs/`, selected and
+ordered here. The project's design-of-record, roadmap, and session notes stay in the
+repository; the reader's book deliberately excludes them.
 
 > **New here?** Jump to **II · Getting started → Install & run**, then **Your first graph**.

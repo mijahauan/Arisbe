@@ -23,19 +23,19 @@ written to be **answered** — see §6, the charge to the opposition.*
 
 ## 0. Why this document exists
 
-Arisbe is built in homage to Charles Sanders Peirce. Nearly everything load-
-bearing in it is his: the aim, the instrument, the semiotic that makes the
-instrument mean, the dialogical test that makes meaning answerable. The author
-is not a Peirce scholar and does not pretend to stand above the immense and far
-more learned literature that has studied, edited, and applied Peirce in the
+The author built Arisbe in homage to Charles Sanders Peirce. Nearly everything
+load-bearing in it comes from him: the aim, the instrument, the semiotic that
+makes the instrument mean, the dialogical test that makes meaning answerable. The
+author makes no claim to Peirce scholarship and does not pretend to stand above
+the immense and far more learned literature that has studied, edited, and applied Peirce in the
 century since his death. **He owes that tradition the courtesy of saying clearly
 where he has left it, and why.**
 
-Three departures have accumulated in the doctrine. They were drafted boldly,
-then **examined adversarially over five rounds** (the record, and the strongest
-case against each, is [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md));
-the sections below state them in their *post-examination* form, which is in two of
-three cases narrower and more honest than the first draft:
+Three departures have accumulated in the doctrine. The author drafted them
+boldly, then had them **examined adversarially over five rounds** (the record, and
+the strongest case against each, is [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md));
+the sections below state them in their *post-examination* form, which in two of
+three cases reads narrower and more honest than the first draft:
 
 1. **Convergence and the real** *(was: "inquiry does not converge")* — the
    first-order question "is this nearer the real?" is a non-locution (secured);
@@ -51,13 +51,13 @@ three cases narrower and more honest than the first draft:
    stands. The *completeness* boast is scoped to propositional modal logic; the
    second-order program is the real frontier. Survives, amended.
 
-Each is argued, in its home document, *from within* Peirce's own commitments
-rather than against them. The point of the examination was that an argument that
-flatters its author is worth little: the departures were **handed to opponents**
-— a traditional Peircean, a modern logician, a historian of the secondary
-literature — and what flattery they carried was burned off. What survived is kept
-on better terms than conviction; what did not was revised, in the author's own
-voice, below.
+Each home document argues its departure *from within* Peirce's own commitments
+rather than against them. Why examine them at all? Because an argument that
+flatters its author carries little worth. So the departures were **handed to
+opponents** — a traditional Peircean, a modern logician, a historian of the
+secondary literature — and what flattery they carried burned off. What survived
+now rests on better terms than conviction; what did not stands revised, in the
+author's own voice, below.
 
 ---
 

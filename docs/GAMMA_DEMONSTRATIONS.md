@@ -3,10 +3,10 @@
 > **What this is.** The demonstrations companion to
 > [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) (the doctrine). That document
 > argues that Beta EG plus the diachronic branching DAG expresses □/◇ with **no new modal
-> mark**, up to the second-order frontier. This one *earns* the claim: it takes specific
-> modal meanings Peirce attempted to draw with his never-completed Gamma graphs — the
-> broken cut of the 1903 Lowell Lectures, the tinctured would-be and the book of separate
-> sheets of the 1906 *Prolegomena* — and expresses each with the machinery Arisbe already
+> mark**, up to the second-order frontier. This document earns the claim. Peirce attempted
+> to draw specific modal meanings with his never-completed Gamma graphs: the broken cut of
+> the 1903 Lowell Lectures, the tinctured would-be and the book of separate sheets of the
+> 1906 *Prolegomena*. It expresses each of them with the machinery Arisbe already
 > has, as corpus exemplars you can open in Organon and read through the lenses.
 >
 > Built 2026-07-04. Every Peirce citation below was verified against the in-repo Roberts
@@ -16,9 +16,9 @@
 
 ## 1 · What Peirce drew, and what carries it here
 
-Peirce's Gamma (1903–1911) was several projects at once. Three of them are modal, and
-those three are demonstrated below; the rest — graphs of graphs, abstraction, the
-"potentials" — are second-order and remain the honestly-named frontier
+Peirce's Gamma (1903–1911) ran several projects at once. Three of them concern modality,
+and those three receive demonstrations below. The rest — graphs of graphs, abstraction,
+the "potentials" — belong to the second order and remain the honestly-named frontier
 ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §7).
 
 | Peirce's device | Where he drew it | What carries it in Arisbe |
@@ -27,7 +27,7 @@ those three are demonstrated below; the rest — graphs of graphs, abstraction, 
 | **The tinctured would-be** — a blue-tinted area making a conditional *strict*, not material | Ms 490 (the passage omitted at the end of CP 4.575); the argument at CP 4.546, 4.549 | a branching DAG of *courses of experience*, the proposal peeled at every world (§4) |
 | **The book of separate sheets** — SA replaced by "a book of separate sheets, tacked together at points" | CP 4.512, 4.514 (Lowell IV) | the UoD itself: one EGI state per sheet, the DAG tacking them together (§5) |
 
-The demonstrations are three corpus UoDs:
+Three corpus UoDs carry the demonstrations:
 
 | UoD id | Register (what R is) | The Peirce figure it reconstructs |
 |---|---|---|

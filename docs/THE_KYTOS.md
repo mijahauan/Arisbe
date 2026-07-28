@@ -3,12 +3,12 @@
 > **What this is.** Design-of-record for the native name the author ratified on
 > 2026-07-19: **kytos** (κύτος, *vessel* — the root of "cell") for the recurring
 > membrane-and-loop unit of semiosis; **the semiotic cell** as its plain-English gloss;
-> **quasi-mind** (Peirce's own term) for what a kytos hosts once it plays the game. The
-> concept was forced by convergent pressure: the fractal reading of the knowledge
+> **quasi-mind** (Peirce's own term) for what a kytos hosts once it plays the game.
+> Convergent pressure forced the concept: the fractal reading of the knowledge
 > measure (THE_MEASURE_OF_KNOWLEDGE §3 and the author's three added senses), the oracle
 > doctrine's rate economy, and the author's ruling that borrowed vocabulary (Umwelt,
-> functional circle, Markov blanket) should remain *concordances* — light-shedding
-> neighbors — while the thing itself gets a name of the house.
+> functional circle, Markov blanket) should remain *concordances*, neighbors that shed
+> light, while the thing itself takes a name of the house.
 >
 > **Companions:** [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) (the
 > measure a kytos is scored by) ·

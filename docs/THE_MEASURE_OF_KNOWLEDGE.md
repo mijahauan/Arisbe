@@ -11,11 +11,11 @@
 > in dialogue with a teacher."
 >
 > Assistant-drafted from the author's seeds (each quoted where it enters); every reading
-> that is the assistant's is flagged; the decisions are named in §6 and remain the
-> author's. Most of this doc is design; two builds have since landed (2026-07-19, under
-> the Examination IV docket): the §2 K3 compression ratio and the §2 K1 severity join —
-> each carrying, in the table below, exactly what remains open. The tutor loop (§5)
-> remains a design-pass candidate, named not authorized.
+> of the assistant's carries a flag; the decisions stand named in §6 and remain the
+> author's. Most of this doc remains design, though two builds have since landed
+> (2026-07-19, under the Examination IV docket): the §2 K3 compression ratio and the §2
+> K1 severity join, each carrying in the table below exactly what remains open. The tutor
+> loop (§5) remains a design-pass candidate, named not authorized.
 >
 > **Companions:** [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md)
 > (the loop this doctrine reads from) ·
@@ -37,7 +37,7 @@ lightly normalized): *"Knowledge — a set of situations in which an agent succe
 mediates a nontrivial, polar relationship between entities. In short, knowledge exists
 when someone reliably does something (thinks, speaks, acts) that works."*
 
-This is a dispositional, pragmatist definition — knowledge as reliable successful
+The definition reads as dispositional and pragmatist — knowledge as reliable successful
 mediation — and the machinery now running gives each clause a measurable counterpart:
 
 - **"Reliably … works"** → the track record. In the resolving membranes M's knowledge *is*
@@ -46,19 +46,19 @@ mediation — and the machinery now running gives each clause a measurable count
   this way on 2026-07-17.
 - **"Nontrivial"** → **severity**, the term rung 1 added. A reliable success that risked
   nothing (predicting tautologies — epistemology's noisy TV) earns nothing; knowledge
-  accrues in proportion to the *refutability survived*. The Fermat exemplar is the
-  worked case: five confirmations deep, the law was never knowledge, because it had not
-  been tested where it could fail — and at F5 it died. Popperian corroboration, made a
-  line item.
-- **"Mediates a … polar relationship"** → the sign-relation, and in an existential graph
-  the polarity is *drawn*: a law `~[ P ~[ Q ] ]` mediates antecedent and consequent
-  across evenly and oddly enclosed areas. The peel is the mediation act; the verdict is
-  its success or failure.
+  accrues in proportion to the *refutability survived*. The Fermat exemplar works the
+  case through: five confirmations deep, the law never amounted to knowledge, because
+  nothing had tested it where it could fail — and at F5 it died. Popperian
+  corroboration, made a line item.
+- **"Mediates a … polar relationship"** → the sign-relation, and an existential graph
+  *draws* the polarity: a law `~[ P ~[ Q ] ]` mediates antecedent and consequent
+  across evenly and oddly enclosed areas. The peel performs the mediation; the verdict
+  names its success or failure.
 - **"A set of situations"** → the clause the seed got most right: knowledge is **indexed
-  to the horizon within which its record was earned** — the Umwelt clause. This is
-  exactly the standing floor (*warrant = in-context competence, never worth*,
-  FIDELITY_AND_DEPARTURES): the "set of situations" was context-indexing before Arisbe
-  enforced it structurally.
+  to the horizon within which its record was earned** — the Umwelt clause. This matches
+  the standing floor exactly (*warrant = in-context competence, never worth*,
+  FIDELITY_AND_DEPARTURES): the "set of situations" did the work of context-indexing
+  before Arisbe enforced it structurally.
 
 **The revision** (assistant's formulation, for the author to amend): **knowledge is the
 resident content of M whose habits reliably mediate the membrane's deliverances —

@@ -1,7 +1,30 @@
 # Current Plan
 
-**Last Updated**: 2026-07-27 (night, fourth arc) — **SITTING B2 EXECUTED: all eleven
-need-list items closed + the author's mid-sitting audience/use-case expansion acted on.**
+**Last Updated**: 2026-07-28 (overnight, fifth arc) — **THE VOICE PROJECT OPENED + THE
+OVERNIGHT RE-VOICING, INTERRUPTED BY THE SPEND LIMIT.** The author asked (2026-07-28)
+whether the assistant can write in his voice — letters first, then all documentation —
+and pointed at his journal as evidence. Done overnight: (1) a **voice profile** distilled
+from ~1,500 lines of the journal (2015–2026, style only; profile lives in private session
+memory, correctable by him; his own stated rule — minimize "to be," unpack what "is"
+hides — confirmed empirically and adopted); (2) **all four letters drafted in his voice**
+(`docs/share/LETTER_*_DRAFT.md`, awaiting his markup; the Sowa §2 calibration sample he
+called "a good start" folded in); (3) **book re-voicing begun** under hard constraints
+(meaning frozen, headings untouched [verified mechanically], quotes byte-identical, ±10%
+length): **6 chapters fully re-voiced** (index.qmd, install.qmd, LINEAR_GRAPHICAL_
+CORRESPONDENCE, CHAIN_OF_SEMIOSIS, MEANING_BY_HISTORY, MANIFEST_AND_MEANING), **12 more
+partially re-voiced** when the **monthly spend limit killed the agent fleet mid-flight**
+(VISION, the three FIDELITY docs, LEVEL_ZERO, MODALITY, SECOND_ORDER_FRONTIER, GAMMA_
+DEMONSTRATIONS, BOOTSTRAP, MEASURE, KYTOS, COMMENS, LINEAGE — partial = earlier sections
+in his voice, later sections in the old voice; harmless but texture-inconsistent, flagged
+here). Parts II–V untouched. Book renders clean. Excluded by design: ARISBE_CORE_API_
+REFERENCE (auto-generated) and ADVERSARIAL_EXAMINATION (a record; re-voicing it would
+tamper — the author to rule). **Blocker: the spend limit** (claude.ai/settings/usage);
+once raised, finish the 12 partials + Parts II–V by the same brief
+(scratchpad `revoice_brief.md` preserved in the session; the voice profile in memory).
+Meanwhile **RUN 13's `--no-p213` overnight segment COMPLETED** (exit 0): the answered
+07-27 note scored — 2/2 answers recorded, 2 reveals, 7 banked, |M| 5,532 atoms, watchlist
+17 terms/0 refused — and no new note written (today's-note-exists guard), so the
+**provenance-mix note comes with the next segment's oracle pass** → author marks → P4¹³.
 
 1. **The intellectual-history chapter (needs #1–#3): `docs/THE_LINEAGE_AND_THE_TRIBUTARIES.md`**,
    NEW, in the book (Part I · Why, after ADVERSARIAL_EXAMINATION; render-check **47/47** clean).
