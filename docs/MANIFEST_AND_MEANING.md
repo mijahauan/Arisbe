@@ -39,7 +39,7 @@ nothing more**.
 |---|---|
 | *Our tales — slender threads in its telling; our names — brief glimmers of its naming.* (The Tao told is not the eternal Tao.) | Every linear form, every graph, every domain model is a **telling**, never the ground. The real (Peirce's *dynamical object*) exceeds every interpretant. So **no representation is final**: each stands as a determination, held open to revision. |
 | *All things — distinct in unbegotten, unfathomable union.* (The nameless, beginning of heaven and earth.) | The **blank sheet of assertion** is that union: the only unequivocal truth, a fullness that says nothing because it withholds nothing. The ten thousand graphs are scribings upon it. It stands as the **fixed point of erasure**, the one inviolable element. |
-| *...naming and knowing each other.* (The ten thousand things in mutual relation.) | Meaning is **relational, and settled in use**: a mark means not by itself but through its **interpretant** — what it does in conduct, how the community takes it up and holds it to account. Things name and know *each other*; no mark names alone. So fact-versus-lie turns on *commitment*, never on ink — which is why [warrant](GLOSSARY.md#warrant) is earned in the **Agon**, not conferred by the drawing. |
+| *...naming and knowing each other.* (The ten thousand things in mutual relation.) | Meaning is **relational, and settled in use**: a mark means not by itself but through its **interpretant** — what it does in conduct, how the community takes it up and holds it to account. Things name and know *each other*; no mark names alone. So fact-versus-lie turns on *commitment*, never on ink — which is why a graph earns its [warrant](GLOSSARY.md#warrant) in the **Agon**; the drawing never confers it. |
 | *Manifest and meaning sound in the same chord.* (The two spring from one source, differ in name.) | The **linear↔graphical correspondence** — picture and proposition, one object sounded twice. This *is* Arisbe's central engineering problem. **The correspondence check (§3.3) attests the chord holds** — correspondence, never truth. |
 | *Detaching, one glimpses the sea; desiring, one rides the waves.* (Desireless, the mystery; desiring, the manifestations.) | Two stances, one water: the **diachronic process** (the sea — the living, reconsidering Universe of Discourse) and the **synchronic move** (the wave — a single Existential Graph ([EG](GLOSSARY.md#eg)), an assertion). Detachment means readiness to **erase**; desire names the move that **[scribes](GLOSSARY.md#scribe)**. |
 | *An inscrutable mystery of mysteries, and yet a threshold of understanding.* (The gate to all understanding.) | The ground we stand within and cannot survey serves as both **limit** (we never know for sure) and **enabling condition** (inquiry proceeds within it, corrected by it). The **Agon** makes that threshold operational — there warrant rises and falls, never settles. |
@@ -70,10 +70,10 @@ representations, all still notional, all still bets. A mark may never carry
 "our idea of it," because every line lies on the inner side of the membrane and
 none escapes to the thing. The temptation grows sharpest where it looks most
 innocent — a solid line for "fact," a dotted line for "possibility." The
-form-distinction remains licit (it marks *how a bet is held*); the actuality
-smuggled in by the word "fact" does not. The burden falls on any such mark to
-prove it does not impersonate the world; if it cannot be kept strictly as form,
-better not drawn. The reciprocal guard holds equally: that we see only our
+form-distinction remains licit (it marks *how we hold a bet*); the actuality
+the word "fact" smuggles in does not. The burden falls on any such mark to
+prove it does not impersonate the world; if we cannot keep it strictly as form,
+better not to draw it. The reciprocal guard holds equally: that we see only our
 representations does not mean there is nothing *but* representations. We never
 grasp the real bare, yet it always pushes back. Reverence threads between the
 two errors — a real we never hold in hand, and no mark that escapes to it.
@@ -82,7 +82,7 @@ two errors — a real we never hold in hand, and no mark that escapes to it.
 collapse them — in the precise form a five-round adversarial examination left them
 ([FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §2;
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)).* What the examination
-**secured for both readings**: the real is felt as *push* — it overturns standings
+**secured for both readings**: we feel the real as *push* — it overturns standings
 (the hole, the crop, the recalcitrant fact), and inquiry is driven from behind,
 away from doubt and error. This negative orientation is Peirce's own (the
 *Fixation of Belief* engine), and the real so encountered is cognizable *in its
@@ -102,12 +102,12 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
 ## What the bridge obliges us to build — the practical floor
 
 1. **Foundation by emptiness.** The blank sheet remains the only inviolable
-   element; *nothing else may ever be locked.* "Assert into the corpus"
+   element; *we may never lock anything else.* "Assert into the corpus"
    never means "freeze."
 2. **Falsifiability is in the rules, not a policy.** Insertion into a
    negative context (entertain *anything*) and erasure from a positive
    context (relinquish *any* assertion) both count as legal moves of the
-   calculus. Everything can be walked back toward the blank sheet. Read as an
+   calculus. We can walk everything back toward the blank sheet. Read as an
    epistemology, that asymmetry amounts to the whole posture: *erase freely
    where things are affirmed, insert freely where things are conditioned.* The
    rules supply **logical defeasibility** (content held under negation, walkable
@@ -125,8 +125,8 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
    that rises by withstanding challenge and *can fall*. So *"fact"* names not a
    glow in the object but the **defeasible status of the last-standing
    trajectory**, the line not yet pruned. The enacted history *confers* that
-   status; the status stays *answerable* beyond it, free to be demoted on better
-   information or changed need. Conferred-yet-answerable, never frozen.
+   status; the status stays *answerable* beyond it, and better information or a
+   changed need may demote it. Conferred-yet-answerable, never frozen.
 5. **A library of universes, not a universe.** Provenance traces an
    un-hosted dialogue; the corpus may hold mutually inconsistent UoDs
    without contradiction — faithful to a community across history, not
@@ -152,7 +152,7 @@ discipline is the same. We hold them in the same chord, and leave the choice liv
    mechanically expansible — never an operator (§5 there).
 7. **Two deaths, so track liveness.** A telling can be relinquished by
    *falsification* (drawn back under a cut and refuted) or by *desuetude*
-   (falling out of use). Warrant records not only how a telling was tested but
+   (falling out of use). Warrant records not only how we tested a telling but
    whether it remains **alive** in the conversation; an unconsulted model is
    dying the second death though it was never wrong.
 
@@ -169,17 +169,17 @@ upon it surrenderable.*
   it for correspondence — never asserts it as true.
 - **Agon** names the rule-governed process by which warrant rises (content
   crosses into a positive context) or falls. Nothing in the corpus ever
-  stands exempt from being drawn back under a cut and challenged again.
+  stands exempt; anyone may draw it back under a cut and challenge it again.
 - **No irreversible commitment** anywhere: the only bedrock remains the
   blank sheet, which says nothing and so cannot be wrong.
 - **Provenance faces forward, not only back.** The record carries not just how
-  a telling was warranted but whether it remains in use; re-opening, re-testing,
+  a telling earned its warrant but whether it remains in use; re-opening, re-testing,
   and retiring a settled model stand as first-class as asserting it. Knowledge
   holds not as a chain anchored to bedrock but as Peirce's **cable** — many
   contingent fibers, none reaching bottom, holding by their multitude and their
   connection. *(Realized in `src/liveness.py`: every consultation — opened in
   Organon, pressed into service as a model M in Agon — keeps a telling alive; an
   unconsulted one reads `dormant`/`unconsulted` (the second death, though never
-  wrong); a model can be deliberately `retired` and, reversibly, revived. It sits
+  wrong); we can deliberately `retire` a model and, reversibly, revive it. It sits
   outside §3.3 (consulting a sign is not a sign) and surfaces as a forward-facing
   facet in Organon.)*

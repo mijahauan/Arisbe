@@ -1,8 +1,8 @@
 # The Bootstrap and Directed Engagement
 
 > **What this is.** Design-of-record for the step-back the author took on 2026-07-17, with
-> the S3 hinge (the drawn second-order convention reading back, see
-> SECOND_ORDER_CORE_OPENING §4) discharged at B-min: Arisbe considered *as a whole*, against
+> B-min discharging the S3 hinge (the drawn second-order convention reading back, see
+> SECOND_ORDER_CORE_OPENING §4): Arisbe considered *as a whole*, against
 > the author's premise that **thought bootstraps** — set up from the outside, a chain of
 > semiosis unfolds that models the world through interaction, and **doubt** (an experienced
 > difference between experience and the modeling) drives the chain forward, re-modeling and
@@ -59,20 +59,20 @@ is the doubt-delta exactly (and expected TD error = 0, the update's fixed point,
 settled belief). Full entries in
 [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances".
 
-Laid against the codebase, the automaton stands about four-fifths built — scattered, under
+Against the codebase, the automaton stands about four-fifths built — scattered, under
 other names:
 
 | MPA element | Arisbe realization | Status |
 |---|---|---|
 | Sensor space *S* | Membrane items — `LiveSource.fetch` delivering `DiscourseItem` / `ResolvingItem` / `WikidataStatement` per poll | BUILT |
 | Model *M* | The resident M (world-scroll cells at even depth, read via `world_scroll.m_view`); its laws are the theory | BUILT |
-| Interpretant as prediction | The peel — `semantic_game.evaluate`; and literally in `resolving_membrane.py`: `ResolvingFeed` records M's forecast in the `PredictionLedger` **before** the outcome is folded in | BUILT |
+| Interpretant as prediction | The peel — `semantic_game.evaluate`; and literally in `resolving_membrane.py`: `ResolvingFeed` records M's forecast in the `PredictionLedger` **before** the loop folds the outcome in | BUILT |
 | Doubt *D* > 0 | A FALSE verdict, a prediction miss, a counterexample. Kleene UNKNOWN is an honest *abstention*, not doubt — a distinction the MPA's arithmetic delta lacks | BUILT |
 | Remodeling (abduction) | `revise_with_disposition` — and the disposition taxonomy is a *structured, recorded, warranted* update rule, richer than a matrix overwrite: each revision carries its Peircean mode (induction/deduction/abduction/convention) and its executed derivation | BUILT |
 | Forgetting | Disuse-decay (`UsageLedger`, atom-level) — the MPA has no analogue; in Arisbe it is the only bound on the unbounded sheet (AUTOMATED_MODEL_DEVELOPMENT §"bounded only by selection-from-outside") | BUILT |
 | Doubt-directed attention | The irritation pole: `attention_brief` (M's thin spots), the warm-set tropism (`tropism.py`, runs 2–3), and the docket of doubts (`query_docket.py` — articulated doubt → probe) | BUILT (partially — see §2) |
 | **Growth of *S* and *A* themselves** | *S* grows: open-vocabulary membranes, label resolution turning opaque ids legible, the horizon promoting the not-yet-legible; *A* grows: the crawl growing its own frontier, the docket's Q-tiers shrinking `inexpressible`; the **sign-space** grows: the alphabet widening under INS, hypostatic abstraction at B-min | PARTIAL (see §1.1) |
-| **Action space *A* (exercised)** | **Missing.** Arisbe predicts, probes, and revises — but it never *intervenes*: no reach is chosen by expected yield, and nothing pushes back on the source | NOT BUILT |
+| **Action space *A* (exercised)** | **Missing.** Arisbe predicts, probes, and revises — but it never *intervenes*: nothing chooses a reach by expected yield, and nothing pushes back on the source | NOT BUILT |
 
 In three places Arisbe's shape runs *deliberately richer* than the automaton, each worth
 keeping. First, the three-valued verdict: UNKNOWN ≠ doubt — an open-world abstention the
@@ -148,7 +148,7 @@ therefore comes *native to Peirce*, not imported from the predictive-processing 
 the neighbors corroborate; Peirce mandates. *(Assistant's reading, flagged; the author
 should ratify the framing before it hardens into the doc spine — see §5.)*
 
-**(c) The noisy-TV guard.** Once actions get chosen by expected doubt-reduction, the
+**(c) The noisy-TV guard.** Once the prober chooses actions by expected doubt-reduction, the
 target must be **learning progress** (the *rate of improvement* of prediction), never raw
 prediction error: a pure-noise source generates maximal error forever and would trap an
 error-seeking prober (the learning-progress concept belongs to Schmidhuber and Oudeyer;
@@ -166,8 +166,8 @@ we begin laden with instinct and un-criticized background belief, and inquiry st
 medias res*. Arisbe's actual bootstrap keeps the closer faith: **the low-warrant import
 floor** (corpus seeds, ontology imports, curated pools — see
 [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md)) *is* the "outside
-setup," and the blank sheet's first act is already ruled (DC+ — see
-[MATHEMATICS_FROM_THE_SHEET.md](MATHEMATICS_FROM_THE_SHEET.md)). So do not chase
+setup," and [MATHEMATICS_FROM_THE_SHEET.md](MATHEMATICS_FROM_THE_SHEET.md) already
+rules the blank sheet's first act (DC+). So do not chase
 the blank automaton; the bootstrap problem Arisbe should own is not "start from nothing"
 but "start from low warrant and *earn*."
 
@@ -249,9 +249,9 @@ every round, so "never refuted" is a priori for that arm; the meaningful S1 marg
 economy's 6 against scatter's 127-in-300.) **S2 HELD**, with an honest mechanism
 disclosure: as built there is no separate `coin` probe-kind — coin atoms ride inside every
 probe's atom conjunction (`atoms_for`), and a coin *law* is structurally unproposable in
-this feed (nothing ever proposes `coin` as a subsumption head), so the noisy-TV guard is
-evidenced instead by the cheap-trap `confirm` kind's yield decaying to ≈0.019 against the
-productive `hunt` kind's ≈2.60 — the barren kind decayed far below the productive one, and
+this feed (nothing ever proposes `coin` as a subsumption head), so the evidence for the
+noisy-TV guard comes instead from the cheap-trap `confirm` kind's yield decaying to ≈0.019
+against the productive `hunt` kind's ≈2.60 — the barren kind decayed far below the productive one, and
 the same decay holds strictly for every other non-hunt kind in the final snapshot (`extend`,
 `musement`).
 **S3 HELD, with one honest mechanism repair**: the off-arm's original `peel`-based assertion
@@ -261,15 +261,15 @@ model-checks against M's facts and reads TRUE whether or not the law was ever ad
 match) — the law enters M only via the musement pathway; with musement off it never does.
 The task reviewer verified this as a repair, not a weakening of the criterion. **S4 HELD**:
 identical configs yield identical journals (`replay_choices`), identical disposition
-sequences, and identical refutation rounds; scatter's ordering is golden-pinned to the sha1
-digest (a revert to salted `hash()` fails the golden across processes). **S5 HELD**:
+sequences, and identical refutation rounds; the golden test pins scatter's ordering to the
+sha1 digest (a revert to salted `hash()` fails the golden across processes). **S5 HELD**:
 `git diff --stat` against the pre-build commit shows only two new files touched —
 `src/attention_economy.py` (+167) and `src/arithmetic_world.py` (+247), pure additions, zero
 existing files touched; the persistence test round-trips through `TomosService.
 save_uod_with_chain` with the correspondence check (LINEAR_GRAPHICAL_CORRESPONDENCE §3.3)
 gating the disk write, and the produced trajectory passes the polarity-gate checks
 (world-scroll residence, ligature closure, acknowledged acts with derivations on every
-M-changing step), asserted in `TestPersistence`; the full
+M-changing step), as `TestPersistence` asserts; the full
 suite passed 3691 / skipped 137 / xfailed 1 / failed 0. Modules: `src/attention_economy.py`
 (the socket), `src/arithmetic_world.py` (world #1 + `ProbeDirectedFeed`). Next comes the
 vault as world #2 (a separate cycle).
@@ -279,7 +279,7 @@ tightening + hoisted `import re` in `ArithmeticWorld.test_law_instance`; the doc
 dispatch branch in `ProbeDirectedFeed.propose` must count-or-refuse (never silently discard)
 an unrecognized want kind; extracting the feed-seeding logic (`_seed_wants`) into a reusable
 helper the vault world can share; and yield attribution at `probe_budget` > 1 (currently the
-whole round's model delta is credited to every chosen want — correct at budget 1, but it
+feed credits the whole round's model delta to every chosen want — correct at budget 1, but it
 double-counts once several wants are chosen per round).
 
 ## 4 · Arisbe itself as a proposition in the wider EPG
@@ -333,7 +333,7 @@ posit, fully sayable, not malformed (admitted at import, exposed to the Agon, ne
 
 **The observation that changes nothing mechanical: the wider EPG already runs.** The
 run-log discipline — pre-registered priors (Pⁿ), findings (Fⁿ), dispositions, the
-determinism canaries — *is* this game being played. The author scribes a proposal (a run
+determinism canaries — *is* the project playing this game. The author scribes a proposal (a run
 design with its priors); the world resists (the All-Star break, the `mul`-label failure,
 the decay-vs-durability confounds); the record disposes. RUNS 1–12 form its innings, and
 `runs/` its corpus. Naming this adds no machinery; it makes the project
@@ -356,8 +356,8 @@ later if an exemplar earns it.
 1. **The economy-of-research framing** (§2b) — ✅ RATIFIED 2026-07-19 (and evidenced:
    rung 1's S1 result shows the framing doing its work — severity bought the Fermat
    refutation).
-2. **Rung-1 authorization** — after RUN 12 disposes (the frontier-feedback edge would
-   naturally be evidenced by a run; a RUN 13 candidate).
+2. **Rung-1 authorization** — after RUN 12 disposes (a run would naturally evidence the
+   frontier-feedback edge; a RUN 13 candidate).
 3. **Rung 2's outward-facing ethics** — pushing back on a shared source needs its own
    design pass before any build; decide when (if ever) to open that file.
 4. **Glossary loanwords** — ✅ RULED 2026-07-19: Umwelt / functional circle stay

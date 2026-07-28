@@ -51,7 +51,7 @@
 
 ## Abbreviations
 
-The acronyms the book uses, each expanded on first use and linked here. The headings serve as the
+The acronyms the book uses. It expands each on first use and links it here. The headings serve as the
 link targets (e.g. a first use renders *Existential Graph Instance ([EGI](GLOSSARY.md#egi))*).
 
 ### EG
@@ -150,7 +150,7 @@ optional tension layout.
 ## Notation & reference numbers
 
 > **The one place that decodes the shorthand.** Arisbe's documents use three kinds of terse
-> reference a newcomer can't be expected to track. This section says what each means and where
+> reference we can't expect a newcomer to track. This section says what each means and where
 > its full description lives. **As a rule of thumb, a bare "§N" always means a *section of the
 > document you are reading*, while a cross-document reference always names the document.** Write
 > "LINEAR_GRAPHICAL_CORRESPONDENCE §7", not a bare "§7".
@@ -235,8 +235,8 @@ The letter-acronyms (EGI, UoD, DTO, ELK, …) live in **[Abbreviations](#abbrevi
 
 ## Key terms
 
-Concise, linkable entries for the specialized vocabulary the book uses (each introduced on first
-use and linked here). The conceptual groupings below under *Terms* give fuller context.
+Concise, linkable entries for the specialized vocabulary the book uses. The book introduces each
+term on first use and links it here. The conceptual groupings below under *Terms* give fuller context.
 
 ### Agonothetes
 **Agonothetes** (ἀγωνοθέτης, "organizer of the contest") — the game's **interpretant**: not a third

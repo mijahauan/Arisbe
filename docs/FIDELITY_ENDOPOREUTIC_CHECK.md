@@ -16,8 +16,8 @@ Peirce's Pragmatic Logic", in E. Machery, M. Werning and G. Schurz (eds), **The
 Compositionality of Concepts and Meanings: Foundational Issues**, Ontos Verlag,
 247–270. A copy is archived at
 [references/The_Compositionality_of_Concepts_and_Pei.pdf](references/The_Compositionality_of_Concepts_and_Pei.pdf).
-Peirce manuscript (MS) and Collected Papers (CP) passages below are cited as
-quoted there.*
+This note cites the Peirce manuscript (MS) and Collected Papers (CP) passages
+below as Pietarinen quotes them.*
 
 ---
 
@@ -29,7 +29,7 @@ literature, working notes, and the project's own dogfooding. Does the
 implementation still correspond to what the scholarship says Peirce built? The
 question stays fair at any point in that descent. This note answers for one
 substantial witness: Pietarinen's 2005 account of the **Endoporeutic Principle** (EP) and
-the two-player semantic game, written against the backdrop of the
+the two-player semantic game, which he wrote against the backdrop of the
 compositionality debate (Shin's proposal to re-found EGs on an inside-out,
 negation-normal-form reading).
 
@@ -108,7 +108,7 @@ truth with the existence of a *stable habit*, not a static satisfaction
 relation. Arisbe's meta-learning layer measures precisely that stability:
 [stickiness](GLOSSARY.md#stickiness), mechanism durability, decay-aware
 stick-rates. The two executed live runs found that passive ingestion never
-re-tests a settled habit at all — nothing ever gets revisited — and that
+re-tests a settled habit at all — it revisits nothing — and that
 finding mandated the **[tropism](GLOSSARY.md#tropism)** module, in which the
 model's own state directs re-engagement, so that a settled habit deliberately
 meets again the world that could break it. Put in the 1905 vocabulary: if truth
@@ -178,7 +178,7 @@ yields **warrant** (the ⚔ *withstood* badge), never Truth. This departs from
 the quoted passage while staying close to Peirce's long-run fallibilism;
 [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) defends the same floor.
 
-**3.3 The game has been lifted a level.** The paper's players choose semantic
+**3.3 Arisbe lifts the game a level.** The paper's players choose semantic
 values *inside* one evaluation. The automated Endoporeutic Game's players argue
 *around* the evaluation, about what a verdict should do to M (dispositions,
 revision, branching). The semantic game survives intact inside the loop as the

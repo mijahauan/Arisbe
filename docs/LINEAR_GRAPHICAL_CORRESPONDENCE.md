@@ -18,7 +18,7 @@ This spec serves as the source of truth for:
 
 - Property tests that audit correspondence (`tests/test_correspondence_invariant.py`, all six §7 shapes against the [tomos](GLOSSARY.md#tomos) corpus).
 - Design reviews of features touching parse, generate, layout, render, transform, or undo/redo.
-- Decisions about which user interactions are permitted in which mode.
+- Decisions about which user interactions each mode permits.
 - Future work on alternative projections (3-D visualization, stylus drawing input, accessibility renderings).
 
 ---
@@ -47,9 +47,9 @@ But graphical space is itself two-layered, and this distinction is load-bearing:
 
 - **Natural representation space — potentially n-dimensional.** Some logical configurations don't embed naturally on a plane. A ligature crossing through many cuts may need to make a path that visually intersects other ligatures it has no logical relation to. Sibling cuts have no logical left/right ordering, yet a planar layout must choose one. Peirce himself worked in a richer space than the page: he invoked the *back* of the sheet for negation (the cut as a *physical cut*, exposing the [verso](GLOSSARY.md#verso) (the negated side)), bridge marks for ligature crossings, distinct curve styles for distinct identities. The space where the logical structure naturally lives may have more degrees of freedom than the page.
 
-- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how ligature crossings are disambiguated (bridge marks? gap markers?), how sibling cut order is chosen (canonical labeling? user preference?), how depth or [recto](GLOSSARY.md#recto)/verso is indicated if needed, what shape conventions distinguish ligatures from predicate hooks. Conventions are introduced as the system commits to them; Gamma-level Existential Graphs ([EGs](GLOSSARY.md#eg)) (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
+- **Projected representation space — typically 2-D, the screen.** What the user actually sees. A *projection* of the natural representation, governed by stated **conventions**: how the drawing disambiguates ligature crossings (bridge marks? gap markers?), how it chooses sibling cut order (canonical labeling? user preference?), how it shows depth or [recto](GLOSSARY.md#recto)/verso if needed, what shape conventions distinguish ligatures from predicate hooks. Each convention enters as the system commits to it; Gamma-level Existential Graphs ([EGs](GLOSSARY.md#eg)) (Peirce's modal, temporal, and abstractional extensions) will require further conventions and are an expected future source of them.
 
-This split matters because the correspondence has to hold *through the projection*. A 2-D drawing that obeys the conventions can be unambiguously parsed back to the natural representation, and from there to the EGI. A 2-D drawing that *silently* breaks a convention is a correspondence failure — even if the underlying logical map is intact. Conventions are part of the contract.
+This split matters because the correspondence has to hold *through the projection*. A 2-D drawing that obeys the conventions parses back unambiguously to the natural representation, and from there to the EGI. A 2-D drawing that *silently* breaks a convention is a correspondence failure — even if the underlying logical map is intact. Conventions are part of the contract.
 
 The Obsidian 3-D graph-viewer analogy fits. Dropping the planarity constraint in display dissolves artifacts of planar embedding (forced crossings, arbitrary sibling ordering) without changing the underlying logical content. A 3-D view of an EGI is the *same* graph under a different projection. Choosing among projections is presentation freedom, not logical mutation.
 
@@ -62,7 +62,7 @@ The map runs in both directions, and each direction carries different obligation
 ### 3.0 What correspondence *is*: integrity, not truth
 
 Before the directions and the property table comes the shape of the thing. The
-correspondence is best understood as an **embedding**: the assignment of
+correspondence reads best as an **embedding**: the assignment of
 figures to logical elements must *preserve and reflect* the EGI's relational
 structure — containment, incidence-with-order, identity (the W-partition),
 labeling. "Reflect" is load-bearing: every relation visible in the picture
@@ -102,7 +102,7 @@ gesture that invoked them. A performative contradiction in the formation, not a
 false claim about the world. The marks never became a proposition, so there is
 nothing for truth to bite on.
 
-Two failures must be kept apart:
+Two failures must stay apart:
 
 - **Denotes a different object** — *recoverable*: the marks are a fine sign,
   just of something other than was meant. Re-read it (gate 2) and it lives.
@@ -125,7 +125,7 @@ inquiry probes and expands. Exploration suspends *assertion*, never the
 Mechanically, "linear *and* graphical denote the same object" forms a **triangle**:
 the EGI stands at the apex, and the invariant has two legs — **EGI ↔ drawing** and
 **EGI ↔ linear form** (EGIF/CGIF/CLIF). The linear↔graphical relation the title
-names is mediated through the EGI; it holds exactly when both legs hold (the linear-form leg covers Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))). Both
+names runs through the EGI; it holds exactly when both legs hold (the linear-form leg covers Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif)), Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif)), and Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))). Both
 legs are real, and **two different mechanisms** guard them. The difference
 follows a principle — it tracks the *drift surface*, not the importance:
 
@@ -147,12 +147,12 @@ infallible-once-tested translator (needs only CI). Together they close the trian
 a silent edit disables a *runtime* guarantee nothing else replaces — and sit in the
 protected set. The EGIF/CGIF/CLIF parsers/generators are **not**: they sit on the
 test-guarded leg, where the round-trip suite catches a regression deterministically,
-so they were removed from the set (2026-06-27). The protected core thus maps
+so we removed them from the set (2026-06-27). The protected core thus maps
 onto *the calculus + the runtime drift surface*, which is exactly the leg of this
 triangle that can fail per-instance.
 
 **One honest caveat.** There is, today, **no runtime attestation that a linear form
-shown in the UI matches the EGI** — the `LinearFormPanel` trusts the generator's
+the UI shows matches the EGI** — the `LinearFormPanel` trusts the generator's
 tested correctness. That remains sound *because* generation is deterministic. If a future
 linear renderer became non-deterministic (e.g. a stylistic or LLM-assisted
 serialization), that leg would lose its correct-by-construction guarantee and would
@@ -170,7 +170,7 @@ The geometric realization (positions, ligature curves, cut bounds) is then a *pr
 
 ### 3.2 Drawing → EGI (the "parse" direction)
 
-Given a drawing, recover the EGI it represents. Today this direction is *trivially closed*: Arisbe never has to parse pixels back into logic, because every drawing it shows was rendered from an EGI it already holds. The "drawing" and its source EGI are co-resident; the `LayoutDTO` carries the structural information directly.
+Given a drawing, recover the EGI it represents. Today this direction is *trivially closed*: Arisbe never has to parse pixels back into logic, because it rendered every drawing it shows from an EGI it already holds. The "drawing" and its source EGI are co-resident; the `LayoutDTO` carries the structural information directly.
 
 The harder version of this problem — a user *draws* a graph with a stylus and the system must recover the EGI from pixel input — remains a future regime. The spec accommodates it without committing to it: under that regime, the parse direction becomes a real obligation, and the projection conventions become *rules the user's drawing must obey* in order to be parseable.
 
@@ -213,7 +213,7 @@ Within a canonical graph, the user may freely alter the drawing in ways that tou
 
 Regime 3 is genuinely a free dimension and should be **always available**, even in strict regime 2 contexts. The system must be able to *prove* that a regime-3 operation hasn't touched the EGI (a structural-equality check on `(EGI_before, EGI_after)` is the cheap version).
 
-The research question of *which* presentations best support human comprehension lives entirely in regime 3, and is unblocked by the invariant rather than constrained by it. It stands as its own legitimate study — how aesthetic choices, projection choices, and convention choices affect how readily and accurately humans interpret diagrammatic logic.
+The research question of *which* presentations best support human comprehension lives entirely in regime 3, where the invariant unblocks it rather than constraining it. It stands as its own legitimate study — how aesthetic choices, projection choices, and convention choices affect how readily and accurately humans interpret diagrammatic logic.
 
 ---
 
@@ -223,7 +223,7 @@ Here invariant violations have historically arisen; here future work needs the m
 
 ### 5.1 Cut containment under regeneration
 
-When a transformation changes the EGI, layout is regenerated. The new layout must preserve the *containment hierarchy* of the unchanged cuts: a cut that was inside another stays inside, its `area` membership stays consistent, no two cuts come to overlap. ELK's natural drive to optimize for aesthetics can violate this if not constrained. The current anchoring in [layout_service.py](../src/web_api/services/layout_service.py) handles positional continuity but does not by itself enforce containment fidelity.
+When a transformation changes the EGI, the system regenerates the layout. The new layout must preserve the *containment hierarchy* of the unchanged cuts: a cut that was inside another stays inside, its `area` membership stays consistent, no two cuts come to overlap. ELK's natural drive to optimize for aesthetics can violate this if not constrained. The current anchoring in [layout_service.py](../src/web_api/services/layout_service.py) handles positional continuity but does not by itself enforce containment fidelity.
 
 ### 5.2 Ligatures across cut boundaries (Beta)
 
@@ -239,14 +239,14 @@ Two sibling cuts at the same depth have no logical left/right ordering, but a 2-
 
 ### 5.5 The `LayoutDeltas` free dimension — and the structural impossibility of regime-3 abuse
 
-Regime 3 operations must be **structurally incapable** of changing the EGI. This does not mean a check after the fact; it constrains how regime-3 operations are *defined*.
+Regime 3 operations must be **structurally incapable** of changing the EGI. This does not mean a check after the fact; it constrains how we *define* regime-3 operations.
 
-The basis comes from EG semantics: objects are undefined outside their area. A vertex in area `A` is meaningful as an occurrence-in-`A`; the same identity may also have an occurrence in area `B`, and the ligature between them is the assertion that they are the same identity. A ligature crossing into and out of a cut is therefore not a single object flowing through regions — it is an *equivalence assertion* between distinct in-area occurrences. A user gesture that appears to "drag a vertex across a cut boundary" is not a coordinate update; it would, if completed, define a new object in a new area and violate the EGI.
+The basis comes from EG semantics: objects are undefined outside their area. A vertex in area `A` is meaningful as an occurrence-in-`A`; the same identity may also have an occurrence in area `B`, and the ligature between them is the assertion that they are the same identity. A ligature crossing into and out of a cut is therefore not a single object flowing through regions — it is an *equivalence assertion* between distinct in-area occurrences. A user gesture that appears to "drag a vertex across a cut boundary" is not a coordinate update; it would, if the user completed it, define a new object in a new area and violate the EGI.
 
 In consequence, a gesture that *would* change `area`, alter the W-partition, change predicate hook count or order, or otherwise touch the structural data is *by definition* not a regime-3 operation. The system must:
 
 - Expose regime 3 as a closed algebra over the projection alone — operations whose effect on the `(EGI, projection)` pair is provably restricted to the projection component.
-- Refuse or redirect any gesture that would cross a regime boundary. An attempted area-crossing drag should snap back, prompt the appropriate transformation-rule dialog, or simply not be accepted as a regime-3 input.
+- Refuse or redirect any gesture that would cross a regime boundary. The system should snap an attempted area-crossing drag back, prompt the appropriate transformation-rule dialog, or simply not accept it as a regime-3 input.
 - Reshape operations on cuts and ligature paths must preserve membership: a cut's redrawn boundary cannot move elements into or out of its area; a ligature's rerouted path cannot change which areas the path visits without also changing the W-partition (which would be structural).
 
 The system architecture must enforce this distinction at the API surface, not at a post-hoc check. The cheap defense (recompute `area`, compare) is *not* sufficient: by the time the check runs, the user has already attempted an ill-defined operation, and the right behavior is to refuse the attempt, not to detect and reverse it.
@@ -284,9 +284,9 @@ These tests give the spec teeth. The spec gives them a definition.
 
 ## 8. Projection conventions in force (May 2026)
 
-§3.3 includes a **convention compliance** row: a drawing can fail correspondence by silently breaking a projection convention even when its underlying structural map is intact. This section commits the current implementation to a specific set of conventions, so future divergences become visible. The list will grow as Gamma extensions arrive and as additional projections (3-D, accessibility, stylus-input) are added; everything here describes the *2-D screen projection* as of May 2026.
+§3.3 includes a **convention compliance** row: a drawing can fail correspondence by silently breaking a projection convention even when its underlying structural map is intact. This section commits the current implementation to a specific set of conventions, so future divergences become visible. The list will grow as Gamma extensions arrive and as we add further projections (3-D, accessibility, stylus-input); everything here describes the *2-D screen projection* as of May 2026.
 
-The conventions are grouped by what they bind:
+The conventions group by what they bind:
 
 ### 8.1 Layout-level conventions (visible in `LayoutDTO`)
 
@@ -302,7 +302,7 @@ These conventions shape the structural layout output and are testable directly f
 
 ### 8.2 Renderer-level conventions (visible in the SVG output)
 
-These conventions shape the SVG that the user sees. They are not currently tested by automated checks; this section commits us to them so future drift is visible.
+These conventions shape the SVG that the user sees. No automated checks test them today; this section commits us to them so future drift is visible.
 
 - **R1. Cut shape** — rounded rectangle. Corner radius from `style.cut_corner_radius`; black 1-pixel stroke.
 - **R2. Polarity shading** — when `style.alternating_shading_enabled`, cuts at odd nesting depth (negative areas) are filled with `style.odd_polarity_fill` (gray); even-depth cuts are opaque white. The shading is the visual carrier of polarity — there are no explicit positive/negative symbols.
@@ -319,7 +319,7 @@ These conventions shape the SVG that the user sees. They are not currently teste
 
 ### 8.3 What these conventions imply for the parse direction
 
-The parse direction (§3.2) is trivially closed today: Arisbe never has to recover an EGI from pixels because every drawing it shows was rendered from an EGI it already holds. **R6 and R8 make this dependence load-bearing**: a user could not in principle reconstruct the EGI from pixels alone, because ligature crossings are unmarked and argument order is invisible.
+The parse direction (§3.2) is trivially closed today: Arisbe never has to recover an EGI from pixels because it rendered every drawing it shows from an EGI it already holds. **R6 and R8 make this dependence load-bearing**: a user could not in principle reconstruct the EGI from pixels alone, because ligature crossings are unmarked and argument order is invisible.
 
 When the parse direction becomes real (stylus drawing input, image parsing), these two conventions become *forced choices*: either we add visual markers (bridge marks for R6, numbered hooks for R8), or we accept that pixel-only input is ambiguous and require a separate channel (typed annotations, gesture order, structural pre-binding). The spec doesn't choose yet; it names the trade-off.
 
@@ -329,12 +329,12 @@ When the parse direction becomes real (stylus drawing input, image parsing), the
 - Specific cut x/y coordinates (only nesting and containment).
 - Specific colors beyond polarity shading (style-configurable).
 - Cross-process layout reproducibility (only within-process).
-- Visual representations of Gamma extensions (modal, temporal, abstractional) — those will arrive with their own conventions; the spec will be extended.
+- Visual representations of Gamma extensions (modal, temporal, abstractional) — those will arrive with their own conventions; we will extend the spec then.
 
 ---
 
 ## 9. Open questions to resolve as the workstream progresses
 
-- **Runtime assertions at regime boundaries, not only in tests?** *Partially resolved* — the web layout-service boundary attests every (EGI, drawing) pair before it leaves the service (`src/correspondence_attestation.py`). Save/load and Agon session boundaries remain to be wired. Cost: constant-factor overhead at boundary events. Benefit: catches drift in production, not only in CI.
-- **How are projection choices represented?** 2-D is the default and the only projection committed to today (§8). Higher-dimensional presentations (3-D viewers, accessibility renderings) remain an open research direction; once a second projection exists, `LayoutDeltas` (or a parallel structure) will need to carry "which projection" alongside the positions and shapes.
+- **Runtime assertions at regime boundaries, not only in tests?** *Partially resolved* — the web layout-service boundary attests every (EGI, drawing) pair before it leaves the service (`src/correspondence_attestation.py`). Save/load and Agon session boundaries still await wiring. Cost: constant-factor overhead at boundary events. Benefit: catches drift in production, not only in CI.
+- **How does the system represent projection choices?** 2-D is the default and the only projection committed to today (§8). Higher-dimensional presentations (3-D viewers, accessibility renderings) remain an open research direction; once a second projection exists, `LayoutDeltas` (or a parallel structure) will need to carry "which projection" alongside the positions and shapes.
 - **When and how does parse-from-image become real?** Image-format input (PNG/JPEG/PDF) parsed back to an EGI would be a major feature — out of scope for this spec, but the architecture should not foreclose it. When undertaken, §8.3 names the forced choice: either add visual markers (bridge marks, numbered hooks) or accept ambiguity and require a separate input channel.

@@ -25,73 +25,70 @@ mapping appears there.
 
 ---
 
-## Implemented today (Agon V1) vs the Frontier
+## What runs, and what remains open
 
-The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game serves as Arisbe's **end game** — the part of the arc left
-deliberately *not finished*. This guide describes the full framework; most of
-it remains theory and design-ahead. What actually runs today? The split below
-keeps the reader honest, and banners further down mark design-only material
-where it stands.
+The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game serves as Arisbe's **end game** — the part of the
+arc the project deliberately left unfinished. This guide describes the whole
+framework, and a reader deserves to know which parts of it actually run. Most
+of the framework runs today; the paragraphs below name what does and what does
+not, and banners further down mark design-only material where it stands.
 
-**Built today — Agon V1 (shipped 2026-06-01):**
+**What runs.**
 
-- The game engine `src/endoporeutic_game.py` — `GameState`, turn alternation,
-  `apply_move`, `legal_areas`, win/`concede` detection, polarity-constrained
-  legality.
-- The six Dau rules (Beta-aware) via `formal_transformation_rules.py` and the
-  headless `rule_interaction.py` protocol.
-- The **Agon arena** at `/agon` (`web_api/routes/agon.py` +
-  `web_viewer/agon.html`) — interactive **hot-seat** play (one user drives both
-  roles); the engine enforces each role's territory.
-- The post-game **open disposition taxonomy** (`web_api/services/agonothetes.py`).
-  Nothing auto-asserts. The user, *as Agonothetes*, chooses what the outcome
-  means, and only an asserting disposition writes to the corpus.
-- §3.3 correspondence attestation on every framed graph before play.
-- 16 exemplar scenarios in `tests/test_epg_exemplar_scripts.py`.
+- **The contest.** The game engine (`src/endoporeutic_game.py`) holds the
+  state, alternates turns, computes the legal areas under the polarity
+  constraint, and detects a win or a concession. It applies the six Dau rules,
+  Beta-aware, through `formal_transformation_rules.py` and the headless
+  `rule_interaction.py` protocol. The arena at `/agon` (`web_api/routes/agon.py`
+  + `web_viewer/agon.html`) seats both roles for **hot-seat** play, and the
+  engine enforces each role's territory. Every framed graph passes the
+  correspondence check (§3.3) before play begins, and sixteen exemplar
+  scenarios exercise the whole engine (`tests/test_epg_exemplar_scripts.py`).
+- **The interpretation register.** The inner **semantic game**
+  (`src/semantic_game.py`) drives the [episode](GLOSSARY.md#episode) *given M, then G*: choose M,
+  [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against M, decide. The **inverse pivot** answers the other
+  direction — *in what domain does G hold?* — at `/agon/where-it-holds`, which
+  ranks candidate models as holds, partial, independent, or contradicts
+  (`DOMAIN_ORACLE_AND_M.md` §7). A model picker, render-M, and the verdict
+  reading strip surface all of it in the browser. The *constructive* direction
+  (INS/IT+/DC+) belongs to **making in Ergasterion**, not to an Agon mode: the
+  eliminative peel makes the game, and additive construction belongs to the
+  workshop ([GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md)).
+- **Machine play.** An automated Grapheus plays the model side by minimax over
+  the peel (`src/grapheus.py`). Beyond it the game plays **fully
+  autonomously**: three LLM roles — Graphist voicing doubt, Grapheus defending
+  M, Agonothetes judging among the votes cast — argue under the incorruptible
+  mechanical peel, so *the LLM argues, the calculus decides* (`src/agon_llm.py`;
+  design of record [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)).
+- **A model that develops.** M revises through play (`src/model_revision.py`,
+  `src/agon_evolution.py`), and live external sources feed it — Wikidata's
+  rotating crawl and its recent-changes stream (`src/wikidata_source.py`), which
+  `src/live_runner.py` runs bounded, paced, and checkpointed. Ontology import
+  travels Web Ontology Language ([OWL](GLOSSARY.md#owl)) → CLIF → EGI.
+- **Doubt raised mechanically.** Two arms raise it. The LLM Graphist reads M's
+  thin spots and voices one doubt; the mechanical surveys
+  (`src/alternative_survey.py`) mint standing questions, which the register
+  prices by attention (`src/alternative_index.py`, `src/attention_economy.py`).
+  A meta-learning layer studies the game's own resolutions
+  (`src/agon_metalearning.py`). Part III, "Doubt as Prime Mover," gives the
+  account.
+- **The disposition step.** Nothing auto-asserts. The user, *as Agonothetes*,
+  chooses what an outcome means (`web_api/services/agonothetes.py`), and only
+  an asserting disposition writes to the corpus.
 
-**Built since (2026-06-11):** the inner **semantic game** now stands as a first-class API
-(`src/semantic_game.py`), wired into Agon as the **interpretation register** —
-the [episode](GLOSSARY.md#episode) *given M, then G* (choose M → [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) G against M → decide). The
-*constructive* direction (INS/IT+/DC+) now belongs to **making in Ergasterion**
-rather than to an Agon mode. The eliminative peel makes the game; additive
-construction belongs to the workshop.
-See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
+**What remains open.**
 
-**The Frontier — as first mapped here (2026-06-11). Since then most of it has been built:**
-
-- The **inverse pivot** — "in what domain does G hold?" — **shipped** as
-  `/agon/where-it-holds` (ranks candidate M: holds / partial / independent /
-  contradicts). See `DOMAIN_ORACLE_AND_M.md` §7.
-- An **automated Grapheus** opponent — **shipped** (`src/grapheus.py`, minimax over
-  the peel). Beyond it, the game now plays **fully autonomously**: three LLM roles
-  (Graphist·doubt / Grapheus·defense / Agonothetes·judge) argue under the
-  incorruptible mechanical peel — *the LLM argues, the calculus decides*
-  (`src/agon_llm.py`; design of record
-  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)).
-- A **dynamically-learned model M** — **shipped**: M revises through play
-  (`src/model_revision.py`, `src/agon_evolution.py`) and **live external sources**
-  feed it (Wikidata — a rotating crawl and the recent-changes stream,
-  `src/wikidata_source.py`, run bounded/paced/checkpointed by `src/live_runner.py`).
-  **Ontology import** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI) is
-  also shipped; WordNet/SNOMED remain unwired.
-- **Automated doubt detection** and guided **M-revision** — **shipped**, twice
-  over: the attention brief (the LLM Graphist reads M's thin spots and voices one
-  doubt) plus the disposition-driven revision loop, with meta-learning over the
-  game's own resolutions (`src/agon_metalearning.py`); and — since the
-  AlternativeSet arc (2026-07-26) — the **mechanical surveys**
-  (`src/alternative_survey.py`) with the standing-question register and its
-  attention pricing (`src/alternative_index.py`, `src/attention_economy.py`).
-  See Part III, "Doubt as Prime Mover."
-- A **frontend** for the interpretation register — **shipped** (the Agon model
-  picker, render-M, and the verdict reading strip).
-
-The **tropism** module — M's own state directing *which* sources to re-engage — now
-stands **built** (increment 1, the warm-set re-poll: `src/tropism.py`, 2026-07-02). The
-two executed live runs (`runs/RUN_1_LOG.md`, `runs/RUN_2_LOG.md`) found that passive
-ingestion never revisits, so only directed re-engagement can test the durability of
-what the game settles. The live crawl+tropism session (run 3) still lies ahead. Two
-things remain open: the tropism's musement pole, and the browser arena, which stays
-hot-seat while the autonomous game runs headless.
+- **The browser arena stays hot-seat while the autonomous game runs headless.**
+  The live loops surface through lenses in Organon rather than through an arena
+  view of a running game.
+- **WordNet and SNOMED remain unwired.** The import pipeline exists; those two
+  adapters do not.
+- **Tropism carries one increment.** M's own state directing *which* sources to
+  re-engage runs as a warm-set re-poll (`src/tropism.py`). Two executed live
+  runs (`runs/RUN_1_LOG.md`, `runs/RUN_2_LOG.md`) found that passive ingestion
+  never revisits, so only directed re-engagement can test whether what the game
+  settles endures. The tropism's musement pole, and a live crawl-plus-tropism
+  session, both lie ahead.
 
 ---
 
@@ -134,7 +131,7 @@ a double negative provides the initial context.
 | Component | Description |
 |-----------|-------------|
 | **Domain Model (M)** | An agreed Existential Graph Instance ([EGI](GLOSSARY.md#egi)) on the Sheet of Assertion — the shared knowledge base |
-| **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
+| **Proposal (G)** | The Graphist's "seed" graph — an assertion the game will test |
 | **Rules** | IT- (de-iteration) and DC- (double cut elimination) — the two eliminative rules used by the EPG |
 | **Agonothetes** | The interpretive function of the game — not a player, and not a referee: it frames the episode (the **risked choice** of M) and, after play, makes the **risked selection** of a fate from the outcome ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3) |
 
@@ -199,7 +196,7 @@ The game proceeds by this outside-in reduction:
    subgame that follows within H.
 
    The reversal is local: as the game continues back outward through the
-   surrounding structure, the original role assignments are restored. Role
+   surrounding structure, the original role assignments return. Role
    switching occurs exactly once per cut traversed; each traversal flips
    the polarity and the players, resolving back to the original orientation
    as the game ascends out of each nested level.
@@ -284,7 +281,7 @@ the proof-theoretic way of saying "this content is true in M."
 
 The Graphist wins when all positive content has been deiterated (mapped to M)
 or shown to be structurally tautological. The Grapheus wins when some positive
-content cannot be mapped and cannot be resolved.
+content cannot map and cannot resolve.
 
 ### The Interpretive Layer (Agonothetes)
 
@@ -330,7 +327,7 @@ This two-layer structure resolves several architectural concerns:
 - **Beta graphs**: Ligatures introduce quantifier binding. The semantic
   game handles this via rule 2 (who picks the individual from the domain).
   The transformation game handles it via the subgraph closure rules that
-  govern which ligature-connected elements can be iterated or deiterated
+  govern which ligature-connected elements a player may iterate or deiterate
   together.
 
 ---
@@ -573,7 +570,7 @@ The career runs as follows.
 - **Settled only by ink.** The record resolves only by citing a licensed
   chain step that *introduced* the answer (the AS1–AS4 law: the index
   resolves; the trace recomputes; resolution is licensed; the horizon is
-  honest). Settlement is read off the chain, never declared by fiat.
+  honest). Settlement reads off the chain; no one declares it by fiat.
 
 The stalemate thus *opens* the richest case rather than closing it. The
 game's UNKNOWN supplies the doubt engine's raw material (Part III, "Doubt as
@@ -585,7 +582,7 @@ surveyed, traced, and settled by licensed ink — sits in the corpus as the
 
 Each logical outcome opens different pragmatic paths. Here the game drives
 inquiry rather than merely classifying propositions. The Agonothetes presides
-over the post-game negotiation that settles which path gets taken.
+over the post-game negotiation that settles which path to take.
 
 #### Case 1 — G Proved (Theorem)
 
@@ -786,7 +783,7 @@ independent of M, or falls into one of the other taxonomic categories
    transformation lawful — the six Dau rules, held to the correspondence check
    (§3.3 of
    [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)).
-   A move that would be illegal cannot be scribed at all, so the players'
+   Nobody can scribe a move that would be illegal, so the players'
    conduct cannot be illegal and nothing remains to referee. This follows the
    ratified "no referee" ruling of
    [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
@@ -798,7 +795,7 @@ independent of M, or falls into one of the other taxonomic categories
    Agonothetes prompts for its formal addition to the domain's ontology — a
    framing act, not a legality call.
 3. **Traversal tracking**: The Agonothetes tracks the path through the tree
-   (which areas have been resolved, which sub-games are in progress) and
+   (which areas have resolved, which sub-games remain in progress) and
    records the outcome of each sub-game in the transcript.
 4. **Record-keeping**: `ProofSerializer` maintains the official game
    transcript, including the traversal path, each sub-game's outcome,
@@ -818,7 +815,7 @@ context:
 |-------------|------|-------------|
 | **Accepted as Consistent** | G mapped successfully, aligns with M | G added to SoA, expanding UoD |
 | **Provisionally Accepted** | G is plausible but requires further evidence | G added with hypothesis marker, pending confirmation or refutation by further evidence |
-| **Accepted, Implies M Change** | G is valid but conflicts with existing M | The inconsistency is identified; participants decide whether to revise G, revise M, or hold both as alternatives |
+| **Accepted, Implies M Change** | G is valid but conflicts with existing M | The inconsistency surfaces; participants decide whether to revise G, revise M, or hold both as alternatives |
 | **Rejected** | G is invalid or inconsistent | G not added to M; optionally saved in a "Rejected Graphs" folio with the reason for rejection |
 
 A sub-graph might include a new fact or a new explanation that throws the
@@ -934,9 +931,9 @@ produce new signs, to propose what has not yet been tested.  Functionally:
   or hypotheses into formal structure (before the game; proof-mode operations)
 - Defends the unwinding — operates in negative areas, choosing which IT-
   or DC- moves to apply at each negative-context step; also the territory
-  within which the erase-a-negative INS step is executed (the Grapheus
-  enters this territory to draw the enclosing cut, then DC- completes the
-  erasure from the outside)
+  that hosts the erase-a-negative INS step (the Grapheus enters this
+  territory to draw the enclosing cut, then DC- completes the erasure from
+  the outside)
 - Bears the burden of *completeness* — must show that every exposed atomic
   portion of G maps onto M; a single unmapped element means the game fails
 - Embodies the assertive function: *putting claims forward* so they can be
@@ -1196,8 +1193,8 @@ The pedagogical implications follow clearly:
 - **Partial import** is best for applied work — importing established
   knowledge and focusing inquiry on the frontier.
 - **Full import** is best for integration — bringing an existing knowledge
-  base into Arisbe's formal reasoning environment so it can be tested,
-  extended, and combined with other M's.
+  base into Arisbe's formal reasoning environment so that one can test it,
+  extend it, and combine it with other M's.
 
 All three count as valid uses of the same triadic engine.
 
@@ -1355,8 +1352,8 @@ the surfaced doubt counts as a first-class object rather than a notification.
 Either way, the surfaced doubt lands in the same structure — an
 **alternative record** whose `kind` records *how it emerged*: interrogative
 from a peel's own UNKNOWN, hypothetical from a thin-spot survey, modal from
-a branch survey ("The third verdict," Part II). The record is then traced for
-materiality and priced by the attention economy (severity · cost · decay, with
+a branch survey ("The third verdict," Part II). The trace then reads the record
+for materiality, the attention economy prices it (severity · cost · decay, with
 a **temperament dial** — explore-leaning vs settle-first — deliberately
 reserved as a tunable rather than ruled), and only licensed ink can settle
 it.
@@ -1458,7 +1455,7 @@ what the sign used to map to and no longer does.  The game's formal machinery
 captures this: the failure of IT- (the element no longer maps to M) *is* the
 formal expression of absence.
 
-**4. A person whose pet parakeet was eaten by the neighbor's cat.**
+**4. A person whose pet parakeet the neighbor's cat ate.**
 
 M includes "neighbor's cat killed my parakeet," emotional attachment to the
 bird, anger at the cat and perhaps the neighbor.  "Cat" here reads as
@@ -1503,8 +1500,8 @@ without special machinery.
 ### What the Six Games Show
 
 The sign-vehicle stays identical in every case: "cat," three letters, one
-syllable.  **M** changes — the Grapheus, the domain against which
-the sign is tested.  And because M changes, everything downstream changes:
+syllable.  **M** changes — the Grapheus, the domain the game tests the
+sign against.  And because M changes, everything downstream changes:
 
 - The **game tree** differs: different depths, different branches, different
   points where IT- succeeds or fails.
@@ -1571,7 +1568,7 @@ the next "cat" game will be played.
 At every scale, interpretation feeds back into reality:
 
 - A **scientific community** interprets evidence → publishes findings →
-  changes research priorities → changes what evidence is gathered → changes
+  changes research priorities → changes what evidence it gathers → changes
   the world it is studying (new drugs, new technologies, new environmental
   pressures).
 - A **culture** interprets its situation → develops practices → transforms
@@ -1587,8 +1584,8 @@ itself has helped to change.
 
 ### Stability and Transformation
 
-This is not chaos.  Genuine stability holds — without it, no game could
-be played, no M could be relied upon, no IT- could succeed.  The
+This is not chaos.  Genuine stability holds — without it, no one could
+play a game, no one could rely on an M, no IT- could succeed.  The
 transformation rules work because the formal structure stays stable: the six
 rules, the polarity system, the cut semantics.  The biological world stays
 stable enough that "cats are definitive hosts" remains true across many
@@ -1668,7 +1665,7 @@ the same.
 
 In EPG terms: the Graphist's proposals succeed or fail against a real
 Grapheus.  IT- maps or it does not.  M's evolving does not diminish the
-game's honesty.  What was proved in this game was genuinely
+game's honesty.  What this game proved, it genuinely
 proved, given this M, using these rules, recorded in this transcript.
 
 **The pathology of absolutism: "This is the one Truth."**
@@ -1691,8 +1688,8 @@ In EPG terms: absolutism refuses to let the Graphist propose
 anything that challenges M.  But the framework's integrity depends on the
 Graphist's freedom to propose *anything* — including proposals that
 contradict the deepest commitments of M.  The game may reject the proposal
-(M may win), but the game must be *played*.  The moment certain propositions
-are declared unquestionable, the system ceases to inquire and becomes
+(M may win), but the game must be *played*.  The moment anyone declares
+certain propositions unquestionable, the system ceases to inquire and becomes
 dogma.
 
 **The middle ground: we know something, but we will never know everything.**
@@ -1731,7 +1728,7 @@ Reliability and revision do not stand antagonistic but
   the ground.  The ground changes; it does not vanish.
 
 The EPG formalizes this: every game produces genuine results (not "merely"
-provisional ones); every result is held in readiness for revision (not
+provisional ones); every result stands in readiness for revision (not
 enshrined as absolute).  The transformation history records both the
 knowledge gained and the openness to what comes next.
 
@@ -1796,9 +1793,9 @@ through the game, and the game may refute it.
 But falsifiable does not mean useless.  The content of the negative
 context, tested against M and found adequate, produces genuine
 understanding — theorems, new facts, refined models.  The negation does
-not destroy the value of what is inscribed; it **guarantees the epistemic
-honesty** of the inscription.  What survives the game has earned its place
-in M', precisely because it was never sheltered from challenge.
+not destroy the value of what the Graphist inscribes; it **guarantees the
+epistemic honesty** of the inscription.  What survives the game has earned
+its place in M', precisely because it was never sheltered from challenge.
 
 **The structure as a whole.**
 
@@ -1839,7 +1836,7 @@ The parasitologist who runs the "cat = definitive host" game and integrates
 the result into M now has a richer M against which to test the next
 proposition — perhaps about vaccine development, or about the behavioral
 effects of *T. gondii* on intermediate hosts.  But the vaccine, once
-developed, changes the epidemiological landscape.  The next game is played
+developed, changes the epidemiological landscape.  The next game plays out
 on different ground.
 
 Semiosis does not terminate, and it does not converge.  It *turns* — and
@@ -1879,7 +1876,7 @@ The triadic framework maps directly:
 
 - A **book** communicates.  The author's text serves the Graphist-function
   and produces signs.  The reader's existing knowledge serves the
-  Grapheus-function, the domain against which the text gets tested.  The
+  Grapheus-function, the domain that tests the text.  The
   understanding the reader produces — *not* identical to the author's
   intention — serves the Agonothetes-function.  A book read by a novice and
   the same book read by an expert produce different Agonothetes-judgments
@@ -2071,8 +2068,8 @@ The Skeptic attacks G by operating in positive (even-depth) areas:
 
 - **ERA** (Erasure): Remove content from positive areas. This weakens the
   graph — erasing a predicate from the sheet removes an assertion.
-- **IT-** (Deiteration): Remove content that could have been produced by
-  iteration. This "undoes" the Proposer's propagation moves.
+- **IT-** (Deiteration): Remove content that iteration could have produced.
+  This "undoes" the Proposer's propagation moves.
 - **DC-** (Double Cut Erasure): Remove `~[ ~[ ... ] ]` pairs. Simplifies
   structure and may expose content for further erasure.
 
@@ -2261,7 +2258,7 @@ game to Peirce's broader theory of inquiry:
   with the commens is exactly the category-mistake
   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §1 warns against; the
   Agonothetes brings the episode into a *posture toward* the commens (§3), never represents it.
-- **Fallibilism**: Even "proven" results may be revised (case 2b)
+- **Fallibilism**: Even "proven" results admit revision (case 2b)
 - **Growth of knowledge**: Independent proposals (case 3) are the engine of
   discovery — M develops as Graphist and Grapheus consider new graphs
 - **Self-correction**: The game is a model of inquiry as a self-correcting

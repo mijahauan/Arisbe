@@ -33,8 +33,8 @@ examinable.**
 
 Peirce did not build the Existential Graphs to draw logic prettily. He
 built them to *analyze reasoning* — to make the steps of an inference
-perspicuous enough that thought could be inspected, criticized, and
-improved. He called the graphs a "moving picture of thought" and, more
+perspicuous enough that one could inspect, criticize, and improve
+thought. He called the graphs a "moving picture of thought" and, more
 strikingly, a "rough and generalized diagram of the Mind." The point of a
 moving picture lies in the *motion*. He meant the Existential Graphs ([EGs](GLOSSARY.md#eg)) to show reasoning
 happening, step by justified step, not to freeze a conclusion.
@@ -82,7 +82,7 @@ on its own:
   sign-transitions, every link of which is a sound step. The chain *is*
   the thought, made examinable.
 
-This reading of the graphs belongs to Arisbe, offered as an architectural
+This reading of the graphs belongs to Arisbe; we offer it as an architectural
 thesis rather than as a quotation from Peirce. He gave us *semiosis* in
 his semiotics and *the graphs as the analysis of reasoning* in his logic.
 Joining them — treating an EG derivation as a literal chain of semiosis —
@@ -101,7 +101,7 @@ application, and a rule will not apply unless its preconditions hold. The
 move *is* its own proof of soundness.
 
 Each link in the chain earns attestation in two distinct senses, and both
-fire at the moment the step is taken:
+fire the moment you take the step:
 
 1. **Logical soundness.** The transformation rules are Dau's six,
    implemented in full compliance, Beta-aware. `RuleInteraction`
@@ -120,7 +120,7 @@ fire at the moment the step is taken:
 Together these make each asserted link a *fully warranted sign-transition*:
 sound as logic and faithful as a picture. A chain of such links yields a
 piece of reasoning one can trust, replay, and audit end to end, because
-every one of its steps attested itself as it was made.
+every one of its steps attested itself in the making.
 
 ---
 
@@ -197,7 +197,7 @@ name three relations a chain of semiosis can stand in to a context.
   an existing corpus UoD). Every step holds logically sound — `RuleInteraction`
   guarantees it — but the chain carries no assertoric force yet. It
   amounts to semiosis *in private*. §3.3 stays suspended at the
-  corpus-record boundary because the picture is not yet claimed to match
+  corpus-record boundary because nobody yet claims the picture matches
   any public proposition. Forms here mean nothing *as assertions*, however
   well-formed they are.
 - **Regime 2 — asserted (Organon, Agon, every promoted chain).** The chain
@@ -304,7 +304,7 @@ an *object* a person can work with:
 Here lies the difference between a tool that stores *pictures of logic* and
 an environment for *doing logic in pictures*. The former keeps artifacts;
 Arisbe keeps semiosis. And in keeping semiosis — sound step after sound
-step, each one warranted as it is made — it serves the hope Peirce never
+step, each one warranted in the making — it serves the hope Peirce never
 let go of: that the careful analysis of how we think offers a path toward
 thinking more clearly.
 

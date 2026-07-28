@@ -12,8 +12,8 @@
 The whole project turns on one distinction. **Arisbe attests *correspondence*,
 not *truth*.** A graph that passes the correspondence check (§3.3) says "this picture and this proposition
 denote the same mathematical object," and says *nothing* about whether that
-proposition holds true. Truth gets earned separately, through the Agon (testing) or
-a warranting chain. Keep that in view while reading the table. The guarantees below
+proposition holds true. A proposition earns truth separately, through the Agon
+(testing) or a warranting chain. Keep that in view while reading the table. The guarantees below
 guarantee *formation and sound transformation*, not correctness of content.
 
 ## The four tiers
@@ -69,7 +69,7 @@ party need in order to certify Arisbe's claims independently, without trusting o
 test suite? Three things, and the first two already exist.
 
 1. **A prover-agnostic contract** stating the properties precisely, so a
-   different implementation could be checked against the same spec. →
+   third party could check a different implementation against the same spec. →
    [CORRESPONDENCE_CONTRACT.md](CORRESPONDENCE_CONTRACT.md) (the contract properties P1–P5, the six §7
    shapes, the failure taxonomy, the tomos dataset card, MIT-licensed).
 2. **A callable referee** that reduces every claim to a re-checkable calculus

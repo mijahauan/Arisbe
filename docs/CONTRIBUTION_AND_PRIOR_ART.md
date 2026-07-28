@@ -1,7 +1,7 @@
 # Arisbe — Contribution & Prior Art
 
-> **What this is.** An honest assessment of what Arisbe genuinely contributes to its field, measured
-> against the connected literature and existing software. It aims to *distinguish real contribution
+> **What this is.** An honest assessment of what Arisbe genuinely contributes to its field, measuring
+> that contribution against the connected literature and existing software. It aims to *distinguish real contribution
 > from faithful re-implementation*, not to flatter the project. Three adversarial
 > web-research sweeps (2026-06-27) stand behind it: the [EG](GLOSSARY.md#eg)-software landscape, the formal/theoretical claims, and the
 > [endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in)/iconicity claims. Every claim below traces to a cited source; where evidence came back
@@ -18,7 +18,7 @@
 
 Arisbe makes a **genuine contribution, though it counts as engineering, operationalization, and
 integration, not a new theoretical result.** In nearly every case the underlying logical or
-structural fact belongs to *established literature that must be cited*. The defensible novelty lies
+structural fact belongs to *established literature we must cite*. The defensible novelty lies
 in what Arisbe builds: a *working, calculus-faithful system* doing what the literature had described
 only as theory or noted only as a static correspondence.
 
@@ -83,12 +83,12 @@ must cite) · **CANNOT DETERMINE**.
   and Kamp 1981. Our contribution rests in the *scorer*, not the isomorphism.
 - **The linear notations are Sowa + ISO Common Logic.** We implement and bind them; we did not invent
   EGIF/CGIF/CLIF.
-- **"Gamma is unnecessary" is contrarian, and the broken cut has been rehabilitated.** Ma & Pietarinen
+- **"Gamma is unnecessary" is contrarian, and scholarship has rehabilitated the broken cut.** Ma & Pietarinen
   (*Gamma graph calculi for modal logics*, Synthese 2018) give *sound and complete* graphical broken-cut
   calculi for fifteen normal modal logics, using Peirce's own apparatus with "only (DMN), (B), (5) new".
   They also name diagrammatic advantages the standard translation discards: position and polarity read
-  off cut topology, no negation normal form, the ambient sheet absorbing structural bookkeeping. So the
-  claim must be worded
+  off cut topology, no negation normal form, the ambient sheet absorbing structural bookkeeping. So we
+  must word the claim
   **"no modal *mark* needed for Arisbe's architecture," not "Gamma is dispensable for logic."**
   [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) ("What not using Gamma costs" + "What Gamma
   keeps") carries the full honest accounting: what the no-Gamma stance genuinely forgoes (second-order
@@ -121,9 +121,9 @@ must cite) · **CANNOT DETERMINE**.
   (AGM-for-Dung, ILASP/CDILP, AutoSpec) and FunSearch carry a sound engine but run single-agent or
   single-proposer. Arisbe's **automated Endoporeutic Game** (Graphist/Grapheus/Agonothetes under the
   §3.3-attested peel, with the correspondence-not-truth floor) sits in that empty intersection; see
-  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §8. (Threads 5–6, automated
-  science and LLM ontology construction, were not exhaustively verified; read as *"none among the
-  verified set."*)
+  [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §8. (The pass did not
+  exhaustively verify threads 5–6, automated science and LLM ontology construction; read as *"none
+  among the verified set."*)
 
 ---
 
@@ -158,10 +158,10 @@ instruct as much as the agreements. The design consequences live in
   Where does Arisbe agree with him? The **correspondence-not-truth floor** enacts
   anti-representationalism in practice: the §3.3 invariant attests a correspondence between
   two of *our own* signs, the drawn form and the written one, never between sign and world,
-  declining the Mirror of Nature exactly where Rorty says it must be declined. The phrase
+  declining the Mirror of Nature exactly where Rorty says we must decline it. The phrase
   **"progression, not progress"** and the dissolved terminus (Departure I in
   [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)) side with Rorty *against
-  Peirce's own* Final-Opinion convergence, since the game is scored against no summit. And
+  Peirce's own* Final-Opinion convergence, since no summit scores the game. And
   the **ironist's** "radical and continuing doubts about the final vocabulary she is using"
   becomes the validity discipline made syntax: M, the system's working vocabulary about its
   world, resides only inside cuts and never gets asserted at the sheet level, so irony
@@ -173,19 +173,19 @@ instruct as much as the agreements. The design consequences live in
   without a tribunal beyond one's peers; Arisbe keeps a **sound mechanical referee**. The
   Endoporeutic Game stays conversation, but *with an incorruptible referee*, a middle position
   Rorty's dichotomy of solidarity-or-objectivity does not name. Solidarity supplies the
-  warrant (in-context competence), the calculus supplies validity, and neither one gets asked
+  warrant (in-context competence), the calculus supplies validity, and we ask neither one
   to do the other's work.
 
 - **Predictive processing / active inference (Helmholtz; Friston; Clark, *Surfing
   Uncertainty*; Seth).** The closest formal neighbor, and the one with the deepest root.
   Helmholtz's **unconscious inference** (1860s) cast perception as the brain *predicting*
   what the senses will report and processing only the difference. Friston's free-energy
-  principle (2006–) formalizes that ancestor: free energy ≈ surprisal ≈ *doubt*, minimized
-  either by updating the model (perceptual inference) or by acting on the world (active
-  inference). The interpretant functioning as a *prediction*, doubt as
+  principle (2006–) formalizes that ancestor: free energy ≈ surprisal ≈ *doubt*, which an
+  agent minimizes either by updating the model (perceptual inference) or by acting on the
+  world (active inference). The interpretant functioning as a *prediction*, doubt as
   *prediction error*, and model revision as error-minimization together make up this
-  literature's core loop, and Arisbe's resolving membrane (forecast recorded before the
-  outcome; the `PredictionLedger`) implements its perception side. The Markov blanket and
+  literature's core loop, and Arisbe's resolving membrane (which records its forecast before
+  the outcome; the `PredictionLedger`) implements its perception side. The Markov blanket and
   Arisbe's *membrane* stand as independent coinages doing the same job: naming the boundary
   across which a model meets what it models. Precision-weighting has a discrete cousin in the
   warrant gradient. Two honest differences remain. Arisbe's updates come as **recorded,
@@ -222,8 +222,8 @@ instruct as much as the agreements. The design consequences live in
   emergence; it's closure") and reappears instead as **relinquishment and disuse-decay**. And
   "the decisive structural difference is **closure of the dynamics**": Life stands
   canonically defined on the *infinite* lattice ℤ², as unbounded as the sheet of assertion,
-  yet advances by a *fixed* local rule, so its growth stays bounded *by the rule*, while the
-  sheet's is bounded only by **selection from outside**, which is why the membrane holds the
+  yet advances by a *fixed* local rule, so *the rule* bounds its growth, while
+  **selection from outside** alone bounds the sheet's, which is why the membrane holds the
   crux. Life runs a closed determinism bounded by its fixed rule; the Agon loop runs an open
   negotiation bounded by the world. (Whether Life itself is worth encoding as a closed
   CA-in-EG demo remains a named backlog item there.)
@@ -246,7 +246,7 @@ instruct as much as the agreements. The design consequences live in
   laws emerge from energy optimization under physical network constraints, and whether
   *semiotic* networks obey analogous constraints stays a conjecture Arisbe is positioned to
   test, not assume.
-  *(Since tested five times: the West-in-kytē program E1–E3b, 2026-07-22→26 — see "The
+  *(The project has since tested it five times: the West-in-kytē program E1–E3b, 2026-07-22→26 — see "The
   graded concordance map" below for the verdicts, including the refuted priors.)*
 
 - **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
@@ -283,7 +283,7 @@ instruct as much as the agreements. The design consequences live in
   touches," [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)) amounts to an Umwelt: the world
   *as addressable by this organism's sign-repertoire*, with an honest horizon beyond it.
   Uexküll's functional circle (perceive → act → perceive) names exactly the circuit that
-  closes only when directed engagement gets built; until then Arisbe holds the perception arc
+  closes only when we build directed engagement; until then Arisbe holds the perception arc
   of the circle, not the action arc. Structural coupling names what a long-running live
   membrane would become, model and source shaping each other's history. One instructive break
   follows. Maturana & Varela's autopoiesis stays militantly anti-representationalist,
@@ -311,7 +311,7 @@ instruct as much as the agreements. The design consequences live in
   instance-of*. See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 
 *Confidence note: the mappings above record the project's own readings (2026-07-17, assistant-
-drafted, author-reviewed), made at the level of structural role. We claim no influence in
+drafted, author-reviewed); we made them at the level of structural role. We claim no influence in
 either direction between these programs and Arisbe's design.*
 
 ---
@@ -392,12 +392,12 @@ earned.** A four-component vector quantifies it, each component with a running i
 - **K1 — severity-weighted track record**: reliable success on tests that could have
   refuted (`PredictionLedger` × the attention economy's severity term). One worked case
   stands out. Fermat's conjecture, five confirmations deep, never amounted to knowledge.
-  Nobody had tested it where it could fail, and at F5 it died (the rung-1 exemplar, Euler
-  1732 recapitulated by attention in six rounds).
+  Nobody had tested it where it could fail, and at F5 it died (the rung-1 exemplar, where
+  attention recapitulated Euler 1732 in six rounds).
 - **K2 — durability** under continued revision pressure (the meta-learning stick-rates,
   decay-aware) — with a **modal reading** off the branching history: K2□ (durable on
-  every reachable trajectory) vs K2◇ (durable on some), computed by
-  `modal_query.durability_modality`.
+  every reachable trajectory) vs K2◇ (durable on some), which
+  `modal_query.durability_modality` computes.
 - **K3 — compression**: how much of the deliverance stream the laws derive
   (`model_materialization.materialization_ratio`, with unevaluable laws weighing the
   denominator — no credit without evaluable evidence).
@@ -437,7 +437,7 @@ Its broader value lies in making a cluster of established theory (the EG≅DRS b
 game, the modal standard translation, operational iconicity) *actually runnable and inspectable* in
 one place. For any external write-up the honest framing runs: **"we did not invent these ideas; we built
 the first system that makes them hold together, faithfully and checkably, in working software"** —
-with the correspondence invariant as the one place a stronger originality claim is warranted.
+with the correspondence invariant as the one place the evidence warrants a stronger originality claim.
 
 ---
 

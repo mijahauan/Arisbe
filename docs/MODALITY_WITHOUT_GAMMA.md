@@ -36,8 +36,8 @@ features lies beyond that theorem and carries its own declared commitments. The
 load-bearing claim — **no new mark** — is untouched; the unconditional
 completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
 the [tinctures](GLOSSARY.md#tincture) (Peirce's Gamma colourings) to carry modality on a single static sheet; the diachronic
-structure Arisbe already maintains and attests carries the *modal* load they were
-meant to bear. To say "without remainder" would claim too much; the ledger below
+structure Arisbe already maintains and attests carries the *modal* load Peirce
+meant them to bear. To say "without remainder" would claim too much; the ledger below
 sets out honestly what does and does not get carried ("What not using Gamma costs").
 
 **One thing needs saying plainly up front, for it carries the heart of the credit owed.**
@@ -86,8 +86,8 @@ readings:
   [`src/egi_transformation_history.py`](../src/egi_transformation_history.py) (the
   DAG of states and steps),
   [`src/universe_of_discourse.py`](../src/universe_of_discourse.py) (the diachronic
-  entity), surfaced as the
-  [derivation-DAG lens](../src/web_viewer/js/derivation-dag-lens.js).
+  entity); the
+  [derivation-DAG lens](../src/web_viewer/js/derivation-dag-lens.js) surfaces it.
 
 - **The alethic reading** (□ = true in all accessible worlds). Take the worlds as the
   corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**, and *R* as an accessibility relation drawn
@@ -169,7 +169,7 @@ trans-world identity as unproblematic "home ground." The honest claim is therefo
 **adequacy, not unconditional completeness.***
 
 **Clearer.** The operator achieves its concision by *hiding* the frame: its
-semantics amounts to a quantification deferred to a metalanguage the reader must supply.
+semantics amounts to a quantification it defers to a metalanguage the reader must supply.
 The diachronic drawing instead **exhibits** the frame. The worlds become sheets you
 can open; the accessibility, a transition you can replay. For a system whose
 entire purpose lies in the *analysis of reasoning* — Peirce's "moving picture of
@@ -212,7 +212,7 @@ get them "for free" from §1, and routes them honestly to the §7 frontier inste
   well-foundedness), McKinsey, common-knowledge (transitive closure). A single
   explicit *R* in FOL cannot axiomatize these either, so this is a limit of
   first-order frame definability *in general* — shared by the standard-translation
-  route, **not** a unique Gamma surplus. Already flagged in §4.1.
+  route, **not** a unique Gamma surplus. §4.1 already flags it.
 
 **(3) The perspicuity / succinctness / decidability cost.** Even where no
 object-language loss occurs, the standard translation carries a cost, and the cost
@@ -263,12 +263,12 @@ new**" — and those three are precisely the ones Peirce himself resisted, given
 epistemic (S5-rejecting) reading of the broken cut.
 
 **The diagrammatic advantages they name** — virtues the standard translation
-discards, quoted precisely:
+discards, and we quote them precisely:
 
-- **Position and polarity are read directly off the cut topology** — "the notion of a
+- **You read position and polarity directly off the cut topology** — "the notion of a
   position… is made explicit in graphical logic. This makes such graphical calculi the
-  natural home for deep inference." Scope and negation stand *in the picture*, not
-  reconstructed from a quantifier prefix.
+  natural home for deep inference." Scope and negation stand *in the picture*; the
+  reader need not reconstruct them from a quantifier prefix.
 - **No negation normal form, and no labels** — "graphs need not assume negation normal
   form… Labels are likewise not needed," an advantage over symbolic deep-inference
   systems.
@@ -289,12 +289,12 @@ but the operator's on-sheet compression is gone. Each keeps a different perspicu
 Arisbe takes its route because its central guarantee — identity carried inerrantly
 across a change of context — is exactly the trans-world-identity problem Peirce never
 reduced; but the choice **forgoes the broken cut's on-sheet virtue**, and that cost is
-real, made vivid precisely *by* Ma & Pietarinen's result. The defensible claim reads
+real. Ma & Pietarinen's result makes it vivid. The defensible claim reads
 "no modal *mark* needed for Arisbe's purposes," not "Gamma is dispensable for logic."
 
-**A caution about iconicity, which sits under all of this.** The strong claim that
-diagrams are iconic or perspicuous "in senses symbolic notations are not" stands
-**contested — by Pietarinen himself** ("Two Dogmas of Diagrammatic Reasoning," 2017).
+**A caution about iconicity, which sits under all of this.** **Pietarinen himself**
+contests the strong claim that diagrams are iconic or perspicuous "in senses symbolic
+notations are not" ("Two Dogmas of Diagrammatic Reasoning," 2017).
 Arisbe rests on the deflated, defensible claim, in Peirce's own terms: the
 graphs aim at "the closest correspondence with the process of reasoning," as "moving
 pictures of thought" — examinability, not a metaphysical privilege of the visual.
@@ -311,18 +311,19 @@ The claim stands definitive *because* it stays bounded. Three limits, stated pla
    outside the construction — and these are **not** exotic: GL/provability
    (Löb well-foundedness), common-knowledge (transitive closure), and
    temporal-liveness modalities are everyday, and the §1 provability/trajectory
-   reading is itself GL-shaped — *gestured at* there, not constructed. We reclassify
-   them honestly as part of the **§7 second-order residue**, not claimed.
+   reading is itself GL-shaped — we *gesture at* it there rather than construct it.
+   We reclassify them honestly as part of the **§7 second-order residue**, and do
+   not claim them.
    Counterfactuals (Lewis/Stalnaker sphere semantics, not a single accessibility
-   relation R) and the object-language **actuality operator @** (forgone by
-   principle — [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 forbids
+   relation R) and the object-language **actuality operator @** (Arisbe forgoes it
+   by principle: [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 forbids
    any mark bearing actuality) likewise go unserved. "Modality without Gamma" thus
    runs narrower than total, and we flag the boundary rather than paper over it.
 
 2. **Succinctness traded for explicitness.** A modal formula can be exponentially
    more compact than its first-order translation. Arisbe deliberately accepts the
-   verbosity to gain a *drawn* frame. The trade is real, named here rather than
-   hidden — and §5 shows how much of the lost concision can be recovered safely.
+   verbosity to gain a *drawn* frame. The trade is real; we name it here rather than
+   hide it, and §5 shows how much of the lost concision can be recovered safely.
 
 3. **Adequacy argument, not a mechanized theorem.** This document gives an
    *adequacy* argument grounded in the standard translation; it does not amount to
@@ -336,7 +337,7 @@ The claim stands definitive *because* it stays bounded. Three limits, stated pla
 
 > *Rendered without every detail, but with indicators that more detail exists.*
 
-The succinctness traded away in §4.2 has a principled answer, and it gives the right
+The succinctness Arisbe trades away in §4.2 has a principled answer, and it gives the right
 frame for any future temptation toward a modal-looking glyph. Think of a
 **map**: a good map omits almost everything, yet marks where the omitted detail
 lives and lets you zoom to it. The governing distinction separates a
@@ -365,9 +366,9 @@ freehand:
 So a door *does* exist through which a broken-cut-ish or tincture-ish symbol could
 one day win readmission — but only as a **map symbol**: a non-load-bearing
 indicator that *the diachronic/FOL detail exists here*, expansible on
-demand, gated by an expansion law that forces it to unfold to the real frame. It
+demand. An expansion law gates it and forces it to unfold to the real frame. It
 would recover concision without surrendering the drawn frame, and it would bear no
-actuality (MANIFEST floor #6). **This names a [horizon](GLOSSARY.md#horizon), not a present build** — recorded
+actuality (MANIFEST floor #6). **This names a [horizon](GLOSSARY.md#horizon), not a present build.** We record it
 here so that if the temptation returns, it returns through the one gate that keeps
 it honest.
 
@@ -378,8 +379,8 @@ it honest.
 Before naming the frontier, one more thing the diachronic reading discharges. The
 *meta-judgments* a reasoning community makes — "this qualifies as an addition to
 M," "the dialogists agreed that branch didn't happen," "take a new stand with
-respect to P" — prove not modal, and not ineliminable-as-marks either. They
-get **diagrammed as the trajectory itself**: thought about thought made
+respect to P" — prove not modal, and not ineliminable-as-marks either.
+**The trajectory itself diagrams them**: thought about thought made
 extensional. You do not predicate "they chose X" with a higher-order operator; you
 exhibit the choosing as the transition from sheet to sheet.
 
@@ -433,7 +434,7 @@ since Peirce.
 
 ## 8. Coda: fact, and the ground no sheet encloses
 
-Two final placements, recorded *alongside* Peirce's framing rather than in place
+We record two final placements *alongside* Peirce's framing rather than in place
 of it (see the reconciliations in MANIFEST_AND_MEANING.md and CHAIN_OF_SEMIOSIS.md).
 
 **Fact** names neither a glow in the object nor a counter we award. It names the
@@ -460,8 +461,8 @@ around**, the condition for there being play. *The last-one-standing is always
 standing on something it didn't lay down.*
 
 *Examined (2026-06-19; [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) §2,
-[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)). The "third position" is
-held with its distance from Peirce now precisely measured, not overstated. What is
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)). We hold the "third position"
+with its distance from Peirce now precisely measured, not overstated. What is
 **secured**: the eliminative/negative orientation — demotion is driven from behind,
 by what overturns a standing (Peirce's own* Fixation of Belief *engine), and the
 ground so encountered is cognizable* in its effects*, hence not the incognizable

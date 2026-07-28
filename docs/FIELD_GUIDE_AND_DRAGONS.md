@@ -96,7 +96,7 @@ work, and both matter:
   or less flips "is" into "isn't," "some" into "every." Show a fragment without
   its enclosing cuts and you have amputated its meaning.
 - **The ground** — the universe of discourse the graph is asserted *in*: *whose
-  sheet it is, what is taken as understood between the parties.* Peirce built this
+  sheet it is, what the parties take as understood between them.* Peirce built this
   in deliberately — the sheet is not a neutral blank but an **index of a universe
   already agreed**. A graph never floats free over nothing; it lies scribed on
   a sheet that already posits a world.
@@ -137,7 +137,7 @@ sound steps. Same picture; two completely different standings; which one it is *
 question.
 
 And pair this with the second reflex (point 4 above): cat-on-mat shown by itself
-almost certainly amounts to an **extract**. Even granting it was posited, ask *what whole
+almost certainly amounts to an **extract**. Even granting that someone posited it, ask *what whole
 it is a piece of and what universe it stands in* — is it the premise of an
 argument whose conclusion is off the page? a single state in a sequence the author
 abbreviated? a sub-graph that, in its real setting, sits inside a cut that would
@@ -161,7 +161,7 @@ Each entry: 🐉 the mistake · why it tempts (you're in good company) · the an
 ### 🐉 1. The missing outer cut — "every" vs "some-isn't"
 
 By far the most common beginner error, and the tool will catch you (it caught the
-author of this guide while it was being written).
+author of this guide while he was writing it).
 
 You want to say **"every human is mortal"** and you write:
 
@@ -229,7 +229,7 @@ A heavy line is "something exists," and the **same** line threaded through sever
 spots says "the same something." In the written form:
 
 - `*x` (with a star) **introduces** a fresh line — "there is an x…"
-- `x` (no star) **refers back** to a line already introduced.
+- `x` (no star) **refers back** to a line you already introduced.
 
 So in `~[ (Human *x) ~[ (Mortal x) ] ]`, the *one* line `x` is born in the outer
 ring and reaches into the inner cut — that single thread crossing the boundary is
@@ -282,10 +282,10 @@ scrutiny; the badge a graph earns describes the *graph*, never the person. To
 dismiss a claim because of *who* made it (rather than test it) is the dragon's
 cousin — and it has a name, *epistemic injustice*. (Adherence: the augurs were
 rightly demoted by **losing the contest**, not by being barred from it. Breaking:
-refusing to look through Galileo's telescope because of who held it.) The long
-version of all this — and where Arisbe knowingly parts from Peirce — gets told plainly
-in [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) (Doubt 4) and
-precisely in `FIDELITY_AND_DEPARTURES.md`; you need neither to start.
+refusing to look through Galileo's telescope because of who held it.)
+[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) (Doubt 4) tells the long version of all
+this plainly, and `FIDELITY_AND_DEPARTURES.md` tells it precisely — including where Arisbe knowingly
+parts from Peirce; you need neither to start.
 
 ### 🐉 7. "I need a special mark for *possibly* / *necessarily*"
 
@@ -310,7 +310,7 @@ something; or you call a drawing "an assertion" and feel it now carries force.
 **Dragon: a name purchases nothing.** A definition counts as legitimate only because it
 **unfolds** back to exactly what it abbreviates and the rules accept the swap —
 not because you gave it a dignified label. Likewise "assertion" names no property
-of where a mark sits; it names an *act* of taking responsibility, tested in the game.
+of where a mark sits; it names an *act* of taking responsibility, one the game tests.
 **Antidote:** whenever a name seems to be doing the work, ask to see the
 **expansion** (what does it unfold to?) and the **warrant** (what challenge has it
 survived?). If the answer is "just the name," it counts for nothing.
@@ -404,8 +404,8 @@ scholarship still argues:
   of dragon 6, including the examinations of exactly where Arisbe parts from Peirce
   and why (three departures, then the larger-game and worth-ladder rounds).
 - [`MEANING_BY_HISTORY.md`](MEANING_BY_HISTORY.md) — the deep version of dragon 9: how a
-  graph's *history* bears meaning (the same picture, a different argument) and why a telos
-  must never be reified out of that history onto the sheet.
+  graph's *history* bears meaning (the same picture, a different argument) and why you must never
+  reify a telos out of that history onto the sheet.
 
 The point of a field guide is that **you should not need any of those to begin.**
 Draw on the blank sheet. Watch the cuts. Ask whether a thing was posited or

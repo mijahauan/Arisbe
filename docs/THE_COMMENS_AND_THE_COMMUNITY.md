@@ -5,8 +5,8 @@
 > three Endoporeutic Game (EPG) roles as a *model* of that institution, the S/A
 > parameterization and its West correspondence, the refusal of "final," and the standing
 > statement that the higher-order frontier is deliberately not crossed. The author's spine
-> stands as ratified doctrine; assistant elaborations remain carried but marked `*[flagged]*` and gathered
-> in [§11](#11--open-verdicts) for later ruling. **Not in `_quarto.yml`** — book membership
+> stands as ratified doctrine; this document carries the assistant elaborations too, marks them
+> `*[flagged]*`, and gathers them in [§11](#11--open-verdicts) for later ruling. **Not in `_quarto.yml`** — book membership
 > deferred to workstream B.
 >
 > *Written 2026-07-20, assistant-drafted from the sitting, the spine the author's.*
@@ -26,18 +26,18 @@
 The Universe of Discourse (UoD) names the immediately accessible, controllable, and attested
 internal model *inside* a [kytos](THE_KYTOS.md#1--the-unit-named)'s membrane — what a kytos
 *thinks with*. Arisbe already builds it: the synchronic EGI plus its diachronic
-history, internalized and attested at the [§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
-boundary.
+history, which it internalizes and attests at the
+[§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md) boundary.
 
 The commens forms the pair's other half, and no Arisbe structure holds it. It names the
-between/outside/before/after that makes communication possible without being possessed.
+between/outside/before/after that makes communication possible without anyone possessing it.
 We interact with it; we never internalize it. It works as a **regulative** concept, not
 something to operationalize. No data structure in this codebase carries the name "the
 commens," and none ever should.
 
 **The category-mistake warning, stated explicitly:** the attested corpus is the
-*internalized* UoD, **not** the commens. Naming the corpus "the commens" proved an error, made
-and corrected in this sitting. No sentence in this document matters more than this warning;
+*internalized* UoD, **not** the commens. Naming the corpus "the commens" proved an error, one
+this sitting made and then corrected. No sentence in this document matters more than this warning;
 every other section depends on keeping the two apart.
 
 **The commens is a social construct** (author, 2026-07-20), in Berger and Luckmann's precise
@@ -45,7 +45,7 @@ sense: an objectivated reality that is *real for its participants* — it confro
 facticity and exceeds any one of them — and yet is **sustained only by participation**. It
 stands neither pre-given nor timeless, nor on its own the way a Platonic form would stand: *if
 we do not participate, it disappears.* Its "before us and after us" character amounts to the
-persistence of a continuously reproduced activity across finite, mortal participants, not the
+persistence of an activity finite, mortal participants continuously reproduce, not the
 standing of an eternal thing. It remains **open, and therefore precarious**. The same act that
 makes it real — participation — alone keeps it there.
 
@@ -97,12 +97,12 @@ individual**. It takes at least two distinguishable types of actor, actually rec
 for an institution to exist.
 
 This explains why Arisbe's Endoporeutic Game roles — Graphist, Grapheus, Agonothetes — do not,
-by themselves, make an institution. They function as **internalized typifications** carried as
-sub-roles within one process (see `agon_llm.py`'s three roles, or the mechanical panel in
-`agon_evolution.py`). Conant and Ashby's good-regulator theorem (requisite variety: a
+by themselves, make an institution. They function as **internalized typifications**, and one
+process carries them all as sub-roles (see `agon_llm.py`'s three roles, or the mechanical panel
+in `agon_evolution.py`). Conant and Ashby's good-regulator theorem (requisite variety: a
 regulator that manages a system well must, in effect, contain a model of that system) supplies
 the right frame. To manage its own belief-fixation, a kytos's process must model the social
-division of labor by which belief actually gets fixed elsewhere. The roles serve as a **model
+division of labor that actually fixes belief elsewhere. The roles serve as a **model
 of** the institution of inquiry, carried internally as sub-roles — never an **instance of**
 that institution. Model-of, never instance-of.
 
@@ -111,8 +111,8 @@ that institution. Model-of, never instance-of.
 
 - **Two players, and only two.** The **Graphist** devotes itself to the *proposal* — the new,
   whether it arrives from outside the membrane or the kytos's own doubt throws it up. The
-  **Grapheus** devotes itself to the *Model M* — the established, habituated ground already used
-  in further thought and action. Their play confronts the new with the standing, and it yields
+  **Grapheus** devotes itself to the *Model M* — the established, habituated ground the kytos
+  already uses in further thought and action. Their play confronts the new with the standing, and it yields
   a **binary outcome**: the proposal either holds against M or it does not. These match exactly
   Berger and Luckmann's two reciprocating actor-types — the one who brings a candidate, the one
   who answers with the standing ground — which is why two stands as no incidental count but as
@@ -131,8 +131,8 @@ that institution. Model-of, never instance-of.
   `model_revision.REVISION_TAXONOMY`) — the Agonothetes **applies that taxonomy to select which
   fate applies**. The selection amounts to a **risked choice, not a recognition**: it does not
   read off a determinate fact of the matter but charts a path, takes a risk, and commits to a
-  disposition that *might or might not* actually resolve the doubt. Played by a human, here her
-  own posture, in the dialogue and toward the world, enters the record. Mechanically the choice
+  disposition that *might or might not* actually resolve the doubt. When a human plays the part,
+  her own posture, in the dialogue and toward the world, enters the record. Mechanically the choice
   comes about by policy priority among a panel's votes, by forking the DAG to carry genuine
   dissent forward as siblings (`agon_llm.py`'s `branch_votes` hook), or, with an LLM judge, by
   choosing among votes already cast without fabricating a disposition. Conceptually it remains
@@ -141,7 +141,7 @@ that institution. Model-of, never instance-of.
 **The two framing acts bracket the play** (author's ruling, 2026-07-21). Standing outside the
 two-sided contest, the Agonothetes serves as the natural home, and the only coherent one, for
 the two acts that *bracket* it: **before**, it **sets the terms**, choosing the reference model
-M the proposal will be tested against; **after**, it **selects the fate**. Neither player can
+M the game will test the proposal against; **after**, it **selects the fate**. Neither player can
 own the before-act without conflict. The Graphist stands on the doubt/proposal side and must
 not pick the M its own proposal gets graded against; the Grapheus *is* M and cannot choose what
 it is. Choosing M therefore belongs to the Agonothetes — a recorded, warranted, contestable
@@ -160,7 +160,7 @@ commens**; nothing inside one process can (§1). What it does do is bring the ep
 into a **posture of the functioning UoD *toward* the commens**. The selected fate says how this
 kytos now stands, provisionally and at its own risk, in relation to an outside it does not own.
 **Commens-entry remains a separate act** — circulation and uptake by other kytē — and never
-turns automatic just because a round resolved and a fate was chosen inside one process.
+turns automatic just because a round resolved and the Agonothetes chose a fate inside one process.
 
 ## 4 · S and A, made measurable *[ratified spine / flagged coupling]*
 
@@ -195,8 +195,8 @@ under pursuit, not a settled finding).
 from a shared substrate (the commens functioning as common infrastructure that many kytē draw
 on without each rebuilding it) with **superlinear production or K-generation** from
 interaction density (more connected kytē producing disproportionately more knowledge, not
-merely more talk). The conjecture awaits fitting against the exponents recovered from the Q-B
-apportionment / West experiment (the Q-B sketch, CURRENT_PLAN.md item -8: one big
+merely more talk). The conjecture awaits fitting against the exponents the Q-B
+apportionment / West experiment recovers (the Q-B sketch, CURRENT_PLAN.md item -8: one big
 Arisbe vs. distributed kytē plus a coordinator, measuring cost curves, K3 exponents, and
 poise). It stands as a **conjecture-until-measured**, and stays one permanently in the sense
 that matters here: the measurement itself remains an ongoing act, never a closing one (see [§7](#7--no-final-ratified)).
@@ -249,8 +249,8 @@ The register to use instead: "tends," "the current best-attested," "open."
 The standing statement, ratified: the higher-order frontier remains **deliberately not
 crossed**. Thirdness — mediation, law, interpretation, in Peirce's own sense — finds
 realization **operationally, not representationally** throughout Arisbe: in the teridentity ink
-(the reduction thesis, `docs/CATEGORIES_AND_THE_THREE_PARTS.md`), in §3.3 attestation (the
-interpretant treated as a prerequisite for correspondence rather than an afterthought), in the
+(the reduction thesis, `docs/CATEGORIES_AND_THE_THREE_PARTS.md`), in §3.3 attestation (which
+treats the interpretant as a prerequisite for correspondence rather than an afterthought), in the
 diachronic DAG (would-be, modality, read without a modal mark per
 `docs/MODALITY_WITHOUT_GAMMA.md`), and in the Agonothetes (the game's own interpretant,
 deciding what a round means for the record, §3). Thirdness is **not** realized as a
@@ -279,8 +279,8 @@ disagreement, §3) comes nearest of the automated loop's gestures toward genuine
 and it stays **intra-individual**: the branches sit as siblings in one process's diachronic
 DAG, not distinct actors reciprocating.
 
-This extends the built/evidenced/conjectured honesty ledger already kept in
-[THE_KYTOS.md §5](THE_KYTOS.md). The automated EPG stands built and evidenced as a model of
+This extends the built/evidenced/conjectured honesty ledger that
+[THE_KYTOS.md §5](THE_KYTOS.md) already keeps. The automated EPG stands built and evidenced as a model of
 institutional reasoning; it gives no evidence of an institution.
 
 ## 10 · The entailment: connection outward *[ratified]*
@@ -326,14 +326,14 @@ still marked `*[flagged]*` below counts as settled doctrine.
    commens, as opposed to a narrower, purely formal reading (§3.3 attests structural agreement
    and nothing about truth-conditions at all, independent of any commens-facing story)?
 3. **§3-detail — the Agonothetes-negotiation account. ✅ RESOLVED (the author's authoritative
-   ruling, 2026-07-20).** The account is superseded and sharpened, and §3 now carries the
+   ruling, 2026-07-20).** The ruling supersedes and sharpens the account, and §3 now carries that
    ruling as ratified doctrine: the EPG is **two players** (Graphist for the proposal, Grapheus
    for the Model M) yielding a **binary outcome**, with **no referee** (the calculus guarantees
    every move's legality); the **Agonothetes is not a player** but applies the agreed *taxonomy
    of fates* to that outcome as a **risked choice** (charting a path, not recognizing a fact),
    thereby bringing the episode into a **posture of the functioning UoD *toward* the commens** —
-   it does not represent the commens. The priority / DAG-fork / LLM-choice mechanisms are
-   retained as the *mechanical realization* of that single risked selection, not as three
+   it does not represent the commens. §3 retains the priority / DAG-fork / LLM-choice
+   mechanisms as the *mechanical realization* of that single risked selection, not as three
    separate cases. This supersedes the doc-sweep docket's §(iii) "Grapheus = tester + defender"
    draft (there is no tester and no referee).
 4. **§4-coupling — S/A coupled by one attention budget, poise as its reading.** Rule on
@@ -363,8 +363,8 @@ still marked `*[flagged]*` below counts as settled doctrine.
 
 ## 12 · The commens rung — Examination VI rulings folded *[ratified, 2026-07-27]*
 
-The nine threads queued for the commens rung were examined and ruled at the 2026-07-27
-sitting; the full record is [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)
+The 2026-07-27 sitting examined and ruled the nine threads queued for the commens
+rung; the full record is [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)
 Examination VI. What lands in *this* document, now ratified doctrine:
 
 **(a) The marks doctrine.** "The real," where the corpus speaks of tracking it, is Berger &

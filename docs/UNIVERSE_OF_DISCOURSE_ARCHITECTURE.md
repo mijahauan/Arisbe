@@ -243,7 +243,7 @@ The literature's synchronic focus treats Existential Graphs ([EGs](GLOSSARY.md#e
 
 > **Role framing (canonical: [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3).**
 > The Defender/Challenger labels above describe the *classical hot-seat transformation game*, where the
-> parties trade moves over a single asserted graph. In the settled account the two players are named by
+> parties trade moves over a single asserted graph. The settled account names the two players by
 > what each is *devoted to*, not by attack/defence: the **Graphist** is the **proposal-side** (the new —
 > G, whether arrived from outside the membrane or thrown up by the kytos's own doubt) and the **Grapheus**
 > is the **Model-M-side** (the established, habituated ground). Their play yields a **binary outcome**,
@@ -745,7 +745,7 @@ Taking the **Universe of Discourse** as the fundamental entity carries Arisbe pa
 
 **The Paradigm Shift**:
 
-- **Before**: the EGI stands as a static diagram to be edited
+- **Before**: the EGI stands as a static diagram the user edits
 - **After**: the UoD runs as a dynamic process, and the EGI names a frame within it
 
 **The Result**:

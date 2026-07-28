@@ -52,8 +52,8 @@ fact (no contingent graph originates naked on the positive recto) and the episte
 posture (no incorrigible saying) amount to the same fact seen twice.
 
 What the calculus does **not** supply is the *content* — *which* model M, *which*
-premise. That names **not a gap but the proper contingency**, answered in the world and in
-the Agon (§5–§6). The one standing obligation it leaves is **contextual honesty**:
+premise. That names **not a gap but the proper contingency**; the world and the Agon answer
+it (§5–§6). The one standing obligation it leaves is **contextual honesty**:
 tracking *what* context — what nesting, what regime, what given — delivers a graph's
 interpretive meaning. That obligation *is* the central correspondence problem, the field
 guide's "context reflex," the three regimes, and the correspondence check (§3.3), all at once.
@@ -70,8 +70,8 @@ The formal Existential Graph ([EG](GLOSSARY.md#eg)) literature (Dau, and the lin
 carries a rigorous notion of *context* — but it means the **area** a subgraph
 occupies, individuated by enclosure: the Sheet is the context of depth 0, a cut
 opens depth 1, and so on. That is **context-as-enclosure**. Read those texts and
-you may reasonably infer the *conditions of situation* are handled too — but they
-are not, because the conditions are **context-as-ground**: *whose* sheet, *what*
+you may reasonably infer they handle the *conditions of situation* too — but they
+do not, because the conditions are **context-as-ground**: *whose* sheet, *what*
 universe, under what commitments a scribing counts as an assertion at all.
 
 Level 0 has no enclosing cut, so under enclosure it reads "contextless." But the
@@ -130,8 +130,8 @@ contingent graph at level 0. You cannot smuggle it in wrapped — `cut[cut[P]]`
 reduces to `P`, still contingent, still not a theorem. The only graphical element
 that can *originate* at depth 0 from the blank is a **cut** — and the cuts that
 legitimately sit at level 0 in a theorem enclose balanced, valid structures: the
-outer cut of the scroll `cut[ P cut[P] ]` for P → P, where both P's are enclosed
-and nothing contingent floats free.
+outer cut of the scroll `cut[ P cut[P] ]` for P → P, where the cuts enclose both
+P's and nothing contingent floats free.
 
 So the demonstrative apparatus never yields the textbook cat-on-mat picture.
 
@@ -220,12 +220,12 @@ the corpus has been asserting now has its place in the calculus.
 > *stand* between episodes in the corpus. `M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md`
 > §9 (the "second relocation," ratified 2026-07-16) relocated M's standing
 > residence to **even-depth cells** beside a hold — `~[ ~[cell] … ~[ ] ]` — precisely
-> so that a resident M asserts nothing while still being enlarged/retracted by
-> licensed rule moves (INS-of-cell / ERA-in-cell) rather than by whole-scroll
+> so that a resident M asserts nothing while licensed rule moves (INS-of-cell /
+> ERA-in-cell) still enlarge and retract it, rather than whole-scroll
 > withdrawal. The two pictures answer different questions — "what does one episode's
 > conditional look like" (this section, odd-depth antecedent) vs. "where does M sit
 > when no episode is in progress" (M_RESIDENCE §9, even-depth cells) — and are not in
-> tension; §10 there shows an episode being *entertained* by lifting a resident M's
+> tension; §10 there shows how one *entertains* an episode, lifting a resident M's
 > cells into exactly this section's scroll shape for the duration of the move.
 
 ### How a given enters: the construction from the blank
@@ -292,7 +292,7 @@ above. The world-facing half remains the membrane's business, not the mark's.
 
 ## 7. The regress, and the constitutional reading
 
-An honest worry deserves airing. The scroll itself gets scribed at level 0 — have
+An honest worry deserves airing. We scribe the scroll itself at level 0 — have
 we just relocated the privileged surface one rung up, trading a bare asserted atom
 for a bare asserted conditional? The answer runs *yes, and that is the point*,
 because the move **generalizes** the level-0 theorem rather than breaking it.

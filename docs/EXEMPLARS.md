@@ -8,8 +8,8 @@
 > there and why*; it does not teach you to author more (that pattern lives in the
 > `tools/build_*.py` scripts and [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)).
 >
-> **Companions:** [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (how a board is
-> queried as a model M) · [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md)
+> **Companions:** [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (how the peel
+> queries a board as a model M) · [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md)
 > (the episode *given M, then G*) · [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md).
 >
 > *Created 2026-06-29.*
@@ -202,8 +202,8 @@ full mapping between Cohen's construction and Arisbe's machinery.
 ## 6. A domain model transforming through dialog
 
 `dialogue_model_revision` ([tools/build_dialog_model_evolution.py](../tools/build_dialog_model_evolution.py))
-shows a reference model M revised episode by episode and persisted as **its own
-history**. After each revision the standing proposal G = "every patient is insured"
+shows a dialogue revising a reference model M episode by episode, and persists the
+result as **its own history**. After each revision the standing proposal G = "every patient is insured"
 peels against M, and the verdict moves as the dialogue admits evidence and as fresh
 evidence unsettles it:
 
@@ -278,8 +278,8 @@ stand as recorded judgments, not edits.
 
 The Organon **audit lens** (`web_viewer/js/audit-lens.js`
 over `GET /organon/uods/{id}/audit`) surfaces both dialogues. A standing proposal G peels
-against every successive model M and draws as the **verdict ribbon**, with each transition
-labelled by its disposition · mode and "verdict flips" flagged. Each UoD declares its own
+against every successive model M and draws as the **verdict ribbon**, which labels each
+transition by its disposition · mode and flags the "verdict flips". Each UoD declares its own
 proposal in an `audit-proposal` annotation, and the reader may type another. The companion
 **modal lens** (`modal-lens.js` over `/modal`) reads ◇/□ off the branching history (§5).
 Both remain read-only navigation projections, never the asserted drawing.

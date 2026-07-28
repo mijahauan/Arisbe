@@ -124,7 +124,7 @@ class ("every mammal is warm-blooded; dogs are mammals…") and in **Agon** lets
 student propose a claim and watch the game *unwrap* it from the outside in until
 it resolves to a theorem, a contradiction, or a genuinely new fact. The class now
 plays an **automated opponent** — the machine plays the model side optimally —
-with the running play and its verdict shown move by move. She can hand a student a target
+with Arisbe showing the running play and its verdict move by move. She can hand a student a target
 graph and let **challenge mode** grade a freehand attempt against it, with a
 **legible diff** that says, in the student's own vocabulary, *exactly* where the
 attempt and the target part ways — wrong scope, missing line of identity,
@@ -132,7 +132,7 @@ arguments in the wrong order. Nothing on screen sits as a static slide; every
 diagram stays live and inspectable.
 
 **When complete.** A fully constructive *proof mode* to complement the
-model-checking game, so a challenge can be played as "find the derivation," with
+model-checking game, so a student can play a challenge as "find the derivation," with
 the system refereeing each rule application; and richer authored challenge banks
 graded automatically. Logic class becomes a workshop with a tireless, honest
 referee.
@@ -160,12 +160,12 @@ and to be caught — kindly and immediately — when they do not.
 **Now.** In **Ergasterion** Amara composes a graph by hand on a freeform canvas:
 she places relations, draws cuts as ovals, drags lines of identity. Then she
 asks the graph **"what do you say?"** — and it reads itself back as a determinate
-sign with its linear form shown, *or* tells her, in the vocabulary of graphs,
+sign, showing its linear form, *or* tells her, in the vocabulary of graphs,
 why it does not yet stand well-formed (a line dangling into nothing, two cuts
 improperly overlapping). A **Graph↔Argument** switch makes the difference between a sketch
 and a committed claim unmistakable: you cannot apply a rule to an unfixed
 drawing, nor silently change the meaning of a fixed one. She practises the six
-transformation rules, every application validated against the mathematics.
+transformation rules, and Arisbe validates every application against the mathematics.
 **Challenge mode** turns practice into a game she can win: reproduce *this*
 graph, and get told precisely how close she came. The trickiest targets carry a
 🐉, the field guide's "dragons," and a wrong attempt hands her back the
@@ -195,8 +195,8 @@ evidence the game cannot supply. He moves a claim between Existential Graph Inte
 without loss; imports external material through a doorway that admits it honestly
 at **low warrant** — parsed and attributed, never asserted true; and reads the
 full provenance of any corpus item. Real ontologies already stand ready as
-models to contest against — SUMO, BFO, FOAF, SKOS, Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)) — imported through the
-Web Ontology Language ([OWL](GLOSSARY.md#owl))/Resource Description Framework ([RDF](GLOSSARY.md#rdf))→CLIF→EGI pipeline. He can ask the **interpretation register** "given this
+models to contest against — SUMO, BFO, FOAF, SKOS, Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)) — which the
+Web Ontology Language ([OWL](GLOSSARY.md#owl))/Resource Description Framework ([RDF](GLOSSARY.md#rdf))→CLIF→EGI pipeline imports. He can ask the **interpretation register** "given this
 world M, does G hold?" (true / false / *unknown*, with a witness or
 counterexample), run the **inverse pivot** — "*in what world does G hold*, and
 what is its residual contribution?" — and, when a Graphist-won contest is worth
@@ -281,8 +281,8 @@ it as a hypothesis — exactly the move clinical knowledge makes when a textbook
 generalization meets a real exception. Nothing auto-asserts; the judgment
 remains hers. And in **Organon** an **audit lens** replays that standing question against
 each successive version of her knowledge, drawing the verdict at every step and
-flagging exactly where it flips and which revision flipped it — each transition
-labelled by its disposition and Peircean mode (induction / deduction / abduction).
+flagging exactly where it flips and which revision flipped it, labelling each
+transition by its disposition and Peircean mode (induction / deduction / abduction).
 
 **When complete.** A large medical ontology (SNOMED) as the standing model, with
 guideline rules materialized so the reasoning fires automatically; and the
@@ -315,7 +315,7 @@ cross-check his transcription, and carries the manuscript's provenance — sourc
 date, page — as typed metadata on the corpus item. And once verified he
 **exports it to publication-ready LaTeX/TikZ** — an *authentic-Peirce* rendering
 (oval cuts, heavy lines of identity, hooks; pure TikZ, plain `pdflatex`, no
-PSTricks) generated *from* the §3.3-attested graph, so the printed figure provably
+PSTricks) that Arisbe generates *from* the §3.3-attested graph, so the printed figure provably
 denotes the same object — with a scholarly **citation** drawn from the item's own
 provenance, and **batch export** that assembles many graphs into one document (an
 appendix of figures, or a worked proof as a multi-figure derivation). He drops the
@@ -349,9 +349,9 @@ dismissing a claim because of who made it rather than testing it — names the o
 move the system refuses by construction (the wider world calls it *epistemic
 injustice*). Adherence: the augurs were rightly demoted by **losing the contest**.
 Breaking: refusing to look through Galileo's telescope because of who was holding
-it. *(The argument behind this — and where it parts from the grand "ladder of
-progress" readings of Peirce — is told in
-[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md), Doubt 4.)*
+it. *([FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md), Doubt 4, gives the
+argument behind this — and where it parts from the grand "ladder of
+progress" readings of Peirce.)*
 
 ---
 
@@ -410,7 +410,7 @@ contradiction is not a verdict. The game's interpretive function lays out the
 options: reject the proposal, revise the knowledge base, or hold it as a
 hypothesis pending investigation. The evidence holds, so the group **revises**:
 "tomatoes require adequate light" replaces "tomatoes require full sun," and
-"reflective mulch can supplement light" is added.
+they add "reflective mulch can supplement light."
 
 *Knowledge revision* — the hardest and most powerful outcome. The old
 rule was not wrong, only *incomplete*, and the game exposed the incompleteness
@@ -484,9 +484,9 @@ a loop produces a **track record, never truth**. The correspondence
 check attests that the drawn and written record match; the run log shows what
 was tested and how it fared; nothing in the machinery can promote either into
 "true." Where a large language model participates (optional, for proposing
-and defending claims in natural language), every one of its moves is reduced
-to a checkable calculus artifact and re-verified before it counts — *the LLM
-argues, the calculus decides*. And every change to the model M happens as an
+and defending claims in natural language), Arisbe reduces every one of its
+moves to a checkable calculus artifact and re-verifies it before it counts —
+*the LLM argues, the calculus decides*. And every change to the model M happens as an
 acknowledged, licensed act a standing test gate re-checks; nothing reaches M
 silently.
 
@@ -500,12 +500,12 @@ without ever being handed the diary itself.
 constraint**: it reads *structure only* — paths, folders, dates, tags, links,
 sizes — never the body of a note, and its console reports counts, never
 titles. The journal gets a two-timeline reading (the date a note claims makes an
-*event-time* assertion, distinct from when it was written). Out of what
+*event-time* assertion, distinct from when she wrote it). Out of what
 arrives, the loop builds a bounded model of the vault's shape and mints
 **standing questions** where the model runs thin. Periodically it writes one
 **oracle note** back into the vault — at most five questions, each carrying a
-*sealed* forecast of the answer (a salted hash, revealed and re-checked only
-after Noor answers) — and Noor replies in the note itself, in ordinary
+*sealed* forecast of the answer (a salted hash the loop reveals and re-checks
+only after Noor answers) — and Noor replies in the note itself, in ordinary
 markdown. The loop scores answers against the sealed forecasts; declining to
 answer counts as a first-class outcome, not an error; an accepted answer enters
 the author-model only by the same licensed, quoted, gate-checked step as any
@@ -543,8 +543,8 @@ disputes produce knowledge that *lasts*?"
 
 **Now.** Every run keeps its episodes: what was proposed, which verdict came
 back, which disposition the panel chose, and — the part that matters — whether
-the move **stuck** or was later overturned, with decay-erasures honestly
-excluded from the stickiness accounting rather than counted as refutations.
+the move **stuck** or was later overturned, with the stickiness accounting
+honestly excluding decay-erasures rather than counting them as refutations.
 Over a run built from recorded edit disputes, the meta-learning layer reports
 stick-rates *by resolution mechanism* — in the logged runs, claims settled by
 a reliable source proved durable where claims settled by bare consensus did
@@ -645,8 +645,8 @@ before execution — the same discipline the E-series itself was held to.
 
 **When complete.** Honestly graded: the E-series harness stands as the *first
 instance* of this laboratory, built for one family of questions (partition
-economics), and the temperament dial has not yet been swept in a population
-run (the project's own docket names that study). A general
+economics), and no population run has yet swept the temperament dial (the
+project's own docket names that study). A general
 population-experiment surface — vary any per-unit parameter across a
 population and read the instruments — names the direction, not yet the shipped
 thing.
