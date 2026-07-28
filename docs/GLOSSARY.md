@@ -39,7 +39,11 @@
    [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) → [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 2. [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md) +
    [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) — the debt to Peirce and the examined departures.
-3. [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md),
+3. [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md) — the
+   unification joint (erotetics · attention · modality · the deliberative interval ·
+   mention-ascent, one index-over-ink structure) and where its evidence must live; read with
+   VISION_AND_SCOPE §8's "The unification joint".
+4. [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md),
    [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md),
    [THE_MINIMAL_IN_VIEW_SET.md](THE_MINIMAL_IN_VIEW_SET.md) — the doctrine frontier.
 

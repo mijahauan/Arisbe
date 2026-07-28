@@ -323,25 +323,62 @@ one claim; the claim-by-claim examination lives in
    [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md); the open-endedness
    reading itself queued-conjecture — not yet a measured claim.]*
 2. **West's *Scale* — the scaling of knowledge systems.** West's scalar optimand (energy)
-   becomes a vector (the knowledge measure), and the question becomes measurable: experiments
-   E1–E3b ran against pre-registered priors — federation ~5.2× cheaper than the monolith at
-   equal durability (`runs/WEST_E1_LOG.md`); self-partitioning converging to an interior
-   granularity N=3 from all 36 starts, 19 distinct optima, one dominant cost family carrying
-   75% of the attractor mass, the balanced partition stranded (`runs/WEST_E3B_LOG.md`).
-   *[measured-with-priors — [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
+   becomes a vector (the knowledge measure), and the question becomes measurable: the E-series
+   (E1–E3c, closed 2026-07-27) ran against pre-registered priors — federation ~5.2× cheaper
+   than the monolith at equal durability (`runs/WEST_E1_LOG.md`); self-partitioning converging
+   to an interior granularity N=3 from all 36 starts, 19 distinct optima (21 known once
+   E3c's symmetry-breaking rider added two more), one dominant cost
+   family carrying 75% of the attractor mass, the balanced partition stranded in a
+   positive-measure dear basin, not on a knife-edge (`runs/WEST_E3B_LOG.md`,
+   `runs/WEST_E3C_LOG.md`). *[measured-with-priors —
+   [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
 3. **Berger & Luckmann — objectivation across membranes.** What confronts participants as
    facticity is sustained only by participation; ratified into house doctrine as *judgment is
    objectivated, never owned* ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
    §2(c)). *[ratified-doctrine.]*
 4. **The AlternativeSet unification.** Erotetics, truth maintenance, attention, and
    threat-response read as one structure — deliberation as holding alternatives — carried as
-   an index over real chain steps, re-checkable forever. *[built-and-gated —
-   `alternative_index` / `alternative_trace` / `alternative_survey` under the standing corpus
-   gate; [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md).]*
+   an index over real chain steps, re-checkable forever. This tributary holds a special
+   position among the five: it is also the **joint** where the others meet (next subsection).
+   *[built-and-gated — `alternative_index` / `alternative_trace` / `alternative_survey` under
+   the standing corpus gate;
+   [ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md).]*
 5. **The deliberative-interval reading of agency.** Freedom read as the determined considering
    between branching-at-doubt and licensed resolution — the interval the diachronic record
-   actually draws. *[queued-conjecture — deliberately unexamined; see the open frontier
-   below.]*
+   actually draws. *[ratified-doctrine — examined at
+   [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Examination VI, Unit IV
+   (2026-07-27), and ratified with four additions: irreducibility-as-ground; responsibility
+   earned cumulatively by record, never by origin; the forecast/foretell guard; accounting
+   sufficient-not-exhaustive. Its *measurement* remains ahead (the reflexive-run candidate).]*
+
+### The unification joint — where the trains meet
+
+The AlternativeSet arc closed (2026-07-26) as more than tributary №4 of the list above: it is
+the **joint at which six of the project's own trains of thought arrive as one structure**, and
+that unification — several strong trains not previously presented together — is itself one of
+the program's principal findings:
+
+- **Erotetics** — the question as a first-class object of the record (the interrogative
+  {atom, denial} pair, born from a peel's own UNKNOWN);
+- **The attention economy** — severity, cost, and decay priced on the *standing question*
+  (`wants_from_alternatives`, the temperament dial);
+- **Modality** — the ◇-contested branch survey: what the diachronic DAG's reachable futures
+  disagree about becomes a held alternative
+  ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md));
+- **The deliberative interval** — the interval's *considering* is exactly the trace and
+  record ink (ratified at Examination VI, Unit IV);
+- **Mention-ascent** — index-over-ink is the QuotationMark pattern applied to deliberation:
+  the record *points* at gate-checked steps, holds nothing, and re-derives forever;
+- **Hope** — Examination VI's addition: the Golden Rule's imagination is a
+  hypothetical-kind alternative — *hope is the gap between the record and the
+  entertained-better, held as action-guiding*
+  ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §12(d)).
+
+One structure carries all six because each is a way of *holding alternatives against a
+record*: what differs is only how a record **emerged** (a peel's UNKNOWN, a thin-spot survey,
+a branch survey) and what settles it (licensed ink, never fiat). The law that guards it
+(AS1–AS4: the index resolves; the trace recomputes; resolution is licensed; the horizon is
+honest) is the deliberative organ's law in [THE_KYTOS.md](THE_KYTOS.md).
 
 ### The connective doctrine — synechism
 
@@ -373,16 +410,24 @@ never what it is worth. The most exposed phrase in the program's vicinity — an
 model of consciousness / free will" — is and remains **queued-conjecture**; nothing in this
 stratum asserts it.
 
-### The open frontier — named, not folded
+### The commens rung — examined, and what remains open
 
-Queued for the commens rung, deliberately **not** folded into doctrine here: the four-doubts
-set (since grown to six threads: the veil's sides, the uptake duty's origin, the physical
-substrate under "doubt", what-works vs what-is-right, the fractal form under heterarchical
-coupling, no-teleology);
-ethics-negotiated-in-the-commens (whether "convergence tracks the real" was ever the goal, or
-a smuggled terminus); and free will with the predestination disposal (the deliberative
-interval examined properly, not merely named). Naming these here is the honesty move the
-grading discipline requires; folding them in would be a grade violation.
+The threads this section formerly held queued — the four-doubts set (grown to six threads),
+ethics-negotiated-in-the-commens, and free will with the predestination disposal — were
+**examined and ruled at the commens rung** (2026-07-27,
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md) Examination VI), and the rulings
+folded where they belong: the marks doctrine, ethics-as-negotiated-apportionment, givenness
+and the exit boundary, the Golden Rule membrane-poised, and the veil's two modes and grades
+in [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §12; the
+deliberative interval in the tributary grading above; levels-as-marks in
+[SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md).
+
+Still open, named here per the grading discipline: THE_COMMENS §11's flagged verdicts 1, 2,
+and 6 (touched by the rulings, resolved by none); the supermultitudinous frontier
+(SYNECHISM_AND_CONTINUITY, untouched); the two **named-not-modeled determinants**
+(identity/plausibility-structure maintenance, and the physical substrate —
+[THE_KYTOS.md](THE_KYTOS.md) §5); and the queued **reflexive run** (a kytos modeling itself
+— design sitting first). Folding any of these in now would be a grade violation.
 
 ---
 

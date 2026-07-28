@@ -1,6 +1,8 @@
 # The Endoporeutic Game: Reference Guide
 
-**Date**: 2026-03-28 · **Reviewed**: 2026-06-08 · **Reorganized**: 2026-06-08
+**Date**: 2026-03-28 · **Reviewed**: 2026-06-08 · **Reorganized**: 2026-06-08 ·
+**Revised**: 2026-07-27 (the UNKNOWN afterlife, the episode in ink, the doubt
+engine's two arms, the ratified role vocabulary)
 
 This guide is organized in four parts, from machinery to meaning to practice:
 
@@ -70,10 +72,14 @@ workshop. See [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md).
   `src/wikidata_source.py`, run bounded/paced/checkpointed by `src/live_runner.py`).
   **Ontology import** (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI) is
   also shipped; WordNet/SNOMED remain unwired.
-- **Automated doubt detection** and guided **M-revision** — **shipped** as the
-  attention brief (the LLM Graphist reads M's thin spots and voices one doubt) plus
-  the disposition-driven revision loop, with meta-learning over the game's own
-  resolutions (`src/agon_metalearning.py`).
+- **Automated doubt detection** and guided **M-revision** — **shipped**, twice
+  over: the attention brief (the LLM Graphist reads M's thin spots and voices one
+  doubt) plus the disposition-driven revision loop, with meta-learning over the
+  game's own resolutions (`src/agon_metalearning.py`); and — since the
+  AlternativeSet arc (2026-07-26) — the **mechanical surveys**
+  (`src/alternative_survey.py`) with the standing-question register and its
+  attention pricing (`src/alternative_index.py`, `src/attention_economy.py`).
+  See Part III, "Doubt as Prime Mover."
 - A **frontend** for the interpretation register — **shipped** (the Agon model
   picker, render-M, and the verdict reading strip).
 
@@ -128,7 +134,7 @@ double negative providing the initial context).
 | **Domain Model (M)** | An agreed Existential Graph Instance ([EGI](GLOSSARY.md#egi)) on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion to be tested |
 | **Rules** | IT- (de-iteration) and DC- (double cut elimination) — the two eliminative rules used by the EPG |
-| **Agonothetes** | The interpretive function of the game: provides context, validates moves, produces understanding from the outcome |
+| **Agonothetes** | The interpretive function of the game — not a player, and not a referee: it frames the episode (the **risked choice** of M) and, after play, makes the **risked selection** of a fate from the outcome ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3) |
 
 ### Players and Territories
 
@@ -534,6 +540,48 @@ The game *determines* the logical relationship between G and M:
 | 4 | **G is a tautology** | ⊨ G | Graphist wins trivially (M irrelevant) |
 | 5 | **G is self-contradictory** | G unsatisfiable | Grapheus wins trivially (M irrelevant) |
 
+### The third verdict: UNKNOWN — and its afterlife
+
+In the implemented peel (`semantic_game.evaluate`) the verdict is
+**three-valued Kleene: TRUE, FALSE, or UNKNOWN** — sound under the open
+world. The "stalemate" row above is the game-theoretic face of UNKNOWN:
+neither player can force a win *on the current M*. The cases 3a–3e below
+describe what may then be *done*; but the verdict itself is no longer a
+terminus. Since the AlternativeSet arc (2026-07-26), **an UNKNOWN begins a
+career** as a first-class standing question, carried in the
+**AlternativeSet** — the structure where the project's several trains of
+thought (the question as logical object, the attention economy, modality,
+the deliberative interval, mention-ascent) meet as one record
+([VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §8, "The unification joint";
+[ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md](ALTERNATIVE_SET_INTELLECTUAL_HISTORY.md)).
+The career:
+
+- **Born from the peel.** The peel's own undecided atoms
+  (`SemanticResult.unknown_atoms`) mint an **interrogative alternative
+  record** — the {atom, denial} pair — citing the very peel step that
+  surfaced it (`emerged_from`). The record holds no evidence, only pointers
+  to gate-checked chain steps, re-checkable forever (**index-over-ink**:
+  the QuotationMark pattern applied to deliberation).
+- **Traced for materiality.** A dry-run consequence trace (`alternative_trace`,
+  a PEEL-twin chain step whose result recomputes forever) discovers what
+  would follow from each answer; **material** questions — whose answers'
+  consequences differ — are told apart from **bare** ones. Materiality is a
+  vector, never a scalar; reception is held beside it, never folded in.
+- **Priced.** The attention economy reads the standing register
+  (`wants_from_alternatives`: material above untraced above bare, damped by
+  severity, cost, decay, and the temperament dial) — the open question
+  *competes for the inquirer's next probe* instead of evaporating.
+- **Settled only by ink.** The record resolves only by citing a licensed
+  chain step that *introduced* the answer (the AS1–AS4 law: the index
+  resolves; the trace recomputes; resolution is licensed; the horizon is
+  honest). Settlement is observed from the chain, never declared by fiat.
+
+The stalemate is thus the *opening* of the richest case, not its close: the
+game's UNKNOWN is the doubt engine's raw material (Part III, "Doubt as
+Prime Mover"). A full worked career — questions born from a peel's UNKNOWN,
+surveyed, traced, and settled by licensed ink — is in the corpus as the
+`swan_alternatives` exemplar.
+
 ### II. Pragmatic Outcomes
 
 Each logical outcome opens different pragmatic paths — this is where the game
@@ -562,10 +610,12 @@ presides over the post-game negotiation that determines which path is taken.
 - **2d. Reductio resource**: The contradiction itself is useful — it establishes
   ¬G as a theorem of M, constraining future reasoning.
 
-#### Case 3 — G Independent (Stalemate)
+#### Case 3 — G Independent (Stalemate — the UNKNOWN verdict)
 
 This is the richest case — it corresponds to **genuinely new knowledge** that M
-alone cannot adjudicate:
+alone cannot adjudicate. (Its verdict-level treatment — the career an UNKNOWN
+now begins — is "The third verdict" above; the paths here are the
+dispositions the Agonothetes may select at its own risk:)
 
 - **3a. New empirical fact**: G describes an observation. Both players agree to
   admit G into M — one rule-licensed INS of a closed **cell** into the standing
@@ -578,7 +628,9 @@ alone cannot adjudicate:
   seemingly unrelated theorems). Tentatively accepted as a hypothesis. Peirce's
   abduction — "the only logical operation which introduces any new idea."
 - **3c. Open conjecture**: G is interesting but unverified. Recorded in the UoD
-  history as a conjecture, neither asserted nor denied.
+  history as a conjecture, neither asserted nor denied — and, since the
+  AlternativeSet arc, held as a standing question with a traced materiality
+  and a price ("The third verdict" above), not merely parked.
 - **3d. Definition or convention**: G introduces new terminology or conceptual
   structure. Accepted by mutual agreement, not by proof.
 - **3e. Conditional acceptance**: G is accepted under an additional premise P.
@@ -706,6 +758,11 @@ framing act (the *after* act being the selection of a fate from the outcome).
 > supersedes the earlier "the Graphist and Grapheus agree on M" phrasing (which also sat oddly
 > under this doc's own "the Agonothetes provides context" heading). The dual question — *in what
 > M does this G fit?* — is the inverse "where-it-holds" pivot (`DOMAIN_ORACLE_AND_M.md` §7).
+> Both framing acts are **risked choices, not recognitions**: neither reads off a determinate
+> fact of the matter; each charts a path and commits to what might or might not resolve the
+> doubt — *which slice of the world do I hold myself accountable to?* before, *what does this
+> outcome mean?* after. Played by a human, this is where her own posture — in the dialogue and
+> toward the world — enters the record.
 
 The interpretive frame — the structure the game will unwind — is:
 
@@ -723,16 +780,24 @@ The game will determine whether G holds in M, contradicts M, is independent
 of M, or falls into one of the other taxonomic categories (§Taxonomy of Game
 Outcomes).
 
-**During the game — maintaining rigour:**
+**During the game — keeping the record (never refereeing):**
 
-1. **Move validation**: Every step must conform to Dau's formal definitions
-   for EGIs, proper subgraphs, and transformation rules. If a move is
-   invalid (incorrect syntax, improper subgraph selection, non-existent
-   mapping), the Agonothetes states the reason for invalidity.
-2. **Mapping validation**: When the Proposer maps exposed elements to M,
-   the Agonothetes validates the mapping. If the Proposer legitimately claims
-   a **new entity** not present in M, and the mapping is otherwise valid, the
-   Agonothetes prompts for its formal addition to the domain's ontology.
+1. **No move validation — because none is needed.** There is **no move-by-move
+   judge of legality**: every EGI→EGI transformation is guaranteed lawful by
+   the calculus itself — the six Dau rules, held to the correspondence check
+   (§3.3 of
+   [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)).
+   A move that would be illegal cannot be scribed at all, so the players'
+   conduct cannot be illegal and there is nothing to referee. This is the
+   ratified "no referee" ruling of
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3;
+   an earlier draft of this guide gave the Agonothetes a move-validation
+   duty, and that assignment is withdrawn.
+2. **Mapping facilitation**: when the Proposer maps exposed elements to M,
+   the peel resolves the mapping mechanically against the domain oracle. If
+   the Proposer legitimately claims a **new entity** not present in M, the
+   Agonothetes prompts for its formal addition to the domain's ontology — a
+   framing act, not a legality call.
 3. **Traversal tracking**: The Agonothetes tracks the path through the tree
    (which areas have been resolved, which sub-games are in progress) and
    records the outcome of each sub-game in the transcript.
@@ -743,9 +808,12 @@ Outcomes).
 **After the game — producing understanding:**
 
 This is the Agonothetes' most essential function — the one that makes it
-the Interpretant. The game has produced a boolean result: the Graphist has
-a winning strategy, or the Grapheus does. But what does this *mean* for
-the knowledge base? The Agonothetes interprets the result in context:
+the Interpretant. The game has produced its outcome: the Graphist has
+a winning strategy, or the Grapheus does — or neither can force a win on
+the current M (the UNKNOWN verdict; see "The third verdict" in the
+Taxonomy). But what does this *mean* for the knowledge base? The
+Agonothetes selects — at its own risk — what the result comes to in
+context:
 
 | Disposition | When | Effect on M |
 |-------------|------|-------------|
@@ -764,6 +832,45 @@ is the function by which the game result is interpreted and acted upon.
 The replay function (side-by-side or step-by-step) allows participants to
 review the sequence of transformations, both for successful derivations and
 for instances of illustrative errors.
+
+---
+
+## The Episode in Ink
+
+Under the M-residence discipline
+([M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)
+§9–§10), the episode's frame is not scratch-work beside the record — **every
+phase of the episode is a licensed act drawn on the sheet**, and the
+dispositions of Part II execute as real rule applications:
+
+- **ENTERTAIN** (`entertain_episode`): the exhibit `~[ M′ ~[P] ~[ ] ]` — "if
+  M then P" — is built *inside the agreed context* by genuine rules: DC+
+  opens the arena, IT+ copies M's relevant ink, INS scribes the guarded
+  proposal, and one **empty inner cut stands as the vacuity rider**: while
+  it stands, the exhibit asserts nothing — the proposal is *present without
+  force*. (The episode theorem: the DC+ must land in an even context at
+  depth ≥ 2 — an odd area gives no arena, and at depth 0 the discharge
+  would be unreachable by soundness.) Entertaining is Peirce's auxiliary
+  line — a known insertion; a chain that later discharges through one reads
+  *theorematic*, not corollarial.
+- **DISCHARGE** (`discharge_episode`): drawn modus ponens — IT− · IT− · DC−
+  — with P landing in M **derived, never inserted**. The licence flows
+  through the standing hold (the **⊥-door**: an empty cut among the
+  world-scroll's cells is falsum in scope, and falsum licenses scribing
+  anything) — which is exactly why **licence ≠ certification**: the
+  recorder *refuses* a discharge that cannot cite a confirming peel
+  (`confirmed_by`), and the standing corpus gate re-runs every cited
+  verdict forever. Nothing reaches M through the ⊥-door unrecorded.
+- **ABANDON** (`abandon_episode`): one erasure of the exhibit — the episode
+  put down without residue, its having-been-entertained still on the
+  record.
+
+The same discipline runs through every M-changing disposition: admission is
+one licensed INS-of-cell into the standing world-scroll, retraction one
+licensed ERA inside a cell, each chain step carrying its acknowledged act
+and its executed derivation, all held by the standing polarity gate
+(`tests/test_corpus_polarity_discipline.py`). The taxonomy of fates is not
+commentary *about* the record — it is *executed in* the record.
 
 ---
 
@@ -864,13 +971,17 @@ signs that are never tested, assertion without resistance.
 The Agonothetes embodies the *telic* dimension of inquiry: the purpose for
 which the contest exists.  Functionally:
 
-- Before the game: establishes the conditions of inquiry — what M is, what G
-  is, how the game space is structured (DC+, IT+, INS)
-- During the game: maintains rigour — validates moves, tracks traversal,
-  records the transcript
-- After the game: produces understanding — interprets the boolean result
-  together with the traversal path and transcript, maps them to the outcome
-  taxonomy, facilitates the disposition that integrates the result into M
+- Before the game: establishes the conditions of inquiry — what M is (a
+  **risked choice**, not a recognition), what G is, how the game space is
+  structured (DC+, IT+, INS)
+- During the game: keeps the record — tracks traversal, maintains the
+  transcript. Never a referee: legality belongs to the calculus, not to a
+  judgment call
+- After the game: produces understanding — reads the outcome together with
+  the traversal path and transcript, maps them to the outcome taxonomy, and
+  makes the **risked selection** of the disposition that integrates the
+  result into M — a choice that charts a path and commits to what might or
+  might not resolve the doubt
 - Embodies the interpretive function: *making meaning* from the mechanical
   contest, transforming a formal result into an act of understanding
 
@@ -1221,22 +1332,42 @@ is:
    contact with external M's, ensuring that the inquirer is not sealed
    inside their own settled beliefs.
 
-There is, however, one further possibility: **automated doubt detection**.
-The system could scan M for formal markers of potential doubt:
+What an earlier draft of this section could only imagine as "automated
+doubt detection" is now **built — the doubt engine, with two arms** — and
+the surfaced doubt is a first-class object rather than a notification:
 
-- Assertions that are logically independent but semantically related
-  (sharing concepts but making no claims about each other — a gap)
-- Imported assertions that have not yet been tested against existing M
-  (untested imports — latent doubt)
-- Long chains of inference whose intermediate steps have never been
-  independently verified (fragile derivations)
-- Subgraphs that were accepted provisionally but never confirmed
+- **The mechanical arm — the surveys** (`alternative_survey.py`). The
+  *thin-spot survey* turns only **zero-grounded** relations and law-bodies
+  into standing questions (a one-instance relation's existential already
+  holds — it is named on the docket recordless, not made a question that
+  would be born settled). The *branch survey* turns up ground atoms
+  **◇-contested across the diachronic DAG's reachable leaves** — held in
+  some legal futures, absent in others, in the trajectory reading of
+  [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) — and not already
+  settled at the reference state. Both surveys are PEEL-twins: recorded as
+  identity chain steps whose parameters carry the whole result, recomputed
+  forever by the standing corpus gate.
+- **The LLM arm — the Graphist's attention brief** (`agon_llm.py`). The
+  automated Graphist reads M's thin spots (relations with at most one
+  instance, ungrounded laws, lonely individuals) and voices **one doubt** as
+  a proposal — reduced to a calculus artifact and re-checked before it
+  counts (*the LLM argues, the calculus decides*).
 
-Such a mechanism would not *create* doubt — Peirce is clear that artificial
-doubt is sterile — but it would *surface* doubts that are genuinely present
-in M's structure but not yet noticed by the user.  This is the system as
-a kind of intellectual conscience: not inventing problems but pointing out
-the ones that are already there.
+Either way, the surfaced doubt lands in the same structure — an
+**alternative record** whose `kind` records *how it emerged*: interrogative
+from a peel's own UNKNOWN, hypothetical from a thin-spot survey, modal from
+a branch survey ("The third verdict," Part II). It is then traced for
+materiality, priced by the attention economy (severity · cost · decay, with
+a **temperament dial** — explore-leaning vs settle-first — deliberately
+reserved as a tunable rather than ruled), and settleable only by licensed
+ink.
+
+Such a mechanism does not *create* doubt — Peirce is clear that artificial
+paper doubt is sterile — it *surfaces* doubts genuinely present in M's
+structure but not yet noticed.  This is the system as intellectual
+conscience: not inventing problems but pointing out the ones already there
+— and now keeping a ledger of them, so that an unanswered question decays,
+competes, and returns instead of being forgotten.
 
 ### The Fixation of Belief in Arisbe
 
@@ -2135,3 +2266,23 @@ game to Peirce's broader theory of inquiry:
   discovery — M develops as Graphist and Grapheus consider new graphs
 - **Self-correction**: The game is a model of inquiry as a self-correcting
   process within a rational community
+
+### The wider game
+
+This guide describes the episode from inside one Universe of Discourse. The
+project holds that the same shape recurs one level up: **Arisbe itself is a
+proposition scribed into a wider Endoporeutic Game**, whose other players
+are the traditions and communities the program addresses.
+[VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §8 (Stratum II) *is* that
+proposition, voiced and graded; its pre-registered priors and run logs are
+peels already played, and a competent refutation would be the game
+*working*, not the game lost. Judgment on the proposition is objectivated,
+never owned ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
+§2(c)), and there is no "final" (§7 of the same document).
+
+For a worked, in-corpus career of what Parts II–III added in 2026-07 — a
+question born from a peel's UNKNOWN, surveyed mechanically, traced for
+materiality, priced, and settled by licensed ink — load the
+`swan_alternatives` exemplar in Organon; for the same machinery run against
+a live outside, the Wikidata run logs (`runs/RUN_1_LOG.md`,
+`runs/RUN_2_LOG.md`).

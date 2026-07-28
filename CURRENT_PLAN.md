@@ -1,6 +1,59 @@
 # Current Plan
 
-**Last Updated**: 2026-07-27 (evening, second arc) — **THE COMMENS RUNG EXECUTED: EXAMINATION VI —
+**Last Updated**: 2026-07-27 (night, third arc) — **SITTING B1 EXECUTED: the four letter
+skeletons + the two prerequisite landing docs + the AlternativeSet-prominence promotions.**
+
+1. **The Share split's first move — `docs/share/` (new, internal, not book):** four letter
+   skeletons (Sowa · Dau · West · Pietarinen), each in the wider-EPG voice (proposes, cites
+   peels played, invites refutation as a lawful move), each ending with "what must stand
+   behind the link"; plus the aggregated **NEED_LIST.md** the Sitting-B2 propagation docs are
+   written against. The need-list's headline discoveries: the **West letter cannot go out
+   without a self-contained two-page methods note** (readable without Arisbe vocabulary — the
+   strongest single need any letter exposed); the Dau letter wants a "how to break it" page
+   (exact commands: core suite, A3 gate, one worked chain); the chapter must set the
+   formalization lineage apart from the tributaries and tell each tradition as
+   doubt-raised + machinery-lacked.
+2. **ENDOPOREUTIC_GAME_GUIDE revised (all five ruled items):** the **UNKNOWN afterlife** told
+   AS-first (new "The third verdict" section in the Taxonomy — born from the peel / traced /
+   priced / settled-only-by-ink, swan_alternatives cited); **the episode in ink** (new Part II
+   section: ENTERTAIN with vacuity rider + episode theorem, DISCHARGE as drawn modus ponens
+   with the ⊥-door and licence ≠ certification, ABANDON; dispositions *executed in* the
+   record); **the doubt engine's two arms** (Part III rewrite: the mechanical surveys
+   [thin-spot zero-grounded / branch ◇-contested] + the LLM attention brief, landing in one
+   alternative record whose kind records how it emerged); **§3 vocabulary pass** (the three
+   referee contradictions removed — the roles-table cell, "Move validation" → "No move
+   validation — because none is needed", the functional definition; **risked choice, not a
+   recognition** added at the ruling box, the fate table, and the functional definition);
+   **the wider-EPG closing** (new "The wider game" section after The Pragmatic Turn) + the
+   frontier block gained the surveys/register and the header a Revised date.
+3. **ARISBE_FOR_SCHOLARS second-storey rewrite:** the stale frontier corrected (ontology-as-M
+   and the automated game now truthfully *built*, with the honest current frontier: hot-seat
+   arena vs headless loops, WordNet/SNOMED unwired, two named-not-modeled determinants,
+   consciousness/free-will stays queued-conjecture, tutor loop design-only); "What is built
+   today" refreshed (autonomous game + membranes, record discipline, scholarly reproduction,
+   lenses); **new headline section** "The second storey — the program, and the contribution we
+   would headline": **erotetics-with-economics on an indexed record** (the question's career:
+   minted from UNKNOWN, traced, priced, settled only by licensed ink; index-over-ink —
+   evidence lives in the record, earned, or nowhere); the Pietarinen proto-letter generalized
+   to "Questions for the tradition" (Agonothetes · mechanized iconicity · modality-without-
+   Gamma vs Ma & Pietarinen · mention-ascent), personal letters noted as in preparation.
+4. **AS-prominence promotions (the author's 07-27 question, acted on):** VISION §8 gained
+   "The unification joint — where the trains meet" (six trains: erotetics · attention economy
+   · modality · deliberative interval · mention-ascent · **hope**, per Exam VI); tributary 5
+   promoted to *ratified-doctrine* (Exam VI Unit IV, four additions named); the stale "open
+   frontier" block replaced with "The commens rung — examined, and what remains open"; the
+   West row updated to the closed E-series (E3c, 21 optima, positive-measure basin); GLOSSARY
+   researcher reading-order gained ALTERNATIVE_SET_INTELLECTUAL_HISTORY as item 3.
+
+Book render-check: 46/46 chapters clean. Meanwhile the **RUN 13 `--no-p213` overnight is
+still in flight** (100% CPU, healthy at ~2h; its oracle pass writes the provenance-mix note
+→ author marks → P4¹³). **Next:** (a) author marks the provenance-mix note → P4¹³, then the
+p213 overnight → P2¹³; (b) **Sitting B2** — the intellectual-history chapter +
+ARISBE_IN_PRACTICE's three registers written *against `docs/share/NEED_LIST.md`*, plus the
+West methods note (need-list #7) and the smaller verifications (#8–#11); (c) then the
+letters finished and sent — the author's hand.
+
+**Last Updated (prior)**: 2026-07-27 (evening, second arc) — **THE COMMENS RUNG EXECUTED: EXAMINATION VI —
 ALL NINE QUEUED THREADS EXAMINED, RULED, AND FOLDED (one sitting).** Record:
 `docs/ADVERSARIAL_EXAMINATION.md` Examination VI (four units, examiner-pressed, author-ruled
 thread by thread). The rulings: **Unit I** — the **marks doctrine** (the author: "the real" =
