@@ -318,25 +318,25 @@ either direction between these programs and Arisbe's design.*
 
 ## The graded concordance map
 
-*(Added 2026-07-26, at the two-strata reorganization sitting.)* This map is the **graded,
+*(Added 2026-07-26, at the two-strata reorganization sitting.)* This map gives the **graded,
 evidential sharpening** of the prose concordances above: the same neighbors, now read as the
 evidence table for Stratum II's nexus thesis — *the operational Peirce core (signs + sound
 transformation + earned record) is the common formal substrate the twentieth-century traditions
-lacked; each is a tributary, a partial view of Peirce's program*. That thesis is voiced as **a
-proposition scribed into the wider Endoporeutic Game**: it proposes, never asserts; refutation is
-a lawful, invited move; and **the grades below are the proposition's warrant annotations** —
-which is why every refuted prior is *listed*, never hidden (a refuted prior is a peel already
-played, and part of the proposition's honesty). The grades stay a vector over rows, never a
-ranking of the traditions — the same guard as "vector, never a scalar" in
-[THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md). The connective doctrine that lets one
-map carry rows of such different kinds — continuity across the discretizations — is treated in
-[SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md); the anatomy the "face of the kytos"
-column refers to is [THE_KYTOS.md](THE_KYTOS.md).
+lacked; each is a tributary, a partial view of Peirce's program*. That thesis speaks as **a
+proposition scribed into the wider Endoporeutic Game**. It proposes and never asserts; refutation
+counts as a lawful, invited move; and **the grades below are the proposition's warrant
+annotations**. So every refuted prior stays *listed*, never hidden, since a refuted prior counts
+as a peel already played and belongs to the proposition's honesty. The grades stay a vector over
+rows, never a ranking of the traditions, under the same guard as "vector, never a scalar" in
+[THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md).
+[SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md) treats the connective doctrine that
+lets one map carry rows of such different kinds, continuity across the discretizations, and
+[THE_KYTOS.md](THE_KYTOS.md) holds the anatomy the "face of the kytos" column refers to.
 
 **The formalization lineage is not a row.** Roberts, Zeman, Shin, and Sowa, culminating in
-**Dau's** *Mathematical Logic with Diagrams*, are **distinct in kind** from every tradition
-below: they are Stratum I's guarantor — the mathematics that makes the instrument sound — not a
-concordance mapped onto it. The tributaries raised doubts and lacked machinery; the formalization
+**Dau's** *Mathematical Logic with Diagrams*, stand **distinct in kind** from every tradition
+below. They serve as Stratum I's guarantor, the mathematics that makes the instrument sound, not
+as a concordance mapped onto it. The tributaries raised doubts and lacked machinery; the formalization
 lineage *is* the machinery's warrant, credited in the verdict table at the top of this document
 and never graded here.
 
@@ -378,22 +378,22 @@ in the wider game, recorded where the evidence lives.
 ## From concordance to measure — knowledge quantified
 
 *(Graduated from the design-of-record 2026-07-19, by the author's ruling; drafted by the
-assistant from the author's seeds and ratified 2026-07-17/19. Everything below is
-checkable against running instruments — the section makes no claim an instrument cannot
+assistant from the author's seeds and ratified 2026-07-17/19. Everything below checks
+against running instruments; the section makes no claim an instrument cannot
 compute.)*
 
-The concordances above converge on one operational definition, seeded by the author's
-own earlier formulation — *"knowledge exists when someone reliably does something
-(thinks, speaks, acts) that works"* — revised into Arisbe's vocabulary as: **knowledge
-is the resident content of a model M whose habits reliably mediate its membrane's
-deliverances, always indexed to the horizon within which the record was earned.** It is
-quantified as a four-component vector, each component with a running instrument:
+The concordances above converge on one operational definition. The author's own earlier
+formulation seeded it — *"knowledge exists when someone reliably does something
+(thinks, speaks, acts) that works"* — and Arisbe's vocabulary revises it into this:
+**knowledge is the resident content of a model M whose habits reliably mediate its
+membrane's deliverances, always indexed to the horizon within which the record was
+earned.** A four-component vector quantifies it, each component with a running instrument:
 
 - **K1 — severity-weighted track record**: reliable success on tests that could have
-  refuted (`PredictionLedger` × the attention economy's severity term). The worked case:
-  Fermat's conjecture, five confirmations deep, was never knowledge — it had not been
-  tested where it could fail, and at F5 it died (the rung-1 exemplar, Euler 1732
-  recapitulated by attention in six rounds).
+  refuted (`PredictionLedger` × the attention economy's severity term). One worked case
+  stands out. Fermat's conjecture, five confirmations deep, never amounted to knowledge.
+  Nobody had tested it where it could fail, and at F5 it died (the rung-1 exemplar, Euler
+  1732 recapitulated by attention in six rounds).
 - **K2 — durability** under continued revision pressure (the meta-learning stick-rates,
   decay-aware) — with a **modal reading** off the branching history: K2□ (durable on
   every reachable trajectory) vs K2◇ (durable on some), computed by
