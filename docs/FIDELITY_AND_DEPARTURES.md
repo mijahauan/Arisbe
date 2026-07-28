@@ -228,8 +228,7 @@ depth 0 holds the asserted ground; cuts deny.
 
 **The Arisbe position.** Level 0 does not function as a surface that says
 something true; on its depth-0 marks **no contingent saying is constituted by the
-marks themselves**. The
-recto bears *form* — the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"), the conditional scaffolding, structures valid or
+marks themselves**. The recto bears *form* — the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"), the conditional scaffolding, structures valid or
 model-relative — and the *demonstrative* recto cannot **derive** contingent
 content; the bare depth-0 position does not, by itself, assert it. (We do not deny
 the assertoric register its primary office — positing a contingent premise — see
@@ -648,8 +647,8 @@ intervention, the bridge that holds, the augurs' eclipse-failures recurring
 direction-stably. So "a genuinely better instrument" names a mind-independent, ordinal,
 directional fact, and an order with no greatest element gives the textbook objective
 comparative *without* a summit. That is **structural realism's** thesis (the vector,
-never the summit), and it
-sits on the **survivor side** (§2's encountered real, cognizable in its effects). B
+never the summit), and it sits on the **survivor side** (§2's encountered real,
+cognizable in its effects). B
 conceded it the moment it said "better instrument." So B's propositions absorb: metric
 terminus = Departure I; efficacy-vector = conceded structural realism; competence ≠
 worth = a category-fact. **B leaves one genuine residue — the *worth-ladder denial
@@ -716,17 +715,17 @@ only when scribed as the operative structure of the unenclosable whole (the oute
 be drawn). Agapism thus wins its *category* (the tendency is real and instanced) and
 *nothing* of the cosmic verdict, which remains Departure I's meta-joint, at parity.
 
-**The honest billing, and the live floor.** Counted honestly this is not two new
+**The honest billing, and the live floor.** Counted honestly this comes to not two new
 departures but **one discipline (Departures I + II) + a methodological footing (the gate is
 method-on-the-claim, not identity-on-the-agent; plus the uptake duty — Examination III) + a
 conceded structural realism, deployed against two targets** (tradition's respectable
 termini; the worth-misreading of progress). The double decentering survives, precisely:
 *you are not the referee* (no surveyable outside — an epistemic limit, not an agency)
 and *you are not nearer a possessed real, nor worth more* (though you may wield a
-genuinely better instrument, which is a real, terminus-free fact). What is removed is
-the chair and the conflation of *better instrument* with *nearer* and *worth more*; what
-is untouched is competence. The doctrine rests; the **vigilance it mandates does not**,
-and is meant never to: at every ranking surface Arisbe builds — the **warrant gradient**
+genuinely better instrument, which is a real, terminus-free fact). What goes is
+the chair and the conflation of *better instrument* with *nearer* and *worth more*.
+Competence stands untouched. The doctrine rests; the **vigilance it mandates does not**,
+and never should. At every ranking surface Arisbe builds — the **warrant gradient**
 (`provenance.standing_of`), the personas, any badge — the ordering must read as
 **in-context standing and competence** (including the conceded efficacy-vector) and
 **never** as the **worth or dignity of the reasoner**, **metric nearness** to a possessed

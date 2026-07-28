@@ -1087,9 +1087,9 @@ and the class's understanding grows through the iterated cycle.
 
 ### From Import: External Ontologies as Domain Models
 
-> **Since built.** A model M is **chosen** for a contest (hand-authored facts, or a
-> [tomos](GLOSSARY.md#tomos) UoD), **queried** through a `DomainOracle`, and
-> **materialized** — facts + Horn rules forward-chain to the least Herbrand model
+> **Since built.** One **chooses** a model M for a contest (hand-authored facts, or a
+> [tomos](GLOSSARY.md#tomos) UoD), **queries** it through a `DomainOracle`, and
+> **materializes** it — facts + Horn rules forward-chain to the least Herbrand model
 > (`docs/DOMAIN_ORACLE_AND_M.md` §6.1), which is exactly what a T-box needs to
 > become testable. The *automated* OWL→CLIF→EGI import pipeline has also shipped
 > (`tools/owl_to_clif.py` + `domain_model_importer.py`), and **Wikidata is live** as
@@ -1119,7 +1119,7 @@ mature root system rather than growing from seed.
 
 **How import works — the existing infrastructure:**
 
-The key observation is that Arisbe already has production-tested parsers for
+It matters that Arisbe already carries production-tested parsers for
 standard interchange formats:
 
 ```
@@ -1138,35 +1138,35 @@ M in a Universe of Discourse
 Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) is an ISO standard (ISO/IEC 24707) for Common Logic, and Sowa's work
 explicitly establishes the correspondence between Conceptual Graphs, Common
 Logic, and Existential Graphs.  Translation from OWL to CLIF (or a close
-approximation) is a studied problem with existing tooling.
+approximation) remains a studied problem with existing tooling.
 
 **Partial import is natural.**  One need not import all of WordNet or all of
 SNOMED.  The Agonothetes' "providing context" function includes *selecting*
 what to import — a subtree, a domain slice, a set of relations relevant to
-the current inquiry.  This selection is itself an act of inquiry: "which
-parts of this external knowledge are relevant to our UoD?"
+the current inquiry.  This selection amounts to an act of inquiry in itself:
+"which parts of this external knowledge are relevant to our UoD?"
 
-**The semiotic implications are significant.**  An imported ontology is not
-merely data; it is the residue of another triadic process — another
+**The semiotic implications matter.**  An imported ontology amounts to more
+than data.  It carries the residue of another triadic process — another
 community's iterated Graphist–Grapheus–Agonothetes cycles, crystallized into
-a formal structure.  Importing it is a cross-cultural encounter (§Cross-
-Cultural Interaction): the external ontology is a Graphist-function (it
-proposes claims); our existing M is the Grapheus-function (it tests those
-claims); the Agonothetes determines what fits, what conflicts, and what
+a formal structure.  Importing it makes a cross-cultural encounter (§Cross-
+Cultural Interaction).  The external ontology serves the Graphist-function and
+proposes claims; our existing M serves the Grapheus-function and tests those
+claims; the Agonothetes determines what fits, what conflicts, and what
 requires revision.
 
-This means import is not a passive operation.  Each imported assertion
+Import therefore does not run as a passive operation.  Each imported assertion
 should, in principle, pass through the game — does it align with our
 existing M?  Contradict it?  Extend it?  In practice, a bulk import may
 accept the external ontology wholesale as a starting M (trusting the source),
-with individual claims tested as they become relevant.  This is the
+with individual claims tested as they become relevant.  That marks the
 difference between "I accept this textbook" (bulk import) and "Let me check
 whether this specific claim holds" (individual game).
 
 ### The Two Pathways Converge
 
-The from-scratch pathway and the import pathway are not alternatives but
-endpoints of a spectrum:
+The from-scratch pathway and the import pathway do not stand as alternatives.
+They mark the endpoints of a spectrum:
 
 ```
 Empty sheet ◄──────────────────────────────► Full ontology import
@@ -1185,11 +1185,11 @@ Empty sheet ◄─────────────────────�
                                                (expert trajectory)
 ```
 
-In both cases, the cycle is the same: Graphist proposes, Grapheus resists,
+In both cases, the cycle runs the same: Graphist proposes, Grapheus resists,
 Agonothetes interprets, M evolves.  The import pathway merely shifts the
 starting point further along the novice-to-expert spectrum.
 
-The pedagogical implications are clear:
+The pedagogical implications follow clearly:
 
 - **From scratch** is best for learning — building understanding by
   constructing it, seeing each consequence as it emerges.
@@ -1199,7 +1199,7 @@ The pedagogical implications are clear:
   base into Arisbe's formal reasoning environment so it can be tested,
   extended, and combined with other M's.
 
-All three are valid uses of the same triadic engine.
+All three count as valid uses of the same triadic engine.
 
 ---
 

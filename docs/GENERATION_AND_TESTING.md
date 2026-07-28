@@ -108,11 +108,11 @@ context-retrieval, and it reuses the oracle unchanged. See
   verdict)` annotates part 3 by the outcome. `src/web_api/routes/agon.py`,
   `agon_session_manager.py`, `agonothetes.py`.
 
-Since then the testing register has also been **automated end to end**: the game plays
-autonomously — a proposer (the *membrane*) voices a claim, the peel tests it against a
+Since then the testing register has also been **automated end to end**. The game plays
+autonomously: a proposer (the *membrane*) voices a claim, the peel tests it against a
 developing M, a panel (mechanical or LLM) negotiates the disposition, M revises, and disuse
 decays what fell from use — including against live external sources (Wikidata). The episode
-grammar in this chapter is unchanged; only the players are optional. See
+grammar in this chapter stays unchanged. Only the players are optional. See
 [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) and
 [CAPABILITY_MAP.md](CAPABILITY_MAP.md) §H.
 

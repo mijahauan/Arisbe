@@ -290,28 +290,29 @@ instruct as much as the agreements. The design consequences live in
   rejecting exactly the model-of-the-world framing M reinstates.
 
 - **Belief revision & reason maintenance (AGM; Doyle's TMS; de Kleer's ATMS).** The
-  disposition taxonomy is Arisbe's answer to the problem AGM axiomatizes — how a rational
-  corpus absorbs a contradiction — with the difference that Arisbe's revisions are
-  *syntactic, drawn, and derivation-carrying* (each one a licensed rule application with its
-  recorded act) rather than postulate-constrained set operations. A transformation chain
-  whose steps carry their derivations is a truth-maintenance system whose justifications are
-  **sound rules**, not mere dependency links — the same relation to a TMS that the
+  disposition taxonomy answers the problem AGM axiomatizes, namely how a rational corpus
+  absorbs a contradiction. Arisbe's revisions differ by coming *syntactic, drawn, and
+  derivation-carrying*, each one a licensed rule application with its recorded act, rather
+  than as postulate-constrained set operations. A transformation chain whose steps carry
+  their derivations works as a truth-maintenance system whose justifications rest on **sound
+  rules**, not on mere dependency links. It stands to a TMS as the
   [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) comparison table records for Git and Datomic:
   the commit already validates.
 
 - **Berger & Luckmann (*The Social Construction of Reality*, 1966).** Objectivation and
   internalization; institutionalization as **reciprocal typification of habitualized actions by
-  types of actors** — which *cannot occur in an individual*. The concordance under Arisbe's
-  UoD/commens distinction and the honesty guard that the automated EPG *models* an institution
-  rather than being one. See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
+  types of actors**, which *cannot occur in an individual*. The concordance sits under
+  Arisbe's UoD/commens distinction and under the honesty guard that the automated EPG *models*
+  an institution rather than working as one.
+  See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).
 - **Conant & Ashby (the good-regulator theorem, 1970; requisite variety, 1956).** See
-  Cybernetics, above, for the theorem statement. The concordance licensing the three EPG
-  roles as an instance's internal model of the institution of inquiry — *model-of, never
+  Cybernetics, above, for the theorem statement. The concordance licenses the three EPG
+  roles as an instance's internal model of the institution of inquiry: *model-of, never
   instance-of*. See [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3.
 
-*Confidence note: the mappings above are the project's own readings (2026-07-17, assistant-
-drafted, author-reviewed), made at the level of structural role — no claim is made that any
-of these programs influenced Arisbe's design or vice versa.*
+*Confidence note: the mappings above record the project's own readings (2026-07-17, assistant-
+drafted, author-reviewed), made at the level of structural role. We claim no influence in
+either direction between these programs and Arisbe's design.*
 
 ---
 
