@@ -3,7 +3,8 @@
 *An introduction for people who have never heard of Arisbe — told through the
 people who might use it and the work they actually do.*
 
-**Status**: active development · **Last refreshed**: 2026-06-30 (capabilities re-audited)
+**Status**: active development · **Last refreshed**: 2026-07-27 (reorganized into
+the three registers; capabilities re-audited)
 *(Combines the former `ARISBE_PERSONAS.md` and the original scenario narrative.)*
 
 *New to the **ideas** rather than the tool? The plain-language
@@ -48,6 +49,35 @@ exists — to *verify* it, *draw* it, *interpret* it against a world, and keep i
 
 ---
 
+## The three registers
+
+Arisbe is used at three removes, and this document is organized by them. The
+claims made for each are deliberately graded — the first register is daily
+practice, the third is one instrument honestly reporting the edge of what it
+models.
+
+1. **The app** (Part I and Part II) — a person at the interface: browsing the
+   library, drawing and fixing graphs, playing the game, exporting figures.
+   Everything here is shipped and exercised.
+2. **The autonomous kytos under your direction** (Part III) — the same
+   machinery running *as a loop* against a source you point it at (your own
+   notes, a live public feed), with you ruling on what the record shows rather
+   than making every move. The loops are built and have completed logged runs;
+   what they produce is a track record, never a claim to truth.
+3. **Kytē in association** (Part IV) — many such units federated. Here the
+   grading is strictest: what exists is *one* instance **modeling**
+   association and measuring its economics under pre-registered priors. A
+   simulated federation is not a community, and this document will not
+   pretend otherwise.
+
+*("Kytos" — plural "kytē" — is the project's name for its recurring
+membrane-and-loop unit of inquiry: a bounded interior model, a doubt-cycle
+that revises it, and a membrane through which a world reaches it. The anatomy
+is [THE_KYTOS.md](THE_KYTOS.md); for this document it is enough that register
+2 runs one, and register 3 studies several.)*
+
+---
+
 ## How it works: the cycle of inquiry
 
 Arisbe offers three complementary ways of working, modelled on how reasoning
@@ -73,7 +103,7 @@ earned its place by being contested.*
 
 ---
 
-# Part I — By persona: what you can do, and what you gain
+# Part I — Register 1, by persona: what you can do, and what you gain
 
 For each: *what you can do today*, and *what you will be able to do once Arisbe
 is complete.* The line between them keeps moving — several items that were
@@ -104,6 +134,20 @@ model-checking game, so a challenge can be played as "find the derivation," with
 the system refereeing each rule application; and richer authored challenge banks
 graded automatically. Logic class becomes a workshop with a tireless, honest
 referee.
+
+**What a course would actually do.** For a teacher planning a term rather than
+a class hour, the pieces assemble into a syllabus-shaped whole: the **graded
+corpus** supplies the reading (worked proof chains to walk, domain models to
+contest, the dragon-marked challenge bank as the difficulty gradient); the
+**arena** supplies the practice (propose against a model, watch the peel,
+dispose the outcome — including the honest *unknown*, which mints a standing
+question the class can carry forward rather than a shrug); **challenge mode**
+supplies the assessment (freehand drawings graded in the student's own
+vocabulary, the same method for the newcomer and the expert); and the **four
+linear forms** (EGIF, CGIF, CLIF, FOPL) supply the bridge to whatever notation
+the rest of the curriculum speaks — the same graph, four sentences, provably
+one object. A ready-made sequence of session plans is in
+[TEACHING_PACK.md](TEACHING_PACK.md).
 
 ## The student
 
@@ -164,11 +208,14 @@ the terms it cannot even address — *"not even wrong" in this model* — keepin
 non-claim it must never be read against: *correspondence is attested, truth is
 not*. The badge ranks the **claim**, never the person who entered it.
 
-**When complete.** Larger ontologies (WordNet, SNOMED, Wikidata) as routine
-opponents; and a fuller warrant lifecycle that records *how much* a claim has been
-challenged and by whom. Research becomes
-a diachronic record of inquiry — not a pile of results, but a documented history
-of how a community tested its way to them.
+**When complete.** Larger curated ontologies (WordNet, SNOMED) as routine
+opponents — the import pipeline exists; those adapters do not — and a fuller
+warrant lifecycle that records *how much* a claim has been challenged and by
+whom. (Wikidata has already crossed this line, but in the second register: it
+is wired as a *live source* the autonomous loop runs against — see Part III —
+rather than a corpus Kwame browses.) Research becomes a diachronic record of
+inquiry — not a pile of results, but a documented history of how a community
+tested its way to them.
 
 ## The logician / mathematician
 
@@ -305,7 +352,7 @@ progress" readings of Peirce — is told in
 
 ---
 
-# Part II — In practice: six scenarios
+# Part II — Register 1 in practice: six scenarios
 
 The personas above describe *who*; these scenarios show *how the cycle feels*, in
 language meant for anyone. Each is a concrete instance of one of the game's
@@ -416,6 +463,205 @@ precise logical links between well-understood domains.
 
 ---
 
+# Part III — Register 2: the autonomous kytos, under your direction
+
+Everything in Parts I and II has a person at the interface making every move.
+In the second register the *same* machinery — the model M, the peel, the
+disposition taxonomy, the licensed revision moves, disuse-decay — runs as a
+**loop**: it ingests a source you point it at, tests what arrives, revises its
+model by rule-licensed steps, and keeps the whole record for you to rule on.
+Your role shifts from player to **director**: you choose the source, set the
+bounds (decay, budget, stopping rules), answer what only you can answer, and
+dispose the findings. Three personas below are not projections; each has
+completed, logged runs behind it (`runs/`).
+
+One honesty note before the personas, because it governs everything here:
+what a loop produces is a **track record, never truth**. The correspondence
+check attests that the drawn and written record match; the run log shows what
+was tested and how it fared; nothing in the machinery can promote either into
+"true." Where a large language model participates (optional, for proposing
+and defending claims in natural language), every one of its moves is reduced
+to a checkable calculus artifact and re-verified before it counts — *the LLM
+argues, the calculus decides*. And every change to the model M is an
+acknowledged, licensed act a standing test gate re-checks; nothing reaches M
+silently.
+
+## The vault author
+
+**Noor has kept a notes vault for a decade** — daily journal, clippings,
+project folders — and wants a second reader over it that asks good questions
+without ever being handed the diary itself.
+
+**Now.** Noor points the loop at the vault under a strict **custody
+constraint**: it reads *structure only* — paths, folders, dates, tags, links,
+sizes — never the body of a note, and its console reports counts, never
+titles. The journal gets a two-timeline reading (the date a note claims is an
+*event-time* assertion, distinct from when it was written). Out of what
+arrives, the loop builds a bounded model of the vault's shape and mints
+**standing questions** where the model runs thin. Periodically it writes one
+**oracle note** back into the vault — at most five questions, each carrying a
+*sealed* forecast of the answer (a salted hash, revealed and re-checked only
+after Noor answers) — and Noor replies in the note itself, in ordinary
+markdown. Answers are scored against the sealed forecasts; declining to
+answer is a first-class outcome, not an error; an accepted answer enters the
+author-model only by the same licensed, quoted, gate-checked step as any
+other assertion. What Noor gets is a running, honest picture of what her own
+vault's *structure* predicts about her attention — and a question queue that
+has already priced which answers would teach the loop most.
+
+## The live-source watcher
+
+**Danil watches a public knowledge base** (the wired live source is
+Wikidata) and wants to see what a sound record does when the world's edits —
+including its edit wars — flow through it.
+
+**Now.** Danil starts a bounded run: statements arrive as facts with their
+provenance (a referenced statement carries more standing than a bare one),
+ranks arrive as resolutions, competing values arrive as live contestation.
+The loop disposes each arrival through the same taxonomy a human player uses
+— new fact, generalization, challenge to the model — and the striking part is
+what needs no intelligence at all: when a value is deprecated and a
+reliably-sourced replacement stands, the loop **overturns the bare value
+mechanically**, retracting exactly the defeated atom by a licensed erasure.
+Disuse-decay keeps the model bounded to the engaged slice of the feed;
+segments are checkpointed so a crash loses minutes, not the run; a
+**legibility tripwire** watches for the failure mode where entity labels
+silently degrade to opaque identifiers. Afterward Danil reads the result in
+Organon through the standing lenses — the audit lens replaying a question
+against each successive model, the modal lens splitting what held on *every*
+branch from what held on *some*.
+
+## The researcher reading runs
+
+**Ines never watches a run live; she reads what runs leave behind.** Her
+question is not "what does the model say?" but "which ways of settling
+disputes produce knowledge that *lasts*?"
+
+**Now.** Every run keeps its episodes: what was proposed, what the verdict
+was, which disposition the panel chose, and — the part that matters — whether
+the move **stuck** or was later overturned, with decay-erasures honestly
+excluded from the stickiness accounting rather than counted as refutations.
+Over a run built from recorded edit disputes, the meta-learning layer reports
+stick-rates *by resolution mechanism* — in the logged runs, claims settled by
+a reliable source proved durable where claims settled by bare consensus did
+not — plus a friction map of the most contested ground and a **poise**
+reading (is the loop engaging and settling, or thrashing, or gone rigid?).
+Around all of it sits the project's own discipline: a run's priors are
+**pre-registered before it executes**, verdicts are mechanical, refuted
+priors stay on the record, and the author's disposal is a separate, recorded
+act. Ines is reading a research-programme record — Lakatos kept honest by
+machinery.
+
+**When complete.** The browser arena and the autonomous loops are still two
+surfaces: the loops run headless, with instrument-panel lenses in Organon but
+no arena view of a live run. Directing a loop mid-flight — steering its
+attention economy interactively rather than by configuration — is designed
+but not surfaced.
+
+---
+
+# Part IV — Register 3: kytē in association
+
+The third register is where the grading must be strictest, so this part
+opens with the disclaimer the other two only gestured at: **Arisbe has never
+run as a community.** What exists is *one* instance **modeling** association —
+simulated federations of units inside a single system, with one coordinator
+and one clock. A federation whose members are all simulated by one process is
+not a society, any more than a weather model is weather; the sociological
+tradition the project leans on here (Berger & Luckmann) is explicit that
+institutions arise only in *reciprocal* typification between actors, which
+cannot occur inside an individual. The project holds that line: the
+coordinator in the experiments below is a switchboard, not a society, and a
+negotiation the system plays against itself models a parliament without
+constituting one. (The doctrine — what a real commens would require, and what
+"judgment objectivated, never owned" means — is
+[THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).)
+
+What *has* been done, within that limit, is measurement. **The E-series**
+(five experiments and a rider, 2026-07-22 → 27) asked Geoffrey West's
+question — do aggregated units obey discoverable scaling laws? — of units
+whose metabolism is knowledge maintenance rather than energy: one big
+reasoner holding everything, versus a federation of bounded reasoners with a
+coordinator. Every experiment ran against priors registered before it
+executed, and the refuted priors are kept on the record beside the held ones:
+
+- **Federation beat monolith ~5.2× on cost at equal durability** (E1) — and
+  retained more, because one attention budget over everything decays out what
+  a bounded member keeps.
+- **The diseconomy is real and locatable** (E2): monolith cost scaled with
+  exponent ≈ 1.28 against the federation's ≈ 1.02, and a 25× cost spread at
+  the largest size traced to *coordinator scan discipline alone* — while the
+  per-member cost stayed invariant to a tenth of a percent across an 8× size
+  range.
+- **The optimum is interior, and it is a granularity** (E2b, E3): neither
+  monolith nor finest-possible split wins — an imposed sweep found the
+  minimum at three buckets, and when the system was allowed to re-partition
+  *itself* under its own economics, every walk converged to that same
+  granularity while landing in *different* partitions.
+- **The landscape is multi-basin, and balance strands** (E3b, E3c): from 36
+  structured starts, granularity converged absolutely but the partitions
+  fragmented into 21 known local optima; one asymmetric family captured 75%
+  of the attractor mass within 1.4% of the cost floor, while the perfectly
+  balanced partition sat stranded in a measurably *dear* basin that
+  single-folder perturbations escaped only one time in three.
+
+Two disciplines govern how those results may be read. First, **no
+teleology**: the exponents and basins characterize one synthetic landscape a
+modeler imposed — a real-corpus corroboration is deferred, and nothing here
+is an arrow of social development (the project's Graeber & Wengrow row is a
+negative claim only: many viable settlements, no ladder). Second, the
+sociable reading stays graded: that deliberate, reversible basin-crossing is
+what *politics* names is recorded as a finding about the model, not about
+history.
+
+## The population experimenter
+
+The E-series opens a use case the original personas were written without:
+**studying populations of reasoning units as an experimental subject in their
+own right**. The pieces are already instruments, not promises. Each unit's
+economics is parameterized — its decay horizon, its attention budget, the
+severity weights that order what it probes next, and a **temperament dial**
+(how strongly a unit damps re-raising a distinction its *own* record already
+admitted versus one another unit's record earned — the novelty knob, in two
+independent settings). The population's arrangement is parameterized too:
+member count, partition, coordination discipline. And the readouts exist on
+both scales: per-unit cost ledgers and the durability/compression/use
+measures below them; population-level granularity, basin structure, and
+attractor mass above; and the **poise** instrument reading each unit's
+temporal health — engaging and settling, versus the named pathologies of
+thrashing, rigidity, and storm — so a pathology can be located, not just
+suspected.
+
+**Rhea studies collective cognition.** With one deterministic harness she can
+now ask: at which temperament settings does a population's granularity
+optimum move? Do resource-starved units go rigid before they thrash? Does a
+population of high-novelty units fragment into more basins or fewer? Every
+run is seed-replayable, every verdict mechanical, every prior registered
+before execution — the same discipline the E-series itself was held to.
+
+**When complete.** Honestly graded: the E-series harness is the *first
+instance* of this laboratory, built for one family of questions (partition
+economics), and the temperament dial has not yet been swept in a population
+run (the project's own docket names that study). A general
+population-experiment surface — vary any per-unit parameter across a
+population and read the instruments — is the direction, not yet the shipped
+thing.
+
+- **The self-contained methods note** (what the unit is operationally, what
+  the cost meter counts, how durability was equalized — readable with no
+  Arisbe vocabulary): [WEST_METHODS_NOTE.md](WEST_METHODS_NOTE.md)
+- **The program and its logs** (priors, verdicts, dispositions):
+  [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) and `runs/WEST_E*_LOG.md`
+- **The graded row** in the concordance map:
+  [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md)
+
+**When complete.** Association in earnest — separate instances holding
+attributed cells of one another's judgments, a commens that no member owns —
+is named, designed against, and not built. It is the register the project
+will not claim until there are genuinely two of it.
+
+---
+
 ## The cycle, once more
 
 Every scenario follows the same pattern: **Know** (study what is established) →
@@ -424,7 +670,9 @@ extend, or open a question?) → **Integrate** (add a fact, revise a rule, flag 
 hypothesis, record a refutation). This is Peirce's vision of logic as a **living
 practice** — not a static catalogue of truths but an ongoing process in which
 knowledge grows, corrects itself, and deepens through assertion, challenge, and
-resolution.
+resolution. And it is one cycle across all three registers: what a person plays
+by hand in the first, a directed loop runs autonomously in the second, and the
+third measures when many such loops are made to share the work.
 
 The participants need not be logicians. The formal machinery — the graph
 structures, the transformation rules, the game protocol — handles the rigour.
@@ -444,5 +692,9 @@ good reasoning Peirce spent his life trying to cultivate.
 - **The editor's frontier, in detail:** [FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md)
 - **The central contract (picture = proposition):** [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 - **The formal account of the game:** [ENDOPOREUTIC_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md)
+- **A term's worth of session plans (register 1 in a classroom):** [TEACHING_PACK.md](TEACHING_PACK.md)
+- **The unit register 2 runs and register 3 federates** (the kytos, its anatomy
+  and its honesty ledger): [THE_KYTOS.md](THE_KYTOS.md)
+- **The autonomous game's design of record:** [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md)
 - **Run it:** `uv sync --extra dev --extra web` then
   `uv run uvicorn --app-dir src web_api.main:app --reload --port 8000` and open `/organon`.

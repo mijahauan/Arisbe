@@ -156,7 +156,9 @@ the worked corpus exemplar is `swan_alternatives`).
   question-career machinery, the [Agonothetes](GLOSSARY.md#agonothetes)
   construct, and the program's graded claims are all open to critique — and
   the code is the argument: each is a module you can read, run, and try to
-  break.
+  break. (Exact commands — the core suite, the conservativity gate, a worked
+  chain end to end — are in [GETTING_STARTED.md](GETTING_STARTED.md), the
+  logician door's "How to try to break it.")
 
 ## The frontier (stated honestly)
 

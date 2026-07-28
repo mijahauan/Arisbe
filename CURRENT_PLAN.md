@@ -1,6 +1,65 @@
 # Current Plan
 
-**Last Updated**: 2026-07-27 (night, third arc) — **SITTING B1 EXECUTED: the four letter
+**Last Updated**: 2026-07-27 (night, fourth arc) — **SITTING B2 EXECUTED: all eleven
+need-list items closed + the author's mid-sitting audience/use-case expansion acted on.**
+
+1. **The intellectual-history chapter (needs #1–#3): `docs/THE_LINEAGE_AND_THE_TRIBUTARIES.md`**,
+   NEW, in the book (Part I · Why, after ADVERSARIAL_EXAMINATION; render-check **47/47** clean).
+   §2 the formalization lineage as warrant, never graded (Peirce → Zeman 1964 → Roberts 1973 →
+   Shin 2002 → Sowa → **Dau**, + Pietarinen's dual position incl. Ma & Pietarinen 2018 honestly
+   *against* us); §3 the eleven concordance-map rows told as history, chronological,
+   phenomenon-credited-first (Uexküll → cybernetics → aLife → erotetics → B&L → Popper/Campbell →
+   AGM/TMS → Friston → West-measured → G&W-negative-only → the deliberative interval); §4 the
+   confluence (the six-train joint, AS-first per the author's 07-27 concern); §5 the convergence
+   claim voiced as the proposition — testable by practitioner recognition, refutation invited
+   in-text, lineage exempt from grading.
+2. **ARISBE_IN_PRACTICE reorganized into the three registers (needs #4–#6):** a "The three
+   registers" frame up front; Part I/II = register 1 (personas + scenarios, currency-passed:
+   Wikidata moved to register 2; **"What a course would actually do"** teaching block →
+   TEACHING_PACK, the Pietarinen teaching angle); **Part III NEW = register 2** (the honesty
+   preamble — track-record-never-truth, LLM-argues-calculus-decides, no-silent-M-change — then
+   the vault author / live-source watcher / researcher-reading-runs personas, each with logged
+   runs behind it); **Part IV NEW = register 3** (opens with the strictest disclaimer — one
+   instance *modeling* association, a simulated federation is not a community, B&L held — then
+   the E-series results told with priors-and-refutations, the two reading disciplines, and the
+   not-built closing: "not until there are genuinely two of it").
+3. **The West methods note (need #7, the strongest single need): `docs/WEST_METHODS_NOTE.md`**,
+   NEW — two pages, zero Arisbe vocabulary (the unit as a reimplementable algorithm; the
+   atom-operation cost meter + the two coordinator disciplines; K2 equalization as
+   same-ttl/same-R/work-parity *then measured* equal; the six-experiment results table with
+   verbatim prior verdicts incl. every refutation; the not-claimed list; determinism/replay).
+   Distilled from all six run logs (a subagent verified every headline number against the logs).
+4. **Verifications #8–#11 all closed, with fixes landed:** #8 — no break-it page existed;
+   **written** into GETTING_STARTED's logician door ("How to try to break it") with all three
+   commands *run and verified* (core-suite 9-file command 132 passed · A3 gate 15 passed [stale
+   "10" fixed in SECOND_ORDER_CORE_OPENING + CLAUDE.md] · worked-chain replay 21 passed;
+   builder tools mutate tomos/ so the reader-safe replay path is the documented one);
+   ARISBE_FOR_SCHOLARS points at it. #9 — path verified current (exemplar, four served forms,
+   install command); the ontologist door gained step 0 → the shared five minutes. #10 — the
+   .tex path **run end-to-end** (export → `pdflatex` → PDF); the literal recipe added to
+   FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION. #11 — CONTRIBUTION's Sowa rows read clean; one real
+   mis-credit found and fixed: **GLOSSARY had EGIF as "Dau's notation" — now Sowa's** (CGIF
+   credit added too).
+5. **The author's mid-sitting steer acted on** (verbatim concern: the AlternativeSet confluence
+   widens both the scholar types and the use cases, which were defined without West/B&L/G&W/
+   kyto-pathology/ethics/AS): (a) **`docs/share/CANDIDATE_RECIPIENTS.md`** NEW — the proposed
+   second-wave slate awaiting the author's ruling at the Share sitting (erotetics-Wiśniewski ·
+   social-epistemology-Fricker · complexity/SFI · anthropology-Wengrow · active-inference ·
+   the widened Peirce cluster Stjernfelt/Shin; premature kinds named as premature: B&L-heirs
+   [no living addressee → served by the chapter], rung-2 ethics, tutoring); (b) **the
+   population-experimenter use case** added to IN_PRACTICE Part IV (populations of kytē under
+   varied per-unit parameters — decay/budget/severity + the temperament dial as the novelty
+   knob — with two-scale readouts and poise; honestly graded: the E-series is the *first
+   instance* of that laboratory, the temperament sweep is docketed, a general surface is
+   direction-not-shipped). Letter skeletons' §5 + NEED_LIST carry ✅ dispositions per item.
+
+Book render-check: **47/47** chapters clean. Meanwhile the **RUN 13 `--no-p213` overnight is
+still in flight** (~230 min CPU, healthy). **Next:** (a) author marks the provenance-mix note →
+P4¹³, then the p213 overnight → P2¹³; (b) the author rules the second-wave recipient slate
+(Share sitting) + book membership questions if any; (c) then the letters finished and sent —
+the author's hand.
+
+**Last Updated (prior)**: 2026-07-27 (night, third arc) — **SITTING B1 EXECUTED: the four letter
 skeletons + the two prerequisite landing docs + the AlternativeSet-prominence promotions.**
 
 1. **The Share split's first move — `docs/share/` (new, internal, not book):** four letter

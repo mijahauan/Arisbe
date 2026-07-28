@@ -127,6 +127,11 @@ domain/range are typing scrolls). You bring a file in; it becomes a `kind=ontolo
 Universe of Discourse you can browse in Organon and play as a **model M** in Agon.
 
 **Shortest path in:**
+0. If you skipped §1's shared five minutes, take them first — install, open
+   `/organon`, pick the corpus exemplar `peirce_cp_4_394_man_mortal` (it lives
+   in the `tomos/` corpus), toggle its four linear forms (EGIF / CGIF / CLIF /
+   FOPL), then draw one freehand in `/ergasterion` and let the reader grade it.
+   Five minutes, and you have seen the round-trip your files will ride on.
 1. Read [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md) — the
    consolidating import doc: what enters, at what [warrant](GLOSSARY.md#warrant), attributed how, attested
    how. This is your main door.
@@ -197,6 +202,47 @@ notations** and stays the same proposition everywhere.
   register (peel/materialize/theory-query). The universal-generalization rule's Dau-native
   scaffold is now built (`src/derived_rules.py`, `universal_generalization`)
   ([UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md](UNIVERSAL_GENERALIZATION_DAU_HOMEWORK.md)).
+
+**How to try to break it.** The claims above are testable from a clean checkout,
+and a failing run is a finding the project wants. Three commands (all from the
+repository root, after `uv sync --extra dev --extra web`; verified 2026-07-27):
+
+1. **The mathematical core** — the Dau calculus, closure validation,
+   isomorphism, and the Beta/propositional proof exercises (132 tests; a
+   failure here is a real correctness defect, never noise):
+
+   ```bash
+   uv run pytest tests/test_egi_core_comprehensive.py tests/test_chapter15_formal_calculus.py \
+     tests/test_rule_interaction.py tests/test_subgraph_closure_validation.py \
+     tests/test_graph_isomorphism_engine.py tests/test_beta_proof_exercises.py \
+     tests/test_logical_proof_exercises.py tests/test_beta_converse_proof.py \
+     tests/test_beta_modus_ponens_proof.py -q
+   ```
+
+2. **The conservativity gate** — the standing claim that the second-order
+   opening (quotation/mention) leaves the Dau core untouched: corpus-wide
+   invisibility, the erasure projection (a quoted law licenses nothing), and
+   rules restraint ([SECOND_ORDER_CORE_OPENING.md](SECOND_ORDER_CORE_OPENING.md)):
+
+   ```bash
+   uv run pytest tests/test_second_order_conservativity.py -q
+   ```
+
+3. **A worked chain, end to end** — the corpus proofs (Peirce's Law, Barbara,
+   the *Praeclarum Theorema*, …) rebuilt as real rule applications against an
+   isolated corpus, persisted, re-loaded, and re-attested:
+
+   ```bash
+   uv run pytest tests/test_fixture_chains.py tests/test_chain_persistence.py -q
+   ```
+
+   (To *read* rather than re-run them, the same chains are stepped move by
+   move in Organon.)
+
+If any of these passes vacuously, or you can construct a graph the rules
+accept that Dau's calculus would refuse — that is precisely the refutation
+the project invites; see the standing invitation in
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md).
 
 ---
 

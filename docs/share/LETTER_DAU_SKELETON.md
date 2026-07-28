@@ -74,9 +74,11 @@ placed to refute the project's central engineering claim.
 - The **CROSSING_DECISION_BRIEFS / SECOND_ORDER docs** for B-min and A3
   (exist).
 - An **intellectual-history chapter** placing him as the culmination of the
-  formalization lineage, distinct in kind from the tributaries. *(Not yet
-  written — Sitting B2.)*
+  formalization lineage, distinct in kind from the tributaries. *(✅ Written
+  Sitting B2 — [THE_LINEAGE_AND_THE_TRIBUTARIES](../THE_LINEAGE_AND_THE_TRIBUTARIES.md),
+  §2.)*
 - A precise **"how to break it" page**: exact commands to run the core suite,
-  the A3 gate, and a worked chain end-to-end. *(Candidate: a short section in
-  ARISBE_FOR_SCHOLARS or GETTING_STARTED's logician door; verify it exists
-  and is current.)*
+  the A3 gate, and a worked chain end-to-end. *(✅ Written Sitting B2 —
+  GETTING_STARTED's logician door, "How to try to break it"; all three
+  commands run and verified 2026-07-27 [132 + 15 + 21 tests passing];
+  ARISBE_FOR_SCHOLARS points at it.)*

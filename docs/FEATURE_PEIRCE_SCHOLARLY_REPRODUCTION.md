@@ -205,6 +205,31 @@ from the constant's vertex to a predicate hook, and the `\footnotesize` line is 
 **Compiled Result:** a tightly-cropped, publication-ready vector PDF (the `article`
 class is the automatic fallback on minimal TeX installs without `standalone.cls`).
 
+**Run it yourself** (from the repository root; verified 2026-07-27 — the export
+produces a `.tex` that `pdflatex` compiles to a PDF with no packages beyond `tikz`):
+
+```bash
+uv run python -c '
+import sys; from pathlib import Path
+sys.path.insert(0, "src")
+from tomos_service import TomosService
+from peirce_latex import export_peirce_latex
+from web_api.services.layout_service import generate_layout
+
+svc = TomosService(Path("tomos"))
+egi = svc.load_uod("peirce_cp_4_394_man_mortal").current_egi
+dto, _ = generate_layout(egi, style_name="peirce-authentic@1.0")   # attests the correspondence check
+tex = export_peirce_latex(dto, egi, standalone=True, document_class="article")
+Path("man_mortal.tex").write_text(tex)
+print("wrote man_mortal.tex")
+'
+pdflatex -interaction=nonstopmode man_mortal.tex   # -> man_mortal.pdf
+```
+
+(Pass `document_class="standalone"` for the border-cropped figure if your TeX
+install has `standalone.cls`; the running web app serves the same export at
+`POST /export` with format `peirce-tikz`.)
+
 ---
 
 ## Related Work

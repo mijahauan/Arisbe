@@ -76,11 +76,13 @@ instance thinks *with*, the internalized complement of the un-possessed
 [DAG_HISTORY_ARCHITECTURE.md](DAG_HISTORY_ARCHITECTURE.md).
 
 ### EGIF
-**Existential Graph Interchange Format** — Dau's linear notation for EGs. See
+**Existential Graph Interchange Format** — Sowa's linear notation for EGs (in the
+Common Logic family); Arisbe parses it to Dau's EGI structure. See
 [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
 
 ### CGIF
-**Conceptual Graph Interchange Format** — the ISO/IEC 24707 conceptual-graph notation.
+**Conceptual Graph Interchange Format** — Sowa's conceptual-graph notation,
+standardized in ISO/IEC 24707.
 
 ### CLIF
 **Common Logic Interchange Format** — the Common Logic standard notation.

@@ -5,6 +5,20 @@ the letter-shapeable pair — the book's intellectual-history chapter and
 ARISBE_IN_PRACTICE's three registers — is written against (Sitting B2), plus
 the smaller verifications that ride along.*
 
+**Disposition (Sitting B2, 2026-07-27 — all eleven items closed):**
+#1–#3 → [THE_LINEAGE_AND_THE_TRIBUTARIES](../THE_LINEAGE_AND_THE_TRIBUTARIES.md)
+(new book chapter, Part I). #4–#6 → ARISBE_IN_PRACTICE reorganized into the
+three registers (+ the course block; + the population-experimenter use case
+from the author's mid-sitting steer). #7 →
+[WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md). #8 → GETTING_STARTED logician
+door, "How to try to break it" (commands run and verified). #9 → verified
+current; ontologist door now points at the shared five minutes. #10 →
+verified by running it (export → `pdflatex` → PDF); literal recipe added to
+the feature doc. #11 → tone clean in CONTRIBUTION; one real mis-credit fixed
+(GLOSSARY's EGIF/CGIF entries now credit Sowa). Per-item detail in the
+letter skeletons' §5 annotations. See also
+[CANDIDATE_RECIPIENTS](CANDIDATE_RECIPIENTS.md) — the proposed second wave.
+
 ## Needed from the intellectual-history chapter (B2, new)
 
 All four letters cite it; the shape it must have:

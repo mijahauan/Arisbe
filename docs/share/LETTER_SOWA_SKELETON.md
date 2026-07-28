@@ -64,7 +64,11 @@ with the model M developing through play against live sources (Wikidata).
   prominent (exists; check the credited rows read cleanly to *him*).
 - An **intellectual-history chapter** that places the formalization lineage
   (Roberts/Zeman/Shin/**Sowa** → Dau) as the machinery's warrant, distinct in
-  kind from the tributaries. *(Not yet written — Sitting B2.)*
+  kind from the tributaries. *(✅ Written Sitting B2 —
+  [THE_LINEAGE_AND_THE_TRIBUTARIES](../THE_LINEAGE_AND_THE_TRIBUTARIES.md),
+  in the book, Part I.)*
 - A runnable five-minute path: install → load a corpus exemplar → see the
-  four linear forms + drawing round-trip. (GETTING_STARTED covers this;
-  verify the ontologist door is current.)
+  four linear forms + drawing round-trip. *(✅ Verified Sitting B2: install
+  command, exemplar, all four served forms check out; the ontologist door now
+  points at the shared five minutes explicitly. Attribution pass done too —
+  GLOSSARY's EGIF/CGIF entries now credit Sowa, fixing a mis-credit to Dau.)*

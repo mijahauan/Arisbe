@@ -33,3 +33,8 @@ Contents:
   scholarly-reproduction path.
 - [NEED_LIST.md](NEED_LIST.md) — the aggregated "what must stand behind the
   link" list the propagation docs are written against.
+- [CANDIDATE_RECIPIENTS.md](CANDIDATE_RECIPIENTS.md) — the proposed *second
+  wave* of recipients (erotetics · social epistemology · complexity ·
+  anthropology · active inference · the widened Peirce cluster), raised by
+  the author's 2026-07-27 observation that the AlternativeSet confluence
+  widens the audience; awaiting ruling at the Share sitting.

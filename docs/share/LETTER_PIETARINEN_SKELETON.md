@@ -82,10 +82,14 @@ proto-letter to him since 2026-06; this letter supersedes and extends it.)
   **FIDELITY_AND_DEPARTURES** + the examination record (exist; hardened by
   Examination VI).
 - The **scholarly-reproduction feature doc** + a compilable sample .tex he
-  can run (exists; verify the sample path is stated).
+  can run. *(✅ Verified Sitting B2 — the export was run and the result
+  compiled with plain `pdflatex`; the doc now carries the literal
+  copy-paste recipe.)*
 - An **intellectual-history chapter** that treats the scholarship
   (Zeman/Roberts/Shin/Sowa/Dau/Pietarinen and Ma & Pietarinen) generously
-  and precisely. *(Not yet written — Sitting B2.)*
+  and precisely. *(✅ Written Sitting B2 —
+  [THE_LINEAGE_AND_THE_TRIBUTARIES](../THE_LINEAGE_AND_THE_TRIBUTARIES.md).)*
 - The **teaching angle**: what a course would actually do with the arena +
-  challenge mode + the graded corpus (ARISBE_IN_PRACTICE's register 1 —
-  needs its currency pass, Sitting B2).
+  challenge mode + the graded corpus. *(✅ Written Sitting B2 —
+  ARISBE_IN_PRACTICE, the teacher persona's "What a course would actually
+  do," pointing at TEACHING_PACK.)*

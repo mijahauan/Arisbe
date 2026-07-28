@@ -77,9 +77,9 @@ row: plurality of viable settlements, a negative claim only).
 - A compact, self-contained **methods note** readable without Arisbe
   vocabulary: what a kytos is operationally, what the cost model counts, how
   K2-durability was equalized — the two-page version a physicist would read
-  first. *(Does not exist as one artifact — strongest single need this
-  letter exposes; candidate home: ARISBE_IN_PRACTICE register 3 or a
-  dedicated methods appendix.)*
+  first. *(✅ Written Sitting B2 — [WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md),
+  distilled from the six run logs incl. E3c; pointed at from
+  ARISBE_IN_PRACTICE Part IV.)*
 - The **graded concordance map** row for West with the refuted priors listed
   (exists in CONTRIBUTION_AND_PRIOR_ART).
 - THE_KYTOS for the unit's anatomy, honestly graded (exists; West re-graded

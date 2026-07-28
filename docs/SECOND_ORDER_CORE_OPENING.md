@@ -263,7 +263,7 @@ what it would be exercised on.
 >
 > Tests: `test_second_order_core` (27) · `test_rules_second_order` (18) ·
 > `test_second_order_reader` (12, falsifiers pinned) ·
-> `test_second_order_conservativity` (10) · `test_use_mention_fork` (6) +
+> `test_second_order_conservativity` (15) · `test_use_mention_fork` (6) +
 > the extended `test_quotation_overlay` (39). Named limits: no linear sort
 > syntax; no quotation-in-quotation; no IT± of exhibits; cross-UoD mention
 > S3 = sort-half only. Next rung: ② **B-full** (native graph-valued element
