@@ -4,9 +4,9 @@
 > so that Organon has things to read and Agon has somewhere to play: **proof
 > exemplars** (§2), **domain-model boards** (§3) and the curated [**episodes**](GLOSSARY.md#episode) that
 > wire them into the game picker (§4), a **branching-modality** episode (§5), and a
-> **model that transforms through dialog** (§6). It is a guide to *what is there and
-> why*, not a how-to for authoring more (that pattern lives in the `tools/build_*.py`
-> scripts and [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)).
+> **model that transforms through dialog** (§6). It serves as a guide to *what is
+> there and why*, not a how-to for authoring more (that pattern lives in the
+> `tools/build_*.py` scripts and [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md)).
 >
 > **Companions:** [DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md) (how a board is
 > queried as a model M) · [GENERATION_AND_TESTING.md](GENERATION_AND_TESTING.md)
@@ -18,31 +18,31 @@
 
 ## 1. Why these exist
 
-Arisbe's machinery is only as legible as the worked examples that exercise it. Two
-gaps were filled in one pass:
+Arisbe's machinery stays only as legible as the worked examples that exercise it.
+One pass filled two gaps:
 
-- **Proofs to read.** Organon is a read-only archive; it wants a spread of *worked
-  derivations* a teacher or student can step through. The existing set (Peirce's
-  Law, Barbara, Leibniz's *Praeclarum*, the group-identity uniqueness, beta modus
-  ponens) leaned toward the harder theorems. The new quartet adds **short, iconic
-  propositional laws** — including two that teach an Existential Graph ([EG](GLOSSARY.md#eg))-specific insight worth more
+- **Proofs to read.** Organon serves as a read-only archive; it wants a spread of
+  *worked derivations* a teacher or student can step through. The existing set
+  (Peirce's Law, Barbara, Leibniz's *Praeclarum*, the group-identity uniqueness,
+  beta modus ponens) leaned toward the harder theorems. The new quartet adds short,
+  iconic propositional laws, including two that teach an Existential Graph ([EG](GLOSSARY.md#eg))-specific insight worth more
   than the theorem.
-- **Boards to play on.** The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's interpretation register is *given
+- **Boards to play on.** The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's interpretation register reads *given
   M, then G* — and you cannot play without an M. The curated persona models in
-  `src/agon_models.py` are inline on-ramps; the corpus wanted **richer,
-  browsable domain-model Universes of Discourse ([UoDs](GLOSSARY.md#uod))** that double as game boards. Two were added, a
-  closed/open contrast.
+  `src/agon_models.py` serve as inline on-ramps; the corpus wanted richer,
+  browsable domain-model Universes of Discourse ([UoDs](GLOSSARY.md#uod)) that double as game boards. Two joined it,
+  a closed/open contrast.
 
-Everything below is a real corpus UoD: §3.3-attested at save and load, browsable in
-Organon, and (for the boards) selectable as M in the Agon picker.
+Everything below stands as a real corpus UoD: §3.3-attested at save and load,
+browsable in Organon, and (for the boards) selectable as M in the Agon picker.
 
 ---
 
 ## 2. The proof exemplars (Alpha / propositional)
 
-Built by [`tools/build_propositional_exemplars.py`](../tools/build_propositional_exemplars.py)
-as real `ProofChain`s — every step an attestable Dau-rule application that must
-land on the stated conclusion. **Together the four exercise all six rules**, so the
+[`tools/build_propositional_exemplars.py`](../tools/build_propositional_exemplars.py)
+builds these as real `ProofChain`s. Every step applies a Dau rule attestably and
+must land on the stated conclusion. Together the four exercise all six rules, so the
 set doubles as a tour of the calculus.
 
 | UoD id | Claim | Moves | The point |
@@ -52,18 +52,18 @@ set doubles as a tour of the calculus.
 | `ex_falso_quodlibet` | ¬P ⊢ P→Q | `INS` | From a denied antecedent, anything follows — and the single move is insertion, legal *only* in a negative context (entertain, don't assert). |
 | `hypothetical_syllogism` | P→Q, Q→R ⊢ P→R | `IT+`,`IT-`,`DC-`,`ERA`,`ERA` | The substantial one: iterate Q→R into P→Q and deiterate the shared Q — the EG form of "discharge the middle term" — then clear the scaffolding. |
 
-Each is an **authored** derivation of a **cited** classical law, admitted at **low
+Each stands as an **authored** derivation of a **cited** classical law, admitted at **low
 [warrant](GLOSSARY.md#warrant)** (attested for correspondence, never asserted true — the manifest [floor](GLOSSARY.md#floor) (the baseline that may not be gone under)).
-Annotations carry the teaching notes; the crux of the syllogism is flagged at the
-step level.
+Annotations carry the teaching notes; a flag at the step level marks the crux of
+the syllogism.
 
 ---
 
 ## 3. The domain-model boards
 
-Built by [`tools/build_domain_model_exemplars.py`](../tools/build_domain_model_exemplars.py)
-as `kind=domain_model` UoDs. They are a deliberate **closed/open
-contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) turns on.
+[`tools/build_domain_model_exemplars.py`](../tools/build_domain_model_exemplars.py)
+builds these as `kind=domain_model` UoDs. They form a deliberate closed/open
+contrast, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it from the outside in against the model) turns on.
 
 > **Residence (relocated 2026-07-16, sweep #2 — the second relocation).** Every
 > M-bearing exemplar in this catalogue holds its elements in **cells at even
@@ -78,7 +78,7 @@ contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it 
 > a cell; `REVISE_M` = the challenge composite, ERA + INS in one step — the
 > emptied husk standing as a scar) and every verdict as a recorded `PEEL`
 > step. The peel reads the cells' union (`world_scroll.m_view`), so every
-> verdict quoted in this document is unchanged. The standing gate is
+> verdict quoted in this document stands unchanged. The standing gate remains
 > `tests/test_corpus_polarity_discipline.py`.
 
 ### `zoo_world` — a closed taxonomy with Horn rules
@@ -86,31 +86,31 @@ contrast**, the two regimes the open-world [peel](GLOSSARY.md#peel) (reading it 
 Four named animals (Rex the dog, Tom the cat, Moby the whale, Pip the sparrow) plus
 a subsumption spine authored as [scrolls](GLOSSARY.md#scroll) (a nested double cut — "if … then"): dog/cat/whale ⊑ mammal, sparrow ⊑ bird,
 mammal ⊑ warm-blooded, bird ⊑ warm-blooded. **Materialized** (forward-chained to the
-least Herbrand model), it derives every animal's kind and warmth — so universals are
-decided *through the chain*, not stated directly. As a board:
+least Herbrand model), it derives every animal's kind and warmth — so the chain,
+not a direct statement, decides the universals. As a board:
 
 - *"Every mammal is warm-blooded"* and *"every dog is warm-blooded"* → **TRUE** (the
   second only via the dog→mammal→warm-blooded chain).
 - *"Every warm-blooded thing is a mammal"* → **FALSE**, and the peel names **Pip**
-  the sparrow (warm-blooded via bird, yet no mammal). The board for the *holds /
+  the sparrow (warm-blooded via bird, yet no mammal). This board serves the *holds /
   fails* outcomes, with a named counterexample richer than a two-fact model can give.
 
-The closed flag is what licenses ∀: a silence is read as "no," so a refuting
-individual makes the over-broad universal definitely false.
+The closed flag licenses ∀: silence reads as "no," so a refuting individual makes
+the over-broad universal definitely false.
 
 ### `harbor_town` — an open civic world
 
 Bayside is a harbor town; Greyrock is an island with a lighthouse; a ferry runs
-Bayside→Greyrock. Facts only, **no closure**. The relational ferry gives the peel
-something to witness, and the open world means an unrecorded claim is **UNKNOWN**,
+Bayside→Greyrock. Facts only, no closure. The relational ferry gives the peel
+something to witness, and in the open world an unrecorded claim reads **UNKNOWN**,
 not false:
 
 - *"Bayside hosts a market"* → **UNKNOWN** — a candidate *new fact*, the independent
   outcome the [horizon](GLOSSARY.md#horizon) produces (not a refutation).
 - *"The ferry runs Bayside→Greyrock"* → **TRUE** (present in the record).
 
-The contrast piece to `zoo_world`: the same kind of universal reads differently open
-vs. closed — closing the world is what turns a sample into a law.
+This board stands as the contrast piece to `zoo_world`. The same kind of universal
+reads differently open vs. closed; closing the world turns a sample into a law.
 
 ---
 
@@ -126,8 +126,8 @@ newcomer can select one and immediately see the peel:
 | `zoo-refuted` | zoo_world | every warm-blooded thing is a mammal | FALSE (names Pip) |
 | `harbor-open` | harbor_town | Bayside hosts a market | UNKNOWN (independent) |
 
-The boards are *also* selectable directly by UoD id (the picker lists every corpus
-UoD), with the curated entries being the one-click on-ramp. A test
+A reader may *also* select the boards directly by UoD id (the picker lists every
+corpus UoD); the curated entries serve as the one-click on-ramp. A test
 (`tests/test_new_exemplars.py`) pins each episode's advertised verdict, so the picker
 never promises an outcome the peel won't deliver.
 
@@ -136,9 +136,9 @@ never promises an outcome the peel won't deliver.
 ## 5. Modality as diachronic branching
 
 `possible_and_necessary` ([tools/build_modal_branching.py](../tools/build_modal_branching.py))
-is the diachronic, **mark-free** reading of ◇ and □
+gives the diachronic, mark-free reading of ◇ and □
 ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §1, the *trajectory reading*).
-A modal operator is a quantifier over a Kripke frame, and the branching history *is*
+A modal operator quantifies over a Kripke frame, and the branching history *is*
 that frame — worlds are sheets, accessibility is the legal-transition directed acyclic graph ([DAG](GLOSSARY.md#dag)). So:
 
 > ◇φ = "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" · □φ = "every legal trajectory scribes φ"
@@ -150,7 +150,7 @@ feature and converge on `(cold)`. Reading off the four reachable sheets: **□ c
 possible, not necessary). No broken cut, no [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings): the modality is the shape of
 the DAG.
 
-The thin missing code is [src/modal_query.py](../src/modal_query.py) —
+[src/modal_query.py](../src/modal_query.py) supplies the thin missing code —
 `possibly` / `necessarily` over a chain's reachability (`reachable_states`,
 `leaf_states`), with predicate helpers (`scribes_relation`, `equals_graph`,
 `is_blank`) and an `over="states"|"leaves"` choice (all reachable worlds, or just the
@@ -162,8 +162,8 @@ It reads only DAG structure + Existential Graph Instance ([EGI](GLOSSARY.md#egi)
 ### 5.1 The Gamma demonstrations — Peirce's own modal drawings
 
 Three further exemplars ([tools/build_gamma_modal_exemplars.py](../tools/build_gamma_modal_exemplars.py))
-reconstruct **specific modal meanings Peirce attempted to draw with Gamma**, each with a
-verified citation in its provenance (`theorem_source`); the full account is
+reconstruct specific modal meanings Peirce attempted to draw with Gamma, each with a
+verified citation in its provenance (`theorem_source`); the full account lives in
 [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md).
 
 | UoD id | Peirce figure | The demonstration |
@@ -172,7 +172,7 @@ verified citation in its provenance (`theorem_source`); the full account is
 | `would_be_de_inesse` | P *de inesse*, *Prolegomena* (CP 4.546, 4.549) | the material conditional on one synchronic sheet — "too easily true"; the modal lens rightly finds no frame |
 | `would_be_courses` | the blue-tinted strict implication (Ms 490, end of CP 4.575) | the would-be as a DAG of *courses of experience* (each edge a `new_fact` revision): G = "if Otto fails, Clara suicides" peels TRUE at **every** world — □G — while a contrast proposal is refuted by the ruin course |
 
-Reading surface: the **modal lens** gained a *proposal reading* (peel any compound G
+On the reading surface, the **modal lens** gained a *proposal reading* (peel any compound G
 across the worlds — ◇G/□G with per-world verdicts) and draws each world as a small
 thumbnail; challenge mode gained the `de-inesse` and `would-be-course` targets.
 Tests: `tests/test_gamma_demonstrations.py`.
@@ -183,19 +183,19 @@ Tests: `tests/test_gamma_demonstrations.py`.
 puts Paul Cohen's forcing conditions — the running example of Caterina & Gangle's
 paper on forcing in Existential Graphs — into the corpus using only the machinery
 above. A *condition* is a finite binary sequence, here a state of a developing
-record: from ⟨1⟩ the reveals extend to ⟨1,1⟩, which **forks** into the incompatible
+record: from ⟨1⟩ the reveals extend to ⟨1,1⟩, which forks into the incompatible
 extensions ⟨1,1,1⟩ and ⟨1,1,0⟩ — the splitting property ("every condition is
 dominated by two incompatible conditions") drawn as a genuine DAG fork. Each
-extension is a `new_fact` revision (a game move, not a deduction). The correct-set
-property δ₁ = "no entry is a zero" (`~[ (zero *p) ]`) is the standing
+extension enters as a `new_fact` revision (a game move, not a deduction). The correct-set
+property δ₁ = "no entry is a zero" (`~[ (zero *p) ]`) serves as the standing
 `audit-proposal`: it holds along the all-ones branch and falls where the domination
 is met — TRUE → TRUE → TRUE → FALSE under the audit lens, the structural reason a
 correct set discernible in the ground model cannot be generic. The modal lens reads
 the **forcing trichotomy** off the same DAG — `one` is *settled* (□, "∅ forces it"),
 `zero` is *open* (◇ ∧ ¬□, "some condition forces it"), `two` is *excluded* (¬◇) —
-now named by `modal_query.settlement`. The full mapping between Cohen's construction
-and Arisbe's machinery is the dev memo
-[FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md).
+now named by `modal_query.settlement`. The dev memo
+[FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md) carries the
+full mapping between Cohen's construction and Arisbe's machinery.
 
 ## 6. A domain model transforming through dialog
 

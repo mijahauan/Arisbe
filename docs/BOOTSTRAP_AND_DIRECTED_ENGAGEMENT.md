@@ -87,42 +87,44 @@ infinite lattice vs. the open sheet bounded only by selection from outside).
 
 ### 1.1 · Finite, not fixed — action changes the spaces themselves
 
-The author's clarification (2026-07-17, second sitting): the MPA's *S* and *A* are finite
-for practical sense, but **finite need not mean fixed** — and the interesting part of the
-bootstrap centers exactly there: **the automaton's action results in a change in both
-spaces.** A sketch whose *S* and *A* are frozen a-priori architecture can converge but
-cannot *develop*; a system whose acting wins it new distinctions to sense and new probes
-to make is the one whose chain of semiosis actually unfolds. This is the reflexive loop
-predictive processing calls **structure learning** (model *expansion*, not parameter
-update) — and it is Peirce before it is Friston: *symbols grow* — "they come into being
-by development out of other signs" (CP 2.302). A new sign is simultaneously a new sensor
-(a distinction the system can now register) and a new actuator (a probe it can now voice).
+The author clarified this at the second sitting (2026-07-17): the MPA's *S* and *A* are
+finite for practical sense, but **finite need not mean fixed** — and the interesting part
+of the bootstrap centers exactly there: **the automaton's action results in a change in
+both spaces.** A sketch whose *S* and *A* stand frozen as a-priori architecture can
+converge but cannot *develop*. A system whose acting wins it new distinctions to sense and
+new probes to make is the one whose chain of semiosis actually unfolds. Predictive
+processing calls this reflexive loop **structure learning** — model *expansion*, not
+parameter update — and the thought belongs to Peirce before Friston: *symbols grow* —
+"they come into being by development out of other signs" (CP 2.302). A new sign serves at
+once as a new sensor (a distinction the system can now register) and a new actuator (a
+probe it can now voice).
 
 Arisbe already grows all three spaces, each by a named mechanism, each **bounded by
 selection** rather than frozen:
 
-- ***S* grows** — the membranes are open-vocabulary by design (a required property of a
+- ***S* grows** — the membranes stay open-vocabulary by design (a required property of a
   good membrane, AUTOMATED_ENDOPOREUTIC_GAME §4b); label resolution turns opaque ids into
-  legible names; and the **horizon** is precisely the staging area for sensor-space
-  growth — what came back not-yet-legible, retained until legibility improves (which is
-  why rung 1 makes it a first-class register: it is where tomorrow's *S* waits).
+  legible names; and the **horizon** serves precisely as the staging area for sensor-space
+  growth — what came back not-yet-legible, retained until legibility improves. That is
+  why rung 1 makes it a first-class register: tomorrow's *S* waits there.
 - ***A* grows** — the crawl grows its own frontier from what it finds
   (`RotatingWikidataSource.crawl`: entity-valued answers become new probeable entities);
   the docket's Q2/Q3 tiers exist to shrink `inexpressible`, i.e. to make previously
-  unvoiceable wants voiceable — action-space growth as an explicit design goal.
+  unvoiceable wants voiceable — which makes growth of the action space an explicit
+  design goal.
 - **The sign-space grows** — the alphabet widens under lawful INS (a rule application can
-  introduce vocabulary); and mention-ascent at B-min is sign-space growth in
+  introduce vocabulary); and mention-ascent at B-min grows the sign-space in
   its strongest form: **hypostatic abstraction turns yesterday's predicate into today's
   subject** — a thing the system could only *say* becomes a thing it can *address, probe,
-  and quote*. The crossing is not a separate research thread from the bootstrap; it is
-  the bootstrap's third axis.
+  and quote*. The crossing does not run as a research thread separate from the bootstrap;
+  it forms the bootstrap's third axis.
 
 **The guard, one level up.** Growing spaces re-create the unbounded-sheet problem for the
-spaces themselves, and the same answer applies: growth must be **selected, not merely
-accreted** — the frontier caps with drops *counted* (`frontier_cap`, `per_entity_cap`),
-the negative label cache, and disuse-decay are to *S* and *A* what decay is to M. A
+spaces themselves, and the same answer applies: growth must come **selected, not merely
+accreted**. The frontier caps with drops *counted* (`frontier_cap`, `per_entity_cap`),
+the negative label cache, and disuse-decay serve *S* and *A* as decay serves M. A
 directed-engagement design (§3) that lets action enlarge the spaces must inherit this
-discipline: every growth channel carries a bound, and everything dropped at a bound is
+discipline: every growth channel carries a bound, and everything dropped at a bound gets
 counted, never silently truncated.
 
 ## 2 · What the bootstrap still lacks — and the Peircean warrant for building it
@@ -133,44 +135,45 @@ source is "*ingestion, not mutual co-evolution* — M changes in response to Wik
 does not (yet) push back on it." And §4d already stakes out the ground: the
 "eventual directed-engagement piece implements the rest: the musement pole, the
 economy-of-research ordering of reaches, and the horizon as a first-class, retained
-register." This doc's §3 is the staged path onto that ground.
+register." This doc's §3 lays the staged path onto that ground.
 
-**(b) Action selection is Peirce's own economy of research.** Choosing *which* reach to
-make next — which entity to re-poll, which want on the docket to voice, which experiment
-to run — is the problem Peirce solved in outline in "Note on the Theory of the Economy of
-Research" (1879): allocate inquiry by **cost against expected reduction of doubt**. This
-is the 19th-century statement of what statistics and machine learning now call **optimal
-experiment design and the value of information** (Lindley 1956), of which pool-based active
-learning is one modern instance. The warrant for building the action arm is therefore
-*native to Peirce*, not imported from the predictive-processing neighbors — the neighbors
-corroborate; Peirce mandates. *(Assistant's reading, flagged; the author should ratify the
-framing before it hardens into the doc spine — see §5.)*
+**(b) Action selection is Peirce's own economy of research.** Which reach to make next —
+which entity to re-poll, which want on the docket to voice, which experiment to run?
+Peirce solved that problem in outline in "Note on the Theory of the Economy of
+Research" (1879): allocate inquiry by **cost against expected reduction of doubt**. His
+paper gives the 19th-century statement of what statistics and machine learning now call
+**optimal experiment design and the value of information** (Lindley 1956), of which
+pool-based active learning is one modern instance. The warrant for building the action arm
+therefore comes *native to Peirce*, not imported from the predictive-processing neighbors —
+the neighbors corroborate; Peirce mandates. *(Assistant's reading, flagged; the author
+should ratify the framing before it hardens into the doc spine — see §5.)*
 
-**(c) The noisy-TV guard.** Once actions are chosen by expected doubt-reduction, the
+**(c) The noisy-TV guard.** Once actions get chosen by expected doubt-reduction, the
 target must be **learning progress** (the *rate of improvement* of prediction), never raw
 prediction error: a pure-noise source generates maximal error forever and would trap an
-error-seeking prober (the learning-progress concept is Schmidhuber's and Oudeyer's; the
-"noisy-TV" *term* was popularized by Burda et al. 2018). Arisbe already half-guards this: Kleene UNKNOWN abstains rather
-than mis-predicting, decay expels what never re-delivers, and the standing rule that
-**poise must never become a target** (AUTOMATED_ENDOPOREUTIC_GAME §4d) is the same
-Goodhart instinct stated for the run as a whole. The design rule for §3: *order reaches by
-expected learning progress per unit cost, and let a want that never yields settle into the
-docket's `inexpressible` residue rather than being re-probed forever.*
+error-seeking prober (the learning-progress concept belongs to Schmidhuber and Oudeyer;
+Burda et al. 2018 popularized the "noisy-TV" *term*). Arisbe already half-guards this:
+Kleene UNKNOWN abstains rather than mis-predicting, decay expels what never re-delivers,
+and the standing rule that **poise must never become a target**
+(AUTOMATED_ENDOPOREUTIC_GAME §4d) states the same Goodhart instinct for the run as a
+whole. The design rule for §3 reads: *order reaches by expected learning progress per
+unit cost, and let a want that never yields settle into the docket's `inexpressible`
+residue rather than being re-probed forever.*
 
-**(d) Against the blank slate.** The MPA seeds M "randomly or blank." That is the one
-un-Peircean element of the sketch: critical common-sensism denies the tabula rasa — we
-begin laden with instinct and un-criticized background belief, and inquiry starts *in
-medias res*. Arisbe's actual bootstrap is the more faithful one: **the low-warrant import
+**(d) Against the blank slate.** The MPA seeds M "randomly or blank." That stands as the
+one un-Peircean element of the sketch. Critical common-sensism denies the tabula rasa —
+we begin laden with instinct and un-criticized background belief, and inquiry starts *in
+medias res*. Arisbe's actual bootstrap keeps the closer faith: **the low-warrant import
 floor** (corpus seeds, ontology imports, curated pools — see
 [EXTERNAL_SOURCES_AND_IMPORT.md](EXTERNAL_SOURCES_AND_IMPORT.md)) *is* the "outside
 setup," and the blank sheet's first act is already ruled (DC+ — see
-[MATHEMATICS_FROM_THE_SHEET.md](MATHEMATICS_FROM_THE_SHEET.md)). Conclusion: do not chase
+[MATHEMATICS_FROM_THE_SHEET.md](MATHEMATICS_FROM_THE_SHEET.md)). So do not chase
 the blank automaton; the bootstrap problem Arisbe should own is not "start from nothing"
 but "start from low warrant and *earn*."
 
 ## 3 · The staged path to directed engagement
 
-Design only; each rung is a separate authorization. Rung 0 is the standing base.
+Design only; each rung takes a separate authorization. Rung 0 stands as the base.
 
 **Rung 0 — built (the irritation pole).** `attention_brief` (proto-tropism), the warm-set
 re-poll tropism (`tropism.py`; runs 2–3 showed re-poll alone cannot bound the sheet —
@@ -183,9 +186,9 @@ segment, with the honest `inexpressible` residue).
 mechanical priority with a cost/yield ordering, and widen what feeds it:
 
 - Feed the meta-learning instruments back into the docket: `unresolved_frontier` and
-  `friction_map` (`agon_metalearning.py`) name exactly the claims where engagement is
-  likely fertile — today they are read by humans in run logs, never by the prober. This
-  is the cheap, loop-closing edge: **the game studying the game, then steering it.**
+  `friction_map` (`agon_metalearning.py`) name exactly the claims where engagement will
+  likely prove fertile — today humans read them in run logs; the prober never does. This
+  edge comes cheap and closes the loop: **the game studying the game, then steering it.**
 - Score each want by expected learning progress per unit cost (a probe that has repeatedly
   yielded nothing decays in priority — the noisy-TV guard of §2c), rather than
   fewest-attempts → oldest.
@@ -198,13 +201,13 @@ mechanical priority with a cost/yield ordering, and widen what feeds it:
   §1.1) rather than a per-poll report field. Built 2026-07-18 at the vault stage
   (`attention_economy.Horizon`), as designed.
 
-**Rung 2 — mutual co-evolution (pushing back).** The full functional circle: M's contested
-frontier surfaced *to the source* — e.g. suggested edits / flagged inconsistencies offered
-back to the wiki-world — so the world and the model shape each other. Named in
-AUTOMATED_ENDOPOREUTIC_GAME §4c as the future edge. This rung has real outward-facing
-consequences (Arisbe would be *acting* on a shared world) and therefore needs its own
-ethics-and-etiquette design before any build; nothing below rung 2 acts outside Arisbe's
-own polls.
+**Rung 2 — mutual co-evolution (pushing back).** Here the functional circle closes: M's
+contested frontier surfaces *to the source* — suggested edits, say, or flagged
+inconsistencies offered back to the wiki-world — so the world and the model shape each
+other. AUTOMATED_ENDOPOREUTIC_GAME §4c names it as the future edge. This rung carries real
+outward-facing consequences (Arisbe would be *acting* on a shared world) and therefore
+needs its own ethics-and-etiquette design before any build; nothing below rung 2 acts
+outside Arisbe's own polls.
 
 **Rung 1 — AUTHORIZED 2026-07-17 (the arithmetic stage), with pre-registered criteria.**
 The author chose the staging **arithmetic → vault → author-as-oracle** (each field a
@@ -212,11 +215,11 @@ separate cycle; the horizon register deliberately waits for the vault, where ill
 genuinely exists) and the architecture **attention socket + world #1**: a world-agnostic
 `AttentionEconomy` + `ProbeDirectedFeed` pair, with a computed-arithmetic world
 (`arithmetic_world.py`) as the first field — deterministic, CI-safe, zero NL, and with a
-real cost model (probing *n* costs what primality testing costs). The headline trajectory:
-**Fermat's 1640 conjecture** (every 2^2^n + 1 is prime) proposed, confirmed at F0–F4,
+real cost model (probing *n* costs what primality testing costs). The headline trajectory
+runs: **Fermat's 1640 conjecture** (every 2^2^n + 1 is prime) proposed, confirmed at F0–F4,
 **refuted at F5 = 641 × 6 700 417** (Euler 1732) — reachable under budget only if
-attention spends on severity rather than cheap re-confirmation. Criteria registered
-*before* the build, in the run-log discipline:
+attention spends on severity rather than cheap re-confirmation. The criteria went on
+record *before* the build, in the run-log discipline:
 
 - **S1 (economy).** Under a fixed probe budget, the economy-ordered arm reaches the
   Fermat refutation in strictly fewer probes than FIFO and random arms
@@ -230,9 +233,9 @@ attention spends on severity rather than cheap re-confirmation. Criteria registe
 - **S5 (discipline).** Zero protected-module changes; the produced UoD passes the
   polarity gate; every growth channel bounded with drops counted.
 
-**What rung 1 is *not*:** it is not a new membrane, a new referee, or a change to the
+**What rung 1 is *not*:** not a new membrane, not a new referee, not a change to the
 calculus. The mode contract and the low-warrant floor (the "border guards" of
-AUTOMATED_ENDOPOREUTIC_GAME §4d) are untouched; only the *conduct* of inquiry — Peirce's
+AUTOMATED_ENDOPOREUTIC_GAME §4d) stay untouched; only the *conduct* of inquiry — Peirce's
 methodeutic, explicitly outside the game — gains machinery. Nothing auto-promotes;
 progression, not progress.
 
@@ -256,7 +259,7 @@ was unsatisfiable by construction (`fermat_number → odd` is a domain tautology
 model-checks against M's facts and reads TRUE whether or not the law was ever admitted), so
 "found" is tested instead by **admission into `known_laws`** (a structural `same_graph`
 match) — the law enters M only via the musement pathway; with musement off it never does.
-Verified by the task reviewer as a repair, not a weakening of the criterion. **S4 HELD**:
+The task reviewer verified this as a repair, not a weakening of the criterion. **S4 HELD**:
 identical configs yield identical journals (`replay_choices`), identical disposition
 sequences, and identical refutation rounds; scatter's ordering is golden-pinned to the sha1
 digest (a revert to salted `hash()` fails the golden across processes). **S5 HELD**:
@@ -268,8 +271,8 @@ gating the disk write, and the produced trajectory passes the polarity-gate chec
 (world-scroll residence, ligature closure, acknowledged acts with derivations on every
 M-changing step), asserted in `TestPersistence`; the full
 suite passed 3691 / skipped 137 / xfailed 1 / failed 0. Modules: `src/attention_economy.py`
-(the socket), `src/arithmetic_world.py` (world #1 + `ProbeDirectedFeed`). Next: the vault as
-world #2 (a separate cycle).
+(the socket), `src/arithmetic_world.py` (world #1 + `ProbeDirectedFeed`). Next comes the
+vault as world #2 (a separate cycle).
 
 **Carried to the vault cycle:** unused imports in `attention_economy.py`; the `re.fullmatch`
 tightening + hoisted `import re` in `ArithmeticWorld.test_law_instance`; the docket/frontier
@@ -281,9 +284,9 @@ double-counts once several wants are chosen per round).
 
 ## 4 · Arisbe itself as a proposition in the wider EPG
 
-The author's proposal: consider Arisbe a proposition in a wider Endoporeutic Game that we
-develop and refine against the resistance of a more generic Grapheus — the world in which
-Arisbe resides.
+The author put the proposal this way: consider Arisbe a proposition in a wider
+Endoporeutic Game that we develop and refine against the resistance of a more generic
+Grapheus — the world in which Arisbe resides.
 
 > **Reconciliation + ✅ RULED (the author, 2026-07-21)
 > ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3, §1, §6).** Read this
@@ -320,38 +323,38 @@ posit, fully sayable, not malformed (admitted at import, exposed to the Agon, ne
 *derived*)." The conditions that come with the licence:
 
 - **Low warrant, admitted not derived.** "Arisbe is an effective instrument for
-  modeling-under-doubt" enters as a posit and is *tested*, never concluded from within.
-- **Never scored against a terminus.** The game is not played toward a surveyable summit
-  (Departure I's non-locution); what is comparable is the **efficacy-vector** — a later
-  Arisbe may be *a better instrument*, an ordinal fact with no top.
+  modeling-under-doubt" enters as a posit and gets *tested*, never concluded from within.
+- **Never scored against a terminus.** No one plays the game toward a surveyable summit
+  (Departure I's non-locution); what admits comparison is the **efficacy-vector** — a
+  later Arisbe may prove *a better instrument*, an ordinal fact with no top.
 - **Competence, never worth.** Warrant = in-context competence; no worth-ranking of
   agents, ours included (the no-founder-exemption: the non-locution ranges over Arisbe
   exactly as it ranges over Omega and the Final Opinion).
 
 **The observation that changes nothing mechanical: the wider EPG already runs.** The
 run-log discipline — pre-registered priors (Pⁿ), findings (Fⁿ), dispositions, the
-determinism canaries — *is* this game being played: the author scribes a proposal (a run
-design with its priors), the world resists (the All-Star break, the `mul`-label failure,
-the decay-vs-durability confounds), the record disposes. RUNS 1–12 are its innings, and
-`runs/` is its corpus. Naming this does not add machinery; it makes the project
+determinism canaries — *is* this game being played. The author scribes a proposal (a run
+design with its priors); the world resists (the All-Star break, the `mul`-label failure,
+the decay-vs-durability confounds); the record disposes. RUNS 1–12 form its innings, and
+`runs/` its corpus. Naming this adds no machinery; it makes the project
 **self-describing under its own discipline** — the development process held to the same
-posture (correspondence with the record, not truth-claims about the method) that M is
-held to inside the loop. In Rorty's vocabulary (see
-[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances"): this is
-the **ironist's posture applied to the project itself** — radical, continuing doubt about
-one's own final vocabulary, held without paralysis because commitment never required the
-vocabulary to be final; with the one amendment Arisbe insists on throughout, that the
-doubt is played out before a sound referee rather than settled by conversation alone.
+posture (correspondence with the record, not truth-claims about the method) that M
+answers to inside the loop. In Rorty's vocabulary (see
+[CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md) §"Concordances"), this
+amounts to the **ironist's posture applied to the project itself** — radical, continuing
+doubt about one's own final vocabulary, held without paralysis because commitment never
+required the vocabulary to be final; with the one amendment Arisbe insists on throughout,
+that the doubt plays out before a sound referee rather than settling by conversation alone.
 
 **Deferred, named:** whether to *operationalize* the posit as a corpus Universe of
-Discourse whose diachronic audit trail is the run verdicts — Arisbe drawn on its own
-sheet. Doc-level for now (the author's decision, 2026-07-17); operationalize later if an
-exemplar earns it.
+Discourse whose diachronic audit trail consists of the run verdicts — Arisbe drawn on its
+own sheet. It stays doc-level for now (the author's decision, 2026-07-17); operationalize
+later if an exemplar earns it.
 
 ## 5 · Named decisions for the author
 
 1. **The economy-of-research framing** (§2b) — ✅ RATIFIED 2026-07-19 (and evidenced:
-   rung 1's S1 result is the framing doing its work — severity bought the Fermat
+   rung 1's S1 result shows the framing doing its work — severity bought the Fermat
    refutation).
 2. **Rung-1 authorization** — after RUN 12 disposes (the frontier-feedback edge would
    naturally be evidenced by a run; a RUN 13 candidate).
@@ -361,6 +364,6 @@ exemplar earns it.
    well-described **concordances** (light-shedding, not house vocabulary). Instead,
    the membrane-and-loop unit gets a **native name and description carrying the
    fractal understanding** (it recurs in semiotic processes at many levels) — the
-   naming thread is open, candidates under the author's review.
+   naming thread stays open, candidates under the author's review.
 5. **The reflexive UoD** (§4, deferred) — revisit once rung 1 or the next run gives the
    posit something new to be tested against.

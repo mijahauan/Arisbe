@@ -250,96 +250,96 @@ way or arrives **imported and embedded**, `INS` dropping it into a negative cont
 where it becomes a *running, dialogical, world-tested* contingency, sweepable by
 `ERA` from a positive context. Never an unconditioned foundation. And `assertion-4`,
 the conceded worry that the antecedent M is itself an *unconditioned* posit,
-dissolves here: it conflated "the calculus cannot fix *which* M" (true, and the
+dissolves here. It conflated "the calculus cannot fix *which* M" (true, and the
 proper contingency) with "the calculus cannot *place* M" (false — `INS` places it;
 see §8 and the closing note).
 
 **Two worked cases.**
 
-- *The Praeclarum Theorema* — the **demonstrative** case. Leibniz's
-  `((p → r) ∧ (q → s)) → ((p ∧ q) → (r ∧ s))` is derived from the blank by sound
-  steps and is **all cuts**: a nest of scrolls with predicates only inside, nothing
-  contingent floating free at the recto. It is the level-0 thesis made visible — the
-  demonstrative recto bearing pure *form*. (Built natively in the corpus as a real
-  transformation chain; see the Praeclarum exemplar.)
+- *The Praeclarum Theorema* — the **demonstrative** case. Sound steps derive
+  Leibniz's `((p → r) ∧ (q → s)) → ((p ∧ q) → (r ∧ s))` from the blank, and the
+  result consists of **all cuts**: a nest of scrolls with predicates only inside,
+  nothing contingent floating free at the recto. It makes the level-0 thesis
+  visible — the demonstrative recto bearing pure *form*. (Built natively in the
+  corpus as a real transformation chain; see the Praeclarum exemplar.)
 - *The scroll `cut[ M cut[P] ]`* — the **assertoric** case. `M` sits at odd depth, a
-  **given in a negative context**, placed by `INS`; `P` is entertained relative to it.
-  The frame is *set up* (composition, regime 1), the given brought to bear conditioned,
-  and *which* `M` decided not by the calculus but in the world and the Agon (§6). This
-  is the interpretation register's "given M, then G" episode, with its antecedent
-  honestly conditioned rather than smuggled in unconditioned.
+  **given in a negative context**, placed by `INS`; `P` stands entertained relative
+  to it. The frame gets *set up* (composition, regime 1), the given comes to bear
+  conditioned, and the world and the Agon — not the calculus — decide *which* `M`
+  (§6). Here stands the interpretation register's "given M, then G" episode, with
+  its antecedent honestly conditioned rather than smuggled in unconditioned.
 
 ---
 
 ## 6. Falsifiability vs. defeasibility
 
-The conversation draws a distinction Arisbe should keep sharp, because the two are
-easy to run together:
+The conversation draws a distinction Arisbe should keep sharp, because the two run
+together easily:
 
 - **Logical defeasibility** — the within-calculus posture of content held under
-  negation, walkable back toward the blank. The scroll gives this *exactly*:
-  content lives conditioned inside, where INS can strengthen its antecedent and
+  negation, walkable back toward the blank. The scroll gives *exactly* this.
+  Content lives conditioned inside, where INS can strengthen its antecedent and
   ERA can relinquish it.
 - **Empirical falsifiability** — Popper's world-facing exposure to refutation by
   observation. The calculus does not supply this; it lives in the act of exposure,
   across the membrane, where world and sign touch.
 
-This sharpens MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #2 (*falsifiability is in the rules, not a policy*):
-what is *in the rules* is logical defeasibility — the Alpha asymmetry above. The
-world-facing half is the membrane's business, not the mark's.
+This sharpens MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #2 (*falsifiability is in the rules, not a policy*).
+What lives *in the rules* amounts to logical defeasibility — the Alpha asymmetry
+above. The world-facing half remains the membrane's business, not the mark's.
 
 ---
 
 ## 7. The regress, and the constitutional reading
 
-Honest worry: the scroll itself is scribed at level 0 — have we just relocated the
-privileged surface one rung up, trading a bare asserted atom for a bare asserted
-conditional? The answer is *yes, and that is the point*, because it **generalizes**
-the level-0 theorem rather than breaking it. Level 0 now carries only **logical
-form** — the scroll, the scaffolding, structures valid or model-relative — and never
-bare contingent content, which always lives conditioned inside. "No unenclosed
-*derived* contingent proposition" is thereby promoted from a fact about *theorems*
-to a **constitutional rule about what the *demonstrative recto* holds as form:**
-the calculus delivers form, never bare contingent content — the assertoric office
-to *posit* is preserved alongside, but as the positing of **conditioned givens** (§5),
-never of unconditioned lumps (the next paragraph guards exactly this). And the level-0
-scaffold is itself defeasible, because
-the sheet has no external boundary — there is no incorrigible tier; the regress
-does not bottom out in a privileged surface, it bottoms out in the **blank**, which
-is no content at all (MANIFEST floor #1; the unenclosable ground of
-MODALITY_WITHOUT_GAMMA §8).
+An honest worry deserves airing. The scroll itself gets scribed at level 0 — have
+we just relocated the privileged surface one rung up, trading a bare asserted atom
+for a bare asserted conditional? The answer runs *yes, and that is the point*,
+because the move **generalizes** the level-0 theorem rather than breaking it.
+Level 0 now carries only **logical form** — the scroll, the scaffolding, structures
+valid or model-relative — and never bare contingent content, which always lives
+conditioned inside. "No unenclosed *derived* contingent proposition" thereby rises
+from a fact about *theorems* to a **constitutional rule about what the
+*demonstrative recto* holds as form:** the calculus delivers form, never bare
+contingent content. The assertoric office to *posit* survives alongside, but as the
+positing of **conditioned givens** (§5), never of unconditioned lumps (the next
+paragraph guards exactly this). And the level-0 scaffold remains itself defeasible,
+because the sheet has no external boundary — no incorrigible tier exists; the
+regress does not bottom out in a privileged surface, it bottoms out in the
+**blank**, which amounts to no content at all (MANIFEST floor #1; the unenclosable
+ground of MODALITY_WITHOUT_GAMMA §8).
 
 *One guard against over-reading.* This does **not** forbid the assertoric register
-from *positing* — positing is its office (§4). What the asymmetry forbids is the
+from *positing* — positing remains its office (§4). What the asymmetry forbids is the
 *unconditioned* posit: a contingent premise dropped naked on the positive recto, which
 no rule can place there. The register posits freely, but every posit it brings to bear
-enters **conditioned**, as a given inside a cut (§5) — and the discipline is to keep
-the **register legible** (derived vs. posited) and the **given honest about its
-conditions**, never to pretend any saying is unconditioned. Arisbe's regimes, warrant
-gradient, and §3.3 are exactly that legibility.
+enters **conditioned**, as a given inside a cut (§5). The discipline asks two things:
+keep the **register legible** (derived vs. posited) and keep the **given honest about
+its conditions** — never pretend any saying stands unconditioned. Arisbe's regimes,
+warrant gradient, and §3.3 supply exactly that legibility.
 
 ---
 
 ## 8. The move is about names — and the joint left open
 
-The load-bearing move, in the end, is about **names**. "Assertion" is a name for
-what a scribing *does* — interpretant-side, act-side. INS is a graph-transformation
+The load-bearing move, in the end, concerns **names**. "Assertion" names what a
+scribing *does* — interpretant-side, act-side. INS stands as a graph-transformation
 permission — form-side. The hope that calling a positive-context insertion "an
-assertion" might license it is the *same* hope, exactly, that "how it is read"
-might reside in the marks, or that a broken cut might seat mode in the proposition:
-each is an attempt to let a name on one correlate purchase a permission on another.
+assertion" might license it repeats, exactly, the hope that "how it is read"
+might reside in the marks, or that a broken cut might seat mode in the proposition.
+Each attempts to let a name on one correlate purchase a permission on another.
 The calculus refuses the trade *structurally* — the six rules quantify over depth
 and enclosure and nothing else; they cannot see what you *call* a graph.
 
-One joint is left genuinely open, and it is the author's to close, not the
-notation's: whether the negative-context placement **constitutes** fallibility (the
+One joint remains genuinely open, and it falls to the author to close, not the
+notation. Does the negative-context placement **constitute** fallibility (the
 formalist road — define fallible-assertion *as* conditioned-scribing and let the
-stance drop out) or merely **diagrams** a fallibility that lives in the act of
-exposure (the act-primacy road — the marks constrain a stance they cannot supply;
-the scroll is the diagram of the oath, not its replacement). This is the same shape
-as the eliminative-vs-reduction joint in MODALITY_WITHOUT_GAMMA §8, and it is left
-open on the same grounds: the explication is worth more than its cost, and the
-structure stands either way.
+stance drop out), or does it merely **diagram** a fallibility that lives in the act
+of exposure (the act-primacy road — the marks constrain a stance they cannot
+supply; the scroll diagrams the oath rather than replacing it)? This joint shares
+its shape with the eliminative-vs-reduction joint in MODALITY_WITHOUT_GAMMA §8, and
+it stays open on the same grounds: the explication is worth more than its cost, and
+the structure stands either way.
 
 **The committed position** (the author's, recorded — now in its gapless form; see
 the note below): the **blank alone is unconditioned, and it asserts nothing**; every
@@ -347,7 +347,7 @@ other saying is conditioned, because the calculus has no move that places a cont
 graph naked on the positive recto. The depth-0 *marks* do not, by themselves,
 *constitute* a contingent saying — the demonstrative recto cannot derive one, and the
 assertoric register can only bring one to bear *inside*, as a conditioned given. The
-value is in the process that **tests, evaluates, interprets, and decides** how to use
+value lives in the process that **tests, evaluates, interprets, and decides** how to use
 what we propose in the context of a model — or of others. What the calculus does not
 fix is *which* content; that is the proper contingency, not a gap. The only "assertion"
 worth the word is the one that scribes itself where it can still be wrong.

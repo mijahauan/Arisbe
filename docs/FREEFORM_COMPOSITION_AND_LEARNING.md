@@ -19,9 +19,9 @@ phase model; this document records *what composition becomes* and why.
    containment* (see those memories).
 
 2. **Fix = read.** Crossing gate ① **reads the drawing into a determinate sign**:
-   run `eg_reader.read_drawing(dto)` → recover the EGI (area tree + incidence +
-   argument order, *from geometry alone*) → check syntactic validity → show the
-   linear forms ("tell you what it says") and §3.3-attest. Composition stays
+   run `eg_reader.read_drawing(dto)`, recover the EGI (area tree + incidence +
+   argument order, *from geometry alone*), check syntactic validity, then show
+   the linear forms ("tell you what it says") and §3.3-attest. Composition stays
    silent; at fixing the picture *speaks*. (On-demand "read it now" gives feedback
    before committing, so the author never flies blind.)
 

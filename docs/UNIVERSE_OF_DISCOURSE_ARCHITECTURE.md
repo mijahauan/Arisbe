@@ -5,11 +5,11 @@
 
 ## Executive Summary
 
-The fundamental entity in Arisbe is **not** a static Existential Graph Instance ([EGI](GLOSSARY.md#egi)) diagram, but the **Universe of Discourse ([UoD](GLOSSARY.md#uod))** - the diachronic process of logical reasoning itself.
+Arisbe takes for its fundamental entity **not** a static Existential Graph Instance ([EGI](GLOSSARY.md#egi)) diagram, but the **Universe of Discourse ([UoD](GLOSSARY.md#uod))**, the diachronic process of logical reasoning itself.
 
-**Key Insight**: A single EGI is a **synchronic snapshot** (a photograph) within the larger **diachronic process** (the film) of evolving logical discourse.
+The design turns on one key insight: a single EGI stands as a **synchronic snapshot** (a photograph) within the larger **diachronic process** (the film) of evolving logical discourse.
 
-This understanding elevates Arisbe from a diagram editor to a **formal reasoning environment** where justification, transformation history, and logical process are first-class citizens.
+This understanding lifts Arisbe from a diagram editor to a **formal reasoning environment**, one in which justification, transformation history, and logical process count as first-class citizens.
 
 For the Peircean reading of *why* the diachronic chain is the unit of meaning — a reasoning episode as a **chain of semiosis**, every rule application an attestation event — see [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md).
 
@@ -330,11 +330,11 @@ class UniverseOfDiscourse:
 
 The earlier `GraphEntity` (`src/graph_entity.py`) was **renamed** to
 `UniverseOfDiscourse`, and `EntityMetadata`/`EntityCategory` became
-`UoDMetadata`/`UoDCategory` — the "Recommended Refinement" this section once
-proposed is **done**. Both the synchronic (`current_egi`) and diachronic
-(`history`) aspects are present; persistence is via `TomosService`
-(`save_uod`/`load_uod`, and `save_uod_with_chain`/`load_chain` for a worked
-chain). For the live developer API see `src/tomos_service.py`,
+`UoDMetadata`/`UoDCategory`; the "Recommended Refinement" this section once
+proposed now stands **done**. The model carries both the synchronic
+(`current_egi`) and diachronic (`history`) aspects; persistence runs through
+`TomosService` (`save_uod`/`load_uod`, and `save_uod_with_chain`/`load_chain`
+for a worked chain). For the live developer API see `src/tomos_service.py`,
 [CORE_API_USAGE_GUIDE.md](CORE_API_USAGE_GUIDE.md), and
 [ARISBE_CORE_API_REFERENCE.md](ARISBE_CORE_API_REFERENCE.md).
 

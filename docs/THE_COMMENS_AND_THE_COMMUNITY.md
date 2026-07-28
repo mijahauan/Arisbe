@@ -29,30 +29,30 @@ internal model *inside* a [kytos](THE_KYTOS.md#1--the-unit-named)'s membrane —
 history, internalized and attested at the [§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md)
 boundary.
 
-The commens forms the pair's other half, and it is not an Arisbe structure. It names the
-between/outside/before/after that makes communication possible without being possessed —
-interacted-with, never internalized. It works as a **regulative** concept, not something to
-operationalize: no data structure in this codebase carries the name "the commens," and none
-ever should.
+The commens forms the pair's other half, and no Arisbe structure holds it. It names the
+between/outside/before/after that makes communication possible without being possessed.
+We interact with it; we never internalize it. It works as a **regulative** concept, not
+something to operationalize. No data structure in this codebase carries the name "the
+commens," and none ever should.
 
 **The category-mistake warning, stated explicitly:** the attested corpus is the
-*internalized* UoD, **not** the commens. Naming the corpus "the commens" was an error, made and
-corrected in this sitting. No sentence in this document matters more than this warning;
+*internalized* UoD, **not** the commens. Naming the corpus "the commens" proved an error, made
+and corrected in this sitting. No sentence in this document matters more than this warning;
 every other section depends on keeping the two apart.
 
 **The commens is a social construct** (author, 2026-07-20), in Berger and Luckmann's precise
 sense: an objectivated reality that is *real for its participants* — it confronts them with
-facticity and exceeds any one of them — and yet is **sustained only by participation**. It is
-not pre-given, not timeless, not standing on its own the way a Platonic form would stand: *if
-we do not participate, it disappears.* Its "before us and after us" character is the
+facticity and exceeds any one of them — and yet is **sustained only by participation**. It
+stands neither pre-given nor timeless, nor on its own the way a Platonic form would stand: *if
+we do not participate, it disappears.* Its "before us and after us" character amounts to the
 persistence of a continuously reproduced activity across finite, mortal participants, not the
-standing of an eternal thing. It is **open, and therefore precarious** — the same act that
-makes it real (participation) is the only thing keeping it there.
+standing of an eternal thing. It remains **open, and therefore precarious**. The same act that
+makes it real — participation — alone keeps it there.
 
-**Import and export** are the two directions of traffic across the membrane: import
+**Import and export** name the two directions of traffic across the membrane. Import
 internalizes a portion of the outside into a UoD; export contributes to the outside, which
-then becomes part of *others'* potential commens — and, in doing so, helps sustain the
-commens itself. Neither direction is automatic or costless; both are acts.
+then becomes part of *others'* potential commens and, in doing so, helps sustain the
+commens itself. Neither direction runs automatic or costless; both count as acts.
 
 ## 2 · What the pair grounds *[flagged (a), (b) · ratified (c)]*
 
@@ -60,13 +60,13 @@ Three consequences follow from keeping the UoD/commens pair exactly as drawn:
 
 *[flagged]* (a) The knowledge measure ([THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md))
 is a **vector, never a scalar over agents** *because* no commens-scaled denominator exists to
-normalize across agents. This is not a policy choice made for prudence — it is a consequence
-of the un-possessability of the commens itself: there is no shared, measurable "whole" that a
-scalar could divide by, since the commens is precarious and un-owned rather than a fixed
+normalize across agents. This does not amount to a policy choice made for prudence; it follows
+from the un-possessability of the commens itself. No shared, measurable "whole" exists for a
+scalar to divide by, since the commens remains precarious and un-owned rather than a fixed
 quantity held in reserve.
 
 *[flagged]* (b) The correspondence-not-truth floor — the standing refusal to claim that §3.3
-attestation certifies truth rather than internal correspondence — is the instance's own
+attestation certifies truth rather than internal correspondence — amounts to the instance's own
 acknowledgment that its UoD is a finite internalization facing a commens it does not own. A
 kytos can attest that its picture and its proposition agree with each other; it cannot attest
 that either agrees with a commens it can only interact with, never hold.
@@ -88,38 +88,38 @@ part in a judging whose authority and reasons it does not hold.
 
 ## 3 · The institution and the roles *[ratified]*
 
-Berger and Luckmann's account of institutionalization: it is a **reciprocal typification of
+Berger and Luckmann account for institutionalization as a **reciprocal typification of
 habitualized actions by types of actors**. Actor-type A does typical action X, actor-type B
-does typical action Y, and each anticipates the other's typical action as a matter of course —
-that reciprocal anticipation, sedimented over time and handed to newcomers as "how it's done,"
-*is* an institution. The load-bearing consequence: institutionalization **cannot occur in an
+does typical action Y, and each anticipates the other's typical action as a matter of course.
+That reciprocal anticipation, sedimented over time and handed to newcomers as "how it's done,"
+*is* an institution. One consequence bears the load: institutionalization **cannot occur in an
 individual**. It takes at least two distinguishable types of actor, actually reciprocating,
 for an institution to exist.
 
-This is why Arisbe's Endoporeutic Game roles — Graphist, Grapheus, Agonothetes — are not, by
-themselves, an institution. They are **internalized typifications** carried as sub-roles
-within one process (see `agon_llm.py`'s three roles, or the mechanical panel in
+This explains why Arisbe's Endoporeutic Game roles — Graphist, Grapheus, Agonothetes — do not,
+by themselves, make an institution. They function as **internalized typifications** carried as
+sub-roles within one process (see `agon_llm.py`'s three roles, or the mechanical panel in
 `agon_evolution.py`). Conant and Ashby's good-regulator theorem (requisite variety: a
 regulator that manages a system well must, in effect, contain a model of that system) supplies
-the right frame: to manage its own belief-fixation, a kytos's process must model the social
-division of labor by which belief actually gets fixed elsewhere. The roles are a **model of**
-the institution of inquiry, carried internally as sub-roles — never an **instance of** that
-institution. Model-of, never instance-of.
+the right frame. To manage its own belief-fixation, a kytos's process must model the social
+division of labor by which belief actually gets fixed elsewhere. The roles serve as a **model
+of** the institution of inquiry, carried internally as sub-roles — never an **instance of**
+that institution. Model-of, never instance-of.
 
 **The game is played by two, judged by neither** (the author's authoritative ruling,
 2026-07-20). The refinement that fixes the roles precisely:
 
-- **Two players, and only two.** The **Graphist** is devoted to the *proposal* — the new,
-  whether arrived from outside the membrane or thrown up by the kytos's own doubt. The
-  **Grapheus** is devoted to the *Model M* — the established, habituated ground already used in
-  further thought and action. Their play is the confrontation of the new with the standing, and
-  it yields a **binary outcome**: the proposal either holds against M or it does not. These are
-  exactly Berger and Luckmann's two reciprocating actor-types — the one who brings a candidate,
-  the one who answers with the standing ground — which is why two is not an incidental count but
+- **Two players, and only two.** The **Graphist** devotes itself to the *proposal* — the new,
+  whether it arrives from outside the membrane or the kytos's own doubt throws it up. The
+  **Grapheus** devotes itself to the *Model M* — the established, habituated ground already used
+  in further thought and action. Their play confronts the new with the standing, and it yields
+  a **binary outcome**: the proposal either holds against M or it does not. These match exactly
+  Berger and Luckmann's two reciprocating actor-types — the one who brings a candidate, the one
+  who answers with the standing ground — which is why two stands as no incidental count but as
   the minimum the institution-model requires.
 
-- **No referee.** There is **no move-by-move judge** of legality, because there is nothing to
-  judge: every EGI→EGI transformation is guaranteed lawful by the calculus itself (the six Dau
+- **No referee.** No **move-by-move judge** of legality exists, because nothing calls for
+  judging: the calculus itself guarantees every EGI→EGI transformation lawful (the six Dau
   rules, attested at [§3.3](LINEAR_GRAPHICAL_CORRESPONDENCE.md)). The peel decides the binary
   outcome mechanically, against the reference model; it does not adjudicate the players'
   conduct, because their conduct cannot be illegal.
@@ -129,76 +129,77 @@ institution. Model-of, never instance-of.
   "intents and purposes" ([EXEMPLARS.md](EXEMPLARS.md) §6, the
   [Endoporeutic Game guide](ENDOPOREUTIC_GAME_GUIDE.md)'s Taxonomy, coded as
   `model_revision.REVISION_TAXONOMY`) — the Agonothetes **applies that taxonomy to select which
-  fate applies**. This is a **risked choice, not a recognition**: it does not read off a
-  determinate fact of the matter but charts a path, takes a risk, and commits to a disposition
-  that *might or might not* actually resolve the doubt. Played by a human, this is where her own
-  posture — in the dialogue and toward the world — enters the record. Mechanically the choice is
-  realized by policy priority among a panel's votes, by forking the DAG to carry genuine dissent
-  forward as siblings (`agon_llm.py`'s `branch_votes` hook), or, with an LLM judge, by choosing
-  among votes already cast without fabricating a disposition — but conceptually it is one act:
-  the risked selection of a fate.
+  fate applies**. The selection amounts to a **risked choice, not a recognition**: it does not
+  read off a determinate fact of the matter but charts a path, takes a risk, and commits to a
+  disposition that *might or might not* actually resolve the doubt. Played by a human, here her
+  own posture, in the dialogue and toward the world, enters the record. Mechanically the choice
+  comes about by policy priority among a panel's votes, by forking the DAG to carry genuine
+  dissent forward as siblings (`agon_llm.py`'s `branch_votes` hook), or, with an LLM judge, by
+  choosing among votes already cast without fabricating a disposition. Conceptually it remains
+  one act: the risked selection of a fate.
 
 **The two framing acts bracket the play** (author's ruling, 2026-07-21). Standing outside the
-two-sided contest, the Agonothetes is the natural — and only coherent — home for the two acts
-that *bracket* it: **before**, it **sets the terms**, choosing the reference model M the
-proposal will be tested against; **after**, it **selects the fate**. Neither player can own the
-before-act without conflict: the Graphist is the doubt/proposal-side and must not pick the M its
-own proposal is graded against; the Grapheus *is* M and cannot choose what it is. Choosing M is
-therefore an Agonothetes act — a recorded, warranted, contestable *move*, not buried config
-(`DOMAIN_ORACLE_AND_M.md` §4) — and it carries the same risked, posture-bearing character §3
-already assigns the fate-choice: *which slice of the world do I hold myself accountable to?* The
-Agonothetes is thus the **inquirer who owns the episode** — frames it, hands the framed contest
-to the two devoted advocates, then reads what the outcome means. (Its historical namesake set
-the terms and declared the outcome; it never refereed play, because — no referee, above — play
-cannot be illegal.) The **forward** direction (given a chosen M, does G hold?) has a **dual the
-corpus already carries**: *in what M does this G fit?* — the inverse "where-it-holds" pivot
-(`DOMAIN_ORACLE_AND_M.md` §7), ranging the same peel across candidate models.
+two-sided contest, the Agonothetes serves as the natural home, and the only coherent one, for
+the two acts that *bracket* it: **before**, it **sets the terms**, choosing the reference model
+M the proposal will be tested against; **after**, it **selects the fate**. Neither player can
+own the before-act without conflict. The Graphist stands on the doubt/proposal side and must
+not pick the M its own proposal gets graded against; the Grapheus *is* M and cannot choose what
+it is. Choosing M therefore belongs to the Agonothetes — a recorded, warranted, contestable
+*move*, not buried config (`DOMAIN_ORACLE_AND_M.md` §4). It carries the same risked,
+posture-bearing character §3 already assigns the fate-choice: *which slice of the world do I
+hold myself accountable to?* The Agonothetes thus stands as the **inquirer who owns the
+episode**: it frames the contest, hands it framed to the two devoted advocates, then reads what
+the outcome means. (Its historical namesake set the terms and declared the outcome; it never
+refereed play, because — no referee, above — play cannot be illegal.) The **forward** direction
+(given a chosen M, does G hold?) has a **dual the corpus already carries**: *in what M does
+this G fit?* This inverse "where-it-holds" pivot (`DOMAIN_ORACLE_AND_M.md` §7) ranges the same
+peel across candidate models.
 
 **What the Agonothetes does with the outcome, stated exactly.** It **does not represent the
-commens** — nothing inside one process can (§1). What it does is bring the episode's outcome
-into a **posture of the functioning UoD *toward* the commens**: the selected fate is how this
+commens**; nothing inside one process can (§1). What it does do is bring the episode's outcome
+into a **posture of the functioning UoD *toward* the commens**. The selected fate says how this
 kytos now stands, provisionally and at its own risk, in relation to an outside it does not own.
-**Commens-entry remains a separate act** — circulation and uptake by other kytē — never
-automatic just because a round resolved and a fate was chosen inside one process.
+**Commens-entry remains a separate act** — circulation and uptake by other kytē — and never
+turns automatic just because a round resolved and a fate was chosen inside one process.
 
 ## 4 · S and A, made measurable *[ratified spine / flagged coupling]*
 
 The Minimal Predictive Automaton's decomposition (`docs/BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md`)
 becomes, read at the kytos's scale, two named and separately measurable capabilities:
 
-**S** — the UoD-management capability, the **interior**. This is already instrumented
-throughout the codebase: |M| (the resident model's size), the K3 materialization/compression
+**S** — the UoD-management capability, the **interior**. The codebase already instruments it
+throughout: |M| (the resident model's size), the K3 materialization/compression
 ratio (`model_materialization.materialization_ratio`), the peel's super-linear cost curve, the
 decay TTL (`UsageLedger`), admission/retraction rates (`model_revision.py`,
 `m_steps.py`).
 
-**A** — the interaction capability, the **membrane**. This is the automaton's *missing fifth*,
-the action arm first reached at rung 1 (`attention_economy.py`), and honestly the younger,
-thinner-instrumented axis: import/export throughput, proposal/doubt rate, horizon size
+**A** — the interaction capability, the **membrane**. This names the automaton's *missing
+fifth*, the action arm first reached at rung 1 (`attention_economy.py`), and honestly the
+younger, thinner-instrumented axis: import/export throughput, proposal/doubt rate, horizon size
 (`Horizon`/`HorizonItem`), severity-weighted yield.
 
-*[flagged]* S and A are **not independent** — they are coupled by one shared attention budget.
-The interesting variable is not either axis alone but the **allocation** between them, and
-**poise is its reading** (`agon_metalearning.poise_report`): rigidity names S starving A (the
-process stops engaging with the outside), thrash names A starving S (the process never settles
-enough to consolidate what it takes in).
+*[flagged]* S and A are **not independent**; one shared attention budget couples them.
+The interesting variable lies not in either axis alone but in the **allocation** between them,
+and **poise is its reading** (`agon_metalearning.poise_report`): rigidity names S starving A
+(the process stops engaging with the outside), thrash names A starving S (the process never
+settles enough to consolidate what it takes in).
 
 ## 5 · West, operationalized *[ratified intent / flagged mapping]*
 
-Because each kytos now has measurable S, measurable A, and a measurable allocation between
-them, a community of kytē becomes something that can be modeled — "possibly to better
+Because each kytos now carries measurable S, measurable A, and a measurable allocation between
+them, a community of kytē becomes something one can model — "possibly to better
 understand the components of mentation" (the author's own hedge, kept as stated: a possibility
-being pursued, not a settled finding).
+under pursuit, not a settled finding).
 
-*[flagged]* The specific conjecture under that possibility: **sublinear cost scaling** from a
-shared substrate (the commens functioning as common infrastructure that many kytē draw on
-without each rebuilding it) paired with **superlinear production or K-generation** from
+*[flagged]* The specific conjecture under that possibility pairs **sublinear cost scaling**
+from a shared substrate (the commens functioning as common infrastructure that many kytē draw
+on without each rebuilding it) with **superlinear production or K-generation** from
 interaction density (more connected kytē producing disproportionately more knowledge, not
-merely more talk). The conjecture is to be fit against the exponents recovered from the Q-B
+merely more talk). The conjecture awaits fitting against the exponents recovered from the Q-B
 apportionment / West experiment (the Q-B sketch, CURRENT_PLAN.md item -8: one big
 Arisbe vs. distributed kytē plus a coordinator, measuring cost curves, K3 exponents, and
-poise). This is a **conjecture-until-measured**, and stays one permanently in the sense that
-matters here — the measurement itself is an ongoing act, never a closing one (see [§7](#7--no-final-ratified)).
+poise). It stands as a **conjecture-until-measured**, and stays one permanently in the sense
+that matters here: the measurement itself remains an ongoing act, never a closing one (see [§7](#7--no-final-ratified)).
 
 ## 6 · The rung-boundary *[flagged formulation]*
 
@@ -211,32 +212,32 @@ matters here — the measurement itself is an ongoing act, never a closing one (
 - **community** — genuine reciprocal typification: the actual institution, the actual
   commens, realized among distinct kytē rather than modeled within one.
 
-The jump from instance to community is a change in **kind**, not degree. Genuine
-institutionalization and the commens itself are **community-level emergents**, not properties
-an instance can approximate by internal elaboration however sophisticated — this is the same
-claim as §3's "cannot occur in an individual," restated as a rung boundary and pointed at the
+The jump from instance to community amounts to a change in **kind**, not degree. Genuine
+institutionalization and the commens itself stand as **community-level emergents**, not
+properties an instance can approximate by internal elaboration however sophisticated. This
+restates §3's "cannot occur in an individual" as a rung boundary and points it at the
 open Q-B community-of-kytē question.
 
 ## 7 · No "final" *[ratified]*
 
-The ink/act separation, applied to Peircean convergence: to scribe a name for inquiry's
-supposed terminus — the phrase this section's ban-list forbids below — into a document or a
-UI label is to lift an act's *telos* — the direction an inquiry tends toward — into static
-ink, the same move the dragon-9 reification names as an error elsewhere in the codebase's
+Apply the ink/act separation to Peircean convergence. To scribe a name for inquiry's
+supposed terminus (the phrase this section's ban-list forbids below) into a document or a
+UI label lifts an act's *telos*, the direction an inquiry tends toward, into static
+ink — the same move the dragon-9 reification names as an error elsewhere in the codebase's
 vocabulary. What survives, and all that survives, is convergence as a **direction of an
 act**, never a nameable terminus.
 
-This is enforced by the machinery itself, not merely by editorial discipline: the diachronic
-DAG has no terminal leaf; □ (necessity, `modal_query.py`) is read *at a time* over the
+The machinery itself enforces this, not merely editorial discipline: the diachronic
+DAG has no terminal leaf; □ (necessity, `modal_query.py`) reads *at a time* over the
 reachable states and stays defeasible as the history grows; the ink an inquiry leaves behind
-is **re-runnable act-record** — the polarity gate (`test_corpus_polarity_discipline.py`)
+serves as **re-runnable act-record** — the polarity gate (`test_corpus_polarity_discipline.py`)
 recomputes every recorded verdict, chains replay, §3.3 re-attests. Nothing is ever sealed.
 
-The commens, correspondingly, is **un-closed in space** (no one holds it, §1) and **un-closed
-in time** (no one ends it, §1's precarity).
+The commens, correspondingly, remains **un-closed in space** (no one holds it, §1) and
+**un-closed in time** (no one ends it, §1's precarity).
 
 **Editorial ban-list, standing for the whole corpus.** The following words and phrases scribe
-a terminus and are licensed to appear in this codebase's documentation **only inside this
+a terminus. They hold licence to appear in this codebase's documentation **only inside this
 ban-list**, quoted, to forbid them — never as an assertion anywhere else:
 
 > "final," "converges to [truth]," "the answer"
@@ -245,10 +246,10 @@ The register to use instead: "tends," "the current best-attested," "open."
 
 ## 8 · Keeping thirdness where it belongs *[flagged formulation / ratified direction]*
 
-The standing statement, ratified: the higher-order frontier is **deliberately not crossed**.
-Thirdness — mediation, law, interpretation, in Peirce's own sense — is realized
-**operationally, not representationally** throughout Arisbe: in the teridentity ink (the
-reduction thesis, `docs/CATEGORIES_AND_THE_THREE_PARTS.md`), in §3.3 attestation (the
+The standing statement, ratified: the higher-order frontier remains **deliberately not
+crossed**. Thirdness — mediation, law, interpretation, in Peirce's own sense — finds
+realization **operationally, not representationally** throughout Arisbe: in the teridentity ink
+(the reduction thesis, `docs/CATEGORIES_AND_THE_THREE_PARTS.md`), in §3.3 attestation (the
 interpretant treated as a prerequisite for correspondence rather than an afterthought), in the
 diachronic DAG (would-be, modality, read without a modal mark per
 `docs/MODALITY_WITHOUT_GAMMA.md`), and in the Agonothetes (the game's own interpretant,
@@ -256,63 +257,64 @@ deciding what a round means for the record, §3). Thirdness is **not** realized 
 higher-order object layer one quantifies over, and **not** realized as a Gamma tincture.
 
 *[flagged]* Dau's Chapter 26 reduction — teridentity plus the algebraic operations construct
-every finitary relation — is read here as the proof that the ascent to a genuine higher-order
-layer is **optional for expressiveness**: nothing first-order-expressible is out of reach
+every finitary relation — reads here as the proof that the ascent to a genuine higher-order
+layer stays **optional for expressiveness**: nothing first-order-expressible lies out of reach
 without it. Only iconicity (wanting the *picture itself* to show a graph-about-a-graph
 relationship, rather than achieving the same expressiveness by other first-order means) could
 ever motivate crossing that frontier.
 
-This is the doctrinal ground under [Mention-ascent](GLOSSARY.md#mention-ascent) — Arisbe's
-scoped, conservative slice of Gamma (quotation as mention-not-use, B-min) — which crosses only
-as much of the frontier as iconicity demands and no further.
+This stands as the doctrinal ground under [Mention-ascent](GLOSSARY.md#mention-ascent) —
+Arisbe's scoped, conservative slice of Gamma (quotation as mention-not-use, B-min) — which
+crosses only as much of the frontier as iconicity demands and no further.
 
 ## 9 · The honesty guard *[flagged]*
 
 *[flagged]* The automated EPG (`agon_llm.py`'s three LLM roles, `agon_evolution.py`'s panel)
-**does not institutionalize**, and claiming otherwise would be the precise Berger-and-Luckmann
+**does not institutionalize**. To claim otherwise would commit the precise Berger-and-Luckmann
 reification this document exists to forbid: mistaking an internalized model for the social
 reality it models. Three LLM roles remain **sub-roles within one individual's process** even
-when each is played by a separately-invoked model — the process is still one UoD's history,
+when a separately-invoked model plays each one — the process remains one UoD's history,
 one kytos's interior. Branch-on-disagreement (the DAG fork on irreducible Agonothetes
-disagreement, §3) is the nearest gesture toward genuine plurality the automated loop makes,
-and it is still **intra-individual**: the branches are siblings in one process's diachronic
+disagreement, §3) comes nearest of the automated loop's gestures toward genuine plurality,
+and it stays **intra-individual**: the branches sit as siblings in one process's diachronic
 DAG, not distinct actors reciprocating.
 
 This extends the built/evidenced/conjectured honesty ledger already kept in
-[THE_KYTOS.md §5](THE_KYTOS.md) — the automated EPG is built and evidenced as a model of
-institutional reasoning; it is not evidence of an institution.
+[THE_KYTOS.md §5](THE_KYTOS.md). The automated EPG stands built and evidenced as a model of
+institutional reasoning; it gives no evidence of an institution.
 
 ## 10 · The entailment: connection outward *[ratified]*
 
 The solitary ceiling — what one kytos, however well-instrumented, can achieve alone — sits
 below the community's **by kind, not effort** (§6). Some components of knowledge, K2 read at
-community scale foremost among them, and the commens itself, are simply unavailable to one
-agent working harder; no amount of internal elaboration reaches them, because they are
-community-level emergents (§6).
+community scale foremost among them, and the commens itself, remain simply unavailable to one
+agent working harder. No amount of internal elaboration reaches them, because they emerge
+only at the community level (§6).
 
 And because the commens is a social construct sustained only by participation (§1), connecting
-outward is not merely instrumental — it does not just *reach* a standing resource that would
-otherwise sit there waiting. Connecting outward **keeps the commens in being**. Withdrawal,
-correspondingly, is not only self-limiting for the withdrawing kytos; it is **dissolving** for
-the commens itself, in however small a degree. The need to connect is a need to **sustain**,
-not only a need to access.
+outward does more than instrumental work — it does not just *reach* a standing resource that
+would otherwise sit there waiting. Connecting outward **keeps the commens in being**.
+Withdrawal, correspondingly, does not merely limit the withdrawing kytos; it works as
+**dissolving** for the commens itself, in however small a degree. The need to connect amounts
+to a need to **sustain**, not only a need to access.
 
-Publication is the first push of this project's own membrane into the scholarly commens; the
-purpose of the coming documentation sweep (workstream B) is **legibility** — takeable-up by
-readers who were not present while any of this was made — not merely tidiness. Arisbe-the-project
-is itself a kytos: its UoD is what author and assistant have internalized and attested here,
-and it grows only from what crosses its membrane from a commens it does not and cannot
-possess. This is the FIDELITY-licensed reading of "Arisbe as a proposition in the wider EPG"
+Publication makes the first push of this project's own membrane into the scholarly commens.
+The coming documentation sweep (workstream B) aims at **legibility** — takeable-up by
+readers who were not present while any of this was made — not merely tidiness.
+Arisbe-the-project itself forms a kytos: its UoD holds what author and assistant have
+internalized and attested here, and it grows only from what crosses its membrane from a
+commens it does not and cannot possess. This gives the FIDELITY-licensed reading of "Arisbe as
+a proposition in the wider EPG"
 ([FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)), now standing on the right
 ontology beneath it.
 
 ## 11 · Open verdicts
 
-The following are assistant elaborations the author engaged with in the 2026-07-19/20 sitting.
-Each is carried in place above, marked `*[flagged]*`, and restated here as a crisp question for
-a later ruling — except where marked **✅ RESOLVED**, which records a ruling the author has since
-made (the corresponding §-detail is now ratified doctrine). Nothing still marked `*[flagged]*`
-below is settled doctrine.
+The following record assistant elaborations the author engaged with in the 2026-07-19/20
+sitting. Each stands carried in place above, marked `*[flagged]*`, and restated here as a crisp
+question for a later ruling — except where marked **✅ RESOLVED**, which records a ruling the
+author has since made (the corresponding §-detail now stands as ratified doctrine). Nothing
+still marked `*[flagged]*` below counts as settled doctrine.
 
 1. **§2(a) — the vector-not-scalar ground.** Is "no commens-scaled denominator exists to
    normalize across agents" the *correct and complete* ground for the measure being a vector

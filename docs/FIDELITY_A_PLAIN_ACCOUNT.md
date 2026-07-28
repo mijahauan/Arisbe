@@ -35,8 +35,8 @@ You also need to know **how the conversation worked**. The author of this
 project came to Peirce as an admirer, *faithful* to the logic, which a
 mathematician (Frithjof Dau) had already proven correct. His doubts never touched
 the logic's soundness. They concerned what the logic, and the scholarly
-*traditions* that present it, quietly **assume** — assumptions smuggled in
-alongside the mathematics and passed off as part of it.
+*traditions* that present it, quietly **assume**. Those assumptions arrive
+smuggled in alongside the mathematics and pass for part of it.
 
 So we did something unusual. Each time a doubt arose, we wrote it down as a precise
 charge, and then **hired our own prosecutors** to attack it — independent critics
@@ -57,7 +57,7 @@ getting nearer to it.
 
 **How it was expressed.** The author charged that this hardening turns a *hope*
 into a settled *fact*, and that nothing licenses the upgrade. "Inquiry will
-converge" stands as one more belief held *inside* inquiry, so it cannot be cashed
+converge" stands as one more belief held *inside* inquiry, so no one can cash it
 in as a result *about* inquiry from the outside.
 
 **How we argued it out.** The prosecution landed a fair hit. The same solvent
@@ -70,7 +70,7 @@ non-convergence as a settled truth either.
 (asserted) gave way to "convergence and non-convergence are both in-inquiry
 standings, neither cashable — and Arisbe *prefers* the open picture without
 claiming to have proven it." The humbler, sharper point *survived* intact:
-**there is no referee's chair** — no vantage outside all inquiry from which anyone
+**no referee's chair exists** — no vantage outside all inquiry from which anyone
 could read off the final score. That names a limit on us, not a metaphysics about
 the cosmos.
 
@@ -218,7 +218,7 @@ how science actually works — attacked this, and they converged on the same ver
 "Fair access," *as stated*, **does not survive**, because it slides between two
 claims:
 - a **true but empty** one — *no one can be barred from meaning as such* (true:
-  even barring someone is a meaningful act addressed to them); and
+  even barring someone amounts to a meaningful act addressed to them); and
 - a **substantive but false** one — *everyone has fair access to actual inquiry*
   (false: every real arena of inquiry — a journal, a court, a laboratory, Arisbe's
   own contest — has **gates**).
@@ -226,8 +226,8 @@ claims:
 And the clever supporting move — "if you gate who belongs to the community, you make
 'the truth' just whatever your in-group settles on" — *backfired*. What keeps a
 verdict honest? Not throwing the doors open, but **the method** — replication,
-testing, answering to evidence. The gate that tracks the truth is **the method
-applied to the claim**, not a club deciding who is worthy.
+testing, answering to evidence. The gate that tracks the truth consists of **the
+method applied to the claim**, not a club deciding who is worthy.
 
 But the critics handed back something **stronger and more defensible than either the
 imported premise or the slogan.** Here stands the position that survived, now
@@ -266,8 +266,8 @@ gained a positive obligation it had lacked: **give the claim a hearing.**
   - *Breaking:* "she was wrong about the budget, so ignore her on the merger" —
     laundering one failure into a general silencing.
 - *Owe the claim its uptake.*
-  - *Adherence:* a heretical idea is *played*, not pre-rejected; the augurs were
-    rightly demoted by **losing the contest**, not by being barred from entering it.
+  - *Adherence:* a heretical idea gets *played*, not pre-rejected; the augurs
+    earned their demotion by **losing the contest**, not by a bar against entering it.
   - *Breaking:* withholding a hearing because of the speaker's station or group.
 - *Method is the gate that tracks the truth.*
   - *Adherence:* peer review and replication gate by *fidelity to the evidence* —
@@ -293,17 +293,18 @@ exactly as intended:
   only honest gate; never rank agents by worth; owe every claim its uptake" (Doubt 4).
 - Doubt 3 ("no new mark for modality") stood — we trimmed only an overstated boast.
 
-**In Arisbe.** The doubts were settled not merely on paper — Arisbe **builds them
+**In Arisbe.** The doubts did not settle merely on paper — Arisbe **builds them
 in**.
-- Arisbe checks every served picture so that what is *drawn* and what is *said* denote
-  the same thing — *correspondence* — and that check makes **no claim about truth**.
-  (A picture can be perfectly faithful to a false proposition.)
-- A graph reaches the permanent collection only by being **tested in the contest**,
+- Arisbe checks every served picture so that the *drawn* and the *said* denote
+  the same thing. That relation carries the name *correspondence*, and the check
+  makes **no claim about truth**. (A picture can stay perfectly faithful to a
+  false proposition.)
+- A graph reaches the permanent collection only when the contest has **tested** it,
   or as a pure restyling of something already tested — never by fiat.
 - The **warrant badge** on a graph reports how that *claim* has fared (posited /
   derived / withstood challenge) — it ranks **claims, never people.** Read as a
-  ladder of personal worth, the badge would itself be one of the field guide's
-  "dragons."
+  ladder of personal worth, the badge would itself count as one of the field
+  guide's "dragons."
 - The **doorway** lets anyone bring a graph in at low warrant. It gates *what*
   someone proposes, not *who* proposes it — fair access and method-gate, together.
 - A small **"context" panel** now travels with every picture in the interface,
@@ -315,7 +316,7 @@ in**.
 inquiry" runs unlimited across *time* and across *those who submit to the method* —
 not a free-for-all, and not a closed club. His late insight that **to assert is to
 take responsibility** — to expose yourself to being wrong — names exactly the seam
-the textbooks lost. And his blank sheet was never empty — already a graph, already
+the textbooks lost. And his blank sheet never lay empty — already a graph, already
 a commitment.
 
 **In our reading of the tradition.** We honor the traditions that present Peirce

@@ -4,7 +4,7 @@
 **Revised**: 2026-07-27 (the UNKNOWN afterlife, the episode in ink, the doubt
 engine's two arms, the ratified role vocabulary)
 
-This guide is organized in four parts, from machinery to meaning to practice:
+This guide moves in four parts, from machinery to meaning to practice:
 
 - **Part I · The Game** — how it works: the two formal layers, the mechanics of
   play, and the constructive (proof-mode) counterpart.
@@ -16,21 +16,21 @@ This guide is organized in four parts, from machinery to meaning to practice:
 - **Part IV · Practice and Reference** — strategy heuristics, worked scripts, the
   implementation, and the literature.
 
-For a non-technical, narrative on-ramp — six everyday scenarios (a vet, a
-birdwatcher, a gardener, a town planner, a class, a research group) that show the
-same cycle without the formalism — read
-[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) first; each scenario there is a
-concrete instance of an outcome in Part II's taxonomy (the mapping is given there).
+For a non-technical, narrative on-ramp, read
+[ARISBE_IN_PRACTICE.md](ARISBE_IN_PRACTICE.md) first: six everyday scenarios (a
+vet, a birdwatcher, a gardener, a town planner, a class, a research group) that
+show the same cycle without the formalism. Each scenario there gives a concrete
+instance of an outcome in Part II's taxonomy (the mapping is given there).
 
 ---
 
 ## Implemented today (Agon V1) vs the Frontier
 
-The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game is Arisbe's **end game** — the part of the arc that is
+The [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game serves as Arisbe's **end game** — the part of the arc left
 deliberately *not finished*. This guide describes the full framework; most of
-it is theory and design-ahead. To keep the reader honest about what is wired
-today, here is the split. Banners further down mark design-only material in
-place.
+it remains theory and design-ahead. What actually runs today? Here is the
+split, to keep the reader honest. Banners further down mark design-only
+material in place.
 
 **Built today — Agon V1 (shipped 2026-06-01):**
 
@@ -99,11 +99,11 @@ open: the tropism's musement pole, and the browser arena itself remains hot-seat
 
 ## Overview
 
-The Endoporeutic Game ([EPG](GLOSSARY.md#epg)) is Peirce's dialogical **interpretation** of
+The Endoporeutic Game ([EPG](GLOSSARY.md#epg)) gives Peirce's dialogical **interpretation** of
 Existential Graphs — a paraphrasing of "unwrapping game" or "outside-in game."
-It is not a proof procedure. Proof and interpretation are related but serve
-different purposes and follow different procedures. The EPG provides the
-interpretive method: given a proposed graph G and a domain model M, the game
+It does not serve as a proof procedure. Proof and interpretation, though
+related, serve different purposes and follow different procedures. The EPG
+provides the interpretive method: given a proposed graph G and a domain model M, the game
 determines whether G holds in M by systematically unwrapping G using only the
 eliminative rules IT- and DC- until the graph either disappears entirely or
 cannot be reduced further.
@@ -115,17 +115,17 @@ cannot be reduced further.
 Two players — the **Graphist** (Proposer) and the **Grapheus** (Skeptic) —
 engage in a formal exchange over a proposed graph, given an agreed **Domain
 Model** (M). A third function, the **Agonothetes** (ἀγωνοθέτης, "organizer
-of the contest"), is the interpretive dimension of the game — the purpose
+of the contest"), carries the interpretive dimension of the game — the purpose
 for which the contest exists and the understanding it produces.
 
-The game is not merely a proof checker. It is a **model of inquiry**: its
-outcomes drive the growth, revision, and correction of knowledge within a
-Universe of Discourse. Both players reference a model **M** consisting of a
-set of individuals **D** and a set of relations **R** over **D**. New graphs
-need not originate from M — M develops as the Graphist and Grapheus consider
-new graphs and how or whether they fit with M. A model has to start somewhere:
-it may be pre-existing or it may begin as an empty sheet (the assertion of a
-double negative providing the initial context).
+The game amounts to more than a proof checker. It serves as a **model of
+inquiry**: its outcomes drive the growth, revision, and correction of knowledge
+within a Universe of Discourse. Both players reference a model **M** consisting
+of a set of individuals **D** and a set of relations **R** over **D**. New
+graphs need not originate from M — M develops as the Graphist and Grapheus
+consider new graphs and how or whether they fit with M. A model has to start
+somewhere: it may pre-exist or it may begin as an empty sheet (the assertion of
+a double negative providing the initial context).
 
 ### Prerequisites
 

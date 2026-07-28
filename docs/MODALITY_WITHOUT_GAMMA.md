@@ -9,13 +9,13 @@ chain) and [CHAIN_OF_SEMIOSIS.md](CHAIN_OF_SEMIOSIS.md) (the chain itself).
 Distilled from a 2026-06 conversation, archived at
 [references/EG-modality-conversation.pdf](references/EG-modality-conversation.pdf).*
 
-*The claim now stands **demonstrated on Peirce's own attempted figures** — the broken
-cut, the tinctured would-be, the book of separate sheets — as corpus exemplars
-readable through the Organon lenses:
+*The claim now stands **demonstrated on Peirce's own attempted figures**. The broken
+cut, the tinctured would-be, the book of separate sheets all live in the corpus as
+exemplars, readable through the Organon lenses:
 [GAMMA_DEMONSTRATIONS.md](GAMMA_DEMONSTRATIONS.md) (2026-07-04).*
 
-*The **other** half of Gamma, the genuinely second-order half this document names as
-the real frontier (graphs about graphs, abstraction), finds its map in
+*Gamma has an **other** half, genuinely second-order — graphs about graphs,
+abstraction — which this document names as the real frontier. Its map lives in
 [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md) (2026-07-08): how far Peirce leads,
 where we take other guides, and the rule that the crossing must stay a **drawing**.*
 
@@ -37,12 +37,12 @@ load-bearing claim — **no new mark** — is untouched; the unconditional
 completeness boast is scoped down to adequacy.)* Peirce reached for the broken cut and then
 the [tinctures](GLOSSARY.md#tincture) (Peirce's Gamma colourings) to carry modality on a single static sheet; the diachronic
 structure Arisbe already maintains and attests carries the *modal* load they were
-meant to bear — though "without remainder" claims too much, and the ledger below
-sets out honestly what is and isn't carried ("What not using Gamma costs").
+meant to bear. To say "without remainder" would claim too much; the ledger below
+sets out honestly what does and does not get carried ("What not using Gamma costs").
 
 **One thing needs saying plainly up front, for it carries the heart of the credit owed.**
 "No modal *mark* needed" amounts to **no** verdict that Gamma is worthless or unworkable.
-Peirce's broken cut has been *rehabilitated*. Zeman (1964) connected it to S4/S5, and
+Peirce's broken cut stands *rehabilitated*. Zeman (1964) connected it to S4/S5, and
 Ma & Pietarinen (2018) give sound-and-complete graphical (broken-cut) calculi for a
 family of fifteen normal modal logics — Peirce's own apparatus, needing only three
 added rules. Arisbe's choice to draw the frame instead stands as a **defensible
@@ -51,9 +51,9 @@ broken cut keeps (the on-sheet topological perspicuity of the modal operator its
 and we name that cost rather than hide it — see "What Gamma keeps," below.
 
 This does not amount to a stance dressed as a result. It rides on a settled fact
-of modal model theory — the **standard translation** of modal logic into
-first-order logic (van Benthem) — and it leaves a precise residue. The residue
-proves **not** modal and **not** a tincture; it consists of *second-order logic
+of modal model theory, the **standard translation** of modal logic into
+first-order logic (van Benthem), and it leaves a precise residue. The residue
+proves **not** modal and **not** a tincture. It consists of *second-order logic
 about the graphs themselves*, and that — not Gamma — marks the real frontier.
 
 ---
@@ -71,30 +71,30 @@ world-variable:
 
 The operators vanish into ordinary ∀ and ∃ over the frame. And ∀/∃ over a
 relation is exactly what Beta Existential Graph ([EG](GLOSSARY.md#eg)) draws. So the one thing standing between Beta
-EG and modal expressivity remains *a representation of the frame* — and Arisbe's
-diachronic architecture supplies precisely that natively, in two
+EG and modal expressivity remains *a representation of the frame*. Arisbe's
+diachronic architecture supplies precisely that, natively, in two
 readings:
 
-- **The trajectory reading** (provability / derivability modality). Worlds are
-  **sheets** — the immutable Existential Graph Instance ([EGI](GLOSSARY.md#egi)) states; *R* is the **legal-transition relation**
-  of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" is "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" and "□φ"
-  is "every legal trajectory scribes φ." This gives the diachronic gloss the
+- **The trajectory reading** (provability / derivability modality). Take the worlds as
+  **sheets** — the immutable Existential Graph Instance ([EGI](GLOSSARY.md#egi)) states — and *R* as the **legal-transition relation**
+  of the derivation directed acyclic graph ([DAG](GLOSSARY.md#dag)). Then "◇φ" reads "some legal trajectory [scribes](GLOSSARY.md#scribe) φ" and "□φ"
+  reads "every legal trajectory scribes φ." This gives the diachronic gloss the
   conversation reaches by a different road: *possibility is the **branching** of
   legal trajectories, necessity is their **convergence**, and the only necessity
   is to follow the rules.* That sentence **is** the standard translation under the
-  legal-transition frame. The frame is the object Arisbe already builds:
+  legal-transition frame. And Arisbe already builds this frame as an object:
   [`src/egi_transformation_history.py`](../src/egi_transformation_history.py) (the
   DAG of states and steps),
   [`src/universe_of_discourse.py`](../src/universe_of_discourse.py) (the diachronic
   entity), surfaced as the
   [derivation-DAG lens](../src/web_viewer/js/derivation-dag-lens.js).
 
-- **The alethic reading** (□ = true in all accessible worlds). Worlds are the
-  corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**; *R* is an accessibility relation drawn
+- **The alethic reading** (□ = true in all accessible worlds). Take the worlds as the
+  corpus's several **Universes of Discourse ([UoDs](GLOSSARY.md#uod)) / models M**, and *R* as an accessibility relation drawn
   **among** them. The corpus already forms a *library of universes*, mutually
   inconsistent without contradiction (MANIFEST [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) #5). Modal force becomes the
-  [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's quantification over the choice of M — which the interpretation
-  register already performs (`/agon/where-it-holds`, the inverse pivot across
+  [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph from the outside in) Game's quantification over the choice of M. The interpretation
+  register already performs that quantification (`/agon/where-it-holds`, the inverse pivot across
   models). The conversation names this lineage outright: *the dialogical
   relativization to M does the modal work the older syntactic operators reached
   for, the same way Kripke/Hintikka relativization to worlds does.*
@@ -106,7 +106,7 @@ not operators whose meaning lives off-stage.
 
 ## 2. Carrying exactly the load Peirce gave the broken cut and the tinctures
 
-Peirce's Gamma devices were attempts to make a *single static sheet* bear
+Peirce's Gamma devices attempted to make a *single static sheet* bear
 modality. Each maps cleanly onto the drawn frame:
 
 | Peirce's device | What it was for | Carried in Arisbe by |
@@ -115,52 +115,52 @@ modality. Each maps cleanly onto the drawn frame:
 | **Tinctures** (the provinces / universes) | "which universe this region belongs to" | The **explicit identity of the sheet/M** a region inhabits. The corpus *is* the library of tinctured universes — made first-class as separate UoDs, not as colours on one sheet. |
 | **The case Peirce kept failing at** — *iterated* broken cuts, and **lines of identity crossing tincture boundaries** (trans-world identity) | the same individual, named across a change of universe | A **line of identity carried across a legal sheet-to-sheet transition.** Trans-world identity becomes identity-across-the-DAG — the very invariant the [linear↔graphical correspondence](LINEAR_GRAPHICAL_CORRESPONDENCE.md) keeps inerrant. |
 
-The third row is the crux, and it is where the diachronic reading earns its keep
-rather than merely asserting it. Be precise about Peirce's actual difficulty (it is
-often loosely reported): Peirce did not find the broken cut *unworkable* — he left
+The third row carries the crux, and there the diachronic reading earns its keep
+rather than merely asserting it. Be precise about Peirce's actual difficulty, for it
+often gets loosely reported: Peirce did not find the broken cut *unworkable* — he left
 its **iteration rule open**. Reading his two broken-cut rules at CP 4.516, Zeman
 notes that one "begs for study," the open question being whether to permit iterating
 a graph *across* a broken cut and under what restriction; and in MS R 467 Peirce
 records his own doubt about *double* broken cuts (whether ◇□g and □◇g are
 interderivable — "It is only because I have not sufficiently reflected upon the
-subject that I can have any doubt"). The different restrictions on that one rule are
-exactly what separate S4 from S5 — which is why Zeman had to build several systems,
+subject that I can have any doubt"). The different restrictions on that one rule
+separate S4 from S5 exactly — which explains why Zeman had to build several systems,
 and why Ma & Pietarinen (2018) could later *settle* the matter with sound-complete
 graphical calculi (their Remark 1 even gives the explicit counterexamples showing
-the unrestricted rule is unsound). So the broken cut is rehabilitated, not defeated.
+the unrestricted rule is unsound). So the broken cut emerges rehabilitated, not defeated.
 
-Arisbe's diachronic reading takes a different road to the *same* underlying object —
-because the genuinely hard part is not the modal mark but the **identity-across-
+Arisbe's diachronic reading takes a different road to the *same* underlying object,
+because the genuinely hard part lies not in the modal mark but in the **identity-across-
 worlds** problem (a line of identity crossing a change of universe; Peirce coined a
 "special relation" for it in MS 490 and never reduced it to the ordinary
 line-of-identity apparatus). Identity carried faithfully across a change of context
-is the one thing Arisbe's architecture exists to guarantee, so the notation's
-hardest case is Arisbe's home ground. This is a reason to *prefer* the drawn frame
-for Arisbe's purposes — not evidence that the broken cut cannot be made to work.
+remains the one thing Arisbe's architecture exists to guarantee, so the notation's
+hardest case lands on Arisbe's home ground. This gives a reason to *prefer* the drawn
+frame for Arisbe's purposes — not evidence that the broken cut cannot be made to work.
 
 ---
 
 ## 3. Why this is complete, and why it is clearer
 
 **Complete — for the propositional fragment, and that is the right scope.** By the
-standard translation, *basic propositional* modal logic is a *fragment* of
-first-order logic — and van Benthem's theorem pins down which fragment: it is
-exactly the **bisimulation-invariant fragment of FOL**. Two consequences follow.
-First, there is no expressive demand *propositional* □/◇ can make that
-Beta-over-the-drawn-frame cannot already meet — so no modal mark is needed to fill
-a gap, because there is no gap. Second, Beta over the frame is *strictly more
+standard translation, *basic propositional* modal logic forms a *fragment* of
+first-order logic, and van Benthem's theorem pins down which fragment: exactly
+the **bisimulation-invariant fragment of FOL**. Two consequences follow.
+First, *propositional* □/◇ can make no expressive demand that
+Beta-over-the-drawn-frame cannot already meet — so no modal mark needs to fill
+a gap, because no gap exists. Second, Beta over the frame proves *strictly more
 expressive* than the propositional modal language. The expressivity inclusion runs
 the safe direction.
 
 *An adversarial examination (see [FIDELITY_AND_DEPARTURES.md](FIDELITY_AND_DEPARTURES.md)
 §4 and [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)) forced one
-correction here, and it is important: van Benthem's theorem is about the
+correction here, and it matters: van Benthem's theorem concerns the
 **propositional** modal language. The moment §2's crux carries a **line of
-identity across a transition**, we are in **first-order modal logic with identity**
-(QML), which that theorem does not govern. So the "no gap" guarantee is genuine for
+identity across a transition**, we stand in **first-order modal logic with identity**
+(QML), which that theorem does not govern. So the "no gap" guarantee remains genuine for
 the propositional fragment and does **not** transfer automatically to the
 with-identity case the §2 construction features. The architectural claim — that no
-new modal **mark** is needed — is untouched (a line across the DAG is still no
+new modal **mark** is needed — stands untouched (a line across the DAG remains no
 broken cut, no tincture). But the carried line makes substantive, contested
 commitments — the **necessity of identity**, and with a fixed carried domain the
 **converse Barcan formula** — that depend on a **domain policy** (constant vs.
@@ -169,11 +169,11 @@ trans-world identity as unproblematic "home ground." The honest claim is therefo
 **adequacy, not unconditional completeness.***
 
 **Clearer.** The operator achieves its concision by *hiding* the frame: its
-semantics is a quantification deferred to a metalanguage the reader must supply.
-The diachronic drawing instead **exhibits** the frame — the worlds are sheets you
-can open, the accessibility is a transition you can replay. For a system whose
-entire purpose is the *analysis of reasoning* — Peirce's "moving picture of
-thought," made examinable — exhibiting the frame is not a cost but the whole
+semantics amounts to a quantification deferred to a metalanguage the reader must supply.
+The diachronic drawing instead **exhibits** the frame. The worlds become sheets you
+can open; the accessibility, a transition you can replay. For a system whose
+entire purpose lies in the *analysis of reasoning* — Peirce's "moving picture of
+thought," made examinable — exhibiting the frame counts not as a cost but as the whole
 point. What the operator compresses into an opaque glyph, Arisbe spreads into a
 structure you can walk.
 
@@ -186,15 +186,15 @@ no-Gamma stance forgoes, distinguishing real expressibility gaps from mere
 perspicuity costs. The ledger splits in three.)*
 
 **(1) No object-language loss for *propositional* modality.** By **van Benthem's
-characterization theorem**, propositional modal logic is *exactly* the
-bisimulation-invariant fragment of first-order logic. So there is no proposition the
-propositional modal object-language can state that Beta-over-the-drawn-frame cannot —
+characterization theorem**, propositional modal logic amounts to *exactly* the
+bisimulation-invariant fragment of first-order logic. So the propositional modal
+object-language can state no proposition that Beta-over-the-drawn-frame cannot —
 and the frame can state strictly more (count successors, assert irreflexivity ¬Rxx),
 which simply are not modal facts. Here the no-Gamma stance loses **nothing of
-expressive power**; what it trades is succinctness and perspicuity (point 3).
+expressive power**; it trades succinctness and perspicuity (point 3).
 
 **(2) Genuine gaps, beyond the standard translation.** Three things Gamma reached
-that a *propositional* standard translation does **not** capture — so Arisbe does not
+that a *propositional* standard translation does **not** capture. Arisbe does not
 get them "for free" from §1, and routes them honestly to the §7 frontier instead:
 
 - **Second-order / higher-order content** — quantifying over qualities, relations,
@@ -214,31 +214,31 @@ get them "for free" from §1, and routes them honestly to the §7 frontier inste
   first-order frame definability *in general* — shared by the standard-translation
   route, **not** a unique Gamma surplus. Already flagged in §4.1.
 
-**(3) The perspicuity / succinctness / decidability cost.** Even where there is no
-object-language loss, the standard translation is costly, and the cost is precisely
-what diagrams exist to avoid:
+**(3) The perspicuity / succinctness / decidability cost.** Even where no
+object-language loss occurs, the standard translation carries a cost, and the cost
+lands precisely where diagrams exist to spare us:
 
 - **Blow-up** — each modal operator introduces a new world-variable, so deep modal
   nesting becomes deep quantifier alternation (Vardi 1996); a modal formula can be
   exponentially more compact than its translation (§4.2).
 - **Loss of the local/internal view** — modal languages give "an internal, local
   perspective on relational structures," evaluated "at a state" (Blackburn–de
-  Rijke–Venema); the FOL image dissolves this into global prefixes. Vardi's point:
-  that very locality (the tree-model property) is *why* modal logic is robustly
+  Rijke–Venema); the FOL image dissolves this into global prefixes. And that very
+  locality (the tree-model property), Vardi points out, is *why* modal logic is robustly
   decidable — the translation buries the thing that makes it tractable and surveyable.
 - **The honest two-sidedness.** Arisbe gives up the operator's on-sheet compression,
   but by *drawing the frame* it keeps a different surveyability — worlds you can open,
   accessibility you can replay. It trades one "free ride" (the operator's locality)
-  for another (the examinable, attested frame). Neither is strictly better; the choice
-  is purposive, not a free lunch.
+  for another (the examinable, attested frame). Neither proves strictly better; the
+  choice remains purposive, not a free lunch.
 
 **Tinctures — the apparent big loss, mostly recovered.** Peirce's tinctures (1906
 *Prolegomena*: twelve tinctures in three Modes — Color / Fur / Metal for Possibility /
 Intention / Actuality) mark *kinds* of universe, not one accessibility relation. But
 marking kinds of modality is exactly **multimodal logic** — an indexed family *Rᵢ* —
 which still has a standard translation (FOL with several binary relations). So most of
-the tincture apparatus is multimodal convenience the corpus's library of UoDs already
-supplies; the irreducible residue is only where it touches (a) the second-order
+the tincture apparatus amounts to multimodal convenience the corpus's library of UoDs
+already supplies; the irreducible residue lies only where it touches (a) the second-order
 content and (b) cross-world individual identity — i.e. it folds back into the genuine
 gaps above, **not** into a need for a colour mark.
 
@@ -247,7 +247,7 @@ gaps above, **not** into a need for a colour mark.
 ## What Gamma keeps: the broken cut, rehabilitated (Zeman; Ma & Pietarinen)
 
 *(Added 2026-06-27. The credit this document most owes — and it cuts against an easy
-reading of the thesis, so it is stated fully rather than buried.)*
+reading of the thesis, so we state it fully rather than bury it.)*
 
 **What they prove.** **Zeman (1964)** first connected Peirce's broken-cut graphs to
 the modern modal logics S4 and S5. **Ma & Pietarinen (2018)**, "Gamma graph calculi
@@ -267,7 +267,7 @@ discards, quoted precisely:
 
 - **Position and polarity are read directly off the cut topology** — "the notion of a
   position… is made explicit in graphical logic. This makes such graphical calculi the
-  natural home for deep inference." Scope and negation are *in the picture*, not
+  natural home for deep inference." Scope and negation stand *in the picture*, not
   reconstructed from a quantifier prefix.
 - **No negation normal form, and no labels** — "graphs need not assume negation normal
   form… Labels are likewise not needed," an advantage over symbolic deep-inference
@@ -281,21 +281,21 @@ discards, quoted precisely:
 
 **Why this matters for the thesis — allies, not opponents.** These advantages support
 Arisbe's *deeper* commitment (keep modality diagrammatic and examinable, never buried
-in a metalanguage), they do not undercut it. The genuine tension is narrower and
-worth stating exactly: Ma & Pietarinen keep the modal operator's structure **on one
+in a metalanguage), they do not undercut it. The genuine tension runs narrower and
+deserves exact statement: Ma & Pietarinen keep the modal operator's structure **on one
 sheet**, so the *form* of necessity is itself surveyable in the topology of the cut;
 Arisbe spreads modality across the **diachronic DAG**, so the *frame* is surveyable
 but the operator's on-sheet compression is gone. Each keeps a different perspicuity.
 Arisbe takes its route because its central guarantee — identity carried inerrantly
 across a change of context — is exactly the trans-world-identity problem Peirce never
-reduced; but the choice **forgoes the broken cut's on-sheet virtue**, and that is a
-real cost, made vivid precisely *by* Ma & Pietarinen's result. The defensible claim is
+reduced; but the choice **forgoes the broken cut's on-sheet virtue**, and that cost is
+real, made vivid precisely *by* Ma & Pietarinen's result. The defensible claim reads
 "no modal *mark* needed for Arisbe's purposes," not "Gamma is dispensable for logic."
 
 **A caution about iconicity, which sits under all of this.** The strong claim that
-diagrams are iconic or perspicuous "in senses symbolic notations are not" is
+diagrams are iconic or perspicuous "in senses symbolic notations are not" stands
 **contested — by Pietarinen himself** ("Two Dogmas of Diagrammatic Reasoning," 2017).
-The claim Arisbe rests on is the deflated, defensible one, in Peirce's own terms: the
+Arisbe rests on the deflated, defensible claim, in Peirce's own terms: the
 graphs aim at "the closest correspondence with the process of reasoning," as "moving
 pictures of thought" — examinability, not a metaphysical privilege of the visual.
 
@@ -303,7 +303,7 @@ pictures of thought" — examinability, not a metaphysical privilege of the visu
 
 ## 4. Honest limits
 
-The claim is definitive *because* it is bounded. Three limits, stated plainly:
+The claim stands definitive *because* it stays bounded. Three limits, stated plainly:
 
 1. **First-order-definable frames only.** The standard translation captures the
    modal logics whose frame conditions are first-order definable — K, T, S4, S5.
@@ -311,23 +311,23 @@ The claim is definitive *because* it is bounded. Three limits, stated plainly:
    outside the construction — and these are **not** exotic: GL/provability
    (Löb well-foundedness), common-knowledge (transitive closure), and
    temporal-liveness modalities are everyday, and the §1 provability/trajectory
-   reading is itself GL-shaped — *gestured at* there, not constructed. They are
-   honestly reclassified as part of the **§7 second-order residue**, not claimed.
+   reading is itself GL-shaped — *gestured at* there, not constructed. We reclassify
+   them honestly as part of the **§7 second-order residue**, not claimed.
    Counterfactuals (Lewis/Stalnaker sphere semantics, not a single accessibility
    relation R) and the object-language **actuality operator @** (forgone by
    principle — [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 forbids
-   any mark bearing actuality) are likewise not served. "Modality without Gamma" is
-   thus narrower than total, and we flag the boundary rather than paper over it.
+   any mark bearing actuality) likewise go unserved. "Modality without Gamma" thus
+   runs narrower than total, and we flag the boundary rather than paper over it.
 
 2. **Succinctness traded for explicitness.** A modal formula can be exponentially
    more compact than its first-order translation. Arisbe deliberately accepts the
-   verbosity to gain a *drawn* frame. This is a real trade, named here, not hidden
-   — and §5 shows how much of the lost concision can be recovered safely.
+   verbosity to gain a *drawn* frame. The trade is real, named here rather than
+   hidden — and §5 shows how much of the lost concision can be recovered safely.
 
 3. **Adequacy argument, not a mechanized theorem.** This document gives an
-   *adequacy* argument grounded in the standard translation; it is not a formal
-   proof carried out in Arisbe's code. The construction is standard and the
-   conclusion is, we judge, secure — but its status is "well-grounded doctrine,"
+   *adequacy* argument grounded in the standard translation; it does not amount to
+   a formal proof carried out in Arisbe's code. The construction is standard and the
+   conclusion, we judge, stands secure — but its status remains "well-grounded doctrine,"
    not "verified by the test suite."
 
 ---
@@ -336,15 +336,15 @@ The claim is definitive *because* it is bounded. Three limits, stated plainly:
 
 > *Rendered without every detail, but with indicators that more detail exists.*
 
-The succinctness traded away in §4.2 has a principled answer, and it is the right
-frame for any future temptation toward a modal-looking glyph. The analogy is a
+The succinctness traded away in §4.2 has a principled answer, and it gives the right
+frame for any future temptation toward a modal-looking glyph. Think of a
 **map**: a good map omits almost everything, yet marks where the omitted detail
-lives and lets you zoom to it. The governing distinction is between a mark that is
-**load-bearing** (it asserts content, or — forbidden — bears actuality) and a mark
-that is merely **concision-bearing** (it abbreviates structure that genuinely
-exists elsewhere and is *mechanically recoverable*).
+lives and lets you zoom to it. The governing distinction separates a
+**load-bearing** mark (it asserts content, or — forbidden — bears actuality) from a
+merely **concision-bearing** mark (it abbreviates structure that genuinely
+exists elsewhere and remains *mechanically recoverable*).
 
-Arisbe already ships the prototype of exactly this, and it is governed, not
+Arisbe already ships the prototype of exactly this, and it comes governed, not
 freehand:
 
 - The **adaptive-scope overview** collapses a cut to a placeholder bearing
@@ -355,19 +355,19 @@ freehand:
 - The **definition-node / φ-hole fold–unfold** does the same locally and
   reversibly ([`src/definitions.py`](../src/definitions.py), `expand_at` / `fold`;
   see [DEFINITION_NODE.md](DEFINITION_NODE.md)).
-- The **faithfulness guarantee** is already formalized as the *expansion law* in
-  overview attestation: the empty collapse is identical to ordinary
-  `attest_correspondence`, and full expansion is the real correspondence check (§3.3) picture
+- The **faithfulness guarantee** already stands formalized as the *expansion law* in
+  overview attestation: the empty collapse matches ordinary
+  `attest_correspondence` exactly, and full expansion gives the real correspondence check (§3.3) picture
   (`attest_overview` in
   [`src/correspondence_attestation.py`](../src/correspondence_attestation.py)). The
-  abbreviation is licit *because* it expands to the attested truth.
+  abbreviation counts as licit *because* it expands to the attested truth.
 
-So there *is* a door through which a broken-cut-ish or tincture-ish symbol could
-one day be readmitted — but only as a **map symbol**: a non-load-bearing
-indicator that *the diachronic/FOL detail exists here* and is expansible on
+So a door *does* exist through which a broken-cut-ish or tincture-ish symbol could
+one day win readmission — but only as a **map symbol**: a non-load-bearing
+indicator that *the diachronic/FOL detail exists here*, expansible on
 demand, gated by an expansion law that forces it to unfold to the real frame. It
 would recover concision without surrendering the drawn frame, and it would bear no
-actuality (MANIFEST floor #6). **This is a [horizon](GLOSSARY.md#horizon), not a present build** — recorded
+actuality (MANIFEST floor #6). **This names a [horizon](GLOSSARY.md#horizon), not a present build** — recorded
 here so that if the temptation returns, it returns through the one gate that keeps
 it honest.
 
@@ -378,27 +378,27 @@ it honest.
 Before naming the frontier, one more thing the diachronic reading discharges. The
 *meta-judgments* a reasoning community makes — "this qualifies as an addition to
 M," "the dialogists agreed that branch didn't happen," "take a new stand with
-respect to P" — are not modal, and they are not ineliminable-as-marks either. They
-are **diagrammed as the trajectory itself**: thought about thought made
+respect to P" — prove not modal, and not ineliminable-as-marks either. They
+get **diagrammed as the trajectory itself**: thought about thought made
 extensional. You do not predicate "they chose X" with a higher-order operator; you
 exhibit the choosing as the transition from sheet to sheet.
 
-The condition that makes a sequence a *record of choosing* rather than an arbitrary
-succession is that each step is **legible as a legal move** — recoverable as
+What makes a sequence a *record of choosing* rather than an arbitrary
+succession? Each step must stand **legible as a legal move** — recoverable as
 permissible under the rules at a point where enclosure-parity assigned that
 selection to that player. Arisbe enforces exactly this:
 [`RuleInteraction`](../src/rule_interaction.py) makes each step sound-by-construction,
 and chain replay ([`proof_authoring.replay_step`](../src/proof_authoring.py))
 lets a later reader re-walk the history and recover the same structure. The
-markless demonstration is self-sufficient in the sheets *plus the shared game* —
-which is what a replay re-supplies. The Agon `Play` record is the dialogical case
-of the same thing.
+markless demonstration stands self-sufficient in the sheets *plus the shared game* —
+and a replay re-supplies exactly that shared game. The Agon `Play` record gives the
+dialogical case of the same thing.
 
 ---
 
 ## 7. The real frontier: second-order logic about the graphs themselves
 
-Keep the two apart, because conflating them is what made Gamma look like one
+Keep the two apart; conflating them made Gamma look like one
 problem when it was two:
 
 - **Modality quantifies over *worlds*** — first-order over a frame. Done, by §1–§3.
@@ -407,21 +407,21 @@ problem when it was two:
   qualities, "every graph true in M remains revisable." This does not reduce to a
   choice of universe or an adjustment of stance; it ranges over the signs.
 
-This second thing is genuinely higher-order and genuinely ineliminable, and it is
+This second thing runs genuinely higher-order and genuinely ineliminable, and it is
 "what the harder Gamma examples were always actually about." Its *meta-judgment*
-slice is display-as-history (§6); the rest is the live research horizon. Arisbe
-already has its toe in the water — the φ-hole / schema node
+slice resolves into display as history (§6); the rest remains the live research
+horizon. Arisbe already has its toe in the water: the φ-hole / schema node
 ([`src/schema.py`](../src/schema.py),
 [SCHEMA_HOLE_CORRESPONDENCE.md](SCHEMA_HOLE_CORRESPONDENCE.md)) keeps "a graph with
-a place for a graph" strictly metalinguistic, and the math track
-(Separation/Replacement schemata, the graph-with-holes) is where it grows. That is
-where the next real work lies — **not** in a modal mark.
+a place for a graph" strictly metalinguistic, and it grows in the math track
+(Separation/Replacement schemata, the graph-with-holes). There the next real
+work lies — **not** in a modal mark.
 
-The trajectory reading (§1) has distinguished ancestry it is worth naming: in Paul
+The trajectory reading (§1) carries distinguished ancestry worth naming. In Paul
 Cohen's forcing technique, the three modal statuses of a statement about a generic
-extension — necessary, contingent, impossible — are *derived* from first-order
+extension — necessary, contingent, impossible — come *derived* from first-order
 forcing relations plus the order structure of conditions, never primitively
-asserted; and the condition poset is exactly the shape of Arisbe's derivation DAG.
+asserted; and the condition poset takes exactly the shape of Arisbe's derivation DAG.
 The dev memo [FORCING_AND_THE_GAMMA_CROSSING.md](FORCING_AND_THE_GAMMA_CROSSING.md)
 records the full dictionary, and the modern-landscape survey
 [SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md](SECOND_ORDER_LANDSCAPE_AND_POSITIONING.md)
@@ -436,10 +436,10 @@ since Peirce.
 Two final placements, recorded *alongside* Peirce's framing rather than in place
 of it (see the reconciliations in MANIFEST_AND_MEANING.md and CHAIN_OF_SEMIOSIS.md).
 
-**Fact** is not a glow in the object nor a counter we award. It is the **defeasible
-status of the last-standing trajectory** — the line that has not been pruned —
+**Fact** names neither a glow in the object nor a counter we award. It names the
+**defeasible status of the last-standing trajectory** — the line that has not been pruned —
 *conferred* by the enacted history yet *answerable* beyond it, free to be demoted on
-better information or changed need. Conferred-yet-answerable is the needle the whole
+better information or changed need. Conferred-yet-answerable names the needle the whole
 account threads, and the diachronic framing threads it without either horn (MANIFEST
 floor #4; realized in part by [`src/liveness.py`](../src/liveness.py)). "Free to
 demote" even has a formal home in Alpha — model revision is INS on the negative-context
@@ -447,10 +447,10 @@ antecedent of the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … 
 [LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5.
 
 And the ground. The conversation stakes a **third position** on what "demote"
-answers to. Within any chosen game, the modal vocabulary really is just bookkeeping
+answers to. Within any chosen game, the modal vocabulary really amounts to bookkeeping
 over legal trajectories — *eliminative about the would-be*. But the **blank sheet**
 — the one separation Arisbe cannot draw, the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) between the whole sheet and
-the world it is *of* (MANIFEST, "The membrane") — is not another would-be and not a
+the world it is *of* (MANIFEST, "The membrane") — makes neither another would-be nor a
 bigger model. It is *realist about the ground*: the un-enclosable containment any
 game whatsoever presupposes, shown by structure (every graph stands on a sheet it
 cannot enclose) and never asserted as a graph. So demotion answers neither to a

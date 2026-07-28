@@ -10,29 +10,29 @@ the three registers; capabilities re-audited)
 *New to the **ideas** rather than the tool? The plain-language
 [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) tells the story of what
 Arisbe challenged in Peirce and the traditions that read him, and what changed — no
-logic required. This document is its practical companion: who uses Arisbe, and how.*
+logic required. This document serves as its practical companion: who uses Arisbe, and how.*
 
 ---
 
 ## What Arisbe is for
 
 Charles Sanders Peirce called his Existential Graphs "moving pictures of
-thought." He meant that literally. A graph is not a diagram *about* a
-proposition the way a bar chart is a picture about some numbers; the graph
+thought." He meant that literally. A graph does not depict a
+proposition the way a bar chart depicts some numbers; the graph
 **is** the proposition, drawn — a sign you can reason *in*, not merely look at.
 To assert something is to [scribe](GLOSSARY.md#scribe) it on the sheet; to prove something is to
 transform the picture by rules that never let it say something false; to ask
 what a claim means is to play it out against what you already hold true.
 
-Arisbe is an environment for **doing logic in pictures, not pictures of logic** —
-Peirce's vision made operational. You draw, transform, and contest Existential
-Graphs directly, as diagrams that evolve over a course of inquiry. Frithjof
-Dau's formalization is the **guarantor of correctness** underneath — the
-bedrock that makes "the picture never lies" a theorem rather than a hope — but
-the *aim* is Peirce's: to think in pictures, and to let the picture and the
-sentence be two faces of one and the same thought.
+Arisbe provides an environment for **doing logic in pictures, not pictures of
+logic** — Peirce's vision made operational. You draw, transform, and contest
+Existential Graphs directly, as diagrams that evolve over a course of inquiry.
+Frithjof Dau's formalization stands underneath as the **guarantor of
+correctness**, the bedrock that makes "the picture never lies" a theorem rather
+than a hope. But the *aim* remains Peirce's: to think in pictures, and to let
+the picture and the sentence be two faces of one and the same thought.
 
-That last clause is the engineering heart of the system, and every persona
+That last clause names the engineering heart of the system, and every persona
 below leans on it: Arisbe holds the **drawn form** and the **written form** of a
 graph in *provable correspondence*. The oval you draw and the formula
 `~[ (man *x) ~[ (rich x) ~[ (happy x) ] ] ]` denote the **same mathematical
@@ -40,25 +40,25 @@ object**, and they keep denoting it across every edit, every re-layout, every
 transformation, every round-trip. A runtime check refuses to show you a picture
 that means something other than what it says.
 
-What Arisbe is **not**: it is not a natural-language parser, and not a black-box
-reasoner that hands you a verdict. When something must be turned from English
-into logic, that is a separate, noisy job best left to a language model or a
-semantic parser; Arisbe's contribution begins once a candidate logical form
+What does Arisbe **not** do? It does not parse natural language, and it does
+not act as a black-box reasoner that hands you a verdict. Turning English into
+logic remains a separate, noisy job, best left to a language model or a
+semantic parser. Arisbe's contribution begins once a candidate logical form
 exists — to *verify* it, *draw* it, *interpret* it against a world, and keep its
-[*warrant*](GLOSSARY.md#warrant). It is the trustworthy interpretant behind the parser, not the parser.
+[*warrant*](GLOSSARY.md#warrant). It serves as the trustworthy interpretant behind the parser, not the parser.
 
 ---
 
 ## The three registers
 
-Arisbe is used at three removes, and this document is organized by them. The
-claims made for each are deliberately graded — the first register is daily
-practice, the third is one instrument honestly reporting the edge of what it
-models.
+People use Arisbe at three removes, and those removes organize this document.
+The claims made for each come deliberately graded: the first register describes
+daily practice; the third describes one instrument honestly reporting the edge
+of what it models.
 
 1. **The app** (Part I and Part II) — a person at the interface: browsing the
    library, drawing and fixing graphs, playing the game, exporting figures.
-   Everything here is shipped and exercised.
+   Everything here has shipped and been exercised.
 2. **The autonomous kytos under your direction** (Part III) — the same
    machinery running *as a loop* against a source you point it at (your own
    notes, a live public feed), with you ruling on what the record shows rather
@@ -73,7 +73,7 @@ models.
 *("Kytos" — plural "kytē" — is the project's name for its recurring
 membrane-and-loop unit of inquiry: a bounded interior model, a doubt-cycle
 that revises it, and a membrane through which a world reaches it. The anatomy
-is [THE_KYTOS.md](THE_KYTOS.md); for this document it is enough that register
+lives in [THE_KYTOS.md](THE_KYTOS.md); for this document it suffices that register
 2 runs one, and register 3 studies several.)*
 
 ---
@@ -105,9 +105,10 @@ earned its place by being contested.*
 
 # Part I — Register 1, by persona: what you can do, and what you gain
 
-For each: *what you can do today*, and *what you will be able to do once Arisbe
-is complete.* The line between them keeps moving — several items that were
-"when complete" a few months ago have since shipped, and are now under "Now."
+Each persona gets two answers: *what you can do today*, and *what you will be
+able to do once Arisbe is complete.* The line between them keeps moving —
+several items that stood under "when complete" a few months ago have since
+shipped, and now sit under "Now."
 
 ## The teacher
 

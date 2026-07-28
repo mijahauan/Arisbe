@@ -151,16 +151,16 @@ and one thing does not:
 - **Choice of accessibility relation R = choice of mode.** The two diachronic exemplars
   differ in *register*: `broken_cut_square`'s R is derivability (Dau moves);
   `would_be_courses`' R is experiential (revision moves). Same machinery, different
-  frame, different modality — the multimodal recovery of the doctrine
-  ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §2), demonstrated rather than
-  asserted.
+  frame, different modality. The doctrine's multimodal recovery
+  ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) §2) here stands demonstrated
+  rather than asserted.
 - **Subjective possibility is already in the verdicts.** Peirce's 1903 gloss on the
-  broken cut — possible "in the present state of information" — is epistemic, and the
-  open-world peel returns exactly that shape: Kleene UNKNOWN, the abstention that says
-  the current record does not compel. The modal proposal reading reports
+  broken cut — possible "in the present state of information" — reads as epistemic, and
+  the open-world peel returns exactly that shape. Kleene UNKNOWN abstains: the current
+  record does not compel. The modal proposal reading reports
   `unknown_worlds` separately, never coerced.
-- **What does not carry over** — tinctures as first-class *marks* on one sheet, and the
-  second-order uses (qualities, abstraction) — stays where the doctrine put it: the
+- **What does not carry over.** Tinctures as first-class *marks* on one sheet, and the
+  second-order uses (qualities, abstraction), stay where the doctrine put them: the
   MODALITY_WITHOUT_GAMMA §5 abbreviation horizon and the MODALITY_WITHOUT_GAMMA §7
   frontier, respectively. No mark bears modality here.
 
@@ -168,20 +168,20 @@ and one thing does not:
 
 - **Trans-world identity by constant.** `would_be_courses` carries "Clara" and "Otto"
   across worlds as constant labels — rigid designators, a constant-domain policy. That
-  is a *choice*, stated in the UoD's annotations; a **generic** line of identity carried
+  amounts to a *choice*, stated in the UoD's annotations. A **generic** line of identity carried
   across a transition (Peirce's Ms 490 "special relation", the doctrine's
   MODALITY_WITHOUT_GAMMA §2 crux) remains unimplemented, and the domain-policy
   question (MODALITY_WITHOUT_GAMMA §3) remains open.
 - **States vs leaves.** A would-be quantifies most naturally over *completed* courses
   (`over="leaves"`). The exemplar's single-step courses make □G hold on both readings,
   but a finer-grained course (failure admitted, the sequel not yet) would make G FALSE
-  at a mid-course world while TRUE at every leaf — the toggle in the lens is exactly
+  at a mid-course world while TRUE at every leaf. The toggle in the lens carries exactly
   this distinction, worth teaching, not hiding.
 - **Propositional reach.** `modal_query` reads one world at a time; the proposal reader
-  peels a closed G per world. Nested modalities (◇□g) are expressible by iterating
+  peels a closed G per world. You can express a nested modality (◇□g) by iterating
   queries with `base=` (the CP 4.519 test does this), not yet by one drawn graph.
-- **Second order.** Untouched, as pre-registered: graphs-of-graphs and abstraction are
-  the real frontier, grown via the schema/φ-hole path, never via a modal mark.
+- **Second order.** Untouched, as pre-registered. Graphs-of-graphs and abstraction
+  remain the real frontier, to grow via the schema/φ-hole path, never via a modal mark.
 
 ## 8 · Using them (the exercises)
 
@@ -189,32 +189,32 @@ and one thing does not:
   (EGIF) and reads ◇G/□G across the worlds, each world drawn as a thumbnail and badged
   with its verdict; the **audit lens** shows G's ribbon along the history; the
   **derivation-DAG lens** shows the frame itself.
-- **Challenge mode** (Ergasterion): two new targets — `de-inesse` (draw Peirce's CP 4.546
-  graph freehand: two lines of identity into a scroll) and `would-be-course` (draw one
-  world of the would-be: plain facts, no cuts — the modality lives across the courses,
-  not inside one).
+- **Challenge mode** (Ergasterion): two new targets. `de-inesse` asks you to draw
+  Peirce's CP 4.546 graph freehand — two lines of identity into a scroll. `would-be-course`
+  asks for one world of the would-be: plain facts, no cuts, since the modality lives
+  across the courses, not inside one.
 
 ## 9 · Dogfood findings (the UI-polish ledger)
 
 *Recorded while driving the demonstrations through the lenses (2026-07-04) — the point
-of the exercise. Fixed-in-pass items are marked; the rest are named follow-ups.*
+of the exercise. Fixed-in-pass items carry that mark; the rest stand as named follow-ups.*
 
 **Fixed in-pass:**
 
 - **The modal lens was unreachable on a synchronic UoD** — `organon.html` hid it when no
-  chain exists, so the lens's own teaching note ("a static graph has no branching frame")
-  could never be seen, and the de inesse half of D3 lost its punchline. Now always
+  chain exists, so no reader could ever see the lens's own teaching note ("a static graph
+  has no branching frame"), and the de inesse half of D3 lost its punchline. Now always
   offered; the lens explains itself on a synchronic sheet.
 - **The modal lens could not read a compound meaning** — per-relation ◇/□ only; Peirce's
-  would-be ◻(fails→suicides) had no display. Built: the proposal reading (route
+  would-be ◻(fails→suicides) had no display. The pass built the proposal reading (route
   `?proposal=` + the lens's box, pre-filled from the UoD's declared `audit-proposal`),
   three-valued per world, abstentions reported.
-- **The worlds strip showed strings, not pictures** — raw EGIF cards. Built: each world
-  drawn as a §3.3-attested thumbnail (EGIF demoted to tooltip/fallback; omitted with a
+- **The worlds strip showed strings, not pictures** — raw EGIF cards. Now each world
+  draws as a §3.3-attested thumbnail (EGIF demoted to tooltip/fallback; omitted with a
   note past 24 worlds).
 - **A derived line of development could not be named** — `ProofChain.apply_derived` took
   no `branch=`, so the courses UoD's DAG edges rendered unlabeled in the derivation-DAG
-  lens. Added (mirrors `apply`); the lens now shows *prosperity / ruin / late-ruin*.
+  lens. We added it (mirroring `apply`); the lens now shows *prosperity / ruin / late-ruin*.
 
 **Named follow-ups:**
 
@@ -223,7 +223,7 @@ of the exercise. Fixed-in-pass items are marked; the rest are named follow-ups.*
   readable.
 - Browser E2E for the proposal box + thumbnails belongs in
   `tests/test_organon_lenses_e2e.py`; blocked in the build environment (Playwright
-  browsers not installed) — route-level coverage lives in
+  browsers not installed). Route-level coverage lives in
   `tests/test_gamma_demonstrations.py` meanwhile.
 - The modal lens's proposal box accepts EGIF only; the plain-English door
   (`/agon/propose-nl`) could feed it the same way it feeds Agon.

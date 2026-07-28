@@ -4,15 +4,15 @@
 > Arisbe gets *in* — published **ontologies** (Web Ontology Language ([OWL](GLOSSARY.md#owl)) / Resource Description Framework ([RDF](GLOSSARY.md#rdf)) / Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif)) / Standard Upper Ontology Knowledge Interchange Format ([SUO-KIF](GLOSSARY.md#suo-kif)) / Common Logic Ontology Repository ([COLORE](GLOSSARY.md#colore)))
 > and material a human reads in **textbooks, websites, and papers**. The
 > machinery exists, but it lies scattered across several docs and tools. This doc
-> serves as the **consolidating map**: what enters, *at what [warrant](GLOSSARY.md#warrant)*, *attributed how*,
-> *attested how*, and what honestly does **not** come across. It links out rather
+> serves as the **consolidating map**. What enters? At what [warrant](GLOSSARY.md#warrant)? Attributed how,
+> attested how — and what honestly does **not** come across? It links out rather
 > than restating.
 >
 > **Read alongside:** [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) (the
 > philosophical [floor](GLOSSARY.md#floor) (the baseline that may not be gone under) — *attest correspondence, not truth*) and
 > [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) (the corpus's structure
-> and the import-kind taxonomy — the deep doc this one summarizes). Format
-> mechanics: [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
+> and the import-kind taxonomy — the deep doc this one summarizes). For format
+> mechanics, see [IMPORT_EXPORT_FORMATS.md](IMPORT_EXPORT_FORMATS.md).
 >
 > *Created 2026-06-29.*
 
@@ -37,15 +37,15 @@ floor: **surviving the [Endoporeutic](GLOSSARY.md#endoporeutic) (reading a graph
 Two consequences deserve stating up front:
 
 - **Provenance and annotations stand outside §3.3.** They describe the *source*;
-  they do not function as signs in the graph. (Consulting a source is not itself a
-  sign.)
+  they do not function as signs in the graph. (Consulting a source does not itself
+  count as a sign.)
 - **No fabricated citation, ever.** A synthetic exemplar must never carry a made-up
   page number; pinning one on would amount to the un-attested truth-claim the floor
   forbids (enforced by `tests/test_corpus_conformance.py`). The provenance model
   keeps three independent facts apart — **import kind**, *transcribed-vs-authored*,
   *cited-vs-synthetic* — and they must not be collapsed.
 
-Popper's falsifiability lives under this same floor here: import admits a fragment
+Popper's falsifiability lives under this same floor here. Import admits a fragment
 at low warrant with a bibliographic record, and the [**membrane**](GLOSSARY.md#membrane) between
 the sheet and the world remains the only place where error gets corrected
 ([MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md)).
@@ -65,9 +65,9 @@ doorways:
 
 In family A a *translator brings a file across*; in family B a *human brings a
 page across*. Both land on the same floor (§1); they differ only in who does the
-reading. Family C, added 2026-07, differs in kind: the source remains *ongoing*,
-and the doorway is the game itself. A polled statement does not get saved; it
-enters the automated game as a proposal, faces testing against the developing
+reading. Family C, added 2026-07, differs in kind. The source remains *ongoing*,
+and the game itself serves as the doorway. A polled statement does not get saved.
+It enters the automated game as a proposal, faces testing against the developing
 model M, and comes in (or doesn't) under a named disposition, with disuse-decay
 bounding what accumulates. The claim's entry record *is* its game record. See
 [AUTOMATED_ENDOPOREUTIC_GAME.md](AUTOMATED_ENDOPOREUTIC_GAME.md) §10 and
@@ -77,10 +77,10 @@ bounding what accumulates. The claim's entry record *is* its game record. See
 
 ## 3. Family A — formal files and ontologies
 
-An **ontology is a terminological box ([T-box](GLOSSARY.md#t-box))**, and every T-box axiom is already an EG shape the corpus
-knows. So an ontology imports as the **conjunction of its axioms on one sheet** — a
-single `kind=ontology` UoD, browsable in Organon and playable as a model **M** in
-Agon.
+An **ontology amounts to a terminological box ([T-box](GLOSSARY.md#t-box))**, and every T-box axiom already
+takes an EG shape the corpus knows. So an ontology imports as the **conjunction of
+its axioms on one sheet** — a single `kind=ontology` UoD, browsable in Organon and
+playable as a model **M** in Agon.
 
 | Axiom (Description Logic ([DL](GLOSSARY.md#dl))) | EG shape |
 |---|---|
@@ -113,9 +113,9 @@ CLIF/COLORE ───────┘ (already CLIF — no front end)
   Mapping / Directory / ColoreWeb / Caching / Chain resolvers; a one-time online run
   vendors an offline citable cache).
 
-The orchestration that turns these into shipped corpus UoDs is
-`tools/build_ontologies.py`; the importer that wraps a translated theory (with the
-skip-report in its warnings) is `src/domain_model_importer.py`.
+`tools/build_ontologies.py` orchestrates these into shipped corpus UoDs;
+`src/domain_model_importer.py` serves as the importer that wraps a translated
+theory (with the skip-report in its warnings).
 
 ### The honest-partial-translation discipline
 
@@ -123,20 +123,20 @@ The floor applied to import: **bring across what's EG-expressible; report
 everything else by construct; never silently truncate.**
 
 - Constructs left behind — cardinality, union, complement, `AllValuesFrom`,
-  datatypes, functional/key axioms, annotations, modal/higher-order SUO-KIF — are
-  **counted and reported by operator** in the UoD's annotation. (`⊑ owl:Thing` is
-  dropped as trivial; `Declaration(…)` is counted as vocabulary, not skipped.) No
+  datatypes, functional/key axioms, annotations, modal/higher-order SUO-KIF — get
+  **counted and reported by operator** in the UoD's annotation. (`⊑ owl:Thing`
+  drops as trivial; `Declaration(…)` counts as vocabulary, not as a skip.) No
   silent cap that would read as "imported all of SUMO."
 - **Function terms are relationalised on import** (`_relationalize_functions`): a
-  nested application `(f t₁…tₙ)` — which the protected CLIF parser can't take in
-  argument position — is lifted to its graph atom `∃z (f …args… z)`, the
-  meaning-preserving EG reading of a function (Dau, ICCS 2007). Done at the importer
-  boundary, leaving the protected lexer untouched.
+  nested application `(f t₁…tₙ)`, which the protected CLIF parser can't take in
+  argument position, lifts to its graph atom `∃z (f …args… z)`, the
+  meaning-preserving EG reading of a function (Dau, ICCS 2007). This happens at the
+  importer boundary and leaves the protected lexer untouched.
 
 These reductions, the COLORE wrinkles they fixed (block-comment headers,
 alpha-renaming reused bound variables, `cl-comment` annotations), and the worked
 landings (`porphyry_tree`, `foaf_core`, `sumo_upper`, `colore_between`,
-`colore_field`) are detailed in
+`colore_field`) appear in detail in
 [CORPUS_AND_IMPORT_MODEL.md](CORPUS_AND_IMPORT_MODEL.md) §5–§5.3.
 
 ### Closing the loop — an import is a real M

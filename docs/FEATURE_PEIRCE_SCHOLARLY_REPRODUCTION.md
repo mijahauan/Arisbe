@@ -1,14 +1,14 @@
 # Reproducing Peirce's Hand-Drawn Graphs in Print
 
-Arisbe can recreate Peirce's hand-drawn existential graphs — from his notebooks and
-the *Collected Papers* — as publication-ready LaTeX. A scholar transcribes or draws
+Arisbe can recreate Peirce's hand-drawn existential graphs, from his notebooks and
+the *Collected Papers*, as publication-ready LaTeX. A scholar transcribes or draws
 the graph, adjusts its arrangement to match the original, and exports pure TikZ that
 compiles with plain `pdflatex`: oval cuts, heavy lines of identity, hooks, the
 hand-drawn waver, and the citation stamped under the figure. The output drops into
-papers, dissertations, and textbooks as scalable vector graphics — and, unlike a
-hand-coded figure, the picture is *wedded to the graph*: it is generated from the
-same attested (EGI, layout) pair the rest of Arisbe reasons over, so the figure and
-the proposition cannot drift apart.
+papers, dissertations, and textbooks as scalable vector graphics. And unlike a
+hand-coded figure, the picture stands *wedded to the graph*. Arisbe generates it
+from the same attested (EGI, layout) pair the rest of the machinery reasons over,
+so the figure and the proposition cannot drift apart.
 
 ---
 

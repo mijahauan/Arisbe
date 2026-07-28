@@ -176,7 +176,7 @@ section stands on: *gate the claim by the method, on its content — never the a
 identity or worth; ranking people by worth-as-inquirers swaps a method-gate (which tracks
 the real — the marked, objectivated real of Examination VI, never an unmarked terminus)
 for an identity-gate (which tracks who's in the club); and every claim is owed
-its uptake.* The question this section answers is therefore: **what does a society built
+its uptake.* This section therefore asks: **what does a society built
 on Doubt 4's resolution look like, and how far does Rawls map onto it?**
 
 **Where the system and Rawls genuinely concord** *(assistant's readings, flagged)*:
@@ -266,46 +266,47 @@ didactically.** A scaffold element bears weight for ongoing learning exactly ins
 
 - **K1 — it has survived severe tests.** Teach what has been tested where it could fail,
   not what is merely believed; and let the *learner* test it where it could fail —
-  "desirable difficulties" (Bjork) is severity in pedagogy.
+  "desirable difficulties" (Bjork) names severity in pedagogy.
 - **K2 — it is durable under revision.** The mechanism by which the learner acquired it
-  predicts whether it sticks: `mechanism_principles` is literally a curriculum-ordering
-  instrument (what is earned against resistance outlasts what is accepted on consensus).
-- **K3 — it compresses.** The laws that derive many facts are the load-bearing beams;
+  predicts whether it sticks. `mechanism_principles` serves, literally, as a
+  curriculum-ordering instrument: what a learner earns against resistance outlasts what
+  they accept on consensus.
+- **K3 — it compresses.** The laws that derive many facts form the load-bearing beams;
   teach generative rules over enumerations, and measure a lesson by its materialization
   ratio (`ratio` = derived ÷ (explicit + derived), the extent-invariant form — so a
   lesson about a *small* domain compresses no worse than the identical lesson about a
   big one; the old size-confounded yield lives on only as `yield_per_law`).
-- **K4 — it stays in use.** Re-delivery is retention: the testing effect (retrieval
-  practice) is the decay clock run deliberately; what the learner never re-derives,
-  fades — and *should* be allowed to, if it bears no weight.
+- **K4 — it stays in use.** Re-delivery means retention. The testing effect (retrieval
+  practice) runs the decay clock deliberately. What the learner never re-derives,
+  fades — and *should* fade, if it bears no weight.
 
-**The teacher is an attention economy pointed at the learner.** Choosing the next
-question is the economy-of-research problem over the *learner's* model: expected
-learning progress per unit cost, probed in the zone where severity is affordable —
+**The teacher functions as an attention economy pointed at the learner.** Choosing the
+next question poses the economy-of-research problem over the *learner's* model: expected
+learning progress per unit cost, probed in the zone where severity stays affordable —
 Vygotsky's zone of proximal development, stated as a scoring rule. The guards transfer
 whole: the noisy-TV guard (don't feed unfalsifiable or patternless material — maximal
-confusion is not maximal learning), the musement pole (budget genuine play), the boredom
-detector (when nothing yields, change register).
+confusion does not amount to maximal learning), the musement pole (budget genuine play),
+the boredom detector (when nothing yields, change register).
 
-**The dialogue shape already exists: the Endoporeutic Game is a tutorial protocol.**
-Teacher as Graphist — posing doubts scaled to the learner's M; learner as Grapheus —
-defending and revising their model; and the calculus as the incorruptible referee, which
-is what lets the teacher be *fallible safely* (the learner can win). Two consequences
-worth stating:
+**The dialogue shape already exists: the Endoporeutic Game serves as a tutorial
+protocol.** The teacher plays Graphist, posing doubts scaled to the learner's M; the
+learner plays Grapheus, defending and revising their model; and the calculus stands as
+the incorruptible referee — which lets the teacher stay *fallible safely* (the learner
+can win). Two consequences deserve stating:
 
-- **A teacher's model of the learner is level-4 knowledge** (§3): a model of how this
-  learner's model forms and revises — with its own record, its own durability.
-- **Scaffold removal is decay by design.** Warrant is in-context competence and does not
-  transfer by testimony: what the teacher's authority temporarily supplied must be
-  re-earned as the learner's own record, and the scaffold element that cannot be let
+- **A teacher's model of the learner counts as level-4 knowledge** (§3): a model of how
+  this learner's model forms and revises, with its own record and its own durability.
+- **Scaffold removal amounts to decay by design.** Warrant is in-context competence and
+  does not transfer by testimony. What the teacher's authority temporarily supplied, the
+  learner must re-earn as their own record; the scaffold element that cannot be let
   fade was never load-bearing — it was load-*carrying*, a dependency.
 
 **Machinery already on the shelf** for this: the role-aware on-ramp
-([GETTING_STARTED.md](GETTING_STARTED.md)) · the primer's live-drawn first graphs · the
-challenge bank's difficulty gradient with `same_graph` grading · `legible_diff` — the
-*how-they-differ* report is formative feedback delivered in the learner's own sign
-vocabulary · the dragons · the English gloss (`eg_to_english`). **The missing piece is
-the learner-ledger**: a Universe of Discourse recording a learner's demonstrated
+([GETTING_STARTED.md](GETTING_STARTED.md)); the primer's live-drawn first graphs; the
+challenge bank's difficulty gradient with `same_graph` grading; `legible_diff`, whose
+*how-they-differ* report delivers formative feedback in the learner's own sign
+vocabulary; the dragons; the English gloss (`eg_to_english`). **The missing piece
+remains the learner-ledger**: a Universe of Discourse recording a learner's demonstrated
 competences (their K1–K4 over the exemplar space), driving challenge selection through
 the same `AttentionEconomy` socket rung 1 built — the **tutor loop**, named here as the
 pedagogy build candidate, not authorized (§6 decision 5).

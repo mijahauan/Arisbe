@@ -1,17 +1,18 @@
 # The Kytos — the Semiotic Cell
 
-> **What this is.** Design-of-record for the native name the author ratified on
-> 2026-07-19: **kytos** (κύτος, *vessel* — the root of "cell") for the recurring
-> membrane-and-loop unit of semiosis; **the semiotic cell** as its plain-English gloss;
-> **quasi-mind** (Peirce's own term) for what a kytos hosts once it plays the game.
-> Convergent pressure forced the concept: the fractal reading of the knowledge
-> measure (THE_MEASURE_OF_KNOWLEDGE §3 and the author's three added senses), the oracle
-> doctrine's rate economy, and the author's ruling that borrowed vocabulary (Umwelt,
-> functional circle, Markov blanket) should remain *concordances*, neighbors that shed
-> light, while the thing itself takes a name of the house.
+> **What this is.** This document serves as design-of-record for the native name the
+> author ratified on 2026-07-19. **Kytos** (κύτος, *vessel*, the root of "cell") names
+> the recurring membrane-and-loop unit of semiosis; **the semiotic cell** gives its
+> plain-English gloss; **quasi-mind** (Peirce's own term) names what a kytos hosts
+> once it plays the game. Three pressures converged to force the concept: the fractal
+> reading of the knowledge measure (THE_MEASURE_OF_KNOWLEDGE §3 and the author's three
+> added senses), the oracle doctrine's rate economy, and the author's ruling that
+> borrowed vocabulary (Umwelt, functional circle, Markov blanket) should remain
+> *concordances*, neighbors that shed light, while the thing itself takes a name of
+> the house.
 >
 > **Companions:** [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) (the
-> measure a kytos is scored by) ·
+> measure that scores a kytos) ·
 > [BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md](BOOTSTRAP_AND_DIRECTED_ENGAGEMENT.md) (the
 > loop anatomy) · the vault spec's oracle doctrine (the rate economy; the five theses)
 > · [SYNECHISM_AND_CONTINUITY.md](SYNECHISM_AND_CONTINUITY.md) (the connective
@@ -68,19 +69,19 @@ counted. **Organs are indexes, never stores:** an organ holds *pointers* to
 gate-checked chain ink — the peel that surfaced a question, the trace that weighed it,
 the licensed act that resolved it — never copies of evidence. Whatever cannot be
 rebuilt from the chain counts as cache, not authority. One honest exception remains:
-**receptions**. What arrived at the membrane stays snapshot-only by nature (the
-sender's chain is not ours to replay), so it stands *beside* the record, visible and
-counted, never folded into materiality.
+**receptions**. What arrived at the membrane stays snapshot-only by nature (we cannot
+replay the sender's chain), so it stands *beside* the record, visible and counted,
+never folded into materiality.
 
-The plain gloss reads: a semiotic cell. And the tenant? At agentive levels, what a
-kytos hosts is a **quasi-mind** in Peirce's sense (the *Prolegomena*'s term for any
+The plain gloss reads: a semiotic cell. And the tenant? At agentive levels a kytos
+hosts a **quasi-mind** in Peirce's sense (the *Prolegomena*'s term for any
 sufficiently unified sign-system capable of determination by signs; two quasi-minds
 are welded in every sign). The kytos supplies the anatomy; the quasi-mind inhabits it.
 
 One contrast deserves its name. Leibniz's **monad** also mirrors its whole from a
 point of view — but the monad stays *windowless*, while the kytos consists of nothing
-but windows: nothing in it exists except by traffic across its membrane. The kytos is
-the anti-monad.
+but windows: nothing in it exists except by traffic across its membrane. The kytos
+stands as the anti-monad.
 
 ### 1.1 · The membrane, enriched
 
@@ -94,7 +95,7 @@ invisible; the product presents as bare facticity. The membrane's doctrine (desi
   (traceable like native content) · *contested* (conflicts with what stands — held
   open for disposal) · *illegible* (routed to the horizon, re-attemptable as
   context accrues) · *adversarial* (context counterfeited — quarantined, bounded
-  and counted, never auto-reattempted). Context-poverty is no pathology; an honest
+  and counted, never auto-reattempted). Context-poverty names no pathology; an honest
   orphan waits at the horizon.
 - **Trust from track record, never posture.** A source's influence amounts to
   exactly its record of resolved bets and no more. Untracked-and-agrees earns
@@ -106,7 +107,7 @@ invisible; the product presents as bare facticity. The membrane's doctrine (desi
   protected fraction for undirected play) stands its dual: a reserve of attention
   for watching the membrane itself, the budget line adversarial classification
   draws on. It stands named; its calibration awaits a live hostile source.
-- **Claimed standing is stripped at the membrane.** Whatever posture a product
+- **The membrane strips claimed standing.** Whatever posture a product
   arrives with — expert confidence, agreement, "everyone knows" — the entry strips
   its asserted warrant. The product enters at odd depth (mention, entertainment,
   index) and re-earns standing inside through the same recorded disciplines as
@@ -134,11 +135,11 @@ even-depth; the internalized "ill rationale" arrives with its claimed standing t
 at face value. Enforcement rests on the standing recompute obligations plus the
 stripping rule of §1.1: what cannot re-derive cannot stand as derivation.
 
-**Standing suspicion (the author's rider).** Other pathology families, originating
-from something besides depth, must be presumed to exist: of *attention*
+**Standing suspicion (the author's rider).** We must presume other pathology
+families exist, originating from something besides depth: of *attention*
 (agenda-setting by omission; noisy-TV capture), of *identity* (equivocation — one
 word riding two content-keys), of *pacing* (rumination and thrash, poise's named
-poles) — none depth-shaped. **The taxonomy of pathologies is itself an open
+poles) — none depth-shaped. **The taxonomy of pathologies itself stands as an open
 AlternativeSet** — a question the system holds, not a settled enumeration. What this
 machinery cannot detect it must not define away. This partially discharges the
 standing kyto-pathologies agenda item; the remainder, the cross-map onto the
@@ -159,28 +160,30 @@ One anatomy, many scales; each level already met in the record:
 | Community | Arisbes modeling each other | one another | (prospective) |
 
 And the recursion runs *inside* a level too: the endoporeutic game plays sub-games at
-every nested cut (the syntactic descent and the ludic descent are one), and *across
-time*: the diachronic DAG's branches are parallel kytos-trajectories. The drawn syntax
-mirrors the anatomy — cuts within cuts, cells within the world-scroll, quotation ovals
-within cells — with the A3 conservativity gate as the promise that no level corrupts
-the one beneath. *Why* one anatomy recurs across scales is the connective doctrine's
-question, treated in SYNECHISM_AND_CONTINUITY.md (synechism as the medium of the
-recurrence), not restated here.
+every nested cut (the syntactic descent and the ludic descent coincide). It runs
+*across time* as well: the diachronic DAG's branches trace parallel
+kytos-trajectories. The drawn syntax mirrors the anatomy — cuts within cuts, cells
+within the world-scroll, quotation ovals within cells — with the A3 conservativity
+gate as the promise that no level corrupts the one beneath. *Why* one anatomy recurs
+across scales remains the connective doctrine's question, treated in
+SYNECHISM_AND_CONTINUITY.md (synechism as the medium of the recurrence), not restated
+here.
 
 ## 3 · The vital signs
 
-A kytos is scored by the knowledge measure (K1 severity-weighted record · K2
+The knowledge measure scores a kytos (K1 severity-weighted record · K2
 durability, with its modal reading K2□/K2◇ · K3 compression, the extent-invariant
-materialization ratio · K4 use), and its health is read as **poise** — the balance of
-engagement, settlement, and absorption. Poise is a trace-reading we conjecture responds
-to the rate ratios, but the linkage is unmeasured (threshold-relative, untested against
-any rate variation; the storm reading — high-tempo absorption honestly named rather
-than mislabelled thrash — landed 2026-07-19). The deliberative organ now contributes to
-the K-readings: a consequence trace carries its own (explicit, derived) pairs, so K3
-can read the trace's reports directly — a contribution to an existing component, not a
-new one. The standing guards apply at every scale: bounded-and-counted
-(nothing silently dropped at any membrane), vector-never-scalar (no kytos is reduced
-to a rank of its inhabitant), poise-an-instrument-never-a-target, correspondence not
+materialization ratio · K4 use), and **poise** reads its health — the balance of
+engagement, settlement, and absorption. Poise names a trace-reading we conjecture
+responds to the rate ratios, but the linkage remains unmeasured (threshold-relative,
+untested against any rate variation; the storm reading — high-tempo absorption
+honestly named rather than mislabelled thrash — landed 2026-07-19). The deliberative
+organ now contributes to the K-readings: a consequence trace carries its own
+(explicit, derived) pairs, so K3 can read the trace's reports directly — a
+contribution to an existing component, not a new one. The standing guards apply at
+every scale: bounded-and-counted (nothing silently dropped at any membrane),
+vector-never-scalar (no kytos reduces to a rank of its inhabitant),
+poise-an-instrument-never-a-target, correspondence not
 truth. Two halting theorems shape its life: sealed and undecaying, a kytos
 **crystallizes** (Conway's still-life); sealed and decaying, it **evaporates** to the
 blank. Only the membrane keeps it alive — Peircean Secondness institutionalized.
@@ -238,15 +241,15 @@ has now **measured five times, each against pre-registered priors** — run logs
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)**):** (1) *No teleology.* The
 exponents characterize *a* fitness landscape a modeler imposed, within one level, on the
 economic axis — never the arrow of social development. Three independent lines agree that
-there is no ladder: the apportionment conjecture predicts plural settlements, the E-series
+no ladder exists: the apportionment conjecture predicts plural settlements, the E-series
 measured them (multi-basin, balance strands, stranding a positive-measure basin), and
 Graeber & Wengrow supply the historical form (many kinds of commens from the start). The
-contrast E3c sharpens is itself a finding: random perturbation rarely escapes a dear basin,
+contrast E3c sharpens amounts to a finding in itself: random perturbation rarely escapes a dear basin,
 while G&W's commens crossed basins *deliberately and reversibly* — **coordinated
 basin-crossing is what "politics" is in this vocabulary.** (2) *The economic axis is not
 the whole story.* What cost reads as a "dear" basin may be exactly what the
-identity/plausibility-structure axis is paying for (Examination VI, Unit I-D) — energetics
-+ logic underdetermine commens behavior, and the missing axis is named in §5's ledger.
+identity/plausibility-structure axis pays for (Examination VI, Unit I-D) — energetics
++ logic underdetermine commens behavior, and §5's ledger names the missing axis.
 
 **Still conjecture, honestly:** the scaling exponents **across levels** — E1–E3b
 measured one level (folder-kytē over a synthetic vault corpus; K1 was N/A throughout,
@@ -260,8 +263,8 @@ with data). These remain **queued-conjecture** — see §5.
 |M|, the K3 ratio, peel cost, decay TTL, admission rates) and A (interaction: import/export
 throughput, proposal rate, horizon size) — the automaton's own decomposition — coupled by one
 attention budget, whose *allocation* **poise** reads (rigidity = S starves A; thrash = A starves
-S). Modeling S/A/allocation scaling across a community is how West becomes operational rather than
-metaphorical; E1–E3b are the first S-side data. But the community rung is a change in *kind*:
+S). Modeling S/A/allocation scaling across a community makes West operational rather than
+metaphorical; E1–E3b supply the first S-side data. But the community rung marks a change in *kind*:
 reciprocal typification, and therefore genuine institutionalization and the
 [commens](GLOSSARY.md#commens), **cannot occur in an individual** — the three EPG roles inside one
 instance *model* the institution (good regulator), never *constitute* it. Full treatment:
@@ -273,27 +276,27 @@ size: the **self-damping dial** of `attention_economy.wants_from_alternatives`. 
 distinction already standing in the kytos's own S-register damps the severity of
 re-asking by `self_damping` — **0.5 is explore-leaning** (a settled distinction fades
 fast from attention), **1.0 is settle-first** (the kytos keeps worrying what it has
-already admitted); `cross_damping` is the uncontroversial don't-pay-twice case (a
+already admitted); `cross_damping` covers the uncontroversial don't-pay-twice case (a
 distinction another trace earned); defaults 0.5/0.5. A kytos, in short, **has a
 temperament, and the temperament is a studiable knob**: a pre-registerable experiment
-— sweep `self_damping`, measure settlement latency against discovery yield — is the
-named follow-on (the self-damping study).
+— sweep `self_damping`, measure settlement latency against discovery yield — remains
+the named follow-on (the self-damping study).
 
-**Reliability, not analogy (2026-07-20).** The connection to West is not a metaphor laid over
+**Reliability, not analogy (2026-07-20).** The connection to West rests on no metaphor laid over
 biology: a kytos optimizing for **reliable reasoning** and an organism optimizing for **reliable
-energy economics** are the same *kind* of thing — selection-driven reliability-optimizations over
-associative networks of invariant terminal units, the "ought" functional and enforced by what
-persists (Peirce's *Fixation of Belief* is reliability-under-recalcitrance, the semiotic instance
-of metabolism's reliability-under-physical-constraint). One caution reframes the whole comparison:
-West's clean *scalar* exponent lives only at the **supply** layer — the distribution network he
-actually modeled. The **allocation-toward-purposes** layer — vectorial, and reshaping its own
-selection landscape by niche construction — is what West brackets and what a kytos makes *explicit
-and instrumented* (the disposition taxonomy, the K1–K4 vector measure, the participation-sustained
-commens). So West's universality may itself need a **vector operand**, and the kytos may be the
-lens on the vector, landscape-changing structure *beneath* the scalar exponent — a contribution
-back to West, not only borrowed from him. See CURRENT_PLAN item -8 **Q-E**; measured at one level
-(this section), conjectured across levels (§5), and the honesty-ledger flag on transportability at
-levels 5–7 applies here with full force.
+energy economics** amount to the same *kind* of thing — selection-driven reliability-optimizations
+over associative networks of invariant terminal units, the "ought" functional and enforced by what
+persists (Peirce's *Fixation of Belief* names reliability-under-recalcitrance, the semiotic
+instance of metabolism's reliability-under-physical-constraint). One caution reframes the whole
+comparison: West's clean *scalar* exponent lives only at the **supply** layer, the distribution
+network he actually modeled. The **allocation-toward-purposes** layer works vectorially and
+reshapes its own selection landscape by niche construction; West brackets it, and a kytos makes it
+*explicit and instrumented* (the disposition taxonomy, the K1–K4 vector measure, the
+participation-sustained commens). So West's universality may itself need a **vector operand**, and
+the kytos may serve as the lens on the vector, landscape-changing structure *beneath* the scalar
+exponent — a contribution back to West, not only borrowed from him. See CURRENT_PLAN item -8
+**Q-E**; measured at one level (this section), conjectured across levels (§5), and the
+honesty-ledger flag on transportability at levels 5–7 applies here with full force.
 
 ## 5 · Honesty ledger — built, measured, evidenced, conjectured
 
@@ -322,11 +325,11 @@ levels 5–7 applies here with full force.
   levels — instrumented at levels 1–4, *asserted* at 5–7; the mechanism level has
   stick-rates but no K3/K4.
 - **Named, not built (held down honestly — the AlternativeSet arc's residue):** the
-  membrane's trust machinery is a *seam*, not a system — the source-keyed
-  track-record registry and the vigilance-reserve economics are named follow-ons
-  whose default answers "untracked"; and the pathology taxonomy is enforced only for
-  the depth class — the non-depth families (§1.2) stand as an open AlternativeSet,
-  presumed non-empty, unenumerated.
+  membrane's trust machinery remains a *seam*, not a system — the source-keyed
+  track-record registry and the vigilance-reserve economics stand as named follow-ons
+  whose default answers "untracked"; and the pathology taxonomy carries enforcement
+  only for the depth class — the non-depth families (§1.2) stand as an open
+  AlternativeSet, presumed non-empty, unenumerated.
 - **Named, not modeled (the two non-semiotic determinants — Examination VI,
   2026-07-27):** (1) the **normative/identity axis** — identity/plausibility-structure
   maintenance (Berger & Luckmann's universe-maintenance: M defended as a *home*, not as a
@@ -336,14 +339,14 @@ levels 5–7 applies here with full force.
   identity-persists-iff-addressed prior. (2) the **physical substrate** — present as
   engineering fact (ttl, crash/resume, checkpoint cadence all substrate-shaped), absent as
   represented fact: no kytos models it, and a substrate perturbation arrives with no
-  semiotic mark; the built doubt-loop models the *semiotic stratum only* and is not the
-  whole causal story of why a kytos acts or fails. Forward edges: the continuity ledger
+  semiotic mark; the built doubt-loop models the *semiotic stratum only* and does not
+  tell the whole causal story of why a kytos acts or fails. Forward edges: the continuity ledger
   (substrate shadows) and substrate telemetry via the reflexive run's attention-economy
   self-model.
 - **Conjectured, honestly (queued-conjecture):** the scaling exponents *across
   levels*, the community level entirely, and open-membrane superlinearity (§4);
   poise's rate-linkage — that the trace-reading responds systematically to the four
-  rates' ratios is a conjecture, not a measured relation (§1, §3); the claim that one
+  rates' ratios remains a conjecture, not a measured relation (§1, §3); the claim that one
   ledger shape suffices at every level (a skeptic should attack exactly here — flagged
   for the standing examination).
 

@@ -114,8 +114,8 @@ model's own state directs re-engagement, so that a settled habit deliberately
 meets again the world that could break it. Put in the 1905 vocabulary: if truth
 consists in a habit of tolerably stable nature, a system that never re-tests
 its habits never engages the question of truth at all. The warm-set re-poll
-gives operational form to the question whether a habit stays "tolerably
-stable."
+gives operational form to the question whether a habit stays
+"tolerably stable."
 
 **2.4 Meaning as consequences — both registers.** The MS 280 formula, with its
 explicit pairing of *experimental facts* and *inferential propositions*,
@@ -185,7 +185,7 @@ revision, branching). The semantic game survives intact inside the loop as the
 incorruptible mechanical peel; the outer game remains a different game, one the
 paper does not describe. The account itself half-licenses the lift (the Grapheus
 "authorises modifications"; meaning includes the experimental register), but the
-distinction deserves keeping crisp: **the calculus plays Peirce's game; the
+distinction deserves keeping crisp. **The calculus plays Peirce's game; the
 agents play a game about its outcomes.**
 
 **3.4 The third player.** The Agonothetes (judge) has no counterpart in the

@@ -1,9 +1,9 @@
 # NL→logic — *LLM proposes, Arisbe disposes*
 
 **Status:** increment 1 built 2026-06-18 (`src/nl_to_logic.py`, `tools/nl_to_logic_cli.py`,
-`POST /agon/propose-nl`). The deferred front-end of the NL→logic arc, now that both reasoning
-backends (DLCore + FOLIO + the Existential Graph Instance ([EGI](GLOSSARY.md#egi)) model-finder bridge) and the vocabulary-miss gate
-(`dl_reasoning.OUT_OF_SIGNATURE`) are in place.
+`POST /agon/propose-nl`). This front-end of the NL→logic arc waited, deliberately, until both
+reasoning backends (DLCore + FOLIO + the Existential Graph Instance ([EGI](GLOSSARY.md#egi)) model-finder bridge) and the vocabulary-miss gate
+(`dl_reasoning.OUT_OF_SIGNATURE`) stood in place.
 
 ## The idea
 

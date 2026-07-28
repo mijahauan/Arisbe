@@ -8,8 +8,8 @@ of the places where beginners, famous experts, and Peirce himself tend to fall i
 Old maps wrote **hic sunt dracones** — "here be dragons" — at the edges of the
 known, where ships were lost. Existential Graphs have a handful of such places:
 spots where the picture looks like it says one thing and means another, or where
-a natural-seeming move is illegal, or where a question feels deep but is actually
-malformed. This guide marks them, explains why each is tempting, and gives the
+a natural-seeming move breaks the rules, or where a question feels deep but
+arrives malformed. This guide marks them, explains why each tempts, and gives the
 antidote — each worked in Arisbe's own notation, which you can type into the
 viewer and check.
 
@@ -23,11 +23,11 @@ doorway.)*
 
 ## The marks, in plain sight
 
-Before any dragons, the whole alphabet — there are only four marks, and you can
-draw all of them with a pen:
+Before any dragons, the whole alphabet — four marks in all, and you can
+draw every one of them with a pen:
 
 - **The sheet** — the page. To **draw something on it is to assert it** (to claim
-  it). The empty page asserts nothing, and so is simply **true**.
+  it). The empty page asserts nothing, and so stands simply **true**.
 - **A cut** — a closed curve. To put something inside
   a cut is to **deny** it. One cut = **not**.
 - **Nested cuts** — a cut inside a cut, with a claim in the ring between them,
@@ -36,7 +36,7 @@ draw all of them with a pen:
 - **A line** — a heavy line joining marks says **"the same one"**; a line on its
   own says **"something exists."**
 
-That is the entire visual language. **The picture is the real thing**; everything
+That exhausts the visual language. **The picture is the real thing**; everything
 in logic that matters here, you can *see*.
 
 **The written shorthand.** Because you can't always draw in a text box, Arisbe also
@@ -50,9 +50,9 @@ has a typed form (called Existential Graph Interchange Format ([EGIF](GLOSSARY.m
 | `~[ A ~[ B ] ]` | "**if** A **then** B" — A in the ring, B nested deeper | nested cuts (the scroll) |
 | `~[ ]` | a cut around **nothing** = **false** (the impossible) | an empty cut |
 
-So `(Cat *x) (On x *y) (Mat y)` is just "a cat is on a mat," and
-`~[ (Human *x) ~[ (Mortal x) ] ]` is "if something is human, then it is mortal."
-Keep this key nearby and every example below is readable.
+So `(Cat *x) (On x *y) (Mat y)` says just "a cat is on a mat," and
+`~[ (Human *x) ~[ (Mortal x) ] ]` says "if something is human, then it is mortal."
+Keep this key nearby and you can read every example below.
 
 ---
 
@@ -64,47 +64,46 @@ picture *about* some numbers. An Existential Graph is not about a proposition; i
 under rules that never let it come to say something false.
 
 **2. The blank sheet is the one free truth.** An empty sheet of assertion says
-nothing — and *because* it denies nothing, it is simply **true**. It is the one
-thing in the whole system that cannot be wrong, and the thing every proof starts
-from and can always be erased back to.
+nothing — and *because* it denies nothing, it is simply **true**. It alone in the
+whole system cannot be wrong; every proof starts from it, and you can always
+erase back to it.
 
-**3. Two utterly different ways something gets onto the sheet.** This is the
-single most important distinction in the whole guide, and the source of half the
-dragons:
+**3. Two utterly different ways something gets onto the sheet.** No distinction
+in this guide matters more, and half the dragons grow from it:
 
 - You can **posit** it — [scribe](GLOSSARY.md#scribe) a premise, a thing you are *claiming*. "Take this
   as given." It might be false.
-- You can **derive** it — reach it from the blank by the rules, which are
-  truth-preserving. A derived graph *cannot* be false; the system handed it to
+- You can **derive** it — reach it from the blank by the rules, which preserve
+  truth. A derived graph *cannot* be false; the system handed it to
   you.
 
-A drawing on the sheet does not, by looking at it, tell you which of these it is.
-Keeping them apart is most of wisdom here.
+The drawing on the sheet will not tell you, just by looking, which of these it
+is. Keeping them apart amounts to most of wisdom here.
 
 **4. A fragment is a building block, not the building — so ask after its
-context.** This is the habit that protects you from most misreadings, and it is
-worth keeping for life, not just while learning. When you meet a bare expression
+context.** This habit protects you from most misreadings, and it merits
+keeping for life, not just while learning. When you meet a bare expression
 sitting alone — `(Cat *x) (On x *y) (Mat y)` on an otherwise empty page — your
 *first* reflex should be: **what context lets me read this?** An isolated graph is
 almost always an **extract** — a word pulled from a sentence, a single frame
 lifted from a movie, one step cut out of a sequence. Its appearing alone usually
 says more about the size of the page, or the one narrow point an author is
-illustrating, than about any complete claim. Two kinds of context are doing silent
+illustrating, than about any complete claim. Two kinds of context do silent
 work, and both matter:
 
 - **The structural context** — the rest of the graph it was cut from: *which cuts
   enclose it, which lines run through it.* As the dragons below show, one oval more
-  or less flips "is" into "isn't," "some" into "every." A fragment shown without
-  its enclosing cuts has had its meaning amputated.
+  or less flips "is" into "isn't," "some" into "every." Show a fragment without
+  its enclosing cuts and you have amputated its meaning.
 - **The ground** — the universe of discourse the graph is asserted *in*: *whose
   sheet it is, what is taken as understood between the parties.* Peirce built this
   in deliberately — the sheet is not a neutral blank but an **index of a universe
-  already agreed**. A graph is never floating free over nothing; it is scribed onto
+  already agreed**. A graph never floats free over nothing; it lies scribed on
   a sheet that already posits a world.
 
 So never take a lone fragment at face value as a finished thought. Find — or ask
 for — the whole it belongs to, and the ground it stands on. (The textbook habit of
-printing fragments *without* their ground is the very thing that breeds the next
+printing fragments *without* their ground breeds exactly the next
 section's confusion.)
 
 ---
@@ -125,20 +124,20 @@ contingent fact about furniture and animals?
 as a premise (in Arisbe: imported it, or sent it to be tested). The rules will
 *never* hand you `(Cat *x) (On x *y) (Mat y)` from the blank, because it is
 **contingent** — it could be false — and the rules only ever preserve truth. So
-if it is sitting on the sheet, it got there by assertion, not by proof.
+if it sits on the sheet, it got there by assertion, not by proof.
 
-The confusion is real and it is not your fault: textbooks routinely print a
+The confusion is real and not your fault: textbooks routinely print a
 *posited premise* and a *derived theorem* on the same blank sheet, side by side,
 **with no mark telling them apart**. Peirce's late work (the 1906 "Phemic
-Sheet") is clear that to assert is to *take responsibility* for a claim — an act,
+Sheet") holds that to assert is to *take responsibility* for a claim — an act,
 not a feature of the drawing — but the everyday alpha/beta presentations leave
 the [seam](GLOSSARY.md#seam) unmarked. Arisbe marks it: a posited premise enters at **low [warrant](GLOSSARY.md#warrant)**
-(carrying where it came from), while a theorem is the end of a chain of sound
-steps. Same picture; two completely different standings; which one it is *is* the
+(carrying where it came from), while a theorem stands at the end of a chain of
+sound steps. Same picture; two completely different standings; which one it is *is* the
 question.
 
 And pair this with the second reflex (point 4 above): cat-on-mat shown by itself
-is almost certainly an **extract**. Even granting it was posited, ask *what whole
+almost certainly amounts to an **extract**. Even granting it was posited, ask *what whole
 it is a piece of and what universe it stands in* — is it the premise of an
 argument whose conclusion is off the page? a single state in a sequence the author
 abbreviated? a sub-graph that, in its real setting, sits inside a cut that would
@@ -147,10 +146,10 @@ movie. Read it as a building block awaiting its building, and you will not mista
 an illustration for a claim.
 
 > **Try it.** Ask Arisbe to *derive* an unenclosed contingent atom from the blank
-> sheet. You can't — there is no legal sequence of rules that does it. Then notice
+> sheet. You can't — no legal sequence of rules does it. Then notice
 > what you *can* derive from the blank: scaffolding like `~[ (P *x) ~[ (P x) ] ]`
-> ("if P then P"), which is true no matter what P is. The blank is generous with
-> *form* and gives you no *contingent content* for free.
+> ("if P then P"), which is true no matter what P is. The blank deals generously
+> in *form* and gives no *contingent content* for free.
 
 ---
 
@@ -264,7 +263,7 @@ rival graphs; you want to ask which is **nearer the truth**, nearer **reality**.
 representation is "nearer to *being* the world" is like asking whether a map is
 nearer to *being* the territory. A map can be **faithful** (every road in the
 right place) without being the land; "how close is this map to being Spain?" is a
-non-question. Arisbe is built on exactly this discipline: it checks that your
+non-question. Arisbe builds on exactly this discipline: it checks that your
 **picture and your sentence say the same thing** (it calls this *correspondence*),
 and it **never** claims to measure "truth" or "nearness to reality." Its own motto
 is *attest correspondence, never truth.*
@@ -273,7 +272,7 @@ is *attest correspondence, never truth.*
 **surviving challenge**. You play a claim out against what you already hold, in
 the contest Peirce called the game (Arisbe's *Agon*); a claim that withstands the
 attack earns standing, and a claim can always *lose* standing later. "Fact" here
-is "the last claim still standing," held open to being overturned — never a
+means "the last claim still standing," held open to being overturned — never a
 distance-reading on a dial.
 
 And one guard that follows from it: standing is earned by **the claim** passing
@@ -284,9 +283,9 @@ dismiss a claim because of *who* made it (rather than test it) is the dragon's
 cousin — and it has a name, *epistemic injustice*. (Adherence: the augurs were
 rightly demoted by **losing the contest**, not by being barred from it. Breaking:
 refusing to look through Galileo's telescope because of who held it.) The long
-version of all this — and where Arisbe knowingly parts from Peirce — is told plainly
+version of all this — and where Arisbe knowingly parts from Peirce — gets told plainly
 in [FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md) (Doubt 4) and
-precisely in `FIDELITY_AND_DEPARTURES.md`; you don't need either to start.
+precisely in `FIDELITY_AND_DEPARTURES.md`; you need neither to start.
 
 ### 🐉 7. "I need a special mark for *possibly* / *necessarily*"
 
@@ -308,10 +307,10 @@ world."** That's the map-not-territory dragon again, wearing a costume.)
 You fold a tangle of graph under a tidy new name and feel you've earned
 something; or you call a drawing "an assertion" and feel it now carries force.
 
-**Dragon: a name purchases nothing.** A definition is legitimate only because it
+**Dragon: a name purchases nothing.** A definition counts as legitimate only because it
 **unfolds** back to exactly what it abbreviates and the rules accept the swap —
-not because you gave it a dignified label. Likewise "assertion" is not a property
-of where a mark sits; it is an *act* of taking responsibility, tested in the game.
+not because you gave it a dignified label. Likewise "assertion" names no property
+of where a mark sits; it names an *act* of taking responsibility, tested in the game.
 **Antidote:** whenever a name seems to be doing the work, ask to see the
 **expansion** (what does it unfold to?) and the **warrant** (what challenge has it
 survived?). If the answer is "just the name," it counts for nothing.
@@ -345,9 +344,9 @@ lock Arisbe already holds:
 (reaches_goal *x)                          ← scribed flat on the sheet — the reified telos
 ```
 
-Everything here erases back to the blank; no progression is frozen. Peirce affirmed a telos of his
+Everything here erases back to the blank; no progression stays frozen. Peirce affirmed a telos of his
 own — the growth of concrete reasonableness — but as a *would-be*, a hope that regulates inquiry,
-never as a flat assertion. The biography of this dragon is
+never as a flat assertion. The biography of this dragon lives in
 [MEANING_BY_HISTORY.md](MEANING_BY_HISTORY.md).
 
 ---
@@ -365,11 +364,11 @@ Four headings that keep you off the rocks:
 - **Inside vs. outside a cut flips everything.** One oval is the difference between
   "is" and "isn't," between "some" and "every." Count your cuts. (Dragons 1, 2, 3.)
 - **Correspondence, not truth.** Arisbe guarantees the picture and the sentence
-  agree. It does *not* sell you truth or "nearness to reality." Truth is earned by
-  surviving challenge and can be lost again. (Dragon 6.)
-- **Everything erases back to the blank.** Nothing here is frozen. The one
-  bedrock is the empty sheet, which says nothing and so cannot be wrong; every
-  claim above it is surrenderable. (Dragon 9 — no progression is ever frozen there.)
+  agree. It does *not* sell you truth or "nearness to reality." Surviving
+  challenge earns truth, and truth can be lost again. (Dragon 6.)
+- **Everything erases back to the blank.** Nothing here stays frozen. The one
+  bedrock remains the empty sheet, which says nothing and so cannot be wrong; every
+  claim above it can be surrendered. (Dragon 9 — no progression is ever frozen there.)
 
 > **Where to practice in Arisbe itself.** The workshop's **freeform canvas** lets
 > you draw a graph by hand and asks Arisbe to *read it back* to you — so you see
@@ -380,7 +379,7 @@ Four headings that keep you off the rocks:
 > picker): draw `🐉1` "every man is mortal," `🐉2` the empty cut, `🐉3` the
 > removable double cut, `🐉4` a shared line of identity, `🐉5` a non-symmetric
 > relation — and when your attempt goes wrong, the grader hands you back the
-> antidote from this guide. Those two surfaces are the fastest way to meet the
+> antidote from this guide. Those two surfaces offer the fastest way to meet the
 > dragons safely. (Dragons 6-9 aren't a single drawing — they live in *how a
 > graph earns its standing*, not in the ink.)
 

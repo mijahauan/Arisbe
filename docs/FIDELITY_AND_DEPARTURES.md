@@ -116,63 +116,64 @@ required parting with a surface one.
 
 *This section records the settled result of a five-round adversarial examination
 (see [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md)). The original draft
-("inquiry does not converge") did not survive: it was a footnote on sophisticated
-Peirce. What survives is sharper, narrower, and honestly bounded.*
+("inquiry does not converge") did not survive; it amounted to a footnote on
+sophisticated Peirce. What survives reads sharper, narrower, and honestly bounded.*
 
-The realist holds that better inquiry is inquiry *nearer the real*, the real being
-the convergence-target of the final opinion. We do not deny convergence and we do
-not assert non-convergence — fallibilism humbles both symmetrically. The settled
-position is a **joint, not a dissolution**, with two rungs that must not be merged.
+The realist holds that better inquiry means inquiry *nearer the real*, with the
+real as the convergence-target of the final opinion. We do not deny convergence and
+we do not assert non-convergence; fallibilism humbles both symmetrically. The
+settled position forms a **joint, not a dissolution**, with two rungs that must not
+be merged.
 
 **First order — secured.** "Is *P* or ¬*P* nearer the real?" / "this graph is at
-distance *d* from the world" is a **non-locution** — pointless, not false. A
-representation is a term in the sequence of inquiry; it cannot [scribe](GLOSSARY.md#scribe) its own
-distance to that sequence's limit, since the limit (if any) is the limit *of* the
-sequence, not a coordinate available *within* a term of it. This holds whether or
-not the regress of standards closes. It is the same first-order discipline the
-engine enforces at every save (the correspondence check (§3.3) attests *correspondence, never truth*), at
+distance *d* from the world" amounts to a **non-locution** — pointless, not false. A
+representation serves as a term in the sequence of inquiry; it cannot [scribe](GLOSSARY.md#scribe) its own
+distance to that sequence's limit, since the limit (if any) remains the limit *of*
+the sequence, not a coordinate available *within* a term of it. This holds whether
+or not the regress of standards closes. The engine enforces the same first-order
+discipline at every save (the correspondence check (§3.3) attests *correspondence, never truth*), at
 [MANIFEST_AND_MEANING.md](MANIFEST_AND_MEANING.md) floor #6 (no mark bears
 actuality), and at level 0 ([LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md):
 the recto bears form, not free-floating contingent content): **no mark may bear
-its own distance-to-the-real as a terminus.** This much is won outright.
+its own distance-to-the-real as a terminus.** This much stands won outright.
 
 **Meta level — open, at parity.** The realist's claim lives one rung up: *does the
-whole sequence converge on a real?* The success-criterion is Peirce's **belief
+whole sequence converge on a real?* The success-criterion remains Peirce's **belief
 fixed under continued experience** (not bare doubt-recession), so there *is* a
 well-defined refuter with fixed-point structure: recurrence — "dashed against
-recalcitrant fact" — is its correctness signal, the real reasserting against a
-settling that did not track it. Whether non-recurrence certifies *tracked a
+recalcitrant fact" — serves as its correctness signal, the real reasserting against
+a settling that did not track it. Whether non-recurrence certifies *tracked a
 stationary real* (Peirce wins, stationary case) or merely *not-yet-remade* (the
 reflexive/looping case, where the encounter alters the ground so no fixed target
 stands still) turns on whether the regress of standards — *do-otherwise-than-L is
 itself L′* — closes at a transfinite fixed point. **We have not shown it fails to
-close.** If it closes, there is a determinate higher law, the representational
+close.** If it closes, a determinate higher law stands, the representational
 level converges under a law-of-rewriting, and the realist may *name* that
 meta-limit "reality." We **refuse** the name — reserving "reality" for the
-encountered ground — but refusal is a choice of where to point the word, **held at
-parity, not a refutation.**
+encountered ground — but refusal amounts to a choice of where to point the word,
+**held at parity, not a refutation.**
 
 **The survivor / overturner distinction (kept).** The real we say
-nothing-as-terminus about is **not** the 1868 incognizable. It is cognizable *in
-its effects* at every corrective step — the hole, the crop, the recalcitrant fact
-— which is exactly how Peirce rehabilitated the real against the thing-in-itself.
-The **survivor** (an un-overturned representation) is fully sayable, and Misak's
+nothing-as-terminus about is **not** the 1868 incognizable. It remains cognizable
+*in its effects* at every corrective step — the hole, the crop, the recalcitrant
+fact — exactly how Peirce rehabilitated the real against the thing-in-itself.
+The **survivor** (an un-overturned representation) stays fully sayable, and Misak's
 would-survival ("would belief *B* survive all the experience that would bear on
-it?") is its correct gloss — it belongs on the **sayable side**, as a property of
-survivors. The **overturner / encountered ground** is cognizable-in-effects but
-not sayable *as a target scored for nearness*. This distinction survived every
+it?") glosses it correctly — it belongs on the **sayable side**, as a property of
+survivors. The **overturner / encountered ground** remains cognizable-in-effects
+but not sayable *as a target scored for nearness*. This distinction survived every
 charge in the examination.
 
-**Negative orientation — secured.** Inquiry is driven from behind, away from doubt
-and error; a standing is held until overturned by what thinking does not control;
+**Negative orientation — secured.** Inquiry takes its push from behind, moving away
+from doubt and error; a standing holds until overturned by what thinking does not control;
 the Agon [peels](GLOSSARY.md#peel) (reading it from the outside in against the model) and prunes (IT−, DC−, ERA); liveness retires what falls from use.
-This is Peirce's own *Fixation of Belief* engine, and it is convergence *in*
-reality under push — granted in full. Peirce's discriminator between science and
+This engine comes straight from Peirce's own *Fixation of Belief*, and it amounts
+to convergence *in* reality under push — granted in full. Peirce's discriminator between science and
 tenacity is **overturnability** by what our thinking does not control, not
 attraction toward a target; we keep that discriminator and decline only the
 separable convergence-clause ("the ultimate conclusion of every man shall be the
-same") he states but does not independently derive. The negative reading is a
-**friendly reconstruction the text licenses**, not a claim that Peirce was a
+same") he states but does not independently derive. The negative reading stands as
+a **friendly reconstruction the text licenses**, not a claim that Peirce was a
 negativist.
 
 **Unification across the three departures — analogy, not identity.** Departures I
@@ -182,17 +183,17 @@ sayable side (survivor, form, agreement) is illicitly traded for a terminus on t
 unsayable side (real-as-target, contingent-content-at-0, actuality).** This
 **co-grounds** the three. It is **not** a single rule applied three times (level-0
 unsayability is a syntactic theorem about marks; would-survival is sayable).
-Departure I is **co-grounded** with II and III, not best-grounded among them.
+Departure I stands **co-grounded** with II and III, not best-grounded among them.
 
-**What we owe, stated plainly.** The **meta-naming** question above is undischarged
-on both sides — it rests on whether the *do-otherwise-than-L is itself L′* regress
-closes at a transfinite fixed point (the candidate argument for the open horn is a
-reflexive diagonal grounded in the Alpha freedom-to-negate; it does not obviously
-close). And the **separability** debt is paid only on the sayable side (the
-survivor/real-object pair, honored per "How to Make Our Ideas Clear"); for the
-terminal real-as-target it stands open, by the same parity. This is the one place
-the departure is undischarged, and it is undischarged on both sides. We do not
-paper it over. **This remains the departure most exposed to a careful Peircean** —
+**What we owe, stated plainly.** The **meta-naming** question above remains
+undischarged on both sides — it rests on whether the *do-otherwise-than-L is
+itself L′* regress closes at a transfinite fixed point (the candidate argument for
+the open horn is a reflexive diagonal grounded in the Alpha freedom-to-negate; it
+does not obviously close). And the **separability** debt stands paid only on the
+sayable side (the survivor/real-object pair, honored per "How to Make Our Ideas
+Clear"); for the terminal real-as-target it stands open, by the same parity. Here,
+and only here, the departure remains undischarged — and undischarged on both
+sides. We do not paper it over. **This remains the departure most exposed to a careful Peircean** —
 its committed content is now exactly: the first-order non-locution (won), the
 reservation of "reality" for the encountered ground (a choice at parity), and the
 co-grounding analogy (won) — not the original "inquiry does not converge."
@@ -221,17 +222,19 @@ applied to *ends*) absorbed entirely into this departure + Departure II. See
 on the sheet of assertion is to assert it.* The blank sheet is where assertion
 lives; depth 0 is the asserted ground; cuts deny.
 
-**The Arisbe position.** Level 0 is not a surface that says something true; on its
-depth-0 marks **no contingent saying is constituted by the marks themselves**. The
+**The Arisbe position.** Level 0 does not function as a surface that says
+something true; on its depth-0 marks **no contingent saying is constituted by the
+marks themselves**. The
 recto bears *form* — the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then"), the conditional scaffolding, structures valid or
 model-relative — and the *demonstrative* recto cannot **derive** contingent
 content; the bare depth-0 position does not, by itself, assert it. (We do not deny
 the assertoric register its primary office — positing a contingent premise — see
-below; the claim is about what the *marks* and the *depth* constitute, not a ban
-on positing.) There are **two registers**, and the fault — in the formal and
-diagrammatic EG presentations, not in proof theory generally (which marks the [seam](GLOSSARY.md#seam)
-with the turnstile Γ⊢φ vs ⊢φ) nor in the dialogical strand (Pietarinen, Hintikka,
-which already supplies context-as-ground) — is conflating them:
+below; the claim concerns what the *marks* and the *depth* constitute, not a ban
+on positing.) There are **two registers**, and the fault lies in conflating them —
+a fault of the formal and diagrammatic EG presentations, not of proof theory
+generally (which marks the [seam](GLOSSARY.md#seam)
+with the turnstile Γ⊢φ vs ⊢φ) nor of the dialogical strand (Pietarinen, Hintikka,
+which already supplies context-as-ground):
 
 - **Demonstrative** use — derive theorems from the blank by truth-preserving
   steps. Here the **level-0 theorem** holds: no legitimate derivation from the
@@ -244,50 +247,51 @@ which already supplies context-as-ground) — is conflating them:
 
 The textbook prints both flush together and **leaves the seam unmarked**, so a
 reader cannot tell "someone asserts this, take it as given" from "the system
-delivers this." Two different provenances — *posited-under-warrant* vs.
-*derived-truth-preservingly* — collapsed into one drawing.
+delivers this." Two different provenances, *posited-under-warrant* and
+*derived-truth-preservingly*, collapse into one drawing.
 
 **The justification, rooted in Peirce.** Two Peircean sources, not one
-invention. First, **soundness**: the level-0 theorem is not a stipulation but a
-consequence of the calculus Peirce built and Dau proved sound. Second, the **late
-Peirce** himself — the *Phemic Sheet* of the 1906 *Prolegomena*, where assertion
-is analyzed not as a graphical permission but as a *normative act*: to assert is
-to **assume responsibility**, to expose oneself to penalty should the claim fail.
-On that analysis a scribed replica is a *proper* assertion only given a universe
-agreed between parties, the conventions fixing the marks, **and** the utterer's
-act of taking responsibility. "Assertion" was never a feature of depth; it was
-always interpretant-side and act-side. The author's claim is that Peirce knew
-this and the *formal/diagrammatic EG presentations left it implicit* — so the
-departure is from those presentations, in Peirce's own direction. The novelty is
-modest and real: noticing that diagrammatic EG lacks a turnstile-equivalent, and
-supplying one operationally as a runtime warrant gradient — not the discovery of a
-buried equivocation in the logic.
+invention. First, **soundness**: the level-0 theorem comes not by stipulation but
+as a consequence of the calculus Peirce built and Dau proved sound. Second, the
+**late Peirce** himself — the *Phemic Sheet* of the 1906 *Prolegomena*, which
+analyzes assertion not as a graphical permission but as a *normative act*: to
+assert means to **assume responsibility**, to expose oneself to penalty should the
+claim fail. On that analysis a scribed replica counts as a *proper* assertion only
+given a universe agreed between parties, the conventions fixing the marks, **and**
+the utterer's act of taking responsibility. "Assertion" was never a feature of
+depth; it was always interpretant-side and act-side. The author claims that Peirce
+knew this and that the *formal/diagrammatic EG presentations left it implicit* —
+so the departure leaves those presentations, in Peirce's own direction. The
+novelty stays modest and real: noticing that diagrammatic EG lacks a
+turnstile-equivalent, and supplying one operationally as a runtime warrant
+gradient. It does not amount to the discovery of a buried equivocation in the
+logic.
 
 **A construction, not an unconditioned posit — and no unconditioned posit at all.**
 One might object that the scroll `cut[ M cut[P] ]` ("P given M") merely relocates the
 unconditioned saying to its antecedent M — M has to be scribed *somewhere*. It does
 not. M cannot be scribed *anywhere unconditioned*, because the **Alpha asymmetry**
 forbids it: `INS` introduces content only in *negative* contexts, so a contingent M on
-the positive recto is not a foundation but a **forbidden move**. M enters legally only
+the positive recto stands not as a foundation but as a **forbidden move**. M enters legally only
 by nesting from the blank (`DC+` opens a negative ring · `INS` places the given · `IT+`
-carries it where it must bear · `DC+` opens the next), where it is a *defeasible* given
-— sweepable, never incorrigible. The regress of "what conditioned this M?" bottoms out
+carries it where it must bear · `DC+` opens the next), where it remains a *defeasible*
+given — sweepable, never incorrigible. The regress of "what conditioned this M?" bottoms out
 not in a brute contingent assertion but in the **blank** — unconditioned yet
 *contentless* ([LEVEL_ZERO_AND_THE_REGISTERS.md](LEVEL_ZERO_AND_THE_REGISTERS.md) §5,
-§8). The thesis is therefore **gapless**: not merely "no *derived* contingent content
+§8). The thesis therefore stands **gapless**: not merely "no *derived* contingent content
 floats free at level 0," but "**no unconditioned posit anywhere** — the blank alone is
-unconditioned, and it asserts nothing." What the calculus does not fix is *which* M;
-that is the proper contingency, not a gap. *(This closes the `assertion-4` concession
+unconditioned, and it asserts nothing." The calculus does not fix *which* M;
+that remains the proper contingency, not a gap. *(This closes the `assertion-4` concession
 recorded in [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md), Departure II — an
 over-concession; the Departure II verdict is otherwise unchanged.)*
 
-**What is genuinely at stake.** The load-bearing move is about **names**: the
+**What is genuinely at stake.** The load-bearing move concerns **names**. The
 hope that calling a positive-context insertion "an assertion" might *license* it
-is the same error as hoping a broken cut could seat mode in the proposition — an
+repeats the error of hoping a broken cut could seat mode in the proposition — an
 attempt to let a name on one correlate purchase a permission on another. One joint
-is left honestly open (whether negative-context placement *constitutes*
-fallibility or merely *diagrams* it), and that joint is the author's to close, not
-the notation's.
+stays honestly open (whether negative-context placement *constitutes*
+fallibility or merely *diagrams* it), and that joint falls to the author to close,
+not to the notation.
 
 ### 3b. Appendix — the operational completion (2026-07-15)
 
@@ -297,11 +301,11 @@ re-derived this departure from the mechanics alone and completed it operationall
 The register gains five corollaries, each in its favor:
 
 1. **Validity by construction.** Under the discipline every reachable graph — and
-   the whole Universe of Discourse, each transition rule-licensed — is *valid by
-   construction* (the blank is valid, the six rules preserve validity, induction
+   the whole Universe of Discourse, each transition rule-licensed — stands *valid
+   by construction* (the blank is valid, the six rules preserve validity, induction
    over the chain). A false supposition in an odd context is *truly enabled*:
-   insertion there is unconditionally sound, so error is quarantined by the scroll
-   and charged to the player's ledger, never to the sheet.
+   insertion there is unconditionally sound, so the scroll quarantines error and
+   charges it to the player's ledger, never to the sheet.
 2. **The depth-0 inventory theorem.** What may stand uncircumscribed in the
    sheet's own area is exactly: nothing (the blank); seps (every *saying* at
    depth 0 lives inside one); and heavy dots — bare "something exists," which
@@ -326,8 +330,8 @@ The register gains five corollaries, each in its favor:
    the **fallibilist pole** while the standing structure still asserts
    nothing: enlargement = one licensed INS of a closed cell, retraction = one
    licensed ERA inside a cell (the emptied husk a visible scar), the
-   withdrawal triple retiring to rare full replacement. The register reading:
-   even depth is the Verifier's committal territory — M as *in-context
+   withdrawal triple retiring to rare full replacement. On the register reading,
+   even depth serves as the Verifier's committal territory — M as *in-context
    agreement*, no longer a supposition heap.
 5. **Presence is play — the three tenses.** Ink at first order cannot be held
    "without force" (a double cut around a retired law is inert — it still binds).
@@ -340,21 +344,22 @@ The register gains five corollaries, each in its favor:
    [SECOND_ORDER_FRONTIER.md](SECOND_ORDER_FRONTIER.md)).
 
 The assertive-graphs literature (Bellucci, Chiffi & Pietarinen 2021, "Beta
-Assertive Graphs") bears on the register in its favor: it documents that the gloss
-this departure rejects is the *live standard reading* (so the departure is real,
-not a strawman), and exhibits the price of the notational alternative — making
-assertion the object logic costs the classical calculus (their system comes out
-intuitionistic, with two non-interdefinable quantifier lines). Arisbe buys
+Assertive Graphs") bears on the register in its favor. It documents that the gloss
+this departure rejects remains the *live standard reading* (so the departure is
+real, not a strawman), and it exhibits the price of the notational alternative —
+making assertion the object logic costs the classical calculus (their system comes
+out intuitionistic, with two non-interdefinable quantifier lines). Arisbe buys
 assertion-sensitivity as a regimen on *acts*, leaving the Dau-classical core
-untouched; their intuitionistic caution is the same instinct Arisbe places in the
-open-world verdict semantics instead.
+untouched; their intuitionistic caution expresses the same instinct Arisbe places
+in the open-world verdict semantics instead.
 
-Since 2026-07-15 the discipline is **enacted in the attested corpus**, and since
-2026-07-16 (sweep #2, the second relocation) in the **live automated loops** as
-well: M's elements reside in cells at even depth of the standing world-scroll,
-every M-change is an explicit rule-licensed single move (INS-of-cell /
-ERA-in-cell) and every verdict a recomputable peel record, guarded by a standing
-gate (`tests/test_corpus_polarity_discipline.py`). One regime, corpus and loops.
+Since 2026-07-15 the discipline stands **enacted in the attested corpus**, and
+since 2026-07-16 (sweep #2, the second relocation) in the **live automated loops**
+as well: M's elements reside in cells at even depth of the standing world-scroll,
+every M-change runs as an explicit rule-licensed single move (INS-of-cell /
+ERA-in-cell) and every verdict stands as a recomputable peel record, guarded by a
+standing gate (`tests/test_corpus_polarity_discipline.py`). One regime, corpus and
+loops.
 
 ---
 
@@ -363,14 +368,14 @@ gate (`tests/test_corpus_polarity_discipline.py`). One regime, corpus and loops.
 **Peirce's position.** The Alpha/Beta graphs handle truth-functions and first-
 order quantification; *modality, higher-order predication, abstraction, and the
 logic of the graphs themselves* require a further system — **Gamma**. Peirce
-pursued it for years: the **broken cut** for possibility/necessity on a single
-static sheet, then the **tinctures** (provinces, modes of being) when the broken
-cut "couldn't handle iteration." Gamma was left unfinished at his death and is
-widely treated as the great incomplete frontier of the graphs.
+pursued it for years: first the **broken cut** for possibility/necessity on a
+single static sheet, then the **tinctures** (provinces, modes of being) when the
+broken cut "couldn't handle iteration." Gamma remained unfinished at his death,
+and the tradition widely treats it as the great incomplete frontier of the graphs.
 
-**The Arisbe position.** *Gamma conceived as a modal extension is not a problem
-Arisbe needs to solve.* The work the broken cut and tinctures were meant to do is
-carried, exactly and without remainder, by structure Arisbe already maintains:
+**The Arisbe position.** *Gamma conceived as a modal extension poses no problem
+Arisbe needs to solve.* Structure Arisbe already maintains carries, exactly and
+without remainder, the work the broken cut and tinctures were meant to do:
 
 - A modal operator is not primitive content. By the **standard translation**, □
   and ◇ are quantifiers over a Kripke frame: □φ at w is ∀w′(R(w,w′)→φ at w′). The
@@ -398,15 +403,16 @@ theorem does *not* govern. That carried line makes substantive, contested
 commitments — **necessity of identity**, and (with a fixed carried domain) the
 **converse Barcan formula** — that depend on a stated **domain policy** (constant
 vs. varying/expanding). We owe that policy and flag these as undischarged rather
-than calling trans-world identity "home ground" for free. The claim is therefore
-**adequacy, not completeness**, and bounded several ways: GL/provability,
+than calling trans-world identity "home ground" for free. The claim therefore
+reads **adequacy, not completeness**, and stays bounded several ways: GL/provability,
 common-knowledge, and temporal-liveness modalities are not first-order-definable
 and are *everyday*, not exotic — they belong to the MODALITY_WITHOUT_GAMMA §7
 second-order residue, and the MODALITY_WITHOUT_GAMMA §1 provability/trajectory
 reading is *gestured at*, not constructed; counterfactuals (Lewis/Stalnaker
 sphere semantics, not one R) and the object-language actuality operator @
-(forgone by floor #6, not served) are uncovered. Succinctness is traded for
-explicitness; the result is an *adequacy argument*, not a mechanized theorem.
+(forgone by floor #6, not served) are uncovered. The trade gives up succinctness
+for explicitness; the result stands as an *adequacy argument*, not a mechanized
+theorem.
 
 **What is genuinely at stake — and what is conceded.** The author does **not**
 claim Gamma was empty. He claims its *modal* ambition is dischargeable without new
@@ -415,8 +421,8 @@ when it was two. **The real, irreducible residue is real and is kept:** *second-
 order logic about the graphs themselves* — graphs of graphs, abstraction,
 predication of qualities — which is genuinely higher-order and genuinely
 ineliminable, and which Arisbe treats as the live frontier (the φ-hole/schema
-node, the math track), **not** as a colour on the sheet. So the departure is
-narrower than "Gamma is unnecessary": it is "Gamma's *modal* program is
+node, the math track), **not** as a colour on the sheet. So the departure runs
+narrower than "Gamma is unnecessary": it says "Gamma's *modal* program is
 unnecessary; Gamma's *second-order* program is the actual frontier, and it is not
 modality."
 
@@ -426,7 +432,7 @@ modality."
 
 **Peirce's position.** Identity is not a relation but the **line of identity
 itself**. Two hooks joined by one continuous line *are* one individual: the sign is
-an **icon** of identity, not a statement about it. This is among the most beautiful
+an **icon** of identity, not a statement about it. This stands among the most beautiful
 things in the system — Beta needs no `=` sign at all, because sameness is drawn
 rather than predicated, and the teridentity spot lets three lines meet without any
 symbol intruding.
@@ -441,20 +447,21 @@ you cannot make two lines *become* one line as the conclusion of an inference.
 **The departure.** Where identity must be concluded, Arisbe scribes `(= x y)` — an
 equality **spot**, with the ordinary axioms (reflexive, symmetric, transitive,
 congruent), exactly as first-order logic with equality does. This is a genuine loss
-of iconicity, and it is *not* patched over: the fixtures say `(= x y)` in plain
+of iconicity, and Arisbe does *not* patch it over: the fixtures say `(= x y)` in plain
 sight (`docs/MATH_FIXTURES_ZFC_PEIRCE_1881.md`), and Arisbe's EGIF has no
 coreference-node syntax pretending otherwise.
 
 **What is kept.** Everywhere identity is merely *asserted* — which is the
 overwhelming majority of graphs, and all of Beta's expressive power over
 individuals — Arisbe still draws it Peirce's way: **one shared line, no symbol**.
-The teridentity is intact. The departure is surgical: it bites only at the point
-where an identity is the *conclusion* of a derivation.
+The teridentity stays intact. The departure cuts surgically: it bites only at the
+point where an identity stands as the *conclusion* of a derivation.
 
 **Why this is honest rather than convenient.** The alternative would be to let a
-rule *join* two lines as an inferential act. That is expressible (it is what a
-substitution rule does), but it would make identity a rule of the calculus rather
-than a feature of the drawing — trading a visible departure for an invisible one.
+rule *join* two lines as an inferential act. That remains expressible (a
+substitution rule does exactly this), but it would make identity a rule of the
+calculus rather than a feature of the drawing, trading a visible departure for an
+invisible one.
 We would rather the reader see the `=` and know exactly what was given up. See
 [MATHEMATICS_FROM_THE_SHEET](MATHEMATICS_FROM_THE_SHEET.md) rung 4.
 
@@ -464,7 +471,7 @@ We would rather the reader see the `=` and know exactly what was given up. See
 
 The departures did not arise in a vacuum. Each responds to a genuine knot —
 some in Peirce's own unfinished record, some in the tradition that has read him.
-Naming them is part of the honesty; they are stated as the author's *reading*,
+Naming them belongs to the honesty; they stand as the author's *reading*,
 explicitly open to correction by those who know the corpus better.
 
 **In Peirce's own record:**
@@ -477,17 +484,17 @@ explicitly open to correction by those who know the corpus better.
 - The **equivocation around "scribe = assert."** The alpha/beta presentations
   treat scribing on the sheet as assertion; the 1906 Phemic-Sheet material treats
   assertion as an act of assumed responsibility. Both are Peirce. The tension
-  between them is the seam Departure II is about.
+  between them forms the seam Departure II addresses.
 - The standing tension between **fallibilism** and the **final opinion** — between
   "no belief is incorrigible" and "inquiry is fated to converge on the real."
-  Peirce held both; Departure I is a claim about which one is deeper.
+  Peirce held both; Departure I stakes a claim about which one runs deeper.
 
 **In the secondary literature** (named with appropriate humility — the author is
 flagging *where he is pushing against a consensus*, not indicting any scholar):
 
 - **Context-as-enclosure swallowing context-as-ground.** The formal lineage
   (Zeman's dissertation; Roberts' monograph; Dau's formalization) gives a rigorous
-  notion of *context = area individuated by enclosure*. It is silent on context as
+  notion of *context = area individuated by enclosure*. It stays silent on context as
   *ground* — whose sheet, what universe, under what commitments a scribing counts
   as assertion at all. A careful reader infers the second is handled because the
   first is handled so well. It is not. (Departure II.)
@@ -508,19 +515,19 @@ flagging *where he is pushing against a consensus*, not indicting any scholar):
   parity (not, as the original draft had it, a settled non-convergence thesis).
   (Departure I.)
 
-The dialogical reading the author leans on most (Pietarinen's endoporeutic work,
-Hintikka-style game semantics) is taken as an *ally*, not an opponent: it is the
-part of the tradition that already locates meaning in the act and the contest
-rather than in the static mark, which is the same instinct all three departures
+The author takes the dialogical reading he leans on most (Pietarinen's
+endoporeutic work, Hintikka-style game semantics) as an *ally*, not an opponent:
+that part of the tradition already locates meaning in the act and the contest
+rather than in the static mark — the same instinct all three departures
 express.
 
 ---
 
 ## 6. The charge to the opposition
 
-This is the operative section. The author asks that the three departures be
-examined **by an opposing mind** — and the strongest version of the opposition,
-not a strawman. Four chairs are set for the prosecution; an examination should
+This section does the operative work. The author asks that the three departures
+be examined **by an opposing mind** — and the strongest version of the opposition,
+not a strawman. Four chairs stand set for the prosecution; an examination should
 fill each and press the specific charge.
 
 1. **The traditional Peircean.** Charge: the departures misread Peirce. The final
@@ -563,23 +570,23 @@ wanted to break it.
 
 The author's commitment, recorded plainly: **he would rather lose a departure to
 a good argument than hold it on conviction.** A departure that survives a serious
-adversarial examination is held on better terms than before; a departure that
-falls is a correction, not a defeat. What must *not* happen is the comfortable
-outcome where the opposition is too weak to land — which is why §6 names the
-strongest charges and why the examination should be run, where possible, by minds
-(or independent agents instructed to be) genuinely trying to win for the other
-side.
+adversarial examination stands on better terms than before; a departure that
+falls counts as a correction, not a defeat. One outcome must *not* happen: the
+comfortable one, where the opposition proves too weak to land. That is why §6
+names the strongest charges, and why the examination should be run, where
+possible, by minds (or independent agents instructed to be) genuinely trying to
+win for the other side.
 
 This document was the indictment. **The verdict is now in** — a five-round
 adversarial examination ran the four chairs above, and the departures in §§2–4
 have been amended to their post-examination form. The full record, with the
-strongest case against each departure and the rulings, is
-[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md). Headline: all three
+strongest case against each departure and the rulings, lives in
+[ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md). The headline: all three
 **survive with amendment** — none fell, and none escaped untouched. Departure I
 lost its original headline ("inquiry does not converge") and its first lever (the
 regulative/constitutive distinction), keeping a narrower, sharper claim resting on
 one named open joint; Departures II and III survive as scope-corrections. The
-standard was met: the departures are now held on tested terms, with their debts
+standard was met: the departures now stand on tested terms, with their debts
 booked in the open.
 
 ---
@@ -598,10 +605,10 @@ panel plus an iterative dissolution-press; the full record is
 [ADVERSARIAL_EXAMINATION.md](ADVERSARIAL_EXAMINATION.md), "Examination II"). **Neither
 survived as an independent perspective.** Pressed, both dissolved back into the three
 departures plus a conceded structural realism — the outcome §7 courts. This corollary
-records what they became; it is not a fourth or fifth departure.
+records what they became; it does not add a fourth or fifth departure.
 
 **A is `departure_absorbed`** (≈0.81). It carries no proposition independent of
-Departure I and Departure II. Two charges were decisive. First, the claim that a
+Departure I and Departure II. Two charges proved decisive. First, the claim that a
 context-less *end* is *malformed* "just as the unenclosed proposition is at level 0"
 is a **category mistake**: level-0 unsayability is a syntactic theorem about *marks*
 (Secondness), while an end / final cause is **Thirdness** — a real general that needs
@@ -621,7 +628,7 @@ it already ranges over Omega and the Final Opinion; what A *performs* is the ref
 grant tradition's respectable, on-record termini the dignity-exemption their owners
 might have spared. That is a use of owned content and good pedagogy (the FSM is the
 memorable way to teach the universal), not a new claim. Ends *in context* — arguments
-end, [episodes](GLOSSARY.md#episode) end, a player conceives a goal and lays plans to win — are real
+end, [episodes](GLOSSARY.md#episode) end, a player conceives a goal and lays plans to win — remain real
 throughout; A obviates no ends, only the context-less terminus *the game is said to
 serve*.
 

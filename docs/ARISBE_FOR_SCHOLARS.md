@@ -31,43 +31,44 @@ explains why this introduction exists.
 
 Most tools that "support" Existential Graphs treat the diagram as a *rendering* of
 an underlying formula — a picture downstream of the logic. Arisbe inverts this.
-The drawn mark **is** the logical sign: every pixel inside a drawn cut line is a
-child of that cut's area; containment, incidence, and ligature-crossing are read
-off the drawn shape, identically across visual styles (Dau, Peirce-authentic,
-Sowa). The linear form (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))/Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))/Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))) and the graphical form are two projections
+The drawn mark **is** the logical sign. Every pixel inside a drawn cut line
+counts as a child of that cut's area; containment, incidence, and
+ligature-crossing come straight off the drawn shape, identically across visual
+styles (Dau, Peirce-authentic,
+Sowa). The linear form (Existential Graph Interchange Format ([EGIF](GLOSSARY.md#egif))/Conceptual Graph Interchange Format ([CGIF](GLOSSARY.md#cgif))/Common Logic Interchange Format ([CLIF](GLOSSARY.md#clif))) and the graphical form stand as two projections
 of one coordinate-free structure, and Arisbe holds them in provable
 correspondence.
 
-This is enforced at runtime. A §3.3 *correspondence attestation* (`attest_correspondence`,
+The system enforces this at runtime. A §3.3 *correspondence attestation* (`attest_correspondence`,
 §3.3 of [LINEAR_GRAPHICAL_CORRESPONDENCE.md](LINEAR_GRAPHICAL_CORRESPONDENCE.md))
-checks every (Existential Graph Instance ([EGI](GLOSSARY.md#egi)), drawing) pair before it is served, saved, or admitted to the
-corpus, and **refuses** any pair that does not correspond — raising a
+checks every (Existential Graph Instance ([EGI](GLOSSARY.md#egi)), drawing) pair before the system serves, saves, or admits it to the
+corpus, and **refuses** any pair that fails to correspond, raising a
 `CorrespondenceViolation` rather than displaying a graph that means something
-other than it says. The invariant is scoped to three regimes, which keeps it
+other than it says. Three regimes scope the invariant, which keeps it
 honest rather than tyrannical: **composition** (workshop drafts — suspended),
 **asserted/canonical** (every rule application, every corpus item — mandatory and
 attested), and **presentation-only** (restyling and hand-nudges — free by
 construction, preserved through a dedicated regime-3 API).
 
 To my knowledge this *inerrant, runtime-attested* coupling of the linear and the
-diagrammatic is unusual if not novel, and it is the contribution I would most want a Peirce
-scholar's eyes on: it is a precise, mechanized claim about the iconicity of EGs —
-that the graph is not a notation *for* a proposition but a sign that *is* one.
+diagrammatic stands as unusual if not novel, and on this contribution I would most want a Peirce
+scholar's eyes. It makes a precise, mechanized claim about the iconicity of EGs:
+the graph serves not as a notation *for* a proposition but as a sign that *is* one.
 
 ## What is built today
 
 - **The transformation engine** — Dau's six rules (ERA, INS, IT+, IT−, DC+, DC−),
   Beta-aware (lines of identity, shared vertices across cuts), with a headless
   stepwise protocol for constructing and replaying proofs. The mathematical core
-  has a protected test suite that must always pass.
+  carries a protected test suite that must always pass.
 - **Linear ↔ graphical round-tripping** — production parsers/generators for
   **EGIF**, **CGIF** (ISO/IEC 24707-adjacent), and **CLIF** (Common Logic), tested
   across ~90 canonical examples, plus First-Order Predicate Logic ([FOPL](GLOSSARY.md#fopl)) translation in Dau's Chapter-18 sense.
 - **Layout as projection** — a coordinate-free "natural layout" (containment tree,
   per-ligature required crossing-sequence, incidence, ports) from which concrete
-  drawings are derived; the renderer is a pluggable projection, and a reader
-  (`read_drawing`) recovers the graph from geometry alone — the inverse
-  direction that makes freeform *drawing a graph by hand* a first-class way in.
+  drawings derive. The renderer works as a pluggable projection, and a reader
+  (`read_drawing`) recovers the graph from geometry alone. That inverse
+  direction makes freeform *drawing a graph by hand* a first-class way in.
 - **A curated corpus** of worked items, each carrying typed provenance and an
   annotation layer: authored and transcribed **proofs** (Peirce's Law, Barbara,
   the uniqueness of the group identity, Leibniz's *Praeclarum Theorema*),
@@ -75,20 +76,21 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
   **ontologies** (Porphyry's Tree, a FOAF slice, the upper spine of SUMO), and
   **diachronic model-development runs** the automated game itself produced.
 - **The Endoporeutic Game, playable and autonomous** — the interpretation
-  register (*given M, then G*: choose a reference model, [peel](GLOSSARY.md#peel) the proposal
-  against it to a three-valued verdict with the witness or counterexample
-  named); M **materializable** (facts + Horn rules → the least Herbrand model);
-  ontology-as-M theorem queries; and the full **automated game** — three
-  Large-Language-Model roles (a Graphist voicing doubts, a Grapheus defending
-  M, an Agonothetes selecting among the votes cast — never a referee) arguing
-  under an incorruptible mechanical peel (*the LLM
-  argues, the calculus decides*), with **live membranes** feeding it (Wikidata's
-  crawl and recent-changes stream, run bounded, paced, and checkpointed) and a
-  meta-learning layer studying which resolution mechanisms produce durable
+  register plays *given M, then G*: choose a reference model, then
+  [peel](GLOSSARY.md#peel) the proposal against it to a three-valued verdict,
+  with the witness or counterexample named. M can be **materialized** (facts
+  plus Horn rules forward-chain to the least Herbrand model), and an ontology
+  can stand as M for theorem queries. The full **automated game** runs as
+  well: three Large-Language-Model roles — a Graphist voicing doubts, a
+  Grapheus defending M, an Agonothetes selecting among the votes cast, never
+  a referee — argue under an incorruptible mechanical peel (*the LLM
+  argues, the calculus decides*). **Live membranes** feed it (Wikidata's
+  crawl and recent-changes stream, run bounded, paced, and checkpointed), and a
+  meta-learning layer studies which resolution mechanisms produce durable
   knowledge.
 - **The discipline of the record** — nothing contingent stands unguarded at the
   sheet's top level (M resides in a standing world-scroll of cut-wrapped
-  cells); every model change is a licensed rule application carrying its
+  cells); every model change runs as a licensed rule application carrying its
   executed derivation; entertained hypotheses are drawn *without force* and
   discharge only through a confirming evaluation; a standing corpus gate
   re-verifies every recorded verdict, forever.
@@ -104,31 +106,32 @@ that the graph is not a notation *for* a proposition but a sign that *is* one.
 
 ## The second storey — the program, and the contribution we would headline
 
-Since 2026-07 the project states, beside the instrument, a research program —
+Since 2026-07 the project states, beside the instrument, a research program,
 voiced deliberately as **a proposition scribed into a wider Endoporeutic
-Game**, in which the traditions and communities addressed are the other
-players: it *proposes* rather than asserts, its pre-registered priors and run
-logs are peels already played, and a competent refutation would be the game
+Game** in which the traditions and communities addressed play as the other
+players. It *proposes* rather than asserts; its pre-registered priors and run
+logs stand as peels already played; a competent refutation would mean the game
 working, not the game lost ([VISION_AND_SCOPE.md](VISION_AND_SCOPE.md) §8,
 with a four-grade warrant discipline; the claim-by-claim examination is
 [CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md)'s graded
 concordance map).
 
-**The contribution we would headline for logicians and Peirce scholars is the
-treatment of the *question*: erotetics with an economics, on an indexed
-record.** A verdict of UNKNOWN is not a terminus here. It mints a standing
-question — the {atom, denial} pair — as a first-class object of the record,
-which then has a *career*: traced for the consequences of each answer
-(materiality, a vector, never a scalar), **priced** by an attention economy
-(severity · cost · decay) so that open questions compete for the inquirer's
-next probe instead of evaporating, and **settled only by licensed ink** — the
-record resolves a question only by citing the sound, replayable step that
-introduced its answer. The whole structure is an **index over the reasoning
-record** ("index-over-ink"): it holds no evidence of its own, only pointers to
-gate-checked steps, re-checkable forever — evidence lives in the record,
-earned, or nowhere. We read this as Peirce's account of doubt and inquiry made
-operational — the question given the same formal citizenship as the assertion
-— and as a unification: the erotetic tradition (Hamblin, Belnap, Wiśniewski),
+**For logicians and Peirce scholars we would headline the treatment of the
+*question*: erotetics with an economics, on an indexed
+record.** A verdict of UNKNOWN marks no terminus here. It mints a standing
+question, the {atom, denial} pair, as a first-class object of the record, and
+the question then has a *career*. The record traces the consequences of each
+answer (materiality, a vector, never a scalar). An attention economy
+**prices** each question (severity · cost · decay), so that open questions
+compete for the inquirer's next probe instead of evaporating. And a question
+is **settled only by licensed ink**: the record resolves it only by citing the
+sound, replayable step that introduced its answer. The whole structure
+amounts to an **index over the reasoning record** ("index-over-ink"). It
+holds no evidence of its own, only pointers to gate-checked steps,
+re-checkable forever; evidence lives in the record, earned, or nowhere. We
+read this as Peirce's account of doubt and inquiry made operational — the
+question given the same formal citizenship as the assertion — and as a
+unification: the erotetic tradition (Hamblin, Belnap, Wiśniewski),
 truth-maintenance, attention, modality (alternatives contested across the
 diachronic record's branching futures), and the deliberative interval meet in
 one structure
@@ -146,27 +149,28 @@ the worked corpus exemplar is `swan_alternatives`).
   non-technical language; the
   [ENDOPOREUTIC\_GAME_GUIDE.md](ENDOPOREUTIC_GAME_GUIDE.md) gives the formal
   account and its Peircean grounding.
-- **Work with a shared, inspectable corpus.** Every proof is a real chain of sound
+- **Work with a shared, inspectable corpus.** Every proof stands as a real chain of sound
   rule applications with deterministic provenance; every item states its source
-  and its warrant; the standing gates re-verify the record on every run. The
-  corpus is meant to grow by contribution.
+  and its warrant; the standing gates re-verify the record on every run. We
+  mean the corpus to grow by contribution.
 - **Reproduce and publish.** Export any attested graph — including your own
   hand-adjusted arrangement of it — as compilable TikZ with scholarly
   citations ([FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md](FEATURE_PEIRCE_SCHOLARLY_REPRODUCTION.md)).
 - **Probe the research claims directly.** The correspondence invariant, the
   question-career machinery, the [Agonothetes](GLOSSARY.md#agonothetes)
-  construct, and the program's graded claims are all open to critique — and
-  the code is the argument: each is a module you can read, run, and try to
+  construct, and the program's graded claims all stand open to critique — and
+  the code is the argument: each lives in a module you can read, run, and try to
   break. (Exact commands — the core suite, the conservativity gate, a worked
   chain end to end — are in [GETTING_STARTED.md](GETTING_STARTED.md), the
   logician door's "How to try to break it.")
 
 ## The frontier (stated honestly)
 
-What an earlier revision of this page listed as unbuilt has since shipped: the
+What an earlier revision of this page listed as unbuilt has since shipped. The
 ontology-as-M pipeline (Web Ontology Language ([OWL](GLOSSARY.md#owl))→CLIF→EGI, with SUMO/FOAF/Porphyry imported
 and theorem queries deciding subsumption against them) and the automated game
-with dynamic M-development are real, run, and logged (`runs/`). The honest
+with dynamic M-development exist as real systems; they run, and they leave
+logs (`runs/`). The honest
 frontier today:
 
 - **The browser arena is hot-seat; the autonomous game runs headless.** The
@@ -193,36 +197,37 @@ others) are now being prepared separately, and the questions belong to the
 whole tradition:
 
 1. **The *Agonothetes*.** Peirce's game terminates at a dyad — true or false. But
-   his own semiotic is irreducibly triadic, so we name a third, *telic* function:
-   the Agonothetes (ἀγωνοθέτης, "organizer of the contest") is the **interpretant**
-   of the game-as-semiosis — not a third player (the ratified account: two
-   players only, no move-by-move referee, since legality belongs to the
-   calculus) but the maker of two **risked choices**: before play, the choice
-   of the reference model M; after, the selection of the outcome's fate from
-   an agreed taxonomy. We believe this is faithful to Peirce; we would like to
-   be told if it is not.
+   his own semiotic remains irreducibly triadic, so we name a third, *telic*
+   function. The Agonothetes (ἀγωνοθέτης, "organizer of the contest") is the
+   **interpretant** of the game-as-semiosis. Not a third player — the ratified
+   account allows two players only and no move-by-move referee, since legality
+   belongs to the calculus — but the maker of two **risked choices**: before
+   play, the choice of the reference model M; after, the selection of the
+   outcome's fate from an agreed taxonomy. We believe this is faithful to
+   Peirce; we would like to be told if it is not.
 2. **The correspondence invariant as mechanized iconicity.** The runtime guarantee
-   that the drawn graph and its symbolic form denote one object is, in effect, an
-   operational claim about the iconic character of EGs. Whether it captures what
-   Peirce meant by the diagram *being* the proposition — rather than standing for
-   it — is exactly the kind of question we are not equipped to settle alone.
+   that the drawn graph and its symbolic form denote one object amounts, in
+   effect, to an operational claim about the iconic character of EGs. Does it
+   capture what Peirce meant by the diagram *being* the proposition, rather
+   than standing for it? Exactly the kind of question we are not equipped to
+   settle alone.
 3. **Modality without Gamma.** Arisbe draws no modal mark: the diachronic
    branching record is itself the drawn Kripke frame
    ([MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md)). We know this runs
    against the rehabilitated broken-cut calculi (Ma & Pietarinen 2018); our
-   claim is deliberately adequacy, not completeness — and whether that
-   positioning is honest is for the tradition to judge.
-4. **Mention-ascent.** The dotted oval — Peirce's graph-of-a-graph — is
-   carried in the core as quotation (mention, never use), conservativity-gated
+   claim remains, deliberately, adequacy rather than completeness — and
+   whether that positioning is honest falls to the tradition to judge.
+4. **Mention-ascent.** The dotted oval, Peirce's graph-of-a-graph, lives in
+   the core as quotation (mention, never use), conservativity-gated
    so the second-order layer licenses no new first-order assertion. Is this
    the right reading of Peirce's device, and of hypostatic abstraction as the
    ascent operator?
 
 You know more about Peirce's existential graphs than we do, and almost certainly
 more about how an effort like this might serve scholars, teachers, and students.
-That is the collaboration we are seeking: a reading from someone in the tradition,
-a steer on where the formalization is sound and where it strays, and — if any of
-it proves useful — a way to make it useful to the people who study and teach this
+We seek that collaboration: a reading from someone in the tradition,
+a steer on where the formalization holds sound and where it strays, and, if any of
+it proves useful, a way to make it useful to the people who study and teach this
 logic.
 
 ## Pointers

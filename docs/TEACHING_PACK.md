@@ -59,7 +59,7 @@ pitfalls in Peirce's own terms.
 
 | Capability | What it does | Where |
 |---|---|---|
-| **Grade by meaning** | `grade(target, attempt) → DiffReport`: isomorphism (`same_graph`) for pass/fail, plus a **legible diff** in EG vocabulary (missing / extra / wrong scope / wrong incidence / wrong argument order) when it's wrong. Surface form is irrelevant — a student who draws the right graph a different way still passes. | `challenge_mode.py`, `egi_diff.py` |
+| **Grade by meaning** | `grade(target, attempt) → DiffReport`: isomorphism (`same_graph`) for pass/fail, plus a **legible diff** in EG vocabulary (missing / extra / wrong scope / wrong incidence / wrong argument order) when it's wrong. Surface form counts for nothing — a student who draws the right graph a different way still passes. | `challenge_mode.py`, `egi_diff.py` |
 | **A difficulty ladder** | A curated `CHALLENGE_BANK` of drawable targets, each introducing *exactly one* new correspondence skill, from `(man "Socrates")` up to a shared line of identity crossing a cut boundary. Each rung carries the *dragon* it trains + the antidote shown on a wrong grade. | `challenge_mode.py`; `GET /ergasterion/challenges` |
 | **Draw-then-read composition** | Students place typed marks on a free canvas (no live EGI), then "fix" the drawing into a real EGI via `read-drawing`/`fix-drawing`. The grader runs on the fixed graph. | `drawing_to_egi.py`, `eg_reader.py`; the freeform canvas |
 | **Worked-chain exemplars** | Real, replayable proofs seeded into the corpus — the propositional quartet (all six rules), Peirce's Law, Barbara, the *Praeclarum Theorema*. Each is a `ProofChain`: one captioned step per rule, every intermediate §3.3-attested. | `tools/build_*_chain.py`, `tools/build_propositional_exemplars.py`; [EXEMPLARS](EXEMPLARS.md) |
@@ -69,9 +69,9 @@ pitfalls in Peirce's own terms.
 ## Authoring your own problem set (keyed to a syllabus)
 
 Today the challenge bank lives as a curated Python list (`CHALLENGE_BANK` in
-`challenge_mode.py`) — ten rungs, hand-authored, each a `Challenge` dataclass.
+`challenge_mode.py`) of ten hand-authored rungs, each a `Challenge` dataclass.
 To build a set for *your* syllabus, add rows; the routes and the in-app ladder
-follow automatically. The linear-format registry works the same way: declare in
+follow automatically. The linear-format registry works the same way. Declare in
 one place, and everything follows.
 
 ```python
@@ -141,10 +141,10 @@ then grade as above. An ill-formed drawing returns validity feedback
 | **A drawn/fixed graph** vs a target | **Yes** — `same_graph` + legible diff | "Represent this argument's conclusion." Objective, surface-independent. |
 | **A `ProofChain`** (premises → conclusion, step by step) | **Yes** — every step is a sound Dau rule (`RuleInteraction` refuses an illegal move) and every state is §3.3-attested; replayable as a storyboard | "Derive it, showing your work." The machine confirms each step is legal; you assess strategy. |
 | **A freehand drawing** (pre-fix) | **Partly** — `drawing_validity` flags dangling lines, overlapping cuts, straddles | "Draw it well." Catches malformed pictures before meaning is even read. |
-| **An interpretation** ("in what world does G make sense?") | **No** (by design) — this is the interpretation register; the peel gives a verdict + witness, but the *choice of model* is the student's argument | Seminar-style: assess reasoning, use the verdict as evidence. |
+| **An interpretation** ("in what world does G make sense?") | **No** (by design) — this is the interpretation register; the peel gives a verdict + witness, but the *choice of model* remains the student's argument | Seminar-style: assess reasoning, use the verdict as evidence. |
 
-The division is the point: **formation and legal transformation are
-machine-graded; interpretation and strategy are human-graded** — and the tool
+The division carries the point. **The machine grades formation and legal
+transformation; a human grades interpretation and strategy** — and the tool
 tells you honestly which is which (the soundness boundary again,
 [SOUNDNESS_BOUNDARY](SOUNDNESS_BOUNDARY.md)).
 
@@ -167,25 +167,26 @@ Peirce meant the graphs to be *lived*, not just written.
 
 ## Honest gaps (what an LMS still needs)
 
-These are named, not hidden — and none touches the calculus, so all are additive
-web-tier work:
+These stand named, not hidden. None touches the calculus, so all of them amount
+to additive web-tier work:
 
-- **No multi-user / roster / gradebook.** Sessions are in-memory and
-  single-process; there is no per-student identity, no persistence of who
+- **No multi-user / roster / gradebook.** Sessions live in memory in a single
+  process; no per-student identity exists, and no record persists of who
   submitted what. Grade in a batch script, or add a thin roster layer around the
   pure `grade()` function. See [DEPLOYMENT_AND_MULTIUSER](DEPLOYMENT_AND_MULTIUSER.md).
 - **The bank is code, not a UI.** Authoring targets means editing
   `CHALLENGE_BANK` (or calling `grade()` directly with your own targets). A
   teacher-facing "author a problem set" screen does not exist yet.
-- **No auto-generated syllabus.** The difficulty gradient is hand-curated. A
-  generator that emits a rung per skill from a spec is a natural, unbuilt next
-  step.
+- **No auto-generated syllabus.** The difficulty gradient comes hand-curated. A
+  generator that emits a rung per skill from a spec remains a natural, unbuilt
+  next step.
 - **Submission collection is your job.** Arisbe grades what you hand it; getting
-  N drawings *from* N students (upload, LMS integration) is outside the tool.
+  N drawings *from* N students (upload, LMS integration) lies outside the tool.
 
-The teaching primitives — surface-independent grading, legible EG-vocabulary
-feedback, attested worked chains, the animation lenses — are real and strong.
-The classroom *plumbing* around them is a small, honest integration you own.
+The teaching primitives stand real and strong: surface-independent grading,
+legible EG-vocabulary feedback, attested worked chains, the animation lenses.
+The classroom *plumbing* around them remains a small, honest integration you
+own.
 
 ---
 *Related:* [EXEMPLARS](EXEMPLARS.md) (the worked chains to read) ·
