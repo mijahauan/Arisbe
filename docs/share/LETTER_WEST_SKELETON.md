@@ -77,9 +77,20 @@ row: plurality of viable settlements, a negative claim only).
 - A compact, self-contained **methods note** readable without Arisbe
   vocabulary: what a kytos is operationally, what the cost model counts, how
   K2-durability was equalized — the two-page version a physicist would read
-  first. *(✅ Written Sitting B2 — [WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md),
-  distilled from the six run logs incl. E3c; pointed at from
-  ARISBE_IN_PRACTICE Part IV.)*
+  first. *(Written Sitting B2, then **rewritten 2026-07-28** as an internal
+  methods record after the audit: [WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md)
+  no longer stands behind a letter, and "how K2-durability was equalized" was
+  itself one of the refuted claims — that metric cannot read* false *on this
+  harness.)*
+
+**⚠ THIS SKELETON IS SUPERSEDED.** The author held the West letter on
+2026-07-28 ("we cannot write West, yet. More work remains") after a code audit
+found an **error in the experimental design**. The §2 propositions above — the
+5.2× "at equal durability", the invariant terminal unit, the vector return-gift
+— do not survive it, and the framing fault runs deeper than any of them: a
+monolith has no counterpart as a *terminal unit*. Read
+[WEST_IN_KYTE_PROGRAM](../WEST_IN_KYTE_PROGRAM.md) §8 before reusing anything
+here.
 - The **graded concordance map** row for West with the refuted priors listed
   (exists in CONTRIBUTION_AND_PRIOR_ART).
 - THE_KYTOS for the unit's anatomy, honestly graded (exists; West re-graded

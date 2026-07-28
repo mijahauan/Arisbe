@@ -90,3 +90,37 @@ licensed moves in a meta-Agon over partitions). Candidate refinements surfaced b
 per-round coordinator tax (A3 → true per-round); the FED-retains-more-knowledge observation
 (is it a decay artifact or a real federation advantage?); a p-sweep to find where the passive
 registry breaks (gap > θ) and E1b (the broker) is forced.
+
+---
+
+## Retrospective correction (2026-07-28) — an error in experimental design
+
+*Appended, not rewritten: the run reported what the harness produced, and that
+record stands. What follows corrects the **reading** placed on it, after a
+code-level audit run while drafting a letter to West. Full account:
+`docs/WEST_IN_KYTE_PROGRAM.md` §8.*
+
+- **"At equal durability" carries no evidential weight.** K2 on this harness can
+  read only 1.0 or undefined: the non-decay erasures require panel agents that
+  cannot fire on this feed, and decay-erased episodes are excluded from the
+  stick-rate by construction. A probe found 40% of admissions erased and
+  uncounted. The parity gate compares 1.0 against 1.0 and always passes, so the
+  "more retained *at equal durability*" reading (finding above) is unsupported.
+- **The ~5.2× is a property of the meter.** Cost sums |M| once per round. A
+  monolith spending R rounds against one accumulating model pays ≈ c·R²/2; a
+  federation splitting those rounds across F+1 members pays ≈ c·R²/2(F+1). The
+  ratio therefore tracks member count — 5.21 against 7 here — with decay
+  blunting the quadratic. The result is real and worth having, but it measures
+  *upkeep under partition*, not cheaper reasoning.
+- **Nothing reasoned.** Probed: `rules_applied = 0` and `derived_facts = 0` on
+  every round. K3 = 0.0 (already reported honestly above) records that no
+  inference was available to measure at all.
+- **The members never communicated.** They ran sequentially in isolation; the
+  coordinator afterwards read each finished model and copied out its distinct
+  relation *names* (22 cells at F=4). `routes=0` above is not an idle broker —
+  the broker's result is discarded by its caller, and `consistency_scan`'s loop
+  body is `pass`.
+
+**What still stands from E1:** the paired comparison, the deterministic
+custody-safe harness, and the finding that partitioning a maintenance workload
+lowers total upkeep under a size-charging meter.

@@ -190,26 +190,47 @@ blank. Only the membrane keeps it alive — Peircean Secondness institutionalize
 
 ## 4 · The quantitative frontier (West)
 
-If kytē share one anatomy across scales, their aggregates should exhibit
-**discoverable scaling relations** (the author's *Scale* pointer): deliverance
-throughput as metabolism, the membrane hierarchy as the distribution network, decay as
-turnover. This section could once say only "conjecture until measured." It no longer
-can: the **West-in-kytē program** ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md))
-has now **measured five times, each against pre-registered priors** — run logs
-`runs/WEST_E1_LOG.md` … `runs/WEST_E3B_LOG.md`.
+If kytē share one anatomy across scales, their aggregates might exhibit
+**discoverable scaling relations** (the author's *Scale* pointer). The
+**West-in-kytē program** ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md))
+ran six experiments against pre-registered priors to find out — run logs
+`runs/WEST_E1_LOG.md` … `runs/WEST_E3C_LOG.md`.
+
+> **Correction (2026-07-28, the author's ruling).** An earlier version of this
+> section read the program as measuring *the kytos as one of West's terminal
+> units*, with deliverance throughput as metabolism. A code audit found **an
+> error in the experimental design**, and that reading does not survive: the
+> units in those runs never communicate with one another and never reason (no
+> laws in the corpus, so zero facts derive on any round), the cost meter charges
+> a model's *size* each round rather than any work done, terminal-unit
+> invariance was **imposed** by fixing each unit's corpus slice and round budget,
+> and the durability metric that licensed "at equal quality" cannot read *false*
+> on that harness. Deeper still: **a monolith has no counterpart as a terminal
+> unit** — it is a single unit made big, which West's networks never do — so a
+> MONO correlate would live at the level of a whole community, plausibly
+> competing with another for a niche. What the runs *did* establish stands
+> below; §8 of the program document records the audit, the mis-mapping, and the
+> six conditions a proper terminal-unit test would have to meet. The prospect
+> stays open: designed properly, the question still has much to teach.
 
 **Measured (with priors; refutations reported as findings):**
 
-- **E1 (federation vs monolith, paired).** FED reasons at **~5.2× lower cost** than
-  MONO at equal K2 quality; the passive registry alone kept it coherent (no broker
-  needed). All four priors held.
+- **E1 (federation vs monolith, paired).** Splitting the same workload across
+  bounded units cost **~5.2× less** in total upkeep than holding it in one, and
+  the passive registry alone kept cross-references resolving (no broker needed).
+  All four priors held. *(Read narrowly: the meter charges model size per round,
+  so the ratio tracks the member count; and the "equal quality" clause carries no
+  weight — see the correction above.)*
 - **E2 (the size sweep — the exponent proper).** **β_mono 1.277 > β_fed(I) 1.025**:
-  apportionment's advantage is a *scaling property*, not a fixed discount. P2²–P4²
-  held (terminal-unit invariance emphatic at max/min 1.0012; coordination the binding
-  constraint, with an observed crossover at F=12 and a **25× cost spread from
-  coordinator scan discipline alone**; FED-retains-more shown to be a decay
-  artifact). P1² read **separation-only** — the magnitude bar (β_mono > 1.3) was
-  missed by 0.023; the pre-committed refutation (β_mono ≤ β_fed) was not triggered.
+  apportionment's advantage behaves as a *scaling property*, not a fixed discount,
+  though the monolith's curve bends where decay caps its model, so 1.277 summarizes
+  a slope rather than a clean power law. The durable finding: coordination binds,
+  with an observed crossover at F=12 and a **25× cost spread from coordinator scan
+  discipline alone** — whether apportionment pays at scale turns on how the
+  coordinator gets built, not on the partition. P1² read **separation-only**
+  (the magnitude bar β_mono > 1.3 missed by 0.023); the pre-committed refutation
+  was not triggered. *(P2²'s "terminal-unit invariance" the design imposed;
+  it evidences determinism, not an invariant.)*
 - **E2b (calibration of the partition landscape).** An **interior optimum N\* = 3**
   exists under the naive coordinator (PB1), and the control confirmed the optimum is
   coordination's, not materialization's (PB2: Arm-I monotone to the N=12 endpoint).
@@ -282,21 +303,34 @@ temperament, and the temperament is a studiable knob**: a pre-registerable exper
 — sweep `self_damping`, measure settlement latency against discovery yield — remains
 the named follow-on (the self-damping study).
 
-**Reliability, not analogy (2026-07-20).** The connection to West rests on no metaphor laid over
-biology: a kytos optimizing for **reliable reasoning** and an organism optimizing for **reliable
-energy economics** amount to the same *kind* of thing — selection-driven reliability-optimizations
-over associative networks of invariant terminal units, the "ought" functional and enforced by what
-persists (Peirce's *Fixation of Belief* names reliability-under-recalcitrance, the semiotic
-instance of metabolism's reliability-under-physical-constraint). One caution reframes the whole
-comparison: West's clean *scalar* exponent lives only at the **supply** layer, the distribution
-network he actually modeled. The **allocation-toward-purposes** layer works vectorially and
-reshapes its own selection landscape by niche construction; West brackets it, and a kytos makes it
-*explicit and instrumented* (the disposition taxonomy, the K1–K4 vector measure, the
-participation-sustained commens). So West's universality may itself need a **vector operand**, and
-the kytos may serve as the lens on the vector, landscape-changing structure *beneath* the scalar
-exponent — a contribution back to West, not only borrowed from him. See CURRENT_PLAN item -8
-**Q-E**; measured at one level (this section), conjectured across levels (§5), and the
-honesty-ledger flag on transportability at levels 5–7 applies here with full force.
+**Reliability, not analogy (2026-07-20; qualified 2026-07-28).** The connection to West rests on no
+metaphor laid over biology: a kytos optimizing for **reliable reasoning** and an organism optimizing
+for **reliable energy economics** amount to the same *kind* of thing — selection-driven
+reliability-optimizations over associative networks of invariant terminal units, the "ought"
+functional and enforced by what persists (Peirce's *Fixation of Belief* names
+reliability-under-recalcitrance, the semiotic instance of metabolism's
+reliability-under-physical-constraint). Two cautions now govern how far that reading may travel.
+
+*The layer caution (2026-07-20).* West's clean *scalar* exponent lives only at the **supply**
+layer, the distribution network he actually modeled. The **allocation-toward-purposes** layer works
+vectorially and reshapes its own selection landscape by niche construction; West brackets it, and a
+kytos could make it *explicit and instrumented* (the disposition taxonomy, the K1–K4 vector
+measure, the participation-sustained commens). So West's universality may itself need a **vector
+operand**, and the kytos may serve as the lens on the vector, landscape-changing structure
+*beneath* the scalar exponent — a contribution back to West, not only borrowed from him.
+
+*The evidence caution (2026-07-28).* That vector proposal remains **conjecture, and the E-series
+did not touch it**: three of the four measure-components sat pinned at constants by the choice of
+membrane and corpus, the fourth was never computed, and the one candidate vector effect the program
+pre-registered (a federation retaining more) E2 explained away as an artifact of the decay clock.
+Two further conditions the same audit exposed: the runs contain **no selection** between
+arrangements, where West's exponents arise precisely from selection under constraint; and the
+federation-versus-monolith contrast **cannot bear on terminal units at all**, since a monolith is
+a single unit made big rather than a larger network — a MONO correlate would sit at the level of a
+whole community, plausibly competing with another for a niche. See
+[WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8 for the audit and the conditions a proper
+test must meet; the honesty-ledger flag on transportability at levels 5–7 applies here with full
+force.
 
 ## 5 · Honesty ledger — built, measured, evidenced, conjectured
 
@@ -308,12 +342,21 @@ honesty-ledger flag on transportability at levels 5–7 applies here with full f
   the K2–K4 instruments incl. modal K2 and the extent-invariant K3 ratio; the K1
   severity join (built 2026-07-19; its status qualified below); the
   recursion-in-evaluation (the peel).
-- **Measured (with pre-registered priors) — moved up from conjecture, 2026-07-26:**
-  the intra-level scaling relations of §4 — federation's cost advantage as a scaling
-  property (E1, E2), the interior partition optimum and its landscape (E2b, E3, E3b)
-  — with the refuted priors on the record beside the held ones (P1² separation-only;
-  PB3; PE2; PE5; PM4-as-finding; PS1 refuted-as-finding — stranding a positive-measure
-  dear basin). E3c disposed 2026-07-27; the E-series closed at E3c by author ruling.
+- **Measured (with pre-registered priors) — moved up from conjecture, 2026-07-26;
+  narrowed 2026-07-28:** the intra-level relations of §4 — partition's upkeep
+  advantage under a size-charging meter (E1, E2), the coordinator's scan discipline
+  as the binding constraint (the 25× spread, E2's most durable result), and the
+  interior partition optimum with its landscape (E2b, E3, E3b) — with the refuted
+  priors on the record beside the held ones (P1² separation-only; PB3; PE2; PE5;
+  PM4-as-finding; PS1 refuted-as-finding — stranding a positive-measure dear basin).
+  E3c disposed 2026-07-27; the E-series closed at E3c by author ruling. **The
+  narrowing:** an audit found **an error in the experimental design**
+  ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8) — the units neither
+  communicate nor reason, the meter charges model size rather than work, the
+  durability metric cannot read *false*, and terminal-unit invariance was imposed
+  rather than discovered. So *kytos-as-terminal-unit* and the vector optimand fall
+  back to **queued-conjecture**; what a corrected experiment would need is named,
+  and the question stays open.
 - **Evidenced:** the halting duals (RUN histories; the closed-proposer saturations);
   rate-determinism (ttl tuned per membrane across RUNS 1–12; F3¹³'s priced-out journal
   as a rate mismatch caught live); the reservoir asymmetry (RUN 13's digests).

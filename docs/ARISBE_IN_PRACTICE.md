@@ -582,21 +582,29 @@ constituting one. (The doctrine — what a real commens would require, and what
 [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md).)
 
 What *has* been done, within that limit, is measurement. **The E-series**
-(five experiments and a rider, 2026-07-22 → 27) asked Geoffrey West's
-question — do aggregated units obey discoverable scaling laws? — of units
-whose metabolism consists of knowledge maintenance rather than energy: one big
+(five experiments and a rider, 2026-07-22 → 27) put Geoffrey West's
+question — do aggregated units obey discoverable scaling laws? — to units
+whose upkeep runs on knowledge rather than energy: one big
 reasoner holding everything, versus a federation of bounded reasoners with a
 coordinator. Every experiment ran against priors registered before it
-executed, and the refuted priors stay on the record beside the held ones:
+executed, and the refuted priors stay on the record beside the held ones. A
+later code audit narrowed what the harness carries — its units accumulate and
+forget but never reason, and never exchange content — so the results below
+read as *partition economics under a size-charging cost meter*, not as West's
+scaling law (see [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8):
 
-- **Federation beat monolith ~5.2× on cost at equal durability** (E1) — and
-  retained more, because one attention budget over everything decays out what
-  a bounded member keeps.
+- **Partitioning the workload cut total upkeep ~5.2×** (E1). The meter
+  charges the size of a model each round, so splitting one workload across
+  seven bounded members roughly divides the bill by seven — the ratio tracks
+  the member count. The federation also retained more, because one attention
+  budget over everything decays out what a bounded member keeps.
 - **The diseconomy is real and locatable** (E2): monolith cost scaled with
   exponent ≈ 1.28 against the federation's ≈ 1.02, and a 25× cost spread at
-  the largest size traced to *coordinator scan discipline alone* — while the
-  per-member cost stayed invariant to a tenth of a percent across an 8× size
-  range.
+  the largest size traced to *coordinator scan discipline alone* — the
+  program's most durable finding, and the one that says where the money goes.
+  (Per-member cost held flat across the sweep, but the design fixed each
+  member's slice and round budget, so that flatness records the design, not a
+  discovered invariant.)
 - **The optimum is interior, and it is a granularity** (E2b, E3): neither
   monolith nor finest-possible split wins — an imposed sweep found the
   minimum at three buckets, and when the system was allowed to re-partition
@@ -616,7 +624,10 @@ is an arrow of social development (the project's Graeber & Wengrow row is a
 negative claim only: many viable settlements, no ladder). Second, the
 sociable reading stays graded: the claim that deliberate, reversible
 basin-crossing is what *politics* names stands recorded as a finding about the
-model, not about history.
+model, not about history. West's own question — how a *community's* rate scales
+with its size, its terminal unit left free to hold or fail — still awaits a
+harness whose units reason and talk to one another, and it still has much to
+teach whoever builds one.
 
 ## The population experimenter
 
@@ -652,7 +663,7 @@ population and read the instruments — names the direction, not yet the shipped
 thing.
 
 - **The self-contained methods note** (what the unit is operationally, what
-  the cost meter counts, how durability was equalized — readable with no
+  the cost meter counts and what it does not — readable with no
   Arisbe vocabulary): [WEST_METHODS_NOTE.md](WEST_METHODS_NOTE.md)
 - **The program and its logs** (priors, verdicts, dispositions):
   [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) and `runs/WEST_E*_LOG.md`

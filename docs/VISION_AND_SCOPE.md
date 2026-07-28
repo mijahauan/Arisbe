@@ -323,14 +323,20 @@ into one claim. The claim-by-claim examination lives in
    [AUTOMATED_MODEL_DEVELOPMENT.md](AUTOMATED_MODEL_DEVELOPMENT.md); the open-endedness
    reading itself queued-conjecture — not yet a measured claim.]*
 2. **West's *Scale* — the scaling of knowledge systems.** West's scalar optimand (energy)
-   becomes a vector (the knowledge measure), and the question becomes measurable: the E-series
-   (E1–E3c, closed 2026-07-27) ran against pre-registered priors — federation ~5.2× cheaper
-   than the monolith at equal durability (`runs/WEST_E1_LOG.md`); self-partitioning converging
+   becomes a vector (the knowledge measure), and one part of the question becomes measurable:
+   the E-series (E1–E3c, closed 2026-07-27) ran against pre-registered priors — partitioning a
+   maintenance workload across bounded units cut total upkeep ~5.2× under a size-charging cost
+   meter, with the magnitude turning far more on the coordinator's scan discipline (a 25× spread
+   at the largest size) than on the partition itself (`runs/WEST_E1_LOG.md`,
+   `runs/WEST_E2_LOG.md`); self-partitioning converging
    to an interior granularity N=3 from all 36 starts, 19 distinct optima (21 known once
    E3c's symmetry-breaking rider added two more), one dominant cost
    family carrying 75% of the attractor mass, the balanced partition stranded in a
    positive-measure dear basin, not on a knife-edge (`runs/WEST_E3B_LOG.md`,
-   `runs/WEST_E3C_LOG.md`). *[measured-with-priors —
+   `runs/WEST_E3C_LOG.md`). The units of that harness accumulate and forget without
+   reasoning or exchanging content, so West's scaling law proper — a community's rate against
+   its size — remains the open prospect, not a result
+   ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). *[measured-with-priors —
    [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
 3. **Berger & Luckmann — objectivation across membranes.** What confronts participants as
    facticity is sustained only by participation; ratified into house doctrine as *judgment is

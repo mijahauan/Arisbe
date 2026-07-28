@@ -10,7 +10,10 @@ the smaller verifications that ride along.*
 (new book chapter, Part I). #4–#6 → ARISBE_IN_PRACTICE reorganized into the
 three registers (+ the course block; + the population-experimenter use case
 from the author's mid-sitting steer). #7 →
-[WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md). #8 → GETTING_STARTED logician
+[WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md) — **since rewritten (2026-07-28) as an
+internal methods record**; the West letter it stood behind is held, and item #7's
+own phrase "how K2-durability was equalized" names one of the refuted claims (see
+[WEST_IN_KYTE_PROGRAM](../WEST_IN_KYTE_PROGRAM.md) §8). #8 → GETTING_STARTED logician
 door, "How to try to break it" (commands run and verified). #9 → verified
 current; ontologist door now points at the shared five minutes. #10 →
 verified by running it (export → `pdflatex` → PDF); literal recipe added to

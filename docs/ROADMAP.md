@@ -89,7 +89,7 @@ first is (author decision)**, not made here:
 | ii | Modality without Gamma | The diachronic branching DAG read as a Kripke frame with no modal mark in the ink — [MODALITY_WITHOUT_GAMMA.md](MODALITY_WITHOUT_GAMMA.md) | A modal-logic or philosophy-of-logic journal, or a Peirce-studies venue (e.g. *Transactions of the Charles S. Peirce Society*) |
 | iii | Conservative mention-ascent ("thirdness kept") | The B-min quotation crossing as a scoped, conservative slice of Gamma — expressive power unchanged (Dau Ch. 26's reduction), iconicity the only honest motive to cross at all | The same Peirce-studies venue as (ii), or a higher-order-logic venue interested in conservative extensions |
 | iv | The EPG as live model-development architecture | `agon_evolution.py` → `agon_llm.py` → `agon_metalearning.py` → the membranes → `live_runner.py` as a working automated-theory-revision loop over live sources | A knowledge-representation or multi-agent-systems venue (e.g. KR), or the belief-revision (AGM) community directly |
-| v | The measure and the kytos | [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) + [THE_KYTOS.md](THE_KYTOS.md) as a fractal, vector-valued (never scalar-over-agents) knowledge measure, with the West correspondence as the named quantitative frontier — now carrying executed evidence (E1–E3b) rather than a conjecture | A cognitive-science or complexity-science venue interested in scaling laws applied to knowledge/institution measures |
+| v | The measure and the kytos | [THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) + [THE_KYTOS.md](THE_KYTOS.md) as a fractal, vector-valued (never scalar-over-agents) knowledge measure, with the West correspondence as the named quantitative frontier — E1–E3b put executed partition-economics evidence behind it, and the scaling correspondence itself stays the open question ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8) | A cognitive-science or complexity-science venue interested in scaling laws applied to knowledge/institution measures |
 
 **Next action:** hold the sweep as a standing docket; surface the five candidates to the author
 for the first-paper ruling once the sweep has stabilized the vocabulary each draft would need.
@@ -120,7 +120,8 @@ splits into S (interior) and A (interaction).
   existing S-side digests, so poise (doctrine §4) can be read from data rather than inferred.
 - **Payoff — the West-in-kytē program has run.** The Q-B apportionment / West experiment (one big
   Arisbe vs. distributed kytē + a coordinator, doctrine §5) is no longer hypothetical: **E1**
-  (federation vs. monolith, paired) — all four priors held, FED ~5.2× cheaper at equal K2; **E2**
+  (federation vs. monolith, paired) — all four priors held, FED ~5.2× cheaper under the
+  size-charging cost meter; **E2**
   (size sweep) — β_mono 1.277 > β_fed(I) 1.025, a 25× coordinator-discipline cost spread; **E2b**
   (calibration) — an interior optimum N\*=3, a decay-incoherence wall; **E3** (endogenous
   partition, a meta-Agon over bucketings) — converges to a granularity, not a unique partition
@@ -306,7 +307,10 @@ here rather than only in `runs/`.
   **The disposal ruling against the pre-registered priors is the author's** — this ROADMAP records
   the run as closed and the data as landed, not any particular disposition of the priors.
 - **West-in-kytē E1 — disposed 2026-07-22.** Federation vs. monolith, paired. All four priors
-  held; FED ~5.2× cheaper at equal K2. [runs/WEST_E1_LOG.md](../runs/WEST_E1_LOG.md).
+  held; FED ~5.2× cheaper under the size-charging cost meter, the ratio tracking the member
+  count. The K2 parity clause the original headline carried does not hold up — that reader
+  registers no failures on this harness ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8).
+  [runs/WEST_E1_LOG.md](../runs/WEST_E1_LOG.md).
 - **West-in-kytē E2 — disposed 2026-07-22.** Size sweep. β_mono 1.277 > β_fed(I) 1.025; a 25×
   cost spread from coordinator scan discipline alone. [runs/WEST_E2_LOG.md](../runs/WEST_E2_LOG.md).
 - **West-in-kytē E2b — disposed 2026-07-23.** Calibration. Interior optimum N\*=3; coherence broke

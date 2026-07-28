@@ -241,13 +241,19 @@ engagement."
 questions. Do aggregated units obey discoverable scaling laws? And what does
 the unit's economics determine? This stands as the one tributary the project
 has *measured* against pre-registered priors rather than only read. Five
-experiments and a rider (the E-series, 2026) asked West's question of units
-whose metabolism consists of knowledge maintenance, and found a federation
-~5× cheaper than a monolith at equal durability, a real diseconomy exponent
-avoided by coordination discipline, an interior optimum that names a
-granularity rather than a partition, and a multi-basin landscape in which
-balance strands. The refuted priors stand in the map's row beside the held
-ones. What West's framework lacked, on this reading, concerns what the unit
+experiments and a rider (the E-series, 2026) put West's question to units
+that maintain a body of knowledge, and found that partitioning one
+maintenance workload across bounded units cut total upkeep ~5× under a
+meter charging the size of what each unit holds — with the magnitude turning
+far more on the coordinator's scan discipline than on the partition, an
+interior optimum that names a granularity rather than a partition, and a
+multi-basin landscape in which balance strands. The refuted priors stand in
+the map's row beside the held ones. Those units accumulate and forget
+without reasoning or exchanging content, so the runs measure partition
+economics and leave West's law proper — how a *community's* rate scales with
+its size — standing as the prospect it always was, with much still to teach
+whoever builds the harness for it (see the West program document, section 8).
+What West's framework lacked, on this reading, concerns what the unit
 *does*: an economics of the unit without its semantic work. The return-gift
 offered back holds as a conjecture, that the allocation layer of such units
 runs vectorial, not scalar (a self-contained methods account stands at
@@ -262,8 +268,8 @@ historical evidence of deliberate, reversible movement between social forms
 beside the model's finding that escaping a dear basin takes coordination,
 and records that as a finding about the model, never about history. The
 tradition lacked instrumentation. It offered evidence of plurality with no
-cost or durability measure on a settlement, which the model can supply *for
-its own synthetic worlds*, and only for them.
+cost measure on a settlement, which the model can supply *for its own
+synthetic worlds*, and only for them.
 
 **The deliberative interval (the project's own tributary, examined 2026).**
 Last comes a reading Arisbe contributes rather than inherits. The freedom

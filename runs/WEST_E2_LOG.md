@@ -145,3 +145,39 @@ broker); a **per-round A3** on the sequential-vs-concurrent question (measure bo
 than modelling one); **E3** — endogenous partition (split/merge as licensed moves in a meta-Agon
 over partitions, with these cost/K curves as the disposition evidence). Program frame:
 `docs/WEST_IN_KYTE_PROGRAM.md`.
+
+---
+
+## Retrospective correction (2026-07-28) — an error in experimental design
+
+*Appended, not rewritten. The mechanical verdicts stand as recorded; the
+**reading** of two of them does not. Full account:
+`docs/WEST_IN_KYTE_PROGRAM.md` §8.*
+
+- **Finding 5 ("terminal-unit invariance is emphatic") is withdrawn as a
+  finding.** The design fixes `NOTES_PER_FOLDER = 40` and sets `R = 25·(F+1)`
+  precisely "so every member performs exactly 25 rounds at every F." Each unit
+  therefore holds a fixed slice and spends a fixed budget across the whole
+  sweep. Measuring per-member cost invariant at max/min 1.0012 confirms the
+  harness runs deterministically; it does not discover an invariance. West's
+  invariant terminal unit is an empirical surprise — the network reorganizes as
+  mass grows while capillaries stay the same size — whereas P2² imposed the
+  invariance and then observed it. The phrase "the West economy-of-scale
+  signature at the terminal unit" overstated the result and is retracted.
+- **Deeper, the comparison cannot bear on terminal units at all.** A monolith
+  has no counterpart as a terminal unit: it is a single unit made big, which
+  West's networks never do. A MONO correlate would live at the level of a whole
+  community, plausibly competing with another community for an ecological niche
+  — which is also where the selection pressure his exponents depend on would
+  come from, and these runs contain no selection.
+- **β as a summary.** Already conceded in the honesty ledger above (the MONO
+  curve bends where decay caps |M|); worth restating beside the corrected
+  reading, since cost sums |M| per round and both exponents follow largely from
+  that meter's arithmetic — β_fed ≈ 1 because per-member cost stays fixed and
+  members add linearly.
+
+**What still stands, and it is the durable finding:** coordination binds.
+The 25× spread between coordinator scan disciplines at the largest size, and the
+crossover at F=12, say that whether apportionment pays at scale turns on **how
+the coordinator gets built** — this log's own words: "not a property of the
+partition — it is a property of how the coordinator is built."

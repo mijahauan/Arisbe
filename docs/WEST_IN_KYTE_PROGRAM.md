@@ -162,8 +162,14 @@ design knob. Shaped by §4 and by whatever E2's curves show:
 
 ## 7 · Honesty ledger (program-level)
 
+> **Superseded in part by §8 (2026-07-28).** The audit recorded there found an **error in the
+> experimental design**, and several entries below read more confidently than the harness
+> supports. Read §8 first; it governs.
+
 - **Built + evidenced:** the E1 paired comparison and its reusable, deterministic, custody-safe
-  harness; the ~5.2× cost result and the P2 clustering signal at one N.
+  harness; the ~5.2× cost result and the P2 clustering signal at one N. *(§8: the ~5.2× measures
+  upkeep under partition against a meter that charges model size per round — the ratio tracks
+  member count — and the "at equal quality" clause carries no weight.)*
 - **Conjectured, not yet measured:** every scaling *exponent* (E2); terminal-unit invariance across
   community sizes (E2); whether FED-retains-more is a decay artefact or a real advantage (E2 ttl
   sweep); where the passive registry breaks (the p crossover); whether self-partitioning converges
@@ -174,11 +180,14 @@ design knob. Shaped by §4 and by whatever E2's curves show:
 
 ---
 
-## 8 · The audit of 2026-07-28 — what the E-series does *not* establish
+## 8 · An error in experimental design (recorded 2026-07-28)
 
 *(Written after a code-level audit run while drafting the West letter, at the
-author's challenge. Nothing here changes a grade; grades move only by the
-author's ruling. This section records what the instrument actually did, so no
+author's challenge, and folded into the graded documents by his ruling the same
+day: record it properly as a design error, keep it out of any letter or overall
+description of what we build, repair the documents that outran the instrument
+now — and hold open the prospect that a properly designed experiment still has
+much to teach. This section records what the instrument actually did, so no
 later reader inherits a claim the floor will not carry.)*
 
 The run logs reported straight. The overstatement accumulated **above** them —
@@ -271,3 +280,17 @@ something: *partitioning a maintenance workload across bounded units lowers
 total upkeep under a size-charging meter, and how much depends overwhelmingly
 on the coordinator's scan discipline rather than on the partition* — E2's own
 finding, in its own words.
+
+### The prospect (the author's ruling closes on this, and so should the section)
+
+A design error found before publication costs a draft; found after, it costs a
+reputation. This one cost a draft. What it leaves behind matters more than what
+it withdrew: the question the program set out to ask **remains open and now has
+a shape**. Nobody yet knows how the upkeep of a community of reasoning units
+scales with the number of units that genuinely communicate, whether a
+terminal-unit invariance would *emerge* once nothing pins it, whether the
+allocation layer really behaves as a vector once more than one component can
+move, or what selection between rival communities would do to any of it. The
+harness, the determinism discipline, the pre-registration habit, and the
+custody-safe corpus generator all survive intact and transfer directly. What the
+next attempt needs is not a better instrument but a better experiment.

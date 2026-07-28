@@ -63,6 +63,12 @@ synthetic corpus, one landscape, modeled concurrency. **Must stand behind
 the link:** [WEST_METHODS_NOTE](../WEST_METHODS_NOTE.md), the run logs,
 ARISBE_IN_PRACTICE Part IV.
 
+**⚠ Held with the West letter (2026-07-28).** The audit that stopped that
+letter ([WEST_IN_KYTE_PROGRAM](../WEST_IN_KYTE_PROGRAM.md) §8) binds this row
+too: the population laboratory described above does not yet exist in that form
+— the units neither communicate nor reason, and the terminal-unit framing
+mis-maps. Approach this community only behind a corrected experiment.
+
 ## 4 · Anthropology / archaeology — plurality without a ladder
 
 **Kind:** readers of *The Dawn of Everything*. **Candidate:** David Wengrow
