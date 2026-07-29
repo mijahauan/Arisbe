@@ -255,6 +255,50 @@ on, and forgets internally** — M and its facts, the standing questions
 specifications. The E-series exercised the storing and the forgetting. It
 exercised none of the reasoning, and none of the between.
 
+### Three premises the corrected experiment must state and obey
+
+*(Ruled by the author, 2026-07-28, during the design brainstorm — recorded here
+for the build. They are semiotic commitments, not implementation details, and
+each of them forbids a specific error the previous series committed or invited.)*
+
+1. **Reality resides inside the kytos, and nothing is ever scored against a view
+   from outside it.** A kytos's UoD *is* its reality — the attested internal
+   model behind its membrane, indexed to the history by which it came to hold it.
+   The generated field's structure therefore carries no privileged standing: it
+   names the **field's regime**, the law by which deliverances arrive at
+   membranes, and never "ground truth." Fitness gets scored **at the membrane** —
+   did this community's model reliably anticipate what actually arrived? — which
+   keeps the correspondence-not-truth floor intact and matches the project's own
+   definition of knowledge (reliably doing something that works). Our knowledge of
+   the regime stays a *modeler's diagnostic*, labelled as such, permitted to ask
+   whether a planted law was recovered and how fast, and forbidden from entering
+   the fitness.
+2. **The commens consists of the marks, not the sum of the interiors.** What
+   crosses between kytē is never content but a **sign**: kytos-5 encounters
+   kytos-3's published inscription and forms its own interpretant of it, out of a
+   different history. So the community's reality lives in the objectivated,
+   attributable, inspectable marks — Berger and Luckmann's objectivation,
+   subjective meaning hardened into available facticity — and not in an aggregate
+   of interiors that no participant could access. (This follows Examination VI's
+   ruled marks doctrine: the real corresponds "not to the undifferentiated horizon
+   but to the marks we make.") The measure of a shared reality is therefore
+   countable without any view from nowhere: which marks stand, who took them up,
+   how long they survive.
+3. **Divergence holds by construction, not by hope.** No individual reality
+   comprehends the commens, because no two kytos realities ever perfectly
+   coincide — different histories, different identities. The design must
+   *guarantee* that: units meet the field through different apertures (regions,
+   sampling orders, budgets), or they converge on near-identical models, the
+   commens collapses into redundancy, and the apparatus measures nothing.
+   Divergent history is a precondition of there being anything to communicate,
+   not a nuisance parameter to be minimized.
+
+A corollary binds the modeler too: any bird's-eye account of the whole — this
+document included — exists as a simplification inside *our* membrane. It hints at
+what happens outside it and cannot substitute for it. That is not a caveat about
+this experiment; it is how semiosis works, and the experiment should be built so
+that it never needs the bird's-eye view to reach a verdict.
+
 ### What a proper terminal-unit test requires
 
 Named here so the next attempt starts honest, not so it starts soon:
