@@ -273,25 +273,46 @@ each of them forbids a specific error the previous series committed or invited.)
    the regime stays a *modeler's diagnostic*, labelled as such, permitted to ask
    whether a planted law was recovered and how fast, and forbidden from entering
    the fitness.
-2. **The commens consists of the marks, not the sum of the interiors.** What
-   crosses between kytē is never content but a **sign**: kytos-5 encounters
-   kytos-3's published inscription and forms its own interpretant of it, out of a
-   different history. So the community's reality lives in the objectivated,
-   attributable, inspectable marks — Berger and Luckmann's objectivation,
-   subjective meaning hardened into available facticity — and not in an aggregate
-   of interiors that no participant could access. (This follows Examination VI's
-   ruled marks doctrine: the real corresponds "not to the undifferentiated horizon
-   but to the marks we make.") The measure of a shared reality is therefore
-   countable without any view from nowhere: which marks stand, who took them up,
-   how long they survive.
-3. **Divergence holds by construction, not by hope.** No individual reality
-   comprehends the commens, because no two kytos realities ever perfectly
-   coincide — different histories, different identities. The design must
-   *guarantee* that: units meet the field through different apertures (regions,
-   sampling orders, budgets), or they converge on near-identical models, the
-   commens collapses into redundancy, and the apparatus measures nothing.
-   Divergent history is a precondition of there being anything to communicate,
-   not a nuisance parameter to be minimized.
+2. **What the community shares are marks — and the marks are not the commens.**
+   Three terms, kept apart. The **UoD** is what a kytos thinks with, inside its
+   membrane. The **objectivated marks** are what a kytos externalizes: published,
+   attributable, inspectable inscriptions — Berger and Luckmann's objectivation,
+   subjective meaning hardened into available facticity. These the protocol moves
+   and the instruments count. The **commens** is neither: following Peirce's
+   Communicational Interpretant (the 1908 Welby correspondence — *that mind into
+   which the minds of utterer and interpreter have to be fused in order that any
+   communication should take place*, consisting of all that must be well
+   understood between them **at the outset** for the sign to fulfill its
+   function), it names the prior, enabling mutual understanding that makes a mark
+   legible at all. It belongs to no participant, and per
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §1 **no
+   data structure may carry its name**. What crosses between kytē is never content
+   but a sign: kytos-5 encounters kytos-3's inscription and forms its own
+   interpretant of it, out of a different history.
+
+   *(Recorded correction, same sitting: an earlier draft of this premise defined
+   the commens **as** the marks. That commits the exact category mistake §1 of
+   THE_COMMENS warns against most loudly — identifying the commens with a
+   deposit. The author caught it. The measurable object is the marks and their
+   uptake; the commens stays regulative.)*
+
+   **The commens is measurable only at its contour, by failure.** When a mark
+   passes between two kytē and gets taken up as its utterer meant it, the commens
+   held there silently and unobservably. When uptake miscarries — a term read
+   differently, a mark needing repair or renegotiation before it can function —
+   an edge has been found, and edges are countable. Breakdown-and-repair episodes
+   are therefore the instrument: they map what was *not* held in common, which is
+   the only honest access to what was.
+3. **Divergence holds by construction, not by hope.** No participant comprehends
+   the commens — it belongs to none of them — and no two kytos realities ever
+   perfectly coincide, having different histories and different identities. The
+   design must *guarantee* the second: units meet the field through different
+   apertures (regions, sampling orders, budgets), or they converge on
+   near-identical models, communication degrades into redundancy, and the
+   apparatus measures nothing. Divergent history is a precondition of there being
+   anything to communicate, not a nuisance parameter to be minimized. It follows
+   that a *shared* aperture across all units would not produce a stronger
+   community but a vacuous one.
 
 A corollary binds the modeler too: any bird's-eye account of the whole — this
 document included — exists as a simplification inside *our* membrane. It hints at
