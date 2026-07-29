@@ -49,3 +49,48 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     assert lawless.ledger.misses == 0        # it places no bet at all
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert lawful.ledger.accuracy > misled.ledger.accuracy
+
+
+def _unary(rel, names):
+    return {(rel, (("c", n),)) for n in names}
+
+
+def test_induction_needs_enough_support():
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p", ["x0", "x1", "x2"]))
+    u.facts.update(_unary("q", ["x0", "x1", "x2"]))
+    assert ("p", "q") in u.induce(min_support=3)
+
+    v = Unit("u1", ap)
+    v.facts.update(_unary("p", ["y0", "y1"]))
+    v.facts.update(_unary("q", ["y0", "y1"]))
+    assert ("p", "q") not in v.induce(min_support=3)
+
+
+def test_one_pending_antecedent_is_tolerated_two_are_not():
+    """The lag leaves exactly one antecedent awaiting its consequent."""
+    _spec, _field, ap = _setup()
+    lagging = Unit("u0", ap)
+    lagging.facts.update(_unary("p", ["x0", "x1", "x2", "x3"]))
+    lagging.facts.update(_unary("q", ["x0", "x1", "x2"]))       # x3 pending
+    assert ("p", "q") in lagging.induce(min_support=3, max_pending=1)
+
+    refuted = Unit("u1", ap)
+    refuted.facts.update(_unary("p", ["y0", "y1", "y2", "y3", "y4"]))
+    refuted.facts.update(_unary("q", ["y0", "y1", "y2"]))       # y3, y4 refute
+    assert ("p", "q") not in refuted.induce(min_support=3, max_pending=1)
+
+
+def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
+    """The Stage 1 gate: a unit that may induce ends up holding a law the
+    regime actually planted, and outperforms one that may not."""
+    spec, field, ap = _setup()
+    learner, fixed = Unit("u0", ap), Unit("u1", ap)
+    for r in range(60):
+        learner.step(field, r, induce=True)
+        fixed.step(field, r, induce=False)
+    planted = {d.law for d in spec.domains}
+    assert learner.laws & planted, "no planted law was induced"
+    assert learner.ledger.hits > 0
+    assert learner.ledger.accuracy > fixed.ledger.accuracy
