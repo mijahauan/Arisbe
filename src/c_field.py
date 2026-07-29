@@ -97,3 +97,33 @@ class Field:
         rel, args = f
         body_rel, head_rel = d.law
         return (head_rel, args) if rel == body_rel else None
+
+    def at(self, aperture: "Aperture", round_idx: int) -> List[Fact]:
+        """What arrives at this unit's membrane this round: the union of its
+        domains' deliveries."""
+        out: Set[Fact] = set()
+        for name in aperture.domains:
+            out.update(self.deliver(name, round_idx))
+        return sorted(out)
+
+
+@dataclass(frozen=True)
+class Aperture:
+    """The slice of the field one unit meets. Distinct per unit by
+    construction (spec premise 3)."""
+    unit_id: str
+    domains: Tuple[str, ...]
+
+
+def apertures_for(spec: FieldSpec, n_units: int) -> List["Aperture"]:
+    """Deterministic, overlapping, and pairwise distinct wherever the domain
+    count allows: unit i sees domains i and i+1 (mod count), so consecutive
+    units share exactly one domain."""
+    names = [d.name for d in spec.domains]
+    k = len(names)
+    out: List[Aperture] = []
+    for i in range(n_units):
+        first = names[i % k]
+        second = names[(i + 1) % k]
+        out.append(Aperture(f"u{i}", (first, second)))
+    return out
