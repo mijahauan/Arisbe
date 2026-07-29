@@ -24,9 +24,11 @@ def _arms():
     ap = apertures_for(spec, n_units=4)[0]
     # The converse of alpha's own law: ("a_head", "a_local").
     converse = (spec.domains[0].law[1], spec.domains[0].law[0])
-    # A cross-domain law: ("a_head", "b_head").
-    cross = (spec.domains[0].law[1], spec.domains[1].law[1])
-    return spec, field, ap, converse, cross
+    # A wrong law that both bets AND can win: ("a_head", "shared").
+    # `shared` draws from the same domain's individuals every round, so this
+    # rival sometimes hits — the losing side has a nonzero ceiling.
+    shared_head = (spec.domains[0].law[1], "shared")
+    return spec, field, ap, converse, shared_head
 
 
 def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
@@ -36,15 +38,26 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     outscore a unit that holds a WRONG law and bets on it — not merely
     outscore total abstention, which any nonzero accuracy achieves.
 
-    The betting rival here is the cross-domain arm `a_head -> b_head`, which
-    places 264 real bets over these rounds and wins none. See
-    `test_the_converse_law_arm_places_no_bets_at_all` for why the converse
-    law, the other candidate rival, cannot serve — a finding, not a choice.
+    The betting rival is `a_head -> shared`, which both bets and sometimes
+    WINS (3 hits / 16 misses = 0.1579 at this seed). That nonzero ceiling on
+    the losing side is what makes the comparison real: two earlier candidates
+    were rejected for lacking it — the converse law never bets at all (see
+    `test_the_converse_law_arm_places_no_bets_at_all`) and the cross-domain
+    law `a_head -> b_head` bets but scores exactly 0.0 for every seed by
+    construction, since alpha individuals can never receive `b_head`.
+
+    SEED SENSITIVITY, stated rather than hidden: the margin here is +0.5564,
+    but it is not stable across seeds. Over ten sampled seeds the learner
+    loses at two (seed 99: misled 1.0000 vs learner 0.5556; seed 808: both
+    1.0000). The rival's accuracy is a ratio over very few bets, so a single
+    lucky hit reads as a perfect score. This gate asserts an ordering at one
+    fixed seed; it is NOT evidence that induction beats a shared-head rival
+    in general. See the task-8 report.
     """
-    spec, field, ap, _converse, cross = _arms()
+    spec, field, ap, _converse, shared_head = _arms()
     learner = Unit("u0", ap)
     fixed = Unit("u1", ap)
-    misled = Unit("u2", ap, laws={cross})
+    misled = Unit("u2", ap, laws={shared_head})
     for r in range(ROUNDS):
         learner.step(field, r, induce=True)
         fixed.step(field, r, induce=False)
@@ -75,7 +88,7 @@ def test_the_converse_law_arm_places_no_bets_at_all():
     a prediction. Verified at seeds 7 / 20260728 / 99 / 12345 and out to 200
     rounds: zero bets in every case.
     """
-    _spec, field, ap, converse, _cross = _arms()
+    _spec, field, ap, converse, _shared_head = _arms()
     conv_arm = Unit("u3", ap, laws={converse})
     lawless = Unit("u4", ap)
     for r in range(ROUNDS):
