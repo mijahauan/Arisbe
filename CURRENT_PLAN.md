@@ -1,6 +1,33 @@
 # Current Plan
 
-**Last Updated**: 2026-07-28 (eighth arc) — **THE WEST LETTER IS HELD, AND THE E-SERIES'
+**Last Updated**: 2026-07-29 (ninth arc) — **THE C-SERIES IS DESIGNED AND ITS FIRST TWO
+STAGES ARE BUILT.** The corrected successor to the E-series, brainstormed section by section
+with the author and executed as 8 TDD tasks + a fix wave (13 commits, `9a1305f..18f99f3`,
+pushed). **Design** (`docs/superpowers/specs/2026-07-28-community-scaling-experiment-design.md`):
+four communities of twelve *identical* units over a four-domain law-bearing field, meeting it
+through distinct apertures; assert · ask · challenge · typify; selection from a per-domain
+budget (probes, communication, socializing newcomers) so it falls out of the accounting rather
+than from a fitness function; marks sealed between communities at first. **Three ruled premises**
+(WEST_IN_KYTE_PROGRAM §8): reality resides in the unit and nothing is scored against the field's
+regime · the marks are not the commens (Peirce's Communicational Interpretant stays regulative;
+measurable only at its contour, by breakdown-and-repair) · divergence by construction. The
+author's own corrections drove two of these — he caught the assistant defining the commens *as*
+the marks, the very category mistake THE_COMMENS §1 warns against most loudly. **Built (stages
+1–2):** `c_field` (seeded domains, one-round consequent lag), `c_membrane` (three-valued
+membrane scoring), `c_unit` (anticipate-then-observe, plus induction), provenance in
+`model_materialization` (opt-in, deterministic tie-break, backward-compat verified
+structurally), `c_use` (work-clock vs arrival-clock). **Both gates pass:** a unit induced both
+reachable planted laws and outscored a wrong-law rival; the two usage clocks retain **disjoint**
+sets. **§9a records four findings that bind stage 3** — the field saturates by ~round 18 (only
+~7 bets in 60 rounds; the real cause of gate fragility) · accuracy is the wrong statistic at
+these volumes (reuse `PredictionLedger`'s `net_score`/`k1_score` rather than fork it) · `shared`
+is shared in name only, so §3's partial overlap was never achieved and marks would carry nothing
+· **the unit never calls `materialize_egi`, so stage 2's provenance is unused and the E-series'
+"units never reasoned" failure could recur — wiring that is stage 3's task 1, before the four
+channels.** Along the way the process caught three separate "tests that cannot fail," each
+strengthened by author ruling.
+
+**Last Updated (prior)**: 2026-07-28 (eighth arc) — **THE WEST LETTER IS HELD, AND THE E-SERIES'
 INTERPRETIVE LAYER NEEDS A CORRECTION PASS (the author's ruling: "we cannot write West,
 yet. More work remains").** Drafting the letter provoked the author's questions — do the
 kytē exchange with each other or only the coordinator? do they reason? doesn't the vector
