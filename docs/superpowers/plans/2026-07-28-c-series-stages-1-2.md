@@ -205,7 +205,7 @@ git commit -m "feat(c-series): the field's regime — four domains, hidden unary
 
 ---
 
-### Task 2: Apertures and the held-out split
+### Task 2: Apertures over the field
 
 **Files:**
 - Modify: `src/c_field.py`
