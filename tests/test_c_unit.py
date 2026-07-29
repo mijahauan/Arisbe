@@ -33,13 +33,24 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     holds a law the field does not carry, fires on atoms that really arrive,
     and so places genuine bets that genuinely lose. That is the falsifiable
     comparison: a law that does not hold should score badly, not merely
-    abstain."""
+    abstain.
+
+    The rival is `a_head -> shared`, the same one `tests/test_c_stage_gates.py`
+    uses (the duplication between these files is deliberate; the divergence
+    was not). `shared` really arrives every round for some individual of the
+    domain, so this rival both bets AND can win — its accuracy has a nonzero
+    ceiling. The earlier cross-domain rival `a_head -> b_head` bets but scores
+    exactly 0.0 for every seed by construction, since alpha individuals can
+    never receive `b_head`, which makes the comparison unlosable.
+
+    Measured at this test's seed (7), 20 rounds: lawful 5 hits / 0 misses =
+    1.0000; misled 1 hit / 19 misses = 0.0500."""
     spec, field, ap = _setup()
     lawful, lawless, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     lawful.laws.add(spec.domains[0].law)
-    # body = first domain's head relation (which really arrives), head = the
-    # SECOND domain's head relation (which never arrives for those individuals)
-    misled.laws.add((spec.domains[0].law[1], spec.domains[1].law[1]))
+    # body = first domain's head relation (which really arrives), head =
+    # `shared`, which also really arrives — so the rival can win, and doesn't.
+    misled.laws.add((spec.domains[0].law[1], "shared"))
     for r in range(20):
         lawful.step(field, r)
         lawless.step(field, r)
@@ -47,6 +58,8 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     assert lawful.ledger.hits > 0
     assert lawless.ledger.hits == 0
     assert lawless.ledger.misses == 0        # it places no bet at all
+    # The rival genuinely bets — the comparison has a losing side that plays.
+    assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert lawful.ledger.accuracy > misled.ledger.accuracy
 
@@ -93,12 +106,23 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     on atoms that really arrive, and so places genuine bets that genuinely
     lose. That is the falsifiable comparison: were the induced laws worse than
     useless, the learner would bet and never win, and would NOT outscore an
-    arm that does the same."""
+    arm that does the same.
+
+    The rival is `a_head -> shared`, matching `tests/test_c_stage_gates.py`'s
+    Stage 1 gate (the duplication is deliberate; the divergence was not): it
+    both bets AND can win, unlike the cross-domain `a_head -> b_head` this
+    test used to compare against, which scores exactly 0.0 for every seed by
+    construction.
+
+    Measured at this test's seed (7), 60 rounds: learner 6 hits / 29 misses =
+    0.1714; misled 2 hits / 26 misses = 0.0714; fixed 0 bets = 0.0000. That
+    margin, like the Stage 1 gate's, is a one-seed ordering, not a general
+    claim — see `test_c_stage_gates.py`'s fragility note."""
     spec, field, ap = _setup()
     learner, fixed, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
-    # body = first domain's head relation (which really arrives), head = the
-    # SECOND domain's head relation (which never arrives for those individuals)
-    misled.laws.add((spec.domains[0].law[1], spec.domains[1].law[1]))
+    # body = first domain's head relation (which really arrives), head =
+    # `shared`, which also really arrives — so the rival can win, and doesn't.
+    misled.laws.add((spec.domains[0].law[1], "shared"))
     for r in range(60):
         learner.step(field, r, induce=True)
         fixed.step(field, r, induce=False)
@@ -106,6 +130,8 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     planted = {d.law for d in spec.domains}
     assert learner.laws & planted, "no planted law was induced"
     assert learner.ledger.hits > 0           # it bets and sometimes wins
+    # The rival genuinely bets — the comparison has a losing side that plays.
+    assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert learner.ledger.accuracy > fixed.ledger.accuracy
     assert learner.ledger.accuracy > misled.ledger.accuracy

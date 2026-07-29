@@ -53,6 +53,18 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     lucky hit reads as a perfect score. This gate asserts an ordering at one
     fixed seed; it is NOT evidence that induction beats a shared-head rival
     in general. See the task-8 report.
+
+    WHY the bets are so few — the cause is the field, not only the statistic:
+    THE FIELD SATURATES. This aperture's whole atom universe is 30 atoms, and
+    the learner has absorbed all 30 by round 18. `Unit.anticipate` drops any
+    candidate already in `facts`, so once everything reachable is held there
+    is nothing left to forecast: the learner places 7 bets in total across the
+    60 rounds, all of them before round 19, and the last 42 rounds are silent.
+    Lengthening the run therefore adds no evidence at all — it only adds
+    silence — and each single bet moves the ratio by roughly a seventh. Any
+    fix for the fragility has to widen the field (more individuals, more
+    domains, re-delivery of unheld atoms) rather than run longer; that is a
+    stage-3 design decision, deliberately not made here.
     """
     spec, field, ap, _converse, shared_head = _arms()
     learner = Unit("u0", ap)

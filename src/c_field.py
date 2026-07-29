@@ -116,11 +116,23 @@ class Aperture:
 
 
 def apertures_for(spec: FieldSpec, n_units: int) -> List["Aperture"]:
-    """Deterministic, overlapping, and pairwise distinct wherever the domain
-    count allows: unit i sees domains i and i+1 (mod count), so consecutive
-    units share exactly one domain."""
+    """Deterministic, overlapping, and pairwise distinct: unit i sees domains
+    i and i+1 (mod count), so consecutive units share exactly one domain.
+
+    The scheme cycles with period `len(spec.domains)`, so it can only build
+    distinct apertures for at most that many units.  Asking for more raises
+    rather than silently handing two units the same slice — divergence by
+    construction (spec premise 3) is the premise, not a nicety.  Widening the
+    scheme (more domains, or apertures of other sizes) is a stage-3 design
+    decision, deliberately not made here."""
     names = [d.name for d in spec.domains]
     k = len(names)
+    if n_units > k:
+        raise ValueError(
+            f"cannot build {n_units} distinct apertures from {k} domains: "
+            f"unit i sees domains i and i+1 (mod {k}), so the assignment "
+            f"cycles after {k} units and units would share an aperture"
+        )
     out: List[Aperture] = []
     for i in range(n_units):
         first = names[i % k]

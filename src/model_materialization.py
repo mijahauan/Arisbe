@@ -343,6 +343,10 @@ class IncrementalMaterializer:
     :func:`materialize_egi`'s (least-fixpoint extension is sound for monotone
     growth under fixed rules).
 
+    Provenance is **not** collected under the cached path (neither on a hit nor on an
+    extension), so a caller that needs per-fact support must call
+    :func:`materialize_egi` with a ``provenance`` dict instead of using this cache.
+
     ``hits`` / ``extensions`` / ``rebuilds`` are observable counters (tests, digests).
     """
 

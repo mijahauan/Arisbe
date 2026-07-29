@@ -23,14 +23,31 @@ def test_consequents_lag_their_antecedents_by_one_round():
     assert bodies_at_0 == heads_at_1, "each consequent follows its antecedent by one round"
 
 
+import pytest
+
 from c_field import Field, default_spec, apertures_for
 
 
 def test_apertures_differ_between_units():
+    """Pairwise distinct, not merely not-all-identical: a weaker assertion
+    would pass while two of the four units silently shared a slice."""
     spec = default_spec(seed=7)
     aps = apertures_for(spec, n_units=4)
     assert len(aps) == 4
-    assert len({a.domains for a in aps}) > 1, "all apertures identical — premise 3 violated"
+    assert len({a.domains for a in aps}) == len(aps), \
+        "two units share an aperture — premise 3 (divergence by construction) violated"
+
+
+def test_more_units_than_domains_is_refused():
+    """The assignment cycles with period len(domains); asking for more units
+    than that cannot yield distinct apertures, so it raises rather than
+    silently colliding."""
+    spec = default_spec(seed=7)
+    with pytest.raises(ValueError) as exc:
+        apertures_for(spec, n_units=len(spec.domains) + 1)
+    msg = str(exc.value)
+    assert "5" in msg and "4" in msg, "the message must name both numbers"
+    assert "distinct" in msg
 
 
 def test_aperture_delivers_the_union_of_its_domains():

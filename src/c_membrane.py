@@ -9,7 +9,7 @@ bet. The three-valued discipline is `resolving_membrane.classify`'s.
 from __future__ import annotations
 
 from dataclasses import dataclass, field as dc_field
-from typing import List, Set, Tuple
+from typing import List, Set
 
 from model_materialization import Fact
 from resolving_membrane import classify
