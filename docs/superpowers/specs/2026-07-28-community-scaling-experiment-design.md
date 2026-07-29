@@ -1,6 +1,8 @@
 # The C-series: communities of kytē under selection — design
 
-**Status:** design, author-ruled section by section on 2026-07-28. Nothing built.
+**Status:** design, author-ruled section by section on 2026-07-28. **Stages 1–2
+built 2026-07-29** (both gates pass; see §9a for what the build found and what
+it binds stage 3 to). Stages 3–5 not built.
 Supersedes the E-series design (E1–E3c) as the vehicle for the West question;
 does not supersede its harness, which largely transfers.
 
@@ -297,6 +299,53 @@ design replaces with real communication.
 **Disciplines carried forward from the E-series, which got these right:** one
 fixed seed; a byte-determinism canary per run; custody-safe outputs; numbers-only
 consoles; move ledgers that replay clean.
+
+---
+
+## 9a · What stages 1–2 actually found (build record, 2026-07-29)
+
+*Stages 1 and 2 are built (11 commits; both gates pass). The build produced
+findings that change what stage 3 must do first. They are recorded here because
+they were earned, and because the next builder will otherwise repeat them.*
+
+**Both gates pass, and one is thinner than it looks.** Stage 1: a unit induced
+both reachable planted laws (at rounds 3 and 8) and outscored rivals. Stage 2:
+support is recoverable, and the work clock and arrival clock retain **disjoint**
+sets — each keeps exactly the atom the other discards.
+
+**Four findings that bind stage 3:**
+
+1. **The field saturates, and that is the real fragility.** A unit accumulates
+   every atom of its aperture by roughly round 18; since anticipation excludes
+   already-held facts, it then places only about **7 bets across 60 rounds** —
+   42 rounds silent. The Stage 1 gate's ordering consequently flips at 2–3 of 10
+   sampled seeds. **Fix the field before building the protocol:** more
+   individuals per domain, or churn, so anticipation stays live.
+2. **Accuracy is the wrong statistic at these bet volumes.** A rival winning 1 of
+   1 outranks a learner winning 5 of 7. `resolving_membrane.PredictionLedger`
+   already carries better instruments — `net_score`, a severity-weighted
+   `k1_score` (which is §7's K1 as specified), and `accuracy → None` when no bets
+   were placed, which is what makes an abstaining arm's fabricated 0.0 go away.
+   **`c_membrane.MembraneLedger` should reuse it rather than fork it.**
+3. **`shared` is shared in name only.** The domains have disjoint individuals, so
+   there is *zero cross-domain atom overlap*; `shared` functions purely as the
+   noise source that manufactures accidental laws. §3's "partial overlap" was
+   therefore not achieved. **Overlap must become content** — shared individuals,
+   or shared body/head relations — or the marks stage 3 introduces will have
+   nothing transferable to carry.
+4. **The two halves of stage 1–2 have no integration point.** The unit's
+   inference is hand-rolled tuple matching; it never calls `materialize_egi`, so
+   the provenance built in stage 2 is unused by the unit, and the unit shares no
+   representation with the `world_scroll` / `agon_evolution` machinery §9 promises
+   to reuse. **Left unfixed, this reproduces the E-series' "units never reasoned"
+   failure in new clothes.** Wiring the unit to derive through
+   `materialize_egi(provenance=…)` should be **stage 3's task 1, before the four
+   channels.**
+
+**Also fixed during the build, worth knowing:** `apertures_for` cycles with
+period *k*, so 12 units over 4 domains yields only 4 distinct apertures —
+violating premise 3 at the size §4 calls for. A guard now raises rather than
+silently colliding; widening the scheme is a stage-3 decision.
 
 ---
 

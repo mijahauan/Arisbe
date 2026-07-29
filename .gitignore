@@ -272,3 +272,4 @@ runs/west_e3*
 runs/west_e3b*
 !runs/WEST_E3B_LOG.md
 runs/west_e3c*
+.superpowers/
