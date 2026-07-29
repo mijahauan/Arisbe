@@ -1,0 +1,348 @@
+# The C-series: communities of kytē under selection — design
+
+**Status:** design, author-ruled section by section on 2026-07-28. Nothing built.
+Supersedes the E-series design (E1–E3c) as the vehicle for the West question;
+does not supersede its harness, which largely transfers.
+
+**Why a new series.** The E-series measured the upkeep cost of a partitioned
+fact-store and could not bear on its headline question. A code-level audit
+(`docs/WEST_IN_KYTE_PROGRAM.md` §8) found that its units never communicated and
+never reasoned, its cost meter charged model size rather than work, its
+durability metric could not read *false*, and its terminal-unit invariance was
+imposed by fixing each unit's slice and round budget. Beneath all of it lay a
+mis-mapping the author named: **a monolith has no counterpart as a terminal
+unit** — it is a single unit made big, which West's networks never do. A MONO
+correlate lives at the level of a whole community, plausibly competing with
+another for a niche. This design starts there.
+
+---
+
+## 1 · The three premises (ruled 2026-07-28, recorded in WEST_IN_KYTE_PROGRAM §8)
+
+These are semiotic commitments, not implementation details. Each forbids a
+specific error the previous series committed or invited.
+
+1. **Reality resides inside the kytos, and nothing is scored against a view from
+   outside it.** A kytos's UoD *is* its reality. The generated field's structure
+   is the **field's regime** — the law by which deliverances arrive at membranes
+   — never "ground truth." Fitness is scored **at the membrane**: did this
+   community's model reliably anticipate what actually arrived? Our knowledge of
+   the regime is a labelled modeler's diagnostic and never enters fitness.
+2. **What the community shares are marks — and the marks are not the commens.**
+   Three terms stay apart. The **UoD** is what a kytos thinks with. The
+   **objectivated marks** are published, attributable inscriptions (Berger &
+   Luckmann's objectivation); the protocol moves these and the instruments count
+   them. The **commens** is Peirce's Communicational Interpretant — the prior,
+   enabling mutual understanding that makes a mark legible at all. It belongs to
+   no participant and **no data structure may carry its name**
+   (THE_COMMENS_AND_THE_COMMUNITY §1). It is measurable only **at its contour, by
+   failure**: breakdown-and-repair episodes map what was *not* held in common.
+3. **Divergence holds by construction.** Units meet the field through different
+   apertures, or they converge on near-identical models and the apparatus
+   measures nothing. Divergent history is a precondition of there being anything
+   to communicate.
+
+**Corollary binding the modeler:** any bird's-eye account of the whole exists as
+a simplification inside *our* membrane. The experiment must never need the
+bird's-eye view to reach a verdict.
+
+---
+
+## 2 · Decision log (this brainstorm, author-ruled)
+
+| Question | Ruling |
+|---|---|
+| What counts as a community's output? | Predictive success at the membrane (primary rate) **+** the objectivated marks and their uptake (structural). Coverage-vs-regime is a diagnostic only; cost is a denominator, not an output. |
+| What is the field? | A synthetic generated world with regional structure — deterministic, seeded, replayable. Four partially overlapping domains to start. |
+| Communication protocol destination | Full ladder: assert · ask · challenge · typify. |
+| Unit heterogeneity | **Identical units**; heterogeneity emerges. Faithful to West (terminal units are identical) and to B&L (types come from habitualization, not essence). |
+| Series shape | **Emergence first** — fixed size, full protocol, minimal presets, watch. Fall back to a capability ladder only if nothing emerges. "This should grow organically, not by design." |
+| Selection | **Present from the start.** |
+| Communities | **Four.** Marks **sealed** between communities initially; permeable later. |
+| Lifecycle | In scope: birth, socialization, death — with **time-to-socialize** as a headline observable. |
+
+---
+
+## 3 · The field
+
+A seeded generator over **four partially overlapping domains** (pinned for the
+first runs; domain count becomes a swept parameter only after C reports). Each
+domain carries hidden regularities of its own; some regularities are shared
+across domains — findable by any unit, and wasteful to find twice. The generator
+emits observations at membranes and holds out a stream for prediction scoring.
+
+Overlap is the load-bearing parameter. Disjoint domains make specialists win
+trivially and reduce communication to routing; heavy overlap makes everyone
+rediscover everything and specialization buys nothing. The interesting regime is
+partial overlap.
+
+**Correspondence to West, stated honestly.** West's networks are *homogeneous* —
+one conserved resource delivered everywhere — so domain heterogeneity has **no
+counterpart in his model**. It enters from B&L and the division of labour, because
+without differing regions there is nothing for typification to typify. What the
+domains *do* correspond to is **space-filling**, WBE's first pillar: the field
+defines the volume a community's apertures must collectively cover, and the
+**overlap fraction** governs whether an added unit adds coverage or duplicates
+it — hence whether returns increase or diminish.
+
+**Two honest breaks from West's model**, recorded so no later reader re-inherits
+the E-series' optimism:
+
+- **Signs are non-rival; blood is not.** A mark taken up by one unit remains
+  available to all. West's organisms scale *sub*linearly because a conserved
+  resource must traverse a constrained network. If our system resembles anything
+  in his corpus it resembles the **city** (Bettencourt & West: superlinear
+  socioeconomic output over sublinear infrastructure), not the organism.
+- **WBE's third pillar is dissipation minimisation under selection.** Without
+  selection the derivation does not go through, and any exponent describes the
+  mechanics we chose rather than a law. This is why selection is present from the
+  first run rather than added as a terminal rung.
+
+---
+
+## 4 · The unit
+
+One instance of the existing loop — bounded interior model, attention economy,
+decay clock — with three changes from the E-series:
+
+- **Laws in the corpus**, so inference has something to do and derivation costs
+  something real (K3 can leave zero).
+- **Provenance in the materializer**: a derived atom's support set is
+  recoverable. This makes *use* mean participating in work rather than arriving
+  again, and it does double duty (see §7, repair detection).
+- **An aperture**: the slice of the field this unit meets, distinct from every
+  other unit's — premise 3 made structural.
+
+**Every unit is constructed identically.** Nothing distinguishes them at birth
+except where they stand. This is the repair of the original sin: E2 fixed each
+unit's *workload* (slice size and round budget), making cost invariance
+arithmetic. Here we fix each unit's *construction* and leave workload, history,
+and role entirely free — so if per-unit cost or required capacity comes out
+invariant anyway, that is a **finding** rather than a restatement of the setup.
+
+**Sizing.** Start near **twelve units per community, each able to consult two or
+three peers per round.** The floor is principled: a unit only needs to learn
+*whom to ask* when it cannot afford to ask everyone, so N must exceed what a unit
+can poll within budget or typification has no reason to appear. The ceiling is
+our ability to read a full run by hand. The author's rider stands: the functional
+quantity may need finding by trial, and **the relationship between community size
+and required individual capacity is itself one of the interesting questions** —
+indeed it is the honest form of the terminal-unit question (§8).
+
+---
+
+## 5 · The protocol
+
+Four channels, all carrying **marks** — attributed, mention-not-use inscriptions
+of the form `(asserts "kytos-3" ⌜P⌝)`, whose primitive already exists in the
+quotation machinery:
+
+1. **Assert** — publish a mark others may encounter and take up.
+2. **Ask** — publish a standing question (the unit's own UNKNOWN), which others
+   may answer. This makes the attention economy *social*: a unit now chooses
+   between probing the field and answering a peer, which is the first genuine
+   division of labour.
+3. **Challenge** — refute another's claim, disposed by the calculus. This is what
+   lets K2 finally read *false*: a standing item can be defeated by something
+   other than the decay clock — the exact degeneracy that voided the E-series'
+   "at equal durability."
+4. **Typify** — each unit maintains a model *of the other units*: who has
+   answered well about what. It learns whom to ask. This is B&L's reciprocal
+   typification, and it cannot exist in an individual.
+
+What crosses is always a sign, never content: the receiver forms its own
+interpretant out of its own history. Marks are **sealed between communities** in
+the first runs; permeability is a later switch.
+
+---
+
+## 6 · Communities and selection
+
+**Four communities**, competing from the first run. Selection falls out of the
+**budget** rather than from a fitness function we write:
+
+- The field emits deliverances per domain each round.
+- A finite **total budget per round is shared across all communities**, allocated
+  **per domain** in proportion to recent predictive success in that domain.
+- Budget buys the three things a community needs: **probes** (meeting the field),
+  **communication**, and **socializing a newcomer**.
+- Units that cannot be funded starve and die. A community that cannot fund
+  socialization faster than it loses members shrinks, and can fail.
+
+Nothing about roles, specialization, or niches is installed. Several things become
+*possible* without being required: two communities crowding one domain split its
+yield and both do worse, so differentiation pays without design; a community
+whose coverage of a domain lapses stops earning there and feels it.
+
+**Per-domain allocation is load-bearing**, not cosmetic: a global zero-sum pool
+risks rich-get-richer collapse into a single winner within the first rounds.
+Per-domain allocation means dominating one domain does not capture the others.
+
+**The lifecycle acquires teeth here.** Socialization is paid out of the *same*
+budget as inquiry, so a community faces a genuine trade-off between meeting the
+field and training its young — arguably the central constraint on any real
+institution, arriving from the accounting rather than from us.
+
+---
+
+## 7 · Instruments, control, and the null
+
+C is exploratory. The discipline lives here: instruments and null are fixed
+**before** the first run. We do **not** pre-register expectations — that would
+defeat the point — but we do pre-register what we will measure and what *nothing*
+looks like.
+
+**Measured:**
+
+- **Primary rate** — predictive success scored at each unit's own membrane,
+  aggregated per community and per domain. (K1, finally live.)
+- **Cost** (denominator) — probing, inference, communication, socialization,
+  tracked separately, so we can see what a community spends its life on.
+- **Marks** — count published and by whom; **uptake** (which are relied on, by how
+  many); **durability** (how long they stand before challenge or decay); the
+  attribution graph of who relies on whom.
+- **Typification** — the who-asks-whom matrix, its departure from uniform and its
+  stability; and each unit's model-composition drift from its community mean
+  (specialization measured, not assumed).
+- **Commens contour** — repair episodes, where a mark miscarries and needs
+  renegotiation; and for newcomers, the decay of that repair rate toward the
+  resident baseline: **the socialization clock**.
+- **Capacity** — the capacity a unit *requires* to function, measured rather than
+  fixed.
+
+**Repair detection** rides on provenance: a mark taken up, appearing in the
+support of a failed prediction, has demonstrably miscarried. No separate
+mechanism needed.
+
+**Modeler's diagnostic, labelled and fitness-excluded:** whether planted laws were
+recovered, and how fast.
+
+**The control is not a monolith.** It is the same four-community world, same
+seed, run twice — once with the protocol live, once mute. Paired and
+deterministic, it isolates communication as the variable.
+
+**The null, written in advance.** Nothing emerged if:
+
+- consultation stays indistinguishable from uniform (no unit becomes
+  preferentially asked);
+- uptake of marks is indistinguishable from random (publishing buys no reliance);
+- the live world's predictive score is indistinguishable from its mute twin
+  (communication buys nothing);
+- newcomers show a flat repair curve (there is no commens to acquire);
+- communities' domain shares stay undifferentiated (no niche forms).
+
+Any of these is a result worth having. The last especially: four communities under
+budget pressure failing to differentiate would say the selection mechanism is too
+weak — a finding about the design we could act on.
+
+---
+
+## 8 · What comes after C, and what promotes a conjecture
+
+**Everything C surfaces stays queued-conjecture.** Promotion requires a later rung
+with priors registered *before* it runs. That rung is the **size sweep**, and its
+question is the author's:
+
+> Does the capacity a kytos *requires* stay invariant as the community grows?
+
+Three outcomes, all informative. If specialization dominates, each unit needs
+*less* as N grows (its niche narrows). If coordination dominates, each needs
+*more* (it must model more peers). If the requirement holds flat across an order
+of magnitude of N — **that is West's invariant terminal unit, discovered rather
+than imposed**, which is what the E-series could not produce and what would make a
+letter to West worth writing.
+
+**The sensitivity discipline** (author, 2026-07-28) has a counterpart in West's own
+theory and should be pre-registered in that form: in the WBE derivation the
+**exponent** comes from network geometry while the **prefactor** carries
+unit-level detail. So structural parameters (topology, overlap, how communication
+grows with N) should move the exponent; unit-level parameters (capacity, decay
+rate, budget) should move only the constant. Testing whether that split survives in
+this substrate is itself a finding — and it is how we learn which presets can be
+removed and which must be tuned.
+
+Later rungs, unscheduled: permeable marks between communities; seeded
+heterogeneity as a contrast arm (does innate difference produce types faster or
+more durably than position alone?); a real-corpus corroboration.
+
+---
+
+## 9 · Build shape
+
+**Reuse:** the round loop (`agon_evolution.run`); the attention economy
+(`attention_economy.py`) including the temperament dial; world-scroll residence
+and licensed M-moves (`world_scroll.py`, `m_steps.py`); the standing-question
+register (`alternative_index.py`, `alternative_survey.py`) for the *ask* channel;
+the mark primitive (`quotation_overlay.quote_existing_name` — attributed,
+mention-not-use); forecast-before-outcome scoring (`resolving_membrane`'s
+`PredictionLedger`); episode mining and stickiness (`agon_metalearning.py`); and
+the E-series harness pattern — deterministic, seeded, custody-safe, canary-checked
+(`west_experiment.py`).
+
+**New:**
+
+1. **Field generator** — domained, law-bearing, seeded, with a held-out stream.
+2. **Provenance in materialization** — support sets for derived atoms.
+   `model_materialization.py` is **not** in the protected set (verified
+   2026-07-28), so this needs no authorization.
+3. **Communication layer** — the four channels, the mark ledger, the
+   who-asks-whom register.
+4. **Community harness** — budget pool, per-domain allocation, lifecycle
+   (birth · socialization · death).
+5. **Instrument suite** — the measures of §7 plus the null tests.
+
+**Deleted rather than extended:** `west_coordinator.py` — the switchboard this
+design replaces with real communication.
+
+**Disciplines carried forward from the E-series, which got these right:** one
+fixed seed; a byte-determinism canary per run; custody-safe outputs; numbers-only
+consoles; move ledgers that replay clean.
+
+---
+
+## 10 · Scale, decomposition, and open questions
+
+**Scale, stated plainly.** Four communities × ~12 units = ~48 loop instances per
+world, doubled by the mute-twin control, per configuration. This is an order of
+magnitude beyond the E-series' per-run cost, and the round loop is known
+super-linear in |M|. Two consequences the plan must face: the per-unit models
+must stay small (decay does that work), and a smoke configuration — two
+communities × four units, few rounds — should exist and be the default for
+development, with full runs reserved and launched deliberately.
+
+**This design exceeds one implementation plan.** It decomposes into stages that
+can be built and gated independently, and the first plan should cover only the
+first two:
+
+1. **Field + unit** — the domained law-bearing generator, apertures, and a single
+   unit that predicts and is scored at its membrane. Gate: one unit measurably
+   learns a planted law and its prediction score rises.
+2. **Provenance** — support sets in materialization, and *use* redefined as
+   participation in work. Gate: an atom's support is recoverable; a decay clock
+   driven by work rather than arrival changes what survives.
+3. **Communication** — the four channels, the mark ledger, the who-asks-whom
+   register. Gate: the live world diverges measurably from its mute twin.
+4. **Community + selection** — budget pool, per-domain allocation, lifecycle.
+   Gate: four communities run to completion deterministically; a community can
+   fail.
+5. **Instruments + null** — the measures and the null tests.
+
+**Open questions for the plan:**
+
+- The exact form of a "prediction" a unit emits, and how a domain's deliverance
+  stream is partitioned into scored and held-out.
+- **How "required capacity" is measured** (§8's headline). Two candidates: sweep
+  the capacity bound and locate where predictive performance degrades, or measure
+  realized utilization of an over-provisioned register. The first answers the
+  question posed but multiplies runs; the second is cheap but measures what a unit
+  *used*, not what it *needed*. Resolve before the size sweep, not before C.
+- How a newcomer is initialized (empty M? a starter aperture? sponsored by a
+  resident?) — this materially affects the socialization clock.
+- Mortality's exact trigger (budget starvation only, or also decay exhaustion).
+- Whether challenge outcomes feed typification directly, or only through
+  subsequent uptake.
+- Run length: how many rounds before "nothing emerged" may honestly be declared.
+
+*Design ruled section by section, 2026-07-28. Assistant-drafted from the
+author's rulings; the premises, the series shape, the selection ruling, the
+lifecycle addition, and the capacity question are his.*
