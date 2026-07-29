@@ -151,7 +151,14 @@ def _match_body(
     return _match_body_at(tuple(body), 0, facts_by_key, facts_by_key)
 
 
-def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None) -> None:
+def _instantiate(atom: Fact, bind) -> Fact:
+    """A body atom under a binding — the same substitution the head uses."""
+    rel, args = atom
+    return (rel, tuple(k if k[0] == "c" else bind[k] for k in args))
+
+
+def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None,
+           provenance=None) -> None:
     """Forward-chain ``horn`` over ``facts`` to the least fixpoint, in place —
     **semi-naive** (Datalog delta iteration): each pass derives only from
     bindings that touch the previous pass's new facts, so the whole model is
@@ -160,7 +167,13 @@ def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None) -> None:
     ``delta=None`` evaluates from scratch (empty-body rules — an unconditional
     ``~[ ~[ H ] ]`` head, ground by range-restriction — are seeded first).  A
     caller *extending* an already-closed fact set passes the newly added atoms
-    as ``delta``; the rules must be unchanged for that to be sound."""
+    as ``delta``; the rules must be unchanged for that to be sound.
+
+    ``provenance`` is opt-in and purely observational: pass a dict and each
+    newly derived fact is recorded against its **support** — the frozen set of
+    instantiated body atoms that produced it, which is what lets downstream
+    "use" mean *doing work as a premise* rather than merely arriving again.
+    Omitted (``None``), the chase behaves exactly as before."""
     rules = sorted(horn)
     if delta is None:
         for body, head in rules:
@@ -181,6 +194,15 @@ def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None) -> None:
                                                for k in hargs))
                         if f not in facts:
                             new.add(f)
+                            if provenance is not None:
+                                support = frozenset(
+                                    _instantiate(atom, bind) for atom in body)
+                                prior = provenance.get(f)
+                                # Deterministic tie-break: keep the
+                                # lexicographically smallest support, so the
+                                # record does not depend on iteration order.
+                                if prior is None or sorted(support) < sorted(prior):
+                                    provenance[f] = support
         facts |= new
         delta = new
 
@@ -287,15 +309,19 @@ def _extract(
 
 def materialize_egi(
     egi: RelationalGraphWithCuts,
+    provenance=None,
 ) -> Tuple[RelationalGraphWithCuts, MaterializationReport]:
     """Forward-chain the Horn fragment of ``egi`` to its least Herbrand model.
 
     Returns ``(facts_egi, report)`` — a facts-only EGI the peel can model-check
     against, and an honest account of what was derived and what was skipped.
+
+    Pass a dict as ``provenance`` to also collect, per derived fact, the
+    support that produced it (see :func:`_chase`); omitted, nothing changes.
     """
     facts, horn, report = _extract(egi)
     closure = set(facts)
-    _chase(closure, horn)
+    _chase(closure, horn, provenance=provenance)
     report.derived_facts = len(closure) - report.base_facts
     return _facts_to_egi(closure), report
 
