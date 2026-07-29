@@ -27,13 +27,25 @@ def test_unit_holding_the_law_anticipates_the_consequent():
     assert all(rel == head for rel, _ in anticipated)
 
 
-def test_held_law_beats_no_law_over_a_run():
+def test_held_law_beats_a_wrong_law_over_a_run():
+    """Three arms over the same rounds. The lawless arm abstains entirely, so
+    comparing against it only exercises the ledger's zero-case; the misled arm
+    holds a law the field does not carry, fires on atoms that really arrive,
+    and so places genuine bets that genuinely lose. That is the falsifiable
+    comparison: a law that does not hold should score badly, not merely
+    abstain."""
     spec, field, ap = _setup()
-    lawful, lawless = Unit("u0", ap), Unit("u1", ap)
+    lawful, lawless, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     lawful.laws.add(spec.domains[0].law)
+    # body = first domain's head relation (which really arrives), head = the
+    # SECOND domain's head relation (which never arrives for those individuals)
+    misled.laws.add((spec.domains[0].law[1], spec.domains[1].law[1]))
     for r in range(20):
         lawful.step(field, r)
         lawless.step(field, r)
+        misled.step(field, r)
     assert lawful.ledger.hits > 0
     assert lawless.ledger.hits == 0
-    assert lawful.ledger.accuracy > lawless.ledger.accuracy
+    assert lawless.ledger.misses == 0        # it places no bet at all
+    assert misled.ledger.misses > 0          # the wrong law bets and loses
+    assert lawful.ledger.accuracy > misled.ledger.accuracy

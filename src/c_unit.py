@@ -8,11 +8,11 @@ arrives in stage 3.
 from __future__ import annotations
 
 from dataclasses import dataclass, field as dc_field
-from typing import Dict, Set, Tuple
+from typing import Set, Tuple
 
 from c_field import Aperture, Field
 from c_membrane import MembraneLedger
-from model_materialization import Fact, Key
+from model_materialization import Fact
 
 
 @dataclass
