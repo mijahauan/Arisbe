@@ -84,13 +84,28 @@ def test_one_pending_antecedent_is_tolerated_two_are_not():
 
 def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     """The Stage 1 gate: a unit that may induce ends up holding a law the
-    regime actually planted, and outperforms one that may not."""
+    regime actually planted, and outperforms both a unit that may not induce
+    and a unit seeded with a law the field does not carry.
+
+    Three arms. The `fixed` arm never induces, so it never bets and its
+    accuracy is 0.0 by construction — comparing against it only shows the
+    learner beats total abstention. The `misled` arm holds a wrong law, fires
+    on atoms that really arrive, and so places genuine bets that genuinely
+    lose. That is the falsifiable comparison: were the induced laws worse than
+    useless, the learner would bet and never win, and would NOT outscore an
+    arm that does the same."""
     spec, field, ap = _setup()
-    learner, fixed = Unit("u0", ap), Unit("u1", ap)
+    learner, fixed, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
+    # body = first domain's head relation (which really arrives), head = the
+    # SECOND domain's head relation (which never arrives for those individuals)
+    misled.laws.add((spec.domains[0].law[1], spec.domains[1].law[1]))
     for r in range(60):
         learner.step(field, r, induce=True)
         fixed.step(field, r, induce=False)
+        misled.step(field, r, induce=False)
     planted = {d.law for d in spec.domains}
     assert learner.laws & planted, "no planted law was induced"
-    assert learner.ledger.hits > 0
+    assert learner.ledger.hits > 0           # it bets and sometimes wins
+    assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert learner.ledger.accuracy > fixed.ledger.accuracy
+    assert learner.ledger.accuracy > misled.ledger.accuracy
