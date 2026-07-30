@@ -526,13 +526,21 @@ def test_the_channel_is_deterministic():
 # only ever added, so a law's only exit was a decay clock and K2 could never
 # read false for a reason.
 #
-# THE DISPOSITION RULE, ONCE. A unit challenges a published LAW mark when its
-# own facts hold a counterexample — an individual carrying the law's body
-# without its head — and the challenge carries that individual. The law's
-# author, reading a challenge against a law it still holds, VERIFIES the
-# counterexample against its own facts and retracts only if it cannot rebut it.
-# Holding that same individual WITH the head rebuts the challenge and the law
-# stands. The calculus decides, not the challenger's authority.
+# THE LIFECYCLE, ONCE. A unit challenges a published LAW mark when its own facts
+# hold a counterexample — an individual carrying the law's body without its head
+# — and the challenge carries that individual. The law's author, reading a
+# challenge against a law it still holds, VERIFIES the counterexample against its
+# own facts; holding that same individual WITH the head rebuts the challenge and
+# the law stands. What has changed under the author's ruling is everything after
+# that. A challenge the author cannot rebut no longer retracts anything: the
+# author RE-ASSESSES the law against its own current record by its own induction
+# criterion (the internal arm — if the record no longer sustains it, the doubt is
+# settled inside the membrane), and if the record does sustain it the law is
+# SUSPENDED and a call for corroboration is published (the external arm). An
+# independent peer bearing the doubt out eliminates the law; a peer holding the
+# disputed individual with the head restores it; silence restores it. The
+# calculus still decides, and now the same standard governs holding a law and
+# losing it.
 
 
 # --- challenging ---------------------------------------------------------------
@@ -546,31 +554,6 @@ def test_a_counterexample_holder_challenges_a_published_law():
     u1.facts.add(("p1", (("c", "z9"),)))       # body without head — a counterexample
     challenges = u1.challenge(board, 1)
     assert challenges and challenges[0].kind == "challenge"
-
-
-def test_an_unrebutted_challenge_retracts_the_law_from_its_author():
-    _spec, _field, u0, u1 = _two_units()
-    board = MarkBoard()
-    u0.laws.add(("p1", "q1"))
-    u0.publish(board, 0)
-    u1.facts.add(("p1", (("c", "z9"),)))
-    u1.challenge(board, 1)
-    retracted = u0.dispose_challenges(board, 2)
-    assert ("p1", "q1") in retracted
-    assert ("p1", "q1") not in u0.laws
-
-
-def test_a_rebuttable_challenge_leaves_the_law_standing():
-    _spec, _field, u0, u1 = _two_units()
-    board = MarkBoard()
-    u0.laws.add(("p1", "q1"))
-    u0.facts.update({("p1", (("c", "z9"),)), ("q1", (("c", "z9"),))})   # author holds the head
-    u0.publish(board, 0)
-    u1.facts.add(("p1", (("c", "z9"),)))
-    u1.challenge(board, 1)
-    retracted = u0.dispose_challenges(board, 2)
-    assert ("p1", "q1") not in retracted
-    assert ("p1", "q1") in u0.laws
 
 
 def test_the_challenge_names_the_law_and_carries_the_counterexample():
@@ -657,34 +640,468 @@ def test_the_challenge_order_is_deterministic():
     assert sequence() == sequence()
 
 
-# --- disposing: the calculus decides ------------------------------------------
+# --- disposing: doubt, inquiry, and the two arms ------------------------------
+#
+# THE AUTHOR'S RULING, replacing Task 5's disposition rule: *corroborate and
+# suspend, but do not eliminate until corroboration.* A challenge raises a doubt;
+# a doubt provokes inquiry; inquiry has an INTERNAL arm (the author re-assesses
+# the law against its own current record, by the very criterion it would use to
+# induce it today) and an EXTERNAL one (it publishes a call for corroboration and
+# the community answers from its own records).
+
+
+def _sustain(unit, law=("p1", "q1"), n=20):
+    """Give `unit` a record that genuinely sustains `law`, so that its own
+    induction criterion would admit it today: n individuals carrying the body and
+    then the head, dated a round apart so precedence fixes the direction.
+
+    WITHOUT THIS A UNIT TESTS THE WRONG ARM. A unit holding a law and no facts
+    fails its own criterion instantly (no support), so every challenge against it
+    is settled internally and the suspension machinery is never reached. That is
+    correct behaviour — an author with no record cannot sustain a law — but it is
+    not what these tests are about."""
+    body, head = law
+    for i in range(n):
+        args = (("c", f"s{i}"),)
+        unit._record({(body, args)}, i)
+        unit._record({(head, args)}, i + 1)
+
+
+def _dispute(unit, law=("p1", "q1"), who="z9", when=21):
+    """Give `unit` one individual carrying the law's body and not its head — the
+    pending case a peer will cite. One in twenty-one is 4.8%, inside the 5%
+    tolerance `induce` admits under, so the law still meets the criterion."""
+    unit._record({(law[0], (("c", who),))}, when)
+
+
+def test_an_unrebutted_challenge_suspends_the_law_rather_than_retracting_it():
+    """THE RULING, in one test. The author cannot rebut the cited individual, so
+    under the old rule it retracted; now the law is SUSPENDED — still held, still
+    on the record — and the author asks for help."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    out = u0.dispose_challenges(board, 2)
+    assert out.suspended == [("p1", "q1")]
+    assert out.retracted_by_corroboration == [] and out.retracted_internally == []
+    assert ("p1", "q1") in u0.laws                  # NOT retracted
+    assert ("p1", "q1") in u0.suspended
+
+
+def test_a_suspended_law_licenses_no_anticipation():
+    """The operational content of suspension: the unit stops betting on the law
+    without giving it up, so it can neither win nor lose while the doubt
+    stands."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    assert u0.anticipate() == {("q1", (("c", "z9"),))}
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    assert u0.anticipate() == set()
+    u0.suspended.clear()
+    assert u0.anticipate() == {("q1", (("c", "z9"),))}
+
+
+def test_a_suspended_law_is_still_held_and_still_rendered():
+    """Suspension withdraws a licence, not a law. `as_egi` renders what the unit
+    holds — the record does not quietly lose the claim its author is still
+    inquiring into."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    drawn = u0.as_egi()
+    assert len(drawn.Cut) == 2                      # the law's Horn double cut
+    assert len(u0.as_egi(laws=u0.laws - u0.suspended).Cut) == 0
+
+
+def test_a_rebuttable_challenge_leaves_the_law_standing_and_unsuspended():
+    """Unchanged from Task 5: the author holds the cited individual WITH the
+    head, so the citation is false of the world it has met. No doubt is opened at
+    all — there is nothing to inquire into."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    u0.laws.add(("p1", "q1"))
+    u0.facts.update({("p1", (("c", "z9"),)), ("q1", (("c", "z9"),))})
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    out = u0.dispose_challenges(board, 2)
+    assert not out
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
+    assert board.corroboration_calls() == []
+
+
+# --- the internal arm: doubt provokes a re-assessment -------------------------
+
+
+def test_a_challenge_provokes_a_re_assessment_that_settles_the_doubt_internally():
+    """THE INTERNAL ARM. The author's own record no longer meets the criterion it
+    would use to induce this law today — six of twenty-six individuals carry the
+    body without the head, far past the 5% it admits under — so the doubt is
+    settled inside the membrane. No corroboration is needed and none is asked
+    for: the author was defeated by its own evidence."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    for i, who in enumerate(("z1", "z2", "z3", "z4", "z5", "z6")):
+        _dispute(u0, who=who, when=21 + i)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z1"),)))
+    u1.challenge(board, 1)
+    out = u0.dispose_challenges(board, 2)
+    assert out.retracted_internally == [("p1", "q1")]
+    assert out.suspended == []
+    assert ("p1", "q1") not in u0.laws and u0.suspended == set()
+    assert board.corroboration_calls() == []        # nobody was asked anything
+
+
+def test_the_re_assessment_runs_only_when_a_doubt_provokes_it():
+    """INQUIRY IS OCCASIONED, not continuous. A law whose support has rotted away
+    is still held while nobody disputes it — `induce` only ever added, and this
+    ruling does not turn disposal into a background audit. What it does is make a
+    challenge the occasion for the re-test that was never happening."""
+    _spec, _field, u0, _u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    for i, who in enumerate(("z1", "z2", "z3", "z4", "z5", "z6")):
+        _dispute(u0, who=who, when=21 + i)
+    u0.laws.add(("p1", "q1"))
+    assert not u0._meets_criterion(("p1", "q1"))    # it would not induce it now
+    assert not u0.dispose_challenges(board, 2)      # and nothing disturbs it
+    assert ("p1", "q1") in u0.laws
+
+
+def test_the_same_standard_governs_holding_a_law_and_losing_it():
+    """THE INCOHERENCE, FIXED. Task 5 pinned the defect in miniature: `induce`
+    admits at a 5% pending RATE and the old disposition rule fired on any ONE
+    pending individual, so a law was refutable the moment its author proposed it
+    (`test_induction_admits_a_law_the_challenge_rule_immediately_refutes`, which
+    this test replaces). Now the challenger cites the very individual the
+    author's induction tolerated, and the law is not destroyed by it — it is put
+    in doubt, on the same terms it was taken up on."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    for i in range(20):
+        args = (("c", f"a{i}"),)
+        u0._record({("p1", args)}, i)
+        u0._record({("q1", args)}, i + 1)
+    pending = (("c", "a99"),)
+    u0._record({("p1", pending)}, 21)               # 1 of 21 = 4.8%, admitted
+    assert u0.induce() == {("p1", "q1")}
+    u0.publish(board, 0)
+    u1.facts.add(("p1", pending))                   # the same individual
+    u1.challenge(board, 1)
+    out = u0.dispose_challenges(board, 2)
+    assert out.suspended == [("p1", "q1")]
+    assert ("p1", "q1") in u0.laws
+    assert u0._meets_criterion(("p1", "q1"))        # by its own standard, still
+
+
+# --- the call for corroboration ------------------------------------------------
+
+
+def test_the_author_publishes_a_call_naming_the_law_and_the_disputed_individual():
+    """The ask channel's shape, pointed at a law: a public, attributable question
+    that asserts nothing and names exactly what would bear on it."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    call, = board.corroboration_calls()
+    assert (call.author, call.kind, call.round_idx) == ("u0", "corroboration", 2)
+    assert call.content == ("p1", "q1")
+    assert call.counterexample == ("p1", (("c", "z9"),))
+
+
+def test_a_call_is_published_once_per_law_ever():
+    """The discipline every other act here keeps. A second call about one law
+    would be the same request again, counted twice by the instruments."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    for r in range(2, 6):
+        u0.dispose_challenges(board, r)
+    assert len(board.corroboration_calls()) == 1
+    assert board.republished == 0
+
+
+def test_a_call_cannot_be_adopted():
+    """It asks about a law rather than claiming one; taking it up would enter a
+    law its own author has put in doubt."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    call, = board.corroboration_calls()
+    with pytest.raises(ValueError, match="corroboration call"):
+        u1.adopt(call, board)
+    assert ("p1", "q1") not in u1.laws
+
+
+def test_a_corroboration_mark_must_name_a_law_and_an_individual():
+    with pytest.raises(ValueError, match="corroboration"):        # fact-shaped
+        Mark(author="u0", content=("p1", A1), kind="corroboration", round_idx=0,
+             counterexample=("p1", A1))
+    with pytest.raises(ValueError, match="no counterexample"):
+        Mark(author="u0", content=("p1", "q1"), kind="corroboration", round_idx=0)
+    with pytest.raises(ValueError, match="not the law's body"):
+        Mark(author="u0", content=("p1", "q1"), kind="corroboration", round_idx=0,
+             counterexample=("p2", A1))
+
+
+# --- answering the call --------------------------------------------------------
+
+
+def test_a_peer_answers_the_call_with_its_own_counterexample():
+    """CORROBORATION IS A PEER'S OWN EVIDENCE, published as an ordinary challenge
+    through the same once-per-law mint — because that is what it is. What makes
+    it corroboration rather than a fresh dispute is only that another record
+    already said the same thing: independence is a property of the two records,
+    not of the mark."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)                 # suspends; publishes the call
+    u2.facts.add(("p1", (("c", "z8"),)))            # its own, different case
+    answer, = u2.corroborate(board, 3)
+    assert (answer.author, answer.kind) == ("u2", "challenge")
+    assert answer.counterexample == ("p1", (("c", "z8"),))
+
+
+def test_a_peer_answers_the_call_by_publishing_the_disputed_individual_with_the_head():
+    """The other answer a call can get, and the ruling's own restoring move: the
+    peer holds the very individual in dispute WITH the head. It is published as
+    an ordinary fact mark, indistinguishable from the same content published
+    unprompted, because that is what it is."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    u2.facts.add(("q1", (("c", "z9"),)))            # the head, for that case
+    answer, = u2.corroborate(board, 3)
+    assert (answer.author, answer.kind, answer.content) == (
+        "u2", "fact", ("q1", (("c", "z9"),)))
+
+
+def test_a_unit_never_answers_its_own_call_and_says_nothing_it_has_not_met():
+    """It cannot corroborate its own doubt, for the reason it cannot answer its
+    own question — and a peer with neither the head nor a counterexample of its
+    own simply has nothing to contribute. That silence is what the window
+    measures."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    assert u0.corroborate(board, 3) == []           # its own call
+    assert u2.corroborate(board, 3) == []           # an empty record
+
+
+# --- closing the doubt ---------------------------------------------------------
+
+
+def test_independent_corroboration_eliminates_the_law():
+    """The one thing that eliminates a law from outside: a second record,
+    independently, bearing the doubt out."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    u2.facts.add(("p1", (("c", "z8"),)))
+    u2.corroborate(board, 3)
+    out = u0.dispose_challenges(board, 4)
+    assert out.retracted_by_corroboration == [("p1", "q1")]
+    assert ("p1", "q1") not in u0.laws and u0.suspended == set()
+
+
+def test_the_original_challenger_s_counterexample_does_not_count_twice():
+    """INDEPENDENCE IS THE WHOLE POINT of requiring corroboration. The unit that
+    opened the doubt cannot also close it: its counterexample is the one already
+    being weighed, and counting it twice would turn one record's gap into two
+    voices. Here the challenger is the only dissenting record, and the law is not
+    eliminated however many rounds pass inside the window."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    for r in range(3, 7):                            # inside the window
+        out = u0.dispose_challenges(board, r)
+        assert out.retracted_by_corroboration == []
+        assert ("p1", "q1") in u0.suspended
+
+
+def test_a_peer_s_published_head_restores_the_suspended_law():
+    """The ruling's restoring move. The author could not settle the case from its
+    own record — under a fallible field a withheld consequent looks exactly like
+    a refutation — and a peer that WAS looking supplies the missing observation.
+    The law goes back to work; the peer's fact is not adopted, because what was
+    restored is a licence, not a holding."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    u2.facts.add(("q1", (("c", "z9"),)))
+    u2.corroborate(board, 3)
+    out = u0.dispose_challenges(board, 4)
+    assert out.restored_by_rebuttal == [("p1", "q1")]
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
+    assert ("q1", (("c", "z9"),)) not in u0.facts    # restored, not adopted
+
+
+def test_the_author_s_own_later_observation_restores_the_law():
+    """A verification is a snapshot — Task 5's own concern, and suspension is
+    what makes it repairable. The head arrives at the author's membrane two
+    rounds after the doubt opened, and the author lifts its own suspension
+    without needing anybody."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    u0._record({("q1", (("c", "z9"),))}, 3)          # the withheld head, late
+    out = u0.dispose_challenges(board, 4)
+    assert out.restored_by_rebuttal == [("p1", "q1")]
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
+
+
+def test_silence_restores_the_law_when_the_window_runs_out():
+    """SILENCE CANNOT ELIMINATE. A challenge that gathers no support has failed,
+    and "do not eliminate until corroboration" fixes the direction the window
+    must end in. The default is five rounds and it is the author's to overrule."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    assert u0.corroboration_window == 5
+    for r in range(3, 7):
+        assert not u0.dispose_challenges(board, r)
+        assert ("p1", "q1") in u0.suspended
+    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
+    assert out.restored_by_silence == [("p1", "q1")]
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
+
+
+def test_a_challenge_that_failed_to_gather_support_does_not_raise_the_doubt_again():
+    """A CHALLENGE IS DISPOSED OF ONCE, EVER — the discipline `publish`, `ask` and
+    `challenge` already keep. Without it the channel oscillates on its own: the
+    restored law meets the same unanswered inscription next round and is
+    suspended again forever. What can raise a fresh doubt is fresh evidence, and
+    that is exactly what corroboration means here."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    u0.dispose_challenges(board, 7)                  # restored by silence
+    for r in range(8, 14):
+        assert not u0.dispose_challenges(board, r)
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
+
+
+def test_a_shorter_window_is_the_author_s_to_set():
+    """The window is a named parameter with a stated default, not a constant
+    buried in the disposal."""
+    _spec, _field, _u0, u1 = _two_units()
+    board = MarkBoard()
+    u0 = Unit("u0", _u0.aperture, corroboration_window=1)
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    assert u0.dispose_challenges(board, 3).restored_by_silence == [("p1", "q1")]
+
+
+# --- what did not change -------------------------------------------------------
 
 
 def test_a_challenge_to_a_law_the_unit_does_not_hold_disposes_of_nothing():
-    """Nothing is retracted that was never held — `retract_law`'s honest return
-    value, carried up."""
+    """Nothing is disposed of that was never held."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     u0.laws.add(("p1", "q1"))
     u0.publish(board, 0)
     u1.facts.add(("p1", A1))
     u1.challenge(board, 1)
-    assert u1.dispose_challenges(board, 2) == []      # u1 never held it
+    assert not u1.dispose_challenges(board, 2)        # u1 never held it
     other = Unit("u2", u1.aperture)
-    assert other.dispose_challenges(board, 2) == []
-
-
-def test_disposal_is_idempotent():
-    """A law given up is not given up twice, and the second pass reports
-    nothing — a caller reading the return value learns what actually changed."""
-    _spec, _field, u0, u1 = _two_units()
-    board = MarkBoard()
-    u0.laws.add(("p1", "q1"))
-    u0.publish(board, 0)
-    u1.facts.add(("p1", A1))
-    u1.challenge(board, 1)
-    assert u0.dispose_challenges(board, 2) == [("p1", "q1")]
-    assert u0.dispose_challenges(board, 3) == []
+    assert not other.dispose_challenges(board, 2)
 
 
 def test_a_disposal_does_not_answer_for_a_challenge_made_later():
@@ -693,92 +1110,88 @@ def test_a_disposal_does_not_answer_for_a_challenge_made_later():
     caller."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
     u0.laws.add(("p1", "q1"))
     u0.publish(board, 0)
-    u1.facts.add(("p1", A1))
+    u1.facts.add(("p1", (("c", "z9"),)))
     u1.challenge(board, 5)
-    assert u0.dispose_challenges(board, 4) == []
-    assert ("p1", "q1") in u0.laws
-    assert u0.dispose_challenges(board, 5) == [("p1", "q1")]
+    assert not u0.dispose_challenges(board, 4)
+    assert u0.dispose_challenges(board, 5).suspended == [("p1", "q1")]
 
 
 def test_volume_of_challenges_does_not_decide_a_law():
-    """THE POINT OF THE CHANNEL. Three peers challenge one law and every one of
-    their counterexamples is rebutted by the author's own record: the law
-    stands. A rule that counted challenges would have retracted it three times
-    over — and the challengers are not wrong about their own records, they are
-    simply not the ones who decide."""
+    """THE POINT OF THE CHANNEL, unchanged. Three peers challenge one law and
+    every one of their counterexamples is rebutted by the author's own record: no
+    doubt is opened at all. A rule that counted challenges would have taken three
+    voices for corroboration — and the challengers are not wrong about their own
+    records, they are simply not the ones who decide."""
     u0, u1, u2, u3 = _units()
     board = MarkBoard()
     u0.laws.add(("p1", "q1"))
     for args in (A1, A2, (("c", "a3"),)):
-        u0.facts.update({("p1", args), ("q1", args)})   # the author holds each head
+        u0.facts.update({("p1", args), ("q1", args)})
     u0.publish(board, 0)
     for peer, args in ((u1, A1), (u2, A2), (u3, (("c", "a3"),))):
         peer.facts.add(("p1", args))
         assert peer.challenge(board, 1)
     assert len(board.challenges_against(("p1", "q1"))) == 3
-    assert u0.dispose_challenges(board, 2) == []
-    assert ("p1", "q1") in u0.laws
-
-
-def test_one_unrebutted_challenge_among_many_rebutted_ones_still_defeats_the_law():
-    """Verification is per-counterexample, not a vote: the law falls to the one
-    citation the author cannot answer, whatever the others say."""
-    u0, u1, u2, _u3 = _units()
-    board = MarkBoard()
-    u0.laws.add(("p1", "q1"))
-    u0.facts.update({("p1", A1), ("q1", A1)})           # rebuts a citation of a1
-    u0.facts.add(("p1", A2))                            # but not one of a2
-    u0.publish(board, 0)
-    u1.facts.add(("p1", A1))
-    u1.challenge(board, 1)
-    u2.facts.add(("p1", A2))
-    u2.challenge(board, 1)
-    assert u0.dispose_challenges(board, 2) == [("p1", "q1")]
+    assert not u0.dispose_challenges(board, 2)
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
 
 def test_the_author_verifies_against_its_own_record_not_the_challengers():
     """The two records disagree, and the author's is the one that decides its own
     law. The challenger is not lying — it really does lack the head — and it
-    still does not get to retract someone else's law."""
+    still does not get to suspend someone else's law."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     u0.laws.add(("p1", "q1"))
     u0.facts.update({("p1", A1), ("q1", A1)})
     u0.publish(board, 0)
-    u1.facts.add(("p1", A1))                            # no q1(a1) in ITS record
+    u1.facts.add(("p1", A1))
     challenge, = u1.challenge(board, 1)
     assert challenge.counterexample == ("p1", A1)
-    assert u0.dispose_challenges(board, 2) == []
+    assert not u0.dispose_challenges(board, 2)
     assert ("p1", "q1") in u0.laws
 
 
-# --- a challenge is not a claim ------------------------------------------------
+def test_a_challenge_meets_every_author_of_the_law():
+    """Addressed to a claim, not to a person: two units that independently
+    published `p1 -> q1` published ONE claim twice, and one challenge puts it in
+    doubt for both — each inquiring into its own record."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    for u in (u0, u1):
+        _sustain(u)
+        _dispute(u)
+        u.laws.add(("p1", "q1"))
+        u.publish(board, 0)
+    u2.facts.add(("p1", (("c", "z9"),)))
+    assert len(u2.challenge(board, 1)) == 1           # one challenge, not two
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    assert u1.dispose_challenges(board, 2).suspended == [("p1", "q1")]
 
 
-def test_a_challenge_mark_must_be_law_shaped_and_carry_checkable_evidence():
-    with pytest.raises(ValueError, match="challenge"):        # fact-shaped content
-        Mark(author="u0", content=("p1", A1), kind="challenge", round_idx=0,
-             counterexample=("p1", A1))
-    with pytest.raises(ValueError, match="no counterexample"):
-        Mark(author="u0", content=("p1", "q1"), kind="challenge", round_idx=0)
-    with pytest.raises(ValueError, match="not the law's body"):
-        Mark(author="u0", content=("p1", "q1"), kind="challenge", round_idx=0,
-             counterexample=("p2", A1))
-    with pytest.raises(ValueError, match="not an atom"):
-        Mark(author="u0", content=("p1", "q1"), kind="challenge", round_idx=0,
-             counterexample=("p1", "q1"))
-
-
-def test_only_a_challenge_carries_a_counterexample():
-    """An assertion or a question that carried one would be offering evidence
-    against a law it never named."""
-    for kind, content in (("fact", ("p1", A1)), ("law", ("p1", "q1")),
-                          ("question", ("p1", A1))):
-        with pytest.raises(ValueError, match="only a challenge"):
-            Mark(author="u0", content=content, kind=kind, round_idx=0,
-                 counterexample=("p1", A1))
+def test_a_suspended_or_defeated_law_still_stands_on_the_board():
+    """The board is append-only: what a mark CLAIMS and what its author now HOLDS
+    have come apart. The call for corroboration is the one piece of a law's
+    changed standing that reaches the board at all; the rest is the maintenance
+    channel's work (spec §9b)."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    law_mark = [m for m in u0.publish(board, 0) if m.kind == "law"][0]
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    u0.dispose_challenges(board, 2)
+    u2.facts.add(("p1", (("c", "z8"),)))
+    u2.corroborate(board, 3)
+    u0.dispose_challenges(board, 4)
+    assert ("p1", "q1") not in u0.laws
+    assert law_mark in board.all_marks()
 
 
 def test_a_challenge_cannot_be_adopted():
@@ -791,67 +1204,23 @@ def test_a_challenge_cannot_be_adopted():
     challenge, = u1.challenge(board, 1)
     with pytest.raises(ValueError, match="challenge"):
         u0.adopt(challenge, board)
-    assert ("p1", "q1") in u0.laws                  # and nothing was taken up
+    assert ("p1", "q1") in u0.laws
     assert u0.facts == set()
 
 
-def test_a_defeated_law_still_stands_on_the_board():
-    """The board is append-only: what a mark CLAIMS and what its author still
-    HOLDS have come apart, and nothing here closes that gap. Left visible rather
-    than pre-empted — the maintenance channel's work (spec §9b)."""
-    _spec, _field, u0, u1 = _two_units()
-    board = MarkBoard()
-    u0.laws.add(("p1", "q1"))
-    law_mark, = u0.publish(board, 0)
-    u1.facts.add(("p1", A1))
-    u1.challenge(board, 1)
-    u0.dispose_challenges(board, 2)
-    assert ("p1", "q1") not in u0.laws
-    assert law_mark in board.all_marks()
-
-
-def test_induction_admits_a_law_the_challenge_rule_immediately_refutes():
-    """THE STRUCTURAL FINDING, in miniature: the two criteria disagree BY
-    CONSTRUCTION.
-
-    `induce` tolerates a RATE of pending individuals (up to 5%, which is what
-    lets a true law survive the field's withheld consequents). `challenge` fires
-    on ANY ONE pending individual — an existential, not a rate. So the
-    disposition rule is strictly stronger than the admission rule, and every law
-    admitted with a nonzero pending rate is challengeable the moment it is
-    published. Here the challenger's counterexample is an individual the AUTHOR'S
-    OWN RECORD already had, and the author duly retracts a law its own induction
-    proposed one line earlier.
-    """
-    _spec, _field, u0, u1 = _two_units()
-    board = MarkBoard()
-    for i in range(20):                             # body first, head after —
-        args = (("c", f"a{i}"),)                    # so precedence fixes the
-        u0._record({("p1", args)}, i)               # direction and the converse
-        u0._record({("q1", args)}, i + 1)           # is refused outright
-    pending = (("c", "a99"),)
-    u0._record({("p1", pending)}, 21)               # 1 of 21 = 4.8%, admitted
-    assert u0.induce() == {("p1", "q1")}
-    u0.publish(board, 0)
-    u1.facts.add(("p1", pending))                   # the same individual
-    u1.challenge(board, 1)
-    assert u0.dispose_challenges(board, 2) == [("p1", "q1")]
-
-
-# --- the measurement: what does defeasibility cost under noise? ---------------
+# --- the measurement: does suspension save the true laws? ---------------------
 #
 # THE DRIVER IS EXPLICIT, as in the ask channel's measurement above. Four units
 # with distinct overlapping apertures induce laws from what they meet, publish
-# what they hold, challenge what their records contradict, and dispose of the
-# challenges standing against them. Nothing adopts anything: Task 3 measured
-# indiscriminate uptake and found it strictly harmful, and mixing it in here
-# would confound the challenge channel's effect with that one.
+# what they hold, challenge what their records contradict, answer each other's
+# calls for corroboration, and dispose of the doubts standing against them.
+# Nothing adopts anything: Task 3 measured indiscriminate uptake and found it
+# strictly harmful, and mixing it in here would confound two effects.
 #
 # THE MODELER'S LABEL IS READ ONLY IN THIS FILE. `spec.domains[i].law` says which
-# laws the field actually carries, so a retraction can be labelled a FALSE
-# retraction (a true law defeated) or a CORRECT one (an accidental law defeated).
-# No `Unit` reads it — a unit that knew which laws were planted would not be
-# testing anything.
+# laws the field actually carries, so a retraction can be labelled FALSE (a true
+# law defeated) or CORRECT (an accidental law defeated). No `Unit` reads it — a
+# unit that knew which laws were planted would not be testing anything.
 
 C_ROUNDS = 60
 C_SEEDS = [1, 2, 3, 4, 5, 7, 42, 99]
@@ -860,7 +1229,8 @@ C_SEEDS = [1, 2, 3, 4, 5, 7, 42, 99]
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                     wrong_laws=False, induce=True):
     """Four units, one board. Each round: attend the field (inducing), publish
-    what is held, then — if the channel is live — challenge and dispose.
+    what is held, then — if the channel is live — challenge, answer standing
+    calls, and dispose.
 
     `wrong_laws` seeds each unit with the CONVERSE of its first domain's law, a
     law the field does not carry. It is what gives the channel something correct
@@ -884,7 +1254,9 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
         units.append(Unit(f"u{i}", aps[i], laws=laws))
     board = MarkBoard()
     raised = 0
-    retractions = []                                # (unit_id, law), with repeats
+    events = []                    # (unit_id, law, why), with repeats: the thrash
+    tally = {k: 0 for k in ("suspended", "internal", "corroborated",
+                            "rebutted", "silence")}
     for r in range(rounds):
         for i, u in enumerate(units):               # (a) attend + induce
             if stagger == 1 or r % stagger == i % stagger:
@@ -894,214 +1266,262 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
         if channel:
             for u in units:                         # (c) challenge
                 raised += len(u.challenge(board, r))
-            for u in units:                         # (d) dispose
-                for law in u.dispose_challenges(board, r):
-                    retractions.append((u.unit_id, law))
-    return spec, units, board, raised, retractions
+            for u in units:                         # (d) answer standing calls
+                u.corroborate(board, r)
+            for u in units:                         # (e) dispose
+                out = u.dispose_challenges(board, r)
+                tally["suspended"] += len(out.suspended)
+                tally["internal"] += len(out.retracted_internally)
+                tally["corroborated"] += len(out.retracted_by_corroboration)
+                tally["rebutted"] += len(out.restored_by_rebuttal)
+                tally["silence"] += len(out.restored_by_silence)
+                for law in out.retracted_internally:
+                    events.append((u.unit_id, law, "internal"))
+                for law in out.retracted_by_corroboration:
+                    events.append((u.unit_id, law, "corroborated"))
+    return spec, units, board, raised, events, tally
 
 
-def test_every_successful_challenge_defeats_a_law_the_field_actually_carries():
-    """THE HEADLINE, AND IT IS NEGATIVE. Reported, not tuned away.
+def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
+    """THE HEADLINE, AND IT IS POSITIVE — which is not what the last two
+    measurements here reported, so read the counts rather than the direction.
 
-    Eight seeds, 60 rounds, four units inducing from what they meet. Across the
-    eight seeds: **58 challenges raised, 58 succeeded (100%), and all 58 defeated
-    a law the field actually carries.** ZERO correct retractions — not because
-    the rule missed them, but because there were none to make: `induce` proposes
-    only planted laws at every seed measured (pinned in `test_c_unit.py`), so
-    every law on the board is true and every success is a false retraction. Over
-    the full fourteen seeds the suite uses, the same reading: 98 raised, 98
-    succeeded, 98 false, 0 correct.
+    Eight seeds, 60 rounds, four units inducing from what they meet. The old
+    existential rule defeated **58 of 58** laws the field actually carries and
+    left 34 of them gone at the end of the run. Under the ruling:
 
-    WHY A TRUE LAW IS REFUTABLE AT ALL is the field's noise, working exactly as
-    Task 1 intended: about a tenth of licensed consequents are withheld, so an
-    individual can carry a body whose head never arrives, and a peer holding that
-    individual has a perfectly honest counterexample. The author cannot
-    distinguish it from a genuine refutation — its own record simply lacks the
-    head — so it retracts. **That is what fallibility costs, and it is the whole
-    finding: under noise, an existential counterexample rule cannot tell a
-    withheld consequent from a false law.**
+        raised                              58   (unchanged: the same evidence)
+        suspended                           28
+        eliminated by corroboration         18
+        retracted by internal re-assessment 38
+        restored by rebuttal                 2
+        restored by silence                  0
+        ------------------------------------------------------------------
+        distinct (unit, law) defeats        56   all of them true laws
+        **still gone at the end of the run   2** (was 58)
 
-    THE PRICE IN SCORE, at equal run length (60 rounds both arms):
+    **Fifty-four of the fifty-six defeated laws come back**, re-induced from the
+    author's own record once it recovers, and stay. The permanent loss of true
+    laws falls from 58 to 2. That is the ruling's whole claim, measured.
 
-        seed    live    mute    |   seed    live    mute
-        1        +24     +26    |   5        +98    +112
-        2        +40     +54    |   7        +32     +80
-        3        +38     +82    |   42       +56     +66
-        4        +22     +60    |   99       +74    +116
-        totals  +384    +596    (14 seeds: +750 against +1096)
+    THE THRASH SUBSIDES BECAUSE THE TWO CRITERIA STOPPED FIGHTING. 56 retraction
+    events for 56 distinct defeats — exactly one apiece, against 426 events for
+    98 defeats (4.3 apiece) under the old rule. Two mechanisms do it: the same
+    criterion now governs holding and losing, so a law `induce` would re-admit is
+    not destroyed in the first place; and a challenge is disposed of once, ever,
+    so the same inscription cannot kill a law again after the record has answered
+    it.
 
-    The channel costs **36% of the pair's net score** at eight seeds (32% at
-    fourteen), and it loses at 8 of 8 seeds. Nothing here is a threshold to be
-    raised: a confirmation count would buy discrimination the rule does not have,
-    by making retraction a function of how many peers spoke — which is the one
-    thing the disposition rule exists to refuse.
+    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+454 live
+    against +596 mute**, against the old rule's +384 — a 24% cost where it was
+    36%. The channel still costs, and the cost is exactly what suspension is:
+    a true law that is mute for a few rounds forgoes the hits it would have won.
+    It loses at 8 of 8 seeds, asserted per-seed.
 
-    WHAT SURVIVES IS THE OSCILLATION. Only 34 of the 58 defeated laws are still
-    absent at the end of the run: the rest are re-induced from the very record
-    that holds the counterexample (`induce` tolerates a 5% pending rate,
-    `challenge` tolerates none — see
-    `test_induction_admits_a_law_the_challenge_rule_immediately_refutes`) and
-    then retracted again. Across fourteen seeds the 98 distinct defeats are 426
-    retraction EVENTS. Induction and challenge are fighting.
+    THE INTERNAL ARM IS DOING MOST OF THE KILLING, AND ALL 38 OF ITS VICTIMS ARE
+    TRUE LAWS. That is a finding about the criterion, not about the channel, and
+    it is reported rather than tuned: the pending rate of a true law hovers right
+    at the 5% tolerance under a 10% withhold rate, so the author's own record
+    dips below its own standard for a few rounds and recovers. Under the old rule
+    this was invisible, because a foreign counterexample destroyed the law first.
     """
-    raised_total = succeeded = false_retractions = correct_retractions = 0
+    raised_total = 0
+    agg = {k: 0 for k in ("suspended", "internal", "corroborated",
+                          "rebutted", "silence")}
+    events_total = defeats = false_defeats = 0
+    lost_true = lost_false = 0
     live_total = mute_total = 0
     for seed in C_SEEDS:
-        spec, live, _board, raised, retractions = _play_challenge(
+        spec, live, _board, raised, events, tally = _play_challenge(
             seed, C_ROUNDS, channel=True)
-        _s, mute, _b, _r, _rr = _play_challenge(seed, C_ROUNDS, channel=False)
+        _s, mute, _b, _r, _e, _t = _play_challenge(seed, C_ROUNDS, channel=False)
         planted = {d.law for d in spec.domains}
-        defeats = set(retractions)                  # distinct (unit, law)
-        assert raised > 0 and defeats, f"seed {seed}: nothing was challenged"
-        false_here = sum(1 for _u, law in defeats if law in planted)
-        # EVERY successful challenge defeated a law the field carries.
-        assert false_here == len(defeats), (
-            f"seed {seed}: {len(defeats) - false_here} correct retractions — "
-            f"an accidental law reached the board, so the reading has changed")
+        distinct = {(uid, law) for uid, law, _why in events}
+        assert raised > 0 and distinct, f"seed {seed}: nothing was disputed"
+        # Every law on the board is one the field carries, as in Task 5.
+        false_here = sum(1 for _u, law in distinct if law in planted)
+        assert false_here == len(distinct), (
+            f"seed {seed}: an accidental law reached the board")
+        held = {(u.unit_id, law) for u in live for law in u.laws}
+        gone = distinct - held
+        lost_true += sum(1 for _u, law in gone if law in planted)
+        lost_false += sum(1 for _u, law in gone if law not in planted)
         live_net = sum(u.ledger.net_score for u in live)
         mute_net = sum(u.ledger.net_score for u in mute)
-        # Per-seed, so a single seed where challenge PAYS names itself.
         assert live_net < mute_net, (
-            f"seed {seed}: the challenge channel did not cost anything "
+            f"seed {seed}: the channel did not cost anything "
             f"({live_net:+d} against {mute_net:+d})")
         raised_total += raised
-        succeeded += len(defeats)
-        false_retractions += false_here
-        correct_retractions += len(defeats) - false_here
+        for k in agg:
+            agg[k] += tally[k]
+        events_total += len(events)
+        defeats += len(distinct)
+        false_defeats += false_here
         live_total += live_net
         mute_total += mute_net
-    assert (raised_total, succeeded) == (58, 58)
-    assert (false_retractions, correct_retractions) == (58, 0)
-    assert (live_total, mute_total) == (384, 596)
+    assert (raised_total, defeats, false_defeats) == (58, 56, 56)
+    assert agg == {"suspended": 28, "internal": 38, "corroborated": 18,
+                   "rebutted": 2, "silence": 0}
+    # THE COMPARISON THIS TASK EXISTS FOR: 58 of 58 true laws permanently lost
+    # under the existential rule, 2 of 56 under the ruling.
+    assert (lost_true, lost_false) == (2, 0)
+    # One retraction event per defeat: induction and disposal have stopped
+    # fighting (426 events for 98 defeats before).
+    assert events_total == defeats == 56
+    assert (live_total, mute_total) == (454, 596)
 
 
-def test_the_rule_defeats_a_false_law_too_and_at_exactly_the_same_rate():
-    """IT IS NOT BROKEN — IT IS INDISCRIMINATE, which is worse and more
-    interesting.
+def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_record():
+    """IT DID NOT BECOME TOOTHLESS, and the teeth moved inward.
 
-    Same eight seeds and rounds, but each unit is additionally seeded with the
-    CONVERSE of its first domain's law — a law the field does not carry, so
-    defeating it is a correct retraction. Measured: **90 challenges raised, 90
-    succeeded, 58 false and 32 correct.** Every one of the 32 wrong laws dies
-    (32 of 32) and every one of the 58 true laws is defeated at least once (58 of
-    58). Under full attention the rule retracts *whatever anyone has a
-    counterexample to*, and truth makes no difference to its rate.
+    Same eight seeds and rounds, each unit additionally seeded with the CONVERSE
+    of its first domain's law — a law the field does not carry, so defeating it
+    is a correct retraction. Measured: **90 raised, 32 of 32 converses defeated
+    and permanently gone, 56 true laws defeated and 54 of them recovered.**
 
-    THE ARITHMETIC OF THE TRADE, and it is not close. The mute arm's net falls
-    from +596 to +519 when the converse laws are seeded, so holding those four
-    wrong laws costs **77**; the live arm's net is **+384 in both arms**,
-    identical seed by seed, because the channel kills the converse before it can
-    place a losing bet. So the channel's BENEFIT here is 77 and its COST — the
-    58 true laws it defeats — is 596 − 384 = 212. **It buys a real good at
-    roughly three times its price.**
+    EVERY ONE OF THE 32 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer.
+    A converse (`a_head -> a_local`) has a huge pending rate in its holder's own
+    record, so the moment a challenge occasions the re-test, the author's own
+    evidence throws it out. That is the amendment's point about the two arms: the
+    internal one is not a formality, it is what does the discriminating work, and
+    a doubt that provokes it is worth more than a doubt that only counts votes.
+
+    THE ARITHMETIC OF THE TRADE, and it improved. The mute arm pays **77** for
+    holding those converses (+596 to +519); the live arm is **+454 in both arms**,
+    identical seed by seed, because the wrong law dies before it can bet. So the
+    benefit is 77 and the cost is 596 − 454 = **142**, where the old rule paid
+    212 for the same 77. Still not a bargain — a real good at about twice its
+    price rather than three times.
     """
-    raised_total = false_retractions = correct_retractions = 0
+    internal_false = corroborated_false = 0
+    correct = recovered_true = lost_true = 0
     live_total = mute_total = 0
     for seed in C_SEEDS:
-        spec, live, _board, raised, retractions = _play_challenge(
+        spec, live, _board, _raised, events, _tally = _play_challenge(
             seed, C_ROUNDS, channel=True, wrong_laws=True)
-        _s, mute, _b, _r, _rr = _play_challenge(
+        _s, mute, _b, _r, _e, _t = _play_challenge(
             seed, C_ROUNDS, channel=False, wrong_laws=True)
         planted = {d.law for d in spec.domains}
-        defeats = set(retractions)
-        false_here = sum(1 for _u, law in defeats if law in planted)
-        correct_here = len(defeats) - false_here
-        # All four seeded converses die at every seed — the rule works.
+        distinct = {(uid, law) for uid, law, _why in events}
+        held = {(u.unit_id, law) for u in live for law in u.laws}
+        correct_here = sum(1 for _u, law in distinct if law not in planted)
         assert correct_here == 4, (
             f"seed {seed}: {correct_here} of 4 wrong laws defeated")
-        # And so do the true ones.
-        assert false_here > 0, f"seed {seed}: no true law was defeated"
         assert not any(law not in planted for u in live for law in u.laws), (
             f"seed {seed}: a converse law survived the channel")
-        raised_total += raised
-        false_retractions += false_here
-        correct_retractions += correct_here
+        internal_false += sum(1 for _u, law, why in events
+                              if law not in planted and why == "internal")
+        corroborated_false += sum(1 for _u, law, why in events
+                                  if law not in planted and why == "corroborated")
+        correct += correct_here
+        recovered_true += sum(1 for u, law in distinct
+                              if law in planted and (u, law) in held)
+        lost_true += sum(1 for u, law in distinct
+                         if law in planted and (u, law) not in held)
         live_total += sum(u.ledger.net_score for u in live)
         mute_total += sum(u.ledger.net_score for u in mute)
-    assert raised_total == 90
-    assert (false_retractions, correct_retractions) == (58, 32)
-    # The benefit is real (the mute arm pays 596 - 519 = 77 for its wrong laws)
-    # and the cost is about three times it (596 - 384 = 212).
-    assert (live_total, mute_total) == (384, 519)
+    assert correct == 32
+    # THE AMENDMENT'S QUESTION: which arm does the discriminating work?
+    assert (internal_false, corroborated_false) == (32, 0)
+    assert (recovered_true, lost_true) == (54, 2)
+    assert (live_total, mute_total) == (454, 519)
 
 
-def test_under_bounded_attention_the_rule_defeats_the_true_law_and_spares_the_false_one():
-    """THE INVERSION, and the sharpest thing measured here.
+def test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally():
+    """THE NEGATIVE RESULT THAT SURVIVED THE RULING. Reported, not tuned away.
 
     Bounded attention (each unit attends half the rounds), both the planted laws
     and the converses seeded, no induction — so the same twelve laws per seed are
     held in both arms and the only variable is the channel. Measured over eight
-    seeds: **64 of 64 true laws defeated (100%), 2 of 32 false laws defeated
-    (6%)** — thirty of the thirty-two converse laws SURVIVE while every true law
-    dies. Over fourteen seeds: 112 of 112 true, 7 of 56 false.
+    seeds: **64 of 64 true laws defeated and permanently gone, 2 of 32 false ones
+    (6%)** — thirty converses survive while every true law dies. Those are the
+    same counts the existential rule produced.
 
-    WHY, AND IT IS NOT LUCK. Rebuttal asks whether the author holds the cited
-    individual WITH the law's head. A converse's head is an ANTECEDENT relation
-    (`a_head -> a_local`), delivered fresh every round, so the author almost
-    always holds it and rebuts. A true law's head is a CONSEQUENT, withheld a
-    tenth of the time and missed on every round the unit sleeps through, so the
-    author often does not. **Rebuttability tracks how common the head relation is
-    in the author's record — not whether the law is true.** The rule is not
-    merely undiscriminating here; it is ANTI-discriminating.
+    WHAT CHANGED IS THE MECHANISM, AND IT IS WORTH KNOWING. Not one law was
+    suspended and not one was eliminated by corroboration: **every single defeat
+    was internal**, and no call for help was ever published. Under half attention
+    a unit sees a body at round r and sleeps through the head at r+1, so a true
+    law's pending rate sits near 50% — the author's own criterion refuses it, and
+    refuses it honestly. The false converses survive for the mirror-image reason
+    the old rule spared them: a converse's head is an ANTECEDENT, delivered fresh
+    every round, so its pending rate is small.
 
-    AND THE NET SCORE IMPROVES ANYWAY: −433 live against −1421 mute over the
-    eight seeds (−696 against −2476 over fourteen). That is the trap this test
-    exists to spring. Under bounded attention a true law cannot pay — its
-    consequents arrive on rounds nobody is watching — so destroying it removes
-    losing bets and the arm moves toward abstention. **A net-score improvement is
-    not evidence that a channel discriminates.** Read it beside the counts above,
-    never instead of them.
+    **THE ANTI-DISCRIMINATION IS NOT THE DISPOSITION RULE'S. IT IS THE FIELD'S,
+    read through any criterion that counts unmet antecedents.** Suspension cannot
+    help where the author's own record is the accuser, and it did not pretend to:
+    the external arm never even opened. What the ruling fixed is the case where a
+    FOREIGN counterexample destroyed a law the author's own record still
+    sustained (the first gate above, 58 permanent losses down to 2). This case
+    was never that.
+
+    AND THE NET SCORE IMPROVES ANYWAY: −433 live against −1421 mute, identical to
+    the old rule's figures. That is still the trap. Under bounded attention a true
+    law cannot pay — its consequents arrive on rounds nobody is watching — so
+    destroying it removes losing bets and the arm moves toward abstention. **A
+    net-score improvement is not evidence that a channel discriminates.** Read it
+    beside the counts, never instead of them.
     """
     true_defeats = false_defeats = 0
+    internal = external = suspended = calls = 0
     true_held = false_held = 0
     live_total = mute_total = 0
     for seed in C_SEEDS:
-        spec, live, _board, raised, retractions = _play_challenge(
+        spec, live, board, raised, events, tally = _play_challenge(
             seed, C_ROUNDS, channel=True, stagger=2, seed_laws=True,
             wrong_laws=True, induce=False)
-        _s, mute, _b, _r, _rr = _play_challenge(
+        _s, mute, _b, _r, _e, _t = _play_challenge(
             seed, C_ROUNDS, channel=False, stagger=2, seed_laws=True,
             wrong_laws=True, induce=False)
         planted = {d.law for d in spec.domains}
-        defeats = set(retractions)
+        distinct = {(uid, law) for uid, law, _why in events}
         assert raised > 0
-        true_defeats += sum(1 for _u, law in defeats if law in planted)
-        false_defeats += sum(1 for _u, law in defeats if law not in planted)
+        true_defeats += sum(1 for _u, law in distinct if law in planted)
+        false_defeats += sum(1 for _u, law in distinct if law not in planted)
+        internal += tally["internal"]
+        external += tally["corroborated"]
+        suspended += tally["suspended"]
+        calls += len(board.corroboration_calls())
         true_held += sum(1 for u in live for law in u.laws if law in planted)
         false_held += sum(1 for u in live for law in u.laws
                           if law not in planted)
-        # Every unit loses every true law it was given, at every seed.
         assert not any(law in planted for u in live for law in u.laws), (
             f"seed {seed}: a true law survived bounded attention")
         live_total += sum(u.ledger.net_score for u in live)
         mute_total += sum(u.ledger.net_score for u in mute)
     assert (true_defeats, true_held) == (64, 0)      # 64 of 64 true laws gone
     assert (false_defeats, false_held) == (2, 30)    # 30 of 32 wrong laws stand
-    # The score IMPROVES while the discrimination inverts — the whole warning.
+    # EVERY defeat is internal: the external arm never opened, so suspension had
+    # nothing to save and nothing to blame.
+    assert (internal, external, suspended, calls) == (66, 0, 0, 0)
     assert live_total > mute_total
     assert (live_total, mute_total) == (-433, -1421)
 
 
-def test_the_challenge_channel_leaves_anticipate_before_observe_alone():
-    """Challenging and disposing are separate acts from `step`, which is
-    untouched: the bet is still placed before the round's arrivals are seen, no
-    forecast is charged twice, and every dated fact is still first-hand."""
-    _spec, units, board, raised, retractions = _play_challenge(
+def test_the_channel_leaves_anticipate_before_observe_alone():
+    """Challenging, corroborating and disposing are separate acts from `step`,
+    which is untouched: the bet is still placed before the round's arrivals are
+    seen, no forecast is charged twice, and every dated fact is still
+    first-hand."""
+    _spec, units, board, raised, events, tally = _play_challenge(
         3, 30, channel=True)
-    assert raised > 0 and retractions
+    assert raised > 0 and events
     assert [m for m in board.all_marks() if m.kind == "challenge"]
+    assert tally["suspended"] > 0, "no doubt was ever entertained"
     for u in units:
         assert u.ledger.entries
         assert u.ledger.restaked == 0
         assert set(u.first_seen) == u.facts          # nothing adopted, all dated
+        assert u.suspended <= u.laws                 # suspension is not removal
 
 
-def test_the_challenge_channel_is_deterministic():
+def test_the_channel_is_deterministic():
     def run():
-        _spec, units, board, raised, retractions = _play_challenge(
+        _spec, units, board, raised, events, tally = _play_challenge(
             3, 30, channel=True)
-        return ([(u.ledger.hits, u.ledger.misses, sorted(u.laws)) for u in units],
+        return ([(u.ledger.hits, u.ledger.misses, sorted(u.laws),
+                  sorted(u.suspended)) for u in units],
                 [(m.author, m.kind, m.content, m.counterexample)
-                 for m in board.all_marks() if m.kind == "challenge"],
-                raised, retractions)
+                 for m in board.all_marks()
+                 if m.kind in ("challenge", "corroboration")],
+                raised, events, tally)
     assert run() == run()
