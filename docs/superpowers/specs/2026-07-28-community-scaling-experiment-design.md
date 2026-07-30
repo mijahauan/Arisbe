@@ -349,6 +349,49 @@ silently colliding; widening the scheme is a stage-3 decision.
 
 ---
 
+## 9a-bis · The repairs (2026-07-29) — what changed, and what they taught
+
+All four §9a findings are repaired, plus one regression the repairs themselves
+introduced. Commits `44e3d84..bc95912`.
+
+- **The unit now reasons for real.** `Unit.anticipate()` renders held facts and
+  laws as an EGI (laws as Horn cuts, the `model_revision.add_rule` idiom) and
+  derives through `materialize_egi(provenance=…)`. Behaviour was *unchanged* at
+  the time of the change — verified round-by-round over 120 rounds and two seeds
+  — because the induced law set was already transitively closed at that field
+  size. The wiring was honest before it was consequential.
+- **Saturation is gone.** 40 individuals per domain; a unit that placed 0 bets
+  after round 40 now keeps betting. A side effect worth noting: widening also
+  *collapsed spurious induction*, because an accidental law now needs far more
+  coincidence to survive.
+- **Overlap carries content — after a correction.** The first attempt gave the
+  field a *separate* shared namespace (`s1…s20`), disjoint from domain
+  individuals. That was a specification error, and it silently reintroduced the
+  exact defect an earlier fix wave had removed: a law of the form *domain-relation
+  → shared* became structurally unsatisfiable, so the gate's wrong-law rival had a
+  hit ceiling of zero again. The correction puts the overlap in the domains' **own
+  individual lists** — a core `s1…s10` every domain knows, plus 30 private each.
+  The rival now hits at 14/14 seeds (7–15 hits against 239–516 misses), and alpha
+  and beta genuinely mention the same individuals.
+- **A stable statistic exists** (`net_score`), and an abstainer no longer receives
+  a fabricated `0.0` — `accuracy` returns `None` with no bets. Honest finding:
+  across 14 seeds `net_score` and `accuracy` now agree 14/14, because repairs 2–3
+  removed the low-volume regime that broke the ratio. So `net_score` did not
+  *rescue* the gate; it was nonetheless required, since comparing against `None`
+  would raise.
+
+**Two things still open, neither tuned away:**
+
+1. **The learner never misses** (0 misses at 14/14 seeds). This is now a property
+   of `induce(max_pending=1)`'s strictness rather than of the field. A gate whose
+   learner cannot lose is thin evidence; loosening induction, or admitting noise,
+   is a stage-3 design decision.
+2. **Overlap density cannot yet be swept.** The shared core is a fixed size, so
+   the very quantity §9b's conjecture wants as its x-axis is currently a constant.
+   Making it a swept parameter is stage 3's first field change.
+
+---
+
 ## 9b · Conversation as the maintenance vehicle (author, 2026-07-29, reading B&L)
 
 *The author, reading further in Berger & Luckmann, reports that they place

@@ -184,6 +184,17 @@ git commit -m "fix(c-series): 40 individuals per domain — anticipation stays l
 
 ### Task 3: Make overlap content, not naming
 
+> **CORRECTED IN EXECUTION (2026-07-29).** This task as specified below was
+> **wrong**: a *separate* `shared_individuals` namespace (`s1…s20`), disjoint
+> from domain individuals, gives cross-domain coincidence but makes any
+> *domain-relation → shared* law structurally unsatisfiable — silently
+> reintroducing the zero-ceiling rival defect an earlier fix wave had removed.
+> The shipped correction (commit `bc95912`) instead puts the overlap in the
+> domains' **own individual lists**: a core `s1…s10` every domain knows, plus 30
+> private each, with `shared` drawing from the domain's own list. `FieldSpec.
+> shared_individuals` was removed rather than left as a vestige. Read the task
+> below as history; the spec's §9a-bis records what actually shipped.
+
 **Files:** Modify `src/c_field.py`; modify `tests/test_c_field.py`.
 
 **Interfaces:** `FieldSpec` gains `shared_individuals: Tuple[str, ...]`; `Field._antecedents` draws the `shared` relation's argument from that pool.
