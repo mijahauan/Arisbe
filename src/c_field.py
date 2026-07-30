@@ -28,12 +28,19 @@ class Domain:
 class FieldSpec:
     seed: int
     domains: Tuple[Domain, ...]
+    shared_individuals: Tuple[str, ...] = ()
 
 
 def default_spec(seed: int = 20260728) -> FieldSpec:
     """Four domains. `shared` appears in every domain's antecedents — the
     regularity any unit could find and nobody should find twice. Each domain
-    additionally carries a local antecedent and its own law."""
+    additionally carries a local antecedent and its own law.
+
+    `shared_individuals` is a pool drawn from by every domain's `shared`
+    relation, so two domains can — and, over enough rounds, do — mention the
+    same individual. Aperture overlap is this field's analogue of physical
+    proximity; without a shared pool there is no proximity for a later stage
+    to carry."""
     return FieldSpec(
         seed=seed,
         domains=(
@@ -46,6 +53,7 @@ def default_spec(seed: int = 20260728) -> FieldSpec:
             Domain("delta", ("shared", "d_local"), ("d_local", "d_head"),
                    tuple(f"d{i}" for i in range(1, 41))),
         ),
+        shared_individuals=tuple(f"s{i}" for i in range(1, 21)),
     )
 
 
@@ -71,7 +79,11 @@ class Field:
         rng = random.Random(f"{self.spec.seed}:{domain_name}:{round_idx}")
         out: List[Fact] = []
         for rel in d.antecedents:
-            who = rng.choice(d.individuals)
+            if rel == "shared":
+                pool = self.spec.shared_individuals or d.individuals
+            else:
+                pool = d.individuals
+            who = rng.choice(pool)
             out.append((rel, (("c", who),)))
         return sorted(out)
 

@@ -80,3 +80,16 @@ def test_anticipation_stays_live_late_in_a_run():
         u.step(field, r)
     assert early > 0
     assert late > 0, "the field saturated — no bets placed after round 40"
+
+
+def test_domains_share_individuals_so_atoms_can_overlap():
+    spec = default_spec(seed=20260728)
+    field = Field(spec)
+    seen = {}
+    for d in spec.domains:
+        args = set()
+        for r in range(40):
+            args |= {a for rel, a in field.deliver(d.name, r) if rel == "shared"}
+        seen[d.name] = args
+    alpha, beta = seen["alpha"], seen["beta"]
+    assert alpha & beta, "no individual is shared across domains — overlap is naming only"
