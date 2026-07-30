@@ -2494,9 +2494,10 @@ _ARMS = {}
 
 MEMOISED BECAUSE AN ARM COSTS SIXTY ROUNDS TIMES EIGHT SEEDS AND FOUR GATES
 BELOW READ THE SAME ONES. Every arm is a deterministic function of its
-arguments — that is asserted in `test_the_channel_is_deterministic` — so reading
-a cached one is reading the same run, not a shortcut past it. Nothing here
-trims a seed or an arm."""
+arguments — asserted on this driver, typify path included, at the head of
+`test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer` — so
+reading a cached one is reading the same run, not a shortcut past it. Nothing
+here trims a seed or an arm."""
 
 
 def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None,
@@ -2649,6 +2650,14 @@ def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure()
                 f"was adopted, so P-G1 has a category after all")
             assert arm["adopted_licensed"] > 0, (
                 "no head atom was adopted at all, so the zero above is vacuous")
+    # THE SPLIT, so the zero above is read against what WAS taken up. Of the 939
+    # adoptions at four units, 479 are head atoms — every one of them licensed —
+    # and 460 are atoms of an ANTECEDENT relation, which `spurious_rate` never
+    # fabricates at all. Six units: 478 and 450 of 928.
+    four = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
+    six = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
+    assert (four["adopted_licensed"], four["adopted_body"]) == (479, 460)
+    assert (six["adopted_licensed"], six["adopted_body"]) == (478, 450)
     # The field really does fabricate: 37 head atoms over eight seeds that no
     # antecedent ever licensed, every one of them inside some unit's aperture.
     fabricated = 0
