@@ -387,6 +387,59 @@ half-sitting). Parallel author-side: RUN 13 disposal; vault answers → V2a.2 au
 S3/S4 gap if authorized). Principles: one arc per sitting; runs overnight between sittings; rulings
 interactive, execution delegated; every sitting ends pushed.
 
+▶ **NEXT SESSION (ruled by the author at close, 2026-07-30): OPEN WITH `/graphify`,
+then EXAMINATION VII on the stage-4 design.**
+
+The author's ruling: initiate the next session with a graphify pass, scoped to the
+**claim / evidence / prediction structure** of stage 3's findings and stage 4's design —
+NOT a wholesale capture of the 07-30 session. Reason: most of stage 4 is unexamined
+conjecture, and encoding conjecture as graph structure makes it read as settled. Treat
+the graph as **Examination VII's first exhibit**, not as a record of conclusions.
+
+**Its first target** — the question neither the author nor the assistant could settle by
+reading, because it is a question about shape: **stage 3's null now has four explanations**
+(no unreliable speaker · no disagreement by construction · a channel oriented across the
+wrong axis · no doubt or urgency). *Four findings, or one finding wearing four hats?* Lay
+each out with edges to the measurements it rests on and the predictions it makes; shared
+premises and missing falsifiers should become visible. **A series that keeps discovering
+new reasons its null was inevitable is drifting toward unfalsifiability** — this is the
+check on that.
+
+**Five more tensions queued for Examination VII** (assistant-named at close, none examined):
+  2. **The vector guard may already be broken.** THE_MEASURE_OF_KNOWLEDGE forbids collapsing
+     the measure to a scalar over agents, but task 6 shipped `Unit.peers` (a per-relation
+     score over other units) and stage 4's alarm-reliability is another. May bite merged code.
+  3. **Adaptive thresholds vs "units identical."** Is an adapting doubt threshold emergent
+     heterogeneity or a seeded mechanism for manufacturing it? The whole cry-wolf payoff rests
+     on which, and so does fidelity to West's invariant terminal unit.
+  4. **Bits is a scalar too.** Mutual information was proposed to replace `net_score` — which
+     failed *because* it was a scalar summary. Check whether bits invert the same way.
+  5. **Where does a reliability ledger live?** Premise 2 (marks ≠ commens) + Examination VI's
+     apportionment ruling (negotiated-at-commens / given-at-member). Unruled.
+  6. **The West letter moved BACKWARDS on 2026-07-30.** Stage 3 produced no exponent and
+     cannot until units can die (no mortality ⇒ no maintenance cost ⇒ no β). Any doc implying
+     otherwise needs the treatment the E-series claims got.
+
+**Three author decisions open**: the `corroboration_window` default (3/5/8 measured — 8 saves
+49 true laws while sparing 3 converses, at monotone cost in score) · whether to **retire
+`net_score`** as a gate statistic the way spec §9a retired `accuracy` · whether "2 independent
+witnesses" means two *besides* the challenger (costs a fifth domain and ten units).
+
+**State at close (2026-07-30):** stage 3 BUILT + CLOSED, `5624c5d..1c22cc3` (13 commits,
+pushed; 178 C-series tests / 912 s). Spec §9d (the corroboration ruling) and §11 (stage 4).
+Every measurement from the day sits in one file:
+`.superpowers/sdd/2026-07-30-c-series-stage-3-channels/progress.md` (gitignored — local only,
+alongside 23 task briefs/reports). Memory: `project_c_series_stage3_channels.md`.
+**RUN 13** relaunched `--segments 8` after the unsegmented run reached 3.19 GB (the
+`--segments` default of 1 silently disables the runner's only memory bound); detached at
+PPID 1, digest → `runs/run13/console_p213_seg8_2026-07-30.txt`.
+**Also queued, not started:** the Pietarinen/Sowa/Dau letter enclosures (one swan / four
+instruments for Pietarinen; four linear forms + the untranslatable-constructs report for
+Sowa; a worked chain + a §3.3 falsifier for Dau), and C-series tasks 5c (periodic
+self-re-assessment) and 5d (retract = demote-to-mention).
+
+---
+
 ▶ **NEXT SESSION (ruled by the author at close, 2026-07-27): finalize RUN 13, then the
 COMMENS RUNG, and START SHARE — outreach to Sowa, Dau, West, Pietarinen.**
 
