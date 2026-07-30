@@ -352,7 +352,7 @@ silently colliding; widening the scheme is a stage-3 decision.
 ## 9a-bis · The repairs (2026-07-29) — what changed, and what they taught
 
 All four §9a findings are repaired, plus one regression the repairs themselves
-introduced. Commits `44e3d84..bc95912`.
+introduced. Commits `44e3d84..6c77e3e` (eight).
 
 - **The unit now reasons for real.** `Unit.anticipate()` renders held facts and
   laws as an EGI (laws as Horn cuts, the `model_revision.add_rule` idiom) and
@@ -380,15 +380,43 @@ introduced. Commits `44e3d84..bc95912`.
   *rescue* the gate; it was nonetheless required, since comparing against `None`
   would raise.
 
-**Two things still open, neither tuned away:**
+**What remains open** (final whole-set review, 2026-07-29, which independently
+recomputed every figure below rather than trusting the build reports):
 
-1. **The learner never misses** (0 misses at 14/14 seeds). This is now a property
-   of `induce(max_pending=1)`'s strictness rather than of the field. A gate whose
-   learner cannot lose is thin evidence; loosening induction, or admitting noise,
-   is a stage-3 design decision.
-2. **Overlap density cannot yet be swept.** The shared core is a fixed size, so
-   the very quantity §9b's conjecture wants as its x-axis is currently a constant.
-   Making it a swept parameter is stage 3's first field change.
+1. **The learner never misses** (0 misses at 14/14 seeds) — and the first
+   diagnosis of this was half-wrong. It is not only `induce(max_pending=1)`'s
+   strictness: it needs **both** that strictness *and* the field's
+   exception-free determinism, since in a world without noise a true law can
+   never miss. Worse, `max_pending` is an absolute count measured against a
+   monotonically growing fact set, so it silently *tightens* over a run.
+   Measured sensitivity: at `max_pending` 1 / 3 / 5 / 10 the learner's net score
+   runs +55 / +4 / −167 / −2063, and **at 10 the gate fails outright** — so the
+   gate's verdict currently turns on one knob, with a much thinner margin than a
+   raw net-score comparison suggests. **The minimal honest fix is field noise
+   (a fraction of consequents withheld or spurious) plus making the tolerance a
+   *rate* rather than a count.** Loosening `max_pending` alone would manufacture
+   failure by admitting laws already known to be refuted — degrading the learner
+   instead of testing it.
+2. **Overlap density is not yet a swept parameter** — the shared core is fixed
+   at ten. It *is* reachable without editing the module (a caller can pass custom
+   `Domain` lists), so this is a harness convenience rather than a design
+   blocker, but §9b's conjecture wants this quantity as its x-axis.
+3. **There is no retraction path.** `induce` only ever adds; nothing un-holds a
+   law. Stage 3's *challenge* channel — the thing §5 says will finally let
+   durability read *false* — currently has nothing to dispose into.
+4. **The unit has no decay, no bounded model, and no attention economy**, though
+   §4 promises all three, and `c_use` has no consumer outside its own test. Facts
+   grow monotonically forever, which is the shared root of the saturation we
+   fixed by widening and of induction's creeping strictness above.
+
+**The review's single recommendation for stage 3, and it should be heeded
+first:** replace the per-round EGIF serialize → parse → materialize cycle with a
+persistent, incrementally-materialized unit model **before** building §7's cost
+instrument. Today 58% of inference time is string round-tripping (22.2 ms parsing
+against 15.7 ms materializing at end-of-run state). If the cost meter is built on
+top of that, it will charge parsing and model size rather than reasoning —
+*precisely the meter defect that invalidated the E-series, arriving in new
+clothes at 48 units.*
 
 ---
 
