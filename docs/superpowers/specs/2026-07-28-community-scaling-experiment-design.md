@@ -611,6 +611,65 @@ Two consequences, one immediate and one a genuine research question:
 
 ---
 
+## 9d · Corroboration takes two independent witnesses (author, 2026-07-30)
+
+Task 5e measured elimination-by-corroboration firing **0 of 66** times in the
+bounded-attention arm and **0** in the induce arm, and found a unit corroborating
+its own doubt with its own inscription — `challenge` scans by content, so a unit
+publishes challenges against laws it also holds, and that mark was taking the
+challenger's slot *and* counting as the corroborating voice. It sat in the live
+set of 8 of 8 corroborations at seed 1 and eliminated 64 of 64 true laws at an
+age of exactly one round.
+
+The author ruled:
+
+> Corroboration exists largely to generate and build confidence in the
+> independent views that build a socially available, objectified reality.
+> Repeating one's own observation does not do this. So, 2 needs at least 2
+> independent witnesses.
+
+The ground is Berger & Luckmann's, not arithmetic. Corroboration earns its place
+in this design because it builds a **socially available, objectified** reality,
+and a record that repeats itself contributes nothing to that. A unit's own
+inscription therefore never counts as a corroborating voice.
+
+**The consequence falls on the field, not on the disposition rule.**
+`apertures_for` assigns unit *i* domains *i* and *i+1* (mod k), so every domain
+is witnessed by exactly two units at any community size, and two independent
+witnesses beyond the holder are arithmetically unreachable. The rule was right
+and the community was too small to satisfy it.
+
+**The repair adds units, never aperture width.** Task 5b-fix measured
+three-domain apertures as degenerate — all 168 true and 56 converse laws lost,
+both arms net 0. Assigning each unit a distinct 2-domain *combination* keeps
+per-unit load fixed and raises the witness count instead:
+
+| domains | distinct 2-domain apertures | units witnessing each domain |
+|---|---|---|
+| 4 | 6 | 3 |
+| 5 | 10 | 4 |
+| 6 | 15 | 5 |
+
+At this spec's four domains that fixes the community at **six units**, with every
+domain witnessed by exactly three — the holder, the challenger, and one
+independent corroborator, with nothing to spare.
+
+Which makes community size a *derived* quantity rather than a guess, and answers
+§10's open question in one direction the design did not anticipate: **the minimum
+viable community is set by what corroboration requires.** With aperture width
+*w*, domain count *D*, and a demand of three witnesses per domain, the floor sits
+at *U = 3D/w*. A community below it cannot objectivate anything, however well its
+units reason.
+
+Two readings stay open and reversible. The controller reads the **challenger as
+one of the two witnesses** — preserving Task 5b's rule that its evidence must not
+count *twice*, since it counts once and still cannot close its own doubt alone —
+which is what puts the floor at three witnesses rather than four. And Task 5e's
+`corroboration_window` of 5 rounds became load-bearing (it decides 41 to 66 of
+every 66 doubts, every disposal falling at age exactly 5) while remaining
+unmeasured; 3, 5 and 8 are under measurement, and the default stays the author's
+to set.
+
 ## 10 · Scale, decomposition, and open questions
 
 **Scale, stated plainly.** Four communities × ~12 units = ~48 loop instances per
