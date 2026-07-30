@@ -38,13 +38,13 @@ def default_spec(seed: int = 20260728) -> FieldSpec:
         seed=seed,
         domains=(
             Domain("alpha", ("shared", "a_local"), ("a_local", "a_head"),
-                   ("a1", "a2", "a3", "a4", "a5")),
+                   tuple(f"a{i}" for i in range(1, 41))),
             Domain("beta", ("shared", "b_local"), ("b_local", "b_head"),
-                   ("b1", "b2", "b3", "b4", "b5")),
+                   tuple(f"b{i}" for i in range(1, 41))),
             Domain("gamma", ("shared", "g_local"), ("g_local", "g_head"),
-                   ("g1", "g2", "g3", "g4", "g5")),
+                   tuple(f"g{i}" for i in range(1, 41))),
             Domain("delta", ("shared", "d_local"), ("d_local", "d_head"),
-                   ("d1", "d2", "d3", "d4", "d5")),
+                   tuple(f"d{i}" for i in range(1, 41))),
         ),
     )
 

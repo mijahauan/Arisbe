@@ -58,3 +58,25 @@ def test_aperture_delivers_the_union_of_its_domains():
     for name in ap.domains:
         expected |= set(field.deliver(name, 3))
     assert set(field.at(ap, 3)) == expected
+
+
+from c_unit import Unit
+
+
+def test_anticipation_stays_live_late_in_a_run():
+    """Saturation check: a lawful unit must still be placing bets after round 40."""
+    spec = default_spec(seed=20260728)
+    field = Field(spec)
+    ap = apertures_for(spec, n_units=4)[0]
+    u = Unit("u0", ap)
+    u.laws.add(spec.domains[0].law)
+    early = late = 0
+    for r in range(60):
+        bets = len(u.anticipate())
+        if r < 20:
+            early += bets
+        elif r >= 40:
+            late += bets
+        u.step(field, r)
+    assert early > 0
+    assert late > 0, "the field saturated — no bets placed after round 40"
