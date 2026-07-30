@@ -13,11 +13,83 @@ from dataclasses import dataclass, field as dc_field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
 from c_field import Aperture, Field
-from c_marks import CHALLENGE, FACT, LAW, QUESTION, Content, Mark, MarkBoard
+from c_marks import (CHALLENGE, CORROBORATION, FACT, LAW, QUESTION, Content,
+                     Mark, MarkBoard)
 from c_membrane import MembraneLedger
 from egi_core_dau import RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
 from model_materialization import Fact, Key, materialize_egi
+
+MIN_SUPPORT = 3
+MAX_PENDING_RATE = 0.05
+"""THE ONE STANDARD, named once and read twice: by `induce`, which decides
+whether to take a law up, and by `_meets_criterion`, which decides — when a
+challenge puts a held law in doubt — whether the unit's own record still
+sustains it.
+
+THE SAME STANDARD MUST GOVERN HOLDING A LAW AND LOSING IT. Task 5 measured what
+happens when it does not: admission tolerated a 5% pending RATE while the
+disposition rule fired on any ONE pending individual, so every law admitted with
+a nonzero pending rate was defeasible the moment it was published, and 98
+distinct defeats became 426 retraction events as induction re-admitted what the
+challenge rule had just destroyed. Two criteria at different strengths do not
+disagree occasionally; they fight continuously. These constants are the fix, and
+they are module-level rather than per-call defaults so that the two readers
+cannot drift apart."""
+
+
+@dataclass
+class Doubt:
+    """One live doubt about one law: what opened it, about whom, and when.
+
+    HELD BESIDE `Unit.suspended` RATHER THAN INSIDE IT, because the ruling asks
+    for a suspended SET — the thing `anticipate` consults — and a set cannot
+    carry a clock. `Unit._suspend` and `Unit._unsuspend` are the only writers of
+    either, so the invariant `set(self._doubts) == self.suspended` holds by
+    construction.
+
+    `challenger` is who raised the doubt, and it is kept for one reason: THE
+    ORIGINAL CHALLENGER'S EVIDENCE MUST NOT COUNT TWICE. Corroboration means
+    another record independently bearing on the same law, so the unit that
+    opened the doubt cannot also close it.
+    """
+
+    challenger: str
+    individual: Tuple[Key, ...]
+    opened_at: int
+
+
+@dataclass
+class Disposition:
+    """What one pass of `Unit.dispose_challenges` did, split by WHY.
+
+    The splits are the measurement. A law given up because the unit's own record
+    no longer sustains it is a different event from one given up because peers
+    corroborated a doubt, and reporting them as one number would hide exactly
+    the thing the ruling changed.
+    """
+
+    retracted_internally: List[Tuple[str, str]] = dc_field(default_factory=list)
+    """Given up by the unit's own re-assessment: the law no longer meets the
+    criterion the unit would use to induce it today. No corroboration was
+    needed — the doubt was settled inside the membrane."""
+    suspended: List[Tuple[str, str]] = dc_field(default_factory=list)
+    """Put in doubt: still held, still on the record, licensing nothing, with a
+    call for corroboration published."""
+    retracted_by_corroboration: List[Tuple[str, str]] = dc_field(
+        default_factory=list)
+    """Given up because an independent peer's record bore out the doubt."""
+    restored_by_rebuttal: List[Tuple[str, str]] = dc_field(default_factory=list)
+    """Returned to active: the disputed individual turned out to carry the head
+    after all, in this unit's own record or in a peer's published testimony."""
+    restored_by_silence: List[Tuple[str, str]] = dc_field(default_factory=list)
+    """Returned to active: the call went unanswered for the whole window, so
+    the challenge failed to gather support."""
+
+    def __bool__(self) -> bool:
+        return bool(self.retracted_internally or self.suspended
+                    or self.retracted_by_corroboration
+                    or self.restored_by_rebuttal or self.restored_by_silence)
 
 
 @dataclass
@@ -26,6 +98,34 @@ class Unit:
     aperture: Aperture
     facts: Set[Fact] = dc_field(default_factory=set)
     laws: Set[Tuple[str, str]] = dc_field(default_factory=set)
+    suspended: Set[Tuple[str, str]] = dc_field(default_factory=set)
+    """The laws this unit holds but does not act on: challenged, not rebutted,
+    not yet corroborated. A SUBSET OF `laws` — a suspended law is still on the
+    record and is still published; what it has lost is its licence. `anticipate`
+    skips it, so it stakes nothing and can neither win nor lose while the doubt
+    stands.
+
+    THIS IS THE AUTHOR'S RULING: *corroborate and suspend, but do not eliminate
+    until corroboration.* Task 5 measured the alternative — a foreign
+    counterexample retracting a law outright — and found that under a fallible
+    field it destroyed 58 of 58 laws the field actually carries, and that under
+    bounded attention it destroyed 64 of 64 true laws while sparing 30 of 32
+    false ones, because rebuttability tracks how common the head relation is in
+    the author's record rather than whether the law is true. Suspension is what
+    lets a doubt be entertained without being obeyed."""
+    corroboration_window: int = 5
+    """How many rounds a call for corroboration stands before silence restores
+    the law. DEFAULT 5, and it is a choice rather than a measurement.
+
+    THE RATIONALE IS THE RULING'S OWN. A challenge that gathers no support has
+    failed, and "do not eliminate until corroboration" means silence cannot
+    eliminate — so the window must end in restoration, not in retraction. Five
+    rounds is long enough for the community to have spoken several times (the
+    field's lag is one round, and under bounded attention a peer attends every
+    other round, so five rounds is two or three chances for every peer to publish
+    what bears on the case) and short enough that a law is not mute for a
+    material part of a sixty-round run. Nothing measured here picks 5 over 3 or
+    8; it is flagged as the author's to overrule."""
     ledger: MembraneLedger = dc_field(default_factory=MembraneLedger)
     last_provenance: Dict[Fact, FrozenSet[Fact]] = dc_field(default_factory=dict)
     first_seen: Dict[Fact, int] = dc_field(default_factory=dict)
@@ -41,6 +141,25 @@ class Unit:
     """What this unit has already published, as `(kind, content)` pairs — not as
     marks, since a mark carries the round it was published in and would compare
     unequal every round, so the unit would republish everything forever."""
+    _doubts: Dict[Tuple[str, str], Doubt] = dc_field(default_factory=dict)
+    """The live doubt behind each suspended law. Keyed identically to
+    `suspended`; see `Doubt`."""
+    _spent: Set[Mark] = dc_field(default_factory=set)
+    """Every challenge mark this unit has already disposed of — retracted under,
+    restored against, or rebutted.
+
+    A CHALLENGE IS DISPOSED OF ONCE, EVER, which is the discipline every other
+    act in this module already keeps (`publish`, `ask` and `challenge` are all
+    once per content, ever). Without it the channel oscillates on its own: a law
+    restored by silence meets the same unanswered challenge at the next round and
+    is suspended again forever, and a law retracted under corroboration and later
+    re-induced from a grown record is killed again by evidence that has already
+    been weighed. What can raise a fresh doubt is FRESH EVIDENCE — a challenge
+    from a peer that has not yet spoken — and that is precisely what corroboration
+    means here.
+
+    Marks, not laws: the unit is keeping track of which INSCRIPTIONS it has
+    answered for, and a mark is frozen and hashable so it can key itself."""
 
     def _record(self, arrived: Set[Fact], round_idx: int) -> None:
         """Hold what arrived, and note the round for anything new."""
@@ -48,6 +167,18 @@ class Unit:
             if f not in self.first_seen:
                 self.first_seen[f] = round_idx
         self.facts.update(arrived)
+
+    def _suspend(self, law: Tuple[str, str], doubt: Doubt) -> None:
+        """Put a law in doubt: held, published, licensing nothing."""
+        self.suspended.add(law)
+        self._doubts[law] = doubt
+
+    def _unsuspend(self, law: Tuple[str, str]) -> None:
+        """Lift a doubt, whether because the law was restored or because it was
+        given up. Both writers go through here so the set and the clock cannot
+        drift apart."""
+        self.suspended.discard(law)
+        self._doubts.pop(law, None)
 
     def absorb(self, field: Field, round_idx: int) -> None:
         """Take in everything that arrived this round."""
@@ -63,9 +194,11 @@ class Unit:
         rather than being told a defeat happened."""
         held = law in self.laws
         self.laws.discard(law)
+        self._unsuspend(law)        # a law given up is not a law in doubt
         return held
 
-    def as_egi(self) -> RelationalGraphWithCuts:
+    def as_egi(self, laws: Optional[Set[Tuple[str, str]]] = None
+               ) -> RelationalGraphWithCuts:
         """Render this unit's held content as a real EGI: each fact an atom on
         the sheet, each law a Horn cut ``~[ (body *x) ~[ (head x) ] ]``.
 
@@ -73,7 +206,14 @@ class Unit:
         model is the same kind of object the rest of Arisbe reasons over. Facts
         and laws are emitted in sorted order, so the rendering is a
         deterministic function of the unit's state.
+
+        `laws` narrows which of the unit's laws are drawn, and it exists for one
+        caller: `anticipate`, which reasons from the ACTIVE laws only. The
+        default renders everything held, suspended laws included, because that
+        is what the unit's record contains — suspension withdraws a law's
+        licence, not the law.
         """
+        laws = self.laws if laws is None else laws
         parts: List[str] = []
         for rel, args in sorted(self.facts):
             for kind, label in args:
@@ -86,7 +226,7 @@ class Unit:
                     )
             labels = " ".join(f'"{a[1]}"' for a in args)
             parts.append(f"({rel} {labels})")
-        for body_rel, head_rel in sorted(self.laws):
+        for body_rel, head_rel in sorted(laws):
             parts.append(f"~[ ({body_rel} *x) ~[ ({head_rel} x) ] ]")
         return parse_egif(" ".join(parts) if parts else "")
 
@@ -128,12 +268,21 @@ class Unit:
         — not a hand-rolled tuple match — so anticipation is a genuine least
         Herbrand closure (chained derivations included) and the support of every
         anticipation is recorded in ``last_provenance``.
+
+        A SUSPENDED LAW LICENSES NOTHING. It is still held and still published,
+        but a law under a doubt its author could not settle is not a law the
+        author is willing to bet on, and that is the whole operational content
+        of suspension: the unit stops staking on it without giving it up. The
+        price is visible in the arithmetic — a suspended TRUE law forgoes the
+        hits it would have won — which is why the window is measured rather than
+        assumed.
         """
-        if not self.laws or not self.facts:
+        active = self.laws - self.suspended
+        if not active or not self.facts:
             self.last_provenance = {}
             return set()
         provenance: Dict[Fact, FrozenSet[Fact]] = {}
-        materialize_egi(self.as_egi(), provenance=provenance)
+        materialize_egi(self.as_egi(laws=active), provenance=provenance)
         self.last_provenance = provenance
         return {f for f in provenance
                 if f not in self.facts and f not in self.ledger.resolved}
@@ -183,8 +332,52 @@ class Unit:
         precedent = sum(1 for body_at, head_at in timed if body_at <= head_at)
         return precedent * 2 > len(timed)
 
-    def induce(self, min_support: int = 3,
-               max_pending_rate: float = 0.05) -> Set[Tuple[str, str]]:
+    def _holders(self) -> Dict[str, Set[Tuple[Key, ...]]]:
+        """Which individuals this unit holds under each relation."""
+        holders: Dict[str, Set[Tuple[Key, ...]]] = {}
+        for rel, args in self.facts:
+            holders.setdefault(rel, set()).add(args)
+        return holders
+
+    def _meets_criterion(self, law: Tuple[str, str],
+                         min_support: int = MIN_SUPPORT,
+                         max_pending_rate: float = MAX_PENDING_RATE) -> bool:
+        """Would this unit induce `law` from its record AS IT STANDS NOW?
+
+        THE INTERNAL ARM OF INQUIRY, and the reason it exists is Peircean rather
+        than arithmetical: doubt provokes inquiry, and inquiry has an inward
+        face as well as an outward one. A challenge that merely prompted the
+        author to look up one individual would not be an inquiry at all — it
+        would be a lookup. What a doubt should provoke is a genuine
+        re-assessment: does my own record still sustain this law?
+
+        IT IS THE INDUCTION CRITERION, UNCHANGED AND UNDUPLICATED — support,
+        pending rate, precedence — which is why `induce` reads it too. That
+        identity is the point. A law is held on exactly the terms it was taken
+        up on, so a foreign counterexample can put a law in doubt but cannot
+        impose a standard the author never used; and the gap Task 5 left open —
+        `induce` only ever ADDS, and an admitted law is never re-tested against a
+        grown record — is closed by making a challenge the occasion for the
+        re-test.
+
+        Read only against `self.facts`. Nothing about the challenger, the board
+        or the field's regime enters."""
+        body_rel, head_rel = law
+        if body_rel == head_rel:
+            return False
+        holders = self._holders()
+        body_args = holders.get(body_rel, set())
+        head_args = holders.get(head_rel, set())
+        support = body_args & head_args
+        if len(support) < min_support:
+            return False
+        if len(body_args - head_args) > max_pending_rate * len(body_args):
+            return False
+        return self._body_precedes_head(body_rel, head_rel, support)
+
+    def induce(self, min_support: int = MIN_SUPPORT,
+               max_pending_rate: float = MAX_PENDING_RATE
+               ) -> Set[Tuple[str, str]]:
         """Propose body -> head where enough individuals carry both, few enough
         carry body without head, and the body was seen first.
 
@@ -200,24 +393,19 @@ class Unit:
         DIRECTION COMES FROM PRECEDENCE, not from support. See
         `_body_precedes_head`: without it this criterion admits every law's
         converse alongside it, because the two are supported by exactly the same
-        individuals."""
-        holders: Dict[str, Set[Tuple[Key, ...]]] = {}
-        for rel, args in self.facts:
-            holders.setdefault(rel, set()).add(args)
+        individuals.
+
+        THE TEST ITSELF LIVES IN `_meets_criterion`, which is also what a
+        challenged law is re-assessed against. One criterion, two readers: what
+        it takes to take a law up is exactly what it takes to keep it."""
+        holders = self._holders()
         found: Set[Tuple[str, str]] = set()
-        for body_rel, body_args in sorted(holders.items()):
-            for head_rel, head_args in sorted(holders.items()):
-                if body_rel == head_rel:
-                    continue
-                support = body_args & head_args
-                if len(support) < min_support:
-                    continue
-                if len(body_args - head_args) > max_pending_rate * len(body_args):
-                    continue
-                if not self._body_precedes_head(body_rel, head_rel, support):
-                    continue
+        for body_rel in sorted(holders):
+            for head_rel in sorted(holders):
                 law = (body_rel, head_rel)
-                if law not in self.laws:
+                if law in self.laws:
+                    continue
+                if self._meets_criterion(law, min_support, max_pending_rate):
                     found.add(law)
         self.laws.update(found)
         return found
@@ -366,6 +554,13 @@ class Unit:
                 f"a challenge disputes a law rather than claiming one, and "
                 f"taking it up would enter the very law it argues against — "
                 f"dispose of it instead (`dispose_challenges`)"
+            )
+        if mark.kind == CORROBORATION:
+            raise ValueError(
+                f"{self.unit_id} cannot adopt the corroboration call about "
+                f"{mark.content!r}: a call for help asks about a law rather "
+                f"than claiming one, and taking it up would enter a law its own "
+                f"author has put in doubt — answer it instead (`corroborate`)"
             )
         if mark.kind == FACT:
             fresh = mark.content not in self.facts
@@ -603,71 +798,276 @@ class Unit:
             if mark.kind == LAW and mark.author != self.unit_id:
                 disputable.add(mark.content)
         for law in sorted(disputable):
-            key = (CHALLENGE, law)
-            if key in self._published:
-                continue
-            counter = self._counterexample_to(law)
-            if counter is None:
-                continue
-            mark = Mark(author=self.unit_id, content=law, kind=CHALLENGE,
-                        round_idx=round_idx, counterexample=counter)
-            board.publish(mark)
-            self._published.add(key)
-            minted.append(mark)
+            mark = self._mint_challenge(law, board, round_idx)
+            if mark is not None:
+                minted.append(mark)
         return minted
 
-    def dispose_challenges(self, board: MarkBoard,
-                           round_idx: int) -> List[Tuple[str, str]]:
-        """Verify every standing challenge against a law this unit holds, and
-        retract the laws it cannot rebut. Returns the laws given up.
+    def _mint_challenge(self, law: Tuple[str, str], board: MarkBoard,
+                        round_idx: int) -> Optional[Mark]:
+        """Publish one challenge against `law` if this unit's own record holds a
+        counterexample and it has not already said so. Shared by `challenge`
+        (which scans the board for laws to dispute) and `corroborate` (which is
+        asked about one), so that the once-per-law-ever key is kept in ONE place:
+        a unit answering a call for help must not be able to enter a second
+        inscription of evidence it has already published."""
+        key = (CHALLENGE, law)
+        if key in self._published:
+            return None
+        counter = self._counterexample_to(law)
+        if counter is None:
+            return None
+        mark = Mark(author=self.unit_id, content=law, kind=CHALLENGE,
+                    round_idx=round_idx, counterexample=counter)
+        board.publish(mark)
+        self._published.add(key)
+        return mark
 
-        THE CALCULUS DECIDES, NOT THE CHALLENGER'S AUTHORITY. A challenge cites
-        an individual said to carry the law's body without its head; this unit
-        checks that individual AGAINST ITS OWN FACTS. If its record holds that
-        same individual WITH the head, the citation is false of the world this
-        unit has met, the challenge is rebutted, and the law stands. Nothing
-        about who challenged, how often, or how many peers agreed enters here —
-        a challenge is a claim that gets checked, never a command that gets
-        obeyed, and the difference is what keeps a law's fate a matter of
-        evidence rather than of standing.
+    # --- the corroboration lifecycle: doubt, inquiry, disposal ---------------
+    #
+    # THE AUTHOR'S RULING: *corroborate and suspend, but do not eliminate until
+    # corroboration.* A challenge no longer retracts anything by itself. What it
+    # does is raise a doubt, and a doubt provokes INQUIRY — which in Peirce has
+    # two arms, and had only one here before this task.
+    #
+    #   (internal)  The author re-assesses the law against its OWN current
+    #               record, by the very criterion it would use to induce the law
+    #               today (`_meets_criterion`). If the record no longer sustains
+    #               it, the doubt is settled inside the membrane: retract, and no
+    #               corroboration is needed. This is also where the gap Task 5
+    #               left open closes — `induce` only ever ADDED, and an admitted
+    #               law was never re-tested against a grown record.
+    #
+    #   (external)  If the record still sustains the law but the author cannot
+    #               rebut the cited individual, the law is SUSPENDED — held,
+    #               published, licensing nothing — and the author publishes a
+    #               call for corroboration. An independent peer bearing out the
+    #               doubt eliminates the law; a peer holding the disputed
+    #               individual WITH the head restores it; silence for the whole
+    #               window restores it.
+    #
+    # THE INCOHERENCE THIS FIXES. Admission tolerated a 5% pending RATE while
+    # disposition fired on any ONE pending individual, so the two criteria fought
+    # continuously (98 distinct defeats, 426 retraction events) and, worse, could
+    # not tell a withheld consequent from a false law: 58 of 58 successful
+    # challenges destroyed a law the field actually carries. Now the same
+    # standard governs holding a law and losing it, and a foreign counterexample
+    # can suspend but never unilaterally kill.
 
-        WHAT CANNOT BE REBUTTED IS GIVEN UP, EVEN WHEN THE LAW IS TRUE. An
-        author whose own record simply lacks the head — because the field
-        withheld that consequent, or because the author was not attending when
-        it arrived — cannot distinguish that case from a genuine refutation, and
-        it retracts. This is not an oversight to be tuned away with a
-        confirmation threshold. It is what defeasibility costs under a fallible
-        field, and it is measured rather than hidden: see
-        `tests/test_c_channels.py`, which counts how many successful challenges
-        defeat a law the field actually carries.
+    def _rebutted(self, mark: Mark, board: MarkBoard, round_idx: int,
+                  *, testimony: bool) -> bool:
+        """Does the cited individual carry the law's head after all?
 
-        ITS OWN CHALLENGES ARE NOT EXEMPT. A unit that challenged `p1 -> q1` on
-        a peer's board and also holds `p1 -> q1` has published evidence against
-        something it believes; the honest disposal is the same one it would make
-        of a stranger's evidence, and the verification is identical in either
-        case. (`challenge` will not have produced this from a law it holds
-        unless a peer published the law too.)
+        THE AUTHOR'S OWN RECORD DECIDES FIRST, always: this is the check Task 5
+        built, unchanged, and it is why a challenge is a claim that gets checked
+        rather than a command that gets obeyed.
 
-        NOTHING IS PUBLISHED BY A RETRACTION, and that is a real gap rather than
-        an oversight. The board is append-only: a law mark that has been defeated
-        still stands there, and a unit reading the board later cannot tell that
-        its author gave it up. What a mark CLAIMS and what its author still HOLDS
-        have come apart, and closing that gap is the maintenance channel's work
-        (spec §9b), left visible here rather than pre-empted.
-
-        `round_idx` bounds which challenges are answerable: a disposal at r
-        answers for challenges published at r or earlier, never for one made
-        afterwards. The board is a place and keeps no clock, so the bound comes
-        from the caller.
+        `testimony` additionally admits a PEER'S PUBLISHED head atom, and it is
+        set only while a law is suspended. That is the ruling's own step — "on a
+        peer rebutting, the law is restored" — and it is the reason the call for
+        corroboration is worth publishing: a call can be answered either way, and
+        an answer that the disputed individual does carry the head defeats the
+        doubt as squarely as a corroboration confirms it. A published mark is
+        attributable and checkable, which is the most a unit can ask of anything
+        that did not arrive at its own membrane; and it is not adopted here — the
+        law is restored, not the peer's fact taken up.
         """
-        retracted: List[Tuple[str, str]] = []
+        _body_rel, head_rel = mark.content
+        _rel, args = mark.counterexample
+        head = (head_rel, args)
+        if head in self.facts:
+            return True
+        if not testimony:
+            return False
+        return any(m.author != self.unit_id
+                   for m in board.fact_marks(head, upto=round_idx))
+
+    def _standing_challenges(self, law: Tuple[str, str], board: MarkBoard,
+                             round_idx: int) -> List[Mark]:
+        """The challenges against `law` this unit has not already answered for,
+        in publication order — bounded by `round_idx`, since a disposal at r
+        answers for challenges published at r or earlier and never for one made
+        afterwards."""
+        return [m for m in board.challenges_against(law, upto=round_idx)
+                if m not in self._spent]
+
+    def _solicit(self, law: Tuple[str, str], about: Mark, board: MarkBoard,
+                 round_idx: int) -> Optional[Mark]:
+        """Publish the call for corroboration: a question about a law, naming the
+        individual in dispute.
+
+        THIS IS THE ASK CHANNEL'S MACHINERY, pointed at a law. The author cannot
+        settle the doubt alone — its own record simply lacks the head, and under
+        a fallible field that is exactly what a withheld consequent looks like —
+        so it does the one thing a unit in a community can do: it asks. The call
+        asserts nothing (it cannot be adopted), it names precisely what would
+        bear on it (the law and the individual), and it is answered from a peer's
+        own record, which is the shape every other question here has.
+
+        ONCE PER LAW, EVER, like every other act (`_published`). A second call
+        about one law would be the same request again, and the instruments would
+        count two inquiries where one was made. The cost is that a later doubt
+        about the same law under a DIFFERENT individual re-uses the standing
+        call, so the call's named individual can go stale; nothing turns on it —
+        a peer's answer is checked against the live doubt's own challenge mark,
+        never against the call — but it is a legibility cost and it is named
+        rather than hidden.
+        """
+        key = (CORROBORATION, law)
+        if key in self._published:
+            return None
+        mark = Mark(author=self.unit_id, content=law, kind=CORROBORATION,
+                    round_idx=round_idx, counterexample=about.counterexample)
+        board.publish(mark)
+        self._published.add(key)
+        return mark
+
+    def dispose_challenges(self, board: MarkBoard,
+                           round_idx: int) -> Disposition:
+        """Answer for every challenge standing against a law this unit holds, and
+        move each law's standing accordingly. Returns what changed and WHY.
+
+        A law is visited once per pass, and a doubt opened in this pass is not
+        also disposed of in it: the grace of at least one round is structural,
+        not a special case, and it is what gives the community a chance to speak
+        before anything is eliminated.
+
+        NOTHING IS PUBLISHED BY A RETRACTION OR A RESTORATION, and that is still
+        a real gap. The board is append-only: a defeated law's mark stands, and a
+        reader cannot tell that its author gave it up or put it in doubt. The
+        call for corroboration is the one piece of a law's changed standing that
+        does reach the board. Closing the rest is the maintenance channel's work
+        (spec §9b), left visible rather than pre-empted.
+        """
+        out = Disposition()
         for law in sorted(self.laws):
+            standing = self._standing_challenges(law, board, round_idx)
+            if law in self.suspended:
+                self._dispose_doubt(law, standing, board, round_idx, out)
+            elif standing:
+                self._open_doubt(law, standing, board, round_idx, out)
+        return out
+
+    def _open_doubt(self, law: Tuple[str, str], standing: List[Mark],
+                    board: MarkBoard, round_idx: int,
+                    out: Disposition) -> None:
+        """Dispose of a fresh challenge against an active law: rebut it, settle
+        it internally, or suspend and ask for help."""
+        live = [m for m in standing
+                if not self._rebutted(m, board, round_idx, testimony=False)]
+        self._spent.update(m for m in standing if m not in live)
+        if not live:
+            return                              # rebutted: the law stands
+        if not self._meets_criterion(law):
+            # THE INTERNAL ARM. The doubt sent the author back to its own record
+            # and the record no longer sustains the law. Nobody else was needed.
+            self._spent.update(live)
+            if self.retract_law(law):
+                out.retracted_internally.append(law)
+            return
+        trigger = live[0]
+        self._suspend(law, Doubt(challenger=trigger.author,
+                                 individual=trigger.counterexample[1],
+                                 opened_at=round_idx))
+        self._solicit(law, trigger, board, round_idx)
+        out.suspended.append(law)
+
+    def _dispose_doubt(self, law: Tuple[str, str], standing: List[Mark],
+                       board: MarkBoard, round_idx: int,
+                       out: Disposition) -> None:
+        """Carry a suspended law's doubt forward one round.
+
+        THE ORDER IS THE RULING'S ORDER, and each step is the answer to a
+        different question.
+
+        1. Is the doubt still live? A rebuttal — the author's own record, or a
+           peer's published testimony about the disputed individual — retires it,
+           and the law goes back to work.
+        2. Does the author's own record still sustain the law? The internal arm
+           runs every round the doubt stands, not only when it opened: the record
+           grows, and a law that stops meeting its own criterion is defeated by
+           the author's own evidence whatever the community says.
+        3. Has an INDEPENDENT peer borne the doubt out? That is corroboration,
+           and it is the only thing that eliminates a law from outside. The unit
+           that opened the doubt cannot corroborate itself — its counterexample
+           is the one already being weighed, and counting it twice would make one
+           record's gap into two votes.
+        4. Has the call gone unanswered for the whole window? Then the challenge
+           has failed to gather support, and SILENCE CANNOT ELIMINATE: the law is
+           restored. That is the direction the ruling fixes — a doubt nobody
+           shares is a doubt that has run out, not a verdict.
+
+        A challenge disposed of here is spent (`_spent`): it has had its answer,
+        and the same inscription does not get to raise the same doubt again.
+        """
+        doubt = self._doubts[law]
+        live = [m for m in standing
+                if not self._rebutted(m, board, round_idx, testimony=True)]
+        self._spent.update(m for m in standing if m not in live)
+        if not live:
+            self._unsuspend(law)
+            out.restored_by_rebuttal.append(law)
+            return
+        if not self._meets_criterion(law):
+            self._spent.update(live)
+            if self.retract_law(law):
+                out.retracted_internally.append(law)
+            return
+        if {m.author for m in live} - {doubt.challenger}:
+            self._spent.update(live)
+            if self.retract_law(law):
+                out.retracted_by_corroboration.append(law)
+            return
+        if round_idx - doubt.opened_at >= self.corroboration_window:
+            self._spent.update(live)
+            self._unsuspend(law)
+            out.restored_by_silence.append(law)
+
+    def corroborate(self, board: MarkBoard, round_idx: int) -> List[Mark]:
+        """Answer other units' calls for corroboration from this unit's own
+        record, returning the marks minted.
+
+        THE OTHER HALF OF THE CALL, exactly as `answer` is the other half of
+        `ask`. A unit reads what it is being asked about and replies with what it
+        has actually met — and there are only two things it can have met that
+        bear on a doubt:
+
+        - THE DISPUTED INDIVIDUAL WITH THE HEAD, which rebuts the doubt. It is
+          published as an ordinary fact mark, indistinguishable from the same
+          content published unprompted, because that is what it is: a fact this
+          unit holds. The asking author reads it in `_rebutted` and restores.
+        - ITS OWN COUNTEREXAMPLE to the law, which corroborates. It is published
+          as an ordinary challenge, through the same once-per-law-ever mint
+          `challenge` uses, because that is what it is: this unit's own evidence
+          against a standing claim. What makes it CORROBORATION rather than a
+          fresh dispute is only that another record already said the same thing —
+          independence is a property of the two records, not of the mark.
+
+        NEVER ITS OWN CALL: a unit cannot corroborate its own doubt, for the
+        reason it cannot answer its own question. And it says nothing it has not
+        met — nothing here consults the field, and a unit with neither the head
+        nor a counterexample simply has nothing to contribute, which is the
+        silence the window measures.
+        """
+        minted: List[Mark] = []
+        for call in board.corroboration_calls(upto=round_idx):
+            if call.author == self.unit_id:
+                continue
+            law = call.content
             _body_rel, head_rel = law
-            for mark in board.challenges_against(law, upto=round_idx):
-                _rel, args = mark.counterexample
-                if (head_rel, args) in self.facts:
-                    continue                    # rebutted: the law stands
-                if self.retract_law(law):
-                    retracted.append(law)
-                break
-        return retracted
+            _rel, args = call.counterexample
+            head = (head_rel, args)
+            if head in self.facts:
+                key = (FACT, head)
+                if key in self._published:
+                    continue
+                mark = Mark(author=self.unit_id, content=head, kind=FACT,
+                            round_idx=round_idx)
+                board.publish(mark)
+                self._published.add(key)
+                minted.append(mark)
+                continue
+            mark = self._mint_challenge(law, board, round_idx)
+            if mark is not None:
+                minted.append(mark)
+        return minted

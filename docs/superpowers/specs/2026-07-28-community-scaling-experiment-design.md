@@ -542,6 +542,75 @@ place to look, not evidence of what will be found.
 
 ---
 
+## 9c · Memory has tiers, and the lost leaves residue (author, 2026-07-30)
+
+Two rulings about memory, both of which bear on what "retract" and "decay" may
+mean. They generalize beyond this experiment; recorded here because the challenge
+lifecycle needed them immediately.
+
+### (i) Knowing-about is not holding-in-use — so retraction must archive, not erase
+
+The author: *"I could say I know about trepanning because I've looked it up, but
+not because I perform it or have had it performed on me. The arcane, out-of-use,
+formerly in practice but now obsolete, deprecated, frankly wrong must remain in
+some form to inform history, recoverable for study and admonition — but it cannot
+consume much in the way of active resources. So: libraries, archives, museums."*
+
+This forbids the erasure semantics the build has been using. A defeated law, a
+decayed atom, a superseded generalization must remain **recoverable**, while
+costing nothing to hold. Two tiers, distinguished by what they cost and what they
+license:
+
+- **Active** — held, licensing inference, charged for.
+- **Archival** — recoverable and inspectable, licensing nothing, costing nothing.
+
+**The project already has the archival tier, and it already has the cost
+property.** Arisbe's quotation apparatus is *mention, never use*: a quoted law is
+"present without force," which is exactly the third tense the `swan_third_tense`
+exemplar demonstrates — a withdrawn law standing on the sheet as exhibit. And
+under B-min the interpreters are **opaque to a quotation area**: no rule operates
+inside the oval, and the peel and the materializer skip it. So an archived item is
+structurally excluded from inference rather than merely flagged, which is precisely
+"cannot consume much in the way of active resources," enforced rather than
+promised.
+
+**The consequence for this build:** retraction (by corroborated challenge, by
+internal re-assessment, or by decay) should **demote a law to mention** rather than
+delete it. Nothing in the record is destroyed; it stops having force. That also
+makes the honesty ledger better — a run can report what a community *stopped*
+believing, which erasure loses.
+
+### (ii) Residue permits reconstruction
+
+The author: *"the simple fact that a pattern of thinking was once in use leaves
+something like a genetic residue that permits reconstruction of a sort even if
+direct observation or evidence is missing"* — with proto-Indo-European and the
+reconstruction of population history from gene analysis as the exemplars.
+
+This names the **comparative method**: no one ever observed PIE, yet regular
+correspondences among its daughters license reconstructing it. The analogue here is
+concrete, and the machinery for it exists as of stage 2. **Provenance records the
+support behind every derived fact.** A law that has been retracted therefore leaves
+its fingerprints: the atoms it derived remain in the record, each carrying the
+premises it was derived from. The law is gone; its effects and their supports are
+not.
+
+Two consequences, one immediate and one a genuine research question:
+
+- **Immediate:** this is a second argument against erasure. Even if an archived law
+  were discarded, its residue in the derived record would remain — so the record is
+  already partly reconstructible, and pretending a retraction is clean would be
+  false to what the data holds.
+- **The research question, and it is a good one:** *can a community reconstruct a
+  law that no member still holds, from the systematic correspondences among what
+  its members derived while holding it?* That is the comparative method applied to
+  a population of reasoners rather than to daughter languages, and this design —
+  several units, overlapping apertures, provenance-carrying records, laws that can
+  die — is nearly the right instrument for asking it. Queued as a conjecture, not
+  a claim; it would need a stage of its own.
+
+---
+
 ## 10 · Scale, decomposition, and open questions
 
 **Scale, stated plainly.** Four communities × ~12 units = ~48 loop instances per

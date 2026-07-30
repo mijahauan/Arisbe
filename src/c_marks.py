@@ -59,6 +59,18 @@ that lets any published fact close a question. Two units that independently
 published `p1 -> q1` published one claim twice, and evidence against it is
 evidence against both.
 
+AND A MARK MAY CALL FOR HELP. As of the author's corroboration ruling a mark may
+be a `"corroboration"`: a QUESTION ABOUT A LAW, published by that law's own
+author when a challenge it cannot rebut has put the law in doubt. It names the
+law and the disputed individual, and what it asks of the community is whether
+anyone else's record bears on the doubt. It is the ask channel's shape applied
+to a law rather than to an atom — a public, attributable request that a peer
+answers from its OWN record — and it exists because the author ruled that a law
+is suspended by a challenge but eliminated only by corroboration. Nothing about
+the call decides anything; it is the occasion for evidence, not evidence itself.
+Its `counterexample` field carries the individual under dispute (the atom the
+challenge cited), so a reader knows exactly which case is at issue.
+
 THE BOARD IS PER-COMMUNITY AND SEALED in this stage. Sealing is structural, not
 a flag: a board holds no reference to another board and there is no operation
 here that reads one from another. Permeability is a later switch, and it will be
@@ -76,7 +88,17 @@ FACT = "fact"
 LAW = "law"
 QUESTION = "question"
 CHALLENGE = "challenge"
-KINDS = (FACT, LAW, QUESTION, CHALLENGE)
+CORROBORATION = "corroboration"
+KINDS = (FACT, LAW, QUESTION, CHALLENGE, CORROBORATION)
+
+LAW_SHAPED = (LAW, CHALLENGE, CORROBORATION)
+"""The kinds whose content is a `(body_rel, head_rel)` pair of names — the law
+asserted, the law disputed, the law in doubt."""
+
+CITES_AN_INDIVIDUAL = (CHALLENGE, CORROBORATION)
+"""The kinds that carry an atom beside their content: the counterexample a
+challenge OFFERS, and the disputed individual a corroboration call is ABOUT.
+Both are atoms of the named law's BODY, and both are checked at minting."""
 
 Content = Union[Fact, Tuple[str, str]]
 """What a mark inscribes: a ground atom, or a law as its `(body, head)` pair —
@@ -118,7 +140,11 @@ class Mark:
     round_idx: int
     counterexample: Optional[Fact] = None
     """The evidence a `"challenge"` offers: an individual the challenger's own
-    record carries under the law's BODY and not under its HEAD.
+    record carries under the law's BODY and not under its HEAD. On a
+    `"corroboration"` call it is the same atom read the other way round — the
+    disputed individual the call is ABOUT, republished by the law's author so
+    that a peer can answer about the very case at issue rather than about the
+    law in general.
 
     IT IS CARRIED, NOT MERELY CLAIMED, and that is the whole difference between
     a challenge and a demand. The law's author checks this atom against its own
@@ -152,11 +178,12 @@ class Mark:
         rel, rest = self.content
         if not isinstance(rel, str):
             raise ValueError(f"mark content {self.content!r} has no relation name")
-        if self.kind in (LAW, CHALLENGE) and not isinstance(rest, str):
+        if self.kind in LAW_SHAPED and not isinstance(rest, str):
             raise ValueError(
                 f"mark of kind {self.kind!r} carries {self.content!r}, which is "
                 f"shaped like a fact: a law — and a challenge, which names the "
-                f"law it disputes — is a (body_rel, head_rel) pair of names"
+                f"law it disputes, and a corroboration call, which names the law "
+                f"in doubt — is a (body_rel, head_rel) pair of names"
             )
         if self.kind in (FACT, QUESTION) and not isinstance(rest, tuple):
             raise ValueError(
@@ -177,21 +204,27 @@ class Mark:
         is what "carries the body without the head" means — and whether the
         author also holds the head is precisely what is left for the author to
         check, so it cannot be checked here.
+
+        A CORROBORATION CALL IS HELD TO THE SAME STANDARD, because it is the
+        same atom: a call that named no individual would be asking the community
+        about a law in general, which no peer could answer from its own record.
         """
-        if self.kind != CHALLENGE:
+        if self.kind not in CITES_AN_INDIVIDUAL:
             if self.counterexample is not None:
                 raise ValueError(
                     f"mark of kind {self.kind!r} carries a counterexample "
                     f"{self.counterexample!r}: only a challenge offers evidence, "
-                    f"and only against a law it names"
+                    f"and only a corroboration call names the individual in "
+                    f"dispute — both against a law they name"
                 )
             return
         c = self.counterexample
         if c is None:
             raise ValueError(
-                f"challenge to {self.content!r} carries no counterexample: a "
-                f"challenge is evidence offered against a law, and one that "
-                f"named none could not be checked by the law's author"
+                f"{self.kind} to {self.content!r} carries no counterexample: a "
+                f"challenge is evidence offered against a law, and a "
+                f"corroboration call is a question about one disputed "
+                f"individual; neither could be checked without the atom itself"
             )
         if not (isinstance(c, tuple) and len(c) == 2 and isinstance(c[0], str)
                 and isinstance(c[1], tuple)):
@@ -201,7 +234,7 @@ class Mark:
             )
         if c[0] != body_rel:
             raise ValueError(
-                f"challenge to {self.content!r} cites {c[0]!r}, which is not the "
+                f"{self.kind} to {self.content!r} cites {c[0]!r}, which is not the "
                 f"law's body {body_rel!r}: a counterexample to body -> head is "
                 f"an individual holding the BODY without the head"
             )
@@ -302,6 +335,41 @@ class MarkBoard:
         """
         return [m for m in self._marks
                 if m.kind == CHALLENGE and m.content == law
+                and (upto is None or m.round_idx <= upto)]
+
+    def corroboration_calls(self, law: Optional[Tuple[str, str]] = None,
+                            upto: Optional[int] = None) -> List[Mark]:
+        """The calls for corroboration standing on this board, in publication
+        order — every one, or only those about `law`.
+
+        READ BY BOTH SIDES, which is why it lives here rather than in either.
+        A peer reads it to find out what it is being asked about; the calling
+        author reads its own call back to recover the round the doubt opened in
+        and the individual it named, because a call is a public inscription and
+        there is no reason for the author to keep a private copy of what it
+        already said in the open.
+
+        `upto` bounds by publication round, as `challenges_against` does and for
+        the same reason: the board is a place and keeps no clock.
+        """
+        return [m for m in self._marks
+                if m.kind == CORROBORATION
+                and (law is None or m.content == law)
+                and (upto is None or m.round_idx <= upto)]
+
+    def fact_marks(self, content: Fact,
+                   upto: Optional[int] = None) -> List[Mark]:
+        """Every published `"fact"` mark carrying exactly `content`, in
+        publication order.
+
+        `answer_to` reads the board this way for a question; a corroboration
+        call needs the same reading for the head atom that would rebut its
+        doubt, and it needs ALL of them rather than the first, because who said
+        it matters (an author does not rebut its own doubt with its own
+        testimony — it has its own record for that).
+        """
+        return [m for m in self._marks
+                if m.kind == FACT and m.content == content
                 and (upto is None or m.round_idx <= upto)]
 
     def record_uptake(self, mark: Mark, adopter: str) -> None:
