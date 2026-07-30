@@ -28,6 +28,16 @@ class Domain:
 class FieldSpec:
     seed: int
     domains: Tuple[Domain, ...]
+    withhold_rate: float = 0.0
+    """Probability that a licensed consequent is withheld — the law fires
+    but its effect does not arrive. Makes a true law refutable: without
+    this, a held law can never miss and a challenge against it can never
+    succeed (spec premise: noise is what makes the record fallible)."""
+    spurious_rate: float = 0.0
+    """Probability that one extra head atom arrives with no antecedent to
+    license it — a consequence with no cause. Makes accidental hits
+    possible for a law nobody holds, and gives a held law something to be
+    wrong about."""
 
 
 CORE = tuple(f"s{i}" for i in range(1, 11))
@@ -64,6 +74,8 @@ def default_spec(seed: int = 20260728) -> FieldSpec:
     accidental regularities are possible again, so a gate can discriminate."""
     return FieldSpec(
         seed=seed,
+        withhold_rate=0.1,
+        spurious_rate=0.1,
         domains=(
             Domain("alpha", ("shared", "a_local"), ("a_local", "a_head"),
                    _individuals("a")),
@@ -105,17 +117,39 @@ class Field:
 
     def deliver(self, domain_name: str, round_idx: int) -> List[Fact]:
         """What this domain delivers at `round_idx`: this round's antecedents,
-        plus the consequents licensed by LAST round's antecedents.
+        plus the consequents licensed by LAST round's antecedents, passed
+        through noise.
 
         The one-round lag is what makes anticipation predictive. A unit that
         holds the law sees `body(a)` at r and can anticipate `head(a)` at
         r+1; a unit without it cannot. Both are observable, so induction has
-        material to work with."""
+        material to work with.
+
+        Noise is drawn from a SEPARATE `random.Random`, seeded on
+        `f"{seed}:noise:{domain_name}:{round_idx}"`, so it can never disturb
+        the antecedent stream's own call sequence — the same seed still
+        delivers the same antecedents whether or not noise is enabled. Each
+        licensed consequent is independently withheld with probability
+        `withhold_rate`; then, with probability `spurious_rate`, one extra
+        head atom arrives about a randomly chosen individual that the law did
+        not license — a consequence with no cause."""
+        d = self._by_name[domain_name]
         out = set(self._antecedents(domain_name, round_idx))
+        licensed = []
         for f in self._antecedents(domain_name, round_idx - 1):
             c = self.consequent(domain_name, f)
             if c is not None:
-                out.add(c)
+                licensed.append(c)
+
+        noise_rng = random.Random(f"{self.spec.seed}:noise:{domain_name}:{round_idx}")
+        for c in licensed:
+            if noise_rng.random() < self.spec.withhold_rate:
+                continue
+            out.add(c)
+        if noise_rng.random() < self.spec.spurious_rate:
+            _, head_rel = d.law
+            who = noise_rng.choice(d.individuals)
+            out.add((head_rel, (("c", who),)))
         return sorted(out)
 
     def consequent(self, domain_name: str, f: Fact) -> Optional[Fact]:

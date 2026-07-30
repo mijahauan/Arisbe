@@ -145,3 +145,38 @@ def test_a_wrong_law_has_a_nonzero_hit_ceiling():
         rival.step(field, r, induce=False)
     assert rival.ledger.hits > 0, "the wrong law cannot win — no real falsifier"
     assert rival.ledger.net_score < 0, "the wrong law must still lose overall"
+
+
+def test_noise_withholds_some_consequents_and_adds_some_spurious():
+    spec = default_spec(seed=20260728)
+    assert spec.withhold_rate > 0 and spec.spurious_rate > 0
+    field = Field(spec)
+    d = spec.domains[0]
+    body_rel, head_rel = d.law
+
+    withheld = spurious = 0
+    for r in range(1, 200):
+        prev_bodies = {a for rel, a in field._antecedents(d.name, r - 1) if rel == body_rel}
+        heads_now = {a for rel, a in field.deliver(d.name, r) if rel == head_rel}
+        withheld += len(prev_bodies - heads_now)      # a consequence that did not arrive
+        spurious += len(heads_now - prev_bodies)      # a consequent with no antecedent
+    assert withheld > 0, "no consequent is ever withheld — the field is exception-free"
+    assert spurious > 0, "no spurious consequent ever appears"
+
+
+def test_noise_is_deterministic():
+    a, b = Field(default_spec(seed=5)), Field(default_spec(seed=5))
+    for r in range(30):
+        assert a.deliver("alpha", r) == b.deliver("alpha", r)
+
+
+def test_zero_rates_restore_the_exception_free_field():
+    import dataclasses
+    spec = dataclasses.replace(default_spec(seed=5), withhold_rate=0.0, spurious_rate=0.0)
+    field = Field(spec)
+    d = spec.domains[0]
+    body_rel, head_rel = d.law
+    for r in range(1, 60):
+        prev = {a for rel, a in field._antecedents(d.name, r - 1) if rel == body_rel}
+        now = {a for rel, a in field.deliver(d.name, r) if rel == head_rel}
+        assert prev == now
