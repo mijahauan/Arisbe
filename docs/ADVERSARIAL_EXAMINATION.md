@@ -1,33 +1,37 @@
 # Adversarial Examination: The Three Departures Tested
 
-> **New here? Read the story first.** This is the prosecution record — the charges,
-> verdicts, and forced amendments, in the working vocabulary of logic and
-> argumentation. For a plain-language account of *what was challenged, how we argued
-> it out, and what changed* — with a worked example for every principle — see
+> **New here? Read the story first.** This document holds the prosecution record: the
+> charges, the verdicts, and the amendments those verdicts forced, written in the
+> working vocabulary of logic and argumentation. For a plain-language account of *what
+> was challenged, how we argued it out, and what changed* — with a worked example for
+> every principle — see
 > **[FIDELITY_A_PLAIN_ACCOUNT.md](FIDELITY_A_PLAIN_ACCOUNT.md)**. The examinations
 > below run in order: **Departures I–III** (the first panel), then **Examination II**
-> (the larger game / the common sheet), then **Examination III** (fair access and
-> the worth-ladder's footing), then **Examination IV** (the doctrine sprint of
+> (the larger game / the common sheet), **Examination III** (fair access and
+> the worth-ladder's footing), **Examination IV** (the doctrine sprint of
 > 2026-07-17→19 — the measure, the kytos, the oracle loop, the rung-1 empirics, the
-> one-regime residue, and the concordances — the most recent).
+> one-regime residue, and the concordances), **Examination V** (the AlternativeSet
+> architecture), and **Examination VI** (the commens rung, the most recent).
 
 ## Preface
 
-This document records the result of an adversarial examination of the three points at which Arisbe departs from Peirce. Four prosecuting chairs filed charges — **The Traditional Peircean**, **The Modal Logician**, **The Philosophy-of-Assertion / Level-0 Scholar**, and **The Historian of the Secondary Literature** — and three judges, one per departure, ruled on whether each departure can stand as written.
+Arisbe departs from Peirce at three points. This document records what happened when those three departures went to adversarial examination — opponents commissioned to break them, and a record kept of what each opponent pressed, what the author answered, and what the author had to give up. Four prosecuting chairs filed charges — **The Traditional Peircean**, **The Modal Logician**, **The Philosophy-of-Assertion / Level-0 Scholar**, and **The Historian of the Secondary Literature** — and three judges, one per departure, ruled on whether each departure can stand as written.
+
+Every examination below follows one shape: the strongest charge, the author's best answer, the rationale behind the ruling, then the exact amendment the ruling forces. A verdict names a strength, not a mood. "Survives with amendment" means the claim holds only in some smaller or differently-grounded form, and that smaller form gets written out in full so a later reader can see precisely what remains.
 
 The departures examined:
 
-- **Departure I** — *Non-convergence.* Inquiry need not converge on a final opinion; the real is "upstream and around," an un-enclosable ground that pushes back at the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) without ever being a settled terminus.
-- **Departure II** — *Level zero bears form, not content.* The two registers (demonstrative/derived vs. assertoric/posited); the level-0 soundness theorem; the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") as the Alpha home of defeasibility; [warrant](GLOSSARY.md#warrant) provenance as a runtime gradient.
-- **Departure III** — *Modality without Gamma.* No new modal mark (no broken cut, no [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings)) is needed; the standard translation over Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) discharges the modal logics with first-order-definable frames; the irreducible residue is second-order, not modal.
+- **Departure I** — *Non-convergence.* Inquiry need not converge on a final opinion. The real lies "upstream and around" — an un-enclosable ground that pushes back at the [membrane](GLOSSARY.md#membrane) (the boundary where the sheet meets the world) without ever standing there as a settled terminus.
+- **Departure II** — *Level zero bears form, not content.* Level zero names the outermost surface of the sheet, where nothing encloses what one writes. Four pieces make up the departure: the two registers (demonstrative/derived vs. assertoric/posited); the level-0 soundness theorem; the [scroll](GLOSSARY.md#scroll) (a nested double cut — "if … then") as the Alpha home of defeasibility; and [warrant](GLOSSARY.md#warrant) provenance as a runtime gradient.
+- **Departure III** — *Modality without Gamma.* Peirce's Gamma system reached for new marks to carry necessity and possibility. Arisbe needs none: no broken cut, no [tincture](GLOSSARY.md#tincture) (Peirce's Gamma colourings). The standard translation over Arisbe's diachronic directed acyclic graph ([DAG](GLOSSARY.md#dag)) discharges the modal logics whose frames yield to first-order definition, and what remains over reads second-order, not modal.
 
 **Headline result:**
 
 - **Departure I — survives with amendment.** Its declared justification (the regulative/constitutive lever) is conceded away; the membrane rebuttal and the legality answer hold. It must be demoted from a committed thesis to a preferred-at-parity picture.
-- **Departure II — survives with amendment.** The doctrine is coherent and the engineering contribution is real; the prose repeatedly overstates it. The fixes are narrowings the author has already written elsewhere in the same documents.
+- **Departure II — survives with amendment.** The doctrine holds together and the engineering contribution counts for something real; the prose around it repeatedly overstates the case. The fixes narrow that prose to what the author already wrote elsewhere in the same documents.
 - **Departure III — survives with amendment.** The no-new-mark architecture stands untouched; the *completeness rhetoric* wrapped around it over-reaches and must be retracted to adequacy-not-completeness.
 
-None of the three falls. All three need real edits, and in two of the three those edits are genuine retreats from the headline — not cosmetic.
+None of the three falls. All three need real edits, and in two of the three those edits amount to genuine retreats from the headline rather than cosmetic repair.
 
 ---
 
