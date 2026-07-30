@@ -135,3 +135,79 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert learner.ledger.accuracy > fixed.ledger.accuracy
     assert learner.ledger.accuracy > misled.ledger.accuracy
+
+
+# --- the unit reasons through the project's real forward-chainer -------------
+
+import pytest
+
+from egi_core_dau import RelationalGraphWithCuts
+
+
+def test_unit_renders_its_state_as_an_egi():
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0", "x1"]))
+    u.laws.add(("p1", "q1"))
+    egi = u.as_egi()
+    assert isinstance(egi, RelationalGraphWithCuts)
+    names = {egi.get_relation_name(e.id) for e in egi.E}
+    assert {"p1", "q1"} <= names          # the law's body and head both appear
+    assert len(egi.Cut) >= 2               # a law is drawn as nested cuts
+
+
+def test_an_empty_unit_renders_an_empty_egi_and_anticipates_nothing():
+    """`parse_egif("")` is valid and yields the blank sheet, so rendering an
+    empty unit is sane rather than an error waiting to happen."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    egi = u.as_egi()
+    assert (len(egi.V), len(egi.E), len(egi.Cut)) == (0, 0, 0)
+    assert u.anticipate() == set()
+    assert u.last_provenance == {}
+
+
+def test_as_egi_refuses_a_generic_individual_rather_than_faking_a_constant():
+    """A generic line has no constant label; emitting its vertex id as one
+    would silently misrepresent the unit's own content."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.add(("p1", (("g", "v-17"),)))
+    with pytest.raises(ValueError, match="non-constant individual"):
+        u.as_egi()
+
+
+def test_anticipation_comes_from_real_forward_chaining_with_provenance():
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0"]))
+    u.laws.add(("p1", "q1"))
+    anticipated = u.anticipate()
+    assert ("q1", (("c", "x0"),)) in anticipated
+    # the derivation's support is now recoverable — provenance is no longer unused
+    assert u.last_provenance
+    assert u.last_provenance[("q1", (("c", "x0"),))] == frozenset({("p1", (("c", "x0"),))})
+
+
+def test_forward_chaining_composes_laws_the_old_tuple_match_could_not():
+    """The real materializer closes to the least Herbrand model, so a chain of
+    held laws yields the chained consequence. The hand-rolled single-pass match
+    this replaces stopped after one law and could never reach `r1`."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0"]))
+    u.laws.update({("p1", "q1"), ("q1", "r1")})
+    anticipated = u.anticipate()
+    assert {("q1", (("c", "x0"),)), ("r1", (("c", "x0"),))} <= anticipated
+    # and the intermediate step is what supports the far end
+    assert u.last_provenance[("r1", (("c", "x0"),))] == frozenset(
+        {("q1", (("c", "x0"),))})
+
+
+def test_anticipation_is_deterministic_across_repeated_renderings():
+    _spec, field, ap = _setup()
+    u = Unit("u0", ap)
+    u.laws.update({("a_local", "a_head"), ("a_head", "shared")})
+    u.absorb(field, 0)
+    first, first_prov = u.anticipate(), dict(u.last_provenance)
+    assert (u.anticipate(), dict(u.last_provenance)) == (first, first_prov)
