@@ -338,6 +338,131 @@ def test_answering_creates_attributable_uptake_when_the_asker_takes_it_up():
     assert u0.first_seen == {("p1", A1): 0}         # the answer is NOT dated
 
 
+# --- typifying: whom has it been worth asking? --------------------------------
+
+
+def test_a_unit_learns_whom_to_ask_from_answers_that_proved_out():
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    good = Mark(author="u1", content=("q1", (("c", "a1"),)), kind="fact", round_idx=0)
+    bad = Mark(author="u2", content=("q1", (("c", "a2"),)), kind="fact", round_idx=0)
+    u0.credit(good, proved=True)
+    u0.credit(good, proved=True)
+    u0.credit(bad, proved=False)
+    assert u0.whom_to_ask("q1") == "u1"
+
+
+def test_whom_to_ask_is_none_before_any_evidence():
+    _spec, _field, u0, _u1 = _two_units()
+    assert u0.whom_to_ask("q1") is None
+
+
+def test_a_preference_is_earned_per_relation_not_per_peer():
+    """A peer's aperture is partial, so competence is too: `u1` bearing out
+    everything it says about `q1` says nothing about `q2`, which it may never
+    have met."""
+    _spec, _field, u0, _u1 = _two_units()
+    u0.credit(Mark(author="u1", content=("q1", A1), kind="fact", round_idx=0),
+              proved=True)
+    assert u0.whom_to_ask("q1") == "u1"
+    assert u0.whom_to_ask("q2") is None
+
+
+def test_a_peer_whose_testimony_never_bore_out_earns_no_preference():
+    """A negative score is not a preference. `whom_to_ask` names a peer only on
+    positive evidence, so a unit that has been let down by the only voice it
+    ever heard is back where it started rather than pointed at somebody."""
+    _spec, _field, u0, _u1 = _two_units()
+    u0.credit(Mark(author="u1", content=("q1", A1), kind="fact", round_idx=0),
+              proved=False)
+    assert u0.peers["u1"]["q1"] == -1
+    assert u0.whom_to_ask("q1") is None
+
+
+def test_the_preference_ties_break_on_the_peer_id():
+    _spec, _field, u0, _u1 = _two_units()
+    for who in ("u3", "u1", "u2"):
+        u0.credit(Mark(author=who, content=("q1", A1), kind="fact", round_idx=0),
+                  proved=True)
+    assert u0.whom_to_ask("q1") == "u1"
+
+
+def test_a_unit_neither_credits_itself_nor_a_mark_that_asserts_nothing():
+    _spec, _field, u0, _u1 = _two_units()
+    with pytest.raises(ValueError, match="cannot credit its own mark"):
+        u0.credit(Mark(author="u0", content=("q1", A1), kind="fact", round_idx=0),
+                  proved=True)
+    with pytest.raises(ValueError, match="cannot credit the question"):
+        u0.credit(Mark(author="u1", content=("q1", A1), kind="question",
+                       round_idx=0), proved=True)
+    assert u0.peers == {}
+
+
+def test_a_second_route_to_the_same_fact_proves_the_testimony_out():
+    """The verdict is REPLICATION and nothing else: the unit adopted `q1(a1)`
+    from a peer at round 1 and met it at its own membrane at round 3, so a
+    second independent route delivered the same thing."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    u0._record({("p1", A1)}, 0)
+    u0.laws.add(("p1", "q1"))
+    u0.ask(board, 0)
+    u1._record({("q1", A1)}, 0)
+    answer, = u1.answer(board, 1)
+    u0.adopt(answer, board, 1)
+    assert u0.settle_credit(2) == []                 # window has not elapsed
+    u0._record({("q1", A1)}, 3)                      # met first-hand
+    assert u0.settle_credit(3) == [("u1", ("q1", A1), True)]
+    assert u0.whom_to_ask("q1") == "u1"
+    assert u0.settle_credit(9) == []                 # a verdict is entered once
+
+
+def test_silence_at_this_unit_s_own_membrane_fails_the_testimony():
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    u0._record({("p1", A1), ("q1", A2)}, 0)          # q1 IS a relation it meets
+    u0.laws.add(("p1", "q1"))
+    u0.ask(board, 0)
+    u1._record({("q1", A1)}, 0)
+    answer, = u1.answer(board, 1)
+    u0.adopt(answer, board, 1)
+    assert u0.settle_credit(10) == []                # 9 rounds: not yet
+    assert u0.settle_credit(11) == [("u1", ("q1", A1), False)]
+    assert u0.peers["u1"]["q1"] == -1
+
+
+def test_a_relation_this_unit_never_meets_yields_no_verdict_ever():
+    """THE OPEN-WORLD DISCIPLINE, APPLIED TO TESTIMONY. A unit that never meets
+    `q1` at its own membrane does not FAIL to see `q1(a1)` — it is not looking,
+    and reading its own blindness as the peer's fault would credit the aperture
+    rather than the testimony."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    u0._record({("p1", A1)}, 0)
+    u0.laws.add(("p1", "q1"))
+    u0.ask(board, 0)
+    u1._record({("q1", A1)}, 0)
+    answer, = u1.answer(board, 1)
+    u0.adopt(answer, board, 1)
+    assert u0.settle_credit(50) == []
+    assert u0.peers == {}
+
+
+def test_a_fact_already_held_first_hand_credits_nobody():
+    """The peer said something this unit already had, so nothing was taken up
+    and there is nothing to bear out. Reading the unit's own earlier arrival
+    back as a later replication would credit the peer for its own
+    observation."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    u1._record({("q1", A1)}, 0)
+    mark, = u1.publish(board, 0)
+    u0._record({("q1", A1)}, 0)
+    u0.adopt(mark, board, 5)
+    assert u0.settle_credit(50) == []
+    assert u0.peers == {}
+
+
 # --- the measurement: does asking and answering beat being mute? -------------
 #
 # THE DRIVER IS EXPLICIT ON PURPOSE. Task 3 measured the assert channel with

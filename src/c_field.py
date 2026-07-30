@@ -172,6 +172,28 @@ class Field:
         body_rel, head_rel = d.law
         return (head_rel, args) if rel == body_rel else None
 
+    def licensed_heads(self, domain_name: str, rounds: int) -> Set[Fact]:
+        """Every head atom this domain's law licensed at some round of a
+        `rounds`-long run — whether or not `withhold_rate` let it through.
+
+        MODELER-SIDE ONLY, like `consequent`, and for the same reason: it reads
+        the regime, so no unit and no scoring path may touch it. What it exists
+        for is to tell a FABRICATION from a deliverance in a measurement. A head
+        atom outside this set had no antecedent at any round, so the only thing
+        that could have produced it is `spurious_rate` — a consequence with no
+        cause. An atom inside it may still have arrived spuriously on some
+        particular round, which is why this reader answers "could this ever have
+        been licensed" rather than "was this delivery licensed": the first
+        question is the one a unit's record could in principle bear on, and the
+        second is about a round nobody observed."""
+        body_rel, head_rel = self._by_name[domain_name].law
+        out: Set[Fact] = set()
+        for r in range(max(0, rounds - CONSEQUENT_LAG)):
+            for rel, args in self._antecedents(domain_name, r):
+                if rel == body_rel:
+                    out.add((head_rel, args))
+        return out
+
     def at(self, aperture: "Aperture", round_idx: int) -> List[Fact]:
         """What arrives at this unit's membrane this round: the union of its
         domains' deliveries."""

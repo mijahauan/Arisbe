@@ -326,6 +326,51 @@ class Unit:
     two apertures at any community size, so this rule was measured firing 0 times
     in 66 doubts — the rule was correct and the field could not satisfy it. See
     `c_field.apertures_for`'s `PAIRS` scheme and its `min_witnesses` refusal."""
+    replication_window: int = 10
+    """How many rounds an adopted fact waits for the unit's own aperture to
+    deliver it before the unit reads the silence as a failure (`settle_credit`).
+
+    NO HONEST VALUE EXISTS IN THIS FIELD, and the number is here so that the
+    absence is visible rather than buried in a comparison. "Enough rounds for it
+    to have arrived" is a claim about the field's redelivery cadence, and this
+    field draws one individual per relation per round from a list of forty: an
+    individual waits about forty rounds for its next turn, and a unit under
+    bounded attention meets half of those, so the expected wait is longer than
+    the sixty-round run. Whatever stands here therefore decides mostly how many
+    adopted facts get read as failures, not whether they really failed — the
+    same shape of assumption `MAX_PENDING_RATE` and `CONSEQUENT_LAG` carry, and
+    worth naming as such.
+
+    MEASURED AT 5, 10 AND 20, four units under bounded attention, eight seeds,
+    60 rounds, the typified arm. What moves is the verdict split and nothing
+    else:
+
+        window   proved   failed   pending at the end   preferences learned
+        5            15      618                   38                    12
+        10           27      544                   61                    17
+        20           44      401                  132                    24
+
+    The proved count rises with the window because a longer wait meets more of
+    the field's cadence, which is exactly the reading above: this knob reads the
+    field, not the peer."""
+    peers: Dict[str, Dict[str, int]] = dc_field(default_factory=dict)
+    """What this unit has learned about WHOM IT IS TALKING TO: per peer, per
+    relation, a running count of the answers that proved out minus the answers
+    that did not.
+
+    THIS IS THE FIRST THING IN THE SERIES A UNIT HOLDS ABOUT ANOTHER UNIT, and
+    it is deliberately not a model of that unit. It records how one unit's
+    testimony about one relation has fared in this unit's own record — Berger &
+    Luckmann's reciprocal typification of habitualized action by TYPES of actor
+    ("someone who tells me things about a_head that hold up"), not an inspection
+    of the peer's holdings, its aperture or its reasoning. Nothing here reads
+    another unit; every entry is written by `credit`, from a mark this unit
+    encountered and a verdict this unit reached against its own arrivals.
+
+    KEYED BY RELATION RATHER THAN BY PEER ALONE, because a peer's aperture is
+    partial: a unit that meets alpha and delta can speak well about `a_head` and
+    know nothing whatever about `g_head`, and one number per peer would average
+    competence over domains the peer never sees."""
     ledger: MembraneLedger = dc_field(default_factory=MembraneLedger)
     last_provenance: Dict[Fact, FrozenSet[Fact]] = dc_field(default_factory=dict)
     first_seen: Dict[Fact, int] = dc_field(default_factory=dict)
@@ -365,6 +410,16 @@ class Unit:
     """What this unit has already published, as `(kind, content)` pairs — not as
     marks, since a mark carries the round it was published in and would compare
     unequal every round, so the unit would republish everything forever."""
+    _supplied_by: Dict[Fact, Mark] = dc_field(default_factory=dict)
+    """Which mark each adopted fact came in on, kept so that a verdict reached
+    later can be credited to the unit that actually supplied it. Written by
+    `adopt` and read by `settle_credit`; the mark is frozen, so keeping it is
+    keeping the inscription rather than a surrogate for it."""
+    _credited: Set[Fact] = dc_field(default_factory=set)
+    """The adopted facts already settled either way. A verdict is entered ONCE,
+    for the reason `anticipate` stakes once: the unit of account is the fact, and
+    a fact re-read every round would charge one piece of testimony to its author
+    fifty times."""
     _doubts: Dict[Tuple[str, str], Doubt] = dc_field(default_factory=dict)
     """The live doubt behind each suspended law. Keyed identically to
     `suspended`; see `Doubt`."""
@@ -931,6 +986,12 @@ class Unit:
             fresh = mark.content not in self.facts
             self.facts.add(mark.content)        # NOT self._record: not first-hand
             self.adopted_at.setdefault(mark.content, round_idx)
+            if fresh:
+                # WHO SUPPLIED IT IS PART OF WHAT WAS ENCOUNTERED. The author
+                # rides on the mark already; remembering it is what lets a
+                # verdict reached ten rounds from now be credited to the unit
+                # that actually spoke (`settle_credit`).
+                self._supplied_by.setdefault(mark.content, mark)
         elif mark.kind == LAW:
             fresh = mark.content not in self.laws
             self.laws.add(mark.content)
@@ -939,6 +1000,137 @@ class Unit:
         if fresh:
             board.record_uptake(mark, self.unit_id)
         return fresh
+
+    # --- the typify channel: credit, whom_to_ask, settle_credit --------------
+    #
+    # A QUESTION CANNOT CHOOSE WHOM TO ASK. It is published to the whole board,
+    # and until now that was the end of it: a unit took whatever came back,
+    # because it had nothing on which to prefer one voice to another. What it
+    # can do instead is keep a record of how each voice has fared, and act on it
+    # — which is typification, and it is the one thing in this series that
+    # cannot exist in a solitary unit at all.
+    #
+    # THE RECORD IS THE UNIT'S OWN AND READS NOTHING ELSE. A verdict on a piece
+    # of testimony comes from the unit's own subsequent arrivals, never from the
+    # field's regime, never from whether a law survived, and never from anything
+    # only the experiment knows. That constraint is what stops the channel being
+    # a tautology, and it is what makes the verdict weak — see `settle_credit`.
+
+    def credit(self, mark: Mark, proved: bool) -> None:
+        """Enter one verdict about one peer's testimony on one relation.
+
+        A verdict is a small integer, not a probability and not a reputation:
+        `+1` when the testimony proved out, `−1` when it did not. What it
+        accumulates over is `(author, relation)`, so a peer earns its standing
+        where it actually has an aperture and nowhere else.
+
+        THE VERDICT IS SUPPLIED, NOT COMPUTED HERE, because who is entitled to
+        reach it matters more than how it is tallied. `settle_credit` is the
+        reader that reaches one from this unit's own record; a caller may reach
+        one another way, and this method will enter it — which is why it says in
+        `settle_credit`, and not here, what a sound verdict may rest on.
+
+        A unit does not credit itself. Its own inscription is not testimony, and
+        an entry under its own name would let it prefer itself to the community
+        it is asking."""
+        if mark.author == self.unit_id:
+            raise ValueError(
+                f"{self.unit_id} cannot credit its own mark {mark.content!r}: "
+                f"a unit's own inscription is not testimony, and typifying "
+                f"itself would let it prefer its own voice to the community's"
+            )
+        if mark.kind != FACT:
+            raise ValueError(
+                f"{self.unit_id} cannot credit the {mark.kind} {mark.content!r}: "
+                f"only a fact mark asserts something this unit's own arrivals "
+                f"can bear out or fail to"
+            )
+        relation, _args = mark.content
+        self.peers.setdefault(mark.author, {})
+        self.peers[mark.author][relation] = (
+            self.peers[mark.author].get(relation, 0) + (1 if proved else -1))
+
+    def whom_to_ask(self, relation: str) -> Optional[str]:
+        """The peer whose testimony about `relation` has fared best, or `None`
+        when no peer has earned a positive score.
+
+        `None` MEANS "NO PREFERENCE", NOT "NOBODY". A unit with no evidence
+        about a relation is in exactly the position every unit was in before
+        this channel existed, and the honest thing for it to do is what it did
+        then — publish the question to the whole board and take what comes. A
+        preference has to be earned before it may narrow anything.
+
+        Ties break on the peer's own id, so which of two equally-borne-out
+        voices is preferred is a deterministic function of this unit's record
+        rather than of dictionary order."""
+        best: Optional[Tuple[str, int]] = None
+        for author in sorted(self.peers):
+            score = self.peers[author].get(relation, 0)
+            if score > 0 and (best is None or score > best[1]):
+                best = (author, score)
+        return None if best is None else best[0]
+
+    def settle_credit(self, round_idx: int) -> List[Tuple[str, Fact, bool]]:
+        """Reach a verdict on every piece of adopted testimony this unit's own
+        record can now decide, enter it, and report what was decided.
+
+        REPLICATION IS THE VERDICT, and it is the only one available to a unit
+        that cannot check the world. An adopted fact PROVES OUT when this unit's
+        own aperture later delivers the same fact — a second, independent route
+        brought the same thing. It FAILS when the unit has met that relation
+        first-hand before (so the fact's domain is one it actually witnesses),
+        `replication_window` rounds have passed, and nothing arrived.
+
+        THE THIRD OUTCOME IS THE ONE THAT KEEPS IT HONEST. A fact whose window
+        has not elapsed is undecided and credits nothing either way; so is a
+        fact of a relation this unit has never met at its own membrane, because
+        a unit whose aperture does not cover a domain never fails to see
+        anything there — it simply is not looking, and reading its own blindness
+        as a peer's fault would credit the aperture rather than the testimony.
+        That is `_pending_split`'s open-world discipline applied to a second
+        question, and for the same reason.
+
+        WHAT THE VERDICT DOES NOT CARRY, measured rather than argued: any
+        information about the peer. Replication in this field depends on whether
+        the field redraws that individual, which is independent of who reported
+        it, so the verdict is an unbiased but nearly powerless signal — every
+        peer accumulates at the same base rate. Over eight seeds, 60 rounds, six
+        units under bounded attention, 571 verdicts were entered, 27 of them
+        positive, and no unit ever had two peers to choose between on any
+        relation: the measurement is in
+        `tests/test_c_channels.py::test_typification_has_nothing_to_learn_from_in_this_field`.
+
+        A FACT ALREADY HELD WHEN THE MARK ARRIVED NEVER REACHES HERE, and it is
+        `adopt` that keeps it out: `_supplied_by` is written only when something
+        NEW was taken up, exactly as uptake is recorded only then. The peer told
+        this unit something it already had, and reading its own earlier arrival
+        back as a later replication would credit the peer for its own
+        observation. Pinned in
+        `tests/test_c_channels.py::test_a_fact_already_held_first_hand_credits_nobody`.
+        """
+        decided: List[Tuple[str, Fact, bool]] = []
+        seen_relations = {rel for rel, _args in self.first_seen}
+        for fact in sorted(self._supplied_by):
+            if fact in self._credited:
+                continue
+            mark = self._supplied_by[fact]
+            adopted = self.adopted_at.get(fact)
+            if adopted is None:                 # placed directly, never dated
+                continue
+            if fact in self.first_seen:         # a second route delivered it
+                self._credited.add(fact)
+                self.credit(mark, True)
+                decided.append((mark.author, fact, True))
+                continue
+            relation, _args = fact
+            if relation not in seen_relations:
+                continue                        # not looking there: no verdict
+            if round_idx - adopted < self.replication_window:
+                continue                        # the window has not elapsed
+            self._credited.add(fact)
+            self.credit(mark, False)
+            decided.append((mark.author, fact, False))
+        return decided
 
     # --- the ask channel: ask, answer ---------------------------------------
     #
