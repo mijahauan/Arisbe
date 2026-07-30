@@ -351,9 +351,11 @@ never as a flat assertion. The biography of this dragon lives in
 
 ---
 
-## How not to get lost — the compass
+## How to stay afloat — five habits
 
-Four headings that keep you off the rocks:
+Five habits keep you afloat. None settles which way to sail; each keeps a dragon
+from holing you below the waterline, so you can carry on exploring — and
+understanding what you draw:
 
 - **A fragment is a building block — ask after its context and ground.** A lone
   graph is usually an extract: find the whole it was cut from (which cuts enclose
