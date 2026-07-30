@@ -13,7 +13,7 @@ the bottom, and they report a NEGATIVE result, deliberately unsmoothed.
 
 import pytest
 
-from c_field import Field, apertures_for, default_spec
+from c_field import CYCLIC, PAIRS, Field, apertures_for, default_spec
 from c_marks import Mark, MarkBoard
 from c_unit import Unit
 
@@ -28,8 +28,13 @@ def _two_units():
 
 
 def _units(n=4, seed=20260728):
+    """`n` units on distinct apertures. Up to four they are the cyclic ones,
+    unchanged; past four the community needs the `PAIRS` scheme, which is what
+    the corroboration ruling asks for and what the cyclic scheme cannot
+    build."""
     spec = default_spec(seed=seed)
-    aps = apertures_for(spec, n_units=4)
+    scheme = CYCLIC if n <= len(spec.domains) else PAIRS
+    aps = apertures_for(spec, n_units=n, scheme=scheme)
     return [Unit(f"u{i}", aps[i]) for i in range(n)]
 
 
@@ -1120,6 +1125,75 @@ def test_a_unit_s_own_challenge_does_not_corroborate_its_own_doubt():
     assert out.retracted_by_corroboration == [("p1", "q1")]
 
 
+def test_a_unit_publishing_twice_cannot_corroborate_alone():
+    """THE AUTHOR'S RULING, IN ITS OWN WORDS: *"Repeating one's own observation
+    does not"* build a socially available, objectified reality. So the tally
+    counts DISTINCT RECORDS, never inscriptions — two marks from one unit are
+    one witness.
+
+    `challenge` mints once per law ever, so a unit cannot publish twice about one
+    law through the ordinary route; the second mark here is hand-minted, which is
+    the point. The rule must hold against whatever any future channel puts on the
+    board, not merely against what today's channel happens to allow. The control
+    is the last three lines: a genuinely second record does corroborate, so the
+    law is not simply unkillable."""
+    u0, u1, u2, _u3 = _units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    board.publish(Mark(author="u1", content=("p1", "q1"), kind="challenge",
+                       round_idx=2, counterexample=("p1", (("c", "z8"),))))
+    assert len(board.challenges_against(("p1", "q1"))) == 2
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    for r in range(3, 7):                            # inside the window
+        assert u0.dispose_challenges(board, r).retracted_by_corroboration == []
+        assert ("p1", "q1") in u0.suspended
+    u2.facts.add(("p1", (("c", "z7"),)))             # a second RECORD
+    u2.challenge(board, 6)
+    out = u0.dispose_challenges(board, 6)
+    assert out.retracted_by_corroboration == [("p1", "q1")]
+
+
+def test_the_corroborating_bar_is_the_author_s_to_set():
+    """WHOSE READING IS WHOSE. The author ruled that a unit's own inscription
+    never corroborates — that is unconditional and is not this knob. What IS the
+    knob is the controller's reading that the CHALLENGER counts as one of the two
+    witnesses: `corroborating_witnesses = 2` means challenger plus one further
+    unit, and the stricter alternative — two further units beyond the challenger,
+    three foreign records — is 3.
+
+    Both are exercised here on one situation, so the difference is visible in a
+    single test rather than across two arms. THE STRICTER BAR IS NOT MERELY
+    STRICTER IN THIS FIELD, IT IS UNREACHABLE: with four domains at two-domain
+    apertures a domain is met by at most three units, so holder + challenger +
+    one corroborator exhausts the community and a third foreign record cannot
+    exist. Measured over eight seeds at six units, `witnesses=3` reads **0
+    corroborations of 144 doubts**, exactly what the cyclic four-unit arm read.
+    Moving the line to 3 costs a fifth domain."""
+    def arm(bar, dissenters):
+        u0, *peers = _units(n=5)
+        u0.corroborating_witnesses = bar
+        board = MarkBoard()
+        _sustain(u0)
+        _dispute(u0)
+        u0.laws.add(("p1", "q1"))
+        u0.publish(board, 0)
+        for i, peer in enumerate(peers[:dissenters]):
+            peer.facts.add(("p1", (("c", f"z{9 - i}"),)))
+            peer.challenge(board, 1)
+        u0.dispose_challenges(board, 2)
+        return u0.dispose_challenges(board, 3).retracted_by_corroboration
+
+    assert arm(2, 1) == []                  # the challenger alone never closes
+    assert arm(2, 2) == [("p1", "q1")]      # challenger + one further unit
+    assert arm(3, 2) == []                  # the stricter bar refuses the same
+    assert arm(3, 3) == [("p1", "q1")]      # and takes a third foreign record
+
+
 def test_a_self_raised_doubt_names_no_challenger_until_a_peer_speaks():
     """A doubt opened by nothing but the author's own record names nobody, and
     the first peer to dispute the law FILLS that slot rather than corroborating
@@ -1415,31 +1489,43 @@ C_SEEDS = [1, 2, 3, 4, 5, 7, 42, 99]
 
 
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
-                    wrong_laws=False, induce=True):
-    """Four units, one board. Each round: attend the field (inducing), publish
-    what is held, then — if the channel is live — challenge, answer standing
-    calls, and dispose.
+                    wrong_laws=False, induce=True, n_units=4, scheme=CYCLIC,
+                    window=None, witnesses=None):
+    """A community of `n_units` on one board. Each round: attend the field
+    (inducing), publish what is held, then — if the channel is live — challenge,
+    answer standing calls, and dispose.
 
     `wrong_laws` seeds each unit with the CONVERSE of its first domain's law, a
     law the field does not carry. It is what gives the channel something correct
     to do: without it the arm contains no accidental law, because `induce`
     proposes only planted ones at every seed measured.
 
-    `stagger=2` is bounded attention — u0/u2 attend even rounds, u1/u3 odd — so
-    the units' records genuinely differ and a rebuttal is possible on the merits
-    rather than by their holding identical facts.
+    `stagger=2` is bounded attention — even-indexed units attend even rounds,
+    odd-indexed odd — so the units' records genuinely differ and a rebuttal is
+    possible on the merits rather than by their holding identical facts.
+
+    `n_units` / `scheme` are the community, and they move together: the cyclic
+    scheme reaches four units and puts two witnesses on every domain, `PAIRS`
+    reaches six and puts three on every domain. `window` and `witnesses`
+    override `Unit.corroboration_window` and `Unit.corroborating_witnesses` when
+    a measurement sweeps them; `None` leaves each unit's own default alone.
     """
     spec = default_spec(seed=seed)
     field = Field(spec)
-    aps = apertures_for(spec, n_units=4)
+    aps = apertures_for(spec, n_units=n_units, scheme=scheme)
     planted = {d.name: d.law for d in spec.domains}
     units = []
-    for i in range(4):
+    for i in range(n_units):
         laws = {planted[n] for n in aps[i].domains} if seed_laws else set()
         if wrong_laws:
             body, head = planted[aps[i].domains[0]]
             laws = laws | {(head, body)}            # the converse: never carried
-        units.append(Unit(f"u{i}", aps[i], laws=laws))
+        u = Unit(f"u{i}", aps[i], laws=laws)
+        if window is not None:
+            u.corroboration_window = window
+        if witnesses is not None:
+            u.corroborating_witnesses = witnesses
+        units.append(u)
     board = MarkBoard()
     raised = 0
     events = []                    # (unit_id, law, why), with repeats: the thrash
@@ -1664,9 +1750,16 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     through, so five rounds of waiting add no support. The corroboration arm now
     contributes **nothing at all** (0 eliminations, against 32 when the author's
     own published challenge was still allowed to count as a second voice, and 64
-    when it could also take the challenger's slot): under this aperture scheme a
-    law has at most two holders and at most two disputants, so a genuine second
-    foreign record never exists.
+    when it could also take the challenger's slot): under the CYCLIC aperture
+    scheme a law has at most two holders and at most two disputants, so a genuine
+    second foreign record never exists.
+
+    THAT LAST CLAUSE WAS TESTED RATHER THAN LEFT STANDING, and it held — the
+    field was what failed the rule, not the rule. Given six units at distinct
+    2-domain apertures, every domain reaches three witnesses and corroboration
+    fires 45 times in 144 doubts on this very arm
+    (`test_corroboration_fires_once_a_domain_has_three_witnesses`). It buys
+    nothing: 96 of 96 true laws still go, and 48 of 48 converses with them.
 
     WHAT ANSWERS IT IS THE ASK CHANNEL, measured in the gate below: with peers
     able to tell each other what they saw, 28 of these 64 true laws survive.
@@ -1716,6 +1809,188 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     assert (live_total, mute_total) == (-433, -1421)
 
 
+def _witness_arm(n_units, scheme, witnesses=None):
+    """The bounded-attention arm Task 5e measured corroboration at 0 of 66 in,
+    run over a named community. Returns the aggregate over the eight seeds."""
+    agg = {k: 0 for k in ("suspended", "internal", "corroborated", "rebutted",
+                          "silence", "asked")}
+    agg.update(raised=0, calls=0, true_defeats=0, true_held=0,
+               false_defeats=0, false_held=0, net_live=0, net_mute=0)
+    for seed in C_SEEDS:
+        spec, live, board, raised, events, tally = _play_challenge(
+            seed, C_ROUNDS, channel=True, stagger=2, seed_laws=True,
+            wrong_laws=True, induce=False, n_units=n_units, scheme=scheme,
+            witnesses=witnesses)
+        _s, mute, _b, _r, _e, _t = _play_challenge(
+            seed, C_ROUNDS, channel=False, stagger=2, seed_laws=True,
+            wrong_laws=True, induce=False, n_units=n_units, scheme=scheme,
+            witnesses=witnesses)
+        planted = {d.law for d in spec.domains}
+        distinct = {(uid, law) for uid, law, _why in events}
+        for k in ("suspended", "internal", "corroborated", "rebutted",
+                  "silence", "asked"):
+            agg[k] += tally[k]
+        agg["raised"] += raised
+        agg["calls"] += len(board.corroboration_calls())
+        agg["true_defeats"] += sum(1 for _u, law in distinct if law in planted)
+        agg["false_defeats"] += sum(1 for _u, law in distinct
+                                    if law not in planted)
+        agg["true_held"] += sum(1 for u in live for law in u.laws
+                                if law in planted)
+        agg["false_held"] += sum(1 for u in live for law in u.laws
+                                 if law not in planted)
+        agg["net_live"] += sum(u.ledger.net_score for u in live)
+        agg["net_mute"] += sum(u.ledger.net_score for u in mute)
+    return agg
+
+
+def test_corroboration_fires_once_a_domain_has_three_witnesses():
+    """**P-F1 HELD IN ITS MECHANISM AND REFUTED IN ITS ATTRIBUTION**, and the
+    refutation is the more useful half. The prediction, recorded before the run:
+
+    > Elimination-by-corroboration fires at a six-unit / four-domain community
+    > and fires ZERO times at four units, because three witnesses per domain is
+    > the threshold and four units cannot reach it. The transition is a
+    > structural property of the community's SIZE, not of the disposition rule.
+
+    Eight seeds, 60 rounds, bounded attention, planted laws AND converses seeded,
+    no induction, no ask channel — the arm Task 5e measured corroboration at 0 of
+    66 in:
+
+        arm                witnesses  raised  susp  CORROB  window  true lost
+        4 units cyclic     2 2 2 2        96    66       0      66      64/64
+        4 units PAIRS      3 2 2 1        88    80       4      76      56/64
+        6 units pairs      3 3 3 3       160   144      45      99      96/96
+        6 units pairs w=3  3 3 3 3       160   144       0     144      96/96
+
+    THE FIRST CLAUSE HOLDS: 45 corroborations at six units against 0 at four
+    under the cyclic scheme, which is what the whole task was built to produce.
+
+    THE SECOND CLAUSE IS WRONG. Corroboration fires **four times at FOUR units**
+    once those four units take distinct 2-domain apertures, because the truncated
+    pairs community is lopsided — alpha 3, beta 2, gamma 2, delta 1 — and alpha's
+    three witnesses are enough. So the controlling variable is WITNESSES PER
+    DOMAIN, not community size; six units is merely the smallest community in
+    which EVERY domain reaches three. That is why `apertures_for` refuses on
+    `min_witnesses` rather than on a unit count.
+
+    THE STRICTER READING IS UNREACHABLE IN THIS FIELD, not merely stricter. At
+    `corroborating_witnesses = 3` the six-unit community reads 0 of 144 — the
+    same as the cyclic four-unit arm — because three witnesses per domain means
+    holder + challenger + one corroborator and a third foreign record cannot
+    exist. Moving the author's line to three costs a fifth domain.
+
+    **P-F2 HELD.** Corroboration goes 0 → 4 → 45 while true laws still held goes
+    0 → 8 → **0**: at six units the channel destroys 96 of 96 true laws and 48 of
+    48 converses, and the live net is exactly **0** because no unit ever gets to
+    place a bet. Forty-five corroborations bought nothing; they finished the job
+    the window was already doing. A channel that repairs whatever it is asked
+    about cannot tell a true law from a false one, and neither can one that
+    eliminates whatever two records dispute.
+    """
+    cyclic4 = _witness_arm(4, CYCLIC)
+    pairs4 = _witness_arm(4, PAIRS)
+    pairs6 = _witness_arm(6, PAIRS)
+    strict6 = _witness_arm(6, PAIRS, witnesses=3)
+
+    # P-F1, first clause: it fires at six units, and not at all under cyclic.
+    assert cyclic4["corroborated"] == 0
+    assert pairs6["corroborated"] == 45
+    # P-F1, second clause: REFUTED. Four units corroborate when one domain
+    # reaches three witnesses.
+    assert pairs4["corroborated"] == 4
+    # The stricter bar is unreachable at three witnesses per domain.
+    assert strict6["corroborated"] == 0
+    assert strict6["internal"] == strict6["suspended"] == 144
+
+    assert (cyclic4["raised"], cyclic4["suspended"], cyclic4["calls"]) == (96, 66, 66)
+    assert (pairs4["raised"], pairs4["suspended"], pairs4["calls"]) == (88, 80, 80)
+    assert (pairs6["raised"], pairs6["suspended"], pairs6["calls"]) == (160, 144, 144)
+    # The three exits, and the window carries what corroboration does not.
+    assert (cyclic4["internal"], cyclic4["rebutted"], cyclic4["silence"]) == (66, 0, 0)
+    assert (pairs4["internal"], pairs4["rebutted"], pairs4["silence"]) == (76, 0, 0)
+    assert (pairs6["internal"], pairs6["rebutted"], pairs6["silence"]) == (99, 0, 0)
+
+    # P-F2: corroboration starts firing and true-law survival does not improve.
+    assert (cyclic4["true_defeats"], cyclic4["true_held"]) == (64, 0)
+    assert (pairs4["true_defeats"], pairs4["true_held"]) == (56, 8)
+    assert (pairs6["true_defeats"], pairs6["true_held"]) == (96, 0)
+    assert (cyclic4["false_defeats"], cyclic4["false_held"]) == (2, 30)
+    assert (pairs4["false_defeats"], pairs4["false_held"]) == (24, 8)
+    assert (pairs6["false_defeats"], pairs6["false_held"]) == (48, 0)
+    # At six units nothing survives to bet, so the live arm's net is exactly 0.
+    assert (cyclic4["net_live"], cyclic4["net_mute"]) == (-433, -1421)
+    assert (pairs4["net_live"], pairs4["net_mute"]) == (-247, -1409)
+    assert (pairs6["net_live"], pairs6["net_mute"]) == (0, -2122)
+
+
+def test_on_the_induce_arm_corroboration_buys_churn():
+    """THE THIRD ARM, AND THE ONE WHERE CORROBORATION'S ONLY MEASURABLE EFFECT IS
+    THRASH. Eight seeds, 60 rounds, units inducing from what they meet, the
+    challenge channel live — the arm where the previous four rules were compared.
+
+        arm                raised  susp  CORROB  internal  rebutted  silence  defeats  true lost   net live/mute
+        4 units cyclic         60    60       0         4        44       10        4          0     922 / 1038
+        4 units PAIRS          51    51       6         2        39        4        8          0     919 / 1033
+        6 units pairs          90    90      24         0        66        0       24          0    1398 / 1557
+        6 units pairs w=3      90    90       0         6        66       15        6          0    1383 / 1557
+
+    (The four-unit cyclic row is Task 5e's, reproduced digit for digit; it is
+    asserted in `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`
+    and is repeated here only as the column to read the others against.)
+
+    **TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS.** Every law corroboration
+    eliminates at six units is induced again from the record that still supports
+    it — the retraction event happens, the law comes back. That is the pattern
+    Task 5 diagnosed as induction and disposal fighting each other, returning at
+    a community size large enough for corroboration to fire. The internal arm
+    goes silent (0 internal retractions, 0 restorations by silence) because
+    corroboration now closes every doubt before the window can.
+
+    The stricter bar reads like the small community again: 0 corroborations, the
+    window doing the work, six defeats.
+
+    NOTHING IS BOUGHT AND LITTLE IS SPENT: permanent true-law loss is 0 in all
+    four arms, and the channel's cost is 10.2% at six units against 11.2% at
+    four. Corroboration is the one thing that changed, and what it produced is
+    churn."""
+    six = _witness_induce_arm(6, PAIRS)
+    strict = _witness_induce_arm(6, PAIRS, witnesses=3)
+    assert (six["raised"], six["suspended"], six["corroborated"]) == (90, 90, 24)
+    assert (six["internal"], six["rebutted"], six["silence"]) == (0, 66, 0)
+    assert (six["defeats"], six["lost_true"]) == (24, 0)
+    assert (six["net_live"], six["net_mute"]) == (1398, 1557)
+    assert (strict["corroborated"], strict["internal"],
+            strict["silence"]) == (0, 6, 15)
+    assert (strict["defeats"], strict["lost_true"]) == (6, 0)
+    assert (strict["net_live"], strict["net_mute"]) == (1383, 1557)
+
+
+def _witness_induce_arm(n_units, scheme, witnesses=None):
+    agg = {k: 0 for k in ("suspended", "internal", "corroborated", "rebutted",
+                          "silence")}
+    agg.update(raised=0, defeats=0, lost_true=0, net_live=0, net_mute=0)
+    for seed in C_SEEDS:
+        spec, live, _board, raised, events, tally = _play_challenge(
+            seed, C_ROUNDS, channel=True, n_units=n_units, scheme=scheme,
+            witnesses=witnesses)
+        _s, mute, _b, _r, _e, _t = _play_challenge(
+            seed, C_ROUNDS, channel=False, n_units=n_units, scheme=scheme,
+            witnesses=witnesses)
+        planted = {d.law for d in spec.domains}
+        distinct = {(uid, law) for uid, law, _why in events}
+        held = {(u.unit_id, law) for u in live for law in u.laws}
+        for k in ("suspended", "internal", "corroborated", "rebutted", "silence"):
+            agg[k] += tally[k]
+        agg["raised"] += raised
+        agg["defeats"] += len(distinct)
+        agg["lost_true"] += sum(1 for _u, law in distinct - held
+                                if law in planted)
+        agg["net_live"] += sum(u.ledger.net_score for u in live)
+        agg["net_mute"] += sum(u.ledger.net_score for u in mute)
+    return agg
+
+
 # --- can the community repair what the field withheld? ------------------------
 #
 # THE ONE THING NEITHER THE RULING NOR THE OPEN-WORLD READING CAN FIX is a
@@ -1726,26 +2001,35 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
 # ask channel and the challenge channel together so the question can be put.
 
 
-def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
-    """Four units, planted laws AND converses seeded, no induction, bounded
-    attention. `ask` switches the ask/answer/adopt channel on and off; the
-    challenge channel runs in both arms, so the only variable is whether peers
-    can tell each other what they saw.
+def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
+                            scheme=CYCLIC, window=None, witnesses=None):
+    """A community of `n_units`, planted laws AND converses seeded, no
+    induction, bounded attention. `ask` switches the ask/answer/adopt channel on
+    and off; the challenge channel runs in both arms, so the only variable is
+    whether peers can tell each other what they saw.
 
     UPTAKE IS TARGETED, exactly as in the ask channel's own measurement above: a
     unit adopts a fact mark ONLY when it answers a question that unit itself
     asked. Task 3 measured indiscriminate uptake and found it worse than silence.
+
+    `n_units` / `scheme` / `window` / `witnesses` are the community and the two
+    disposition knobs, exactly as in `_play_challenge`.
     """
     spec = default_spec(seed=seed)
     field = Field(spec)
-    aps = apertures_for(spec, n_units=4)
+    aps = apertures_for(spec, n_units=n_units, scheme=scheme)
     planted = {d.name: d.law for d in spec.domains}
     units, mine = [], {}
-    for i in range(4):
+    for i in range(n_units):
         laws = {planted[n] for n in aps[i].domains}
         body, head = planted[aps[i].domains[0]]
         mine[f"u{i}"] = (frozenset(laws), (head, body))
-        units.append(Unit(f"u{i}", aps[i], laws=laws | {(head, body)}))
+        u = Unit(f"u{i}", aps[i], laws=laws | {(head, body)})
+        if window is not None:
+            u.corroboration_window = window
+        if witnesses is not None:
+            u.corroborating_witnesses = witnesses
+        units.append(u)
     board = MarkBoard()
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}
@@ -1872,6 +2156,13 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
     WHAT IT COSTS: the live arm's net falls from −39 to −106. A repaired law goes
     on betting under bounded attention, and under bounded attention a true law
     still cannot pay. Read the counts, not the direction.
+
+    AND WHAT A BIGGER COMMUNITY DOES TO IT, measured in
+    `test_corroboration_fires_once_a_domain_has_three_witnesses` and
+    `test_the_silence_window_at_three_five_and_eight` on this same driver: six
+    units at distinct apertures save 27 of 96 true laws here (28%) against these
+    four units' 28 of 64 (44%), while corroboration fires 45 times rather than
+    never. **The larger community keeps a SMALLER proportion of its true laws.**
     """
     keys = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
             "unrepairable", "questions", "uptakes", "net", "suspended",
@@ -1906,6 +2197,80 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
     # The net score falls, because a repaired law goes on betting and under
     # bounded attention a true law still cannot pay.
     assert (muted_agg["net"], agg["net"]) == (-433, -106)
+
+
+def test_the_silence_window_at_three_five_and_eight():
+    """THE WINDOW'S DEFAULT WAS LOAD-BEARING AND UNMEASURED; it is measured now,
+    and it was NOT changed — it is the author's.
+
+    Eight seeds, 60 rounds, bounded attention, planted laws and converses seeded.
+
+    WITHOUT AN ANSWERING CHANNEL THE VALUE CHANGES NOTHING. Windows of 3, 5 and 8
+    read identical suspensions, corroborations, internal retractions and
+    survivors at both community sizes — every column, not merely the totals. That
+    is the previous task's finding at full strength: an inquiry with no answering
+    channel is a delay, and the LENGTH of a delay is irrelevant when nothing
+    comes back. It is asserted here rather than narrated, because it is the
+    control that makes the next table mean something.
+
+    WITH THE ASK CHANNEL LIVE it is the most consequential knob in the arm, and
+    it trades score for laws monotonically:
+
+        units  window  internal  rebutted  true lost  conv lost   net
+        4           3        64         0      64/64       0/32   −41
+        4           5        36        25      36/64       0/32  −106
+        4           8        20        44      20/64       0/32  −185
+        6           3        71        28      96/96      20/48   −29
+        6           5        41        58      69/96      17/48   −77
+        6           8        19        80      47/96      17/48  −134
+
+    AND IT DISCRIMINATES, WHICH NOTHING ELSE IN THIS SERIES HAS DONE. At six
+    units, moving from 3 to 8 saves **49 true laws** (96 lost down to 47) while
+    sparing only **3 converses** (20 down to 17). A true law's missing head is
+    exactly the thing a peer can supply; a converse's is not. Corroboration is
+    flat at 45 across all three windows, so this knob and
+    `corroborating_witnesses` are independent.
+    """
+    for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
+        mute = [_aggregate_ask(n_units, scheme, ask=False, window=w)
+                for w in (3, 5, 8)]
+        assert mute[0] == mute[1] == mute[2], (
+            f"{n_units} units: the window changed an arm with no channel "
+            f"answering — {mute}")
+
+    four = [_aggregate_ask(4, CYCLIC, ask=True, window=w) for w in (3, 5, 8)]
+    six = [_aggregate_ask(6, PAIRS, ask=True, window=w) for w in (3, 5, 8)]
+    assert [d["internal"] for d in four] == [64, 36, 20]
+    assert [d["rebutted"] for d in four] == [0, 25, 44]
+    assert [d["silence"] for d in four] == [2, 5, 2]
+    assert [d["true_lost"] for d in four] == [64, 36, 20]
+    assert [d["conv_lost"] for d in four] == [0, 0, 0]
+    assert [d["net"] for d in four] == [-41, -106, -185]
+    assert [d["internal"] for d in six] == [71, 41, 19]
+    assert [d["rebutted"] for d in six] == [28, 58, 80]
+    assert [d["true_lost"] for d in six] == [96, 69, 47]
+    assert [d["conv_lost"] for d in six] == [20, 17, 17]
+    assert [d["net"] for d in six] == [-29, -77, -134]
+    # Flat corroboration: the two knobs do not interact.
+    assert [d["corroborated"] for d in six] == [45, 45, 45]
+    # THE DISCRIMINATION, STATED AS THE RATIO IT IS: 49 true laws saved against
+    # 3 converses spared.
+    assert (six[0]["true_lost"] - six[2]["true_lost"],
+            six[0]["conv_lost"] - six[2]["conv_lost"]) == (49, 3)
+
+
+def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None):
+    keys = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
+            "unrepairable", "questions", "uptakes", "net", "suspended",
+            "internal", "corroborated", "rebutted", "silence")
+    agg = {k: 0 for k in keys}
+    for seed in C_SEEDS:
+        t = _play_ask_and_challenge(seed, C_ROUNDS, ask=ask, n_units=n_units,
+                                    scheme=scheme, window=window,
+                                    witnesses=witnesses)
+        for k in agg:
+            agg[k] += t[k]
+    return agg
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

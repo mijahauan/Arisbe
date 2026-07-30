@@ -234,8 +234,35 @@ class Unit:
     field's lag is one round, and under bounded attention a peer attends every
     other round, so five rounds is two or three chances for every peer to publish
     what bears on the case) and short enough that a law is not mute for a
-    material part of a sixty-round run. Nothing measured here picks 5 over 3 or
-    8; it is flagged as the author's to overrule.
+    material part of a sixty-round run.
+
+    3, 5 AND 8 ARE NOW MEASURED, AND THE DEFAULT WAS LEFT ALONE — it is the
+    author's. Eight seeds, 60 rounds, bounded attention, planted laws and
+    converses seeded.
+
+    WITHOUT AN ANSWERING CHANNEL THE VALUE CHANGES NOTHING. At four units and at
+    six, windows of 3, 5 and 8 read identical suspensions, corroborations,
+    internal retractions and survivors — every column. That is the previous
+    task's finding at full strength: an inquiry with no answering channel is a
+    delay, and the LENGTH of a delay is irrelevant when nothing comes back.
+
+    WITH THE ASK CHANNEL LIVE IT IS THE MOST CONSEQUENTIAL KNOB IN THE ARM, and
+    it trades score for laws monotonically:
+
+        units   window   internal   rebutted   true laws lost   net
+        4            3         64          0            64/64   −41
+        4            5         36         25            36/64  −106
+        4            8         20         44            20/64  −185
+        6            3         71         28            96/96   −29
+        6            5         41         58            69/96   −77
+        6            8         19         80            47/96  −134
+
+    AND IT DISCRIMINATES, WHICH NOTHING ELSE IN THIS SERIES HAS. At six units,
+    3 → 8 saves 49 true laws (96 lost to 47) while sparing only 3 converses (20
+    to 17). A true law's missing head is the thing a peer can actually supply and
+    a converse's is not, so waiting longer helps the true law disproportionately.
+    Corroboration is flat at 45 across all three windows, so this knob and
+    `corroborating_witnesses` are independent.
 
     IT NOW FIRES, WHICH IT NEVER DID BEFORE. Under the ruling's original shape
     the window expired zero times in every measured arm: a doubt was settled by
@@ -247,6 +274,58 @@ class Unit:
     channel muted, all 66. So the value of this number now matters to the
     outcome in a way it did not, and it is worth the author's attention rather
     than a default's."""
+    corroborating_witnesses: int = 2
+    """How many DISTINCT FOREIGN RECORDS must stand against a law before the
+    doubt is corroborated and the law eliminated.
+
+    THE AUTHOR'S RULING, in the author's own words: *"Corroboration exists
+    largely to generate and build confidence in the independent views that build
+    a socially available, objectified reality. Repeating one's own observation
+    does not do this. So, 2 needs at least 2 independent witnesses."* The ground
+    is Berger & Luckmann's rather than arithmetical, and it is the better reason:
+    a record repeating itself contributes nothing to a shared, objectivated
+    reality, so a unit's own inscription is never a corroborating voice however
+    many times it is published.
+
+    WHO THE TWO ARE. The HOLDER never counts — its record is what every citation
+    is checked against, and it has an exit of its own at the window. The
+    CHALLENGER counts as ONE: it observed the counterexample and said so, which
+    is an independent view. So the default 2 means the challenger plus at least
+    one further unit, distinct from both the challenger and the holder. The
+    original challenger's evidence still cannot count TWICE — the tally is over
+    distinct authors, so it counts once, as one of the two, and cannot close the
+    doubt it opened alone.
+
+    WHY IT IS A KNOB. Whether the challenger should count as one of the two is
+    the controller's reading of the ruling, not the ruling itself, and the
+    stricter alternative — two further units beyond the challenger, i.e. THREE
+    foreign records — is reachable by setting this to 3. Both bars are exercised
+    on one situation in
+    `tests/test_c_channels.py::test_the_corroborating_bar_is_the_author_s_to_set`
+    and measured end to end over eight seeds in
+    `::test_corroboration_fires_once_a_domain_has_three_witnesses`, so the line
+    can be moved on evidence rather than on another build.
+
+    THE STRICTER BAR IS UNREACHABLE IN THIS FIELD, which is a finding rather
+    than an argument against it. Four domains at two-domain apertures give a
+    domain at most three witnesses, so holder + challenger + one corroborator
+    exhausts the community: measured at six units over eight seeds, a bar of 3
+    reads **0 corroborations of 144 doubts** — exactly what the cyclic four-unit
+    arm reads. Moving the author's line to 3 costs a fifth domain, not a bigger
+    community.
+
+    IT COUNTS RECORDS, NEVER INSCRIPTIONS. Two marks from one unit are one
+    witness. `challenge` mints once per law ever per unit, so a unit cannot
+    publish twice against one law in the first place, but the tally is a set of
+    authors so that the rule holds whatever any future channel mints — pinned in
+    `test_a_unit_publishing_twice_cannot_corroborate_alone`.
+
+    WHAT THE FIELD MUST SUPPLY FOR IT TO FIRE AT ALL. Two foreign records means
+    a domain must be witnessed by at least THREE units (holder, challenger,
+    corroborator). Under the cyclic aperture scheme every domain sits in exactly
+    two apertures at any community size, so this rule was measured firing 0 times
+    in 66 doubts — the rule was correct and the field could not satisfy it. See
+    `c_field.apertures_for`'s `PAIRS` scheme and its `min_witnesses` refusal."""
     ledger: MembraneLedger = dc_field(default_factory=MembraneLedger)
     last_provenance: Dict[Fact, FrozenSet[Fact]] = dc_field(default_factory=dict)
     first_seen: Dict[Fact, int] = dc_field(default_factory=dict)
@@ -1384,6 +1463,17 @@ class Unit:
            eliminated 64 of 64 true laws at an age of exactly one round. The
            self-raised doubt had simply changed clothes: what used to be an
            immediate internal retraction became a one-round self-corroboration.
+
+           WHAT IS COUNTED IS DISTINCT FOREIGN AUTHORS, and the bar is
+           `corroborating_witnesses` (default 2 — the challenger plus one
+           further unit). Counting authors rather than live inscriptions is the
+           author's ruling in code: repeating one's own observation adds no
+           voice. The count also tightened one edge the previous formulation
+           left loose — it asked whether any foreign speaker OTHER THAN the
+           named challenger stood, so a doubt whose challenger had since been
+           rebutted could be eliminated by a single remaining peer. Measured
+           over the eight seeds and every arm in this suite, the tightening
+           moved nothing: that case never arose.
         2. Is the doubt dead, and does the record still sustain the law? A
            rebuttal — the author's own record, or a peer's published testimony
            about the disputed individual — retires the citation, and if the
@@ -1413,14 +1503,18 @@ class Unit:
         live = [m for m in standing
                 if not self._rebutted(m, board, round_idx, testimony=True)]
         self._spent.update(m for m in standing if m not in live)
-        speakers = {m.author for m in live} - {self.unit_id}
-        if doubt.challenger is None and speakers:
+        # THE WITNESSES ARE DISTINCT FOREIGN AUTHORS, NOT LIVE INSCRIPTIONS. A
+        # set of authors is what makes "repeating one's own observation does not
+        # do this" true of the code as well as of the ruling: two marks from one
+        # unit collapse to one voice here, whatever minted them.
+        witnesses = {m.author for m in live} - {self.unit_id}
+        if doubt.challenger is None and witnesses:
             # A self-raised doubt acquires its challenger from the first peer to
             # dispute the law. That peer bears the doubt out; it does not
             # corroborate it, because there is as yet nothing but the author's
             # own record for it to corroborate.
-            doubt.challenger = sorted(speakers)[0]
-        if speakers - {doubt.challenger}:
+            doubt.challenger = sorted(witnesses)[0]
+        if len(witnesses) >= self.corroborating_witnesses:
             self._spent.update(live)
             if self.retract_law(law):
                 out.retracted_by_corroboration.append(law)
