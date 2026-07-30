@@ -38,20 +38,20 @@ def test_held_law_beats_a_wrong_law_over_a_run():
 
     The rival is `a_head -> shared`, the same one `tests/test_c_stage_gates.py`
     uses (the duplication between these files is deliberate; the divergence
-    was not). It bets heavily and loses every bet: `shared` now draws from a
-    pool of s-individuals disjoint from the domain's own, so `shared(a_i)` can
-    never arrive and the rival's ceiling is zero rather than merely low. That
-    weakens what the comparison shows — see the discount recorded in
-    `test_c_stage_gates.py`'s Stage 1 gate docstring.
+    was not). It bets heavily and loses most of its bets: `shared` draws from
+    the domain's own individuals, which include the ten-strong shared core, so
+    `shared(a_i)` does arrive now and then and the rival can genuinely win —
+    just far less often than it loses.
 
     Measured at this test's seed (7), 20 rounds: lawful 16 hits / 0 misses =
-    1.0000, net +16; misled 0 hits / 160 misses = 0.0000, net −160; lawless
+    1.0000, net +16; misled 4 hits / 110 misses = 0.0351, net −106; lawless
     0 bets, accuracy None, net 0."""
     spec, field, ap = _setup()
     lawful, lawless, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     lawful.laws.add(spec.domains[0].law)
     # body = first domain's head relation (which really arrives), head =
-    # `shared`, which also really arrives — so the rival can win, and doesn't.
+    # `shared`, which also really arrives — so the rival can win, and
+    # occasionally does (see the docstring's measured figures).
     misled.laws.add((spec.domains[0].law[1], "shared"))
     for r in range(20):
         lawful.step(field, r)
@@ -113,21 +113,19 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     arm that does the same.
 
     The rival is `a_head -> shared`, matching `tests/test_c_stage_gates.py`'s
-    Stage 1 gate (the duplication is deliberate; the divergence was not). Its
-    ceiling is now zero rather than low, so this comparison is weaker than its
-    earlier wording claimed — the discount is recorded in that gate's
-    docstring, and it applies here unchanged.
+    Stage 1 gate (the duplication is deliberate; the divergence was not).
+    `shared` draws from the domain's own individuals, which include the
+    ten-strong shared core, so the rival does occasionally hit — it just loses
+    far more often than it wins.
 
     Measured at this test's seed (7), 60 rounds: learner 61 hits / 0 misses =
-    1.0000, net +61; misled 0 hits / 1157 misses = 0.0000, net −1157; fixed
-    0 bets, accuracy None, net 0. The ordering now holds at every seed sampled
-    (fourteen of them — see the Stage 1 gate's list), so it is no longer the
-    one-seed ordering the earlier note warned about; but read it with that
-    gate's discount, since the rival can no longer win at all."""
+    1.0000, net +61; misled 9 hits / 497 misses = 0.0178, net −488; fixed
+    0 bets, accuracy None, net 0."""
     spec, field, ap = _setup()
     learner, fixed, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     # body = first domain's head relation (which really arrives), head =
-    # `shared`, which also really arrives — so the rival can win, and doesn't.
+    # `shared`, which also really arrives — so the rival can win, and
+    # occasionally does (see the docstring's measured figures).
     misled.laws.add((spec.domains[0].law[1], "shared"))
     for r in range(60):
         learner.step(field, r, induce=True)
