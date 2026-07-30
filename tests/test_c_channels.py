@@ -2291,13 +2291,18 @@ def test_the_channel_leaves_anticipate_before_observe_alone():
 
 
 def test_the_channel_is_deterministic():
-    def run():
+    """Both communities, because the six-unit one is the first in this series
+    whose apertures come out of `itertools.combinations` rather than a modular
+    index — and because it is the only arm in which corroboration actually fires,
+    so the order challenges are weighed in could matter and must not."""
+    def run(n_units, scheme):
         _spec, units, board, raised, events, tally = _play_challenge(
-            3, 30, channel=True)
+            3, 30, channel=True, n_units=n_units, scheme=scheme)
         return ([(u.ledger.hits, u.ledger.misses, sorted(u.laws),
                   sorted(u.suspended)) for u in units],
                 [(m.author, m.kind, m.content, m.counterexample)
                  for m in board.all_marks()
                  if m.kind in ("challenge", "corroboration")],
                 raised, events, tally)
-    assert run() == run()
+    assert run(4, CYCLIC) == run(4, CYCLIC)
+    assert run(6, PAIRS) == run(6, PAIRS)
