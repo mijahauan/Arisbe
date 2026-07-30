@@ -460,6 +460,40 @@ adds no fact but keeps a shared item alive.
 must not be smuggled into the instruments as though the experiment had shown it.
 It belongs in stage 3's *design* rulings.
 
+### RESOLVED (author, 2026-07-30): maintenance needs no separate channel
+
+The question above — whether the protocol needs a maintenance channel distinct
+from the revision channels — is **answered by the mechanism the challenge ruling
+produced**, and answered in the negative.
+
+The author's two rulings compose. First: *doubt moving to inquiry means both an
+internal assessment and an external one*, so a challenged law provokes the author
+to re-run its **own induction criterion** against its **current** record, not
+merely to look up one disputed individual. Then: *this provides a mechanism for
+maintenance and revision, too.*
+
+It does, and the two turn out to be one act read by its outcome:
+
+- **Maintenance** is a re-assessment that **confirms**. A law that keeps meeting
+  its criterion as the record grows has been actively re-affirmed, not merely left
+  standing by inertia — which is precisely B&L's point that reality persists by
+  continuous re-affirmation rather than by momentum.
+- **Revision** is the same re-assessment when it **disconfirms**. The unit's own
+  accumulated experience has turned against a law it once held, and it corrects.
+
+So there is no third channel to build. What the design *does* still need is for
+re-assessment to run **spontaneously and not only under provocation**: if a law is
+re-tested only when a peer challenges it, maintenance is purely reactive, and
+nothing is maintained that nobody happens to dispute. **Periodic self-re-assessment
+— a unit re-testing its held laws against its grown record at intervals — is the
+internal arm of maintenance**, and it is cheap, since the criterion already exists.
+
+Two consequences worth carrying. It closes the gap flagged during the build that
+`induce` only ever *adds* and never re-tests an admitted law. And it gives
+disuse-decay a principled sibling: a law fades not only when nothing re-delivers
+it, but when the record it accumulated stops supporting it — which is nearer the
+project's own doctrine that knowledge exists only while it works.
+
 ### The join: conversation density is the variable both frameworks name
 
 *The author, same sitting: "in West, one important consequence of closer physical
