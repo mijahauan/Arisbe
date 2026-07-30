@@ -37,6 +37,28 @@ lets a peer answer — but it puts nothing into a reader's record. The kinds are
 therefore not decoration: `Mark.kind` is the only thing distinguishing a claim
 from a request for one, and both readers and adopters dispatch on it.
 
+A MARK MAY ALSO DISPUTE ONE. As of the challenge channel a mark may be a
+`"challenge"`: it names the LAW it disputes and carries the COUNTEREXAMPLE its
+author holds — an individual carrying the law's body without its head. It is
+neither an assertion nor a request but a piece of evidence offered against a
+standing claim, and it is what finally lets a held law be defeated by something
+other than a decay clock.
+
+A CHALLENGE IS A CLAIM THAT GETS CHECKED, NOT A COMMAND THAT GETS OBEYED. The
+mark itself defeats nothing. It is the law's author that disposes of it, by
+verifying the cited counterexample against its OWN record (`c_unit.Unit
+.dispose_challenges`), and an author holding that same individual WITH the head
+rebuts the challenge and keeps its law. Nothing about the challenger's standing,
+volume or authority enters that decision. This is why the challenge names its
+counterexample rather than merely asserting that one exists: an unverifiable
+demand would make retraction a function of who spoke.
+
+A CHALLENGE IS ADDRESSED TO A CLAIM, NOT TO A PERSON. Its content is the law
+itself, so a challenge meets every author of that law — the same content-matching
+that lets any published fact close a question. Two units that independently
+published `p1 -> q1` published one claim twice, and evidence against it is
+evidence against both.
+
 THE BOARD IS PER-COMMUNITY AND SEALED in this stage. Sealing is structural, not
 a flag: a board holds no reference to another board and there is no operation
 here that reads one from another. Permeability is a later switch, and it will be
@@ -53,7 +75,8 @@ from model_materialization import Fact
 FACT = "fact"
 LAW = "law"
 QUESTION = "question"
-KINDS = (FACT, LAW, QUESTION)
+CHALLENGE = "challenge"
+KINDS = (FACT, LAW, QUESTION, CHALLENGE)
 
 Content = Union[Fact, Tuple[str, str]]
 """What a mark inscribes: a ground atom, or a law as its `(body, head)` pair —
@@ -65,7 +88,13 @@ deliberate. A question names precisely what would answer it, so an answer is
 the same content published under a different kind, and a reader needs no
 matching apparatus to see that the two meet. What a question does NOT carry is
 assertoric force: `kind` is the difference, and `c_unit.Unit.adopt` refuses to
-take a question's content into a record for exactly that reason."""
+take a question's content into a record for exactly that reason.
+
+A CHALLENGE inscribes the LAW it disputes — the same `(body, head)` pair the law
+mark carried — so a challenge meets the claim rather than its author, and every
+holder of that law can dispose of it. Its evidence rides in `Mark.counterexample`
+rather than in the content, because the content is what the mark is ABOUT and the
+counterexample is what it OFFERS."""
 
 
 @dataclass(frozen=True)
@@ -87,6 +116,18 @@ class Mark:
     content: Content
     kind: str
     round_idx: int
+    counterexample: Optional[Fact] = None
+    """The evidence a `"challenge"` offers: an individual the challenger's own
+    record carries under the law's BODY and not under its HEAD.
+
+    IT IS CARRIED, NOT MERELY CLAIMED, and that is the whole difference between
+    a challenge and a demand. The law's author checks this atom against its own
+    facts and keeps the law if it can rebut it, so what is published has to be
+    the thing itself. A challenge that said only "your law is refuted somewhere"
+    could not be checked, and retraction would then follow from having spoken.
+
+    Defaulted, so it is absent on every other kind — an assertion or a question
+    that carried one would be offering evidence against a law it never named."""
 
     def __post_init__(self) -> None:
         """Refuse a mark that cannot be disposed of, at the point of minting.
@@ -111,16 +152,58 @@ class Mark:
         rel, rest = self.content
         if not isinstance(rel, str):
             raise ValueError(f"mark content {self.content!r} has no relation name")
-        if self.kind == LAW and not isinstance(rest, str):
+        if self.kind in (LAW, CHALLENGE) and not isinstance(rest, str):
             raise ValueError(
-                f"mark of kind 'law' carries {self.content!r}, which is shaped "
-                f"like a fact: a law is a (body_rel, head_rel) pair of names"
+                f"mark of kind {self.kind!r} carries {self.content!r}, which is "
+                f"shaped like a fact: a law — and a challenge, which names the "
+                f"law it disputes — is a (body_rel, head_rel) pair of names"
             )
         if self.kind in (FACT, QUESTION) and not isinstance(rest, tuple):
             raise ValueError(
                 f"mark of kind {self.kind!r} carries {self.content!r}, which is "
                 f"shaped like a law: a fact — and a question, which names the "
                 f"atom that would answer it — is (relation, ((kind, label), ...))"
+            )
+        self._check_counterexample(rel)
+
+    def _check_counterexample(self, body_rel: str) -> None:
+        """A challenge must carry checkable evidence, and nothing else may carry
+        any.
+
+        THE EVIDENCE IS VALIDATED WHERE IT IS MINTED, for the reason the kinds
+        are: a disposer reads `counterexample` and decides a law's fate by it, so
+        a challenge citing an atom of some unrelated relation would defeat a law
+        it says nothing about. The atom's relation must be the law's BODY — that
+        is what "carries the body without the head" means — and whether the
+        author also holds the head is precisely what is left for the author to
+        check, so it cannot be checked here.
+        """
+        if self.kind != CHALLENGE:
+            if self.counterexample is not None:
+                raise ValueError(
+                    f"mark of kind {self.kind!r} carries a counterexample "
+                    f"{self.counterexample!r}: only a challenge offers evidence, "
+                    f"and only against a law it names"
+                )
+            return
+        c = self.counterexample
+        if c is None:
+            raise ValueError(
+                f"challenge to {self.content!r} carries no counterexample: a "
+                f"challenge is evidence offered against a law, and one that "
+                f"named none could not be checked by the law's author"
+            )
+        if not (isinstance(c, tuple) and len(c) == 2 and isinstance(c[0], str)
+                and isinstance(c[1], tuple)):
+            raise ValueError(
+                f"challenge counterexample {c!r} is not an atom "
+                f"(relation, ((kind, label), ...))"
+            )
+        if c[0] != body_rel:
+            raise ValueError(
+                f"challenge to {self.content!r} cites {c[0]!r}, which is not the "
+                f"law's body {body_rel!r}: a counterexample to body -> head is "
+                f"an individual holding the BODY without the head"
             )
 
 
@@ -201,6 +284,25 @@ class MarkBoard:
             if m.kind == FACT and m.content == question.content:
                 return m
         return None
+
+    def challenges_against(self, law: Tuple[str, str],
+                           upto: Optional[int] = None) -> List[Mark]:
+        """Every challenge standing against `law`, in publication order.
+
+        BY CONTENT, NOT BY ADDRESSEE. A challenge names the law it disputes and
+        no one else, so this reader answers "what evidence stands against this
+        claim" rather than "who was told". Two units that both published
+        `p1 -> q1` published one claim twice; the evidence meets both, and each
+        disposes of it against its own record.
+
+        `upto` bounds the marks by publication round, so a disposer at round r
+        does not answer for a challenge made after it. The board itself keeps no
+        notion of a current round — it is a place, not a clock — so the bound is
+        the caller's to supply.
+        """
+        return [m for m in self._marks
+                if m.kind == CHALLENGE and m.content == law
+                and (upto is None or m.round_idx <= upto)]
 
     def record_uptake(self, mark: Mark, adopter: str) -> None:
         """Note that `adopter` took this mark up. Idempotent: uptake is a SET of

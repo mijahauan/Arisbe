@@ -13,7 +13,7 @@ from dataclasses import dataclass, field as dc_field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
 from c_field import Aperture, Field
-from c_marks import FACT, LAW, QUESTION, Content, Mark, MarkBoard
+from c_marks import CHALLENGE, FACT, LAW, QUESTION, Content, Mark, MarkBoard
 from c_membrane import MembraneLedger
 from egi_core_dau import RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
@@ -360,6 +360,13 @@ class Unit:
                 f"nothing to take up — answer it instead (`answer`), or take up "
                 f"the answering fact mark"
             )
+        if mark.kind == CHALLENGE:
+            raise ValueError(
+                f"{self.unit_id} cannot adopt the challenge to {mark.content!r}: "
+                f"a challenge disputes a law rather than claiming one, and "
+                f"taking it up would enter the very law it argues against — "
+                f"dispose of it instead (`dispose_challenges`)"
+            )
         if mark.kind == FACT:
             fresh = mark.content not in self.facts
             self.facts.add(mark.content)        # NOT self._record: no date
@@ -530,3 +537,137 @@ class Unit:
             self._published.add(key)
             minted.append(mark)
         return minted
+
+    # --- the challenge channel: challenge, dispose_challenges ----------------
+    #
+    # THIS IS WHERE A LAW BECOMES DEFEASIBLE BY EVIDENCE. Until now `induce`
+    # only ever ADDED: an admitted law was never re-tested against a grown
+    # record, so the only thing that could ever remove one was a decay clock,
+    # and durability could not read false for a reason. A challenge is the other
+    # way — and it is the reason retraction (`retract_law`) was built first.
+
+    def _counterexample_to(self, law: Tuple[str, str]) -> Optional[Fact]:
+        """An individual this unit holds under the law's body and not under its
+        head, as the body atom itself — or `None` if its record has none.
+
+        Sorted, so which counterexample is cited is a deterministic function of
+        the unit's state rather than of set iteration order.
+
+        THIS READS ONLY `self.facts`, which is the point. A unit may cite what it
+        has met and nothing else; it has no access to the field's regime, to
+        another unit's record, or to what was withheld. That is what makes a
+        counterexample a piece of testimony rather than an oracle's verdict —
+        and it is why a challenge has to be checked rather than obeyed.
+        """
+        body_rel, head_rel = law
+        for rel, args in sorted(self.facts):
+            if rel == body_rel and (head_rel, args) not in self.facts:
+                return (body_rel, args)
+        return None
+
+    def challenge(self, board: MarkBoard, round_idx: int) -> List[Mark]:
+        """Publish a challenge against every published law this unit's own
+        record contradicts, returning the marks minted.
+
+        WHAT IS CHALLENGED IS A CLAIM, NOT A PEER. The mark's content is the law
+        itself, so one challenge meets every unit that published it — the same
+        content-matching that lets any published fact close a question. The
+        scan is over the whole board rather than a round window, because a law
+        published forty rounds ago still stands: nothing has withdrawn it, and a
+        unit that only now holds the counterexample is only now able to say so.
+
+        A UNIT DOES NOT CHALLENGE ITS OWN INSCRIPTION. `read` excludes own marks
+        for the same reason: what a unit encounters is somebody else's. (It may
+        still end up disposing of a challenge it authored — see
+        `dispose_challenges` — because a law it holds is disputed by evidence it
+        itself published, and it would be a strange record that made an
+        exception for its own.)
+
+        ONCE PER LAW, EVER, keyed in `_published` like every other act. A second
+        challenge to one law carrying a second counterexample would be a second
+        inscription making the same point, and it would be counted by the
+        instruments as if two things had been disputed. It would also convert
+        the channel into a volume contest — which is the thing the disposition
+        rule most needs not to be, since the author's verification does not
+        count challenges.
+
+        NOT CAPPED PER ROUND, unlike `ask`. Asking spends a unit's own bounded
+        attention on one want among many, so which one goes out is a real
+        choice; challenging spends nothing but the evidence already in hand, and
+        withholding a counterexample this round would not sharpen the next one.
+        Stage 4's budget is where this asymmetry should be priced, not here.
+        """
+        minted: List[Mark] = []
+        disputable: Set[Tuple[str, str]] = set()
+        for mark in board.all_marks():
+            if mark.kind == LAW and mark.author != self.unit_id:
+                disputable.add(mark.content)
+        for law in sorted(disputable):
+            key = (CHALLENGE, law)
+            if key in self._published:
+                continue
+            counter = self._counterexample_to(law)
+            if counter is None:
+                continue
+            mark = Mark(author=self.unit_id, content=law, kind=CHALLENGE,
+                        round_idx=round_idx, counterexample=counter)
+            board.publish(mark)
+            self._published.add(key)
+            minted.append(mark)
+        return minted
+
+    def dispose_challenges(self, board: MarkBoard,
+                           round_idx: int) -> List[Tuple[str, str]]:
+        """Verify every standing challenge against a law this unit holds, and
+        retract the laws it cannot rebut. Returns the laws given up.
+
+        THE CALCULUS DECIDES, NOT THE CHALLENGER'S AUTHORITY. A challenge cites
+        an individual said to carry the law's body without its head; this unit
+        checks that individual AGAINST ITS OWN FACTS. If its record holds that
+        same individual WITH the head, the citation is false of the world this
+        unit has met, the challenge is rebutted, and the law stands. Nothing
+        about who challenged, how often, or how many peers agreed enters here —
+        a challenge is a claim that gets checked, never a command that gets
+        obeyed, and the difference is what keeps a law's fate a matter of
+        evidence rather than of standing.
+
+        WHAT CANNOT BE REBUTTED IS GIVEN UP, EVEN WHEN THE LAW IS TRUE. An
+        author whose own record simply lacks the head — because the field
+        withheld that consequent, or because the author was not attending when
+        it arrived — cannot distinguish that case from a genuine refutation, and
+        it retracts. This is not an oversight to be tuned away with a
+        confirmation threshold. It is what defeasibility costs under a fallible
+        field, and it is measured rather than hidden: see
+        `tests/test_c_channels.py`, which counts how many successful challenges
+        defeat a law the field actually carries.
+
+        ITS OWN CHALLENGES ARE NOT EXEMPT. A unit that challenged `p1 -> q1` on
+        a peer's board and also holds `p1 -> q1` has published evidence against
+        something it believes; the honest disposal is the same one it would make
+        of a stranger's evidence, and the verification is identical in either
+        case. (`challenge` will not have produced this from a law it holds
+        unless a peer published the law too.)
+
+        NOTHING IS PUBLISHED BY A RETRACTION, and that is a real gap rather than
+        an oversight. The board is append-only: a law mark that has been defeated
+        still stands there, and a unit reading the board later cannot tell that
+        its author gave it up. What a mark CLAIMS and what its author still HOLDS
+        have come apart, and closing that gap is the maintenance channel's work
+        (spec §9b), left visible here rather than pre-empted.
+
+        `round_idx` bounds which challenges are answerable: a disposal at r
+        answers for challenges published at r or earlier, never for one made
+        afterwards. The board is a place and keeps no clock, so the bound comes
+        from the caller.
+        """
+        retracted: List[Tuple[str, str]] = []
+        for law in sorted(self.laws):
+            _body_rel, head_rel = law
+            for mark in board.challenges_against(law, upto=round_idx):
+                _rel, args = mark.counterexample
+                if (head_rel, args) in self.facts:
+                    continue                    # rebutted: the law stands
+                if self.retract_law(law):
+                    retracted.append(law)
+                break
+        return retracted
