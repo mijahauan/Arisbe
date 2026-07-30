@@ -70,16 +70,21 @@ end on the induce arm — eight seeds, 60 rounds, four units inducing from what
 they meet, the challenge channel live, the tolerance the only variable:
 
     tolerance   defeats   suspensions   true laws lost   UNPLANTED LAWS HELD
-    0.05             16            60                0                     0
-    0.10             14            62                0                     0
-    0.15             25            76                0                    10
-    0.20             43           103                0                    25
-    0.30             60           134                0                    54
+    0.05              4            60                0                     0
+    0.10              8            62                0                     0
+    0.15             10            76                0                    10
+    0.20             14           103                0                    26
+    0.30             19           133                0                    49
+
+(Re-measured after inquiry was ordered before elimination; the sweep read 16 /
+14 / 25 / 43 / 60 defeats and 0 / 0 / 10 / 25 / 54 unplanted laws under the
+previous disposal, so the argument's shape is unchanged and the defeat counts
+fell across the board.)
 
 Permanent loss of true laws is already zero at 0.05, so a larger tolerance has
-nothing to repair; what it does instead is admit accidental laws — 54 of them
+nothing to repair; what it does instead is admit accidental laws — 49 of them
 standing at the end of the run at 0.30, none at 0.05 — and put more laws in doubt
-(134 suspensions against 60) rather than fewer. The per-round reading agrees:
+(133 suspensions against 60) rather than fewer. The per-round reading agrees:
 across the twenty ordered relation pairs one unit's aperture can carry, the
 proportion of rounds at which an UNPLANTED pair meets the criterion rises
 0.0% / 0.1% / 0.6% / 1.0% / 2.4% over those five tolerances at withhold 0.10. The
@@ -102,9 +107,47 @@ class Doubt:
     ORIGINAL CHALLENGER'S EVIDENCE MUST NOT COUNT TWICE. Corroboration means
     another record independently bearing on the same law, so the unit that
     opened the doubt cannot also close it.
+
+    WHAT THAT RULE MEANS WHEN THE CHALLENGER IS THE HOLDER, since a doubt can
+    now be raised by the author's own record as well as by a peer's citation.
+    THE AUTHOR'S OWN RECORD IS NEVER ONE OF THE TWO VOICES. It is not a vote: it
+    is the very record every cited counterexample is checked against, and it
+    already has an exit of its own at the window. Counting it as corroboration
+    would let ONE foreign counterexample plus the author's own gap eliminate a
+    law — which is exactly the rule Task 5 measured, where a single foreign
+    counterexample destroyed 58 of 58 laws the field actually carries, since
+    under a fallible field the author's own gap is what a withheld consequent
+    looks like. So `challenger` names a PEER or nothing, and the corroboration
+    tally reads foreign challenge marks only: **elimination from outside takes
+    two distinct foreign records, whoever raised the doubt.**
+
+    THE HOLE THIS CLOSED WAS LOAD-BEARING. `challenge` scans the board by
+    content, so a unit that holds a law two units published may publish a
+    challenge to it — its own inscription, against its own law. Before this
+    task the author's own mark could take the challenger's slot or be counted as
+    the corroborating voice, and measured under bounded attention it was in the
+    live set of all 8 of 8 corroborations at seed 1, eliminating 64 of 64 true
+    laws at an age of exactly one round across the eight seeds. The self-raised
+    doubt had merely changed clothes: what used to be an immediate internal
+    retraction became a one-round self-corroboration.
+
+    WHAT THE AUTHOR'S OWN RECORD MAY DO is decide which way the window ends, and
+    only once the window has run out. It cannot shorten the inquiry. That is the
+    whole of the change this task makes: before it, a re-assessment that failed
+    settled the law on the spot, so the doubter's own record both raised and
+    closed the doubt in one act, and under bounded attention it did so at round 0
+    in 66 of 66 measured cases — before the community it could have asked had
+    said anything. The criterion is re-read AT expiry rather than remembered from
+    the round the doubt opened, so a record that has grown in the meantime is
+    read as it stands (`Unit._dispose_doubt`).
     """
 
-    challenger: str
+    challenger: Optional[str]
+    """Whose citation the doubt currently rests on, or `None` while no peer has
+    disputed the law at all — a SELF-RAISED doubt, opened because the author's
+    own published counterexample contradicts its own law. The first peer to
+    speak fills the slot (`Unit._dispose_doubt`), and only a second, distinct
+    peer corroborates."""
     individual: Tuple[Key, ...]
     opened_at: int
 
@@ -121,8 +164,10 @@ class Disposition:
 
     retracted_internally: List[Tuple[str, str]] = dc_field(default_factory=list)
     """Given up by the unit's own re-assessment: the law no longer meets the
-    criterion the unit would use to induce it today. No corroboration was
-    needed — the doubt was settled inside the membrane."""
+    criterion the unit would use to induce it today, AND the inquiry that
+    re-assessment provoked ran its whole window without anything arriving to
+    repair the record. No peer corroborated; the author settled it on its own
+    evidence, after asking."""
     suspended: List[Tuple[str, str]] = dc_field(default_factory=list)
     """Put in doubt: still held, still on the record, licensing nothing, with a
     call for corroboration published."""
@@ -134,9 +179,24 @@ class Disposition:
     after all, in this unit's own record or in a peer's published testimony."""
     restored_by_silence: List[Tuple[str, str]] = dc_field(default_factory=list)
     """Returned to active: the call went unanswered for the whole window, so
-    the challenge failed to gather support."""
+    the challenge failed to gather support — AND the author's own record still
+    sustains the law. THE WINDOW FIRES ONCE AND EXITS TWO WAYS: this list and
+    `retracted_internally` are both window expiries, split by what the record
+    says at the moment it expires."""
+    asked: List[Mark] = dc_field(default_factory=list)
+    """The questions published in the course of the inquiry — one per pass, about
+    an individual the doubted law licenses and the record lacks.
+
+    RETURNED RATHER THAN LEFT ON THE BOARD ALONE because an asker has to be able
+    to take up its own answer: uptake in this series is targeted (a unit adopts a
+    reply only to a question it asked itself), and a question minted inside a
+    disposal would otherwise be one no driver knows to watch for."""
 
     def __bool__(self) -> bool:
+        """Whether any LAW'S STANDING moved. A pass that only published a
+        question is falsy: the inquiry is under way and nothing has been
+        decided, which is exactly what the callers testing for quiescence
+        mean."""
         return bool(self.retracted_internally or self.suspended
                     or self.retracted_by_corroboration
                     or self.restored_by_rebuttal or self.restored_by_silence)
@@ -175,7 +235,18 @@ class Unit:
     other round, so five rounds is two or three chances for every peer to publish
     what bears on the case) and short enough that a law is not mute for a
     material part of a sixty-round run. Nothing measured here picks 5 over 3 or
-    8; it is flagged as the author's to overrule."""
+    8; it is flagged as the author's to overrule.
+
+    IT NOW FIRES, WHICH IT NEVER DID BEFORE. Under the ruling's original shape
+    the window expired zero times in every measured arm: a doubt was settled by
+    the author's own record long before five rounds passed, or by a peer, or not
+    at all. With the internal arm routed through the same lifecycle it carries
+    most of the traffic — over eight seeds, 60 rounds, four units under bounded
+    attention with the ask channel live, **41 of 66 doubts end at the window**
+    (36 given up, 5 restored) against 25 closed early by rebuttal; with the ask
+    channel muted, all 66. So the value of this number now matters to the
+    outcome in a way it did not, and it is worth the author's attention rather
+    than a default's."""
     ledger: MembraneLedger = dc_field(default_factory=MembraneLedger)
     last_provenance: Dict[Fact, FrozenSet[Fact]] = dc_field(default_factory=dict)
     first_seen: Dict[Fact, int] = dc_field(default_factory=dict)
@@ -186,7 +257,31 @@ class Unit:
     tell a law from its converse (see `induce`).
 
     FIRST-HAND ONLY. An adopted mark does not write here; the argument is in
-    `adopt`."""
+    `adopt`, and `adopted_at` is where testimony's own clock is kept."""
+    adopted_at: Dict[Fact, int] = dc_field(default_factory=dict)
+    """The round this unit ADOPTED each fact it took from a peer's mark. Written
+    once, never revised, exactly as `first_seen` is.
+
+    TWO CLOCKS, BECAUSE TWO DIFFERENT QUESTIONS ARE ASKED OF A DATE and only one
+    of them needs the date to be a deliverance.
+
+    - *Which way does this law run?* — answered by `_body_precedes_head`, which
+      infers direction from the field's one-round lag and therefore reads
+      `first_seen` and nothing else. A peer's mark is not a deliverance and says
+      nothing about when anything happened, so it is kept out; the arm that shows
+      what happens if it is let in is
+      `tests/test_c_marks.py::test_testimony_cannot_mislead_precedence_and_defeat_a_true_law`.
+    - *Has the head had time to arrive?* — answered by `_pending_split`, which
+      needs to know only WHEN THIS UNIT CAME TO HOLD THE BODY. That the unit met
+      it in a peer's inscription rather than at its own membrane does not make
+      the question unanswerable: the unit knows perfectly well which round it
+      read the board. Both clocks feed `_held_since`, which is what that reader
+      uses.
+
+    THE DATE IS THE ADOPTING UNIT'S ENCOUNTER, NOT THE PEER'S OBSERVATION, and
+    the difference is the whole reason this is a second dict rather than a
+    reunion. It records when *I* met the fact. It makes no claim about when the
+    author met it, and nothing reads it as one."""
     _published: Set[Tuple[str, Content]] = dc_field(default_factory=set)
     """What this unit has already published, as `(kind, content)` pairs — not as
     marks, since a mark carries the round it was published in and would compare
@@ -217,6 +312,19 @@ class Unit:
             if f not in self.first_seen:
                 self.first_seen[f] = round_idx
         self.facts.update(arrived)
+
+    def _held_since(self, fact: Fact) -> Optional[int]:
+        """The round this unit came to hold `fact`, by whichever route reached
+        it first — its own membrane or a peer's mark — or `None` if it holds it
+        with no date at all (placed directly, as tests do).
+
+        THE EARLIER OF THE TWO WINS, because the question this answers is "how
+        long have I had this", and the answer is the first time it arrived by any
+        route. A fact adopted at round 5 and delivered first-hand at round 9 has
+        been in this record since 5."""
+        dates = [d for d in (self.first_seen.get(fact), self.adopted_at.get(fact))
+                 if d is not None]
+        return min(dates) if dates else None
 
     def _suspend(self, law: Tuple[str, str], doubt: Doubt) -> None:
         """Put a law in doubt: held, published, licensing nothing."""
@@ -325,7 +433,10 @@ class Unit:
         of suspension: the unit stops staking on it without giving it up. The
         price is visible in the arithmetic — a suspended TRUE law forgoes the
         hits it would have won — which is why the window is measured rather than
-        assumed.
+        assumed. Measured on the induce arm, eight seeds, 60 rounds: **+922 with
+        the channel live against +1038 mute**, an 11% cost, of which about one
+        point in ten is the extra rounds a doubt now spends being inquired into
+        rather than settled on the spot (it was +932 before that change).
         """
         active = self.laws - self.suspended
         if not active or not self.facts:
@@ -419,13 +530,23 @@ class Unit:
            forever. The unit did not observe an absence; it failed to observe.
         3. The head genuinely does not hold. Only this refutes.
 
-        An undated body — a fact placed directly, or adopted from a peer, which
-        `adopt` deliberately does not date — is UNKNOWN for the same reason:
-        ABSENT TIMING EVIDENCE IS NOT COUNTER-EVIDENCE, which is the principle
-        `_body_precedes_head` already keeps for direction. A unit that cannot say
-        when it came to hold the body cannot say whether the head has had time to
-        arrive, and reading that ignorance as refutation would let a peer's
-        publication schedule refute this unit's laws.
+        An undated body — a fact placed directly, with no arrival of any kind
+        behind it — is UNKNOWN for the same reason: ABSENT TIMING EVIDENCE IS NOT
+        COUNTER-EVIDENCE, which is the principle `_body_precedes_head` already
+        keeps for direction. A unit that cannot say when it came to hold the body
+        cannot say whether the head has had time to arrive.
+
+        AN ADOPTED BODY IS DATED AND DOES COUNT, which it did not before this
+        task. The clock read here is `_held_since`, so a fact taken from a peer's
+        mark is timed by THE ROUND THIS UNIT ADOPTED IT — its own encounter, not
+        the author's observation. The reason is that testimony which can only
+        ever help is not testimony: under the previous ruling an adopted fact
+        enlarged a law's support (an individual carrying body and head is
+        confirmed on content alone) and could never weigh against one, so the
+        assert channel was a one-way instrument for induction. Reading the
+        adoption round closes that: after the lag has elapsed an adopted body
+        with no head refutes exactly as a delivered one does. Measured in
+        `tests/test_c_marks.py::test_adopted_facts_count_as_support_and_now_as_refutation`.
 
         ROUTE 1 IS THE ONE THIS SPLIT REPAIRS, and it repairs itself by waiting.
         ROUTE 2 IS NOT REPAIRED HERE: once the lag has elapsed, an individual
@@ -434,11 +555,15 @@ class Unit:
         Only the community could tell them apart — a peer that was looking when
         the head arrived can publish it, and adopting it moves the individual
         from refuting to confirmed. Whether the community does is measured in
-        `tests/test_c_channels.py::test_peer_testimony_repairs_the_false_law_and_not_the_true_one`,
-        and the answer over eight seeds is that it does not: some peer held the
-        missing head for 590 of 640 refuting individuals and four of them
-        reached the unit that needed them, because the internal re-assessment
-        retracts the law at round 0 and a law nobody holds asks no questions.
+        `tests/test_c_channels.py::test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask`,
+        and over eight seeds under bounded attention IT NOW DOES: some peer holds
+        the missing head for 590 of the 640 refuting individuals a muted arm
+        carries, and with the ask channel live the refuting count falls to 349
+        while 28 of 64 true laws that were otherwise lost survive the run. It did
+        NOT before inquiry was ordered ahead of elimination — the same
+        measurement then read 636 and four repaired individuals, because the
+        internal re-assessment retracted the law at round 0 and a law nobody
+        holds asks no questions.
         """
         holders = self._holders()
         body_args = holders.get(body_rel, set())
@@ -447,7 +572,7 @@ class Unit:
         refuting: Set[Tuple[Key, ...]] = set()
         unknown: Set[Tuple[Key, ...]] = set()
         for args in body_args - head_args:
-            arrived = self.first_seen.get((body_rel, args))
+            arrived = self._held_since((body_rel, args))
             if arrived is None or round_idx - arrived < CONSEQUENT_LAG:
                 unknown.add(args)
             else:
@@ -536,7 +661,15 @@ class Unit:
 
         THE TEST ITSELF LIVES IN `_meets_criterion`, which is also what a
         challenged law is re-assessed against. One criterion, two readers: what
-        it takes to take a law up is exactly what it takes to keep it."""
+        it takes to take a law up is exactly what it takes to keep it.
+
+        A SUSPENDED LAW IS NOT RE-ADMITTED HERE, and the guard is the same `law
+        in self.laws` skip that stops any held law being proposed twice:
+        suspension is a subset of `laws`, so a law under doubt is invisible to
+        this scan and cannot be quietly returned to active service by a record
+        that has grown. Only `_dispose_doubt` lifts a suspension, and it does so
+        by name. (The other route into `laws` is `adopt`, which likewise finds a
+        suspended law already held and changes nothing.)"""
         holders = self._holders()
         found: Set[Tuple[str, str]] = set()
         for body_rel in sorted(holders):
@@ -617,7 +750,7 @@ class Unit:
         """
         return [m for m in board.since(round_idx) if m.author != self.unit_id]
 
-    def adopt(self, mark: Mark, board: MarkBoard) -> bool:
+    def adopt(self, mark: Mark, board: MarkBoard, round_idx: int) -> bool:
         """Take a mark's content into this unit's own record, reporting whether
         anything NEW was taken up.
 
@@ -638,17 +771,21 @@ class Unit:
         already excludes own marks, so arriving here is a caller's error and is
         named rather than silently absorbed.
 
-        AN ADOPTED FACT IS HELD, BUT IT IS NOT DATED — the ruling of this task,
-        and the one place where the sign/content distinction has teeth in the
-        arithmetic.
+        AN ADOPTED FACT IS HELD, AND IT IS DATED BY THIS UNIT'S OWN ENCOUNTER —
+        `round_idx`, the round this unit read the board and took the content up.
+        IT IS NOT A CLAIM ABOUT WHEN THE PEER OBSERVED ANYTHING. The peer's own
+        history is not on the mark and there would be no reason to trust it if it
+        were; what this unit can say without hearsay is which round the fact
+        entered its own record, and that is what `adopted_at` holds.
 
-        `first_seen` is the unit's record of when something reached its OWN
-        membrane from the field, and `_body_precedes_head` reads it to tell a
-        law from its converse: direction is inferred from the field's one-round
-        lag, so the dates must be dates of deliverances. An adopted mark is not
-        a deliverance. It reached the unit as a peer's inscription, at whatever
-        round that peer got round to publishing, which stands in no fixed
-        relation to when anything happened.
+        THE DATE GOES IN A SECOND DICT, NOT IN `first_seen`, and the split is the
+        whole ruling. `first_seen` is the unit's record of when something reached
+        its OWN membrane from the field, and `_body_precedes_head` reads it to
+        tell a law from its converse: direction is inferred from the field's
+        one-round lag, so those dates must be dates of deliverances. An adopted
+        mark is not a deliverance. It reached the unit as a peer's inscription,
+        at whatever round that peer got round to publishing, which stands in no
+        fixed relation to when anything happened.
 
         Stamping it anyway would make a unit's sense of temporal order partly
         hearsay, and precedence-based induction could then be defeated by
@@ -660,29 +797,29 @@ class Unit:
         builds both arms and the stamped one refuses the law.
 
         The alternative candidates were considered and rejected. Stamping the
-        author's `round_idx` imports another unit's clock while LOOKING
-        first-hand, which is the same defect wearing a better disguise. Carrying
-        the author's own `first_seen` alongside the mark would make the content
-        of a mark include the author's private history, and there is no reason a
-        reader should be able to read that off an inscription — nor any reason to
-        trust it if it could.
+        author's `round_idx` into `first_seen` imports another unit's clock while
+        LOOKING first-hand, which is the same defect wearing a better disguise.
+        Carrying the author's own `first_seen` alongside the mark would make the
+        content of a mark include the author's private history, and there is no
+        reason a reader should be able to read that off an inscription — nor any
+        reason to trust it if it could.
 
-        WHAT THE RULING KEEPS IS TIMING, AND SINCE THE OPEN-WORLD READING WENT
-        INTO `_pending_split` IT ALSO COSTS SOMETHING NAMEABLE. An undated fact
-        still enlarges a law's SUPPORT — an individual carrying body and head is
-        confirmed on content alone, no date needed — but an undated BODY can no
-        longer refute a law: without a first-arrival the unit cannot say whether
-        the head has had time to reach it, so the individual is set aside as
-        unknown, the same abstention `_body_precedes_head` already makes about
-        direction. Testimony can therefore bear a law out and cannot weigh
-        against it. What weighs against a law from outside is a CHALLENGE, which
-        cites a peer's evidence without entering it in this record, and that is
-        the one instrument the asymmetry leaves for the purpose. Measured in
-        `tests/test_c_marks.py::test_adopted_facts_count_as_support_and_no_longer_as_refutation`.
+        WHAT THE ADOPTION DATE BUYS IS A TESTIMONY THAT CAN WEIGH BOTH WAYS.
+        Adopted content has always enlarged a law's SUPPORT — an individual
+        carrying body and head is confirmed on content alone, no date needed —
+        and until this task an adopted BODY could not refute one, because
+        `_pending_split` set an undated body aside as unknown. Testimony that can
+        only ever help is not testimony: the assert channel was a one-way
+        instrument for induction, and a peer could bear a law out but never
+        weigh against it. Dating the encounter closes that, and only that: after
+        the field's lag has elapsed an adopted body with no head refutes exactly
+        as a delivered one does, while direction still reads deliverances only.
+        Measured both ways in
+        `tests/test_c_marks.py::test_adopted_facts_count_as_support_and_now_as_refutation`.
 
-        And the date is not spent: if the field later delivers an adopted fact,
-        `_record` dates it then, at the unit's first genuinely first-hand
-        encounter with it.
+        And the first-hand date is not spent: if the field later delivers an
+        adopted fact, `_record` dates it in `first_seen` then, at the unit's first
+        genuinely first-hand encounter with it.
         """
         if mark.author == self.unit_id:
             raise ValueError(
@@ -713,7 +850,8 @@ class Unit:
             )
         if mark.kind == FACT:
             fresh = mark.content not in self.facts
-            self.facts.add(mark.content)        # NOT self._record: no date
+            self.facts.add(mark.content)        # NOT self._record: not first-hand
+            self.adopted_at.setdefault(mark.content, round_idx)
         elif mark.kind == LAW:
             fresh = mark.content not in self.laws
             self.laws.add(mark.content)
@@ -756,11 +894,20 @@ class Unit:
            urgent. Urgency, not age, is what a bounded channel should spend
            itself on.
 
-        AN UNDATED BODY SORTS LAST among live wants, and this follows the ruling
-        already made in `adopt`: an adopted fact carries no first-arrival, so the
-        unit has no evidence of how long it has been waiting. Treating a body of
-        unknown age as urgent would let a peer's publication schedule set this
-        unit's priorities, which is the same defect the dating ruling refused.
+        AN UNDATED BODY SORTS LAST among live wants — a body this unit holds with
+        no arrival of any kind behind it, which in practice means one placed
+        directly by a test. It has no evidence of how long that want has been
+        waiting, and treating a body of unknown age as urgent would let something
+        other than its own history set its priorities.
+
+        AN ADOPTED BODY IS NOT UNDATED. It sorts by the round this unit adopted
+        it (`_held_since`), because that is when the want was born HERE: the
+        stake on its head will be placed at this unit's next attended round
+        whatever route the body took to reach it. Before this task an adopted
+        body carried no date at all and sorted last on the ground that a peer's
+        publication schedule should not set this unit's priorities — true of the
+        AUTHOR's clock, and now beside the point, since the clock read is this
+        unit's own encounter.
 
         Ties break on the atom itself, so the order is a deterministic function
         of the unit's state.
@@ -774,9 +921,9 @@ class Unit:
                 if head in self.facts:
                     continue
                 settled = 1 if head in self.ledger.resolved else 0
-                # -first_seen: newest body first. A body with no first-arrival
-                # (adopted, never delivered here) sorts after every dated one.
-                dated = self.first_seen.get((body_rel, args))
+                # -held_since: newest body first. A body this unit holds with no
+                # arrival behind it at all sorts after every dated one.
+                dated = self._held_since((body_rel, args))
                 freshness = -dated if dated is not None else 1
                 wants.append(((settled, freshness, head), head))
         wants.sort(key=lambda w: w[0])
@@ -991,19 +1138,28 @@ class Unit:
     #
     #   (internal)  The author re-assesses the law against its OWN current
     #               record, by the very criterion it would use to induce the law
-    #               today (`_meets_criterion`). If the record no longer sustains
-    #               it, the doubt is settled inside the membrane: retract, and no
-    #               corroboration is needed. This is also where the gap Task 5
-    #               left open closes — `induce` only ever ADDED, and an admitted
-    #               law was never re-tested against a grown record.
+    #               today (`_meets_criterion`). This is where the gap Task 5 left
+    #               open closes — `induce` only ever ADDED, and an admitted law
+    #               was never re-tested against a grown record.
     #
-    #   (external)  If the record still sustains the law but the author cannot
-    #               rebut the cited individual, the law is SUSPENDED — held,
-    #               published, licensing nothing — and the author publishes a
-    #               call for corroboration. An independent peer bearing out the
-    #               doubt eliminates the law; a peer holding the disputed
-    #               individual WITH the head restores it; silence for the whole
-    #               window restores it.
+    #   (external)  The author cannot rebut the cited individual from its own
+    #               record, so it publishes a call for corroboration and the
+    #               community answers from its own records.
+    #
+    # BOTH ARMS NOW TAKE THE SAME ROUTE: SUSPEND, SOLICIT, THEN DISPOSE. Until
+    # this task only the external one did. An internal re-assessment that failed
+    # retracted the law on the spot — the doubter both raising and closing the
+    # doubt in one act — and the measurement said what that costs: under bounded
+    # attention 66 of 66 internal refusals fired on `min_support` at a median of
+    # ROUND 0, before any consequent could have arrived, so 64 of 64 true laws
+    # were gone before the community they could have asked had spoken, and the
+    # whole external apparatus ran zero times (0 suspended, 0 calls). *Do not
+    # eliminate until corroboration* reads the same whoever raised the doubt.
+    # A law in doubt is therefore held, published, licensing nothing, with a call
+    # for corroboration out and a question going out each round; an independent
+    # peer bearing the doubt out eliminates it; a peer holding the disputed
+    # individual WITH the head restores it; and the window ends it either way —
+    # restoring the law if the record sustains it by then, giving it up if not.
     #
     # THE INCOHERENCE THIS FIXES. Admission tolerated a 5% pending RATE while
     # disposition fired on any ONE pending individual, so the two criteria fought
@@ -1093,10 +1249,12 @@ class Unit:
 
         NOTHING IS PUBLISHED BY A RETRACTION OR A RESTORATION, and that is still
         a real gap. The board is append-only: a defeated law's mark stands, and a
-        reader cannot tell that its author gave it up or put it in doubt. The
-        call for corroboration is the one piece of a law's changed standing that
-        does reach the board. Closing the rest is the maintenance channel's work
-        (spec §9b), left visible rather than pre-empted.
+        reader cannot tell that its author gave it up or put it in doubt. What
+        does reach the board is the INQUIRY — the call for corroboration, and the
+        questions `_inquire` sends about the pending individuals — so a reader
+        can see that a law is being asked about, never that it was given up.
+        Closing the rest is the maintenance channel's work (spec §9b), left
+        visible rather than pre-empted.
         """
         out = Disposition()
         for law in sorted(self.laws):
@@ -1107,28 +1265,96 @@ class Unit:
                 self._open_doubt(law, standing, board, round_idx, out)
         return out
 
+    def _inquire(self, law: Tuple[str, str], board: MarkBoard, round_idx: int,
+                 out: Disposition) -> None:
+        """Ask the community about ONE individual the doubted law licenses and
+        this record lacks — the internal arm's outward face.
+
+        THIS IS THE ASK CHANNEL, UNMODIFIED AND POINTED AT THE DOUBT. The atom
+        published is a `QUESTION` mark drawn from `_wants`, minted through the
+        same once-per-content-ever key every other act uses, and answered by
+        `answer` from a peer's own record. No new channel, no new mark kind, and
+        no new priority rule: `_wants` already orders by what an answer could
+        still change, and this reader simply takes the first of them that the
+        law under doubt licenses.
+
+        ONE PER PASS, for the reason `ask` sends one per round: attention is
+        bounded, and a disposal that emptied the whole want-list would be a
+        broadcast rather than an act. A doubt that stands for the whole window
+        therefore asks up to `corroboration_window` questions, one per round,
+        working down the pending individuals in want order.
+
+        WHY THE INTERNAL ARM NEEDS ITS OWN QUESTION AT ALL, when the call for
+        corroboration is already published. The two ask different things. A call
+        names the law and the individual A PEER DISPUTED, and what it invites is
+        evidence about that one case. An internal failure is about SUPPORT — the
+        record does not carry enough confirmed individuals, or carries too many
+        refuting ones — and the individuals that caused it are typically not the
+        one cited. A question names one of those directly, which is the only
+        shape of request a peer can answer from its own holdings.
+        """
+        body_rel, head_rel = law
+        licensed = {(head_rel, args) for rel, args in self.facts
+                    if rel == body_rel and (head_rel, args) not in self.facts}
+        if not licensed:
+            return
+        for want in self._wants():
+            if want not in licensed:
+                continue
+            key = (QUESTION, want)
+            if key in self._published:
+                continue
+            mark = Mark(author=self.unit_id, content=want, kind=QUESTION,
+                        round_idx=round_idx)
+            board.publish(mark)
+            self._published.add(key)
+            out.asked.append(mark)
+            return
+
     def _open_doubt(self, law: Tuple[str, str], standing: List[Mark],
                     board: MarkBoard, round_idx: int,
                     out: Disposition) -> None:
-        """Dispose of a fresh challenge against an active law: rebut it, settle
-        it internally, or suspend and ask for help."""
+        """Dispose of a fresh challenge against an active law: rebut it, or
+        suspend, solicit, and ask.
+
+        NOTHING IS ELIMINATED HERE, whoever raised the doubt. Until this task an
+        internal re-assessment that failed retracted the law on the spot, and
+        under bounded attention it did so at round 0 in 66 of 66 measured cases:
+        a seeded law has no supporting record when the first challenge lands, so
+        the criterion refused it for want of evidence before the community had
+        said anything at all. The external apparatus the author's ruling built —
+        suspension, the call for corroboration, the window — never opened once in
+        that arm: 0 suspended, 0 calls published. THE RULING IS APPLIED
+        UNIFORMLY: *do not eliminate until corroboration* reads the same whoever
+        raised the doubt, so the internal arm now takes the same route the
+        external one does, and is disposed of in `_dispose_doubt`.
+
+        WHAT THE RE-ASSESSMENT STILL DOES AT THIS POINT is decide whether to ask.
+        A law whose own record no longer sustains it is a law with pending
+        individuals to ask about, so the inquiry opens with a question as well as
+        a call.
+        """
         live = [m for m in standing
                 if not self._rebutted(m, board, round_idx, testimony=False)]
         self._spent.update(m for m in standing if m not in live)
         if not live:
             return                              # rebutted: the law stands
-        if not self._meets_criterion(law, round_idx):
-            # THE INTERNAL ARM. The doubt sent the author back to its own record
-            # and the record no longer sustains the law. Nobody else was needed.
-            self._spent.update(live)
-            if self.retract_law(law):
-                out.retracted_internally.append(law)
-            return
-        trigger = live[0]
-        self._suspend(law, Doubt(challenger=trigger.author,
+        # A FOREIGN CITATION NAMES THE DOUBT WHEN THERE IS ONE, and when there is
+        # none the doubt is SELF-RAISED and names nobody. A unit may have
+        # published a challenge to a law it also holds; letting that inscription
+        # take the challenger's slot would make the author's own record one of
+        # the two voices corroboration needs, so a single peer could eliminate —
+        # a weaker bar than the external arm has ever used, and the one Task 5
+        # measured destroying 58 of 58 true laws. The author's record decides at
+        # the window and nowhere else.
+        foreign = [m for m in live if m.author != self.unit_id]
+        trigger = foreign[0] if foreign else live[0]
+        self._suspend(law, Doubt(challenger=trigger.author if foreign else None,
                                  individual=trigger.counterexample[1],
                                  opened_at=round_idx))
         self._solicit(law, trigger, board, round_idx)
+        if not self._meets_criterion(law, round_idx):
+            self._inquire(law, board, round_idx, out)
         out.suspended.append(law)
 
     def _dispose_doubt(self, law: Tuple[str, str], standing: List[Mark],
@@ -1139,22 +1365,46 @@ class Unit:
         THE ORDER IS THE RULING'S ORDER, and each step is the answer to a
         different question.
 
-        1. Is the doubt still live? A rebuttal — the author's own record, or a
-           peer's published testimony about the disputed individual — retires it,
-           and the law goes back to work.
-        2. Does the author's own record still sustain the law? The internal arm
-           runs every round the doubt stands, not only when it opened: the record
-           grows, and a law that stops meeting its own criterion is defeated by
-           the author's own evidence whatever the community says.
-        3. Has an INDEPENDENT peer borne the doubt out? That is corroboration,
-           and it is the only thing that eliminates a law from outside. The unit
-           that opened the doubt cannot corroborate itself — its counterexample
-           is the one already being weighed, and counting it twice would make one
-           record's gap into two votes.
-        4. Has the call gone unanswered for the whole window? Then the challenge
-           has failed to gather support, and SILENCE CANNOT ELIMINATE: the law is
-           restored. That is the direction the ruling fixes — a doubt nobody
-           shares is a doubt that has run out, not a verdict.
+        1. Has an INDEPENDENT peer borne the doubt out? That is corroboration,
+           and it is the only thing that eliminates a law BEFORE the inquiry has
+           run. TWO RECORDS ARE EXCLUDED FROM THE COUNT, AND FOR ONE REASON —
+           a record already being weighed does not get a second voice. The unit
+           that opened the doubt is excluded because its counterexample IS the
+           doubt. THE AUTHOR ITSELF IS EXCLUDED because its own record is what
+           every citation is checked against, and a unit may perfectly well have
+           published a challenge to a law it also holds (`challenge` scans the
+           board by content, so a claim two units published is disputable by
+           either); reading that inscription back as a second voice would let a
+           unit corroborate its own doubt with its own evidence.
+
+           THAT WAS NOT A HYPOTHETICAL. Measured under bounded attention before
+           the exclusion was added, the author's own challenge mark was in the
+           live set of all 8 of 8 corroborations at seed 1 — as the trigger in
+           four and as the corroborator in six — and across the eight seeds it
+           eliminated 64 of 64 true laws at an age of exactly one round. The
+           self-raised doubt had simply changed clothes: what used to be an
+           immediate internal retraction became a one-round self-corroboration.
+        2. Is the doubt dead, and does the record still sustain the law? A
+           rebuttal — the author's own record, or a peer's published testimony
+           about the disputed individual — retires the citation, and if the
+           author's own criterion is met the law goes back to work.
+        3. Has the window run out? THE WINDOW FIRES ONCE AND EXITS TWO WAYS,
+           by what the record says at the moment it expires. Sustained: the
+           challenge failed to gather support and SILENCE CANNOT ELIMINATE, so
+           the law is restored — a doubt nobody shares is a doubt that has run
+           out, not a verdict. Not sustained: the author's own record is against
+           its own law and the community had the whole window to repair it, so
+           the law is given up.
+        4. Otherwise the inquiry continues, and if the record does not sustain
+           the law a further question goes out (`_inquire`).
+
+        THE CRITERION IS RE-READ EVERY PASS AND REMEMBERED FROM NONE. A record
+        grows: facts arrive at the membrane, answers are adopted, and a law that
+        failed its own criterion when the doubt opened may meet it four rounds
+        later. Reading the criterion at the moment the window expires rather than
+        recording a verdict when the doubt opened is what makes the inquiry
+        capable of changing the outcome — which is the whole point of ordering
+        inquiry before elimination.
 
         A challenge disposed of here is spent (`_spent`): it has had its answer,
         and the same inscription does not get to raise the same doubt again.
@@ -1163,24 +1413,33 @@ class Unit:
         live = [m for m in standing
                 if not self._rebutted(m, board, round_idx, testimony=True)]
         self._spent.update(m for m in standing if m not in live)
-        if not live:
-            self._unsuspend(law)
-            out.restored_by_rebuttal.append(law)
-            return
-        if not self._meets_criterion(law, round_idx):
-            self._spent.update(live)
-            if self.retract_law(law):
-                out.retracted_internally.append(law)
-            return
-        if {m.author for m in live} - {doubt.challenger}:
+        speakers = {m.author for m in live} - {self.unit_id}
+        if doubt.challenger is None and speakers:
+            # A self-raised doubt acquires its challenger from the first peer to
+            # dispute the law. That peer bears the doubt out; it does not
+            # corroborate it, because there is as yet nothing but the author's
+            # own record for it to corroborate.
+            doubt.challenger = sorted(speakers)[0]
+        if speakers - {doubt.challenger}:
             self._spent.update(live)
             if self.retract_law(law):
                 out.retracted_by_corroboration.append(law)
             return
+        sustains = self._meets_criterion(law, round_idx)
+        if sustains and not live:
+            self._unsuspend(law)
+            out.restored_by_rebuttal.append(law)
+            return
         if round_idx - doubt.opened_at >= self.corroboration_window:
             self._spent.update(live)
-            self._unsuspend(law)
-            out.restored_by_silence.append(law)
+            if sustains:
+                self._unsuspend(law)
+                out.restored_by_silence.append(law)
+            elif self.retract_law(law):
+                out.retracted_internally.append(law)
+            return
+        if not sustains:
+            self._inquire(law, board, round_idx, out)
 
     def corroborate(self, board: MarkBoard, round_idx: int) -> List[Mark]:
         """Answer other units' calls for corroboration from this unit's own

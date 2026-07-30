@@ -129,17 +129,38 @@ def test_a_want_the_record_has_already_resolved_is_asked_about_last():
     assert u0.ask(board, 7).content == ("q1", A2)
 
 
-def test_a_body_with_no_first_arrival_is_asked_about_last():
-    """An adopted fact carries no date (the ruling of the assert channel), so the
-    unit has no evidence of how long that want has been waiting. Treating it as
-    urgent would let a peer's publication schedule set this unit's priorities."""
+def test_an_adopted_body_takes_its_turn_by_the_round_it_was_adopted():
+    """URGENCY IS READ OFF THIS UNIT'S OWN ENCOUNTER, whatever route the body
+    took. An adopted fact now carries the round the adopter took it up, and the
+    want it creates is born at that round: the stake on its head goes down at the
+    adopter's very next attended round, so it is urgent in exactly the sense the
+    ordering means.
+
+    Before this task an adopted body carried no date at all and sorted last, on
+    the ground that a peer's publication schedule should not set this unit's
+    priorities. That reason was about the AUTHOR's clock and it is untouched —
+    the author published at round 0 and the adoption is at 3, and it is 3 that
+    orders the want."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     u1.facts.add(("p1", A2))
     hearsay, = u1.publish(board, 0)
     u0._record({("p1", A1)}, 0)
     u0.laws.add(("p1", "q1"))
-    u0.adopt(hearsay, board)                    # held, undated
+    u0.adopt(hearsay, board, 3)                 # met here at 3, published at 0
+    assert u0.ask(board, 3).content == ("q1", A2)
+    assert u0.ask(board, 4).content == ("q1", A1)
+
+
+def test_a_body_with_no_arrival_at_all_is_asked_about_last():
+    """The abstention that survives: a body this unit holds with no arrival of
+    any kind behind it — placed directly, as a test does — says nothing about how
+    long the want has been waiting, and loses to every dated one."""
+    _spec, _field, u0, _u1 = _two_units()
+    board = MarkBoard()
+    u0._record({("p1", A1)}, 0)
+    u0.facts.add(("p1", A2))                    # no date, no route
+    u0.laws.add(("p1", "q1"))
     assert u0.ask(board, 1).content == ("q1", A1)
     assert u0.ask(board, 2).content == ("q1", A2)
 
@@ -278,7 +299,7 @@ def test_a_question_cannot_be_adopted():
     u0.laws.add(("p1", "q1"))
     q = u0.ask(board, 0)
     with pytest.raises(ValueError, match="question"):
-        u1.adopt(q, board)
+        u1.adopt(q, board, 0)
     assert u1.facts == set()
 
 
@@ -306,7 +327,7 @@ def test_answering_creates_attributable_uptake_when_the_asker_takes_it_up():
     u1._record({("q1", A1)}, 1)
     answer, = u1.answer(board, 1)
     assert board.uptake_of(answer) == set()
-    assert u0.adopt(answer, board) is True
+    assert u0.adopt(answer, board, 2) is True
     assert board.uptake_of(answer) == {"u0"}
     assert ("q1", A1) in u0.facts
     assert u0.first_seen == {("p1", A1): 0}         # the answer is NOT dated
@@ -370,7 +391,7 @@ def _play(seed, rounds, *, channel, stagger):
                     if reply is None or reply.author == u.unit_id:
                         continue
                     settled[u.unit_id].add(q.content)
-                    uptakes += u.adopt(reply, board)
+                    uptakes += u.adopt(reply, board, r)
         for i, u in enumerate(units):                           # (b) attend
             if stagger == 1 or r % stagger == i:
                 u.step(field, r)
@@ -760,12 +781,19 @@ def test_a_rebuttable_challenge_leaves_the_law_standing_and_unsuspended():
 # --- the internal arm: doubt provokes a re-assessment -------------------------
 
 
-def test_a_challenge_provokes_a_re_assessment_that_settles_the_doubt_internally():
-    """THE INTERNAL ARM. The author's own record no longer meets the criterion it
-    would use to induce this law today — six of twenty-six individuals carry the
-    body without the head, far past the 5% it admits under — so the doubt is
-    settled inside the membrane. No corroboration is needed and none is asked
-    for: the author was defeated by its own evidence."""
+def test_a_self_raised_doubt_asks_before_it_eliminates():
+    """THE INTERNAL ARM, AFTER THE RULING WAS APPLIED TO IT. The author's own
+    record no longer meets the criterion it would use to induce this law today —
+    six of twenty-six individuals carry the body without the head, far past the
+    5% it admits under. Until this task that settled the law on the spot, at
+    round 2: the doubter both raised the doubt and closed it, in one act, with
+    nothing published and nobody asked.
+
+    Now the same failure takes the same route the external arm takes. The law is
+    SUSPENDED, a call for corroboration goes out, and a question goes out about
+    one of the individuals that caused the failure — the ask channel's own mark,
+    named so a peer can answer it from its own record. The law is given up only
+    when the window has run out with nothing arriving to repair the record."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     _sustain(u0)
@@ -776,10 +804,61 @@ def test_a_challenge_provokes_a_re_assessment_that_settles_the_doubt_internally(
     u1.facts.add(("p1", (("c", "z1"),)))
     u1.challenge(board, 1)
     out = u0.dispose_challenges(board, 2)
+    assert out.suspended == [("p1", "q1")]
+    assert out.retracted_internally == []
+    assert ("p1", "q1") in u0.laws and ("p1", "q1") in u0.suspended
+    assert not u0._meets_criterion(("p1", "q1"), 2)  # condemned, not eliminated
+    call, = board.corroboration_calls()
+    assert call.author == "u0"
+    asked = [m for m in board.all_marks() if m.kind == "question"]
+    assert [m.author for m in asked] == ["u0"]
+    assert asked[0].content[0] == "q1"               # about a pending head
+    for r in range(3, 7):                            # the inquiry runs
+        assert not u0.dispose_challenges(board, r)
+        assert ("p1", "q1") in u0.suspended
+    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
     assert out.retracted_internally == [("p1", "q1")]
-    assert out.suspended == []
     assert ("p1", "q1") not in u0.laws and u0.suspended == set()
-    assert board.corroboration_calls() == []        # nobody was asked anything
+
+
+def test_the_inquiry_that_repairs_the_record_saves_the_law():
+    """THE CASE THE ORDERING EXISTS FOR, and it could not arise before: the
+    author's own record condemned the law, the author asked, a peer answered, and
+    the record that comes back through the window sustains the law after all.
+
+    Three pending individuals against twenty confirmed put the pending rate at
+    13%, past the 5% the criterion admits under. The author asks about them one
+    per round; the peer holds two of the three heads and answers; and the
+    criterion is re-read AT expiry rather than remembered from the round the
+    doubt opened, so what it reads is the repaired record — one refuting of
+    twenty-three, 4.3%, inside the tolerance. The law is restored by silence
+    rather than given up.
+
+    THE ONE THE PEER CANNOT ANSWER IS THE ONE IT CITED, so the challenge itself
+    stands unrebutted the whole way: what the window closes on is a live doubt
+    about a law the author's own record has come back to sustaining."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    for who in ("z1", "z2", "z3"):
+        _dispute(u0, who=who)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z1"),)))
+    u1.challenge(board, 1)
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    assert not u0._meets_criterion(("p1", "q1"), 2)  # condemned when it opened
+    u1.facts.update({("q1", (("c", "z2"),)), ("q1", (("c", "z3"),))})
+    for r in range(3, 7):
+        for mark in u1.answer(board, r):            # answers what was asked
+            u0.adopt(mark, board, r)
+        u0.dispose_challenges(board, r)             # asks the next one
+    assert ("q1", (("c", "z2"),)) in u0.facts
+    assert ("q1", (("c", "z3"),)) in u0.facts
+    assert u0._meets_criterion(("p1", "q1"), 7)     # the record was repaired
+    out = u0.dispose_challenges(board, 7)
+    assert out.restored_by_silence == [("p1", "q1")]
+    assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
 
 def test_the_re_assessment_runs_only_when_a_doubt_provokes_it():
@@ -882,7 +961,7 @@ def test_a_call_cannot_be_adopted():
     u0.dispose_challenges(board, 2)
     call, = board.corroboration_calls()
     with pytest.raises(ValueError, match="corroboration call"):
-        u1.adopt(call, board)
+        u1.adopt(call, board, 3)
     assert ("p1", "q1") not in u1.laws
 
 
@@ -1000,6 +1079,99 @@ def test_the_original_challenger_s_counterexample_does_not_count_twice():
         out = u0.dispose_challenges(board, r)
         assert out.retracted_by_corroboration == []
         assert ("p1", "q1") in u0.suspended
+
+
+def test_a_unit_s_own_challenge_does_not_corroborate_its_own_doubt():
+    """THE HONESTY CONSTRAINT, AND IT WAS LOAD-BEARING RATHER THAN THEORETICAL.
+
+    `challenge` scans the board by content, so a unit holding a law that another
+    unit also published may publish a challenge to it — its own inscription,
+    against its own law. Here u0 does exactly that, and u2 disputes the same law
+    independently. Two challenge marks stand; only ONE of them is a foreign
+    record, and one foreign record is not corroboration. The law waits.
+
+    WHY IT MATTERS: counting the author's own mark would mean a single foreign
+    counterexample plus the author's own gap eliminates a law, which is the rule
+    Task 5 measured destroying 58 of 58 laws the field actually carries. Measured
+    with the mark counted, under bounded attention, it eliminated 64 of 64 true
+    laws at an age of exactly one round — the self-raised doubt in different
+    clothes. A second, genuinely independent record does corroborate, and the
+    last two lines are that control."""
+    u0, u1, u2, u3 = _units()
+    board = MarkBoard()
+    for u in (u0, u1):
+        _sustain(u)
+        _dispute(u)
+        u.laws.add(("p1", "q1"))
+        u.publish(board, 0)
+    mine, = u0.challenge(board, 1)                  # its own law, disputed by it
+    assert (mine.author, mine.content) == ("u0", ("p1", "q1"))
+    u2.facts.add(("p1", (("c", "z9"),)))
+    u2.challenge(board, 1)
+    out = u0.dispose_challenges(board, 2)
+    assert out.suspended == [("p1", "q1")]
+    assert u0._doubts[("p1", "q1")].challenger == "u2"   # the foreign one
+    for r in range(3, 6):
+        assert u0.dispose_challenges(board, r).retracted_by_corroboration == []
+        assert ("p1", "q1") in u0.suspended
+    u3.facts.add(("p1", (("c", "z8"),)))            # a second foreign record
+    u3.challenge(board, 6)
+    out = u0.dispose_challenges(board, 6)
+    assert out.retracted_by_corroboration == [("p1", "q1")]
+
+
+def test_a_self_raised_doubt_names_no_challenger_until_a_peer_speaks():
+    """A doubt opened by nothing but the author's own record names nobody, and
+    the first peer to dispute the law FILLS that slot rather than corroborating
+    it — there is as yet nothing but the author's own record for it to
+    corroborate. Elimination from outside takes two distinct foreign records
+    whoever raised the doubt, which is the same bar the external arm has always
+    used."""
+    u0, u1, u2, u3 = _units()
+    board = MarkBoard()
+    for u in (u0, u1):
+        _sustain(u)
+        _dispute(u)
+        u.laws.add(("p1", "q1"))
+        u.publish(board, 0)
+    u0.challenge(board, 1)                          # the only dispute is its own
+    out = u0.dispose_challenges(board, 2)
+    assert out.suspended == [("p1", "q1")]
+    assert u0._doubts[("p1", "q1")].challenger is None
+    u2.facts.add(("p1", (("c", "z9"),)))
+    u2.challenge(board, 3)
+    assert not u0.dispose_challenges(board, 3)      # borne out, not corroborated
+    assert u0._doubts[("p1", "q1")].challenger == "u2"
+    u3.facts.add(("p1", (("c", "z8"),)))
+    u3.challenge(board, 4)
+    out = u0.dispose_challenges(board, 4)
+    assert out.retracted_by_corroboration == [("p1", "q1")]
+
+
+def test_a_suspended_law_is_not_returned_to_service_by_induction_or_uptake():
+    """THE BACK DOOR, CHECKED AND CLOSED BY CONSTRUCTION. Suspension is a subset
+    of `laws`, so a law under doubt is invisible to `induce`'s scan even when the
+    record would admit it today, and `adopt` finds it already held and changes
+    nothing. Only a disposal lifts a suspension, and it does so by name — a
+    suspended law cannot be quietly returned to active service by a record that
+    has grown or by a peer republishing it."""
+    _spec, _field, u0, u1 = _two_units()
+    board = MarkBoard()
+    _sustain(u0)
+    _dispute(u0)
+    u0.laws.add(("p1", "q1"))
+    u0.publish(board, 0)
+    u1.facts.add(("p1", (("c", "z9"),)))
+    u1.challenge(board, 1)
+    assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
+    assert u0._meets_criterion(("p1", "q1"), 3)     # induce WOULD admit it today
+    assert u0.induce(3) == set()                    # and does not
+    assert ("p1", "q1") in u0.suspended
+    u1.laws.add(("p1", "q1"))
+    law_mark, = [m for m in u1.publish(board, 3) if m.kind == "law"]
+    assert u0.adopt(law_mark, board, 3) is False
+    assert ("p1", "q1") in u0.suspended
+    assert u0.anticipate() == set()                 # still licensing nothing
 
 
 def test_a_peer_s_published_head_restores_the_suspended_law():
@@ -1219,7 +1391,7 @@ def test_a_challenge_cannot_be_adopted():
     u1.facts.add(("p1", A1))
     challenge, = u1.challenge(board, 1)
     with pytest.raises(ValueError, match="challenge"):
-        u0.adopt(challenge, board)
+        u0.adopt(challenge, board, 2)
     assert ("p1", "q1") in u0.laws
     assert u0.facts == set()
 
@@ -1272,7 +1444,7 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
     raised = 0
     events = []                    # (unit_id, law, why), with repeats: the thrash
     tally = {k: 0 for k in ("suspended", "internal", "corroborated",
-                            "rebutted", "silence")}
+                            "rebutted", "silence", "asked")}
     for r in range(rounds):
         for i, u in enumerate(units):               # (a) attend + induce
             if stagger == 1 or r % stagger == i % stagger:
@@ -1291,6 +1463,7 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                 tally["corroborated"] += len(out.retracted_by_corroboration)
                 tally["rebutted"] += len(out.restored_by_rebuttal)
                 tally["silence"] += len(out.restored_by_silence)
+                tally["asked"] += len(out.asked)
                 for law in out.retracted_internally:
                     events.append((u.unit_id, law, "internal"))
                 for law in out.retracted_by_corroboration:
@@ -1299,45 +1472,45 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
 
 
 def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
-    """THE HEADLINE, AND IT IS POSITIVE — which is not what the last two
-    measurements here reported, so read the counts rather than the direction.
+    """THE HEADLINE, AND IT IS POSITIVE — which is not what three of the
+    measurements in this file report, so read the counts rather than the
+    direction.
 
-    Eight seeds, 60 rounds, four units inducing from what they meet. Three rules
+    Eight seeds, 60 rounds, four units inducing from what they meet. Four rules
     have now been measured on this arm, and the columns are the argument:
 
-                                        existential   suspension   + open world
-        raised                                   58           58             60
-        suspended                                 —           28             60
-        eliminated by corroboration               —           18             12
-        retracted by internal re-assessment       —           38              4
-        restored by rebuttal                      —            2             44
-        restored by silence                       —            0              0
-        -----------------------------------------------------------------------
-        distinct (unit, law) defeats             58           56             16
-        **true laws still gone at the end**      34            2          **0**
-        retraction events (thrash)              426           56             16
-        net live / net mute                 384/596      454/596        932/1038
+                                    existential  suspension  +open world  +inquiry
+        raised                               58          58           60        60
+        suspended                             —          28           60        60
+        eliminated by corroboration           —          18           12         0
+        retracted by internal re-assessment   —          38            4         4
+        restored by rebuttal                  —           2           44        44
+        restored by silence                   —           0            0        10
+        ----------------------------------------------------------------------------
+        distinct (unit, law) defeats         58          56           16         4
+        **true laws still gone at the end**  34           2            0         0
+        retraction events (thrash)          426          56           16         4
+        net live / net mute             384/596     454/596     932/1038   922/1038
 
-    THE OPEN-WORLD READING OF `pending` IS WHAT CLOSED THE LAST TWO. Under the
-    ruling alone the internal arm did most of the killing and every one of its
-    38 victims was a true law, because an individual whose consequent had not yet
-    had time to arrive was read as counter-evidence. Setting those aside
-    (`Unit._pending_split`) takes the internal arm from 38 victims to 4 and the
-    permanent loss of true laws from 2 to 0.
+    THE LAST COLUMN IS THIS TASK: the internal arm no longer eliminates on the
+    spot, and the corroboration tally no longer counts the author's own record
+    (`Unit.Doubt`). Defeats fall from 16 to 4 and corroborated eliminations from
+    12 to 0 — every one of those 12 had the author's own published challenge in
+    the live set, so what read as a peer bearing out a doubt was a unit's record
+    voting twice. Ten doubts now end in silence where none did, which is the
+    window doing the job it was built for and had never once been given.
 
-    AND IT IS WHAT LET THE EXTERNAL ARM RUN AT ALL. Suspensions rise from 28 to
-    60 and restorations by rebuttal from 2 to 44: the doubts that used to be
-    settled inside the membrane by a miscounted record are now put to the
-    community, and the community answers — 44 of the 60 with the disputed
-    individual's head. That is the machinery the author's ruling built, doing the
-    work it was built for. At seed 5 it runs to completion with nothing defeated
-    at all: six challenges raised, six laws suspended, six rebutted, none lost.
+    NOTHING WAS BOUGHT BY LOSING BITE ON THIS ARM: permanent loss of true laws
+    was already 0 and stays 0, and no unplanted law stands at the end of any
+    seed. At three of the eight seeds the run now completes with nothing defeated
+    at all — challenges raised, laws suspended, doubts inquired into and closed.
 
-    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+932 live
-    against +1038 mute** — a 10% cost, where the ruling alone paid 24% and the
-    existential rule 36%. The channel still costs, and the cost is what
-    suspension is: a true law mute for a few rounds forgoes the hits it would
-    have won. It loses at 8 of 8 seeds, asserted per-seed.
+    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+922 live
+    against +1038 mute** — an 11% cost, against 10% before this task, 24% for the
+    ruling alone and 36% for the existential rule. The cost is what suspension
+    is: a true law mute for the window forgoes the hits it would have won, and
+    holding a doubt open for five rounds rather than closing it in one costs
+    five rounds of licence. It loses at 8 of 8 seeds, asserted per-seed.
     """
     raised_total = 0
     agg = {k: 0 for k in ("suspended", "internal", "corroborated",
@@ -1380,17 +1553,17 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         false_defeats += false_here
         live_total += live_net
         mute_total += mute_net
-    assert (raised_total, defeats, false_defeats) == (60, 16, 16)
-    assert agg == {"suspended": 60, "internal": 4, "corroborated": 12,
-                   "rebutted": 44, "silence": 0}
+    assert (raised_total, defeats, false_defeats) == (60, 4, 4)
+    assert agg == {"suspended": 60, "internal": 4, "corroborated": 0,
+                   "rebutted": 44, "silence": 10}
     # THE COMPARISON THIS TASK EXISTS FOR: 34 of 58 true laws permanently lost
     # under the existential rule, 2 under the ruling, NONE once `pending` is
     # read open-world.
     assert (lost_true, lost_false) == (0, 0)
     # One retraction event per defeat: induction and disposal have stopped
     # fighting (426 events for 98 defeats before).
-    assert events_total == defeats == 16
-    assert (live_total, mute_total) == (932, 1038)
+    assert events_total == defeats == 4
+    assert (live_total, mute_total) == (922, 1038)
 
 
 def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_record():
@@ -1398,24 +1571,29 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
 
     Same eight seeds and rounds, each unit additionally seeded with the CONVERSE
     of its first domain's law — a law the field does not carry, so defeating it
-    is a correct retraction. Measured after the open-world reading: **32 of 32
-    converses defeated and permanently gone, 16 true laws defeated and all 16
-    recovered, none permanently lost** (it was 32 of 32 with 54 recovered and 2
-    lost under the ruling alone; the drop from 56 defeats to 16 is the first
-    gate's finding, not a loss of bite).
+    is a correct retraction. Measured after inquiry was put before elimination:
+    **31 of 32 converses defeated and permanently gone, the thirty-second still
+    SUSPENDED when the run ended, 4 true laws defeated and all 4 recovered, none
+    permanently lost.** It was 32 of 32 with 16 recovered before this task, and
+    the one that now survives is not an escape: at seed 42 the converse
+    `g_head -> g_local` is first disputed at round 55 and suspended there, and
+    the run stops at 59 with its five-round window still open. It licenses
+    nothing throughout — the arm asserts that rather than counting it as held.
 
-    EVERY ONE OF THE 32 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer,
-    exactly as before. Setting aside what could not have been observed does not
-    save a converse: `a_head -> a_local` leaves individuals pending whose bodies
-    the unit has held for many rounds, so they are refuting and stay refuting.
-    That is the discrimination the open-world reading had to preserve and does.
+    EVERY ONE OF THE 31 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer,
+    exactly as before, and now every one of them waits out the window first. A
+    converse's individuals are refuting and stay refuting: `a_head -> a_local`
+    leaves individuals pending whose bodies the unit has held for many rounds, so
+    five rounds of inquiry change nothing about it, and nothing arrives to save
+    it. That is what a delay before elimination is supposed to do to a false law
+    — cost time, not bite.
 
-    THE ARITHMETIC OF THE TRADE, and it improved again. The mute arm pays **77**
-    for holding those converses (+1038 to +961); the live arm is **+932 in both
-    arms**, identical seed by seed, because the wrong law dies before it can bet.
-    So the benefit is 77 and the cost is 961 − 932 = **29**, where the ruling
-    alone paid 142 and the existential rule 212. The trade has turned: a real
-    good now bought at a third of its price rather than at twice it.
+    THE ARITHMETIC OF THE TRADE. The mute arm pays **77** for holding those
+    converses (+1038 to +961); the live arm is **+922 in both arms**, identical
+    seed by seed, because the wrong law still dies before it can bet much. So the
+    benefit is 77 and the cost is 961 − 922 = **39**, against 29 before this task,
+    142 for the ruling alone and 212 for the existential rule. The delay costs
+    ten points of the seventy-seven and buys the true laws their inquiry.
     """
     internal_false = corroborated_false = 0
     correct = recovered_true = lost_true = 0
@@ -1429,10 +1607,16 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
         distinct = {(uid, law) for uid, law, _why in events}
         held = {(u.unit_id, law) for u in live for law in u.laws}
         correct_here = sum(1 for _u, law in distinct if law not in planted)
-        assert correct_here == 4, (
-            f"seed {seed}: {correct_here} of 4 wrong laws defeated")
-        assert not any(law not in planted for u in live for law in u.laws), (
-            f"seed {seed}: a converse law survived the channel")
+        survivors = [(u.unit_id, law) for u in live for law in u.laws
+                     if law not in planted]
+        assert correct_here + len(survivors) == 4, (
+            f"seed {seed}: {correct_here} of 4 wrong laws defeated, "
+            f"{len(survivors)} still held")
+        # A converse that outlived the run is one still under inquiry, and it
+        # licenses nothing while it is.
+        assert all(law in unit.suspended for uid, law in survivors
+                   for unit in live if unit.unit_id == uid), (
+            f"seed {seed}: a converse stands ACTIVE at the end — {survivors}")
         internal_false += sum(1 for _u, law, why in events
                               if law not in planted and why == "internal")
         corroborated_false += sum(1 for _u, law, why in events
@@ -1444,55 +1628,53 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
                          if law in planted and (u, law) not in held)
         live_total += sum(u.ledger.net_score for u in live)
         mute_total += sum(u.ledger.net_score for u in mute)
-    assert correct == 32
+    assert correct == 31
     # THE AMENDMENT'S QUESTION: which arm does the discriminating work?
-    assert (internal_false, corroborated_false) == (32, 0)
-    assert (recovered_true, lost_true) == (16, 0)
-    assert (live_total, mute_total) == (932, 961)
+    assert (internal_false, corroborated_false) == (31, 0)
+    assert (recovered_true, lost_true) == (4, 0)
+    assert (live_total, mute_total) == (922, 961)
 
 
 def test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally():
-    """THE NEGATIVE RESULT THAT SURVIVED THE RULING. Reported, not tuned away.
+    """THE NEGATIVE RESULT THAT SURVIVED THE RULING, AND SURVIVES ITS UNIFORM
+    APPLICATION TOO. Reported, not tuned away.
 
     Bounded attention (each unit attends half the rounds), both the planted laws
     and the converses seeded, no induction — so the same twelve laws per seed are
-    held in both arms and the only variable is the channel. Measured over eight
-    seeds: **64 of 64 true laws defeated and permanently gone, 2 of 32 false ones
-    (6%)** — thirty converses survive while every true law dies. Those are the
-    same counts the existential rule produced.
+    held in both arms and the only variable is the challenge channel. NO ASK
+    CHANNEL RUNS HERE, which is the point of the arm and, as it turns out, the
+    whole explanation. Measured over eight seeds: **64 of 64 true laws defeated
+    and permanently gone, 2 of 32 false ones (6%)** — thirty converses survive
+    while every true law dies. Those are the same counts the existential rule
+    produced, and the same the open-world reading produced.
 
-    THE OPEN-WORLD READING OF `pending` CHANGED NOT ONE OF THESE NUMBERS, and
-    instrumenting the refusals says why. Every one of the 66 internal
-    retractions fails on **`min_support`, none on the pending rate**, and they
-    fall at rounds 0 to 2 with a median of **round 0**. A law SEEDED into a unit
-    with no record has no supporting individual when the first challenge lands —
-    a consequent cannot have arrived yet — so the re-assessment refuses it for
-    want of evidence and the law is gone before the run begins. Setting aside
-    what could not have been observed does not help: at round 0 there is nothing
-    observed to set aside.
+    WHAT THIS TASK CHANGED HERE IS THE ROUTE, NOT THE OUTCOME. Before it, the
+    internal arm eliminated on the spot and the external apparatus ran zero
+    times: **0 suspended, 0 calls published**, 66 internal retractions at a
+    median of round 0. Now **all 66 doubts are suspended, all 66 calls are
+    published, 159 questions go out**, every doubt runs its full five-round
+    window — and all 66 end in retraction anyway, because nothing arrives to
+    repair the record. The apparatus is no longer dead code. It is a channel with
+    nothing coming down it.
 
-    THIS CORRECTS THE EXPLANATION THIS TEST CARRIED BEFORE, which said a true
-    law's pending RATE sits near 50% under half attention and the criterion
-    refuses it on that. The rate clause fires zero times here. What is true is
-    the asymmetry in WHO GETS CHALLENGED: a true law's body arrives at round 0
-    and its head cannot, so a peer holds a counterexample immediately; a
-    converse's body IS a consequent, which arrives a round later, so at round 0
-    almost nobody can dispute one — and since a law is challenged once per peer
-    ever, the converses are never disputed again. Two of thirty-two die; the
-    other thirty are simply never asked about.
+    THAT IS THE FINDING, AND IT IS EXACT: an inquiry with no answering channel is
+    a delay, not an inquiry. Every one of the 66 refusals fails on `min_support`
+    — a law SEEDED into a unit with no record has no supporting individual, and
+    under half attention its consequents keep arriving on the rounds it sleeps
+    through, so five rounds of waiting add no support. The corroboration arm now
+    contributes **nothing at all** (0 eliminations, against 32 when the author's
+    own published challenge was still allowed to count as a second voice, and 64
+    when it could also take the challenger's slot): under this aperture scheme a
+    law has at most two holders and at most two disputants, so a genuine second
+    foreign record never exists.
 
-    **THE ANTI-DISCRIMINATION IS NOT THE DISPOSITION RULE'S. IT IS THE FIELD'S
-    TIMING, read through a criterion that requires support a seeded law has not
-    had time to accumulate.** Suspension cannot help where the author's own
-    record is the accuser, and it did not pretend to: the external arm never
-    even opened. What the ruling and the open-world reading fixed is the case
-    where a law the author's own record still sustains was destroyed anyway (the
-    first gate above, 34 permanent losses down to 0). This case was never that.
+    WHAT ANSWERS IT IS THE ASK CHANNEL, measured in the gate below: with peers
+    able to tell each other what they saw, 28 of these 64 true laws survive.
 
     AND THE NET SCORE IMPROVES ANYWAY: −433 live against −1421 mute, identical to
-    the old rule's figures. That is still the trap. Under bounded attention a true
-    law cannot pay — its consequents arrive on rounds nobody is watching — so
-    destroying it removes losing bets and the arm moves toward abstention. **A
+    every previous rule's figures. That is still the trap. Under bounded attention
+    a true law cannot pay — its consequents arrive on rounds nobody is watching —
+    so destroying it removes losing bets and the arm moves toward abstention. **A
     net-score improvement is not evidence that a channel discriminates.** Read it
     beside the counts, never instead of them.
     """
@@ -1525,9 +1707,11 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
         mute_total += sum(u.ledger.net_score for u in mute)
     assert (true_defeats, true_held) == (64, 0)      # 64 of 64 true laws gone
     assert (false_defeats, false_held) == (2, 30)    # 30 of 32 wrong laws stand
-    # EVERY defeat is internal: the external arm never opened, so suspension had
-    # nothing to save and nothing to blame.
-    assert (internal, external, suspended, calls) == (66, 0, 0, 0)
+    # EVERY defeat is internal, and every one of them now waits out a full
+    # inquiry first: 66 suspensions and 66 published calls where there were
+    # none, and not one of them changes a law's fate, because no channel is
+    # carrying anything back.
+    assert (internal, external, suspended, calls) == (66, 0, 66, 66)
     assert live_total > mute_total
     assert (live_total, mute_total) == (-433, -1421)
 
@@ -1566,6 +1750,8 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}
     questions = uptakes = 0
+    exits = {k: 0 for k in ("suspended", "internal", "corroborated",
+                            "rebutted", "silence")}
 
     for r in range(rounds):
         if ask:                                             # (a) adopt replies
@@ -1577,7 +1763,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
                     if reply is None or reply.author == u.unit_id:
                         continue
                     settled[u.unit_id].add(q.content)
-                    uptakes += u.adopt(reply, board)
+                    uptakes += u.adopt(reply, board, r)
         for i, u in enumerate(units):                       # (b) attend
             if stagger == 1 or r % stagger == i % stagger:
                 u.step(field, r, induce=False)
@@ -1596,11 +1782,25 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
         for u in units:                                     # (g) corroborate
             u.corroborate(board, r)
         for u in units:                                     # (h) dispose
-            u.dispose_challenges(board, r)
+            out = u.dispose_challenges(board, r)
+            exits["suspended"] += len(out.suspended)
+            exits["internal"] += len(out.retracted_internally)
+            exits["corroborated"] += len(out.retracted_by_corroboration)
+            exits["rebutted"] += len(out.restored_by_rebuttal)
+            exits["silence"] += len(out.restored_by_silence)
+            # THE INQUIRY'S OWN QUESTIONS. A disposal may publish one, and the
+            # asker has to be able to take up its own answer — uptake here is
+            # targeted, so a question no driver watches is a question wasted.
+            # Registered only in the ask arm, so the variable stays the channel.
+            if ask:
+                for mark in out.asked:
+                    asked[u.unit_id].append(mark)
+                    questions += 1
 
     tally = dict(true_ref=0, conv_ref=0, true_lost=0, conv_lost=0,
                  repairable=0, unrepairable=0, questions=questions,
-                 uptakes=uptakes, net=sum(u.ledger.net_score for u in units))
+                 uptakes=uptakes, net=sum(u.ledger.net_score for u in units),
+                 **exits)
     for u in units:
         laws, conv = mine[u.unit_id]
         for body, head in sorted(laws):
@@ -1616,62 +1816,67 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
     return tally
 
 
-def test_peer_testimony_repairs_the_false_law_and_not_the_true_one():
-    """PRE-REGISTERED AND REFUTED, both halves, and the second one backwards.
+def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
+    """P-C1 RE-TESTED AND NOW HELD; P-C2 RE-TESTED AND REFUTED AGAIN, backwards
+    for the second time. The predictions are the ones recorded before the
+    previous run, re-run unchanged.
 
-    THE PREDICTIONS, recorded before the run. **P-C1:** with the ask channel
-    live, a unit's refuting count on a TRUE law is lower than with the channel
-    muted, because peer-supplied facts fill heads the field withheld from this
-    unit. **P-C2:** the same channel does NOT materially lower the refuting count
-    on a FALSE law, because no peer holds the missing head either.
+    **P-C1:** with the ask channel live, a unit's refuting count on a TRUE law is
+    lower than with the channel muted, because peer-supplied facts fill heads the
+    field withheld from this unit. **P-C2:** the same channel does NOT materially
+    lower the refuting count on a FALSE law, because no peer holds the missing
+    head either.
 
     THE MEASUREMENT — eight seeds, 60 rounds, four units under bounded attention,
-    planted laws and converses seeded, the challenge channel live in both arms:
+    planted laws and converses seeded, the challenge channel live in both arms.
+    The middle column is the previous task's reading, before inquiry was ordered
+    ahead of elimination:
 
-                              muted     live      change
-        refuting, true laws     640      636       −0.6%
-        refuting, converses     321       42        −87%
-        true laws lost        64/64    64/64    unchanged
-        converses lost         2/32     2/32    unchanged
-        net score              −433      −39
-        questions / uptakes     0/0    480/448
+                              muted     live (was)      live (now)     change
+        refuting, true laws     640            636             349      −45.5%
+        refuting, converses     321             42              20        −94%
+        true laws lost        64/64          64/64           36/64
+        converses lost         2/32           2/32            0/32
+        net score              −433            −39            −106
+        questions / uptakes     0/0        480/448       1024/939
 
-    **P-C1 IS REFUTED.** 480 questions went out, 448 answers were taken up, and
-    four of them landed on a true law's refuting individual. **P-C2 IS REFUTED IN
-    THE OPPOSITE DIRECTION TO ITS OWN CLAIM:** the channel repaired 87% of the
-    converse's refuting individuals. The instrument works; it points the wrong
-    way.
+    **P-C1 IS HELD.** The refuting count on true laws falls by 45.5%, and 28 of
+    the 64 true laws that were permanently lost in the muted arm survive the run.
+    Nothing about the ask channel changed; what changed is that a law now lives
+    long enough to use it. The question budget bears that out directly:
+    instrumented over the same eight seeds, **463 questions ask about a true
+    law's head and 488 about a converse's**, where before the split was 16
+    against 464. The channel had been spending itself on the only laws still
+    standing, and those were the false ones.
 
-    IT IS NOT THAT THE COMMUNITY LACKS THE EVIDENCE. Of the true laws' 640
-    refuting individuals in the muted arm, some peer holds the missing head for
-    **590 — 92.2% are repairable in principle.** The information is in the
-    community and does not move.
+    **P-C2 IS REFUTED, AND IN THE OPPOSITE DIRECTION TO ITS OWN CLAIM, FOR THE
+    SECOND TIME.** The channel removes 94% of the converse's refuting individuals
+    and saves both converses the muted arm loses. Its premise — that no peer
+    holds the missing head — is simply false in this field: a converse
+    `X_head -> X_local` wants an `X_local`, and every peer sharing the domain has
+    plenty. Testimony repairs whatever it is asked about, and it cannot tell a
+    true law from a false one, because that is not what a question asks.
 
-    WHY: THE AUTHOR GIVES THE LAW UP BEFORE IT CAN ASK. A seeded law has no
-    supporting record when the first challenge lands, so the internal
-    re-assessment refuses it on `min_support` at round 0 (measured in the gate
-    above: 66 of 66 refusals on support, median round 0). A law the unit no
-    longer holds licenses no want, so `_wants` stops generating questions about
-    its head — while the converse, which is challenged rarely and therefore
-    survives, goes on generating them for the whole run. Instrumented over the
-    same eight seeds: **16 of the 480 questions ask about a true law's head and
-    464 ask about the converse's**, and all 64 true-law retractions fall at round
-    0. The channel spends itself on the only laws still standing, and those are
-    the false ones.
+    THE COMMUNITY'S EVIDENCE MOVES NOW. Of the true laws' 640 refuting
+    individuals in the muted arm, some peer holds the missing head for **590 —
+    92.2% repairable in principle**, which was true before and did not move. In
+    the live arm the repairable residue falls to 299, so roughly half of what was
+    available has actually been delivered.
 
-    THE QUESTION-GENERATION ITSELF IS NOT AT FAULT, which the brief asked to be
-    checked. `Unit._wants` is defined over exactly the pending set — an atom the
-    unit's law licenses over an individual its record already carries — so it
-    targets what `_pending_split` sets aside, by construction. It simply has
-    nothing to target once the law is gone.
+    THE DISPOSAL EXITS, and the window at last does something. Muted: 66
+    suspensions, 66 retracted internally at the window, nothing else. Live: 66
+    suspensions, 25 restored by rebuttal, 5 restored by silence, 36 retracted
+    internally — so **41 of the 66 doubts end at the window** where the window
+    had fired exactly zero times in every measurement before this task.
 
-    WHAT THIS SAYS ABOUT THE COMMUNITY HYPOTHESIS: it was not tested here. To
-    test it a law would have to survive long enough to ask, which is a question
-    about the order of retraction and inquiry, not about the channel.
+    WHAT IT COSTS: the live arm's net falls from −39 to −106. A repaired law goes
+    on betting under bounded attention, and under bounded attention a true law
+    still cannot pay. Read the counts, not the direction.
     """
-    agg = {k: 0 for k in ("true_ref", "conv_ref", "true_lost", "conv_lost",
-                          "repairable", "unrepairable", "questions", "uptakes",
-                          "net")}
+    keys = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
+            "unrepairable", "questions", "uptakes", "net", "suspended",
+            "internal", "corroborated", "rebutted", "silence")
+    agg = {k: 0 for k in keys}
     muted_agg = dict(agg)
     for seed in C_SEEDS:
         live = _play_ask_and_challenge(seed, C_ROUNDS, ask=True)
@@ -1681,19 +1886,26 @@ def test_peer_testimony_repairs_the_false_law_and_not_the_true_one():
             muted_agg[k] += mute[k]
     assert agg["questions"] > 0 and agg["uptakes"] > 0, (
         "the channel carried nothing, so nothing was tested")
-    # P-C1: refuted. The true laws' refuting count barely moves.
-    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 636)
-    # P-C2: refuted the other way. The converse's refuting count collapses.
-    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 42)
-    # And no law's fate changes: the same true laws are lost in both arms.
-    assert muted_agg["true_lost"] == agg["true_lost"] == 64
-    assert muted_agg["conv_lost"] == agg["conv_lost"] == 2
-    # NOT FOR WANT OF EVIDENCE: 92.2% of what the true laws needed was held by
-    # some peer in the muted arm and never reached the unit that needed it.
+    # P-C1: HELD. The true laws' refuting count falls 45.5%.
+    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 349)
+    # P-C2: refuted the other way, again. The converse's count collapses further.
+    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 20)
+    # AND A LAW'S FATE CHANGES NOW: 28 of the 64 true laws survive.
+    assert (muted_agg["true_lost"], agg["true_lost"]) == (64, 36)
+    assert (muted_agg["conv_lost"], agg["conv_lost"]) == (2, 0)
+    # 92.2% of what the true laws needed was held by some peer in the muted arm;
+    # about half of it now reaches the unit that needs it.
     assert (muted_agg["repairable"], muted_agg["unrepairable"]) == (590, 50)
-    # The net score improves anyway — which, as the gate above says, is not
-    # evidence that a channel discriminates.
-    assert (muted_agg["net"], agg["net"]) == (-433, -39)
+    assert agg["repairable"] == 299
+    # THE WINDOW FIRES: 41 of 66 doubts end there, against 0 before this task.
+    assert muted_agg["suspended"] == agg["suspended"] == 66
+    assert (muted_agg["internal"], muted_agg["rebutted"],
+            muted_agg["silence"]) == (66, 0, 0)
+    assert (agg["internal"], agg["rebutted"], agg["silence"]) == (36, 25, 5)
+    assert muted_agg["corroborated"] == agg["corroborated"] == 0
+    # The net score falls, because a repaired law goes on betting and under
+    # bounded attention a true law still cannot pay.
+    assert (muted_agg["net"], agg["net"]) == (-433, -106)
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

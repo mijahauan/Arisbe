@@ -188,8 +188,8 @@ def test_adopting_a_mark_takes_up_its_content_and_records_attributable_uptake():
     author.laws.add(("p1", "q1"))
     fact_mark, law_mark = author.publish(board, 0)
 
-    assert reader.adopt(fact_mark, board) is True
-    assert reader.adopt(law_mark, board) is True
+    assert reader.adopt(fact_mark, board, 0) is True
+    assert reader.adopt(law_mark, board, 0) is True
     assert ("p1", (("c", "x0"),)) in reader.facts
     assert ("p1", "q1") in reader.laws
     assert board.uptake_of(fact_mark) == {"u1"}
@@ -202,8 +202,8 @@ def test_adopting_twice_takes_up_nothing_new():
     author, reader = Unit("u0", aps[0]), Unit("u1", aps[1])
     author.facts.update(_unary("p1", ["x0"]))
     mark, = author.publish(board, 0)
-    assert reader.adopt(mark, board) is True
-    assert reader.adopt(mark, board) is False
+    assert reader.adopt(mark, board, 0) is True
+    assert reader.adopt(mark, board, 1) is False
     assert board.uptake_of(mark) == {"u1"}
 
 
@@ -218,7 +218,7 @@ def test_uptake_is_not_recorded_for_content_the_reader_already_held():
     author.facts.update(_unary("p1", ["x0"]))
     mark, = author.publish(board, 0)
     reader.facts.update(_unary("p1", ["x0"]))        # arrived at it independently
-    assert reader.adopt(mark, board) is False
+    assert reader.adopt(mark, board, 0) is False
     assert board.uptake_of(mark) == set()
 
 
@@ -232,7 +232,7 @@ def test_a_unit_may_not_adopt_its_own_mark():
     u.facts.update(_unary("p1", ["x0"]))
     mark, = u.publish(board, 0)
     with pytest.raises(ValueError, match="own mark"):
-        u.adopt(mark, board)
+        u.adopt(mark, board, 0)
 
 
 def test_an_adopted_law_changes_what_the_reader_anticipates():
@@ -246,30 +246,37 @@ def test_an_adopted_law_changes_what_the_reader_anticipates():
     law_mark, = author.publish(board, 0)
     reader.facts.update(_unary("p1", ["own0"]))      # the reader's own individual
     assert reader.anticipate() == set()
-    reader.adopt(law_mark, board)
+    reader.adopt(law_mark, board, 0)
     assert reader.anticipate() == {("q1", (("c", "own0"),))}
 
 
-# --- THE RULING: an adopted fact is held, but it is not dated ----------------
+# --- THE RULING: an adopted fact keeps its own clock, not the author's -------
 
 
-def test_an_adopted_fact_is_held_but_carries_no_first_arrival():
-    """`first_seen` records what reached THIS unit's membrane from the field.
-    An adopted mark reached it from a peer, so it enters `facts` and is not
-    dated — see `Unit.adopt`'s docstring for the argument."""
+def test_an_adopted_fact_is_dated_by_the_adopter_not_the_author():
+    """TWO CLOCKS. `first_seen` records what reached THIS unit's membrane from
+    the field, and an adopted mark reached it from a peer, so it does not write
+    there. `adopted_at` records the round THIS unit read the board and took the
+    content up — its own encounter, and emphatically not the round the author
+    published in, which here is 9 while the adoption is at 4."""
     _spec, _field, aps = _setup()
     board = MarkBoard()
     author, reader = Unit("u0", aps[0]), Unit("u1", aps[1])
     author.facts.update(_unary("p1", ["x0"]))
     mark, = author.publish(board, 9)
-    reader.adopt(mark, board)
+    reader.adopt(mark, board, 4)
     assert ("p1", (("c", "x0"),)) in reader.facts
     assert reader.first_seen == {}
+    assert reader.adopted_at == {("p1", (("c", "x0"),)): 4}
+    assert reader._held_since(("p1", (("c", "x0"),))) == 4
 
 
 def test_a_later_first_hand_delivery_dates_a_fact_that_was_adopted_first():
-    """Adoption does not consume the date. If the field later delivers the same
-    fact, THAT is the unit's first first-hand encounter and it is recorded."""
+    """Adoption does not consume the first-hand date. If the field later
+    delivers the same fact, THAT is the unit's first first-hand encounter and it
+    is recorded — while `_held_since` keeps reading the earlier of the two,
+    because how long the record has carried the fact is a different question
+    from how it came by it."""
     _spec, field, aps = _setup()
     board = MarkBoard()
     author, reader = Unit("u0", aps[0]), Unit("u1", aps[1])
@@ -277,10 +284,12 @@ def test_a_later_first_hand_delivery_dates_a_fact_that_was_adopted_first():
     one = sorted(delivered)[0]
     author.facts.add(one)
     mark, = author.publish(board, 0)
-    reader.adopt(mark, board)
+    reader.adopt(mark, board, 1)
     assert reader.first_seen == {}
     reader.absorb(field, 3)
     assert reader.first_seen[one] == 3
+    assert reader.adopted_at[one] == 1
+    assert reader._held_since(one) == 1
 
 
 def test_testimony_cannot_mislead_precedence_and_defeat_a_true_law():
@@ -309,7 +318,7 @@ def test_testimony_cannot_mislead_precedence_and_defeat_a_true_law():
     honest._record(_unary("p1", ["z0", "z1", "z2"]), 1)
     honest._record(_unary("q1", ["z0", "z1", "z2"]), 2)
     for m in marks:
-        honest.adopt(m, board)
+        honest.adopt(m, board, 10)
     assert ("p1", "q1") in honest.induce(10, min_support=3,
                                          max_pending_rate=0.05)
 
@@ -322,26 +331,28 @@ def test_testimony_cannot_mislead_precedence_and_defeat_a_true_law():
                                               max_pending_rate=0.05)
 
 
-def test_adopted_facts_count_as_support_and_no_longer_as_refutation():
-    """THE ASYMMETRY THE OPEN-WORLD READING INTRODUCED, measured in both
+def test_adopted_facts_count_as_support_and_now_as_refutation():
+    """TESTIMONY THAT ONLY EVER HELPS IS NOT TESTIMONY — measured in both
     directions rather than asserted in one.
 
-    Adopted content still counts as SUPPORT: an individual carrying both body and
-    head is confirmed on content alone, and no date is needed to read that. The
-    first arm holds three such individuals entirely on testimony and induces the
-    law.
+    Adopted content counts as SUPPORT: an individual carrying both body and head
+    is confirmed on content alone, and no date is needed to read that. The first
+    arm holds three such individuals entirely on testimony and induces the law.
 
-    Adopted content NO LONGER REFUTES. A body with no first-arrival leaves the
-    unit unable to say whether the head has had time to reach it, so
-    `_pending_split` sets it aside as unknown — the same abstention
-    `_body_precedes_head` already made about direction. Before the open-world
-    reading this arm refused the law (1 pending of 4 = 25%); now the stray is not
-    counted at all and the law stands on its three confirmed supporters.
+    Adopted content NOW REFUTES TOO, once the field's lag has elapsed since the
+    adopting unit met it. The stray `p1(w9)` adopted at round 2 is unknown while
+    the lag stands (asked at round 2: 3 confirmed, 0 refuting, 1 unknown) and
+    refuting afterwards (asked at round 9: 3 confirmed, 1 refuting, 0 unknown),
+    which takes the pending rate to 25% and the law falls. Before this task it
+    was unknown forever, because an adopted fact carried no date at all: the
+    assert channel could bear a law out and never weigh against one.
 
-    WHAT THIS COSTS IS WORTH SAYING PLAINLY: testimony can bear a law out and
-    cannot weigh against it, so the assert channel is now a one-way instrument
-    for induction. Refuting still requires the unit's own dated observation — or
-    a challenge, which cites a peer's evidence without entering it."""
+    THE DATE IS THIS UNIT'S ENCOUNTER, NOT THE PEER'S OBSERVATION, and the third
+    arm is what keeps the two apart: the same individual dated by this unit's own
+    membrane refutes identically, so nothing about the author's publication
+    schedule is being read. Direction is a separate question and still reads
+    deliverances only — see
+    `test_testimony_cannot_mislead_precedence_and_defeat_a_true_law`."""
     _spec, _field, aps = _setup()
     board = MarkBoard()
     peer = Unit("u0", aps[0])
@@ -351,22 +362,25 @@ def test_adopted_facts_count_as_support_and_no_longer_as_refutation():
 
     supported = Unit("u1", aps[1])
     for m in published:
-        supported.adopt(m, board)
+        supported.adopt(m, board, 0)
     assert ("p1", "q1") in supported.induce(9, min_support=3,
                                             max_pending_rate=0.05)
 
-    unrefuted = Unit("u2", aps[2])
-    unrefuted._record(_unary("p1", ["w0", "w1", "w2"]), 0)
-    unrefuted._record(_unary("q1", ["w0", "w1", "w2"]), 1)
+    refuted = Unit("u2", aps[2])
+    refuted._record(_unary("p1", ["w0", "w1", "w2"]), 0)
+    refuted._record(_unary("q1", ["w0", "w1", "w2"]), 1)
     stray = Mark(author="u0", content=("p1", (("c", "w9"),)), kind="fact",
                  round_idx=2)
     board.publish(stray)
-    unrefuted.adopt(stray, board)
-    confirmed, refuting, unknown = unrefuted._pending_split("p1", "q1", 9)
-    assert (len(confirmed), len(refuting), len(unknown)) == (3, 0, 1)
-    assert ("p1", "q1") in unrefuted.induce(9, min_support=3,
-                                            max_pending_rate=0.05)
-    # The same individual, DATED by this unit's own membrane, does refute.
+    refuted.adopt(stray, board, 2)
+    assert refuted.adopted_at[("p1", (("c", "w9"),))] == 2
+    # Inside the lag it says nothing; past the lag it says what a delivered
+    # body of the same age says.
+    assert [len(s) for s in refuted._pending_split("p1", "q1", 2)] == [3, 0, 1]
+    assert [len(s) for s in refuted._pending_split("p1", "q1", 9)] == [3, 1, 0]
+    assert ("p1", "q1") not in refuted.induce(9, min_support=3,
+                                              max_pending_rate=0.05)
+    # The same individual, DATED by this unit's own membrane, refutes the same.
     dated = Unit("u3", aps[3])
     dated._record(_unary("p1", ["w0", "w1", "w2"]), 0)
     dated._record(_unary("q1", ["w0", "w1", "w2"]), 1)
