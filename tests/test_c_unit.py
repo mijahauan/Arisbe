@@ -29,7 +29,8 @@ def test_unit_holding_the_law_anticipates_the_consequent():
 
 def test_held_law_beats_a_wrong_law_over_a_run():
     """Three arms over the same rounds. The lawless arm abstains entirely, so
-    comparing against it only exercises the ledger's zero-case; the misled arm
+    it has no accuracy at all and comparing against it only exercises the
+    ledger's no-bet case (`accuracy is None`, `net_score == 0`); the misled arm
     holds a law the field does not carry, fires on atoms that really arrive,
     and so places genuine bets that genuinely lose. That is the falsifiable
     comparison: a law that does not hold should score badly, not merely
@@ -37,14 +38,15 @@ def test_held_law_beats_a_wrong_law_over_a_run():
 
     The rival is `a_head -> shared`, the same one `tests/test_c_stage_gates.py`
     uses (the duplication between these files is deliberate; the divergence
-    was not). `shared` really arrives every round for some individual of the
-    domain, so this rival both bets AND can win — its accuracy has a nonzero
-    ceiling. The earlier cross-domain rival `a_head -> b_head` bets but scores
-    exactly 0.0 for every seed by construction, since alpha individuals can
-    never receive `b_head`, which makes the comparison unlosable.
+    was not). It bets heavily and loses every bet: `shared` now draws from a
+    pool of s-individuals disjoint from the domain's own, so `shared(a_i)` can
+    never arrive and the rival's ceiling is zero rather than merely low. That
+    weakens what the comparison shows — see the discount recorded in
+    `test_c_stage_gates.py`'s Stage 1 gate docstring.
 
-    Measured at this test's seed (7), 20 rounds: lawful 5 hits / 0 misses =
-    1.0000; misled 1 hit / 19 misses = 0.0500."""
+    Measured at this test's seed (7), 20 rounds: lawful 16 hits / 0 misses =
+    1.0000, net +16; misled 0 hits / 160 misses = 0.0000, net −160; lawless
+    0 bets, accuracy None, net 0."""
     spec, field, ap = _setup()
     lawful, lawless, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     lawful.laws.add(spec.domains[0].law)
@@ -61,7 +63,8 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     # The rival genuinely bets — the comparison has a losing side that plays.
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
-    assert lawful.ledger.accuracy > misled.ledger.accuracy
+    assert lawless.ledger.accuracy is None   # no bet placed, so no ratio
+    assert lawful.ledger.net_score > misled.ledger.net_score
 
 
 def _unary(rel, names):
@@ -100,8 +103,9 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     regime actually planted, and outperforms both a unit that may not induce
     and a unit seeded with a law the field does not carry.
 
-    Three arms. The `fixed` arm never induces, so it never bets and its
-    accuracy is 0.0 by construction — comparing against it only shows the
+    Three arms. The `fixed` arm never induces, so it never bets and has NO
+    accuracy at all (`None`, not 0.0 — an abstainer's ratio would be
+    fabricated); comparing against it therefore uses `net_score`, and shows the
     learner beats total abstention. The `misled` arm holds a wrong law, fires
     on atoms that really arrive, and so places genuine bets that genuinely
     lose. That is the falsifiable comparison: were the induced laws worse than
@@ -109,15 +113,17 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     arm that does the same.
 
     The rival is `a_head -> shared`, matching `tests/test_c_stage_gates.py`'s
-    Stage 1 gate (the duplication is deliberate; the divergence was not): it
-    both bets AND can win, unlike the cross-domain `a_head -> b_head` this
-    test used to compare against, which scores exactly 0.0 for every seed by
-    construction.
+    Stage 1 gate (the duplication is deliberate; the divergence was not). Its
+    ceiling is now zero rather than low, so this comparison is weaker than its
+    earlier wording claimed — the discount is recorded in that gate's
+    docstring, and it applies here unchanged.
 
-    Measured at this test's seed (7), 60 rounds: learner 6 hits / 29 misses =
-    0.1714; misled 2 hits / 26 misses = 0.0714; fixed 0 bets = 0.0000. That
-    margin, like the Stage 1 gate's, is a one-seed ordering, not a general
-    claim — see `test_c_stage_gates.py`'s fragility note."""
+    Measured at this test's seed (7), 60 rounds: learner 61 hits / 0 misses =
+    1.0000, net +61; misled 0 hits / 1157 misses = 0.0000, net −1157; fixed
+    0 bets, accuracy None, net 0. The ordering now holds at every seed sampled
+    (fourteen of them — see the Stage 1 gate's list), so it is no longer the
+    one-seed ordering the earlier note warned about; but read it with that
+    gate's discount, since the rival can no longer win at all."""
     spec, field, ap = _setup()
     learner, fixed, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     # body = first domain's head relation (which really arrives), head =
@@ -133,8 +139,9 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     # The rival genuinely bets — the comparison has a losing side that plays.
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
-    assert learner.ledger.accuracy > fixed.ledger.accuracy
-    assert learner.ledger.accuracy > misled.ledger.accuracy
+    assert fixed.ledger.accuracy is None     # it never bet; no ratio exists
+    assert learner.ledger.net_score > fixed.ledger.net_score
+    assert learner.ledger.net_score > misled.ledger.net_score
 
 
 # --- the unit reasons through the project's real forward-chainer -------------

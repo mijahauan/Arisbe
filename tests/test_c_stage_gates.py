@@ -24,9 +24,11 @@ def _arms():
     ap = apertures_for(spec, n_units=4)[0]
     # The converse of alpha's own law: ("a_head", "a_local").
     converse = (spec.domains[0].law[1], spec.domains[0].law[0])
-    # A wrong law that both bets AND can win: ("a_head", "shared").
-    # `shared` draws from the same domain's individuals every round, so this
-    # rival sometimes hits — the losing side has a nonzero ceiling.
+    # A wrong law that bets heavily and loses: ("a_head", "shared").
+    # It once had a nonzero ceiling — `shared` used to draw from the domain's
+    # own individuals. It no longer does: `shared` now draws from a disjoint
+    # s-individual pool, so this rival scores 0 hits by construction. See the
+    # discount stated in the Stage 1 gate's docstring.
     shared_head = (spec.domains[0].law[1], "shared")
     return spec, field, ap, converse, shared_head
 
@@ -36,35 +38,48 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
 
     The learner must (a) induce a law the field actually planted and (b)
     outscore a unit that holds a WRONG law and bets on it — not merely
-    outscore total abstention, which any nonzero accuracy achieves.
+    outscore total abstention.
 
-    The betting rival is `a_head -> shared`, which both bets and sometimes
-    WINS (3 hits / 16 misses = 0.1579 at this seed). That nonzero ceiling on
-    the losing side is what makes the comparison real: two earlier candidates
-    were rejected for lacking it — the converse law never bets at all (see
-    `test_the_converse_law_arm_places_no_bets_at_all`) and the cross-domain
-    law `a_head -> b_head` bets but scores exactly 0.0 for every seed by
-    construction, since alpha individuals can never receive `b_head`.
+    THE STATISTIC IS `net_score` (hits − misses), not `accuracy`. Two reasons.
+    A ratio over few bets is unstable — one lucky hit reads as a perfect score,
+    which is what made an earlier version of this gate flip across seeds. And
+    the `fixed` arm never bets, so its `accuracy` is `None` (an abstainer has no
+    accuracy rather than a zero one); comparing a ratio against it would raise.
+    `net_score` puts a better and an abstainer on one honest scale: abstention
+    is 0, betting and winning is positive, betting and losing is negative.
 
-    SEED SENSITIVITY, stated rather than hidden: the margin here is +0.5564,
-    but it is not stable across seeds. Over ten sampled seeds the learner
-    loses at two (seed 99: misled 1.0000 vs learner 0.5556; seed 808: both
-    1.0000). The rival's accuracy is a ratio over very few bets, so a single
-    lucky hit reads as a perfect score. This gate asserts an ordering at one
-    fixed seed; it is NOT evidence that induction beats a shared-head rival
-    in general. See the task-8 report.
+    MEASURED at this seed (20260728), 60 rounds: learner 55 hits / 0 misses,
+    net +55; rival 0 hits / 1097 misses, net −1097; `fixed` 0 bets, net 0.
+    The gate's margin is therefore +1152 over the rival and +55 over abstention.
 
-    WHY the bets are so few — the cause is the field, not only the statistic:
-    THE FIELD SATURATES. This aperture's whole atom universe is 30 atoms, and
-    the learner has absorbed all 30 by round 18. `Unit.anticipate` drops any
-    candidate already in `facts`, so once everything reachable is held there
-    is nothing left to forecast: the learner places 7 bets in total across the
-    60 rounds, all of them before round 19, and the last 42 rounds are silent.
-    Lengthening the run therefore adds no evidence at all — it only adds
-    silence — and each single bet moves the ratio by roughly a seventh. Any
-    fix for the fragility has to widen the field (more individuals, more
-    domains, re-delivery of unheld atoms) rather than run longer; that is a
-    stage-3 design decision, deliberately not made here.
+    SATURATION IS GONE. This aperture's atom universe is now 180 atoms (40
+    individuals per domain plus a 20-individual shared pool). The learner holds
+    142 of them after 60 rounds and is still betting at the end: 39 of the 60
+    rounds carry a bet, the first at round 4 and the last at round 59, with 9
+    bet-rounds at or after round 40. Anticipation stays live for the whole run,
+    so a longer run now adds evidence rather than silence — the earlier field
+    (30 atoms, all held by round 18, 7 bets total) could not say that.
+
+    SEED FRAGILITY IS GONE, and here are the seeds: over 1, 2, 3, 4, 5, 7, 42,
+    99, 555, 808, 2026, 12345, 20260728 and 31337, the learner outranks the
+    rival on `net_score` at 14 of 14 — and on `accuracy` at 14 of 14 as well.
+    The two seeds that used to break the ordering (99 and 808) no longer do.
+
+    BUT READ THAT WITH A DISCOUNT, because part of the reason is a loss of
+    difficulty, not a gain in evidence. The rival `a_head -> shared` was chosen
+    because it both bet AND could sometimes win — a nonzero ceiling on the
+    losing side. It no longer has one. `shared` now draws from a pool of
+    s-individuals disjoint from every domain's own individuals, so the rival
+    predicts `shared(a_i)` for alpha individuals and that atom can never
+    arrive: 0 hits at every seed, by construction. That is exactly the defect
+    for which the cross-domain rival `a_head -> b_head` was rejected. A sweep
+    of all twenty body→head pairs over this aperture's five relations finds
+    only the two PLANTED laws ever scoring a hit; every other law either never
+    bets (the two converses) or bets and scores exactly zero. So this gate
+    currently shows that induction beats laws that cannot win, which is weaker
+    than what its earlier wording claimed. Restoring a rival with a real
+    ceiling means giving two relations an overlapping individual pool — a field
+    design decision, deliberately not made here.
     """
     spec, field, ap, _converse, shared_head = _arms()
     learner = Unit("u0", ap)
@@ -81,9 +96,12 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     assert learner.ledger.hits > 0
     # The rival genuinely bets — the comparison has a losing side that plays.
     assert misled.ledger.hits + misled.ledger.misses > 0
-    # And the learner beats it, and beats abstention.
-    assert learner.ledger.accuracy > misled.ledger.accuracy
-    assert learner.ledger.accuracy > fixed.ledger.accuracy
+    # And the learner beats it, and beats abstention — on `net_score`, the
+    # statistic that is stable at low bet volumes and that an abstainer can
+    # share a scale with (its `accuracy` is None, not 0.0).
+    assert learner.ledger.net_score > misled.ledger.net_score
+    assert learner.ledger.net_score > fixed.ledger.net_score
+    assert fixed.ledger.accuracy is None      # it never bet; no ratio exists
 
 
 def test_the_converse_law_arm_places_no_bets_at_all():
@@ -97,8 +115,13 @@ def test_the_converse_law_arm_places_no_bets_at_all():
     candidate already in `facts`, and the field delivers `a_head(y)` at round
     r only because `a_local(y)` was delivered at r-1 and absorbed then. The
     converse law's head is therefore ALWAYS already held, so it never yields
-    a prediction. Verified at seeds 7 / 20260728 / 99 / 12345 and out to 200
-    rounds: zero bets in every case.
+    a prediction. Re-verified on the widened field at seeds 7 / 99 / 808 /
+    12345 / 20260728 and out to 200 rounds: zero bets in every case.
+
+    Both arms therefore have NO accuracy — `None`, not 0.0. A unit that placed
+    no bet has no ratio to report, and fabricating one for it would let an
+    abstainer be ranked as if it had played and lost. `net_score` is 0 for
+    both, which is the honest reading: nothing ventured either way.
     """
     _spec, field, ap, converse, _shared_head = _arms()
     conv_arm = Unit("u3", ap, laws={converse})
@@ -108,7 +131,9 @@ def test_the_converse_law_arm_places_no_bets_at_all():
         lawless.step(field, r, induce=False)
 
     assert conv_arm.ledger.hits + conv_arm.ledger.misses == 0
-    assert conv_arm.ledger.accuracy == lawless.ledger.accuracy == 0.0
+    assert conv_arm.ledger.accuracy is None
+    assert lawless.ledger.accuracy is None
+    assert conv_arm.ledger.net_score == lawless.ledger.net_score == 0
 
 
 def test_stage_2_gate_support_is_recoverable_and_changes_what_survives():
