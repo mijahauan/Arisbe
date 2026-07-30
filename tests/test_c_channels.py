@@ -11,10 +11,12 @@ disposed of by its author against its own record. Its measurement gates are at
 the bottom, and they report a NEGATIVE result, deliberately unsmoothed.
 """
 
+from collections import Counter
+
 import pytest
 
 from c_field import CYCLIC, PAIRS, Field, apertures_for, default_spec
-from c_marks import Mark, MarkBoard
+from c_marks import FACT, Mark, MarkBoard
 from c_unit import Unit
 
 A1 = (("c", "a1"),)
@@ -2128,11 +2130,19 @@ def _witness_induce_arm(n_units, scheme, witnesses=None):
 
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                             scheme=CYCLIC, window=None, witnesses=None,
-                            typify=None, rep_window=None):
+                            typify=None, rep_window=None, mute=False):
     """A community of `n_units`, planted laws AND converses seeded, no
     induction, bounded attention. `ask` switches the ask/answer/adopt channel on
     and off; the challenge channel runs in both arms, so the only variable is
     whether peers can tell each other what they saw.
+
+    `mute` IS THE STAGE-3 GATE'S TWIN AND IT IS A DIFFERENT ARM FROM `ask=False`.
+    Every table written before Task 7 calls `ask=False` "mute", and it means the
+    ASK channel is mute: those units still publish, still challenge, still
+    corroborate and still dispose. `mute=True` silences all four channels — no
+    mark of any kind is minted, read or disposed of, so each unit runs the field
+    alone with the laws it was seeded with. It requires `ask=False`, because a
+    community that cannot publish cannot answer either.
 
     UPTAKE IS TARGETED, exactly as in the ask channel's own measurement above: a
     unit adopts a fact mark ONLY when it answers a question that unit itself
@@ -2161,6 +2171,10 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
     disposition knobs, exactly as in `_play_challenge`; `rep_window` is the
     replication window each unit waits before reading silence as a failure.
     """
+    if mute and ask:
+        raise ValueError(
+            "mute=True silences publication, so there is nothing for the ask "
+            "channel to answer from: pass ask=False with it")
     spec = default_spec(seed=seed)
     field = Field(spec)
     aps = apertures_for(spec, n_units=n_units, scheme=scheme)
@@ -2192,6 +2206,24 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
     occ_pref = occ_bite = 0
     refused = set()
     adopted = []
+    # GATE 2'S TWO MATRICES. `put` is every question actually published, asker
+    # and content, including the ones a disposal's inquiry publishes; `consult`
+    # is who ended up taking whose word, counted on uptake because a question
+    # has no addressee — the board carries it to everyone, so the only place a
+    # unit expresses whom it consults is which reply it takes.
+    put = []
+    consult = Counter()
+    # HOW MANY VOICES STOOD BEHIND THE CONTENT AT THE MOMENT OF CHOICE. `said`
+    # is every fact content on the board and who has said it, accumulated from
+    # what each act actually minted rather than re-scanned per decision (a board
+    # scan per reply is quadratic in the run). It is read at phase (a), so it
+    # holds exactly what was published through round r−1 — which is what an
+    # asker deciding at round r could have chosen between.
+    said = {}
+    voices, voices_by_rel = Counter(), Counter()
+    independent = relayed = twin = choice_lowest = 0
+    pref_choice = pref_choice_bite = 0
+    by_id = {u.unit_id: u for u in units}
     exits = {k: 0 for k in ("suspended", "internal", "corroborated",
                             "rebutted", "silence")}
 
@@ -2205,11 +2237,19 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                     if reply is None or reply.author == u.unit_id:
                         continue
                     relation = reply.content[0]
+                    speakers = said.get(reply.content, set()) - {u.unit_id}
                     if typify is not None:
                         preferred = u.whom_to_ask(relation)
                         if preferred is not None:
                             occ_pref += 1
                             occ_bite += reply.author != preferred
+                            # THE DECISIVE INTERSECTION for gate 2: not "was a
+                            # preference held" but "was one held WHERE a choice
+                            # existed", which is the only place it could decide
+                            # anything.
+                            if len(speakers) > 1:
+                                pref_choice += 1
+                                pref_choice_bite += reply.author != preferred
                             take = reply.author == preferred
                         elif typify == "distrust":
                             take = u.peers.get(reply.author, {}).get(
@@ -2224,6 +2264,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                     uptakes += took
                     if took:
                         adopted.append(reply.content)
+                        consult[(u.unit_id, reply.author)] += 1
                         # COUNTED ONLY WHEN SOMETHING WAS ACTUALLY TOLD. A reply
                         # whose content the asker already held is not a second
                         # voice about that relation — it is the same fact
@@ -2231,6 +2272,46 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                         # nobody had.
                         suppliers[u.unit_id].setdefault(relation, set()).add(
                             reply.author)
+                        # THE SAME DISCIPLINE APPLIED TO THE CHOICE ITSELF. A
+                        # first cut counted the voices at every decision and read
+                        # 13 gamma-relation choices at six units; every one was a
+                        # reply whose content the asker's own membrane had
+                        # delivered in the meantime, so nothing was chosen and
+                        # nothing was told. Counted on fresh uptake, gamma drops
+                        # out entirely — which is what the aperture layout says
+                        # should happen, since all three gamma witnesses attend
+                        # the same rounds and hold the same gamma facts.
+                        voices[len(speakers)] += 1
+                        voices_by_rel[(relation, len(speakers))] += 1
+                        # WHERE A SECOND VOICE COMES FROM. A unit publishes
+                        # everything it holds, adopted testimony included, so a
+                        # peer can stand behind an atom it never met. Split the
+                        # decisions that offered a choice into the ones where
+                        # every voice had met the atom first-hand by that round
+                        # and the ones where at least one was relaying what it
+                        # had itself been told.
+                        if len(speakers) > 1:
+                            # WHICH OF THE AVAILABLE VOICES ANSWERED. `answer_to`
+                            # returns the first mark published and every phase
+                            # walks the units in order, so the claim to check is
+                            # that the lowest-numbered voice answers every time —
+                            # measured rather than argued, because a peer that
+                            # met the atom earlier could in principle have got
+                            # there first.
+                            choice_lowest += reply.author == min(speakers)
+                            met = [by_id[a].first_seen.get(reply.content)
+                                   for a in speakers]
+                            if all(w is not None and w <= r for w in met):
+                                independent += 1
+                                # AND WHETHER THE TWO VOICES ARE TWINS. Peers
+                                # that met the atom on the SAME round witness
+                                # its domain on the same attendance phase, so
+                                # they hold the same facts about it and differ
+                                # only in name.
+                                if len(set(met)) == 1:
+                                    twin += 1
+                            else:
+                                relayed += 1
         for i, u in enumerate(units):                       # (b) attend
             if stagger == 1 or r % stagger == i % stagger:
                 u.step(field, r, induce=False)
@@ -2239,15 +2320,23 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                 mark = u.ask(board, r)
                 if mark is not None:
                     asked[u.unit_id].append(mark)
+                    put.append((u.unit_id, mark.content))
                     questions += 1
             for u in units:                                 # (d) answer
-                u.answer(board, r)
+                for m in u.answer(board, r):
+                    said.setdefault(m.content, set()).add(m.author)
+        if mute:
+            continue
         for u in units:                                     # (e) publish
-            u.publish(board, r)
+            for m in u.publish(board, r):
+                if m.kind == FACT:
+                    said.setdefault(m.content, set()).add(m.author)
         for u in units:                                     # (f) challenge
             u.challenge(board, r)
         for u in units:                                     # (g) corroborate
-            u.corroborate(board, r)
+            for m in u.corroborate(board, r):
+                if m.kind == FACT:
+                    said.setdefault(m.content, set()).add(m.author)
         for u in units:                                     # (h) dispose
             out = u.dispose_challenges(board, r)
             exits["suspended"] += len(out.suspended)
@@ -2262,6 +2351,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
             if ask:
                 for mark in out.asked:
                     asked[u.unit_id].append(mark)
+                    put.append((u.unit_id, mark.content))
                     questions += 1
         if ask:                                             # (i) settle credit
             # RUN IN EVERY ASK ARM, INCLUDING THE UNTARGETED CONTROL. Nothing
@@ -2288,6 +2378,24 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
     scores = [s for u in units for by_rel in u.peers.values()
               for s in by_rel.values()]
 
+    # THE LOOSE READING, KEPT ONLY SO THE TIGHT ONE CAN BE READ AGAINST IT.
+    # `could` asks how many peers ever held the asked atom first-hand, counted
+    # at the END of the run; since a record only grows, that credits a peer who
+    # met the atom forty rounds after the question closed. It over-reads, and
+    # `voices` — counted from the board at the round the asker actually decided
+    # — is the number reported.
+    firsthand = {u.unit_id: set(u.first_seen) for u in units}
+    could = Counter()
+    for asker, content in put:
+        could[sum(1 for u in units
+                  if u.unit_id != asker and content in firsthand[u.unit_id])] += 1
+    prefs = Counter()
+    for u in units:
+        for rel in sorted({r for by_rel in u.peers.values() for r in by_rel}):
+            who = u.whom_to_ask(rel)
+            if who is not None:
+                prefs[(u.unit_id, who)] += 1
+
     tally = dict(true_ref=0, conv_ref=0, true_lost=0, conv_lost=0,
                  repairable=0, unrepairable=0, questions=questions,
                  uptakes=uptakes, net=sum(u.ledger.net_score for u in units),
@@ -2305,19 +2413,39 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                                   for v in s.values() if len(v) == 1),
                  many_suppliers=sum(1 for s in suppliers.values()
                                     for v in s.values() if len(v) > 1),
+                 # GATE 1'S COMPANIONS: what the score is made of, so a zero
+                 # from silence and a zero from balanced betting cannot look
+                 # alike. `bets` excludes abstentions, which the membrane never
+                 # punishes.
+                 hits=sum(u.ledger.hits for u in units),
+                 misses=sum(u.ledger.misses for u in units),
+                 abstain=sum(u.ledger.abstentions for u in units),
+                 true_total=0, conv_total=0, true_susp=0, conv_susp=0,
+                 independent=independent, relayed=relayed, twin=twin,
+                 choice_lowest=choice_lowest,
+                 pref_choice=pref_choice, pref_choice_bite=pref_choice_bite,
+                 consult=consult, prefs=prefs, could=could,
+                 voices=voices, voices_by_rel=voices_by_rel,
                  **exits)
+    tally["bets"] = tally["hits"] + tally["misses"]
     for u in units:
         laws, conv = mine[u.unit_id]
         for body, head in sorted(laws):
             _c, refuting, _unk = u._pending_split(body, head, rounds - 1)
             tally["true_ref"] += len(refuting)
+            tally["true_total"] += 1
             tally["true_lost"] += (body, head) not in u.laws
+            # A SUSPENDED LAW IS STILL HELD AND LICENSES NOTHING, so "held at
+            # the end" is reported beside it rather than instead of it.
+            tally["true_susp"] += (body, head) in u.suspended
             for args in refuting:
                 held = any((head, args) in p.facts for p in units if p is not u)
                 tally["repairable" if held else "unrepairable"] += 1
         _c, refuting, _unk = u._pending_split(conv[0], conv[1], rounds - 1)
         tally["conv_ref"] += len(refuting)
+        tally["conv_total"] += 1
         tally["conv_lost"] += conv not in u.laws
+        tally["conv_susp"] += conv in u.suspended
     return tally
 
 
@@ -2489,6 +2617,19 @@ _TYPIFY_KEYS = _ASK_KEYS + (
     "failed", "pending", "preferences", "occ_pref", "occ_bite", "refused",
     "one_supplier", "many_suppliers", "score_pos", "score_neg", "score_zero")
 
+_GATE_KEYS = _TYPIFY_KEYS + (
+    "hits", "misses", "abstain", "bets", "true_total", "conv_total",
+    "true_susp", "conv_susp", "independent", "relayed", "twin",
+    "choice_lowest", "pref_choice", "pref_choice_bite")
+"""Everything `_TYPIFY_KEYS` carries, plus gate 1's companion statistics: the
+score split into the bets it is made of, and the law counts read as held rather
+than as lost."""
+
+_MATRIX_KEYS = ("consult", "prefs", "could", "voices", "voices_by_rel")
+"""The gate-2 readings that are distributions rather than totals. They are
+summed as `Counter`s across seeds and handed back as copies, so a reader cannot
+mutate the memoised arm underneath the next reader."""
+
 _ARMS = {}
 """Aggregates already computed, keyed by their arguments.
 
@@ -2501,21 +2642,25 @@ here trims a seed or an arm."""
 
 
 def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None,
-                   typify=None, rep_window=None, keys=_ASK_KEYS):
-    cached = _ARMS.get((n_units, scheme, ask, window, witnesses, typify,
-                        rep_window))
+                   typify=None, rep_window=None, mute=False, keys=_ASK_KEYS):
+    arm = (n_units, scheme, ask, window, witnesses, typify, rep_window, mute)
+    cached = _ARMS.get(arm)
     if cached is None:
-        cached = {k: 0 for k in _TYPIFY_KEYS}
+        cached = {k: 0 for k in _GATE_KEYS}
+        cached.update({k: Counter() for k in _MATRIX_KEYS})
         for seed in C_SEEDS:
             t = _play_ask_and_challenge(seed, C_ROUNDS, ask=ask,
                                         n_units=n_units, scheme=scheme,
                                         window=window, witnesses=witnesses,
-                                        typify=typify, rep_window=rep_window)
-            for k in cached:
+                                        typify=typify, rep_window=rep_window,
+                                        mute=mute)
+            for k in _GATE_KEYS:
                 cached[k] += t[k]
-        _ARMS[(n_units, scheme, ask, window, witnesses, typify,
-               rep_window)] = cached
-    return {k: cached[k] for k in keys}
+            for k in _MATRIX_KEYS:
+                cached[k].update(t[k])
+        _ARMS[arm] = cached
+    return {k: (Counter(cached[k]) if k in _MATRIX_KEYS else cached[k])
+            for k in keys}
 
 
 # --- does typification discriminate? ------------------------------------------
@@ -2553,9 +2698,22 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     that witnesses alpha. Under bounded attention with `stagger=2` a peer that
     witnesses alpha ON THE SAME ROUNDS meets exactly what the asker meets and
     has nothing to add, so the only peer that can ever tell it something new is
-    one witnessing the same domain on the OPPOSITE rounds — and at both
-    community sizes there is exactly one of those per asker. A preference cannot
-    express itself when the alternative to the preferred voice is silence.
+    one witnessing the same domain on the OPPOSITE rounds — and at four units
+    there is exactly one of those per asker. A preference cannot express itself
+    when the alternative to the preferred voice is silence.
+
+    THAT SENTENCE ORIGINALLY READ "at both community sizes" AND TASK 7 FALSIFIED
+    IT. Six units put three witnesses on a domain, and at alpha they are u0
+    (even), u1 (odd) and u2 (even), so the ODD asker has TWO opposite-phase peers
+    rather than one. Counted at the decision, 394 of the 928 uptakes there had
+    two peers standing behind the content
+    (`test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`).
+    The measurement below is unaffected and the reason it is unaffected is worth
+    keeping: the two candidate voices attend the same rounds as each other, so
+    they hold the same facts, and `MarkBoard.answer_to` returns the first mark
+    published — which the lower-numbered unit always mints first. One peer is the
+    perpetual answerer, so `many_suppliers` is 0 for a reason about publication
+    order rather than about what anybody could have said.
 
     A SUPPLIER IS COUNTED ONLY WHEN IT TOLD THE UNIT SOMETHING IT DID NOT HOLD.
     Counted the looser way — every reply encountered, including ones whose
@@ -2789,6 +2947,257 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
     # dropped, at every window.
     for arm in arms:
         assert arm["proved"] + arm["failed"] + arm["pending"] == arm["uptakes"]
+
+
+# --- the two stage-3 gates -----------------------------------------------------
+#
+# THE PLAN PRE-REGISTERED THESE and instructed that a null be reported rather
+# than tuned away. Both are run below at the community the plan named — four
+# units — with the six-unit community reported beside them, because six units is
+# the only size at which any unit was ever offered a second voice.
+
+
+def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less():
+    """**GATE 1 PASSES ON `net_score` AND THE PASS MEANS THE OPPOSITE OF WHAT IT
+    LOOKS LIKE.** Four units, eight seeds, 60 rounds, planted laws and converses
+    seeded, bounded attention. The live world runs all four stage-3 channels; the
+    mute twin runs none, so each unit meets the same field alone.
+
+        four units                mute twin      live world
+        net score                     −1421            −106
+        bets placed                    1497             110
+        hits                             38               2
+        misses                         1459             108
+        hit rate among bets           0.0254          0.0182
+        abstentions                    5009            5654
+        true laws held at the end     64/64           28/64
+        converses held at the end     32/32           32/32
+
+    The live world's score exceeds the mute twin's by a factor of thirteen. It
+    also places 92.7% fewer bets, lands 2 hits against 38, holds 36 fewer of the
+    64 true laws it was given, and holds every one of the 32 false ones in both
+    arms. **Communication bought a better score by very nearly ceasing to
+    forecast.**
+
+    **`net_score` ALONE CANNOT CARRY THIS GATE, and the evidence is four earlier
+    inversions in this series, each with the outcome measured beside it:**
+
+    - Task 5, bounded attention with the challenge channel: net rose −1421 →
+      −433 while 64 of 64 true laws were destroyed.
+    - Task 5e, the ask channel with inquiry ordered before elimination: net fell
+      −39 → −106 while 28 of the 64 true laws were saved.
+    - Task 5f, six units mute: net read exactly 0 against four units' −2122,
+      because no unit survived to place a bet at all.
+    - Task 6, the distrust arm: net fell −106 → −551 with every law's fate and
+      every disposal exit identical, because an adopted head atom mostly prevents
+      a losing bet rather than winning one.
+
+    Spec §9a retired `accuracy` at these bet volumes for a related reason, and
+    the hit rates above show why it stays retired: 2 hits of 110 and 3 of 83
+    decide a ratio, so the six-unit live arm's 0.0361 against its mute twin's
+    0.0199 rests on three events and carries nothing. **Read bets placed and laws
+    held; the ratio is reported for completeness and should not be leaned on.**
+
+    THE DECOMPOSITION IS WHAT SETTLES IT. Inserting the challenge-channel-only
+    arm between the two shows both steps moving the score the same way for
+    opposite epistemic reasons:
+
+        four units              net    bets   true held   converses held
+        mute twin             −1421    1497       64/64            32/32
+        challenge only         −433     455        0/64            30/32
+        all four channels      −106     110       28/64            32/32
+
+    The first step improves the score by 988 by destroying every true law; the
+    second improves it by a further 327 by restoring 28 of them. **A statistic
+    that rises both when true laws are destroyed and when they are restored is
+    not measuring what the gate asks about.**
+
+    SIX UNITS READS THE SAME WAY AND HARDER: net −2122 → −77, bets 2210 → 83,
+    hits 44 → 3, true laws held 96/96 → 27/96, converses held 48/48 → 31/48.
+    Converses die there where the live arm at four units loses none, and the
+    channels stay anti-discriminating all the same: **71.9% of the true laws
+    lost against 35.4% of the converses.**
+
+    The mute twin reproduces Task 5's −1421 and the challenge-only arm its −433,
+    which is the check that this new arm is the same world under a new switch
+    rather than a differently-configured one.
+    """
+    four_mute = _aggregate_ask(4, CYCLIC, ask=False, mute=True, keys=_GATE_KEYS)
+    four_live = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS)
+    four_chal = _aggregate_ask(4, CYCLIC, ask=False, keys=_GATE_KEYS)
+    six_mute = _aggregate_ask(6, PAIRS, ask=False, mute=True, keys=_GATE_KEYS)
+    six_live = _aggregate_ask(6, PAIRS, ask=True, keys=_GATE_KEYS)
+
+    # The mute twin really is mute: no question, no uptake, and no doubt ever
+    # entertained, so nothing but the field reached any unit.
+    assert (four_mute["questions"], four_mute["uptakes"]) == (0, 0)
+    assert [four_mute[k] for k in ("suspended", "internal", "corroborated",
+                                   "rebutted", "silence")] == [0] * 5
+    # THE GATE'S OWN CLAUSE, AND IT PASSES.
+    assert four_live["net"] > four_mute["net"]
+    assert (four_mute["net"], four_live["net"]) == (-1421, -106)
+    # AND THE COMPANIONS SAY IT PASSED BY BETTING ALMOST NOT AT ALL.
+    assert (four_mute["bets"], four_live["bets"]) == (1497, 110)
+    assert (four_mute["hits"], four_live["hits"]) == (38, 2)
+    assert (four_mute["misses"], four_live["misses"]) == (1459, 108)
+    assert (four_mute["abstain"], four_live["abstain"]) == (5009, 5654)
+    assert four_live["bets"] / four_mute["bets"] < 0.08
+    # THE OUTCOME THE SERIES CARES ABOUT MOVES THE OTHER WAY: 36 of the 64 true
+    # laws are gone and every one of the 32 converses still stands.
+    assert (four_mute["true_total"], four_live["true_total"]) == (64, 64)
+    assert (four_mute["true_lost"], four_live["true_lost"]) == (0, 36)
+    assert (four_mute["conv_total"], four_live["conv_total"]) == (32, 32)
+    assert (four_mute["conv_lost"], four_live["conv_lost"]) == (0, 0)
+    # No law standing at the end is standing suspended, so "held" means "held
+    # and licensing anticipations" in both arms.
+    assert (four_mute["true_susp"], four_live["true_susp"]) == (0, 0)
+    assert (four_mute["conv_susp"], four_live["conv_susp"]) == (0, 0)
+    # THE DECOMPOSITION: both steps raise the score, the first by destroying
+    # every true law and the second by restoring 28 of them.
+    assert (four_chal["net"], four_chal["bets"]) == (-433, 455)
+    assert (four_chal["true_lost"], four_chal["conv_lost"]) == (64, 2)
+    assert four_mute["net"] < four_chal["net"] < four_live["net"]
+    # The hit rate is reported and not leaned on: it falls in the live arm at
+    # four units and rises at six, on 2 and 3 hits respectively.
+    assert four_live["hits"] / four_live["bets"] < four_mute["hits"] / four_mute["bets"]
+    assert six_live["hits"] / six_live["bets"] > six_mute["hits"] / six_mute["bets"]
+    assert (six_live["hits"], six_mute["hits"]) == (3, 44)
+    # SIX UNITS, THE SAME SHAPE AND HARDER.
+    assert (six_mute["net"], six_live["net"]) == (-2122, -77)
+    assert (six_mute["bets"], six_live["bets"]) == (2210, 83)
+    assert (six_mute["true_lost"], six_live["true_lost"]) == (0, 69)
+    assert (six_mute["conv_lost"], six_live["conv_lost"]) == (0, 17)
+    assert six_live["true_lost"] / 96 > six_live["conv_lost"] / 48
+
+
+def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice():
+    """**GATE 2 READS THE PRE-REGISTERED NULL.** Its first clause holds by a
+    single record and its second holds for a reason that has nothing to do with
+    consultation.
+
+    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`: **yes, exactly
+    one.** Of the 96 (peer, relation) records a four-unit community accumulates,
+    1 ends the run positive; six units read 5 of 107.
+
+    CLAUSE 2 — the who-asks-whom distribution is not uniform: **yes, and it is
+    the aperture layout that made it so.** Four units, eight seeds, 60 rounds,
+    939 uptakes over the twelve ordered (asker, answerer) pairs, where uniform
+    would put 78 in each:
+
+              takes from     u0     u1     u2     u3
+              u0              —     22      0    189
+              u1            229      —     26      0
+              u2              0    197      —     21
+              u3             21      0    234      —
+
+    The four empty cells are exactly the two pairs of units that share no
+    domain, and every non-empty cell is a pair that shares one. Each unit takes
+    about 90% of its uptake from the single peer that witnesses the domain its
+    own seeded converse names — 189 of 211, 229 of 255, 197 of 218, 234 of 255 —
+    because that converse wants an ANTECEDENT relation the field delivers every
+    round.
+
+    THE DIAGNOSTIC THE PLAN DID NOT ASK FOR, AND IT IS THE ONE THAT MATTERS.
+    Counting, at each uptake decision, how many distinct peers had already
+    published that content: **all 939 decisions at four units had exactly one.**
+    Every relation reads the same — a_head 95, a_local 115, b_head 137, b_local
+    114, d_head 135, d_local 120, g_head 112, g_local 111, and not one decision
+    at any relation with two. A community in which every question has exactly one
+    possible answerer has not failed to typify; it never posed the question
+    typification answers.
+
+    SIX UNITS DID OFFER A CHOICE, AND THE CHOICE WAS BETWEEN TWINS. There, 394
+    of 928 decisions had two peers standing behind the content. All 394 are
+    independent first-hand witnesses — none was relaying adopted testimony — and
+    all 394 met the atom on the SAME ROUND, because a domain at six units is
+    witnessed by three units of which two attend the same rounds. Two records of
+    one identical observation stream differ in name and in nothing else. On the
+    394, a preference was held at 23 decisions and named the answering peer at
+    every one of the 23.
+
+    THE INSTRUMENT WAS TIGHTENED BEFORE THESE NUMBERS WERE PUBLISHED, the same
+    way Task 6's supplier count was. A first cut counted voices at every decision
+    rather than at every decision that told the unit something, and read 13
+    gamma-relation choices at six units. Every one was a reply whose content the
+    asker's own membrane had delivered in the meantime. Counted on fresh uptake,
+    gamma vanishes — which is what the layout predicts, since all three gamma
+    witnesses attend the same rounds and hold the same gamma facts.
+
+    WHAT A LOOSER READING WOULD HAVE SAID, kept as `could` so the tight number
+    can be read against it: counting, per question, how many peers ever met the
+    atom first-hand at any round of the run, four units read 68 questions no peer
+    could ever have answered and 956 answerable by exactly one; six units read
+    72, 324 and 649 with two. The looser count credits a peer that met the atom
+    forty rounds after the question closed, which is why the decision-time count
+    is the one reported.
+    """
+    four = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
+    six = _aggregate_ask(6, PAIRS, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
+    four_pref = _aggregate_ask(4, CYCLIC, ask=True, typify="prefer",
+                               keys=_GATE_KEYS + _MATRIX_KEYS)
+    six_pref = _aggregate_ask(6, PAIRS, ask=True, typify="prefer",
+                              keys=_GATE_KEYS + _MATRIX_KEYS)
+
+    # CLAUSE 1: a preference exists, and it is one record of 96.
+    assert sum(four["prefs"].values()) == 1
+    assert sum(six["prefs"].values()) == 5
+    assert four["preferences"] == 1 and six["preferences"] == 5
+
+    # CLAUSE 2: the matrix, exactly as tabulated.
+    assert dict(four["consult"]) == {
+        ("u0", "u1"): 22, ("u0", "u3"): 189,
+        ("u1", "u0"): 229, ("u1", "u2"): 26,
+        ("u2", "u1"): 197, ("u2", "u3"): 21,
+        ("u3", "u0"): 21, ("u3", "u2"): 234}
+    assert sum(four["consult"].values()) == four["uptakes"] == 939
+    # NON-UNIFORM, AND EXPLAINED BY THE APERTURES: a cell is non-empty exactly
+    # when the two units share a domain.
+    aps = {a.unit_id: set(a.domains)
+           for a in apertures_for(default_spec(), n_units=4, scheme=CYCLIC)}
+    for a in sorted(aps):
+        for b in sorted(aps):
+            if a == b:
+                continue
+            assert (four["consult"][(a, b)] > 0) == bool(aps[a] & aps[b]), (
+                f"{a} took from {b} in a way the apertures do not explain")
+    # About 90% of each unit's uptake comes from one peer.
+    for a in sorted(aps):
+        row = {b: n for (x, b), n in four["consult"].items() if x == a}
+        assert max(row.values()) / sum(row.values()) > 0.89
+
+    # THE DIAGNOSTIC: not one decision at four units offered a second voice.
+    assert dict(four["voices"]) == {1: 939}
+    assert {n for _rel, n in four["voices_by_rel"]} == {1}
+    assert sorted(rel for rel, _n in four["voices_by_rel"]) == [
+        "a_head", "a_local", "b_head", "b_local", "d_head", "d_local",
+        "g_head", "g_local"]
+    assert four["independent"] == four["relayed"] == four["twin"] == 0
+    assert four_pref["pref_choice"] == 0, (
+        "a preference decided something at four units, where no decision had "
+        "two voices to decide between")
+    assert (four_pref["occ_pref"], four_pref["occ_bite"]) == (41, 0)
+
+    # SIX UNITS: a choice existed, and both voices were the same observation.
+    assert dict(six["voices"]) == {1: 534, 2: 394}
+    assert six["independent"] == 394 and six["relayed"] == 0
+    assert six["twin"] == 394, (
+        "a second voice met the atom on a different round from the first, so "
+        "the two are not duplicate records of one stream")
+    # AND ONE PEER IS THE PERPETUAL ANSWERER. `answer_to` returns the first mark
+    # published and every phase walks the units in order, so the lower-numbered
+    # of two equally-informed voices answers all 394 times — which is why Task
+    # 6's `many_suppliers` reads 0 even where a choice existed.
+    assert six["choice_lowest"] == 394
+    assert four["choice_lowest"] == 0
+    assert (six_pref["pref_choice"], six_pref["pref_choice_bite"]) == (23, 0)
+    assert (six_pref["occ_pref"], six_pref["occ_bite"]) == (54, 0)
+    # Gamma offers nothing at six units: all three of its witnesses attend the
+    # same rounds, so no peer can supply what another lacks.
+    assert not [rel for rel, _n in six["voices_by_rel"] if rel.startswith("g_")]
+
+    # THE LOOSER READING, KEPT FOR CONTRAST.
+    assert dict(four["could"]) == {0: 68, 1: 956}
+    assert dict(six["could"]) == {0: 72, 1: 324, 2: 649}
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

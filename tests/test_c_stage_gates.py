@@ -4,6 +4,20 @@ This file deliberately restates gates that `tests/test_c_unit.py` and
 `tests/test_c_use.py` also cover. The duplication is intentional (author
 ruling): a reviewer should be able to check both stage gates here without
 reading five test modules. Do not refactor it into imports from those files.
+
+STAGE 3'S TWO GATES ARE NOT RESTATED HERE, and the reason is cost rather than
+principle. They compare whole communities over eight seeds and 60 rounds, so
+they read the measurement driver and the memoised arms in
+`tests/test_c_channels.py`; restating them would re-run about a hundred seconds
+of arms for no new assertion. They are:
+
+- `test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less`
+  — does communication buy anything? The live world scores −106 against the mute
+  twin's −1421 and gets there by placing 110 bets against 1497 and holding 28 of
+  64 true laws against 64.
+- `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
+  — does consultation depart from uniform? It does, and all 939 uptake decisions
+  at four units had exactly one voice standing behind the content.
 """
 
 from c_field import Field, default_spec, apertures_for

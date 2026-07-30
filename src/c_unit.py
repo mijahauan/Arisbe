@@ -885,8 +885,14 @@ class Unit:
         typification's business (`credit`, `whom_to_ask`) — built now, and
         measured inert in this field: a reply about a relation can come only
         from a peer that witnesses the domain on the rounds this unit does not,
-        and there is at most one of those, so a preference has nothing to prefer
-        against.
+        and at four units there is exactly one of those, so a preference has
+        nothing to prefer against. Measured over eight seeds and 60 rounds, all
+        939 uptake decisions had exactly one peer standing behind the content.
+        At six units a choice does exist — 394 of 928 decisions had two — and it
+        is a choice between twins: both witnesses met the atom on the same
+        round, because a domain there is witnessed by three units of which two
+        attend the same rounds. See
+        `tests/test_c_channels.py::test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`.
         """
         return [m for m in board.since(round_idx) if m.author != self.unit_id]
 
@@ -1258,10 +1264,14 @@ class Unit:
 
         WHAT A QUESTION CANNOT DO is choose whom to ask — it is published to the
         whole board. Typification (`credit`, `whom_to_ask`) is what would choose,
-        and it is built and measured inert: a unit has at most one peer that can
-        answer it about a given relation, so over the same eight seeds and 60
+        and it is built and measured inert: over the same eight seeds and 60
         rounds, on the 41 occasions (four units) and 54 (six units) at which a
-        preference existed, it disagreed with the answering peer exactly 0 times.
+        preference existed, it disagreed with the answering peer exactly 0
+        times. At four units it could not have disagreed — all 939 uptake
+        decisions had exactly one peer standing behind the content. At six units
+        394 of 928 decisions had two, and a preference was held at 23 of those
+        and named the answering peer at all 23; the two voices there met the
+        atom on the same round, so choosing either adopts the same fact.
         """
         for want in self._wants():
             key = (QUESTION, want)
