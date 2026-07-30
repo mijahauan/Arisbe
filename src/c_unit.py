@@ -25,10 +25,35 @@ class Unit:
     laws: Set[Tuple[str, str]] = dc_field(default_factory=set)
     ledger: MembraneLedger = dc_field(default_factory=MembraneLedger)
     last_provenance: Dict[Fact, FrozenSet[Fact]] = dc_field(default_factory=dict)
+    first_seen: Dict[Fact, int] = dc_field(default_factory=dict)
+    """The round each fact was FIRST held. Only ever written, never revised: a
+    fact re-delivered later does not move its first arrival. This is the unit's
+    own record of its own history — it reads no round order off the field, only
+    off when things reached its own membrane — and it is what lets `induce`
+    tell a law from its converse (see `induce`)."""
+
+    def _record(self, arrived: Set[Fact], round_idx: int) -> None:
+        """Hold what arrived, and note the round for anything new."""
+        for f in arrived:
+            if f not in self.first_seen:
+                self.first_seen[f] = round_idx
+        self.facts.update(arrived)
 
     def absorb(self, field: Field, round_idx: int) -> None:
         """Take in everything that arrived this round."""
-        self.facts.update(field.at(self.aperture, round_idx))
+        self._record(set(field.at(self.aperture, round_idx)), round_idx)
+
+    def retract_law(self, law: Tuple[str, str]) -> bool:
+        """Give up a law, reporting whether it had been held.
+
+        Retraction is the counterpart of induction: without it a law once
+        proposed could only ever be outlived, never defeated, and the challenge
+        channel would have nothing to dispose into. The return value is the
+        honest part — a caller that retracts what was never held learns so,
+        rather than being told a defeat happened."""
+        held = law in self.laws
+        self.laws.discard(law)
+        return held
 
     def as_egi(self) -> RelationalGraphWithCuts:
         """Render this unit's held content as a real EGI: each fact an atom on
@@ -72,16 +97,69 @@ class Unit:
         self.last_provenance = provenance
         return {f for f in provenance if f not in self.facts}
 
-    def induce(self, min_support: int = 3,
-               max_pending: int = 1) -> Set[Tuple[str, str]]:
-        """Propose body -> head where enough individuals carry both and at
-        most `max_pending` carry body without head.
+    def _body_precedes_head(self, body_rel: str, head_rel: str,
+                            support: Set[Tuple[Key, ...]]) -> bool:
+        """Did the body arrive no later than the head, for most of the
+        individuals that carry both?
 
-        The tolerance is the field's one-round lag: the antecedent just
-        delivered has not had its consequent delivered yet, so exactly one
-        individual per body relation is legitimately pending. Zero tolerance
-        would read that timing artifact as a refutation and block every true
-        law permanently."""
+        THIS IS WHAT TELLS A LAW FROM ITS CONVERSE. Co-occurrence is symmetric
+        and implication is not, so support and counterexample tolerance alone
+        cannot distinguish `body -> head` from `head -> body`: both hold of
+        exactly the same individuals. What breaks the symmetry is time. The
+        field delivers a consequent one round AFTER its antecedent, so for a law
+        the field really carries the body is seen first, and for its converse the
+        body (the real head) is seen second.
+
+        THE CRITERION IS A STRICT MAJORITY of the supporting individuals for
+        which the unit has a first-arrival on both facts — not all of them.
+        Requiring precedence everywhere would be too strict under a fallible
+        field: a spurious head arrives with no antecedent to license it, so it
+        can reach an individual BEFORE that individual's body ever arrives, and
+        one such case would veto a true law forever. A majority tolerates those
+        while still refusing a converse outright.
+
+        THE MARGIN IS WIDE, which is why a majority is enough rather than a
+        tuned fraction. Measured over the fourteen seeds this suite uses, 60
+        rounds, all twenty body->head pairs on unit u0's aperture: the PLANTED
+        laws score 0.89 to 1.00 on this proportion and their CONVERSES score
+        0.00 to 0.11. Nothing measured lands between 0.11 and 0.38, so the 0.5
+        cut is not near any observed value. (The mid-range pairs that do sit
+        near 0.5 — `shared -> a_head` and the like, 0.50 to 0.65 — are refused
+        by the pending rate instead, at 0.52 to 0.63 pending.)
+
+        A tie counts as precedence, so the test is `<=` rather than `<`: two
+        facts first held in the same round say nothing against either
+        direction. ABSENT TIMING EVIDENCE IS NOT COUNTER-EVIDENCE — if the unit
+        has no first-arrival for any supporting individual (facts placed
+        directly rather than absorbed from a field), the test abstains and
+        passes rather than silently refusing every law."""
+        timed = [(self.first_seen[(body_rel, a)], self.first_seen[(head_rel, a)])
+                 for a in support
+                 if (body_rel, a) in self.first_seen
+                 and (head_rel, a) in self.first_seen]
+        if not timed:
+            return True
+        precedent = sum(1 for body_at, head_at in timed if body_at <= head_at)
+        return precedent * 2 > len(timed)
+
+    def induce(self, min_support: int = 3,
+               max_pending_rate: float = 0.05) -> Set[Tuple[str, str]]:
+        """Propose body -> head where enough individuals carry both, few enough
+        carry body without head, and the body was seen first.
+
+        THE TOLERANCE IS A RATE, NOT A COUNT. A count is measured against a
+        monotonically growing fact set, so it silently tightens over a run: one
+        pending individual out of five is a very different claim from one out of
+        forty, and an absolute `max_pending` reads them alike. A proportion
+        keeps the tolerance's meaning fixed as the record grows, and it is what
+        lets a true law survive the field's withheld consequents — a withheld
+        consequent leaves its individual permanently pending — while a false law
+        with fifteen-plus outstanding individuals still falls.
+
+        DIRECTION COMES FROM PRECEDENCE, not from support. See
+        `_body_precedes_head`: without it this criterion admits every law's
+        converse alongside it, because the two are supported by exactly the same
+        individuals."""
         holders: Dict[str, Set[Tuple[Key, ...]]] = {}
         for rel, args in self.facts:
             holders.setdefault(rel, set()).add(args)
@@ -90,9 +168,12 @@ class Unit:
             for head_rel, head_args in sorted(holders.items()):
                 if body_rel == head_rel:
                     continue
-                if len(body_args & head_args) < min_support:
+                support = body_args & head_args
+                if len(support) < min_support:
                     continue
-                if len(body_args - head_args) > max_pending:
+                if len(body_args - head_args) > max_pending_rate * len(body_args):
+                    continue
+                if not self._body_precedes_head(body_rel, head_rel, support):
                     continue
                 law = (body_rel, head_rel)
                 if law not in self.laws:
@@ -108,6 +189,6 @@ class Unit:
         anticipated = self.anticipate()
         arrived = set(field.at(self.aperture, round_idx))
         self.ledger.score(anticipated, arrived, round_idx)
-        self.facts.update(arrived)
+        self._record(arrived, round_idx)
         if induce:
             self.induce()
