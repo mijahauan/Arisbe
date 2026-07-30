@@ -6,8 +6,6 @@ ruling): a reviewer should be able to check both stage gates here without
 reading five test modules. Do not refactor it into imports from those files.
 """
 
-import pytest
-
 from c_field import Field, default_spec, apertures_for
 from c_unit import Unit
 from c_use import WorkUsageLedger
@@ -35,35 +33,20 @@ def _arms():
     return spec, field, ap, converse, shared_head
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "KNOWN FAILING, cause diagnosed and OUT OF SCOPE for the task that made "
-    "this visible. The learner now induces ONLY planted laws at all 14 seeds "
-    "(no converse, nothing unplanted) and beats the betting rival at 14/14 — "
-    "but its net_score is negative at 9/14, so it loses to ABSTENTION (net 0). "
-    "The cause is not induction: `anticipate` returns everything "
-    "derivable-and-not-held and `MembraneLedger.score` charges a miss for each "
-    "anticipated atom EVERY round, so a consequent the field withholds becomes "
-    "a standing bet re-charged for the rest of the run (at seed 3, 169 of 177 "
-    "misses are re-charges of 8 atoms). Misses grow quadratically in run "
-    "length, hits linearly. The fix belongs in `anticipate`/`MembraneLedger` — "
-    "retire a stale anticipation, or score an atom once per bet rather than "
-    "once per round. strict=True so this fails loudly the moment that lands "
-    "and this marker must be removed."))
 def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     """Stage 1 gate: induction earns its keep.
 
     The learner must (a) induce a law the field actually planted and (b)
-    outscore a unit that holds a WRONG law and bets on it — not merely
-    outscore total abstention.
+    outscore a unit that holds a WRONG law and bets on it — and (c) outscore
+    total abstention.
 
-    THIS GATE DOES NOT CURRENTLY PASS, and is marked `xfail(strict=True)`. Read
-    the marker's reason for the diagnosis. Clause (a) holds, and (b) holds
-    against the betting rival at all 14 seeds; what fails is the weaker-looking
-    comparison against abstention, because a fallible field plus a
-    scored-every-round anticipation makes a TRUE law accumulate misses without
-    bound. Everything below the measured-figures paragraphs is retained because
-    it still describes the gate's design; the FIGURES have been re-measured
-    under noise.
+    THIS GATE NOW PASSES ON THE MERITS, at all fourteen seeds. It carried
+    `xfail(strict=True)` for one reason: `MembraneLedger.score` charged a miss
+    for each anticipated atom EVERY round, so a consequent the field withheld
+    became a standing bet re-charged for the rest of the run, misses grew with
+    the square of the run length while hits grew linearly, and clause (c) failed
+    at 9 of 14 seeds. A forecast now resolves EXACTLY ONCE, at the round it is
+    due. No assertion here was weakened.
 
     THE STATISTIC IS `net_score` (hits − misses), not `accuracy`. Two reasons.
     A ratio over few bets is unstable — one lucky hit reads as a perfect score,
@@ -73,54 +56,53 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     `net_score` puts a better and an abstainer on one honest scale: abstention
     is 0, betting and winning is positive, betting and losing is negative.
 
-    MEASURED at this seed (20260728), 60 rounds, UNDER NOISE: learner 39 hits /
-    60 misses, net −21, accuracy 0.394, holding exactly the two planted laws;
-    rival 12 hits / 241 misses, net −229; `fixed` 0 bets, net 0. The margin over
-    the rival is +208 — clause (b) is met with room. The margin over abstention
-    is −21, which is the clause that fails.
+    RE-MEASURED at this seed (20260728), 60 rounds, under noise, with a forecast
+    resolving once: learner 35 hits / 4 misses, net +31, accuracy 0.8974, holding
+    exactly the two planted laws; rival 2 hits / 12 misses, net −10; `fixed` 0
+    bets, net 0. The margin over the rival is +41, over abstention +31. The
+    learner's 4 misses are 4 DISTINCT atoms — zero re-charges — and its 31 late
+    arrivals are the price of the discipline (a missed atom that turned up after
+    its due round takes no credit for arriving).
 
-    SATURATION IS GONE. This aperture's atom universe is 230 atoms (five
-    relations over alpha's and beta's forty individuals, which overlap in the
-    ten-strong shared core). The learner holds 181 of them after 60 rounds and
-    is still betting at the end: 44 of the 60 rounds carry a bet, the first at
-    round 10 and the last at round 58, with 14 bet-rounds at or after round 40.
-    Anticipation stays live for the whole run, so a longer run adds evidence
-    rather than silence — the earlier field (30 atoms, all held by round 18,
-    7 bets total) could not say that.
+    SATURATION IS STILL GONE, though the shape of the answer changed. This
+    aperture's atom universe is 230 atoms (five relations over alpha's and
+    beta's forty individuals, which overlap in the ten-strong shared core); the
+    learner holds 181 of them after 60 rounds. It places 39 stakes across 31
+    bet-rounds, the first at round 10 and the last at round 58, with 7
+    bet-rounds at or after round 40 — anticipation stays live to the end of the
+    run. Because each proposition is staked once, the stake count is bounded by
+    the atom universe rather than by the run length, so a much longer run adds
+    evidence at a falling rate rather than at a rising one. (Measured: a single
+    planted law at seed 3 finishes +13 at 20 rounds, +20 at 60, +23 at 120 and
+    +23 at 240 — it plateaus, where under the old contract it fell without
+    bound. A stage-3 gate reading `net_score` should therefore compare arms at
+    EQUAL run length, which it does.)
 
-    SEED FRAGILITY, RE-MEASURED. Over 1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026,
-    12345, 20260728 and 31337 the learner outranks the RIVAL on `net_score` at
-    14 of 14. It outranks ABSTENTION at only 5 of 14 (positive net at seeds 1, 4,
-    5, 808, 31337; negative at the other nine). So the ordering that depends on
-    induction being right is robust; the ordering that depends on a true law
-    being PROFITABLE is not — see the marker's diagnosis.
+    SEED ROBUSTNESS, RE-MEASURED. Over 1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026,
+    12345, 20260728 and 31337 the learner outranks the RIVAL at 14 of 14 and
+    ABSTENTION at 14 of 14 (net +4 at the worst seed, 2, and +32 at the best,
+    808 and 2026). Both orderings are now robust; previously only the first was.
 
     THE RIVAL CAN WIN, AND SOMETIMES DOES — that is what makes this a real
     falsifier rather than a walkover. `shared` draws from the domain's own
     individuals, which include the ten-strong core, so `shared(x)` for an x
-    already carrying `a_head` genuinely arrives now and then: 6–15 hits per
-    run across the 14 seeds (12 here), against 241–565 misses. It loses on
-    volume, not on impossibility. A sweep of all twenty body→head pairs over
-    this aperture's five relations at seed 20260728 makes the point, and now
-    makes a sharper one: the two PLANTED laws are still the top two by
-    `net_score` (`a_local -> a_head` 30h/16m = +14 and `b_local -> b_head`
-    28h/44m = −16), the two converses now DO bet and lose (2h/65m = −63 and
-    1h/23m = −22 — noise gave them something to be wrong about), and the
-    remaining sixteen all bet, all hit at least twice, and all finish between
-    −229 and −1587. Accidental regularities are possible in this field; none of
-    them pays. But note the second planted law is itself NEGATIVE at −16: on
-    this scoring contract even a law the field really carries can lose money,
-    which is the whole of the marker's point.
+    already carrying `a_head` genuinely arrives now and then (2 hits here
+    against 12 misses). It loses on volume, not on impossibility. A sweep of all
+    twenty body→head pairs over this aperture's five relations at seed 20260728
+    now makes the sharpest possible version of the point: the two PLANTED laws
+    are the ONLY TWO that pay (`a_local -> a_head` 28h/2m = +26 and
+    `b_local -> b_head` 26h/2m = +24), and all eighteen others finish negative,
+    from −2 (the two converses, which bet and take zero hits) down to −46. Under
+    the old contract the second planted law itself finished at −16; a law the
+    field really carries can no longer lose money, which is what this fix was
+    for.
 
-    WHAT THE GATE CAN NOW SHOW, and what it cannot. It CAN show that the
-    learner's induction is exact: `Unit.induce` takes direction from temporal
-    precedence as well as support and a proportional pending tolerance, so at
-    all 14 seeds it proposes ONLY planted laws — no converse, nothing unplanted
-    (pinned in `tests/test_c_unit.py`:
-    `test_the_learner_induces_only_planted_laws_across_many_seeds`). It CANNOT
-    show that holding a true law beats holding none, because an unfulfilled
-    prediction is re-charged every round. The learner's 60 misses at this seed
-    come from 4 distinct atoms.
+    WHAT THE GATE SHOWS. The learner's induction is exact — `Unit.induce` takes
+    direction from temporal precedence as well as support and a proportional
+    pending tolerance, so at all 14 seeds it proposes ONLY planted laws, no
+    converse and nothing unplanted (pinned in `tests/test_c_unit.py`:
+    `test_the_learner_induces_only_planted_laws_across_many_seeds`) — AND that
+    holding a true law now beats both holding a false one and holding none.
     """
     spec, field, ap, _converse, shared_head = _arms()
     learner = Unit("u0", ap)
@@ -147,6 +129,48 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     assert fixed.ledger.accuracy is None      # it never bet; no ratio exists
 
 
+def test_a_true_law_held_alone_makes_money_at_every_seed():
+    """THE DECISIVE TEST OF THE SCORING CONTRACT, and the one the whole of stage
+    3 rests on: a law the field genuinely carries must not lose money.
+
+    It used not to be so. Because `MembraneLedger.score` charged an anticipated
+    atom every round rather than once, a single withheld consequent became a
+    perpetual miss, and the planted `b_local -> b_head` held ALONE over 60
+    rounds finished 28 hits / 44 misses = −16. That is a scoring contract
+    measuring run length, not knowledge, and every statistic built on it — K1
+    track record, durability, any live-versus-mute comparison — inherited the
+    error.
+
+    RE-MEASURED with a forecast resolving once, at the round it is due: both
+    planted laws finish POSITIVE at all fourteen seeds, 28 of 28 arms, with net
+    scores from +17 to +29 (median +24). At seed 20260728: `a_local -> a_head`
+    28h/2m = +26, `b_local -> b_head` 26h/2m = +24.
+
+    This is asserted per-arm rather than in aggregate, so a single losing seed
+    fails the gate and names itself."""
+    seeds = [1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026, 12345, 20260728, 31337]
+    for seed in seeds:
+        spec = default_spec(seed=seed)
+        field = Field(spec)
+        ap = apertures_for(spec, n_units=4)[0]
+        # Only the two domains this aperture actually meets can be tested: a
+        # law over relations the unit never sees would abstain, not earn.
+        for domain in spec.domains[:2]:
+            u = Unit("u0", ap, laws={domain.law})
+            for r in range(ROUNDS):
+                u.step(field, r)
+            led = u.ledger
+            assert led.hits + led.misses > 0, (
+                f"seed {seed} {domain.law}: never bet, so nothing was tested")
+            assert led.net_score > 0, (
+                f"seed {seed}: the planted law {domain.law} held alone LOSES "
+                f"money — {led.hits}h/{led.misses}m net {led.net_score}")
+            # And it loses no bet twice: one charge per distinct atom.
+            assert led.misses == len({e.fact for e in led.entries
+                                     if e.result == "miss"})
+            assert led.restaked == 0
+
+
 def test_the_converse_law_arm_now_bets_and_loses():
     """A measured finding, RE-MEASURED after the field became fallible.
 
@@ -161,10 +185,17 @@ def test_the_converse_law_arm_now_bets_and_loses():
     NOISE REMOVED THAT PREMISE ON PURPOSE. A spurious head atom arrives with no
     antecedent to license it, so `a_head(z)` can now reach an individual for
     which `a_local(z)` was never delivered — and the converse law finally has
-    something to predict. MEASURED at this seed (20260728), 60 rounds: 2 hits /
-    65 misses, net −63. Across the fourteen seeds 1, 2, 3, 4, 5, 7, 42, 99, 555,
-    808, 2026, 12345, 20260728, 31337 it bets at ALL FOURTEEN, taking 0–3 hits
-    against 3–159 misses and finishing negative every time.
+    something to predict.
+
+    RE-MEASURED with a forecast resolving once, at the round it is due: at this
+    seed (20260728), 60 rounds, 0 hits / 3 misses, net −3. Across the fourteen
+    seeds 1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026, 12345, 20260728, 31337 it
+    still bets at ALL FOURTEEN and still finishes negative every time, now with
+    ZERO hits and 1–5 misses. The hits it used to take (0–3) were an artifact of
+    re-charging: a standing bet held open for the rest of the run eventually
+    coincided with a delivery. Bet once, due next round, and the converse is
+    revealed as predicting nothing at all — a stronger reading of the same
+    finding, on a smaller absolute scale.
 
     WHY THIS MATTERS MORE THAN THE OLD READING. The converse arm betting is
     exactly what exposed the induction criterion's defect: support and

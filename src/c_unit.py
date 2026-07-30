@@ -81,8 +81,38 @@ class Unit:
         return parse_egif(" ".join(parts) if parts else "")
 
     def anticipate(self) -> Set[Fact]:
-        """Forward-chain the unit's own model and keep what it does not already
-        hold. A prediction concerns what this unit has not yet seen.
+        """Forward-chain the unit's own model and STAKE what it does not
+        already hold and has not already been scored on. A prediction concerns
+        what this unit has not yet seen and has not yet answered for.
+
+        A FORECAST IS AN ACT, NOT A STANDING STATE. What the unit takes to be
+        derivable is `last_provenance`, which is written every call and holds
+        the whole closure. What it *stakes* is the return value, and a stake is
+        placed once: a fact this unit's record has already resolved (hit or
+        miss, `MembraneLedger.resolved`) is not offered again.
+
+        SHOULD A STILL-LICENSED FACT BE RE-BET? NO — and this is the choice,
+        argued rather than assumed. If the law still licenses `head(a17)` after
+        `head(a17)` was missed once, betting again stakes the same proposition a
+        second time. The record's unit of account is the proposition, not the
+        round and not the delivery, so a second stake would enter a second
+        verdict on one claim and the same withheld consequent would be charged
+        for the rest of the run — which is exactly the defect this replaces
+        (misses quadratic in run length, a true law losing money). The
+        alternative position — re-bet, but only when fresh evidence intervenes,
+        e.g. the body is re-delivered — is coherent and bounded, but it needs
+        the bet keyed by its support rather than by its content, and it buys
+        information the aggregate does not need: one resolved claim per
+        proposition is already a track record.
+
+        THE PRICE IS PAID, NOT HIDDEN. Refusing to re-bet forgoes credit when a
+        missed fact later arrives after all; `MembraneLedger.late_arrivals`
+        counts exactly those. Measured over the suite's fourteen seeds, 60
+        rounds, one planted law held alone: 21 to 31 hits, 0 to 7 misses, and 23
+        to 32 late arrivals — so the discipline forgoes roughly as many credits
+        as it takes, and the arm still finishes between +17 and +29. It was
+        NEGATIVE (−16 at one measured arm) when the same forecasts were charged
+        every round.
 
         The chaining is the project's real materializer over the unit's own EGI
         — not a hand-rolled tuple match — so anticipation is a genuine least
@@ -95,7 +125,8 @@ class Unit:
         provenance: Dict[Fact, FrozenSet[Fact]] = {}
         materialize_egi(self.as_egi(), provenance=provenance)
         self.last_provenance = provenance
-        return {f for f in provenance if f not in self.facts}
+        return {f for f in provenance
+                if f not in self.facts and f not in self.ledger.resolved}
 
     def _body_precedes_head(self, body_rel: str, head_rel: str,
                             support: Set[Tuple[Key, ...]]) -> bool:
@@ -185,7 +216,15 @@ class Unit:
         """One round: anticipate from what is held, observe what arrives, be
         scored on the forecast, then optionally induce from the enlarged
         record. Inducing last means a law never scores the round that taught
-        it. The bet is placed before the outcome is seen."""
+        it. The bet is placed before the outcome is seen.
+
+        THE ORDER IS THE MEASUREMENT. `anticipate` runs before `field.at`, so
+        nothing about this round's arrivals can reach the choice of what to
+        stake; and the forecast is DUE NOW, because the field delivers a
+        consequent one round after its antecedent and `_record` runs after
+        scoring, so every fact the stake was derived from was held at r−1 or
+        earlier. Resolve-once (see `anticipate`) is what makes "due now" mean
+        "decided now" instead of "decided now and every round after"."""
         anticipated = self.anticipate()
         arrived = set(field.at(self.aperture, round_idx))
         self.ledger.score(anticipated, arrived, round_idx)

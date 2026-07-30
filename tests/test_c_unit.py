@@ -46,9 +46,11 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     `shared(a_i)` does arrive now and then and the rival can genuinely win —
     just far less often than it loses.
 
-    Measured at this test's seed (7), 20 rounds: lawful 16 hits / 0 misses =
-    1.0000, net +16; misled 4 hits / 110 misses = 0.0351, net −106; lawless
-    0 bets, accuracy None, net 0."""
+    RE-MEASURED at this test's seed (7), 20 rounds, with a forecast resolving
+    once at the round it is due: lawful 14 hits / 1 miss = 0.9333, net +13
+    (3 late arrivals — atoms it missed that turned up afterwards and took no
+    credit); misled 1 hit / 12 misses = 0.0769, net −11; lawless 0 bets,
+    accuracy None, net 0."""
     spec, field, ap = _setup()
     lawful, lawless, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     lawful.laws.add(spec.domains[0].law)
@@ -236,9 +238,12 @@ def test_the_learner_induces_only_planted_laws_across_many_seeds():
     and NO law that was not planted. Before precedence it induced each planted
     law's converse alongside it at every seed.
 
-    What this test deliberately does NOT assert is a positive `net_score` — see
-    `test_the_learners_net_score_is_negative_because_a_stale_bet_is_recharged`,
-    which measures why."""
+    Exactness of induction and PROFITABILITY are separate claims, measured
+    separately: this test asserts only the former. The latter is
+    `test_inducing_unit_learns_the_planted_law_and_its_score_rises` (a positive
+    `net_score` at all 14 seeds, now that a forecast resolves once) and
+    `test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice` (why it used
+    not to be)."""
     from c_field import Field, default_spec, apertures_for
     seeds = [1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026, 12345, 20260728, 31337]
     for seed in seeds:
@@ -255,29 +260,30 @@ def test_the_learner_induces_only_planted_laws_across_many_seeds():
         assert not (u.laws - planted), f"seed {seed}: unplanted law {u.laws - planted}"
 
 
-def test_the_learners_net_score_is_negative_because_a_stale_bet_is_recharged():
-    """MEASURED FINDING, pinned so it cannot silently change — and NOT patched
-    around here, because the cause lies outside this task's scope.
+def test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice():
+    """THE FIX TO THE SCORING CONTRACT, pinned at the seed that measured the
+    defect — and pinned as a COUNT of distinct atoms, so it cannot regress
+    quietly.
 
-    After precedence the learner holds ONLY planted laws (see the test above),
-    yet its `net_score` is negative at 9 of the same 14 seeds. The cause is not
-    the induction criterion. It is that `anticipate` returns everything
-    derivable-and-not-held, and `MembraneLedger.score` charges a miss for each
-    anticipated atom EVERY round, with no memory of having charged for it
-    before. So a consequent the field withholds outright becomes a STANDING
-    prediction: the unit re-bets it every remaining round and is charged every
-    time.
+    WHAT WAS WRONG. `anticipate` returned everything derivable-and-not-held and
+    `MembraneLedger.score` charged a miss for each anticipated atom EVERY round,
+    with no memory of having charged for it before, so a consequent the field
+    withheld outright became a STANDING prediction re-charged for the rest of
+    the run. At this very seed that was stark: 177 misses arising from just 8
+    distinct atoms (169 of them, 95.5%, re-charges of a bet already lost;
+    `a_head(a17)` alone missed 50 times), so misses grew with the SQUARE of the
+    run length while hits grew linearly and lengthening the run made any true
+    law look worse.
 
-    At seed 3 that is stark: 177 misses arise from just 8 distinct atoms, so 169
-    of the 177 (95.5%) are re-charges of a bet already lost. `a_head(a17)` alone
-    is missed 50 times. Misses therefore grow with the SQUARE of the run length
-    while hits grow linearly, so lengthening the run makes any true law look
-    worse — which is a defect of the scoring contract, not of induction.
+    WHAT IS TRUE NOW, measured at seed 3 over the same 60 rounds: 37 hits / 8
+    misses, net +29, and the 8 misses are 8 DISTINCT atoms — zero re-charges.
+    The 8 are unchanged; what changed is that each is charged once. 36 late
+    arrivals record the price of that discipline (a missed atom that turned up
+    after its due round takes no credit).
 
-    Fixing it means either retiring a stale anticipation or scoring an atom once
-    per bet rather than once per round; both live in `anticipate` /
-    `MembraneLedger`, outside this task's two files, and the brief forbids
-    tuning a rate to hide the number."""
+    The remaining assertions are the ones the old test made about the misses'
+    provenance, retained: they are all head atoms a held law licensed and the
+    field withheld, not a wrong law firing."""
     from collections import Counter
     from c_field import Field, default_spec, apertures_for
     spec = default_spec(seed=3)
@@ -294,35 +300,55 @@ def test_the_learners_net_score_is_negative_because_a_stale_bet_is_recharged():
         for f in anticipated - arrived:
             missed[f] += 1
 
-    assert u.ledger.net_score < 0                     # the bare fact
-    assert not (u.laws - {d.law for d in spec.domains})   # ... with clean laws
-    # The misses are overwhelmingly repeats of the same few standing bets.
-    assert len(missed) <= 10
-    repeats = u.ledger.misses - len(missed)
-    assert repeats / u.ledger.misses > 0.9
-    # And every one of them is a head atom the unit's law licensed but the
-    # field withheld — not a wrong law firing.
+    assert not (u.laws - {d.law for d in spec.domains})   # clean laws
+    # NO BET IS CHARGED TWICE: one miss per distinct atom, exactly.
+    assert max(missed.values()) == 1, f"a bet was re-charged: {missed}"
+    assert u.ledger.misses == len(missed)
+    assert u.ledger.restaked == 0     # the unit never even re-offers a settled bet
+    # And with the re-charges gone, a record holding only true laws PAYS.
+    assert u.ledger.net_score > 0
+    # Every miss is still a head atom the unit's law licensed but the field
+    # withheld — not a wrong law firing.
     heads = {d.law[1] for d in spec.domains}
     assert all(rel in heads for rel, _ in missed)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "KNOWN FAILING — the twin of tests/test_c_stage_gates.py's Stage 1 gate; "
-    "read that marker for the full diagnosis. In short: induction is now exact "
-    "(only planted laws, at all 14 seeds) and the learner beats the betting "
-    "rival at 14/14, but a withheld consequent becomes a standing bet that "
-    "`MembraneLedger.score` re-charges every round, so net_score is negative at "
-    "9/14 and loses to abstention. The fix belongs in "
-    "`anticipate`/`MembraneLedger`, not in the induction criterion. "
-    "strict=True so this fails loudly when that lands."))
+def test_misses_no_longer_grow_with_the_run_length():
+    """The quadratic is gone, and this is what proves it rather than asserting
+    it: a single planted law held over a run four times as long takes only a
+    handful more misses, because each proposition is staked once.
+
+    MEASURED (seed 3, `a_local -> a_head` held alone): 20 rounds 14h/1m = +13;
+    60 rounds 24h/4m = +20; 240 rounds 28h/5m = +23. Under the old contract the
+    same arm's misses rose without bound with the run length."""
+    from c_field import Field, default_spec, apertures_for
+    spec = default_spec(seed=3)
+    field = Field(spec)
+    ap = apertures_for(spec, n_units=4)[0]
+
+    def misses_over(rounds):
+        u = Unit("u0", ap, laws={spec.domains[0].law})
+        for r in range(rounds):
+            u.step(field, r)
+        return u.ledger.misses, u.ledger.net_score
+
+    short_m, short_net = misses_over(20)
+    long_m, long_net = misses_over(80)
+    assert long_m <= short_m + 5, "misses still scale with run length"
+    assert short_net > 0 and long_net > 0
+    assert long_net >= short_net, "a longer run made a true law look worse"
+
+
 def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     """The Stage 1 gate: a unit that may induce ends up holding a law the
     regime actually planted, and outperforms both a unit that may not induce
     and a unit seeded with a law the field does not carry.
 
-    THIS GATE DOES NOT CURRENTLY PASS — see the `xfail` marker. The clause that
-    fails is `learner.net_score > fixed.net_score`, i.e. beating ABSTENTION;
-    beating the betting rival still holds at every seed.
+    THIS GATE NOW PASSES ON THE MERITS. It carried `xfail(strict=True)` while
+    `MembraneLedger.score` re-charged a standing bet every round; with a
+    forecast resolved once, at the round it is due, the clause that failed
+    (`learner.net_score > fixed.net_score` — beating ABSTENTION) holds at all
+    fourteen seeds. Nothing here was weakened to get there.
 
     Three arms. The `fixed` arm never induces, so it never bets and has NO
     accuracy at all (`None`, not 0.0 — an abstainer's ratio would be
@@ -339,10 +365,13 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     ten-strong shared core, so the rival does occasionally hit — it just loses
     far more often than it wins.
 
-    Measured at this test's seed (7), 60 rounds, UNDER NOISE: learner 38 hits /
-    69 misses = 0.3551, net −31, holding exactly the two planted laws; misled
-    9 hits / 501 misses = 0.0177, net −492; fixed 0 bets, accuracy None, net 0.
-    The learner's margin over the rival is +461; over abstention it is −31."""
+    RE-MEASURED at this test's seed (7), 60 rounds, under noise, with a forecast
+    resolving once: learner 33 hits / 7 misses = 0.8250, net +26, holding exactly
+    the two planted laws; misled 1 hit / 17 misses = 0.0556, net −16; fixed 0
+    bets, accuracy None, net 0. The learner's margin over the rival is +42; over
+    abstention, +26. (Both arms' absolute volumes fell, because a bet is now
+    counted once rather than once per remaining round; the ORDERING is what the
+    gate asserts, and it is now the same ordering at every seed.)"""
     spec, field, ap = _setup()
     learner, fixed, misled = Unit("u0", ap), Unit("u1", ap), Unit("u2", ap)
     # body = first domain's head relation (which really arrives), head =
@@ -425,6 +454,48 @@ def test_forward_chaining_composes_laws_the_old_tuple_match_could_not():
     # and the intermediate step is what supports the far end
     assert u.last_provenance[("r1", (("c", "x0"),))] == frozenset(
         {("q1", (("c", "x0"),))})
+
+
+def test_a_settled_forecast_is_not_offered_again_even_though_the_law_licenses_it():
+    """THE SEMANTIC CHOICE, pinned. The law still licenses `q1(x0)` after
+    `q1(x0)` was staked and lost — the body is still held, the law is still
+    held, the head is still not held — and the unit does NOT bet it again. The
+    record's unit of account is the proposition, so a second stake would enter a
+    second verdict on one claim, which is precisely how a withheld consequent
+    used to become a perpetual miss.
+
+    Note that `last_provenance` still carries the derivation: what the unit
+    takes to be derivable is unchanged, and only the STAKE is spent."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0"]))
+    u.laws.add(("p1", "q1"))
+    q_x0 = ("q1", (("c", "x0"),))
+
+    assert u.anticipate() == {q_x0}
+    u.ledger.score({q_x0}, arrived=set(), round_idx=0)      # staked and lost
+    assert u.ledger.misses == 1
+
+    assert u.anticipate() == set(), "a settled claim was staked a second time"
+    assert q_x0 in u.last_provenance    # still derivable, just no longer bet
+    assert u.ledger.misses == 1         # and no second charge could arise
+
+
+def test_a_forecast_that_hits_is_not_offered_again_either():
+    """The symmetric half of the same choice — and here the reason is the older
+    one: a fact that arrives is HELD, so it was never re-derivable-and-not-held.
+    Both filters point the same way, which is why resolving once costs nothing
+    on the winning side."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0"]))
+    u.laws.add(("p1", "q1"))
+    q_x0 = ("q1", (("c", "x0"),))
+    u.ledger.score(u.anticipate(), arrived={q_x0}, round_idx=0)
+    u._record({q_x0}, 0)
+    assert u.ledger.hits == 1
+    assert u.anticipate() == set()
+    assert u.ledger.restaked == 0
 
 
 def test_anticipation_is_deterministic_across_repeated_renderings():
