@@ -349,6 +349,94 @@ silently colliding; widening the scheme is a stage-3 decision.
 
 ---
 
+## 9b · Conversation as the maintenance vehicle (author, 2026-07-29, reading B&L)
+
+*The author, reading further in Berger & Luckmann, reports that they place
+**conversation between individuals** at the centre of reality construction **and
+maintenance**. That has a design consequence for §5's protocol, recorded here
+before stage 3 is planned.*
+
+B&L's claim is not that reality gets built by occasional dramatic acts of
+legitimation. It is that the *continuous, unremarkable flow of everyday talk*
+sustains it — and that most of what such talk confirms, it confirms **tacitly**,
+by presupposing rather than asserting. Reality persists only while the
+conversation that carries it continues. THE_COMMENS already holds the matching
+half of this: the commens stands "sustained only by participation — if we do not
+participate, it disappears."
+
+**Where §5's ladder falls short.** Assert · ask · challenge · typify are all
+**transactional** — discrete moves that *change* something. They model reality
+*construction* well and reality *maintenance* not at all. A community whose
+protocol carries only these has no way to represent the hum: the re-mention that
+adds no fact but keeps a shared item alive.
+
+**What follows for stage 3.** Two candidate consequences, neither yet ruled:
+
+1. **A maintenance channel distinct from the revision channels** — a cheap
+   re-mention that asserts nothing new but refreshes a mark's standing. Note this
+   is not a new mechanism so much as a *social* reading of one we already have:
+   the difference between work-use and arrival-use (§9a finding 2, and
+   `c_use.py`) is exactly the difference between an item doing inferential labour
+   and an item merely being kept in circulation. B&L suggest circulation is not
+   idle — it is maintenance.
+2. **Decay is what gives it teeth.** If marks decay, then a community that stops
+   talking about something loses it, and *that* is B&L's thesis rendered
+   operational rather than illustrated. It also predicts something measurable:
+   the socialization clock (§2) should lengthen as the maintained body grows,
+   because a newcomer must be talked into more.
+
+**The honest caution.** This is a doctrinal reading, not a measured claim, and it
+must not be smuggled into the instruments as though the experiment had shown it.
+It belongs in stage 3's *design* rulings.
+
+### The join: conversation density is the variable both frameworks name
+
+*The author, same sitting: "in West, one important consequence of closer physical
+proximity was the increased density of conversation."*
+
+That observation joins the two halves of this design at their mechanism, and it
+is the sharpest thing said about the program so far. Bettencourt and West
+attribute cities' **superlinear** socioeconomic output not to infrastructure — which
+scales *sub*linearly — but to **interaction density**: packing people closer
+multiplies the opportunities for exchange faster than population grows. B&L,
+arriving from sociology, say the exchange itself is what constructs and maintains
+reality. So the two traditions are not merely compatible; **they name the same
+variable from opposite ends.** West measures its consequence; B&L describes its
+function.
+
+**What this fixes in the design.** §3 treated the field's domains as the "volume
+to be filled" and took *space-filling* as the correspondence to West's first
+pillar. That was right but shallow. The deeper correspondence is now available:
+**aperture overlap is our proximity.** Two units whose apertures share a domain
+have shared referents and can therefore say something to each other that lands;
+two units with disjoint apertures have nothing to converse *about*, however
+freely the protocol lets them talk. Overlap density is conversation density is
+West's proximity.
+
+Three consequences, all for stage 3's rulings rather than for any instrument yet:
+
+1. **The scaling sweep should vary overlap density, not only N.** If interaction
+   density is the mechanism, then community size alone is the wrong x-axis —
+   the same twelve units at different overlap densities should scale differently,
+   and *that* comparison is the one West's framework predicts something about.
+2. **Bounded attention is what makes it non-trivial.** §4 gives each unit only
+   two or three consultations per round. Overlap raises what a unit *could*
+   discuss; the budget caps what it *does*. The interesting regime is where those
+   two conflict — which is also where "whom to ask" (typification) starts to pay.
+3. **§9a finding 3 is more load-bearing than it looked.** "`shared` is shared in
+   name only" was recorded as a defect about marks having nothing to carry. Read
+   through this join, it is worse and better than that: with disjoint individuals
+   there is no *proximity at all*, so the design as built could not have produced
+   an interaction-density effect even in principle. The repair that gives domains
+   a shared individual pool is therefore not housekeeping — it builds the
+   substrate the central conjecture needs.
+
+**Still a conjecture.** Nothing here has been measured, and the honest caution
+above applies with full force: a mechanism named by two traditions is a good
+place to look, not evidence of what will be found.
+
+---
+
 ## 10 · Scale, decomposition, and open questions
 
 **Scale, stated plainly.** Four communities × ~12 units = ~48 loop instances per
