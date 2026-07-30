@@ -2127,7 +2127,8 @@ def _witness_induce_arm(n_units, scheme, witnesses=None):
 
 
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
-                            scheme=CYCLIC, window=None, witnesses=None):
+                            scheme=CYCLIC, window=None, witnesses=None,
+                            typify=None, rep_window=None):
     """A community of `n_units`, planted laws AND converses seeded, no
     induction, bounded attention. `ask` switches the ask/answer/adopt channel on
     and off; the challenge channel runs in both arms, so the only variable is
@@ -2137,8 +2138,28 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
     unit adopts a fact mark ONLY when it answers a question that unit itself
     asked. Task 3 measured indiscriminate uptake and found it worse than silence.
 
+    `typify` IS THIS TASK'S VARIABLE, and it has three settings.
+
+    - `None` — untargeted, the control: whatever comes back is taken up. Every
+      figure this arm produces reproduces Tasks 5e and 5f digit for digit.
+    - `"prefer"` — the typified arm, and the literal reading of `whom_to_ask`: a
+      unit that has earned a preference about the relation takes up only that
+      peer's reply, and a unit with no preference does what it always did.
+    - `"distrust"` — the stronger reading, present as a CONTROL rather than as a
+      proposal: a unit with no preference additionally refuses a reply from a
+      peer whose testimony about that relation has already failed. It exists
+      because `"prefer"` alone cannot show whether the preference machinery is
+      inert or merely never exercised, and Task 5f's lesson is that a comparison
+      which obviously holds needs the arm that could show it does not.
+
+    THE PREFERENCE BITES AT UPTAKE, NOT AT PUBLICATION, and that is a limitation
+    of the board rather than a design choice: a question is published to
+    everyone, so there is no addressee to narrow. What a unit can do is decide
+    whose answer to take, which is the same choice one step later.
+
     `n_units` / `scheme` / `window` / `witnesses` are the community and the two
-    disposition knobs, exactly as in `_play_challenge`.
+    disposition knobs, exactly as in `_play_challenge`; `rep_window` is the
+    replication window each unit waits before reading silence as a failure.
     """
     spec = default_spec(seed=seed)
     field = Field(spec)
@@ -2154,11 +2175,23 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
             u.corroboration_window = window
         if witnesses is not None:
             u.corroborating_witnesses = witnesses
+        if rep_window is not None:
+            u.replication_window = rep_window
         units.append(u)
     board = MarkBoard()
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}
     questions = uptakes = 0
+    # WAS THERE EVER A CHOICE? `occ_pref` counts the uptake decisions at which a
+    # unit actually held a preference about the relation, `occ_bite` the ones at
+    # which that preference named somebody OTHER than the unit answering, and
+    # `suppliers` how many distinct peers ever answered a given unit about a
+    # given relation. A preference that never disagrees with the only voice
+    # available is a preference that decides nothing.
+    suppliers = {u.unit_id: {} for u in units}
+    occ_pref = occ_bite = 0
+    refused = set()
+    adopted = []
     exits = {k: 0 for k in ("suspended", "internal", "corroborated",
                             "rebutted", "silence")}
 
@@ -2171,8 +2204,28 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                     reply = board.answer_to(q)
                     if reply is None or reply.author == u.unit_id:
                         continue
+                    relation = reply.content[0]
+                    suppliers[u.unit_id].setdefault(relation, set()).add(
+                        reply.author)
+                    if typify is not None:
+                        preferred = u.whom_to_ask(relation)
+                        if preferred is not None:
+                            occ_pref += 1
+                            occ_bite += reply.author != preferred
+                            take = reply.author == preferred
+                        elif typify == "distrust":
+                            take = u.peers.get(reply.author, {}).get(
+                                relation, 0) >= 0
+                        else:
+                            take = True
+                        if not take:
+                            refused.add((u.unit_id, q.content))
+                            continue
                     settled[u.unit_id].add(q.content)
-                    uptakes += u.adopt(reply, board, r)
+                    took = u.adopt(reply, board, r)
+                    uptakes += took
+                    if took:
+                        adopted.append(reply.content)
         for i, u in enumerate(units):                       # (b) attend
             if stagger == 1 or r % stagger == i % stagger:
                 u.step(field, r, induce=False)
@@ -2205,10 +2258,43 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                 for mark in out.asked:
                     asked[u.unit_id].append(mark)
                     questions += 1
+        if ask:                                             # (i) settle credit
+            # RUN IN EVERY ASK ARM, INCLUDING THE UNTARGETED CONTROL. Nothing
+            # reads `peers` unless `typify` is set, so the control's figures are
+            # unmoved; what it buys is the credit distribution measured in the
+            # arm that does not act on it.
+            for u in units:
+                u.settle_credit(r)
+
+    # WHAT WAS TAKEN UP, SPLIT BY WHETHER THE FIELD EVER LICENSED IT. A head
+    # atom outside `licensed_heads` had no antecedent at any round, so only
+    # `spurious_rate` could have produced it — that is P-G1's category, read
+    # modeler-side because no unit could read it.
+    heads = {d.law[1]: field.licensed_heads(d.name, rounds) for d in spec.domains}
+    licensed = sum(1 for c in adopted if c[0] in heads and c in heads[c[0]])
+    fabricated = sum(1 for c in adopted
+                     if c[0] in heads and c not in heads[c[0]])
+    proved = sum(1 for u in units for f in u._credited if f in u.first_seen)
+    failed = sum(1 for u in units for f in u._credited if f not in u.first_seen)
+    preferences = sum(
+        1 for u in units
+        for rel in {r for s in u.peers.values() for r in s}
+        if u.whom_to_ask(rel) is not None)
 
     tally = dict(true_ref=0, conv_ref=0, true_lost=0, conv_lost=0,
                  repairable=0, unrepairable=0, questions=questions,
                  uptakes=uptakes, net=sum(u.ledger.net_score for u in units),
+                 adopted_licensed=licensed, adopted_fabricated=fabricated,
+                 adopted_body=len(adopted) - licensed - fabricated,
+                 proved=proved, failed=failed,
+                 pending=sum(len(u._supplied_by) - len(u._credited)
+                             for u in units),
+                 preferences=preferences, occ_pref=occ_pref, occ_bite=occ_bite,
+                 refused=len(refused),
+                 one_supplier=sum(1 for s in suppliers.values()
+                                  for v in s.values() if len(v) == 1),
+                 many_suppliers=sum(1 for s in suppliers.values()
+                                    for v in s.values() if len(v) > 1),
                  **exits)
     for u in units:
         laws, conv = mine[u.unit_id]
@@ -2384,18 +2470,292 @@ def test_the_silence_window_at_three_five_and_eight():
             six[0]["conv_lost"] - six[2]["conv_lost"]) == (49, 3)
 
 
-def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None):
-    keys = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
-            "unrepairable", "questions", "uptakes", "net", "suspended",
-            "internal", "corroborated", "rebutted", "silence")
-    agg = {k: 0 for k in keys}
+_ASK_KEYS = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
+             "unrepairable", "questions", "uptakes", "net", "suspended",
+             "internal", "corroborated", "rebutted", "silence")
+
+_TYPIFY_KEYS = _ASK_KEYS + (
+    "adopted_licensed", "adopted_fabricated", "adopted_body", "proved",
+    "failed", "pending", "preferences", "occ_pref", "occ_bite", "refused",
+    "one_supplier", "many_suppliers")
+
+_ARMS = {}
+"""Aggregates already computed, keyed by their arguments.
+
+MEMOISED BECAUSE AN ARM COSTS SIXTY ROUNDS TIMES EIGHT SEEDS AND FOUR GATES
+BELOW READ THE SAME ONES. Every arm is a deterministic function of its
+arguments — that is asserted in `test_the_channel_is_deterministic` — so reading
+a cached one is reading the same run, not a shortcut past it. Nothing here
+trims a seed or an arm."""
+
+
+def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None,
+                   typify=None, rep_window=None, keys=_ASK_KEYS):
+    cached = _ARMS.get((n_units, scheme, ask, window, witnesses, typify,
+                        rep_window))
+    if cached is None:
+        cached = {k: 0 for k in _TYPIFY_KEYS}
+        for seed in C_SEEDS:
+            t = _play_ask_and_challenge(seed, C_ROUNDS, ask=ask,
+                                        n_units=n_units, scheme=scheme,
+                                        window=window, witnesses=witnesses,
+                                        typify=typify, rep_window=rep_window)
+            for k in cached:
+                cached[k] += t[k]
+        _ARMS[(n_units, scheme, ask, window, witnesses, typify,
+               rep_window)] = cached
+    return {k: cached[k] for k in keys}
+
+
+# --- does typification discriminate? ------------------------------------------
+#
+# THE LAST CANDIDATE. Task 5e found that testimony repairs whatever it is asked
+# about and cannot tell a true law from a false one; Task 5f found that
+# corroboration, once a community was large enough to supply it, eliminated
+# every law it was given. Typification is what Berger & Luckmann actually name
+# as the mechanism by which a shared reality gets built — reciprocal
+# typification of habitualized action by types of actor — and it is the one
+# thing in this series that cannot exist in a solitary unit, so it is the
+# sharpest test available of whether a community exists here at all.
+
+
+def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_choice():
+    """**P-G3 HELD, IN THE STRONGEST FORM AVAILABLE: typified asking is not
+    merely weak here, it is EXACTLY INERT** — every one of the fourteen figures
+    the untargeted arm reports is reproduced digit for digit by the typified
+    one, at both community sizes.
+
+    P-G3 predicted that typification changes nothing where every peer sees the
+    same distribution of noise, and that the gain requires peers to actually
+    differ. The measurement says something sharper than the prediction did: the
+    peers did not merely fail to differ usefully, **NO UNIT EVER HAD TWO VOICES
+    TO CHOOSE BETWEEN.** Eight seeds, 60 rounds:
+
+        arm         unit-relations with   with 2+     uptake decisions   ... at which
+                        1 supplier ever   suppliers   at which a unit    the preference
+                                                      held a preference  disagreed
+        4 units, cyclic              96          0                  41              0
+        6 units, pairs              115          7                  54              0
+
+    THE FIELD IS WHY, AND IT IS ARITHMETIC RATHER THAN LUCK. A unit answers only
+    from what it has met, so a reply about `a_head` can come only from a peer
+    that witnesses alpha. Under bounded attention with `stagger=2` a peer that
+    witnesses alpha ON THE SAME ROUNDS holds exactly what the asker holds and
+    has nothing to add, so the only peer that can ever answer is one witnessing
+    the same domain on the OPPOSITE rounds — and at both community sizes there
+    is at most one of those per asker. A preference cannot express itself when
+    the alternative to the preferred voice is silence.
+
+    WHAT THE UNITS DID LEARN, and it is nearly nothing. Of the 96 (peer,
+    relation) pairs a four-unit community accumulates any record about, **1 ends
+    the run with a positive score**; 90 end negative and 5 at zero. Six units:
+    **5 positive of 107**, 99 negative. Replication is a coin flip on whether the
+    field redraws that individual, and the field draws one individual per
+    relation per round from a list of forty, so most testimony is never borne
+    out within a sixty-round run whoever gave it. See
+    `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`.
+    """
+    for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
+        control = _aggregate_ask(n_units, scheme, ask=True)
+        typified = _aggregate_ask(n_units, scheme, ask=True, typify="prefer")
+        assert control == typified, (
+            f"{n_units} units: typified asking moved a figure — "
+            f"{ {k: (control[k], typified[k]) for k in control if control[k] != typified[k]} }")
+    four = _aggregate_ask(4, CYCLIC, ask=True, typify="prefer",
+                          keys=_TYPIFY_KEYS)
+    six = _aggregate_ask(6, PAIRS, ask=True, typify="prefer", keys=_TYPIFY_KEYS)
+    # The channel carried something, so inertness is a result rather than a
+    # measurement that never ran.
+    assert (four["questions"], four["uptakes"]) == (1024, 939)
+    assert (six["questions"], six["uptakes"]) == (1045, 928)
+    # A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
+    assert (four["occ_pref"], four["occ_bite"]) == (41, 0)
+    assert (six["occ_pref"], six["occ_bite"]) == (54, 0)
+    # At four units no unit ever heard two voices about one relation at all.
+    assert (four["one_supplier"], four["many_suppliers"]) == (96, 0)
+    assert (six["one_supplier"], six["many_suppliers"]) == (115, 7)
+    # And almost nothing was learned: 1 positive preference of 96 (peer,
+    # relation) pairs at four units, 5 of 107 at six.
+    assert (four["preferences"], six["preferences"]) == (1, 5)
+
+
+def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure():
+    """**P-G1 IS NOT REFUTED — IT IS UNMEASURABLE IN THIS FIELD, AND THE COUNT
+    THAT SAYS SO IS ZERO.** Its premise fails twice over.
+
+    P-G1 held that typification lowers the adoption rate of SPURIOUS facts more
+    than of real ones, "because the field's `spurious_rate` fabricates a head
+    with no antecedent to license it, and a fabrication is by construction
+    unreplicated — no second observer meets it."
+
+    THE FIRST FAILURE IS ABOUT WHO MEETS A FABRICATION. A spurious atom is not
+    one peer's invention: `c_field.Field.deliver` puts it in the DOMAIN's
+    delivery, so every unit witnessing that domain on that round meets it. A
+    fabrication has as many observers as any other arrival.
+
+    THE SECOND FAILURE IS THE DECISIVE ONE: **a fabricated fact can never be
+    asked about, so it can never be adopted.** A question names an atom the
+    asker's own law licenses over an individual its own record already carries
+    — that is the ask channel's targeting-by-construction — so a unit asks for
+    `a_head(x)` only while holding `a_local(x)`, and an individual carrying
+    `a_local` is one the field licensed a head for. The other questions in this
+    arm come from the seeded converse and ask for `a_local(x)`, an ANTECEDENT
+    relation, which `spurious_rate` never fabricates.
+
+    MEASURED, over eight seeds and 60 rounds: the field licensed **1004** head
+    atoms and fabricated **37** that no antecedent ever licensed, all 37 inside
+    some unit's aperture. Adoptions of a fabricated atom, in every arm and at
+    both community sizes: **0 of 939 and 0 of 928.** Whatever typification could
+    do to a fabrication, it has nothing here to do it to.
+
+    WHAT WOULD HAVE TO CHANGE for the category to exist: units would have to be
+    able to ask about atoms their own record does not already license — which
+    means either induction running in this arm, so a unit can hold a law over
+    relations the field does not connect, or a membrane that lets a unit relay
+    what a third party said rather than only what it met. Both are changes to
+    the experiment, not to this channel, so the number is reported rather than
+    manufactured.
+    """
+    for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
+        for typify in (None, "prefer", "distrust"):
+            arm = _aggregate_ask(n_units, scheme, ask=True, typify=typify,
+                                 keys=_TYPIFY_KEYS)
+            assert arm["adopted_fabricated"] == 0, (
+                f"{n_units} units, typify={typify!r}: a fabricated head atom "
+                f"was adopted, so P-G1 has a category after all")
+            assert arm["adopted_licensed"] > 0, (
+                "no head atom was adopted at all, so the zero above is vacuous")
+    # The field really does fabricate: 37 head atoms over eight seeds that no
+    # antecedent ever licensed, every one of them inside some unit's aperture.
+    fabricated = 0
     for seed in C_SEEDS:
-        t = _play_ask_and_challenge(seed, C_ROUNDS, ask=ask, n_units=n_units,
-                                    scheme=scheme, window=window,
-                                    witnesses=witnesses)
-        for k in agg:
-            agg[k] += t[k]
-    return agg
+        spec = default_spec(seed=seed)
+        field = Field(spec)
+        for d in spec.domains:
+            licensed = field.licensed_heads(d.name, C_ROUNDS)
+            delivered = {f for r in range(C_ROUNDS)
+                         for f in field.deliver(d.name, r) if f[0] == d.law[1]}
+            fabricated += len(delivered - licensed)
+    assert fabricated == 37
+
+
+def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
+    """THE CONTROL THE LITERAL READING COULD NOT SUPPLY, and the reason it is
+    here is Task 5f's: a comparison that obviously holds needs the arm that
+    could show it does not. `whom_to_ask` names a peer only on POSITIVE
+    evidence, so a unit let down by the only voice it ever hears is back where
+    it started rather than warned — and the inert result above cannot tell
+    whether the machinery does nothing or is simply never exercised. This arm
+    exercises it: a unit with no preference refuses a reply from a peer whose
+    testimony about that relation has already failed.
+
+    IT BITES HARD AND BUYS NOTHING. Eight seeds, 60 rounds:
+
+        arm                     uptakes   refuting (true)   refuting (conv)   true lost   conv lost     net
+        4u untargeted               939               349                20       36/64        0/32    −106
+        4u distrust                 417               518               211       36/64        0/32    −551
+        6u untargeted               928               695               158       69/96       17/48     −77
+        6u distrust                 423               849               333       69/96       17/48    −534
+
+    **NOT ONE LAW'S FATE MOVES.** The same 36 of 64 true laws are lost at four
+    units and the same 69 of 96 at six, the same converses stand, and every
+    disposal exit is identical — because a doubt is settled inside its five-round
+    window and the negative credit that drives the refusals has barely
+    accumulated by then. What the refusals do reach is the evidence: 525 and 505
+    questions go unanswered, and the refuting counts rise on true laws and
+    converses alike.
+
+    THE ONE ASYMMETRY RUNS THE WRONG WAY FOR THE SERIES' PURPOSES. The
+    converse's refuting count rises by a factor of **10.6** against the true
+    law's **1.5**, so distrust weighs harder against the false law than the true
+    one — the shape P-G2 hoped for — and it changes no outcome whatever, because
+    nothing reads those counts after the window has closed.
+
+    AND IT COSTS THE SCORE FIVEFOLD, for a reason worth naming: an adopted head
+    atom mostly PREVENTS A LOSING BET rather than winning one. A unit that holds
+    `a_head(x)` no longer stakes on it, so refusing the answer buys back a
+    forecast the field was never going to deliver. Net falls −106 → −551 and
+    −77 → −534. Read the counts, not the direction.
+    """
+    four = _aggregate_ask(4, CYCLIC, ask=True, typify="distrust",
+                          keys=_TYPIFY_KEYS)
+    six = _aggregate_ask(6, PAIRS, ask=True, typify="distrust",
+                         keys=_TYPIFY_KEYS)
+    four_control = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
+    six_control = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
+    # The refusals happened, so the arm is not the control under another name.
+    assert (four["refused"], six["refused"]) == (525, 505)
+    assert (four_control["uptakes"], four["uptakes"]) == (939, 417)
+    assert (six_control["uptakes"], six["uptakes"]) == (928, 423)
+    # The evidence moves, and it moves harder against the converse.
+    assert (four_control["true_ref"], four["true_ref"]) == (349, 518)
+    assert (four_control["conv_ref"], four["conv_ref"]) == (20, 211)
+    assert (six_control["true_ref"], six["true_ref"]) == (695, 849)
+    assert (six_control["conv_ref"], six["conv_ref"]) == (158, 333)
+    # AND NOT ONE LAW'S FATE MOVES, at either size, on either kind of law.
+    for control, arm in ((four_control, four), (six_control, six)):
+        assert (control["true_lost"], control["conv_lost"]) == (
+            arm["true_lost"], arm["conv_lost"])
+        assert [control[k] for k in ("suspended", "internal", "corroborated",
+                                     "rebutted", "silence")] == [
+            arm[k] for k in ("suspended", "internal", "corroborated",
+                             "rebutted", "silence")]
+    assert (four["true_lost"], four["conv_lost"]) == (36, 0)
+    assert (six["true_lost"], six["conv_lost"]) == (69, 17)
+    # The score falls fivefold, because an adopted head mostly prevents a bet.
+    assert (four_control["net"], four["net"]) == (-106, -551)
+    assert (six_control["net"], six["net"]) == (-77, -534)
+
+
+def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
+    """WHY ALMOST NOTHING IS EVER LEARNED, measured rather than argued.
+
+    `settle_credit`'s verdict is replication: an adopted fact proves out when
+    the unit's own aperture later delivers it too. Whether that happens depends
+    on whether the field redraws that individual, and the field draws ONE
+    individual per relation per round from a list of forty — so an individual
+    waits about forty rounds for its next turn and a unit under bounded
+    attention meets half of those. Four units, cyclic, eight seeds, 60 rounds,
+    the replication window the only variable:
+
+        window   proved   failed   still pending   preferences held at the end
+        5           347      552              40                             0
+        10          347      508              84                             1
+        20          347      434             158                             5
+
+    **THE PROVED COUNT DOES NOT MOVE AT ALL.** 347 of the 939 adoptions are
+    borne out by a second route and the rest are not, whatever deadline the unit
+    keeps; all the window decides is how many of the unreplicated ones get read
+    as failures and how many are still waiting when the run ends. A knob that
+    changes only the denominator is reading the field's cadence, not the peer's
+    reliability — which is the whole reason the preference machinery above has
+    nothing to bite on.
+
+    A LONGER WINDOW LEARNS MORE PREFERENCES ONLY BY DECLINING TO CONCLUDE. It
+    goes 0 → 1 → 5 of 96 (peer, relation) pairs across the three windows, and it
+    does so by leaving failures pending rather than by finding successes. That
+    is honest — an undecided verdict credits nothing either way — and it is not
+    a route to a channel that discriminates.
+    """
+    # THE ARMS ARE MEMOISED AND READ BY FOUR GATES, so determinism is not a
+    # nicety here: it is what makes a cached arm the same run rather than a
+    # shortcut past one. Asserted on the typify path itself, which the older
+    # determinism gate does not reach.
+    def once():
+        t = _play_ask_and_challenge(3, 30, ask=True, typify="distrust")
+        return tuple(sorted(t.items()))
+    assert once() == once()
+
+    arms = [_aggregate_ask(4, CYCLIC, ask=True, typify="prefer", rep_window=w,
+                           keys=_TYPIFY_KEYS) for w in (5, 10, 20)]
+    assert [a["proved"] for a in arms] == [347, 347, 347]
+    assert [a["failed"] for a in arms] == [552, 508, 434]
+    assert [a["pending"] for a in arms] == [40, 84, 158]
+    assert [a["preferences"] for a in arms] == [0, 1, 5]
+    # Every verdict is accounted for: nothing is entered twice and nothing is
+    # dropped, at every window.
+    for arm in arms:
+        assert arm["proved"] + arm["failed"] + arm["pending"] == arm["uptakes"]
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

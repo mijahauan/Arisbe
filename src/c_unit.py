@@ -342,17 +342,19 @@ class Unit:
     worth naming as such.
 
     MEASURED AT 5, 10 AND 20, four units under bounded attention, eight seeds,
-    60 rounds, the typified arm. What moves is the verdict split and nothing
-    else:
+    60 rounds, the typified arm, over the same 939 adoptions:
 
-        window   proved   failed   pending at the end   preferences learned
-        5            15      618                   38                    12
-        10           27      544                   61                    17
-        20           44      401                  132                    24
+        window   proved   failed   still pending   preferences held at the end
+        5           347      552              40                             0
+        10          347      508              84                             1
+        20          347      434             158                             5
 
-    The proved count rises with the window because a longer wait meets more of
-    the field's cadence, which is exactly the reading above: this knob reads the
-    field, not the peer."""
+    THE PROVED COUNT DOES NOT MOVE. Whether a second route delivers the fact is
+    the field's business and not this deadline's; all the window decides is how
+    many unreplicated facts are read as failures and how many are still waiting
+    when the run ends. A longer window holds more preferences only by declining
+    to conclude. Measured in
+    `tests/test_c_channels.py::test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`."""
     peers: Dict[str, Dict[str, int]] = dc_field(default_factory=dict)
     """What this unit has learned about WHOM IT IS TALKING TO: per peer, per
     relation, a running count of the answers that proved out minus the answers
@@ -879,8 +881,12 @@ class Unit:
         already what it is.
 
         The unit is not obliged to adopt any of them; reading is encountering,
-        adopting is a separate act, and stage 4's typification is what will make
-        the choice of whose marks to read seriously.
+        and adopting is a separate act. Choosing WHOSE marks to read seriously is
+        typification's business (`credit`, `whom_to_ask`) — built now, and
+        measured inert in this field: a reply about a relation can come only
+        from a peer that witnesses the domain on the rounds this unit does not,
+        and there is at most one of those, so a preference has nothing to prefer
+        against.
         """
         return [m for m in board.since(round_idx) if m.author != self.unit_id]
 
@@ -1091,14 +1097,15 @@ class Unit:
         question, and for the same reason.
 
         WHAT THE VERDICT DOES NOT CARRY, measured rather than argued: any
-        information about the peer. Replication in this field depends on whether
-        the field redraws that individual, which is independent of who reported
-        it, so the verdict is an unbiased but nearly powerless signal — every
-        peer accumulates at the same base rate. Over eight seeds, 60 rounds, six
-        units under bounded attention, 571 verdicts were entered, 27 of them
-        positive, and no unit ever had two peers to choose between on any
-        relation: the measurement is in
-        `tests/test_c_channels.py::test_typification_has_nothing_to_learn_from_in_this_field`.
+        information about the peer. Replication depends on whether the field
+        redraws that individual, which is independent of who reported it, so the
+        verdict is an unbiased and nearly powerless signal — every peer
+        accumulates at the same base rate. Eight seeds, 60 rounds, four units
+        under bounded attention: 855 verdicts entered on 939 adoptions, 347 of
+        them positive, and of the 96 (peer, relation) pairs the community
+        accumulates any record about, **1 ends the run with a positive score**.
+        At six units it is 5 of 107. Measured in
+        `tests/test_c_channels.py::test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_choice`.
 
         A FACT ALREADY HELD WHEN THE MARK ARRIVED NEVER REACHES HERE, and it is
         `adopt` that keeps it out: `_supplied_by` is written only when something
@@ -1237,9 +1244,22 @@ class Unit:
         A question is the first piece of targeting, and it targets by
         CONSTRUCTION rather than by luck: the atom asked about is one this unit's
         own laws license over an individual its own record already carries, so an
-        answer is relevant to it by the very definition of what it asked. What a
-        question CANNOT do is choose whom to ask — it is published to the whole
-        board — and that is typification's work, next.
+        answer is relevant to it by the very definition of what it asked.
+
+        THAT TARGETING HAS A SECOND CONSEQUENCE, FOUND BY MEASURING IT: a unit
+        can only ever ask about an atom its own record already licenses, so a
+        head the field FABRICATED — one that no antecedent ever licensed — is
+        never asked about and never adopted. Over eight seeds and 60 rounds the
+        field fabricated 37 head atoms, every one inside some unit's aperture,
+        and **0 of the 939 adoptions took one up**
+        (`tests/test_c_channels.py::test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure`).
+
+        WHAT A QUESTION CANNOT DO is choose whom to ask — it is published to the
+        whole board. Typification (`credit`, `whom_to_ask`) is what would choose,
+        and it is built and measured inert: a unit has at most one peer that can
+        answer it about a given relation, so over the same eight seeds and 60
+        rounds, on the 41 occasions (four units) and 54 (six units) at which a
+        preference existed, it disagreed with the answering peer exactly 0 times.
         """
         for want in self._wants():
             key = (QUESTION, want)
