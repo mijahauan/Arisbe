@@ -24,11 +24,11 @@ def _arms():
     ap = apertures_for(spec, n_units=4)[0]
     # The converse of alpha's own law: ("a_head", "a_local").
     converse = (spec.domains[0].law[1], spec.domains[0].law[0])
-    # A wrong law that bets heavily and loses: ("a_head", "shared").
-    # It once had a nonzero ceiling — `shared` used to draw from the domain's
-    # own individuals. It no longer does: `shared` now draws from a disjoint
-    # s-individual pool, so this rival scores 0 hits by construction. See the
-    # discount stated in the Stage 1 gate's docstring.
+    # A wrong law that bets heavily and loses more than it wins:
+    # ("a_head", "shared"). It has a real, nonzero ceiling — `shared` draws
+    # from the domain's own individuals, which include the shared core, so
+    # `shared(x)` for an x already carrying `a_head` does sometimes arrive.
+    # Measured 7–15 hits against 239–516 misses across 14 seeds.
     shared_head = (spec.domains[0].law[1], "shared")
     return spec, field, ap, converse, shared_head
 
@@ -49,37 +49,45 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     is 0, betting and winning is positive, betting and losing is negative.
 
     MEASURED at this seed (20260728), 60 rounds: learner 55 hits / 0 misses,
-    net +55; rival 0 hits / 1097 misses, net −1097; `fixed` 0 bets, net 0.
-    The gate's margin is therefore +1152 over the rival and +55 over abstention.
+    net +55; rival 11 hits / 241 misses, net −230; `fixed` 0 bets, net 0.
+    The gate's margin is therefore +285 over the rival and +55 over abstention.
 
-    SATURATION IS GONE. This aperture's atom universe is now 180 atoms (40
-    individuals per domain plus a 20-individual shared pool). The learner holds
-    142 of them after 60 rounds and is still betting at the end: 39 of the 60
-    rounds carry a bet, the first at round 4 and the last at round 59, with 9
-    bet-rounds at or after round 40. Anticipation stays live for the whole run,
-    so a longer run now adds evidence rather than silence — the earlier field
-    (30 atoms, all held by round 18, 7 bets total) could not say that.
+    SATURATION IS GONE. This aperture's atom universe is 230 atoms (five
+    relations over alpha's and beta's forty individuals, which overlap in the
+    ten-strong shared core). The learner holds 179 of them after 60 rounds and
+    is still betting at the end: 39 of the 60 rounds carry a bet, the first at
+    round 4 and the last at round 59, with 9 bet-rounds at or after round 40.
+    Anticipation stays live for the whole run, so a longer run adds evidence
+    rather than silence — the earlier field (30 atoms, all held by round 18,
+    7 bets total) could not say that.
 
     SEED FRAGILITY IS GONE, and here are the seeds: over 1, 2, 3, 4, 5, 7, 42,
     99, 555, 808, 2026, 12345, 20260728 and 31337, the learner outranks the
     rival on `net_score` at 14 of 14 — and on `accuracy` at 14 of 14 as well.
     The two seeds that used to break the ordering (99 and 808) no longer do.
 
-    BUT READ THAT WITH A DISCOUNT, because part of the reason is a loss of
-    difficulty, not a gain in evidence. The rival `a_head -> shared` was chosen
-    because it both bet AND could sometimes win — a nonzero ceiling on the
-    losing side. It no longer has one. `shared` now draws from a pool of
-    s-individuals disjoint from every domain's own individuals, so the rival
-    predicts `shared(a_i)` for alpha individuals and that atom can never
-    arrive: 0 hits at every seed, by construction. That is exactly the defect
-    for which the cross-domain rival `a_head -> b_head` was rejected. A sweep
-    of all twenty body→head pairs over this aperture's five relations finds
-    only the two PLANTED laws ever scoring a hit; every other law either never
-    bets (the two converses) or bets and scores exactly zero. So this gate
-    currently shows that induction beats laws that cannot win, which is weaker
-    than what its earlier wording claimed. Restoring a rival with a real
-    ceiling means giving two relations an overlapping individual pool — a field
-    design decision, deliberately not made here.
+    THE RIVAL CAN WIN, AND SOMETIMES DOES — that is what makes this a real
+    falsifier rather than a walkover. `shared` draws from the domain's own
+    individuals, which include the ten-strong core, so `shared(x)` for an x
+    already carrying `a_head` genuinely arrives now and then: 7–15 hits per
+    run across the 14 seeds (11 here), against 239–516 misses. It loses on
+    volume, not on impossibility. A sweep of all twenty body→head pairs over
+    this aperture's five relations at seed 20260728 makes the point: the two
+    PLANTED laws score 32/0 and 29/0, the two converses never bet (their head
+    is always already held), and every one of the remaining sixteen bets AND
+    hits — from 2 hits (`a_local -> b_local`, reaching across domains through
+    the core) to 18 (`shared -> a_local`) — while all sixteen finish deeply
+    negative. Accidental regularities are possible in this field; none of them
+    pays.
+
+    WHAT THE GATE STILL CANNOT SHOW: the learner takes 0 misses at all 14
+    seeds. That is now a property of the induction criterion, not of the field.
+    `Unit.induce` admits a law only when at most ONE individual carries the
+    body without the head, and every wrong law leaves fifteen-plus such
+    individuals outstanding, so the learner proposes exactly the two planted
+    laws and their two inert converses and never bets on anything false.
+    Loosening `max_pending` would let it err; whether it should is a stage-2
+    question about the induction rule, deliberately not answered here.
     """
     spec, field, ap, _converse, shared_head = _arms()
     learner = Unit("u0", ap)
@@ -96,6 +104,8 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     assert learner.ledger.hits > 0
     # The rival genuinely bets — the comparison has a losing side that plays.
     assert misled.ledger.hits + misled.ledger.misses > 0
+    # It can also WIN some of them; that the ceiling is nonzero is a property
+    # of the field, pinned in tests/test_c_field.py rather than restated here.
     # And the learner beats it, and beats abstention — on `net_score`, the
     # statistic that is stable at low bet volumes and that an abstainer can
     # share a scale with (its `accuracy` is None, not 0.0).
@@ -115,8 +125,10 @@ def test_the_converse_law_arm_places_no_bets_at_all():
     candidate already in `facts`, and the field delivers `a_head(y)` at round
     r only because `a_local(y)` was delivered at r-1 and absorbed then. The
     converse law's head is therefore ALWAYS already held, so it never yields
-    a prediction. Re-verified on the widened field at seeds 7 / 99 / 808 /
-    12345 / 20260728 and out to 200 rounds: zero bets in every case.
+    a prediction. Re-verified on the shared-core field at seeds 7 / 99 / 808 /
+    12345 / 20260728 and out to 200 rounds: zero bets in every case. It is the
+    ONLY law shape in this field that cannot bet — every other wrong law now
+    both bets and sometimes hits.
 
     Both arms therefore have NO accuracy — `None`, not 0.0. A unit that placed
     no bet has no ratio to report, and fabricating one for it would let an

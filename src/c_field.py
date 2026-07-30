@@ -28,7 +28,19 @@ class Domain:
 class FieldSpec:
     seed: int
     domains: Tuple[Domain, ...]
-    shared_individuals: Tuple[str, ...] = ()
+
+
+CORE = tuple(f"s{i}" for i in range(1, 11))
+"""The individuals every domain knows. Overlap lives in the domains' own
+individual lists, not in a pool beside them — see `default_spec`."""
+
+
+def _individuals(prefix: str) -> Tuple[str, ...]:
+    """A domain's forty individuals: the ten-strong shared core plus thirty
+    private ones. The private names start at 11 so that `a11` and `s5` are
+    never two names for one thing, and so the count is readable off the
+    range."""
+    return CORE + tuple(f"{prefix}{i}" for i in range(11, 41))
 
 
 def default_spec(seed: int = 20260728) -> FieldSpec:
@@ -36,24 +48,32 @@ def default_spec(seed: int = 20260728) -> FieldSpec:
     regularity any unit could find and nobody should find twice. Each domain
     additionally carries a local antecedent and its own law.
 
-    `shared_individuals` is a pool drawn from by every domain's `shared`
-    relation, so two domains can — and, over enough rounds, do — mention the
-    same individual. Aperture overlap is this field's analogue of physical
-    proximity; without a shared pool there is no proximity for a later stage
-    to carry."""
+    OVERLAP IS IN THE INDIVIDUAL LISTS, NOT BESIDE THEM. Each domain's forty
+    individuals are the ten-strong core `s1..s10` — known to every domain —
+    plus thirty private ones (`a11..a40`, `b11..b40`, ...). Every relation of a
+    domain, `shared` included, draws from that one list.
+
+    An earlier design gave `shared` a separate pool of s-individuals disjoint
+    from every domain's own. That made cross-domain overlap real but sterile:
+    `shared(a20)` could never arrive, so any law of the form
+    *domain-relation -> shared* was structurally unsatisfiable and a rival
+    holding one had a hit ceiling of exactly zero. Putting the core inside the
+    lists restores three things at once — `shared(s5)` and `a_head(s5)` can
+    mention the same individual, so a wrong law can genuinely hit AND lose;
+    alpha and beta both emit atoms about `s5`, so overlap carries content; and
+    accidental regularities are possible again, so a gate can discriminate."""
     return FieldSpec(
         seed=seed,
         domains=(
             Domain("alpha", ("shared", "a_local"), ("a_local", "a_head"),
-                   tuple(f"a{i}" for i in range(1, 41))),
+                   _individuals("a")),
             Domain("beta", ("shared", "b_local"), ("b_local", "b_head"),
-                   tuple(f"b{i}" for i in range(1, 41))),
+                   _individuals("b")),
             Domain("gamma", ("shared", "g_local"), ("g_local", "g_head"),
-                   tuple(f"g{i}" for i in range(1, 41))),
+                   _individuals("g")),
             Domain("delta", ("shared", "d_local"), ("d_local", "d_head"),
-                   tuple(f"d{i}" for i in range(1, 41))),
+                   _individuals("d")),
         ),
-        shared_individuals=tuple(f"s{i}" for i in range(1, 21)),
     )
 
 
@@ -79,11 +99,7 @@ class Field:
         rng = random.Random(f"{self.spec.seed}:{domain_name}:{round_idx}")
         out: List[Fact] = []
         for rel in d.antecedents:
-            if rel == "shared":
-                pool = self.spec.shared_individuals or d.individuals
-            else:
-                pool = d.individuals
-            who = rng.choice(pool)
+            who = rng.choice(d.individuals)
             out.append((rel, (("c", who),)))
         return sorted(out)
 
