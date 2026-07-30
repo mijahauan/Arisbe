@@ -40,6 +40,17 @@ class FieldSpec:
     wrong about."""
 
 
+CONSEQUENT_LAG = 1
+"""How many rounds a licensed consequent trails its antecedent. `deliver` reads
+it, and so does anything that has to know how long to wait before an absent head
+means anything: an individual whose body arrived less than this many rounds ago
+cannot yet carry its head, so its silence is not evidence.
+
+Named rather than inlined because two modules depend on it and they must not
+drift — `Field.deliver` produces the lag and `c_unit.Unit._pending_split`
+consumes it."""
+
+
 CORE = tuple(f"s{i}" for i in range(1, 11))
 """The individuals every domain knows. Overlap lives in the domains' own
 individual lists, not in a pool beside them — see `default_spec`."""
@@ -136,7 +147,7 @@ class Field:
         d = self._by_name[domain_name]
         out = set(self._antecedents(domain_name, round_idx))
         licensed = []
-        for f in self._antecedents(domain_name, round_idx - 1):
+        for f in self._antecedents(domain_name, round_idx - CONSEQUENT_LAG):
             c = self.consequent(domain_name, f)
             if c is not None:
                 licensed.append(c)

@@ -81,44 +81,183 @@ def test_induction_needs_enough_support():
     u = Unit("u0", ap)
     u.facts.update(_unary("p", ["x0", "x1", "x2"]))
     u.facts.update(_unary("q", ["x0", "x1", "x2"]))
-    assert ("p", "q") in u.induce(min_support=3)
+    assert ("p", "q") in u.induce(0, min_support=3)
 
     v = Unit("u1", ap)
     v.facts.update(_unary("p", ["y0", "y1"]))
     v.facts.update(_unary("q", ["y0", "y1"]))
-    assert ("p", "q") not in v.induce(min_support=3)
+    assert ("p", "q") not in v.induce(0, min_support=3)
 
 
 def test_induction_tolerance_is_a_rate_not_a_count():
     """A large body set tolerates proportionally more pending cases; a small one
     does not. An absolute count would treat both alike — and, measured against a
-    fact set that only ever grows, would silently tighten over a run."""
+    fact set that only ever grows, would silently tighten over a run.
+
+    THE PENDING INDIVIDUALS ARE DATED HERE, and they have to be: since the
+    open-world reading went in, an individual only counts against a law once its
+    body has been held longer than the field's consequent lag. Undated bodies
+    would be set aside as unknown and neither arm would refuse anything — which
+    is `test_an_undated_pending_body_is_unknown_not_counter_evidence`, a
+    different claim from this one."""
     _spec, _field, ap = _setup()
     big = Unit("u0", ap)
-    big.facts.update(_unary("p1", [f"x{i}" for i in range(100)]))
-    big.facts.update(_unary("q1", [f"x{i}" for i in range(97)]))   # 3 pending of 100
-    assert ("p1", "q1") in big.induce(min_support=3, max_pending_rate=0.05)
+    big._record(_unary("p1", [f"x{i}" for i in range(100)]), 0)
+    big._record(_unary("q1", [f"x{i}" for i in range(97)]), 1)     # 3 pending of 100
+    assert ("p1", "q1") in big.induce(2, min_support=3, max_pending_rate=0.05)
 
     small = Unit("u1", ap)
-    small.facts.update(_unary("p1", [f"y{i}" for i in range(10)]))
-    small.facts.update(_unary("q1", [f"y{i}" for i in range(7)]))  # 3 pending of 10
-    assert ("p1", "q1") not in small.induce(min_support=3, max_pending_rate=0.05)
+    small._record(_unary("p1", [f"y{i}" for i in range(10)]), 0)
+    small._record(_unary("q1", [f"y{i}" for i in range(7)]), 1)    # 3 pending of 10
+    assert ("p1", "q1") not in small.induce(2, min_support=3,
+                                            max_pending_rate=0.05)
 
 
-def test_a_pending_antecedent_is_tolerated_only_in_proportion():
-    """The lag leaves the just-delivered antecedent awaiting its consequent, and
-    noise leaves a withheld one pending forever. Both are tolerable in a large
-    record and not in a small one — which is the point of a rate."""
+def test_a_withheld_consequent_is_tolerated_only_in_proportion():
+    """A consequent the field withheld leaves its individual pending forever, and
+    once the lag has elapsed the unit cannot tell that from a genuine refutation.
+    Such cases are tolerable in a large record and not in a small one — which is
+    the point of a rate, and the reason the tolerance has to sit somewhere in
+    relation to the field's withhold rate (see `MAX_PENDING_RATE`).
+
+    RENAMED from `test_a_pending_antecedent_is_tolerated_only_in_proportion`,
+    because the two cases it used to run together have come apart: an antecedent
+    still awaiting its consequent is no longer TOLERATED by the rate, it is not
+    counted at all (`test_a_body_delivered_within_the_lag_is_not_counter_evidence`)."""
     _spec, _field, ap = _setup()
     lagging = Unit("u0", ap)
-    lagging.facts.update(_unary("p", [f"x{i}" for i in range(20)]))
-    lagging.facts.update(_unary("q", [f"x{i}" for i in range(19)]))  # x19 pending
-    assert ("p", "q") in lagging.induce(min_support=3, max_pending_rate=0.05)
+    lagging._record(_unary("p", [f"x{i}" for i in range(20)]), 0)
+    lagging._record(_unary("q", [f"x{i}" for i in range(19)]), 1)   # x19 withheld
+    assert ("p", "q") in lagging.induce(2, min_support=3, max_pending_rate=0.05)
 
     refuted = Unit("u1", ap)
-    refuted.facts.update(_unary("p", ["y0", "y1", "y2", "y3", "y4"]))
-    refuted.facts.update(_unary("q", ["y0", "y1", "y2"]))       # y3, y4 refute
-    assert ("p", "q") not in refuted.induce(min_support=3, max_pending_rate=0.05)
+    refuted._record(_unary("p", ["y0", "y1", "y2", "y3", "y4"]), 0)
+    refuted._record(_unary("q", ["y0", "y1", "y2"]), 1)        # y3, y4 refute
+    assert ("p", "q") not in refuted.induce(2, min_support=3,
+                                            max_pending_rate=0.05)
+
+
+# --- the open world: what could not have been observed is not counter-evidence
+
+
+def test_a_body_delivered_within_the_lag_is_not_counter_evidence():
+    """THE FIRST OF THE THREE ROUTES INTO THE PENDING SET, and the one that
+    repairs itself. The field delivers a consequent `CONSEQUENT_LAG` rounds after
+    its antecedent, so an individual whose body arrived this round HAS no head
+    yet and cannot have one; reading it as a refutation charges the law for the
+    passage of time.
+
+    Twenty supporters and five bodies delivered at round 5. Asked at round 5 the
+    five are unknown and the law stands; asked at round 6 the lag has elapsed,
+    they are refuting, and 5 of 25 is 20% — past the tolerance."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u._record(_unary("p1", [f"x{i}" for i in range(20)]), 0)
+    u._record(_unary("q1", [f"x{i}" for i in range(20)]), 1)
+    u._record(_unary("p1", [f"z{i}" for i in range(5)]), 5)
+    assert u._meets_criterion(("p1", "q1"), 5)
+    assert not u._meets_criterion(("p1", "q1"), 6)
+
+
+def test_an_undated_pending_body_is_unknown_not_counter_evidence():
+    """THE SAME PRINCIPLE `_body_precedes_head` ALREADY KEEPS: absent timing
+    evidence is not counter-evidence. A fact placed directly, or adopted from a
+    peer — which `adopt` deliberately does not date — leaves the unit unable to
+    say whether the head has had time to arrive, so it says nothing either way.
+
+    THE COST IS REAL AND IT IS NAMED: undated testimony can no longer refute a
+    law. Adopted content still counts as SUPPORT (that reading needs no date),
+    so the channel is now asymmetric — a peer can bear a law out and cannot
+    weigh against it. See `test_adopted_facts_still_count_as_support` in
+    tests/test_c_marks.py."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u._record(_unary("p1", [f"x{i}" for i in range(20)]), 0)
+    u._record(_unary("q1", [f"x{i}" for i in range(20)]), 1)
+    u.facts.update(_unary("p1", [f"z{i}" for i in range(5)]))   # undated
+    assert not any(f in u.first_seen for f in _unary("p1", ["z0"]))
+    assert u._meets_criterion(("p1", "q1"), 99)
+
+
+def test_an_unknown_individual_leaves_the_denominator_as_well():
+    """AN ABSTENTION MUST NOT BE SILENTLY CONVERTED INTO A PASS. The rate is read
+    over what was observed — `refuting / (refuting + confirmed)` — so setting an
+    individual aside removes it from the numerator AND from the denominator.
+
+    Three supporters, two elapsed refutations and fifty individuals whose bodies
+    arrived this round: 2 of 5 observed is 40% and the law is refused. Padding
+    the denominator with the fifty would read 2 of 55, under 4%, and admit it."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u._record(_unary("p1", ["x0", "x1", "x2"]), 0)
+    u._record(_unary("q1", ["x0", "x1", "x2"]), 1)
+    u._record(_unary("p1", ["y0", "y1"]), 2)                # elapsed: refuting
+    u._record(_unary("p1", [f"z{i}" for i in range(50)]), 9)  # this round: unknown
+    confirmed, refuting, unknown = u._pending_split("p1", "q1", 9)
+    assert (len(confirmed), len(refuting), len(unknown)) == (3, 2, 50)
+    assert not u._meets_criterion(("p1", "q1"), 9)
+
+
+def test_the_tolerance_still_depends_on_a_withhold_rate_no_unit_can_observe():
+    """THE MEASUREMENT THAT DECIDED NOT TO MOVE `MAX_PENDING_RATE`, pinned so it
+    cannot drift out of the docstring that quotes it.
+
+    Setting aside what could not have been observed removes the LAG's
+    contribution to the pending set; it cannot remove a consequent the field
+    withheld outright, which after the lag looks exactly like a refutation. So
+    the tolerance still has to cover the withhold rate, and the criterion's grip
+    on a true law slackens as that rate rises.
+
+    One unit absorbing the field, fourteen seeds, 60 rounds, asked at every round
+    from 10 to 59 about the two laws its aperture's domains actually carry: at
+    withhold 0.00 the law meets its own criterion at 100.0% of rounds, at 0.10 at
+    52.8%, at 0.20 at 18.2% — the 0.05 tolerance unchanged throughout. The
+    converses read 0.0% at all three, refused by precedence rather than by the
+    rate.
+
+    A UNIT CANNOT OBSERVE ITS FIELD'S WITHHOLD RATE, so this is a dependence on a
+    quantity outside the membrane. It is reported rather than tuned away: raising
+    the tolerance repairs nothing the loop still suffers from (the open-world
+    reading already took permanent true-law loss to zero) and admits accidental
+    `x -> shared` laws that 0.05 refuses."""
+    from dataclasses import replace
+    seeds = [1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026, 12345, 20260728, 31337]
+    reading = {}
+    for withhold in (0.0, 0.10, 0.20):
+        true_pass = true_n = conv_pass = conv_n = 0
+        for seed in seeds:
+            spec = replace(default_spec(seed=seed), withhold_rate=withhold)
+            field = Field(spec)
+            ap = apertures_for(spec, n_units=4)[0]
+            planted = [field.domain(n).law for n in ap.domains]
+            u = Unit("u0", ap)
+            for r in range(60):
+                u.absorb(field, r)
+                if r < 10:
+                    continue
+                for body, head in planted:
+                    true_n += 1
+                    true_pass += u._meets_criterion((body, head), r)
+                    conv_n += 1
+                    conv_pass += u._meets_criterion((head, body), r)
+        reading[withhold] = (true_pass / true_n, conv_pass / conv_n)
+    assert [round(reading[w][0], 3) for w in (0.0, 0.10, 0.20)] == [
+        1.0, 0.528, 0.182]
+    assert [reading[w][1] for w in (0.0, 0.10, 0.20)] == [0.0, 0.0, 0.0]
+
+
+def test_a_law_with_nothing_observed_either_way_is_stopped_by_support():
+    """When the denominator is zero the rate abstains and passes, and
+    `min_support` is what still stops a law with no evidence. It has to be:
+    otherwise a law about individuals nobody has observed would pass the
+    tolerance vacuously."""
+    _spec, _field, ap = _setup()
+    u = Unit("u0", ap)
+    u.facts.update(_unary("p1", ["x0", "x1", "x2"]))        # undated bodies only
+    confirmed, refuting, unknown = u._pending_split("p1", "q1", 9)
+    assert (len(confirmed), len(refuting), len(unknown)) == (0, 0, 3)
+    assert not u._meets_criterion(("p1", "q1"), 9)
+    assert ("p1", "q1") not in u.induce(9)
 
 
 # --- retraction: a law can now be given up, not merely outlived --------------
@@ -181,7 +320,7 @@ def test_induction_admits_a_law_and_refuses_its_converse():
     head = _unary("q1", [f"x{i}" for i in range(20)])
     u._record(body, 0)          # bodies first ...
     u._record(head, 1)          # ... heads one round later, as the field lags
-    found = u.induce(min_support=3, max_pending_rate=0.05)
+    found = u.induce(2, min_support=3, max_pending_rate=0.05)
     assert ("p1", "q1") in found, "the law the timing supports was not admitted"
     assert ("q1", "p1") not in found, "the CONVERSE was admitted — precedence failed"
 
@@ -197,7 +336,7 @@ def test_precedence_tolerates_a_minority_of_heads_arriving_first():
     u._record(_unary("q1", ["x0", "x1", "x2"]), 0)          # spurious heads first
     u._record(_unary("p1", [f"x{i}" for i in range(20)]), 1)
     u._record(_unary("q1", [f"x{i}" for i in range(20)]), 2)
-    assert ("p1", "q1") in u.induce(min_support=3, max_pending_rate=0.05)
+    assert ("p1", "q1") in u.induce(3, min_support=3, max_pending_rate=0.05)
 
 
 def test_precedence_refuses_when_the_head_leads_by_a_majority():
@@ -205,7 +344,7 @@ def test_precedence_refuses_when_the_head_leads_by_a_majority():
     u = Unit("u0", ap)
     u._record(_unary("q1", [f"x{i}" for i in range(20)]), 0)   # heads lead 20-0
     u._record(_unary("p1", [f"x{i}" for i in range(20)]), 1)
-    assert ("p1", "q1") not in u.induce(min_support=3, max_pending_rate=0.05)
+    assert ("p1", "q1") not in u.induce(2, min_support=3, max_pending_rate=0.05)
 
 
 def test_a_tie_counts_as_precedence_rather_than_against_it():
@@ -215,7 +354,7 @@ def test_a_tie_counts_as_precedence_rather_than_against_it():
     u = Unit("u0", ap)
     u._record(_unary("p1", [f"x{i}" for i in range(20)])
               | _unary("q1", [f"x{i}" for i in range(20)]), 0)
-    assert ("p1", "q1") in u.induce(min_support=3, max_pending_rate=0.05)
+    assert ("p1", "q1") in u.induce(1, min_support=3, max_pending_rate=0.05)
 
 
 def test_absent_timing_evidence_is_not_counter_evidence():
@@ -227,7 +366,7 @@ def test_absent_timing_evidence_is_not_counter_evidence():
     u.facts.update(_unary("p", [f"x{i}" for i in range(20)]))
     u.facts.update(_unary("q", [f"x{i}" for i in range(20)]))
     assert not u.first_seen
-    assert ("p", "q") in u.induce(min_support=3, max_pending_rate=0.05)
+    assert ("p", "q") in u.induce(9, min_support=3, max_pending_rate=0.05)
 
 
 def test_the_learner_induces_only_planted_laws_across_many_seeds():
@@ -296,7 +435,7 @@ def test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice():
         arrived = set(field.at(ap, r))
         u.ledger.score(anticipated, arrived, r)
         u._record(arrived, r)
-        u.induce()
+        u.induce(r)
         for f in anticipated - arrived:
             missed[f] += 1
 

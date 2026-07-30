@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field as dc_field
 from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
-from c_field import Aperture, Field
+from c_field import CONSEQUENT_LAG, Aperture, Field
 from c_marks import (CHALLENGE, CORROBORATION, FACT, LAW, QUESTION, Content,
                      Mark, MarkBoard)
 from c_membrane import MembraneLedger
@@ -35,7 +35,57 @@ distinct defeats became 426 retraction events as induction re-admitted what the
 challenge rule had just destroyed. Two criteria at different strengths do not
 disagree occasionally; they fight continuously. These constants are the fix, and
 they are module-level rather than per-call defaults so that the two readers
-cannot drift apart."""
+cannot drift apart.
+
+THE VALUE 0.05 SITS BELOW THE FIELD'S DEFAULT WITHHOLD RATE OF 0.10, AND THAT
+WAS MEASURED RATHER THAN ARGUED. Reading `pending` open-world (see
+`_pending_split`) removes the individuals whose consequents could not have
+arrived, which is what the tolerance used to be silently absorbing. What it does
+NOT remove is a consequent the field withheld outright: once the lag has elapsed
+that individual is indistinguishable from a genuine refutation, so the tolerance
+still has to cover the withhold rate. Measured over the fourteen seeds this suite
+uses, 60 rounds, one unit absorbing the field, asking the criterion about its
+aperture's two planted laws at every round from 10 to 59 — the proportion of
+rounds at which a TRUE law meets its own criterion:
+
+    tolerance      withhold 0.00   withhold 0.10   withhold 0.20
+    0.05                  100.0%           52.8%           18.2%
+    0.10                  100.0%           76.3%           43.0%
+    0.15                  100.0%           93.6%           65.0%
+    0.20                  100.0%           99.0%           80.5%
+    0.30                  100.0%          100.0%           94.9%
+
+SO THE ANSWER TO "DOES THE CRITERION STILL DEPEND ON A TOLERANCE ABOVE THE
+FIELD'S WITHHOLD RATE" IS YES, and the dependence is steep: with no withholding
+the tolerance is irrelevant, and at each withhold rate a true law reads sustained
+at most rounds only once the tolerance is one and a half to two times the
+withhold. A unit cannot observe its field's withhold rate. Whatever value stands
+here therefore encodes an assumption about the world that the unit holding the
+law has no way to check — the same shape of assumption as `CONSEQUENT_LAG`, and
+worth naming as such.
+
+THE VALUE WAS NOT RAISED, and the reason is that raising it buys nothing where
+the defect actually bit and costs a great deal everywhere else. Measured end to
+end on the induce arm — eight seeds, 60 rounds, four units inducing from what
+they meet, the challenge channel live, the tolerance the only variable:
+
+    tolerance   defeats   suspensions   true laws lost   UNPLANTED LAWS HELD
+    0.05             16            60                0                     0
+    0.10             14            62                0                     0
+    0.15             25            76                0                    10
+    0.20             43           103                0                    25
+    0.30             60           134                0                    54
+
+Permanent loss of true laws is already zero at 0.05, so a larger tolerance has
+nothing to repair; what it does instead is admit accidental laws — 54 of them
+standing at the end of the run at 0.30, none at 0.05 — and put more laws in doubt
+(134 suspensions against 60) rather than fewer. The per-round reading agrees:
+across the twenty ordered relation pairs one unit's aperture can carry, the
+proportion of rounds at which an UNPLANTED pair meets the criterion rises
+0.0% / 0.1% / 0.6% / 1.0% / 2.4% over those five tolerances at withhold 0.10. The
+converses stay at 0.0% at every tolerance, refused by precedence rather than by
+the rate, so a converse-only measurement would have reported the cost as zero. It
+is not zero."""
 
 
 @dataclass
@@ -312,10 +362,18 @@ class Unit:
         tuned fraction. Measured over the fourteen seeds this suite uses, 60
         rounds, all twenty body->head pairs on unit u0's aperture: the PLANTED
         laws score 0.89 to 1.00 on this proportion and their CONVERSES score
-        0.00 to 0.11. Nothing measured lands between 0.11 and 0.38, so the 0.5
-        cut is not near any observed value. (The mid-range pairs that do sit
-        near 0.5 — `shared -> a_head` and the like, 0.50 to 0.65 — are refused
-        by the pending rate instead, at 0.52 to 0.63 pending.)
+        0.00 to 0.11, so the 0.5 cut is not near any observed value. (The
+        mid-range pairs that do sit near 0.5 — `shared -> a_head` and the like,
+        0.38 to 0.75 — are refused by the pending rate instead, which after the
+        open-world reading of `pending` reads 0.41 to 0.65 for them, still an
+        order clear of the 0.05 tolerance.)
+
+        RE-MEASURED at the end of a 60-round run rather than at every round, the
+        planted spread reads 0.87 to 1.00 and the converse spread 0.00 to 0.13,
+        with the nearest other pair at 0.17. The gap is narrower than the
+        every-round reading above reports and is still wide; the two figures are
+        left side by side rather than one overwriting the other, because the
+        difference is in when the question is asked and neither is wrong.
 
         A tie counts as precedence, so the test is `<=` rather than `<`: two
         facts first held in the same round say nothing against either
@@ -339,7 +397,64 @@ class Unit:
             holders.setdefault(rel, set()).add(args)
         return holders
 
-    def _meets_criterion(self, law: Tuple[str, str],
+    def _pending_split(self, body_rel: str, head_rel: str, round_idx: int
+                       ) -> Tuple[Set[Tuple[Key, ...]], Set[Tuple[Key, ...]],
+                                  Set[Tuple[Key, ...]]]:
+        """Split the individuals this unit holds under `body_rel` into three:
+        those it also holds under `head_rel` (CONFIRMED), those that could have
+        carried the head by now and do not (REFUTING), and those about which the
+        unit has observed nothing either way (UNKNOWN).
+
+        THE THIRD SET IS THE POINT. An individual holding the body without the
+        head reaches that state by three routes, and only one of them is
+        evidence against the law:
+
+        1. The lag has not elapsed. The field delivers a consequent
+           `CONSEQUENT_LAG` rounds after its antecedent, so an individual whose
+           body arrived this round HAS no head yet and cannot have one. Nothing
+           has been observed against the law.
+        2. The head was never delivered here. `FieldSpec.withhold_rate` is 0.10
+           by default and bounded attention drops more, so a consequent can
+           simply fail to reach this membrane, leaving its individual pending
+           forever. The unit did not observe an absence; it failed to observe.
+        3. The head genuinely does not hold. Only this refutes.
+
+        An undated body — a fact placed directly, or adopted from a peer, which
+        `adopt` deliberately does not date — is UNKNOWN for the same reason:
+        ABSENT TIMING EVIDENCE IS NOT COUNTER-EVIDENCE, which is the principle
+        `_body_precedes_head` already keeps for direction. A unit that cannot say
+        when it came to hold the body cannot say whether the head has had time to
+        arrive, and reading that ignorance as refutation would let a peer's
+        publication schedule refute this unit's laws.
+
+        ROUTE 1 IS THE ONE THIS SPLIT REPAIRS, and it repairs itself by waiting.
+        ROUTE 2 IS NOT REPAIRED HERE: once the lag has elapsed, an individual
+        whose head simply never reached this membrane is indistinguishable from
+        one whose head does not hold, so it lands in REFUTING beside route 3.
+        Only the community could tell them apart — a peer that was looking when
+        the head arrived can publish it, and adopting it moves the individual
+        from refuting to confirmed. Whether the community does is measured in
+        `tests/test_c_channels.py::test_peer_testimony_repairs_the_false_law_and_not_the_true_one`,
+        and the answer over eight seeds is that it does not: some peer held the
+        missing head for 590 of 640 refuting individuals and four of them
+        reached the unit that needed them, because the internal re-assessment
+        retracts the law at round 0 and a law nobody holds asks no questions.
+        """
+        holders = self._holders()
+        body_args = holders.get(body_rel, set())
+        head_args = holders.get(head_rel, set())
+        confirmed = body_args & head_args
+        refuting: Set[Tuple[Key, ...]] = set()
+        unknown: Set[Tuple[Key, ...]] = set()
+        for args in body_args - head_args:
+            arrived = self.first_seen.get((body_rel, args))
+            if arrived is None or round_idx - arrived < CONSEQUENT_LAG:
+                unknown.add(args)
+            else:
+                refuting.add(args)
+        return confirmed, refuting, unknown
+
+    def _meets_criterion(self, law: Tuple[str, str], round_idx: int,
                          min_support: int = MIN_SUPPORT,
                          max_pending_rate: float = MAX_PENDING_RATE) -> bool:
         """Would this unit induce `law` from its record AS IT STANDS NOW?
@@ -360,22 +475,40 @@ class Unit:
         grown record — is closed by making a challenge the occasion for the
         re-test.
 
+        THE RATE IS READ OVER WHAT WAS OBSERVED, NOT OVER EVERY INDIVIDUAL HELD.
+        `_pending_split` sets aside the individuals whose heads could not have
+        arrived yet or never reached this membrane, and the tolerance is measured
+        against the rest: `refuting / (refuting + confirmed)`. AN UNKNOWN
+        INDIVIDUAL LEAVES BOTH THE NUMERATOR AND THE DENOMINATOR. Counting it in
+        the denominator would silently convert an abstention into a pass —
+        twenty unseen individuals would dilute two real refutations to 9% —
+        and counting it in the numerator is the defect this replaces.
+
+        WHEN NOTHING WAS OBSERVED EITHER WAY THE TEST ABSTAINS AND PASSES, and
+        `min_support` is what still stops a law with no evidence: a zero
+        denominator means the confirmed set is empty too, so support is zero and
+        the law was already refused above.
+
+        `round_idx` is the round the question is asked AT, threaded from the
+        caller — `step` for `induce`, the disposal round for a challenged law.
+        The unit reads no clock of its own; what "now" means is supplied by
+        whoever is asking, and both readers supply the same kind of thing.
+
         Read only against `self.facts`. Nothing about the challenger, the board
         or the field's regime enters."""
         body_rel, head_rel = law
         if body_rel == head_rel:
             return False
-        holders = self._holders()
-        body_args = holders.get(body_rel, set())
-        head_args = holders.get(head_rel, set())
-        support = body_args & head_args
-        if len(support) < min_support:
+        confirmed, refuting, _unknown = self._pending_split(
+            body_rel, head_rel, round_idx)
+        if len(confirmed) < min_support:
             return False
-        if len(body_args - head_args) > max_pending_rate * len(body_args):
+        observed = len(refuting) + len(confirmed)
+        if observed and len(refuting) > max_pending_rate * observed:
             return False
-        return self._body_precedes_head(body_rel, head_rel, support)
+        return self._body_precedes_head(body_rel, head_rel, confirmed)
 
-    def induce(self, min_support: int = MIN_SUPPORT,
+    def induce(self, round_idx: int, min_support: int = MIN_SUPPORT,
                max_pending_rate: float = MAX_PENDING_RATE
                ) -> Set[Tuple[str, str]]:
         """Propose body -> head where enough individuals carry both, few enough
@@ -395,6 +528,12 @@ class Unit:
         converse alongside it, because the two are supported by exactly the same
         individuals.
 
+        THE PENDING SET IS READ OPEN-WORLD. An individual whose head has not had
+        time to arrive, or never arrived at this membrane at all, is set aside
+        rather than counted against the law; see `_pending_split`. That is why
+        `round_idx` is required — "few enough carry body without head" is a claim
+        about a moment, and the unit is told which one rather than guessing.
+
         THE TEST ITSELF LIVES IN `_meets_criterion`, which is also what a
         challenged law is re-assessed against. One criterion, two readers: what
         it takes to take a law up is exactly what it takes to keep it."""
@@ -405,7 +544,8 @@ class Unit:
                 law = (body_rel, head_rel)
                 if law in self.laws:
                     continue
-                if self._meets_criterion(law, min_support, max_pending_rate):
+                if self._meets_criterion(law, round_idx, min_support,
+                                         max_pending_rate):
                     found.add(law)
         self.laws.update(found)
         return found
@@ -428,7 +568,7 @@ class Unit:
         self.ledger.score(anticipated, arrived, round_idx)
         self._record(arrived, round_idx)
         if induce:
-            self.induce()
+            self.induce(round_idx)
 
     # --- the assert channel: publish, read, adopt ---------------------------
     #
@@ -527,13 +667,22 @@ class Unit:
         reader should be able to read that off an inscription — nor any reason to
         trust it if it could.
 
-        WHAT THE RULING COSTS IS NOTHING, AND WHAT IT KEEPS IS TIMING. An
-        undated fact is still evidence: it enlarges a law's support and it can
-        still leave an antecedent pending and so refute one. It abstains only
-        from the direction test, which `_body_precedes_head` already handles —
-        absent timing evidence is not counter-evidence. And the date is not
-        spent: if the field later delivers an adopted fact, `_record` dates it
-        then, at the unit's first genuinely first-hand encounter with it.
+        WHAT THE RULING KEEPS IS TIMING, AND SINCE THE OPEN-WORLD READING WENT
+        INTO `_pending_split` IT ALSO COSTS SOMETHING NAMEABLE. An undated fact
+        still enlarges a law's SUPPORT — an individual carrying body and head is
+        confirmed on content alone, no date needed — but an undated BODY can no
+        longer refute a law: without a first-arrival the unit cannot say whether
+        the head has had time to reach it, so the individual is set aside as
+        unknown, the same abstention `_body_precedes_head` already makes about
+        direction. Testimony can therefore bear a law out and cannot weigh
+        against it. What weighs against a law from outside is a CHALLENGE, which
+        cites a peer's evidence without entering it in this record, and that is
+        the one instrument the asymmetry leaves for the purpose. Measured in
+        `tests/test_c_marks.py::test_adopted_facts_count_as_support_and_no_longer_as_refutation`.
+
+        And the date is not spent: if the field later delivers an adopted fact,
+        `_record` dates it then, at the unit's first genuinely first-hand
+        encounter with it.
         """
         if mark.author == self.unit_id:
             raise ValueError(
@@ -753,6 +902,16 @@ class Unit:
         another unit's record, or to what was withheld. That is what makes a
         counterexample a piece of testimony rather than an oracle's verdict —
         and it is why a challenge has to be checked rather than obeyed.
+
+        THE CITATION IS NOT READ OPEN-WORLD, and the asymmetry is deliberate but
+        worth naming. `_pending_split` sets aside individuals whose heads could
+        not have arrived yet; this reader does not, so a peer may cite an
+        individual whose body it absorbed this very round. Nothing unsound
+        follows — the cited law's author checks the citation against its own
+        record and its own criterion, and an unelapsed case is one the author
+        will find no fault with — but the challenge is noisier than it needs to
+        be, and every noisy challenge spends the once-per-law-ever mint that a
+        real counterexample would otherwise have used.
         """
         body_rel, head_rel = law
         for rel, args in sorted(self.facts):
@@ -958,7 +1117,7 @@ class Unit:
         self._spent.update(m for m in standing if m not in live)
         if not live:
             return                              # rebutted: the law stands
-        if not self._meets_criterion(law):
+        if not self._meets_criterion(law, round_idx):
             # THE INTERNAL ARM. The doubt sent the author back to its own record
             # and the record no longer sustains the law. Nobody else was needed.
             self._spent.update(live)
@@ -1008,7 +1167,7 @@ class Unit:
             self._unsuspend(law)
             out.restored_by_rebuttal.append(law)
             return
-        if not self._meets_criterion(law):
+        if not self._meets_criterion(law, round_idx):
             self._spent.update(live)
             if self.retract_law(law):
                 out.retracted_internally.append(law)

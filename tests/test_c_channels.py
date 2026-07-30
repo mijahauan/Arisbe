@@ -667,10 +667,20 @@ def _sustain(unit, law=("p1", "q1"), n=20):
         unit._record({(head, args)}, i + 1)
 
 
-def _dispute(unit, law=("p1", "q1"), who="z9", when=21):
+def _dispute(unit, law=("p1", "q1"), who="z9", when=0):
     """Give `unit` one individual carrying the law's body and not its head — the
-    pending case a peer will cite. One in twenty-one is 4.8%, inside the 5%
-    tolerance `induce` admits under, so the law still meets the criterion."""
+    pending case a peer will cite. One refuting against twenty confirmed is 4.8%,
+    inside the 5% tolerance `induce` admits under, so the law still meets the
+    criterion.
+
+    THE ROUND MATTERS NOW, and it is 0 rather than the 21 it used to be. Since
+    the open-world reading went into `_pending_split` an individual only counts
+    against a law once its body has been held longer than the field's consequent
+    lag, so a body dated AFTER the round the law is disposed at would be set
+    aside as unknown and every one of these tests would exercise the wrong
+    branch. Dating it at 0 puts the disputed individual squarely in the past of
+    every disposal below, which is the situation they are about: an author that
+    HAS observed the gap and cannot close it."""
     unit._record({(law[0], (("c", who),))}, when)
 
 
@@ -759,8 +769,8 @@ def test_a_challenge_provokes_a_re_assessment_that_settles_the_doubt_internally(
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     _sustain(u0)
-    for i, who in enumerate(("z1", "z2", "z3", "z4", "z5", "z6")):
-        _dispute(u0, who=who, when=21 + i)
+    for who in ("z1", "z2", "z3", "z4", "z5", "z6"):
+        _dispute(u0, who=who)
     u0.laws.add(("p1", "q1"))
     u0.publish(board, 0)
     u1.facts.add(("p1", (("c", "z1"),)))
@@ -780,11 +790,11 @@ def test_the_re_assessment_runs_only_when_a_doubt_provokes_it():
     _spec, _field, u0, _u1 = _two_units()
     board = MarkBoard()
     _sustain(u0)
-    for i, who in enumerate(("z1", "z2", "z3", "z4", "z5", "z6")):
-        _dispute(u0, who=who, when=21 + i)
+    for who in ("z1", "z2", "z3", "z4", "z5", "z6"):
+        _dispute(u0, who=who)
     u0.laws.add(("p1", "q1"))
-    assert not u0._meets_criterion(("p1", "q1"))    # it would not induce it now
-    assert not u0.dispose_challenges(board, 2)      # and nothing disturbs it
+    assert not u0._meets_criterion(("p1", "q1"), 2)  # it would not induce it now
+    assert not u0.dispose_challenges(board, 2)       # and nothing disturbs it
     assert ("p1", "q1") in u0.laws
 
 
@@ -795,7 +805,13 @@ def test_the_same_standard_governs_holding_a_law_and_losing_it():
     (`test_induction_admits_a_law_the_challenge_rule_immediately_refutes`, which
     this test replaces). Now the challenger cites the very individual the
     author's induction tolerated, and the law is not destroyed by it — it is put
-    in doubt, on the same terms it was taken up on."""
+    in doubt, on the same terms it was taken up on.
+
+    THE CLOCK RUNS FORWARD THROUGHOUT, which matters now that the criterion reads
+    it: the pending body arrives at 21, the law is induced at 22, published at
+    22, challenged at 23 and disposed at 24, so the disputed individual has been
+    held past the consequent lag at every point the criterion is asked. It counts
+    as a refutation and is tolerated as one — which is the claim."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     for i in range(20):
@@ -803,15 +819,15 @@ def test_the_same_standard_governs_holding_a_law_and_losing_it():
         u0._record({("p1", args)}, i)
         u0._record({("q1", args)}, i + 1)
     pending = (("c", "a99"),)
-    u0._record({("p1", pending)}, 21)               # 1 of 21 = 4.8%, admitted
-    assert u0.induce() == {("p1", "q1")}
-    u0.publish(board, 0)
+    u0._record({("p1", pending)}, 21)               # 1 refuting of 21 = 4.8%
+    assert u0.induce(22) == {("p1", "q1")}
+    u0.publish(board, 22)
     u1.facts.add(("p1", pending))                   # the same individual
-    u1.challenge(board, 1)
-    out = u0.dispose_challenges(board, 2)
+    u1.challenge(board, 23)
+    out = u0.dispose_challenges(board, 24)
     assert out.suspended == [("p1", "q1")]
     assert ("p1", "q1") in u0.laws
-    assert u0._meets_criterion(("p1", "q1"))        # by its own standard, still
+    assert u0._meets_criterion(("p1", "q1"), 24)    # by its own standard, still
 
 
 # --- the call for corroboration ------------------------------------------------
@@ -1286,44 +1302,42 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
     """THE HEADLINE, AND IT IS POSITIVE — which is not what the last two
     measurements here reported, so read the counts rather than the direction.
 
-    Eight seeds, 60 rounds, four units inducing from what they meet. The old
-    existential rule defeated **58 of 58** laws the field actually carries and
-    left 34 of them gone at the end of the run. Under the ruling:
+    Eight seeds, 60 rounds, four units inducing from what they meet. Three rules
+    have now been measured on this arm, and the columns are the argument:
 
-        raised                              58   (unchanged: the same evidence)
-        suspended                           28
-        eliminated by corroboration         18
-        retracted by internal re-assessment 38
-        restored by rebuttal                 2
-        restored by silence                  0
-        ------------------------------------------------------------------
-        distinct (unit, law) defeats        56   all of them true laws
-        **still gone at the end of the run   2** (was 58)
+                                        existential   suspension   + open world
+        raised                                   58           58             60
+        suspended                                 —           28             60
+        eliminated by corroboration               —           18             12
+        retracted by internal re-assessment       —           38              4
+        restored by rebuttal                      —            2             44
+        restored by silence                       —            0              0
+        -----------------------------------------------------------------------
+        distinct (unit, law) defeats             58           56             16
+        **true laws still gone at the end**      34            2          **0**
+        retraction events (thrash)              426           56             16
+        net live / net mute                 384/596      454/596        932/1038
 
-    **Fifty-four of the fifty-six defeated laws come back**, re-induced from the
-    author's own record once it recovers, and stay. The permanent loss of true
-    laws falls from 58 to 2. That is the ruling's whole claim, measured.
+    THE OPEN-WORLD READING OF `pending` IS WHAT CLOSED THE LAST TWO. Under the
+    ruling alone the internal arm did most of the killing and every one of its
+    38 victims was a true law, because an individual whose consequent had not yet
+    had time to arrive was read as counter-evidence. Setting those aside
+    (`Unit._pending_split`) takes the internal arm from 38 victims to 4 and the
+    permanent loss of true laws from 2 to 0.
 
-    THE THRASH SUBSIDES BECAUSE THE TWO CRITERIA STOPPED FIGHTING. 56 retraction
-    events for 56 distinct defeats — exactly one apiece, against 426 events for
-    98 defeats (4.3 apiece) under the old rule. Two mechanisms do it: the same
-    criterion now governs holding and losing, so a law `induce` would re-admit is
-    not destroyed in the first place; and a challenge is disposed of once, ever,
-    so the same inscription cannot kill a law again after the record has answered
-    it.
+    AND IT IS WHAT LET THE EXTERNAL ARM RUN AT ALL. Suspensions rise from 28 to
+    60 and restorations by rebuttal from 2 to 44: the doubts that used to be
+    settled inside the membrane by a miscounted record are now put to the
+    community, and the community answers — 44 of the 60 with the disputed
+    individual's head. That is the machinery the author's ruling built, doing the
+    work it was built for. At seed 5 it runs to completion with nothing defeated
+    at all: six challenges raised, six laws suspended, six rebutted, none lost.
 
-    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+454 live
-    against +596 mute**, against the old rule's +384 — a 24% cost where it was
-    36%. The channel still costs, and the cost is exactly what suspension is:
-    a true law that is mute for a few rounds forgoes the hits it would have won.
-    It loses at 8 of 8 seeds, asserted per-seed.
-
-    THE INTERNAL ARM IS DOING MOST OF THE KILLING, AND ALL 38 OF ITS VICTIMS ARE
-    TRUE LAWS. That is a finding about the criterion, not about the channel, and
-    it is reported rather than tuned: the pending rate of a true law hovers right
-    at the 5% tolerance under a 10% withhold rate, so the author's own record
-    dips below its own standard for a few rounds and recovers. Under the old rule
-    this was invisible, because a foreign counterexample destroyed the law first.
+    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+932 live
+    against +1038 mute** — a 10% cost, where the ruling alone paid 24% and the
+    existential rule 36%. The channel still costs, and the cost is what
+    suspension is: a true law mute for a few rounds forgoes the hits it would
+    have won. It loses at 8 of 8 seeds, asserted per-seed.
     """
     raised_total = 0
     agg = {k: 0 for k in ("suspended", "internal", "corroborated",
@@ -1337,7 +1351,14 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         _s, mute, _b, _r, _e, _t = _play_challenge(seed, C_ROUNDS, channel=False)
         planted = {d.law for d in spec.domains}
         distinct = {(uid, law) for uid, law, _why in events}
-        assert raised > 0 and distinct, f"seed {seed}: nothing was disputed"
+        # THE GUARD IS THAT THE CHANNEL RAN, not that a law died. Under the old
+        # rule every seed produced defeats, so requiring one was a free way to
+        # say "something happened"; now seed 5 raises six challenges, suspends
+        # six laws and rebuts all six, defeating nothing — which is the outcome
+        # this task exists to produce, not an inert run. What must be nonzero is
+        # the evidence and the inquiry it provoked.
+        assert raised > 0 and tally["suspended"] > 0, (
+            f"seed {seed}: nothing was disputed")
         # Every law on the board is one the field carries, as in Task 5.
         false_here = sum(1 for _u, law in distinct if law in planted)
         assert false_here == len(distinct), (
@@ -1359,39 +1380,42 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         false_defeats += false_here
         live_total += live_net
         mute_total += mute_net
-    assert (raised_total, defeats, false_defeats) == (58, 56, 56)
-    assert agg == {"suspended": 28, "internal": 38, "corroborated": 18,
-                   "rebutted": 2, "silence": 0}
-    # THE COMPARISON THIS TASK EXISTS FOR: 58 of 58 true laws permanently lost
-    # under the existential rule, 2 of 56 under the ruling.
-    assert (lost_true, lost_false) == (2, 0)
+    assert (raised_total, defeats, false_defeats) == (60, 16, 16)
+    assert agg == {"suspended": 60, "internal": 4, "corroborated": 12,
+                   "rebutted": 44, "silence": 0}
+    # THE COMPARISON THIS TASK EXISTS FOR: 34 of 58 true laws permanently lost
+    # under the existential rule, 2 under the ruling, NONE once `pending` is
+    # read open-world.
+    assert (lost_true, lost_false) == (0, 0)
     # One retraction event per defeat: induction and disposal have stopped
     # fighting (426 events for 98 defeats before).
-    assert events_total == defeats == 56
-    assert (live_total, mute_total) == (454, 596)
+    assert events_total == defeats == 16
+    assert (live_total, mute_total) == (932, 1038)
 
 
 def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_record():
-    """IT DID NOT BECOME TOOTHLESS, and the teeth moved inward.
+    """IT DID NOT BECOME TOOTHLESS, and the teeth stayed inward.
 
     Same eight seeds and rounds, each unit additionally seeded with the CONVERSE
     of its first domain's law — a law the field does not carry, so defeating it
-    is a correct retraction. Measured: **90 raised, 32 of 32 converses defeated
-    and permanently gone, 56 true laws defeated and 54 of them recovered.**
+    is a correct retraction. Measured after the open-world reading: **32 of 32
+    converses defeated and permanently gone, 16 true laws defeated and all 16
+    recovered, none permanently lost** (it was 32 of 32 with 54 recovered and 2
+    lost under the ruling alone; the drop from 56 defeats to 16 is the first
+    gate's finding, not a loss of bite).
 
-    EVERY ONE OF THE 32 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer.
-    A converse (`a_head -> a_local`) has a huge pending rate in its holder's own
-    record, so the moment a challenge occasions the re-test, the author's own
-    evidence throws it out. That is the amendment's point about the two arms: the
-    internal one is not a formality, it is what does the discriminating work, and
-    a doubt that provokes it is worth more than a doubt that only counts votes.
+    EVERY ONE OF THE 32 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer,
+    exactly as before. Setting aside what could not have been observed does not
+    save a converse: `a_head -> a_local` leaves individuals pending whose bodies
+    the unit has held for many rounds, so they are refuting and stay refuting.
+    That is the discrimination the open-world reading had to preserve and does.
 
-    THE ARITHMETIC OF THE TRADE, and it improved. The mute arm pays **77** for
-    holding those converses (+596 to +519); the live arm is **+454 in both arms**,
-    identical seed by seed, because the wrong law dies before it can bet. So the
-    benefit is 77 and the cost is 596 − 454 = **142**, where the old rule paid
-    212 for the same 77. Still not a bargain — a real good at about twice its
-    price rather than three times.
+    THE ARITHMETIC OF THE TRADE, and it improved again. The mute arm pays **77**
+    for holding those converses (+1038 to +961); the live arm is **+932 in both
+    arms**, identical seed by seed, because the wrong law dies before it can bet.
+    So the benefit is 77 and the cost is 961 − 932 = **29**, where the ruling
+    alone paid 142 and the existential rule 212. The trade has turned: a real
+    good now bought at a third of its price rather than at twice it.
     """
     internal_false = corroborated_false = 0
     correct = recovered_true = lost_true = 0
@@ -1423,8 +1447,8 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
     assert correct == 32
     # THE AMENDMENT'S QUESTION: which arm does the discriminating work?
     assert (internal_false, corroborated_false) == (32, 0)
-    assert (recovered_true, lost_true) == (54, 2)
-    assert (live_total, mute_total) == (454, 519)
+    assert (recovered_true, lost_true) == (16, 0)
+    assert (live_total, mute_total) == (932, 961)
 
 
 def test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally():
@@ -1437,22 +1461,33 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     (6%)** — thirty converses survive while every true law dies. Those are the
     same counts the existential rule produced.
 
-    WHAT CHANGED IS THE MECHANISM, AND IT IS WORTH KNOWING. Not one law was
-    suspended and not one was eliminated by corroboration: **every single defeat
-    was internal**, and no call for help was ever published. Under half attention
-    a unit sees a body at round r and sleeps through the head at r+1, so a true
-    law's pending rate sits near 50% — the author's own criterion refuses it, and
-    refuses it honestly. The false converses survive for the mirror-image reason
-    the old rule spared them: a converse's head is an ANTECEDENT, delivered fresh
-    every round, so its pending rate is small.
+    THE OPEN-WORLD READING OF `pending` CHANGED NOT ONE OF THESE NUMBERS, and
+    instrumenting the refusals says why. Every one of the 66 internal
+    retractions fails on **`min_support`, none on the pending rate**, and they
+    fall at rounds 0 to 2 with a median of **round 0**. A law SEEDED into a unit
+    with no record has no supporting individual when the first challenge lands —
+    a consequent cannot have arrived yet — so the re-assessment refuses it for
+    want of evidence and the law is gone before the run begins. Setting aside
+    what could not have been observed does not help: at round 0 there is nothing
+    observed to set aside.
 
-    **THE ANTI-DISCRIMINATION IS NOT THE DISPOSITION RULE'S. IT IS THE FIELD'S,
-    read through any criterion that counts unmet antecedents.** Suspension cannot
-    help where the author's own record is the accuser, and it did not pretend to:
-    the external arm never even opened. What the ruling fixed is the case where a
-    FOREIGN counterexample destroyed a law the author's own record still
-    sustained (the first gate above, 58 permanent losses down to 2). This case
-    was never that.
+    THIS CORRECTS THE EXPLANATION THIS TEST CARRIED BEFORE, which said a true
+    law's pending RATE sits near 50% under half attention and the criterion
+    refuses it on that. The rate clause fires zero times here. What is true is
+    the asymmetry in WHO GETS CHALLENGED: a true law's body arrives at round 0
+    and its head cannot, so a peer holds a counterexample immediately; a
+    converse's body IS a consequent, which arrives a round later, so at round 0
+    almost nobody can dispute one — and since a law is challenged once per peer
+    ever, the converses are never disputed again. Two of thirty-two die; the
+    other thirty are simply never asked about.
+
+    **THE ANTI-DISCRIMINATION IS NOT THE DISPOSITION RULE'S. IT IS THE FIELD'S
+    TIMING, read through a criterion that requires support a seeded law has not
+    had time to accumulate.** Suspension cannot help where the author's own
+    record is the accuser, and it did not pretend to: the external arm never
+    even opened. What the ruling and the open-world reading fixed is the case
+    where a law the author's own record still sustains was destroyed anyway (the
+    first gate above, 34 permanent losses down to 0). This case was never that.
 
     AND THE NET SCORE IMPROVES ANYWAY: −433 live against −1421 mute, identical to
     the old rule's figures. That is still the trap. Under bounded attention a true
@@ -1495,6 +1530,170 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     assert (internal, external, suspended, calls) == (66, 0, 0, 0)
     assert live_total > mute_total
     assert (live_total, mute_total) == (-433, -1421)
+
+
+# --- can the community repair what the field withheld? ------------------------
+#
+# THE ONE THING NEITHER THE RULING NOR THE OPEN-WORLD READING CAN FIX is a
+# consequent that never reached this membrane at all: after the lag it is
+# indistinguishable from a refutation, and no amount of care with this unit's own
+# record recovers it. But a peer whose aperture overlaps may have been looking
+# when it arrived, and the ask channel already exists. The driver below runs the
+# ask channel and the challenge channel together so the question can be put.
+
+
+def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2):
+    """Four units, planted laws AND converses seeded, no induction, bounded
+    attention. `ask` switches the ask/answer/adopt channel on and off; the
+    challenge channel runs in both arms, so the only variable is whether peers
+    can tell each other what they saw.
+
+    UPTAKE IS TARGETED, exactly as in the ask channel's own measurement above: a
+    unit adopts a fact mark ONLY when it answers a question that unit itself
+    asked. Task 3 measured indiscriminate uptake and found it worse than silence.
+    """
+    spec = default_spec(seed=seed)
+    field = Field(spec)
+    aps = apertures_for(spec, n_units=4)
+    planted = {d.name: d.law for d in spec.domains}
+    units, mine = [], {}
+    for i in range(4):
+        laws = {planted[n] for n in aps[i].domains}
+        body, head = planted[aps[i].domains[0]]
+        mine[f"u{i}"] = (frozenset(laws), (head, body))
+        units.append(Unit(f"u{i}", aps[i], laws=laws | {(head, body)}))
+    board = MarkBoard()
+    asked = {u.unit_id: [] for u in units}
+    settled = {u.unit_id: set() for u in units}
+    questions = uptakes = 0
+
+    for r in range(rounds):
+        if ask:                                             # (a) adopt replies
+            for u in units:
+                for q in asked[u.unit_id]:
+                    if q.content in settled[u.unit_id]:
+                        continue
+                    reply = board.answer_to(q)
+                    if reply is None or reply.author == u.unit_id:
+                        continue
+                    settled[u.unit_id].add(q.content)
+                    uptakes += u.adopt(reply, board)
+        for i, u in enumerate(units):                       # (b) attend
+            if stagger == 1 or r % stagger == i % stagger:
+                u.step(field, r, induce=False)
+        if ask:
+            for u in units:                                 # (c) ask
+                mark = u.ask(board, r)
+                if mark is not None:
+                    asked[u.unit_id].append(mark)
+                    questions += 1
+            for u in units:                                 # (d) answer
+                u.answer(board, r)
+        for u in units:                                     # (e) publish
+            u.publish(board, r)
+        for u in units:                                     # (f) challenge
+            u.challenge(board, r)
+        for u in units:                                     # (g) corroborate
+            u.corroborate(board, r)
+        for u in units:                                     # (h) dispose
+            u.dispose_challenges(board, r)
+
+    tally = dict(true_ref=0, conv_ref=0, true_lost=0, conv_lost=0,
+                 repairable=0, unrepairable=0, questions=questions,
+                 uptakes=uptakes, net=sum(u.ledger.net_score for u in units))
+    for u in units:
+        laws, conv = mine[u.unit_id]
+        for body, head in sorted(laws):
+            _c, refuting, _unk = u._pending_split(body, head, rounds - 1)
+            tally["true_ref"] += len(refuting)
+            tally["true_lost"] += (body, head) not in u.laws
+            for args in refuting:
+                held = any((head, args) in p.facts for p in units if p is not u)
+                tally["repairable" if held else "unrepairable"] += 1
+        _c, refuting, _unk = u._pending_split(conv[0], conv[1], rounds - 1)
+        tally["conv_ref"] += len(refuting)
+        tally["conv_lost"] += conv not in u.laws
+    return tally
+
+
+def test_peer_testimony_repairs_the_false_law_and_not_the_true_one():
+    """PRE-REGISTERED AND REFUTED, both halves, and the second one backwards.
+
+    THE PREDICTIONS, recorded before the run. **P-C1:** with the ask channel
+    live, a unit's refuting count on a TRUE law is lower than with the channel
+    muted, because peer-supplied facts fill heads the field withheld from this
+    unit. **P-C2:** the same channel does NOT materially lower the refuting count
+    on a FALSE law, because no peer holds the missing head either.
+
+    THE MEASUREMENT — eight seeds, 60 rounds, four units under bounded attention,
+    planted laws and converses seeded, the challenge channel live in both arms:
+
+                              muted     live      change
+        refuting, true laws     640      636       −0.6%
+        refuting, converses     321       42        −87%
+        true laws lost        64/64    64/64    unchanged
+        converses lost         2/32     2/32    unchanged
+        net score              −433      −39
+        questions / uptakes     0/0    480/448
+
+    **P-C1 IS REFUTED.** 480 questions went out, 448 answers were taken up, and
+    four of them landed on a true law's refuting individual. **P-C2 IS REFUTED IN
+    THE OPPOSITE DIRECTION TO ITS OWN CLAIM:** the channel repaired 87% of the
+    converse's refuting individuals. The instrument works; it points the wrong
+    way.
+
+    IT IS NOT THAT THE COMMUNITY LACKS THE EVIDENCE. Of the true laws' 640
+    refuting individuals in the muted arm, some peer holds the missing head for
+    **590 — 92.2% are repairable in principle.** The information is in the
+    community and does not move.
+
+    WHY: THE AUTHOR GIVES THE LAW UP BEFORE IT CAN ASK. A seeded law has no
+    supporting record when the first challenge lands, so the internal
+    re-assessment refuses it on `min_support` at round 0 (measured in the gate
+    above: 66 of 66 refusals on support, median round 0). A law the unit no
+    longer holds licenses no want, so `_wants` stops generating questions about
+    its head — while the converse, which is challenged rarely and therefore
+    survives, goes on generating them for the whole run. Instrumented over the
+    same eight seeds: **16 of the 480 questions ask about a true law's head and
+    464 ask about the converse's**, and all 64 true-law retractions fall at round
+    0. The channel spends itself on the only laws still standing, and those are
+    the false ones.
+
+    THE QUESTION-GENERATION ITSELF IS NOT AT FAULT, which the brief asked to be
+    checked. `Unit._wants` is defined over exactly the pending set — an atom the
+    unit's law licenses over an individual its record already carries — so it
+    targets what `_pending_split` sets aside, by construction. It simply has
+    nothing to target once the law is gone.
+
+    WHAT THIS SAYS ABOUT THE COMMUNITY HYPOTHESIS: it was not tested here. To
+    test it a law would have to survive long enough to ask, which is a question
+    about the order of retraction and inquiry, not about the channel.
+    """
+    agg = {k: 0 for k in ("true_ref", "conv_ref", "true_lost", "conv_lost",
+                          "repairable", "unrepairable", "questions", "uptakes",
+                          "net")}
+    muted_agg = dict(agg)
+    for seed in C_SEEDS:
+        live = _play_ask_and_challenge(seed, C_ROUNDS, ask=True)
+        mute = _play_ask_and_challenge(seed, C_ROUNDS, ask=False)
+        for k in agg:
+            agg[k] += live[k]
+            muted_agg[k] += mute[k]
+    assert agg["questions"] > 0 and agg["uptakes"] > 0, (
+        "the channel carried nothing, so nothing was tested")
+    # P-C1: refuted. The true laws' refuting count barely moves.
+    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 636)
+    # P-C2: refuted the other way. The converse's refuting count collapses.
+    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 42)
+    # And no law's fate changes: the same true laws are lost in both arms.
+    assert muted_agg["true_lost"] == agg["true_lost"] == 64
+    assert muted_agg["conv_lost"] == agg["conv_lost"] == 2
+    # NOT FOR WANT OF EVIDENCE: 92.2% of what the true laws needed was held by
+    # some peer in the muted arm and never reached the unit that needed it.
+    assert (muted_agg["repairable"], muted_agg["unrepairable"]) == (590, 50)
+    # The net score improves anyway — which, as the gate above says, is not
+    # evidence that a channel discriminates.
+    assert (muted_agg["net"], agg["net"]) == (-433, -39)
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

@@ -310,21 +310,38 @@ def test_testimony_cannot_mislead_precedence_and_defeat_a_true_law():
     honest._record(_unary("q1", ["z0", "z1", "z2"]), 2)
     for m in marks:
         honest.adopt(m, board)
-    assert ("p1", "q1") in honest.induce(min_support=3, max_pending_rate=0.05)
+    assert ("p1", "q1") in honest.induce(10, min_support=3,
+                                         max_pending_rate=0.05)
 
     hearsay = Unit("u2", aps[2])
     hearsay._record(_unary("q1", [f"y{i}" for i in range(20)]), 0)
     hearsay._record(_unary("p1", ["z0", "z1", "z2"]), 1)
     hearsay._record(_unary("q1", ["z0", "z1", "z2"]), 2)
     hearsay._record(_unary("p1", [f"y{i}" for i in range(20)]), 9)   # dated by testimony
-    assert ("p1", "q1") not in hearsay.induce(min_support=3,
+    assert ("p1", "q1") not in hearsay.induce(10, min_support=3,
                                               max_pending_rate=0.05)
 
 
-def test_adopted_facts_still_count_as_support_and_as_refutation():
-    """The ruling withholds only the DATE. Adopted content is still evidence:
-    it enlarges support, and it can still leave a law's antecedent pending and
-    so refute it."""
+def test_adopted_facts_count_as_support_and_no_longer_as_refutation():
+    """THE ASYMMETRY THE OPEN-WORLD READING INTRODUCED, measured in both
+    directions rather than asserted in one.
+
+    Adopted content still counts as SUPPORT: an individual carrying both body and
+    head is confirmed on content alone, and no date is needed to read that. The
+    first arm holds three such individuals entirely on testimony and induces the
+    law.
+
+    Adopted content NO LONGER REFUTES. A body with no first-arrival leaves the
+    unit unable to say whether the head has had time to reach it, so
+    `_pending_split` sets it aside as unknown — the same abstention
+    `_body_precedes_head` already made about direction. Before the open-world
+    reading this arm refused the law (1 pending of 4 = 25%); now the stray is not
+    counted at all and the law stands on its three confirmed supporters.
+
+    WHAT THIS COSTS IS WORTH SAYING PLAINLY: testimony can bear a law out and
+    cannot weigh against it, so the assert channel is now a one-way instrument
+    for induction. Refuting still requires the unit's own dated observation — or
+    a challenge, which cites a peer's evidence without entering it."""
     _spec, _field, aps = _setup()
     board = MarkBoard()
     peer = Unit("u0", aps[0])
@@ -335,18 +352,27 @@ def test_adopted_facts_still_count_as_support_and_as_refutation():
     supported = Unit("u1", aps[1])
     for m in published:
         supported.adopt(m, board)
-    assert ("p1", "q1") in supported.induce(min_support=3,
+    assert ("p1", "q1") in supported.induce(9, min_support=3,
                                             max_pending_rate=0.05)
 
-    refuted = Unit("u2", aps[2])
-    refuted._record(_unary("p1", ["w0", "w1", "w2"]), 0)
-    refuted._record(_unary("q1", ["w0", "w1", "w2"]), 1)
+    unrefuted = Unit("u2", aps[2])
+    unrefuted._record(_unary("p1", ["w0", "w1", "w2"]), 0)
+    unrefuted._record(_unary("q1", ["w0", "w1", "w2"]), 1)
     stray = Mark(author="u0", content=("p1", (("c", "w9"),)), kind="fact",
                  round_idx=2)
     board.publish(stray)
-    refuted.adopt(stray, board)                  # 1 pending of 4 = 0.25 > 0.05
-    assert ("p1", "q1") not in refuted.induce(min_support=3,
-                                              max_pending_rate=0.05)
+    unrefuted.adopt(stray, board)
+    confirmed, refuting, unknown = unrefuted._pending_split("p1", "q1", 9)
+    assert (len(confirmed), len(refuting), len(unknown)) == (3, 0, 1)
+    assert ("p1", "q1") in unrefuted.induce(9, min_support=3,
+                                            max_pending_rate=0.05)
+    # The same individual, DATED by this unit's own membrane, does refute.
+    dated = Unit("u3", aps[3])
+    dated._record(_unary("p1", ["w0", "w1", "w2"]), 0)
+    dated._record(_unary("q1", ["w0", "w1", "w2"]), 1)
+    dated._record(_unary("p1", ["w9"]), 2)
+    assert ("p1", "q1") not in dated.induce(9, min_support=3,
+                                            max_pending_rate=0.05)
 
 
 def test_adoption_does_not_disturb_anticipate_before_observe():
