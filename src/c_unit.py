@@ -10,10 +10,10 @@ an inscription on a board (see `c_marks`).
 from __future__ import annotations
 
 from dataclasses import dataclass, field as dc_field
-from typing import Dict, FrozenSet, List, Set, Tuple
+from typing import Dict, FrozenSet, List, Optional, Set, Tuple
 
 from c_field import Aperture, Field
-from c_marks import FACT, LAW, Content, Mark, MarkBoard
+from c_marks import FACT, LAW, QUESTION, Content, Mark, MarkBoard
 from c_membrane import MembraneLedger
 from egi_core_dau import RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
@@ -301,6 +301,10 @@ class Unit:
         apertures is most of them, and the attribution graph would then measure
         overlap rather than influence.
 
+        A QUESTION IS NOT ADOPTABLE. It names an atom without claiming it, so
+        there is no content to take up; taking one up would put an unasserted
+        atom into a record and the unit would then bet on someone else's doubt.
+
         A unit may not adopt its own mark. A self-edge in the attribution graph
         would assert that a unit relies on itself, which is not reliance; `read`
         already excludes own marks, so arriving here is a caller's error and is
@@ -349,6 +353,13 @@ class Unit:
                 f"a unit does not rely on itself, and the uptake would enter "
                 f"a self-edge in the attribution graph"
             )
+        if mark.kind == QUESTION:
+            raise ValueError(
+                f"{self.unit_id} cannot adopt the question {mark.content!r}: a "
+                f"question names an atom without claiming it, so there is "
+                f"nothing to take up — answer it instead (`answer`), or take up "
+                f"the answering fact mark"
+            )
         if mark.kind == FACT:
             fresh = mark.content not in self.facts
             self.facts.add(mark.content)        # NOT self._record: no date
@@ -360,3 +371,162 @@ class Unit:
         if fresh:
             board.record_uptake(mark, self.unit_id)
         return fresh
+
+    # --- the ask channel: ask, answer ---------------------------------------
+    #
+    # THIS IS WHERE ATTENTION BECOMES SOCIAL. Until now a unit's only source was
+    # the field at its own membrane; with a question published it can also be
+    # told, and — the other half, and the one that makes it a division of labour
+    # — it can spend a turn telling rather than probing.
+
+    def _wants(self) -> List[Fact]:
+        """The atoms this unit has a licence to expect and no instance of, most
+        wanted first.
+
+        A want is an atom `head(a)` such that the unit holds a law
+        `body -> head` and holds `body(a)` but not `head(a)`. That is exactly the
+        shape of a question this unit could USE: it is licensed by something the
+        unit already holds, it concerns an individual the unit is already
+        tracking, and it is unsettled.
+
+        MOST-WANTED IS ORDERED BY WHAT AN ANSWER COULD STILL CHANGE, in two
+        stages, because attention is bounded and only one question goes out per
+        round.
+
+        1. A want the record has ALREADY RESOLVED goes last. A forecast resolves
+           exactly once, at the round it is due (`MembraneLedger.score`), so an
+           answer arriving afterwards cannot alter the verdict — it is a `late
+           arrival`, counted and left. Such an atom is still worth knowing, so it
+           is not dropped; it simply loses every contest with a live want.
+        2. Among live wants, the one whose BODY ARRIVED MOST RECENTLY goes first.
+           A want born this round is staked at the very next round the unit
+           attends the field, so an answer is only in time if it comes now; an
+           older live want has already survived a staking round and is less
+           urgent. Urgency, not age, is what a bounded channel should spend
+           itself on.
+
+        AN UNDATED BODY SORTS LAST among live wants, and this follows the ruling
+        already made in `adopt`: an adopted fact carries no first-arrival, so the
+        unit has no evidence of how long it has been waiting. Treating a body of
+        unknown age as urgent would let a peer's publication schedule set this
+        unit's priorities, which is the same defect the dating ruling refused.
+
+        Ties break on the atom itself, so the order is a deterministic function
+        of the unit's state.
+        """
+        wants: List[Tuple[Tuple[int, int, Fact], Fact]] = []
+        for body_rel, head_rel in sorted(self.laws):
+            for rel, args in sorted(self.facts):
+                if rel != body_rel:
+                    continue
+                head = (head_rel, args)
+                if head in self.facts:
+                    continue
+                settled = 1 if head in self.ledger.resolved else 0
+                # -first_seen: newest body first. A body with no first-arrival
+                # (adopted, never delivered here) sorts after every dated one.
+                dated = self.first_seen.get((body_rel, args))
+                freshness = -dated if dated is not None else 1
+                wants.append(((settled, freshness, head), head))
+        wants.sort(key=lambda w: w[0])
+        seen: Set[Fact] = set()
+        out: List[Fact] = []
+        for _key, head in wants:
+            if head not in seen:        # two laws may want one atom
+                seen.add(head)
+                out.append(head)
+        return out
+
+    def ask(self, board: MarkBoard, round_idx: int) -> Optional[Mark]:
+        """Publish this unit's most-wanted unknown as a standing question, or
+        `None` if it wants nothing it has not already asked.
+
+        AT MOST ONE QUESTION PER ROUND, because attention is bounded and a
+        channel that emptied a unit's whole want-list every round would be a
+        broadcast rather than an act. Which one goes out is the interesting
+        choice and it is made in `_wants`.
+
+        A QUESTION IS ASKED ONCE, EVER. `_published` is keyed by `(kind,
+        content)`, so a want that has been asked is never re-asked even while it
+        stands unanswered. The reason is the reason the assert channel does not
+        re-publish: a re-mention that refreshes nothing would still be counted by
+        the instruments, and whether re-asking refreshes a question's standing is
+        unruled (spec §9b's maintenance channel). What this costs is that a
+        question nobody could answer at the time is never re-offered to a
+        community that has since grown — the maintenance channel's business, and
+        it is left visible rather than pre-empted here.
+
+        WHAT A QUESTION IS FOR, and why this channel and not the assert channel
+        is where communication starts paying. Task 3 measured the assert channel
+        with indiscriminate uptake and found it STRICTLY HARMFUL: at every seed,
+        four units adopting every peer mark all went from positive to negative
+        net scores. The cause was aperture. A fact adopted about an individual of
+        a domain the adopter cannot observe licenses an anticipation whose
+        consequent can never arrive at the adopter's membrane — a guaranteed
+        miss. Communication without targeting is worse than silence.
+
+        A question is the first piece of targeting, and it targets by
+        CONSTRUCTION rather than by luck: the atom asked about is one this unit's
+        own laws license over an individual its own record already carries, so an
+        answer is relevant to it by the very definition of what it asked. What a
+        question CANNOT do is choose whom to ask — it is published to the whole
+        board — and that is typification's work, next.
+        """
+        for want in self._wants():
+            key = (QUESTION, want)
+            if key in self._published:
+                continue
+            mark = Mark(author=self.unit_id, content=want, kind=QUESTION,
+                        round_idx=round_idx)
+            board.publish(mark)
+            self._published.add(key)
+            return mark
+        return None
+
+    def answer(self, board: MarkBoard, round_idx: int) -> List[Mark]:
+        """Publish a `"fact"` mark for every open question this unit can settle
+        from its own holdings, returning the marks minted.
+
+        THIS IS THE OTHER HALF OF THE DIVISION OF LABOUR, and it is a genuine
+        alternative use of a turn: a unit that answers spends its publication on
+        what a peer lacks rather than on what it happens to hold. Nothing here
+        consults the field — an answer is drawn from `self.facts` and from
+        nowhere else, so a unit can only tell what it has actually met.
+
+        NEVER ITS OWN QUESTION. Answering oneself would put the asker's want on
+        the board as a claim it never met, and — since `open_questions` closes a
+        question by content — it would close the question against every peer who
+        could really have answered it. `read` excludes own marks for the
+        analogous reason; here the exclusion is by author on the question rather
+        than on the answer.
+
+        THE QUESTIONS SCANNED ARE ALL OPEN ONES, not only this round's. A
+        question stands until answered, and a unit that meets the answer forty
+        rounds later can still supply it. This is why the scan goes through
+        `MarkBoard.open_questions` rather than `read(board, round_idx)`, which is
+        windowed by round and would silently drop everything older.
+
+        A FACT MARK IS A FACT MARK, whatever prompted it. What is published in
+        reply is indistinguishable from the same content published unprompted —
+        the same `(kind, content)` key in `_published`, so a unit never says one
+        thing twice whether asked or not, and a reader encounters an inscription
+        rather than a reply. Nothing in the board records that a mark answered a
+        question; the answering relation is recoverable from content, which is
+        the point of a question naming the atom that would answer it.
+        """
+        minted: List[Mark] = []
+        for question in board.open_questions():
+            if question.author == self.unit_id:
+                continue
+            content = question.content
+            if content not in self.facts:
+                continue
+            key = (FACT, content)
+            if key in self._published:
+                continue
+            mark = Mark(author=self.unit_id, content=content, kind=FACT,
+                        round_idx=round_idx)
+            board.publish(mark)
+            self._published.add(key)
+            minted.append(mark)
+        return minted

@@ -30,6 +30,13 @@ history. That is why attribution rides along in the mark itself rather than
 being kept in a table beside it — the author is part of what is encountered, and
 uptake is only countable because of it.
 
+NOT EVERY MARK ASSERTS. As of the ask channel a mark may be a `"question"`: an
+inscription that names an atom without claiming it. It is published, attributed
+and encounterable like any other mark — asking is a public act, and that is what
+lets a peer answer — but it puts nothing into a reader's record. The kinds are
+therefore not decoration: `Mark.kind` is the only thing distinguishing a claim
+from a request for one, and both readers and adopters dispatch on it.
+
 THE BOARD IS PER-COMMUNITY AND SEALED in this stage. Sealing is structural, not
 a flag: a board holds no reference to another board and there is no operation
 here that reads one from another. Permeability is a later switch, and it will be
@@ -39,18 +46,26 @@ an added operation rather than a relaxed check.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Set, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 from model_materialization import Fact
 
 FACT = "fact"
 LAW = "law"
-KINDS = (FACT, LAW)
+QUESTION = "question"
+KINDS = (FACT, LAW, QUESTION)
 
 Content = Union[Fact, Tuple[str, str]]
 """What a mark inscribes: a ground atom, or a law as its `(body, head)` pair —
 the same two shapes `c_unit.Unit` holds, so an adopted mark needs no
-translation to enter a reader's own record."""
+translation to enter a reader's own record.
+
+A QUESTION inscribes an atom too — the very shape a fact takes — and that is
+deliberate. A question names precisely what would answer it, so an answer is
+the same content published under a different kind, and a reader needs no
+matching apparatus to see that the two meet. What a question does NOT carry is
+assertoric force: `kind` is the difference, and `c_unit.Unit.adopt` refuses to
+take a question's content into a record for exactly that reason."""
 
 
 @dataclass(frozen=True)
@@ -101,10 +116,11 @@ class Mark:
                 f"mark of kind 'law' carries {self.content!r}, which is shaped "
                 f"like a fact: a law is a (body_rel, head_rel) pair of names"
             )
-        if self.kind == FACT and not isinstance(rest, tuple):
+        if self.kind in (FACT, QUESTION) and not isinstance(rest, tuple):
             raise ValueError(
-                f"mark of kind 'fact' carries {self.content!r}, which is shaped "
-                f"like a law: a fact is (relation, ((kind, label), ...))"
+                f"mark of kind {self.kind!r} carries {self.content!r}, which is "
+                f"shaped like a law: a fact — and a question, which names the "
+                f"atom that would answer it — is (relation, ((kind, label), ...))"
             )
 
 
@@ -147,6 +163,44 @@ class MarkBoard:
     def since(self, round_idx: int) -> List[Mark]:
         """The marks published in `round_idx` or later, in publication order."""
         return [m for m in self._marks if m.round_idx >= round_idx]
+
+    def open_questions(self) -> List[Mark]:
+        """The questions standing unanswered, in publication order.
+
+        OPENNESS IS A PROPERTY OF THE BOARD, not of any unit, which is why it is
+        read here. A question is closed by a PUBLISHED answer — an inscription
+        anyone could encounter — and not by some unit privately coming to know
+        the atom. Were openness kept per-unit instead, two peers holding the same
+        answer would each have to guess whether the other had spoken, and the
+        board would stop being the shared place where what has been said stands.
+
+        A question is answered by a `"fact"` mark carrying THE SAME CONTENT, by
+        anyone, in any round — including a fact published for its own sake rather
+        than in reply. That is the point of a question inscribing the atom that
+        would answer it: no matching apparatus is needed for the two to meet, and
+        an asker's want can be satisfied by a peer who was simply saying what it
+        held.
+
+        A closed question does not re-open. The board is append-only, so nothing
+        can withdraw the answering mark; whether the answer STANDS is a separate
+        question from whether it was said, and disposing of that is the challenge
+        channel's work, not this reader's.
+        """
+        answered = {m.content for m in self._marks if m.kind == FACT}
+        return [m for m in self._marks
+                if m.kind == QUESTION and m.content not in answered]
+
+    def answer_to(self, question: Mark) -> Optional[Mark]:
+        """The first published `"fact"` mark that answers `question`, if any.
+
+        Read by an asker, so that taking up an answer is a targeted act: the
+        alternative is to sweep the board and adopt whatever is there, which is
+        measurably worse than silence (see the finding recorded in
+        `c_unit.Unit.ask`)."""
+        for m in self._marks:
+            if m.kind == FACT and m.content == question.content:
+                return m
+        return None
 
     def record_uptake(self, mark: Mark, adopter: str) -> None:
         """Note that `adopter` took this mark up. Idempotent: uptake is a SET of
