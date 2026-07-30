@@ -1,8 +1,10 @@
-"""One kytos, for C-series stage 1: it observes through its aperture,
-anticipates from the laws it holds, and is scored at its own membrane.
+"""One kytos: it observes through its aperture, anticipates from the laws it
+holds, and is scored at its own membrane.
 
-It never reads the field's regime and never sees another unit. Communication
-arrives in stage 3.
+It never reads the field's regime. As of stage 3 it can also publish what it
+holds as an objectivated mark, read what its community has published, and adopt
+another unit's mark — but it still never inspects another unit; what it meets is
+an inscription on a board (see `c_marks`).
 """
 
 from __future__ import annotations
@@ -11,6 +13,7 @@ from dataclasses import dataclass, field as dc_field
 from typing import Dict, FrozenSet, List, Set, Tuple
 
 from c_field import Aperture, Field
+from c_marks import FACT, LAW, Content, Mark, MarkBoard
 from c_membrane import MembraneLedger
 from egi_core_dau import RelationalGraphWithCuts
 from egif_parser_dau import parse_egif
@@ -30,7 +33,14 @@ class Unit:
     fact re-delivered later does not move its first arrival. This is the unit's
     own record of its own history — it reads no round order off the field, only
     off when things reached its own membrane — and it is what lets `induce`
-    tell a law from its converse (see `induce`)."""
+    tell a law from its converse (see `induce`).
+
+    FIRST-HAND ONLY. An adopted mark does not write here; the argument is in
+    `adopt`."""
+    _published: Set[Tuple[str, Content]] = dc_field(default_factory=set)
+    """What this unit has already published, as `(kind, content)` pairs — not as
+    marks, since a mark carries the round it was published in and would compare
+    unequal every round, so the unit would republish everything forever."""
 
     def _record(self, arrived: Set[Fact], round_idx: int) -> None:
         """Hold what arrived, and note the round for anything new."""
@@ -231,3 +241,122 @@ class Unit:
         self._record(arrived, round_idx)
         if induce:
             self.induce()
+
+    # --- the assert channel: publish, read, adopt ---------------------------
+    #
+    # These are separate acts from `step`, deliberately. Folding publication
+    # into the round would fix a communication schedule here, before stage 4's
+    # budget can price it, and it would put a peer's mark inside the window
+    # `step` keeps clear between anticipating and observing.
+
+    def publish(self, board: MarkBoard, round_idx: int) -> List[Mark]:
+        """Objectivate what this unit holds and has not already said, returning
+        the marks minted.
+
+        Facts before laws, each in sorted order, so the sequence of marks is a
+        deterministic function of the unit's state — the same requirement
+        `as_egi` meets, for the same reason.
+
+        WHAT IS PUBLISHED IS WHAT IS HELD, not what was newly *delivered*: a
+        unit does not distinguish, in what it says, between a fact the field
+        brought it this round and one it has carried for fifty. What it does not
+        do is say the same thing twice (`_published`), because a re-mention that
+        refreshes nothing would still be counted by the instruments, and whether
+        a re-mention refreshes standing is unruled (spec §9b's maintenance
+        channel).
+        """
+        minted: List[Mark] = []
+        for kind, contents in ((FACT, sorted(self.facts)), (LAW, sorted(self.laws))):
+            for content in contents:
+                key = (kind, content)
+                if key in self._published:
+                    continue
+                mark = Mark(author=self.unit_id, content=content, kind=kind,
+                            round_idx=round_idx)
+                board.publish(mark)
+                self._published.add(key)
+                minted.append(mark)
+        return minted
+
+    def read(self, board: MarkBoard, round_idx: int) -> List[Mark]:
+        """The community's marks from `round_idx` onward, EXCLUDING this unit's
+        own — a unit encounters others' inscriptions, and its own model is
+        already what it is.
+
+        The unit is not obliged to adopt any of them; reading is encountering,
+        adopting is a separate act, and stage 4's typification is what will make
+        the choice of whose marks to read seriously.
+        """
+        return [m for m in board.since(round_idx) if m.author != self.unit_id]
+
+    def adopt(self, mark: Mark, board: MarkBoard) -> bool:
+        """Take a mark's content into this unit's own record, reporting whether
+        anything NEW was taken up.
+
+        UPTAKE IS RECORDED ONLY WHEN SOMETHING WAS ACTUALLY TAKEN UP. Uptake is
+        the structural observable — who relies on whom — and a reader that had
+        already reached the content itself owes the author nothing for it.
+        Recording concurrence as reliance would credit an author for every unit
+        whose aperture happened to deliver the same atom, which on overlapping
+        apertures is most of them, and the attribution graph would then measure
+        overlap rather than influence.
+
+        A unit may not adopt its own mark. A self-edge in the attribution graph
+        would assert that a unit relies on itself, which is not reliance; `read`
+        already excludes own marks, so arriving here is a caller's error and is
+        named rather than silently absorbed.
+
+        AN ADOPTED FACT IS HELD, BUT IT IS NOT DATED — the ruling of this task,
+        and the one place where the sign/content distinction has teeth in the
+        arithmetic.
+
+        `first_seen` is the unit's record of when something reached its OWN
+        membrane from the field, and `_body_precedes_head` reads it to tell a
+        law from its converse: direction is inferred from the field's one-round
+        lag, so the dates must be dates of deliverances. An adopted mark is not
+        a deliverance. It reached the unit as a peer's inscription, at whatever
+        round that peer got round to publishing, which stands in no fixed
+        relation to when anything happened.
+
+        Stamping it anyway would make a unit's sense of temporal order partly
+        hearsay, and precedence-based induction could then be defeated by
+        testimony: a peer's marks arriving late about individuals whose heads
+        this unit observed early read as twenty supporters with the body second,
+        outvoting the few genuine observations, and a TRUE law is refused
+        because of when someone else spoke. That is measured, not feared —
+        `tests/test_c_marks.py::test_testimony_cannot_mislead_precedence_and_defeat_a_true_law`
+        builds both arms and the stamped one refuses the law.
+
+        The alternative candidates were considered and rejected. Stamping the
+        author's `round_idx` imports another unit's clock while LOOKING
+        first-hand, which is the same defect wearing a better disguise. Carrying
+        the author's own `first_seen` alongside the mark would make the content
+        of a mark include the author's private history, and there is no reason a
+        reader should be able to read that off an inscription — nor any reason to
+        trust it if it could.
+
+        WHAT THE RULING COSTS IS NOTHING, AND WHAT IT KEEPS IS TIMING. An
+        undated fact is still evidence: it enlarges a law's support and it can
+        still leave an antecedent pending and so refute one. It abstains only
+        from the direction test, which `_body_precedes_head` already handles —
+        absent timing evidence is not counter-evidence. And the date is not
+        spent: if the field later delivers an adopted fact, `_record` dates it
+        then, at the unit's first genuinely first-hand encounter with it.
+        """
+        if mark.author == self.unit_id:
+            raise ValueError(
+                f"{self.unit_id} cannot adopt its own mark {mark.content!r}: "
+                f"a unit does not rely on itself, and the uptake would enter "
+                f"a self-edge in the attribution graph"
+            )
+        if mark.kind == FACT:
+            fresh = mark.content not in self.facts
+            self.facts.add(mark.content)        # NOT self._record: no date
+        elif mark.kind == LAW:
+            fresh = mark.content not in self.laws
+            self.laws.add(mark.content)
+        else:                                   # pragma: no cover - Mark refuses
+            raise ValueError(f"unknown mark kind {mark.kind!r}")
+        if fresh:
+            board.record_uptake(mark, self.unit_id)
+        return fresh
