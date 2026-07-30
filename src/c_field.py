@@ -9,9 +9,10 @@ anticipation predictive.
 
 from __future__ import annotations
 
+import itertools
 import random
 from dataclasses import dataclass
-from typing import List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from model_materialization import Fact, Key  # noqa: F401  (re-exported)
 
@@ -188,27 +189,155 @@ class Aperture:
     domains: Tuple[str, ...]
 
 
-def apertures_for(spec: FieldSpec, n_units: int) -> List["Aperture"]:
-    """Deterministic, overlapping, and pairwise distinct: unit i sees domains
-    i and i+1 (mod count), so consecutive units share exactly one domain.
+CYCLIC = "cyclic"
+PAIRS = "pairs"
+SCHEMES = (CYCLIC, PAIRS)
+"""How a community's apertures are laid out over the domains. Both schemes give
+every unit TWO domains — width is not the variable, and a stage-3 measurement
+says why: three-domain apertures were measured degenerate (all 168 true and 56
+converse laws lost, both arms net 0), so the way to put more eyes on a domain is
+more units, not wider ones.
 
-    The scheme cycles with period `len(spec.domains)`, so it can only build
-    distinct apertures for at most that many units.  Asking for more raises
-    rather than silently handing two units the same slice — divergence by
-    construction (spec premise 3) is the premise, not a nicety.  Widening the
-    scheme (more domains, or apertures of other sizes) is a stage-3 design
-    decision, deliberately not made here."""
+`CYCLIC` is the original: unit i sees domains i and i+1 (mod k). It cycles with
+period k, so it builds at most k distinct apertures and each domain falls in
+exactly two of them.
+
+`PAIRS` gives each unit a DISTINCT 2-domain combination, taken in the domains'
+own declared order. It reaches C(k, 2) units, and at the full count each domain
+is witnessed by exactly k−1 of them. The two schemes agree on unit 0 and
+disagree from unit 1 on, so a measurement that changes scheme changes what it
+measures; `apertures_for` therefore keeps CYCLIC as its default rather than
+switching anything silently."""
+
+
+def apertures_for(spec: FieldSpec, n_units: int, *, scheme: str = CYCLIC,
+                  min_witnesses: Optional[int] = None) -> List["Aperture"]:
+    """Deterministic, overlapping, and pairwise distinct apertures — one per
+    unit, two domains each.
+
+    `CYCLIC` (the default, unchanged): unit i sees domains i and i+1 (mod
+    count), so consecutive units share exactly one domain. The scheme cycles
+    with period `len(spec.domains)`, so it can only build distinct apertures for
+    at most that many units. Asking for more raises rather than silently handing
+    two units the same slice — divergence by construction (spec premise 3) is
+    the premise, not a nicety.
+
+    `PAIRS`: each unit gets a distinct 2-domain combination, generated in the
+    domains' declared order (`itertools.combinations`, which preserves input
+    order — nothing here reads a set). It reaches C(k, 2) units, and the whole
+    set gives every domain exactly k−1 witnesses.
+
+    WHY A SECOND SCHEME EXISTS, AND WHAT IT COSTS. The author ruled that
+    corroboration takes at least two independent witnesses, which — with the
+    holder never counting as one of them — means a domain must be witnessed by
+    at least THREE units: the holder, the challenger, and one corroborator. The
+    cyclic scheme puts every domain in exactly two apertures at any community
+    size, so three witnesses are arithmetically unreachable under it and
+    elimination-by-corroboration was measured firing 0 times in 66 doubts. The
+    disposition rule was correct; the field was what failed it. `PAIRS` at the
+    spec's four domains needs six units and gives every domain exactly three
+    witnesses — the minimum the ruling requires, with nothing to spare.
+
+    The schemes agree on unit 0 (both hand it the first two domains) and diverge
+    from unit 1 on, so they are NOT interchangeable in a measurement: at four
+    domains, cyclic gives 2/2/2/2 witnesses and the first four pairs give
+    3/2/2/1. Every measurement written before this scheme existed keeps the
+    default, so none of them moved.
+
+    `min_witnesses`, when given, refuses a community too small for each domain to
+    reach that many witnesses, naming the shortfall and the size that would
+    satisfy it. Handing back a community that cannot corroborate is the failure
+    this argument exists to remove, so it is refused rather than degraded."""
     names = [d.name for d in spec.domains]
     k = len(names)
-    if n_units > k:
-        raise ValueError(
-            f"cannot build {n_units} distinct apertures from {k} domains: "
-            f"unit i sees domains i and i+1 (mod {k}), so the assignment "
-            f"cycles after {k} units and units would share an aperture"
-        )
+    if scheme not in SCHEMES:
+        raise ValueError(f"aperture scheme {scheme!r} is not one of {SCHEMES}")
     out: List[Aperture] = []
-    for i in range(n_units):
-        first = names[i % k]
-        second = names[(i + 1) % k]
-        out.append(Aperture(f"u{i}", (first, second)))
+    if scheme == CYCLIC:
+        if n_units > k:
+            raise ValueError(
+                f"cannot build {n_units} distinct apertures from {k} domains: "
+                f"unit i sees domains i and i+1 (mod {k}), so the assignment "
+                f"cycles after {k} units and units would share an aperture "
+                f"(scheme={PAIRS!r} reaches {_n_pairs(k)} distinct apertures "
+                f"at the same width)"
+            )
+        for i in range(n_units):
+            out.append(Aperture(f"u{i}", (names[i % k], names[(i + 1) % k])))
+    else:
+        pairs = list(itertools.combinations(names, 2))
+        if n_units > len(pairs):
+            raise ValueError(
+                f"cannot build {n_units} distinct apertures from {k} domains: "
+                f"there are only {len(pairs)} distinct 2-domain combinations, "
+                f"and widening an aperture was measured degenerate rather than "
+                f"helpful"
+            )
+        for i, pair in enumerate(pairs[:n_units]):
+            out.append(Aperture(f"u{i}", pair))
+    if min_witnesses is not None:
+        _require_witnesses(spec, out, min_witnesses, scheme)
     return out
+
+
+def _n_pairs(k: int) -> int:
+    return k * (k - 1) // 2
+
+
+def witnesses_per_domain(spec: FieldSpec, apertures: List["Aperture"]
+                         ) -> Dict[str, int]:
+    """How many of these units meet each domain — INCLUDING the ones no unit
+    meets, which read 0 rather than going missing.
+
+    This is the quantity the corroboration ruling is about. A doubt about a law
+    of domain D can only ever be corroborated by a unit that meets D, and the
+    holder is not one of the voices, so `witnesses_per_domain(...)[D]` is the
+    ceiling on (holder + challenger + corroborators) for every law of D."""
+    counts = {d.name: 0 for d in spec.domains}
+    for ap in apertures:
+        for name in ap.domains:
+            counts[name] = counts.get(name, 0) + 1
+    return counts
+
+
+def units_for_witnesses(spec: FieldSpec, witnesses: int,
+                        scheme: str = PAIRS) -> int:
+    """The smallest community under `scheme` in which EVERY domain is met by at
+    least `witnesses` units, or a raise if the scheme cannot reach it at any
+    size.
+
+    Read by `_require_witnesses` so a refusal can say what would have worked,
+    and by anything else that has to size a community rather than guess one. It
+    counts by construction — building each prefix and reading it — rather than
+    by an arithmetic shortcut, so it cannot drift from what `apertures_for`
+    actually hands back."""
+    k = len(spec.domains)
+    ceiling = k if scheme == CYCLIC else _n_pairs(k)
+    for n in range(1, ceiling + 1):
+        counts = witnesses_per_domain(spec, apertures_for(spec, n, scheme=scheme))
+        if min(counts.values()) >= witnesses:
+            return n
+    raise ValueError(
+        f"scheme {scheme!r} over {k} domains cannot witness every domain "
+        f"{witnesses} times at any community size: its largest community is "
+        f"{ceiling} units and reaches "
+        f"{min(witnesses_per_domain(spec, apertures_for(spec, ceiling, scheme=scheme)).values())}"
+    )
+
+
+def _require_witnesses(spec: FieldSpec, apertures: List["Aperture"],
+                       min_witnesses: int, scheme: str) -> None:
+    counts = witnesses_per_domain(spec, apertures)
+    short = {name: n for name, n in sorted(counts.items()) if n < min_witnesses}
+    if not short:
+        return
+    try:
+        enough = f"{units_for_witnesses(spec, min_witnesses, scheme)} units"
+    except ValueError:
+        enough = f"no community under scheme {scheme!r}"
+    raise ValueError(
+        f"{len(apertures)} units under scheme {scheme!r} leave "
+        f"{short} witnessed fewer than {min_witnesses} times: a doubt about a "
+        f"law of such a domain cannot be corroborated, because the holder is "
+        f"never one of the voices — {enough} would satisfy it"
+    )

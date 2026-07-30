@@ -25,7 +25,8 @@ def test_consequents_lag_their_antecedents_by_one_round():
 
 import pytest
 
-from c_field import Field, default_spec, apertures_for
+from c_field import (CYCLIC, PAIRS, Field, FieldSpec, apertures_for,
+                     default_spec, units_for_witnesses, witnesses_per_domain)
 
 
 def test_apertures_differ_between_units():
@@ -48,6 +49,126 @@ def test_more_units_than_domains_is_refused():
     msg = str(exc.value)
     assert "5" in msg and "4" in msg, "the message must name both numbers"
     assert "distinct" in msg
+    # And it names the way out, so a caller that needs more units is not left
+    # to discover the second scheme by reading the source.
+    assert PAIRS in msg and "6" in msg
+
+
+def test_the_cyclic_scheme_did_not_move_when_a_second_one_was_added():
+    """THE GUARD ON EVERY FIGURE MEASURED BEFORE TASK 5f. Adding the `PAIRS`
+    scheme changed nothing about the default, and every measurement in this
+    suite reads the default — so nothing moved silently. Asserted against the
+    assignment written out by hand rather than against the implementation."""
+    spec = default_spec(seed=7)
+    aps = apertures_for(spec, n_units=4)
+    assert [a.domains for a in aps] == [("alpha", "beta"), ("beta", "gamma"),
+                                        ("gamma", "delta"), ("delta", "alpha")]
+    assert [a.unit_id for a in aps] == ["u0", "u1", "u2", "u3"]
+    assert apertures_for(spec, n_units=4, scheme=CYCLIC) == aps
+
+
+def test_the_pairs_scheme_puts_three_witnesses_on_every_domain():
+    """WHAT THE AUTHOR'S CORROBORATION RULING NEEDS FROM THE FIELD. Two
+    independent witnesses, with the holder never one of them, means every domain
+    must be met by at least three units. The cyclic scheme meets every domain
+    exactly twice at any size; six units at distinct 2-domain apertures meet
+    every one of the four domains exactly three times — the minimum, with
+    nothing to spare."""
+    spec = default_spec(seed=7)
+    assert witnesses_per_domain(spec, apertures_for(spec, 4)) == {
+        "alpha": 2, "beta": 2, "gamma": 2, "delta": 2}
+    six = apertures_for(spec, 6, scheme=PAIRS)
+    assert [a.domains for a in six] == [
+        ("alpha", "beta"), ("alpha", "gamma"), ("alpha", "delta"),
+        ("beta", "gamma"), ("beta", "delta"), ("gamma", "delta")]
+    assert witnesses_per_domain(spec, six) == {
+        "alpha": 3, "beta": 3, "gamma": 3, "delta": 3}
+    # Pairwise distinct, so divergence by construction survives the wider
+    # community, and the aperture WIDTH is unchanged: two domains, as before.
+    assert len({a.domains for a in six}) == 6
+    assert all(len(a.domains) == 2 for a in six)
+
+
+def test_the_two_schemes_agree_on_unit_zero_and_diverge_after_it():
+    """NOT INTERCHANGEABLE, AND SAID SO RATHER THAN ASSUMED. Every existing
+    measurement that takes `apertures_for(...)[0]` reads the same slice under
+    either scheme; anything reading a whole community does not. That is why the
+    default was left alone."""
+    spec = default_spec(seed=7)
+    cyc = apertures_for(spec, 4)
+    pair = apertures_for(spec, 4, scheme=PAIRS)
+    assert cyc[0].domains == pair[0].domains
+    assert [a.domains for a in cyc[1:]] != [a.domains for a in pair[1:]]
+    # And the truncated pairs community is LOPSIDED — alpha reaches three
+    # witnesses at four units while delta reaches one. This is what makes a
+    # four-unit pairs arm a real control: it separates community size from
+    # witnesses per domain.
+    assert witnesses_per_domain(spec, pair) == {
+        "alpha": 3, "beta": 2, "gamma": 2, "delta": 1}
+
+
+def test_a_community_that_cannot_corroborate_is_refused_not_degraded():
+    """REFUSE RATHER THAN DEGRADE. Handing back a community in which some domain
+    has too few witnesses is handing back one where a doubt about that domain's
+    laws can never be corroborated — the failure this task exists to remove. The
+    message names the shortfall by domain and the size that would satisfy it."""
+    spec = default_spec(seed=7)
+    with pytest.raises(ValueError) as exc:
+        apertures_for(spec, 4, scheme=PAIRS, min_witnesses=3)
+    msg = str(exc.value)
+    assert "'delta': 1" in msg and "'beta': 2" in msg
+    assert "6 units would satisfy it" in msg
+    # Under the cyclic scheme NO size satisfies it, and the message says that
+    # rather than naming an unreachable number.
+    with pytest.raises(ValueError) as exc:
+        apertures_for(spec, 4, min_witnesses=3)
+    assert "no community under scheme 'cyclic'" in str(exc.value)
+    # The satisfying community is handed back without complaint.
+    assert len(apertures_for(spec, 6, scheme=PAIRS, min_witnesses=3)) == 6
+
+
+def test_units_for_witnesses_reads_the_community_it_would_build():
+    """The size is DERIVED, not guessed: it is computed by building each prefix
+    and reading it, so it cannot drift from what `apertures_for` hands back."""
+    spec = default_spec(seed=7)
+    assert units_for_witnesses(spec, 3) == 6
+    assert units_for_witnesses(spec, 1) == 3        # delta arrives at unit 2
+    assert units_for_witnesses(spec, 2, scheme=CYCLIC) == 4
+    built = apertures_for(spec, units_for_witnesses(spec, 3), scheme=PAIRS)
+    assert min(witnesses_per_domain(spec, built).values()) >= 3
+    with pytest.raises(ValueError) as exc:
+        units_for_witnesses(spec, 3, scheme=CYCLIC)
+    assert "cannot witness every domain 3 times at any community size" in str(
+        exc.value)
+
+
+def test_an_unknown_scheme_is_refused():
+    spec = default_spec(seed=7)
+    with pytest.raises(ValueError) as exc:
+        apertures_for(spec, 2, scheme="widest")
+    assert "widest" in str(exc.value)
+
+
+def test_the_pairs_scheme_is_deterministic_and_reads_no_set():
+    """Order comes from the domains' DECLARED order through
+    `itertools.combinations`, which preserves input order. Two calls agree
+    exactly, and reversing the spec's domain order reverses the assignment
+    rather than shuffling it — which is what shows the order is the input's and
+    not a hash's."""
+    spec = default_spec(seed=7)
+    assert apertures_for(spec, 6, scheme=PAIRS) == apertures_for(
+        spec, 6, scheme=PAIRS)
+    flipped = FieldSpec(seed=spec.seed, domains=tuple(reversed(spec.domains)),
+                        withhold_rate=spec.withhold_rate,
+                        spurious_rate=spec.spurious_rate)
+    assert [a.domains for a in apertures_for(flipped, 6, scheme=PAIRS)] == [
+        ("delta", "gamma"), ("delta", "beta"), ("delta", "alpha"),
+        ("gamma", "beta"), ("gamma", "alpha"), ("beta", "alpha")]
+    # Whatever the order, the witness count is the same — the scheme's property
+    # is structural, not an artifact of which domain was declared first.
+    assert set(witnesses_per_domain(flipped,
+                                   apertures_for(flipped, 6, scheme=PAIRS)
+                                   ).values()) == {3}
 
 
 def test_aperture_delivers_the_union_of_its_domains():
