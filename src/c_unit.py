@@ -1121,9 +1121,11 @@ class Unit:
             if fact in self._credited:
                 continue
             mark = self._supplied_by[fact]
-            adopted = self.adopted_at.get(fact)
-            if adopted is None:                 # placed directly, never dated
-                continue
+            # `adopt` dates every fact before it records who supplied it, so a
+            # supplied fact always has an adoption round; reading it directly
+            # says so, and fails loudly rather than quietly abstaining if that
+            # invariant is ever broken.
+            adopted = self.adopted_at[fact]
             if fact in self.first_seen:         # a second route delivered it
                 self._credited.add(fact)
                 self.credit(mark, True)

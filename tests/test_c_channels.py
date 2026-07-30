@@ -2205,8 +2205,6 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                     if reply is None or reply.author == u.unit_id:
                         continue
                     relation = reply.content[0]
-                    suppliers[u.unit_id].setdefault(relation, set()).add(
-                        reply.author)
                     if typify is not None:
                         preferred = u.whom_to_ask(relation)
                         if preferred is not None:
@@ -2226,6 +2224,13 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                     uptakes += took
                     if took:
                         adopted.append(reply.content)
+                        # COUNTED ONLY WHEN SOMETHING WAS ACTUALLY TOLD. A reply
+                        # whose content the asker already held is not a second
+                        # voice about that relation — it is the same fact
+                        # arriving twice — and counting it would report choices
+                        # nobody had.
+                        suppliers[u.unit_id].setdefault(relation, set()).add(
+                            reply.author)
         for i, u in enumerate(units):                       # (b) attend
             if stagger == 1 or r % stagger == i % stagger:
                 u.step(field, r, induce=False)
@@ -2280,6 +2285,8 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
         1 for u in units
         for rel in {r for s in u.peers.values() for r in s}
         if u.whom_to_ask(rel) is not None)
+    scores = [s for u in units for by_rel in u.peers.values()
+              for s in by_rel.values()]
 
     tally = dict(true_ref=0, conv_ref=0, true_lost=0, conv_lost=0,
                  repairable=0, unrepairable=0, questions=questions,
@@ -2291,6 +2298,9 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                              for u in units),
                  preferences=preferences, occ_pref=occ_pref, occ_bite=occ_bite,
                  refused=len(refused),
+                 score_pos=sum(1 for s in scores if s > 0),
+                 score_neg=sum(1 for s in scores if s < 0),
+                 score_zero=sum(1 for s in scores if s == 0),
                  one_supplier=sum(1 for s in suppliers.values()
                                   for v in s.values() if len(v) == 1),
                  many_suppliers=sum(1 for s in suppliers.values()
@@ -2477,7 +2487,7 @@ _ASK_KEYS = ("true_ref", "conv_ref", "true_lost", "conv_lost", "repairable",
 _TYPIFY_KEYS = _ASK_KEYS + (
     "adopted_licensed", "adopted_fabricated", "adopted_body", "proved",
     "failed", "pending", "preferences", "occ_pref", "occ_bite", "refused",
-    "one_supplier", "many_suppliers")
+    "one_supplier", "many_suppliers", "score_pos", "score_neg", "score_zero")
 
 _ARMS = {}
 """Aggregates already computed, keyed by their arguments.
@@ -2531,20 +2541,27 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     peers did not merely fail to differ usefully, **NO UNIT EVER HAD TWO VOICES
     TO CHOOSE BETWEEN.** Eight seeds, 60 rounds:
 
-        arm         unit-relations with   with 2+     uptake decisions   ... at which
-                        1 supplier ever   suppliers   at which a unit    the preference
-                                                      held a preference  disagreed
+        arm            (unit, relation)   with 2+     uptake decisions   ... at which
+                       pairs told by      suppliers   at which a unit    the preference
+                       exactly 1 peer                 held a preference  disagreed
         4 units, cyclic              96          0                  41              0
-        6 units, pairs              115          7                  54              0
+        6 units, pairs              107          0                  54              0
 
     THE FIELD IS WHY, AND IT IS ARITHMETIC RATHER THAN LUCK. A unit answers only
     from what it has met, so a reply about `a_head` can come only from a peer
     that witnesses alpha. Under bounded attention with `stagger=2` a peer that
-    witnesses alpha ON THE SAME ROUNDS holds exactly what the asker holds and
-    has nothing to add, so the only peer that can ever answer is one witnessing
-    the same domain on the OPPOSITE rounds — and at both community sizes there
-    is at most one of those per asker. A preference cannot express itself when
-    the alternative to the preferred voice is silence.
+    witnesses alpha ON THE SAME ROUNDS meets exactly what the asker meets and
+    has nothing to add, so the only peer that can ever tell it something new is
+    one witnessing the same domain on the OPPOSITE rounds — and at both
+    community sizes there is exactly one of those per asker. A preference cannot
+    express itself when the alternative to the preferred voice is silence.
+
+    A SUPPLIER IS COUNTED ONLY WHEN IT TOLD THE UNIT SOMETHING IT DID NOT HOLD.
+    Counted the looser way — every reply encountered, including ones whose
+    content had arrived at the asker's own membrane in the meantime — six units
+    read 115 pairs with one supplier and 7 with two, and all seven turn out to
+    be the same fact reaching the unit twice rather than two peers informing it.
+    The looser count would have reported choices nobody had.
 
     WHAT THE UNITS DID LEARN, and it is nearly nothing. Of the 96 (peer,
     relation) pairs a four-unit community accumulates any record about, **1 ends
@@ -2571,12 +2588,19 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     # A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
     assert (four["occ_pref"], four["occ_bite"]) == (41, 0)
     assert (six["occ_pref"], six["occ_bite"]) == (54, 0)
-    # At four units no unit ever heard two voices about one relation at all.
+    # AND NO UNIT, AT EITHER SIZE, WAS EVER TOLD SOMETHING NEW ABOUT ONE
+    # RELATION BY TWO DIFFERENT PEERS. Every (unit, relation) pair that acquired
+    # anything at all acquired it from exactly one voice.
     assert (four["one_supplier"], four["many_suppliers"]) == (96, 0)
-    assert (six["one_supplier"], six["many_suppliers"]) == (115, 7)
-    # And almost nothing was learned: 1 positive preference of 96 (peer,
-    # relation) pairs at four units, 5 of 107 at six.
+    assert (six["one_supplier"], six["many_suppliers"]) == (107, 0)
+    # And almost nothing was learned. THE PEERS DO CONVERGE TO THE SAME SCORE,
+    # and the score they converge to is negative: of the 96 (peer, relation)
+    # pairs a four-unit community accumulates any record about, 1 ends positive,
+    # 90 negative and 5 at zero; six units read 5 / 99 / 3 of 107.
     assert (four["preferences"], six["preferences"]) == (1, 5)
+    assert (four["score_pos"], four["score_neg"], four["score_zero"]) == (
+        1, 90, 5)
+    assert (six["score_pos"], six["score_neg"], six["score_zero"]) == (5, 99, 3)
 
 
 def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure():
