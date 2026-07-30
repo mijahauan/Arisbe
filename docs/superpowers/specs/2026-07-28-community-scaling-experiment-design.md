@@ -716,3 +716,138 @@ first two:
 *Design ruled section by section, 2026-07-28. Assistant-drafted from the
 author's rulings; the premises, the series shape, the selection ruling, the
 lifecycle addition, and the capacity question are his.*
+
+---
+
+## 11 · Stage 4 — one mechanism in three parts (author, 2026-07-30)
+
+Stage 3 built four channels and none of them discriminated on whether a law
+holds. The author's diagnosis, given across four exchanges after the results
+came in, supplies both the reason and the repair. **Grades throughout this
+section: the reasoning is the author's, the measurements cited are stage 3's,
+and every forward claim stands as a conjecture until measured.**
+
+### 11.1 · Why stage 3 read null
+
+The driver of communication lies in **meaningful differences between the UoDs of
+kytē in a community — as few as two**. Stage 3's units did differ (apertures
+diverge by construction, premise 3), but the channel was built across the wrong
+axis: a question names an atom the asker's own record already licenses, so
+**two answers to one question are the same atom by construction** (task 7's
+finding, promoted from task 6's conjecture). The channel queried the
+*intersection* of two UoDs and never their difference.
+
+In Shannon's terms the receiver already knows what the answer will say, so the
+message carries **no information**. That reading makes stage 3's nulls a
+property of the channel's construction rather than a finding about communities,
+and it is why 0 of 939 adoptions ever took up a fabricated fact and why all 394
+six-unit two-voice cases were twins meeting the same atom on the same round.
+
+**Where Shannon stops.** His standard model holds the codebook fixed. Here the
+codebook is what gets learned, so a received message changes the receiver and
+**the next transfer runs over a different channel** — iteration and transfer
+subject to loss and transformation that change the conditions of iteration and
+transfer. Shannon supplies the per-step accounting; the iteration is the point
+at which information theory becomes semiosis, and the project borrows the first
+and does not claim the second from him.
+
+### 11.2 · The three parts, which need each other
+
+**(a) Slot-questions.** A question shaped `(R *x)` — a pattern with a free slot —
+rather than a determined atom. Two peers can then return **different fillers**,
+which is the first way two answers to one question stop being the same atom.
+`domain_oracle.match_atoms` enumerates bindings and `alternative_trace` already
+carries a generic slot as a defining variable; this changes what a question *is*,
+not the subsystem.
+
+**(b) A doubt metric driving rate and volume.** Zero means no doubt, no
+gradient, no inquiry; it rises to an alarm that raises how often and how loudly a
+unit queries. **Doubt measures belief FAILING, not knowledge ABSENT** — a unit
+with a small model that works sits at zero, ignorant and untroubled, while a
+unit whose standing law starts missing at its membrane climbs fast. All quiet
+until the enemy appears at the gates. An ignorance meter would read the opposite
+and would be wrong.
+
+Urgency must cost. `attention_economy` already prices exactly this — `Want`
+carries `severity` and `cost`, `AttentionEconomy` orders by severity-weighted
+decayed yield per cost with bounded registers and counted drops. Doubt sets
+severity; the throttle exists and is simply not connected. **Note the standing
+guard:** a within-unit throttle may be a scalar because it is a knob, not a
+ranking; a cross-unit doubt score would violate THE_MEASURE_OF_KNOWLEDGE's rule
+that the measure stays a vector and never collapses to a scalar over agents.
+
+**(c) Alarm reliability, and the boy who cried wolf.** His failure is not lying —
+his cry became **statistically independent of the wolf**, carrying no information
+about the state it purported to report, and the villagers discovered this without
+being told. A receiver can compute the same from its own record: *did this peer's
+alarms precede failures I actually met?*
+
+**The conjectured payoff, and the reason the three go together.** The doubt knob
+is the first place two identical units can diverge in **behaviour** rather than
+only in what they happened to meet: if a threshold adapts to a unit's own
+history, same rules and same aperture width still yield different alarm policies.
+Units would then become **differentially reliable speakers, discovered rather
+than seeded** — which is what stage 3 could not produce, and what the author's
+ruling requires (units identical, heterogeneity emergent, faithful to West's
+invariant terminal unit). Each part alone reads null for the reason its
+predecessor did.
+
+### 11.3 · The instrument
+
+`net_score` inverted **five times** across stage 3, finally on the pre-registered
+gate itself: live −106 against mute −1421 looks thirteenfold better while bets
+placed fell 1497 → 110 and true laws held fell 64/64 → 28/64 — the live world
+bought its score by very nearly ceasing to forecast. It rose both when true laws
+were destroyed and when they were restored. **Retire it as a gate statistic the
+way §9a retired `accuracy`** (open author decision), reporting instead the
+vector: bets placed · hits among bets placed · true laws held · converses held.
+
+Stage 4 adds a transfer measure beside the outcome vector: **bits**. A kytos at
+*t* and the same kytos at *t+1* differ, so a unit talking to itself across time
+already forms a two-member community with a real gradient, and the code for it
+exists. Measure what the **self-channel** carries between rounds and what the
+**peer-channel** carries between units. If the peer channel carries less than a
+unit's own memory does, the community adds nothing, said in a unit that measures
+*transfer* rather than summarising outcomes.
+
+**A caution to carry, not to wave away:** mutual information is itself a scalar,
+and `net_score` failed precisely as a scalar summary. A channel could carry many
+bits about things that do not matter. Stage 4 must check whether bits invert the
+way score did before treating them as a gate.
+
+### 11.4 · Pre-registered, and able to fail
+
+> **P-H1.** Slot-questions produce answers that differ between peers. Measured as
+> distinct fillers returned to one question; stage 3's figure is zero by
+> construction.
+>
+> **P-H2.** The peer-channel carries more bits with slot-questions than without,
+> and stage 3's channel measures at or near zero.
+>
+> **P-H3 (cry-wolf).** Units with identical rules diverge in alarm policy through
+> their own histories, and a receiver's measured alarm-reliability for a peer
+> predicts that peer's later usefulness. **This is the gate: if reliability never
+> differentiates, heterogeneity did not emerge and the ruling that units stay
+> identical cannot be met by adaptation alone.**
+>
+> **P-H4.** Urgency costs. A unit that raises its doubt threshold pays in
+> attention and gains nothing when the world is quiet.
+
+### 11.5 · What stage 4 does NOT include
+
+**Mortality and regime shift move to stage 5.** They add stakes and urgency to a
+channel that must first be able to carry information; killing units before the
+channel works would measure the killing. The author's reasoning stands recorded
+for stage 5: *mistakes bite right there — life over*; **West's β measures the
+maintenance cost of keeping terminal units alive, so with immortal kytē there is
+no cost and no exponent — the C-series cannot answer the West question until
+units can die.** Stage 5 also carries the five-rate frame (τ_env, τ_learn,
+τ_comm, τ_mem, τ_life; only ratios matter, and τ_env and τ_life are both absent
+from the build).
+
+### 11.6 · Standing limits on stage 3's summary
+
+Stage 3's "what stage 3 established" paragraph names the differentially-reliable-
+speaker limit but not two others: every unit was **immortal** and the world
+**never changed**. All three bound what its nulls can mean, and all three must
+appear before that paragraph reaches any outside reader.
