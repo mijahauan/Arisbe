@@ -301,3 +301,234 @@ def test_zero_rates_restore_the_exception_free_field():
         prev = {a for rel, a in field._antecedents(d.name, r - 1) if rel == body_rel}
         now = {a for rel, a in field.deliver(d.name, r) if rel == head_rel}
         assert prev == now
+
+
+# --- Examination VII: speaker-variance at the observer's membrane ------------
+#
+# The author ruled YES on giving the field speaker-variance (2026-07-30).
+# Before it, `Field.deliver` drew noise from (seed, domain, round) and never
+# from the unit, so every witness of a domain met byte-identical deliverances
+# and no unit could be a more or less reliable speaker than any other. The
+# examination's VII.4 recorded the consequence: alarm reliability, the
+# credential, typification and P-H3 all measure a property of speakers, in a
+# world whose speakers were interchangeable by construction.
+
+
+def test_an_observer_with_no_entry_reads_exactly_the_domain_stream():
+    """THE BACK-COMPAT GATE. Every C-series figure was measured through the
+    two-argument call, and Examination VII cites those figures throughout, so
+    the new argument must be inert until someone asks for it."""
+    field = Field(default_spec(seed=5))
+    for name in ("alpha", "beta", "gamma", "delta"):
+        for r in range(40):
+            assert field.deliver(name, r) == field.deliver(name, r, observer="u0")
+
+
+def test_observer_noise_never_disturbs_the_domain_stream():
+    """The field already keeps its noise on a separate RNG so that enabling it
+    cannot shift the antecedent sequence. Observer noise gets the same
+    discipline one level out: a spec that names observers must deliver the
+    same domain stream as one that does not."""
+    from c_field import ObserverNoise
+    import dataclasses
+    plain = Field(default_spec(seed=5))
+    noisy = Field(dataclasses.replace(
+        default_spec(seed=5),
+        observers=(("u1", ObserverNoise(withhold=0.5, spurious=0.5)),)))
+    for r in range(40):
+        assert plain.deliver("alpha", r) == noisy.deliver("alpha", r)
+        assert plain.deliver("alpha", r) == noisy.deliver("alpha", r, observer="u0")
+
+
+def test_a_spurious_observer_perceives_what_the_field_never_delivered():
+    """THE CRY-WOLF STRUCTURE, and the reason two rates exist rather than one.
+
+    A unit with a high `withhold` is merely quieter — it sees less, and what it
+    does see is true, so its testimony stays sound. A unit with a high
+    `spurious` perceives atoms the field never delivered and publishes them in
+    good faith, which is the boy's actual failure: not lying, but crying at
+    a rate uncorrelated with the wolf (spec 11.2(c))."""
+    from c_field import ObserverNoise
+    import dataclasses
+    spec = dataclasses.replace(
+        default_spec(seed=5),
+        observers=(("liar", ObserverNoise(spurious=0.9)),))
+    field = Field(spec)
+    invented = 0
+    for r in range(60):
+        truth = set(field.deliver("alpha", r))
+        seen = set(field.deliver("alpha", r, observer="liar"))
+        assert truth <= seen, "spurious noise must add, never remove"
+        invented += len(seen - truth)
+    assert invented > 20, f"a 0.9-spurious observer invented only {invented} atoms in 60 rounds"
+
+
+def test_a_withholding_observer_sees_less_and_says_nothing_false():
+    from c_field import ObserverNoise
+    import dataclasses
+    spec = dataclasses.replace(
+        default_spec(seed=5),
+        observers=(("quiet", ObserverNoise(withhold=0.8)),))
+    field = Field(spec)
+    missed = 0
+    for r in range(60):
+        truth = set(field.deliver("alpha", r))
+        seen = set(field.deliver("alpha", r, observer="quiet"))
+        assert seen <= truth, "withholding must remove, never add"
+        missed += len(truth - seen)
+    assert missed > 20, f"a 0.8-withhold observer missed only {missed} atoms in 60 rounds"
+
+
+def test_two_observers_with_equal_rates_still_diverge():
+    """The point of keying on the observer. Equal rates are equal DISPOSITIONS,
+    not equal experience — otherwise 'unreliable' would be a property of the
+    spec rather than of a speaker, and two units carrying the same rate could
+    not be told apart by anything that watched them."""
+    from c_field import ObserverNoise
+    import dataclasses
+    n = ObserverNoise(withhold=0.3, spurious=0.3)
+    spec = dataclasses.replace(default_spec(seed=5), observers=(("u1", n), ("u2", n)))
+    field = Field(spec)
+    differ = sum(1 for r in range(60)
+                 if field.deliver("alpha", r, observer="u1")
+                 != field.deliver("alpha", r, observer="u2"))
+    assert differ > 10, f"two equally-noisy observers differed on only {differ} of 60 rounds"
+
+
+def test_observer_noise_is_deterministic():
+    from c_field import ObserverNoise
+    import dataclasses
+    mk = lambda: Field(dataclasses.replace(
+        default_spec(seed=5), observers=(("u1", ObserverNoise(0.3, 0.3)),)))
+    a, b = mk(), mk()
+    for r in range(40):
+        assert a.deliver("alpha", r, observer="u1") == b.deliver("alpha", r, observer="u1")
+
+
+def test_a_spurious_atom_is_a_head_atom_about_a_real_individual():
+    """What a mis-observation may be. It must look like something the domain
+    could have delivered, or a receiver could reject it on shape alone and the
+    channel would carry a tell rather than a falsehood."""
+    from c_field import ObserverNoise
+    import dataclasses
+    spec = dataclasses.replace(
+        default_spec(seed=5), observers=(("liar", ObserverNoise(spurious=0.9)),))
+    field = Field(spec)
+    d = spec.domains[0]
+    known = set(d.individuals)
+    sayable = set(d.antecedents) | {d.law[1]}
+    for r in range(60):
+        for rel, args in (set(field.deliver("alpha", r, observer="liar"))
+                          - set(field.deliver("alpha", r))):
+            assert rel in sayable, f"invented relation {rel!r} is not one this domain speaks"
+            assert args[0][1] in known, f"invented individual {args[0][1]!r} is unknown here"
+
+
+# --- Examination VII: the twin control --------------------------------------
+#
+# Panel B held that the control deciding "emergent or seeded?" — two units with
+# an identical aperture AND identical attendance parity — needs an explicit
+# exemption to premise 3. The author's ruling 2 showed it needs none: premise 3
+# exists to stop units converging on near-identical MODELS, which is a claim
+# about content, while the twin control holds content and position fixed
+# precisely in order to probe whether POLICY diverges. Different axes.
+
+
+def test_twinning_is_refused_unless_it_is_asked_for():
+    """Divergence by construction stays the default. A twin is a control arm,
+    named at the call site, never something a caller gets by accident."""
+    import pytest
+    spec = default_spec()
+    with pytest.raises(ValueError, match="cycles after"):
+        apertures_for(spec, 5)
+
+
+def test_a_twin_carries_its_original_aperture_exactly():
+    spec = default_spec()
+    aps = apertures_for(spec, 4, twin_of="u0")
+    assert len(aps) == 5
+    assert aps[4].domains == aps[0].domains
+    assert aps[4].unit_id == "u4"
+    assert [a.domains for a in aps[:4]] == [a.domains for a in apertures_for(spec, 4)]
+
+
+def test_twinning_an_unknown_unit_is_refused_by_name():
+    import pytest
+    with pytest.raises(ValueError, match="u9"):
+        apertures_for(default_spec(), 4, twin_of="u9")
+
+
+def test_twinning_leaves_every_untwinned_call_untouched():
+    """The back-compat gate for task 2. Every aperture figure in the series was
+    measured without this argument."""
+    spec = default_spec()
+    for scheme in (CYCLIC, PAIRS):
+        for n in range(1, 5):
+            assert ([a.domains for a in apertures_for(spec, n, scheme=scheme)]
+                    == [a.domains for a in
+                        apertures_for(spec, n, scheme=scheme, twin_of=None)])
+
+
+def test_the_twin_control_reads_zero_where_nothing_can_differ():
+    """THE NULL P-H3's FIRST CLAUSE LACKS.
+
+    Two units with the same aperture, the same attendance parity and no
+    observer noise meet exactly the same world. Any later claim that policy
+    "diverged through their own histories" has to beat this reading, and
+    without it a divergence counted between units of DIFFERENT aperture or
+    parity passes by arithmetic — which is what Examination VII's VII.9 found
+    P-H1 doing."""
+    spec = default_spec(seed=5)
+    field = Field(spec)
+    aps = apertures_for(spec, 4, twin_of="u0")
+    a, twin = aps[0], aps[4]
+    assert a.domains == twin.domains
+    for r in range(0, 60, 2):                       # one shared attendance parity
+        for name in a.domains:
+            assert (field.deliver(name, r, observer=a.unit_id)
+                    == field.deliver(name, r, observer=twin.unit_id))
+
+
+def test_the_twin_control_reads_nonzero_once_the_field_names_a_speaker():
+    """And the other half: with observer noise the twins' worlds come apart,
+    so the control has a live range rather than only a floor. Without this the
+    null would be indistinguishable from an instrument that cannot move."""
+    from c_field import ObserverNoise
+    import dataclasses
+    spec = dataclasses.replace(
+        default_spec(seed=5),
+        observers=(("u4", ObserverNoise(withhold=0.3, spurious=0.3)),))
+    field = Field(spec)
+    aps = apertures_for(spec, 4, twin_of="u0")
+    a, twin = aps[0], aps[4]
+    differ = sum(1 for r in range(0, 60, 2) for name in a.domains
+                 if field.deliver(name, r, observer=a.unit_id)
+                 != field.deliver(name, r, observer=twin.unit_id))
+    assert differ > 5, f"twins diverged on only {differ} attended domain-rounds"
+
+
+def test_observer_noise_reaches_a_unit_through_its_aperture():
+    """THE PLUMBING GATE. `Field.at` is the path a unit actually reads by, and
+    it knows the observer already — an `Aperture` carries its `unit_id`. If
+    `at` dropped that on the way to `deliver`, the whole speaker-variance
+    change would be reachable only from tests: a mechanism built and not
+    connected, which is the defect Examination V named as V.5 ("plumbing on
+    unplumbed plumbing, recording what nothing consumes")."""
+    from c_field import ObserverNoise
+    import dataclasses
+    spec = dataclasses.replace(
+        default_spec(seed=5),
+        observers=(("u0", ObserverNoise(spurious=0.9)),))
+    field = Field(spec)
+    aps = apertures_for(spec, 4)
+    noisy, clean = aps[0], aps[1]
+    assert noisy.unit_id == "u0"
+
+    invented = sum(len(set(field.at(noisy, r))
+                       - set().union(*(set(field.deliver(n, r)) for n in noisy.domains)))
+                   for r in range(60))
+    assert invented > 20, f"a 0.9-spurious unit met only {invented} invented atoms at its membrane"
+
+    for r in range(60):
+        plain = sorted(set().union(*(set(field.deliver(n, r)) for n in clean.domains)))
+        assert field.at(clean, r) == plain, "an unnamed unit's membrane must be untouched"

@@ -377,7 +377,7 @@ def test_a_peer_whose_testimony_never_bore_out_earns_no_preference():
     _spec, _field, u0, _u1 = _two_units()
     u0.credit(Mark(author="u1", content=("q1", A1), kind="fact", round_idx=0),
               proved=False)
-    assert u0.peers["u1"]["q1"] == -1
+    assert u0.peers["u1"]["q1"] == (0, 1)
     assert u0.whom_to_ask("q1") is None
 
 
@@ -430,7 +430,7 @@ def test_silence_at_this_unit_s_own_membrane_fails_the_testimony():
     u0.adopt(answer, board, 1)
     assert u0.settle_credit(10) == []                # 9 rounds: not yet
     assert u0.settle_credit(11) == [("u1", ("q1", A1), False)]
-    assert u0.peers["u1"]["q1"] == -1
+    assert u0.peers["u1"]["q1"] == (0, 1)
 
 
 def test_a_relation_this_unit_never_meets_yields_no_verdict_ever():
@@ -2252,8 +2252,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                                 pref_choice_bite += reply.author != preferred
                             take = reply.author == preferred
                         elif typify == "distrust":
-                            take = u.peers.get(reply.author, {}).get(
-                                relation, 0) >= 0
+                            take = u.standing_with(reply.author, relation) >= 0
                         else:
                             take = True
                         if not take:
@@ -2375,8 +2374,8 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
         1 for u in units
         for rel in {r for s in u.peers.values() for r in s}
         if u.whom_to_ask(rel) is not None)
-    scores = [s for u in units for by_rel in u.peers.values()
-              for s in by_rel.values()]
+    scores = [p - f for u in units for by_rel in u.peers.values()
+              for (p, f) in by_rel.values()]
 
     # THE LOOSE READING, KEPT ONLY SO THE TIGHT ONE CAN BE READ AGAINST IT.
     # `could` asks how many peers ever held the asked atom first-hand, counted
@@ -3233,3 +3232,43 @@ def test_the_channel_is_deterministic():
                 raised, events, tally)
     assert run(4, CYCLIC) == run(4, CYCLIC)
     assert run(6, PAIRS) == run(6, PAIRS)
+
+
+# --- Examination VII, amendable finding (a): peers keeps both components ----
+
+
+def test_a_peer_half_wrong_is_not_a_peer_never_heard_from():
+    """EXAMINATION V's V.2 COLLISION, REPRODUCED HERE AND CLOSED.
+
+    `credit` used to write `proved - failed` as one integer, which is
+    irreversible: a peer borne out ten times and failed ten times landed on the
+    same 0 as a peer nobody had ever heard from, indistinguishable to
+    `whom_to_ask` and to any other reader. Examination VII censused five of 96
+    records sitting on that point at four units, and three of 107 at six.
+
+    The remedy V.2 received was two moves — rename out of the doctrinal
+    namespace, AND keep the constituents structurally distinct. `peers` passed
+    the first and failed the second."""
+    _spec, _field, tested, _u1 = _two_units()
+    _spec2, _field2, silent, _u1b = _two_units()
+    for i in range(10):
+        tested.credit(Mark("u1", ("q1", (("c", f"x{i}"),)), FACT, i), proved=True)
+        tested.credit(Mark("u1", ("q1", (("c", f"y{i}"),)), FACT, i), proved=False)
+
+    assert tested.peers["u1"]["q1"] == (10, 10)
+    assert silent.peers == {}
+    assert tested.peers["u1"]["q1"] != silent.peers.get("u1", {}).get("q1")
+    # and the derived score still reads the same as it always did
+    assert tested.whom_to_ask("q1") is None
+    assert silent.whom_to_ask("q1") is None
+
+
+def test_the_derived_score_is_what_whom_to_ask_still_reads():
+    _spec, _field, u, _u1 = _two_units()
+    for i in range(3):
+        u.credit(Mark("u1", ("q1", (("c", f"x{i}"),)), FACT, i), proved=True)
+    u.credit(Mark("u2", ("q1", (("c", "z"),)), FACT, 0), proved=True)
+    u.credit(Mark("u2", ("q1", (("c", "w"),)), FACT, 1), proved=False)
+    assert u.peers["u1"]["q1"] == (3, 0)
+    assert u.peers["u2"]["q1"] == (1, 1)
+    assert u.whom_to_ask("q1") == "u1"          # 3 beats 0, as before

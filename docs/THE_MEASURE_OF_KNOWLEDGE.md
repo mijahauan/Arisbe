@@ -100,6 +100,37 @@ measure:**
    given) — so an aggregate scalar has nothing to be a fraction *of*. See
    [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2.
 
+   **What this forbids, precisely, and what it does not** *(added 2026-07-30;
+   Examination VII turned on this clause being absent).* The guard forbids
+   **aggregating the item index away** — collapsing across knowledge-items into one
+   number that ranks inquirers. It does **not** forbid comparing agents *within* an
+   item: a vector over (item × model) is exactly the shape that licenses reading
+   along the model axis at a fixed item. So "who has borne me out about *this
+   relation*" is legal and "how good is this peer" is not.
+
+   **A credential is therefore licensed, and is not an exception.** An **earned,
+   domain-indexed, publicly-inscribed type of actor** — the diploma, the
+   technician's rating — preserves the index the guard protects: it certifies
+   competence in a domain and says nothing about any other, so it is a categorical
+   type rather than a ranking of persons. A bare per-peer score destroys that index
+   and is what the guard bites. *(Author's ruling, 2026-07-30: the weight a speaker
+   carries is "not who they are but an objectified criterion in the social
+   reality" — with the personal modifier, "he's never steered me wrong" or "he's an
+   inveterate liar", kept private in the member's own M. See
+   [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2(c):
+   judgment objectivated, never owned — which a diploma satisfies rather than
+   strains, being objectivated judgment exactly.)*
+4. **Never sign-free.** A measure of a channel, a source or a signal must distinguish
+   *informative* from *reliably inverted*. Mutual information does not: `I(X;Y) =
+   I(X;¬Y)`, so a source that reports the opposite of the truth every time scores
+   maximally. *(Added 2026-07-30 from Examination VII, VII.2, which is not
+   hypothetical: computed from figures already pinned in the C-series suite, the
+   channel that destroyed 64 of 64 true laws carries 0.7836 bits — 85.3% of the
+   available truth entropy — while the channel that restored 28 of them carries
+   almost none. A bits gate would rank the destroyer far above the repairer.)* Any
+   candidate measure must be checked for this before it gates anything, and reported
+   beside an outcome the sign of which is legible.
+
 **Sufficiency is not claimed:** the four components cover the *assertoric* fragment of
 the seed definition; "acts that work" awaits the action arm (BOOTSTRAP), and
 calibration, coherence, coverage, and evidential independence are named

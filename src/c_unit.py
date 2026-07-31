@@ -355,10 +355,18 @@ class Unit:
     when the run ends. A longer window holds more preferences only by declining
     to conclude. Measured in
     `tests/test_c_channels.py::test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`."""
-    peers: Dict[str, Dict[str, int]] = dc_field(default_factory=dict)
+    peers: Dict[str, Dict[str, Tuple[int, int]]] = dc_field(default_factory=dict)
     """What this unit has learned about WHOM IT IS TALKING TO: per peer, per
-    relation, a running count of the answers that proved out minus the answers
-    that did not.
+    relation, `(borne out, not borne out)` — the two counts kept apart, with
+    their difference derived by `standing_with` at read time.
+
+    KEPT APART RATHER THAN FOLDED, because folding at write time cannot be
+    undone and loses the distinction the record exists to draw. A peer borne out
+    ten times and failed ten times nets to the same zero as a peer nobody has
+    ever heard from, and a reader cannot tell "tested and mixed" from
+    "untested" — which is the collision Examination V found one series over (its
+    V.2, on a field then named `warrant`) and Examination VII found here, on
+    five of the 96 (peer, relation) records a four-unit community accumulates.
 
     THIS IS THE FIRST THING IN THE SERIES A UNIT HOLDS ABOUT ANOTHER UNIT, and
     it is deliberately not a model of that unit. It records how one unit's
@@ -1058,9 +1066,9 @@ class Unit:
                 f"can bear out or fail to"
             )
         relation, _args = mark.content
-        self.peers.setdefault(mark.author, {})
+        proved_n, failed_n = self.peers.setdefault(mark.author, {}).get(relation, (0, 0))
         self.peers[mark.author][relation] = (
-            self.peers[mark.author].get(relation, 0) + (1 if proved else -1))
+            (proved_n + 1, failed_n) if proved else (proved_n, failed_n + 1))
 
     def whom_to_ask(self, relation: str) -> Optional[str]:
         """The peer whose testimony about `relation` has fared best, or `None`
@@ -1077,10 +1085,27 @@ class Unit:
         rather than of dictionary order."""
         best: Optional[Tuple[str, int]] = None
         for author in sorted(self.peers):
-            score = self.peers[author].get(relation, 0)
+            score = self.standing_with(author, relation)
             if score > 0 and (best is None or score > best[1]):
                 best = (author, score)
         return None if best is None else best[0]
+
+    def standing_with(self, author: str, relation: str) -> int:
+        """The net record `author` has built with this unit about `relation`:
+        borne out minus not.
+
+        DERIVED AT READ TIME, NEVER STORED. `peers` keeps the two counts apart
+        because folding them at write time is irreversible, and the fold loses
+        exactly the distinction the record exists to draw: a peer borne out ten
+        times and failed ten times is not a peer nobody has heard from, though
+        both net to zero. Examination V found that collision one series over
+        (its V.2) and Examination VII found it here, on five of the 96 (peer,
+        relation) records a four-unit community accumulates.
+
+        The difference is still what `whom_to_ask` orders by, so nothing about
+        the preference moved — only what a reader can recover."""
+        proved_n, failed_n = self.peers.get(author, {}).get(relation, (0, 0))
+        return proved_n - failed_n
 
     def settle_credit(self, round_idx: int) -> List[Tuple[str, Fact, bool]]:
         """Reach a verdict on every piece of adopted testimony this unit's own

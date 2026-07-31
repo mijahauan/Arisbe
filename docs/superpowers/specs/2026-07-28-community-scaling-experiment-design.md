@@ -751,6 +751,45 @@ transfer. Shannon supplies the per-step accounting; the iteration is the point
 at which information theory becomes semiosis, and the project borrows the first
 and does not claim the second from him.
 
+### 11.1a · Two rulings that came out of examining this design (2026-07-30)
+
+Examination VII examined §11 before it was built. Four panels reported, and the
+author's two rulings on their report changed what the findings meant. Both are
+recorded in full in ADVERSARIAL_EXAMINATION (Examination VII, "The author's two
+rulings"); they are stated here because the design depends on them.
+
+**Ruling 1 — reliability by speaker is real, and it is objectivated in two
+layers.** A doctor's advice outweighs a used-car salesman's, and a radar
+technician's warning outweighs a soothsayer's. That weight is earned and typified
+in objective social reality by **credentials** — "not *who they are* but an
+objectified criterion in the social reality" — and modified by whatever the
+individual's own history has recorded: *he's never steered me wrong*, or *he's an
+inveterate liar*. So reliability splits: a **credential** (earned, domain-indexed,
+publicly inscribed, and therefore a mark) at the commens, and a **personal
+modifier** (private, from this unit's own record, free to run either way) at the
+member. That is exactly Examination VI's apportionment — negotiated at the
+commens, given at the member — and it is what part (c) must be built as. A bare
+per-peer number is the one shape neither layer licenses.
+
+**Ruling 2 — what "identical" restricts in a terminal unit.** West assumes no
+absolute identity. For a capillary, what is invariant is its **size** and **flow
+rate**, and therefore **the cost of maintaining one**; what varies freely is how
+many there are, how many branching levels separate them from the source, where
+they sit, and which tissue they serve. Mapped onto kytē:
+
+| must be invariant | free to vary |
+|---|---|
+| **capacity** — what one unit can hold in use | **content** — what it met |
+| **rate** — how many acts it can afford per round | **position** — whom it talks to |
+| ∴ **maintenance cost per unit** | **policy** — how it spends its allocation |
+
+**An adapting doubt threshold is *policy*, so it preserves invariance** — two
+units of equal capacity spending it differently are still the same terminal unit,
+which is the freedom West already grants. The condition this imposes is in
+§11.2(b), and it is the reason the twin control needs no exemption from premise 3:
+premise 3 governs *content* divergence, and the control probes *policy* divergence
+at fixed content.
+
 ### 11.2 · The three parts, which need each other
 
 **(a) Slot-questions.** A question shaped `(R *x)` — a pattern with a free slot —
@@ -761,8 +800,9 @@ carries a generic slot as a defining variable; this changes what a question *is*
 not the subsystem.
 
 **(b) A doubt metric driving rate and volume.** Zero means no doubt, no
-gradient, no inquiry; it rises to an alarm that raises how often and how loudly a
-unit queries. **Doubt measures belief FAILING, not knowledge ABSENT** — a unit
+gradient, no inquiry; it rises to an alarm that changes **what a unit spends its
+questions on** — which of its fixed allocation go to the law now failing at its
+membrane rather than to the rest. **Doubt measures belief FAILING, not knowledge ABSENT** — a unit
 with a small model that works sits at zero, ignorant and untroubled, while a
 unit whose standing law starts missing at its membrane climbs fast. All quiet
 until the enemy appears at the gates. An ignorance meter would read the opposite
@@ -775,6 +815,30 @@ severity; the throttle exists and is simply not connected. **Note the standing
 guard:** a within-unit throttle may be a scalar because it is a knob, not a
 ranking; a cross-unit doubt score would violate THE_MEASURE_OF_KNOWLEDGE's rule
 that the measure stays a vector and never collapses to a scalar over agents.
+
+**And the standing rule, which an earlier draft of this paragraph broke
+(Examination VII, VII.8).** It read "raises how often and how loudly a unit
+queries," which describes **enlarging** a unit's allocation. The mechanism named
+here cannot do that and should not: `AttentionEconomy.choose(k, round_idx)`
+takes the slot count **k from its caller**, and severity enters only through
+`_score`, which sorts the pool. It is a fixed-budget reordering machine.
+
+> **Doubt may reorder a unit's fixed budget. It may never enlarge it.**
+
+The reason is West's, not hygiene. A terminal unit's **capacity and rate are
+invariant, and its maintenance cost with them** (author's ruling, 2026-07-30);
+what varies freely is content, position, and policy. A unit whose per-round cost
+rises with its own doubt is no longer a terminal unit — there is no fixed quantum
+to count, and a scaling law gets its exponent by counting a fixed quantum. Break
+this and the series loses the West question for a **second** reason, one that
+would still bite after units can die.
+
+Two riders follow. `corroboration_window` governs how many questions a unit asks
+about a doubted law, so **it is part of the unit's rate parameter**: it must stay
+uniform across units, and constant across any size sweep, or the sweep measures
+the window rather than scaling. And **the price of patience is unmeasured** — a
+longer window makes every unit do more work per doubt, which a count of bets
+cannot see.
 
 **(c) Alarm reliability, and the boy who cried wolf.** His failure is not lying —
 his cry became **statistically independent of the wolf**, carrying no information
@@ -817,12 +881,41 @@ way score did before treating them as a gate.
 
 ### 11.4 · Pre-registered, and able to fail
 
-> **P-H1.** Slot-questions produce answers that differ between peers. Measured as
-> distinct fillers returned to one question; stage 3's figure is zero by
-> construction.
+> **P-H1.** Slot-questions produce answers that are **usable** and differ between
+> peers — measured as fillers returned to one question that are **new to the
+> asker and scoreable by it**, not merely distinct. Null: a **same-parity pair**,
+> which must read zero.
 >
-> **P-H2.** The peer-channel carries more bits with slot-questions than without,
-> and stage 3's channel measures at or near zero.
+> *Why the wording is this careful (Examination VII, VII.9).* Bare distinctness
+> passes by configuration. Measured against the real field, two witnesses of one
+> domain at opposite attendance parity meet disjoint body-individual sets (19 and
+> 24 individuals, 11 shared — 8 and 13 respectively private), while same-parity
+> witnesses meet byte-identical deliverances and full-attention witnesses meet
+> all 32. So "do fillers differ?" is answered by the harness's `stagger`, not by
+> the community. The **usable** difference is a real quantity and the one the
+> mechanism is for: because `CONSEQUENT_LAG = 1`, an opposite-parity peer holds
+> exactly the bodies the asker missed for heads the asker will meet, and a
+> determined question can never reach them — it names an atom the asker's own
+> record already licenses.
+>
+> **P-H2.** The peer-channel carries more bits with slot-questions than without.
+> **Both random variables are named before the run**, and bits are reported
+> **beside `true laws held`**, never instead of it.
+>
+> *Two corrections (Examination VII, A.9 and VII.9).* The variables must be named
+> because the natural choices disagree: `I(answer ; the receiver's subsequent
+> membrane arrivals)` gives a fabricated filler **0 bits**, while `I(answer ; the
+> receiver's state change)` gives it **maximal** bits — so under the second
+> reading P-H2 can be passed by making the channel noisier. And the earlier
+> baseline, "stage 3's channel measures at or near zero," is **withdrawn**: that
+> is §11.1's Shannon argument, which is right about the answer's *content* and
+> wrong about the *channel*. Task 6 established the ask channel as a
+> **confirmation** channel, and confirmation carries information, because what
+> the asker does not know is whether the atom *holds*. Computed from task 4's own
+> arms, the useful arm (29/31 answered) carries 0.345 bits/question while the
+> **inert** arm (24/51, every answer redundant, zero uptake) carries 0.998 —
+> nearly three times as much where the channel did nothing. Mutual information is
+> sign-free, and this is that defect landing on P-H2.
 >
 > **P-H3 (cry-wolf).** Units with identical rules diverge in alarm policy through
 > their own histories, and a receiver's measured alarm-reliability for a peer

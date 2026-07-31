@@ -26,6 +26,29 @@ class Domain:
 
 
 @dataclass(frozen=True)
+class ObserverNoise:
+    """How one observer's membrane distorts what the domain delivered.
+
+    TWO RATES, BECAUSE THEY MAKE DIFFERENT KINDS OF SPEAKER. `withhold` makes a
+    unit QUIETER: it meets less than the domain delivered, but everything it
+    does meet is true, so its testimony stays sound and it simply has less to
+    offer. `spurious` makes a unit UNRELIABLE: it perceives atoms the field
+    never delivered and — having no way to tell them from the rest — publishes
+    them in good faith.
+
+    The second is the cry-wolf structure the design names (spec 11.2(c)): the
+    boy's failure "is not lying — his cry became statistically independent of
+    the wolf." Nothing here models deceit, and nothing needs to: a unit that
+    reports what it honestly perceived is unreliable exactly insofar as its
+    perceptions are uncorrelated with the world.
+
+    Both default to zero, and an observer with no entry gets no distortion at
+    all — see `Field.deliver`."""
+    withhold: float = 0.0
+    spurious: float = 0.0
+
+
+@dataclass(frozen=True)
 class FieldSpec:
     seed: int
     domains: Tuple[Domain, ...]
@@ -39,6 +62,23 @@ class FieldSpec:
     license it — a consequence with no cause. Makes accidental hits
     possible for a law nobody holds, and gives a held law something to be
     wrong about."""
+    observers: Tuple[Tuple[str, ObserverNoise], ...] = ()
+    """Per-observer distortion, as (unit_id, noise) pairs. EMPTY BY DEFAULT,
+    and an absent unit gets no distortion, so every figure measured before this
+    existed reads the same.
+
+    WHY THE FIELD GAINED THIS (author's ruling, 2026-07-30). The rates above
+    are properties of a DOMAIN: `deliver` drew its noise from
+    (seed, domain, round) and never from the unit, so every witness of a domain
+    met byte-identical deliverances and no unit could be a more or less
+    reliable speaker than any other. Examination VII's VII.4 recorded what that
+    cost: alarm reliability, the credential, typification and P-H3 all measure
+    a property of speakers, and they were being measured in a world whose
+    speakers were interchangeable by construction. A community cannot discover
+    whom to trust where there is nothing to discover.
+
+    A TUPLE OF PAIRS rather than a dict because `FieldSpec` is frozen; nothing
+    hashes it today, and this keeps that available."""
 
 
 CONSEQUENT_LAG = 1
@@ -109,6 +149,7 @@ class Field:
     def __init__(self, spec: FieldSpec):
         self.spec = spec
         self._by_name = {d.name: d for d in spec.domains}
+        self._observers: Dict[str, ObserverNoise] = dict(spec.observers)
 
     def domain(self, domain_name: str) -> Domain:
         return self._by_name[domain_name]
@@ -127,10 +168,57 @@ class Field:
             out.append((rel, (("c", who),)))
         return sorted(out)
 
-    def deliver(self, domain_name: str, round_idx: int) -> List[Fact]:
+    def _observed(self, domain_name: str, round_idx: int,
+                  out: Set[Fact], observer: str) -> Set[Fact]:
+        """What ONE observer makes of what the domain delivered.
+
+        Applied after the domain's own noise and drawn from its own RNG, keyed
+        on the observer as well as the domain and round. Three consequences,
+        all of them load-bearing:
+
+        - AN ABSENT OBSERVER IS NOT A QUIET ONE. `deliver` skips this entirely
+          when the id has no entry, so the two-argument call every existing
+          measurement makes is byte-identical to what it always was.
+        - THE SEPARATE RNG cannot disturb the domain stream, exactly as the
+          field's own noise rng cannot disturb the antecedent stream. Naming an
+          observer in the spec therefore changes nothing for anyone else.
+        - EQUAL RATES ARE NOT EQUAL EXPERIENCE. Keying on the observer id means
+          two units carrying the same `ObserverNoise` still meet different
+          things, which is what makes reliability a property of a speaker
+          rather than of the spec — and so something a peer could discover.
+
+        A mis-observation is shaped like something this domain could have said:
+        a relation the domain speaks, about an individual it knows. An invented
+        atom that failed that test would be rejectable on shape alone, and the
+        channel would carry a tell instead of a falsehood.
+
+        `spurious` is ONE INDEPENDENT CHANCE PER RELATION THIS DOMAIN SPEAKS —
+        for each thing the domain could have said, a chance this observer
+        believes it said it. That keeps the rate comparable across domains of
+        different vocabulary size, where a flat per-round draw would make a
+        talkative domain proportionally quieter in error. The withheld set is
+        drawn from `sorted(out)` so the sequence is fixed by content rather than
+        by set iteration order."""
+        d = self._by_name[domain_name]
+        noise = self._observers[observer]
+        rng = random.Random(f"{self.spec.seed}:obs:{observer}:{domain_name}:{round_idx}")
+        seen = {f for f in sorted(out) if rng.random() >= noise.withhold}
+        if noise.spurious > 0.0:
+            sayable = tuple(d.antecedents) + (d.law[1],)
+            for rel in sayable:
+                if rng.random() < noise.spurious:
+                    seen.add((rel, (("c", rng.choice(d.individuals)),)))
+        return seen
+
+    def deliver(self, domain_name: str, round_idx: int,
+                observer: Optional[str] = None) -> List[Fact]:
         """What this domain delivers at `round_idx`: this round's antecedents,
         plus the consequents licensed by LAST round's antecedents, passed
-        through noise.
+        through noise — and, when `observer` names a unit the spec gives an
+        `ObserverNoise`, through that unit's membrane as well.
+
+        `observer=None`, and any id the spec does not name, reads the domain
+        stream unchanged.
 
         The one-round lag is what makes anticipation predictive. A unit that
         holds the law sees `body(a)` at r and can anticipate `head(a)` at
@@ -162,6 +250,8 @@ class Field:
             _, head_rel = d.law
             who = noise_rng.choice(d.individuals)
             out.add((head_rel, (("c", who),)))
+        if observer is not None and observer in self._observers:
+            out = self._observed(domain_name, round_idx, out, observer)
         return sorted(out)
 
     def consequent(self, domain_name: str, f: Fact) -> Optional[Fact]:
@@ -196,10 +286,18 @@ class Field:
 
     def at(self, aperture: "Aperture", round_idx: int) -> List[Fact]:
         """What arrives at this unit's membrane this round: the union of its
-        domains' deliveries."""
+        domains' deliveries, **as this unit observes them**.
+
+        THE APERTURE CARRIES THE OBSERVER, so this is where speaker-variance
+        reaches a unit. Dropping `unit_id` on the way to `deliver` would leave
+        `ObserverNoise` reachable only from a test — a mechanism built and never
+        connected, which is the failure Examination V named as its V.5.
+
+        A unit the spec does not name reads its domains unchanged, so this is
+        the same union it always was."""
         out: Set[Fact] = set()
         for name in aperture.domains:
-            out.update(self.deliver(name, round_idx))
+            out.update(self.deliver(name, round_idx, observer=aperture.unit_id))
         return sorted(out)
 
 
@@ -233,7 +331,8 @@ switching anything silently."""
 
 
 def apertures_for(spec: FieldSpec, n_units: int, *, scheme: str = CYCLIC,
-                  min_witnesses: Optional[int] = None) -> List["Aperture"]:
+                  min_witnesses: Optional[int] = None,
+                  twin_of: Optional[str] = None) -> List["Aperture"]:
     """Deterministic, overlapping, and pairwise distinct apertures — one per
     unit, two domains each.
 
@@ -269,7 +368,32 @@ def apertures_for(spec: FieldSpec, n_units: int, *, scheme: str = CYCLIC,
     `min_witnesses`, when given, refuses a community too small for each domain to
     reach that many witnesses, naming the shortfall and the size that would
     satisfy it. Handing back a community that cannot corroborate is the failure
-    this argument exists to remove, so it is refused rather than degraded."""
+    this argument exists to remove, so it is refused rather than degraded.
+
+    `twin_of`, when given, appends ONE extra unit carrying the named unit's
+    aperture exactly — THE TWIN CONTROL. The refusal above stays the default and
+    a twin has to be asked for by name, so no measurement acquires one by
+    accident.
+
+    WHY IT NEEDS NO EXEMPTION FROM PREMISE 3 (author's ruling, 2026-07-30).
+    Premise 3 requires units to meet the field through different apertures, or
+    "they converge on near-identical models and the apparatus measures nothing"
+    — a claim about CONTENT. The twin control holds content and position fixed
+    on purpose, in order to ask a different question: whether two units that met
+    the same world develop different POLICY. Different axis, so the premise is
+    untouched, and the rest of the community still diverges normally.
+
+    WHAT IT IS FOR. Without it, "units with identical rules diverge through
+    their own histories" passes by arithmetic — any counter incrementing on a
+    unit's own record differs between units of different aperture, and the
+    apertures differ by construction. The twin supplies the zero that claim has
+    to beat.
+
+    THE CALLER'S OBLIGATION: a twin means something only at MATCHING ATTENDANCE
+    PARITY. Under a stagger of 2 the parity is the unit index, so a twin of an
+    even-indexed unit must itself land on an even index. This function cannot
+    enforce that — it does not own the attendance schedule — so it is stated
+    here and the control's own test pins it."""
     names = [d.name for d in spec.domains]
     k = len(names)
     if scheme not in SCHEMES:
@@ -297,6 +421,14 @@ def apertures_for(spec: FieldSpec, n_units: int, *, scheme: str = CYCLIC,
             )
         for i, pair in enumerate(pairs[:n_units]):
             out.append(Aperture(f"u{i}", pair))
+    if twin_of is not None:
+        original = next((a for a in out if a.unit_id == twin_of), None)
+        if original is None:
+            raise ValueError(
+                f"cannot twin {twin_of!r}: this community has "
+                f"{[a.unit_id for a in out]}"
+            )
+        out.append(Aperture(f"u{len(out)}", original.domains))
     if min_witnesses is not None:
         _require_witnesses(spec, out, min_witnesses, scheme)
     return out

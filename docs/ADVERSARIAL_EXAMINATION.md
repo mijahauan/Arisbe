@@ -2456,7 +2456,8 @@ measure* — the exact shape that bit P-G1 at task 6.
 
 **VII.4 — The world P-H3 needs does not exist, and stage 4 does not propose
 building it (Panels B and C).** `Field.deliver` is keyed on `(seed, domain,
-round)` and never on unit (`src/c_field.py:156`); `withhold_rate` and
+round)` and never on unit (`src/c_field.py`, the `noise_rng` line in `deliver`);
+`withhold_rate` and
 `spurious_rate` are single spec-wide scalars. Panel B verified by execution that
 two units sharing aperture and attendance parity end 60 live rounds **bit-
 identical in facts, laws, suspended, first_seen, peers and net_score at 8 of 8
@@ -2475,6 +2476,28 @@ an alarm fires **1–2 times per unit-run over 60 rounds** (measured: mean 1.88,
 32 unit-runs). A per-peer reliability estimate is arithmetically unavailable at
 n ≤ 2, and the design specifies no run length, sample floor, or power
 calculation for its declared gate.
+
+> **RULED AND BUILT 2026-07-30.** The author ruled **YES** on the field
+> question. `ObserverNoise` + `FieldSpec.observers` + `Field.deliver(...,
+> observer=)` now let one unit's *observation* of a domain differ from
+> another's, with two rates doing different work: `withhold` makes a unit
+> quieter (it sees less, and what it sees is true), `spurious` makes it
+> **unreliable** — it perceives atoms the field never delivered and publishes
+> them in good faith, which is the cry-wolf structure with no deceit modelled.
+> Noise is keyed on the observer **id**, so equal rates are equal dispositions
+> rather than equal experience and two identically-noisy units still diverge.
+> Additive: an unnamed observer reads the domain stream unchanged, so every
+> figure this examination cites still holds.
+>
+> **The build found one more instance of Examination V's V.5.** `Field.at` —
+> the path a unit actually reads by — dropped the `unit_id` its own `Aperture`
+> was carrying, so observer noise reached nothing and the mechanism would have
+> been reachable only from tests. Fixed and pinned.
+>
+> **What remains open is the sample-size half**, above: nothing yet answers
+> whether 60 rounds and ~1.88 alarms per unit-run can support the estimate
+> P-H3 clause 2 needs. The world now has speakers to tell apart; whether the
+> run is long enough to tell them apart is unmeasured.
 
 **VII.5 — The unruled hole is narrower than "where does a reliability ledger
 live," and the answer the code gives is the one forbidden on publication (Panel
@@ -2821,7 +2844,18 @@ either consequent on it or is instrument hygiene.
 
 ---
 
-### THE DECISION · Does stage 4 give the field speaker-variance?
+### THE DECISION · Does stage 4 give the field speaker-variance? — **RULED YES, 2026-07-30**
+
+> **The author ruled YES and authorized the repairs.** Built the same day: the
+> field change (VII.4's disposition), the twin control, `Unit.peers` as
+> `(proved, failed)`, §11.2(b) amended to its mechanism, P-H1/P-H2 rewritten,
+> both guard clauses added to THE_MEASURE_OF_KNOWLEDGE, and rulings 1 and 2
+> recorded in the spec as §11.1a. **Still his, and deliberately untouched:**
+> retiring `net_score`, the `corroboration_window` default, the witness rule,
+> the West doc sweep and its grade rulings, and the **credential mechanism
+> itself** — stage-4 build work that deserves its own plan rather than arriving
+> as a repair. The question below is kept as it was put, because the reasoning
+> for the ruling is the reasoning for what got built.
 
 **The question.** Today `Field.deliver` draws noise from `(seed, domain, round)`
 and never from the unit, so `withhold_rate` and `spurious_rate` are the same for
