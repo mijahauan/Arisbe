@@ -2570,6 +2570,67 @@ the window instead of scaling. And **the real price of patience has never been
 measured**: a longer window makes every unit do more work per doubt, which
 `net_score` — a count of bets — cannot see.
 
+**VII.9 — The fallback gate is weaker than this examination first reported: as
+written P-H1 passes by configuration and P-H2 is not yet a hypothesis (reviewed
+at the author's request before ruling the field question; measured by the
+recorder).** The examination offered "gate on P-H1/P-H2 instead" as the cheap
+honest option, on the ground that both carry stated baselines and address the
+well-evidenced links of Exhibit 1's chain. That is true of their **form** and not
+of their **content**.
+
+*P-H1 — "slot-questions produce answers that differ between peers."* Measured
+against the real field (domain alpha, 40 individuals, 60 rounds): two witnesses
+of one domain at **opposite** attendance parity meet disjoint body-individual
+sets (19 and 24 individuals, 11 shared, **8 even-only and 13 odd-only**), so
+distinct fillers come back. Two witnesses at the **same** parity meet
+byte-identical deliverances, and under **full attention** both meet all 32 — in
+each of those cases the fillers are identical. **P-H1's verdict is therefore set
+by the harness's `stagger` parameter at configuration time**, and it re-derives
+task 4's finding 2 ("targeting pays only across a difference in ATTENTION, never
+across a difference in APERTURE") in new vocabulary.
+
+The mechanism underneath is nonetheless sound, and the finding should not be read
+as condemning it. Because `CONSEQUENT_LAG = 1`, a body seen at an odd round
+yields a head at an even round: **an opposite-parity peer holds exactly the
+bodies the asker missed, for heads the asker will meet.** A determined question
+can never reach them — it names an atom the asker's own record already licenses,
+so those 13 individuals are precisely what the current channel cannot ask about.
+That is §11.1's difference-vs-intersection point made quantitative. **The repair
+is to measure the usable difference, not the bare one:** count fillers that are
+**new to the asker and scoreable by it**, and run the same-parity pair as the
+null (it must read zero).
+
+*P-H2 — "the peer-channel carries more bits with slot-questions than without, and
+stage 3's channel measures at or near zero."* Three defects, compounding.
+(i) The two random variables are never named (Panel A's A.9), and the two natural
+choices disagree on whether pure noise scores. (ii) Mutual information is
+sign-free (VII.2). (iii) **New: the stated baseline is wrong under one reading
+and inverts under the other.** "At or near zero" is §11.1's Shannon argument,
+which is correct about the answer's **content** — the receiver does know what the
+answer will *say*. It is false about the **channel**: task 6 established the ask
+channel as a **confirmation** channel, and confirmation carries information,
+because what the asker does not know is whether the atom *holds*. Under that
+event reading, computed from task 4's own two arms:
+
+```
+useful arm (bounded attention, 92% of the deficit recovered): 29/31 answered
+    -> H = 0.345 bits/question, 10.7 bits total
+inert  arm (full attention, every answer redundant, ZERO uptake): 24/51 answered
+    -> H = 0.998 bits/question, 50.9 bits total          (2.89x per question, 4.8x total)
+```
+
+**The arm in which the channel did nothing carries nearly three times the bits
+per question of the arm in which it worked** — because a channel that answers
+almost always is unsurprising, and one that answers half the time is maximally
+so. That is VII.2's defect landing a second time, now on the fallback gate, and
+computable before stage 4 runs.
+
+**What this does not mean.** Both hypotheses measure part (a), slot-questions,
+which is built under either branch of the field decision — so **these repairs are
+owed either way**, and the finding is not an argument for one branch over the
+other. What it removes is the assumption that the No branch has a gate ready to
+hand.
+
 ## Amendable findings
 
 (a) **`Unit.peers` folds its constituents.** Examination V's V.2 remedy was two
@@ -2781,7 +2842,7 @@ construction.
 | | What follows |
 |---|---|
 | **YES — the field varies by speaker** | P-H3 becomes a real gate. The credential becomes earnable and typification acquires something to sort. Stage 4 tests the payoff §11.2 was designed for. Cost: a field change §11 does not currently propose, and the honest admission that stage 3's four channels were measured in a world that could not exercise them. |
-| **NO — the field stays uniform** | Then say so and move the gate. Stage 4 gates on **P-H1/P-H2**, which have stated baselines and address the well-evidenced links of Exhibit 1's chain; part (c) is built and reported as exploratory, or deferred to stage 5 where mortality supplies the stakes. What is *not* available is keeping P-H3 as the gate: it would be measuring a property nothing in the world has. |
+| **NO — the field stays uniform** | Then say so and move the gate. Part (c) is built and reported as exploratory, or deferred to stage 5 where mortality supplies the stakes. What is *not* available is keeping P-H3 as the gate: it would be measuring a property nothing in the world has. **But see VII.9 — the fallback is not ready.** As written P-H1 passes by configuration (its verdict is set by the harness's `stagger`) and P-H2 is not yet a hypothesis (unnamed variables, sign-free, and a baseline that inverts). Both are repairable, and both must be repaired **under either branch**, since they measure part (a). |
 
 **Not known either way.** Whether 60 rounds suffices. The nearest built analogue
 to an alarm — `challenge`, once per law ever — fires a mean of **1.88 times per
