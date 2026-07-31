@@ -210,8 +210,13 @@ ran six experiments against pre-registered priors to find out — run logs
 > MONO correlate would live at the level of a whole community, plausibly
 > competing with another for a niche. What the runs *did* establish stands
 > below; §8 of the program document records the audit, the mis-mapping, and the
-> six conditions a proper terminal-unit test would have to meet. The prospect
-> stays open: designed properly, the question still has much to teach.
+> conditions a proper terminal-unit test would have to meet — six then, eight
+> since 2026-07-30, when a successor series met the original six and still
+> yielded no exponent. The two added: the terminal units must be able to **die**
+> (the exponent measures the cost of keeping them alive) and their per-unit
+> quantum must stay **fixed** (a scaling law counts an invariant unit). The
+> prospect stays open: designed properly, the question still has much to
+> teach.
 
 **Measured (with priors; refutations reported as findings):**
 

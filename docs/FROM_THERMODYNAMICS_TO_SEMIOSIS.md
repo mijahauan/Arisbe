@@ -125,6 +125,14 @@ either serves or fails to.
 action always works; internal state that can covary with which action will
 work; and interaction failure the system registers as failure.
 
+**The objection, and it holds (author's ruling, 2026-07-31).** The account
+reaches for "somehow indicate" and "detect failure," and both have already
+crossed the line they were called to explain. To *indicate* is to stand for, and
+to *detect a failure* is to register a discrepancy — which takes something that
+compares what happened against what was anticipated. Bickhard describes the far
+bank with great precision and does not show the crossing. The circularity this
+chapter opened with returns, one level down and better disguised.
+
 ### Deacon — teleodynamics and the autogen
 
 Terrence Deacon's *Incomplete Nature* (2011) attacks the same seam by asking
@@ -138,6 +146,12 @@ persists; together they do, and the pair can be disrupted and reconstituted.
 *What this threshold demands of a model:* reciprocal enabling between processes
 that individually run down — persistence that belongs to the coupling rather
 than to any part.
+
+**The gap (author's ruling, 2026-07-31).** The autogen earns cooperative
+persistence and stops there. Nothing in it yet acts **for** anything: the
+coupling persists, but no part of it selects among ways of persisting, so the
+question *for what?* never arises inside the system. Deacon supplies a better
+floor than Schrödinger's and still not a crossing.
 
 ### Barbieri — the code
 
@@ -161,6 +175,50 @@ of the thing the experiment hopes to observe.
 
 *What this threshold demands of a model:* heritable variation and differential
 reproduction — a population with a history, not an individual with a ledger.
+
+## 3a · The threshold of record: Pattee, and intent as discriminated binding
+
+*Ruled 2026-07-31. The two objections above are the author's, and so is the
+positive proposal; the drafting is the assistant's.*
+
+Of the five placements, **Pattee's is the one this project adopts** — and the
+reason is not eclectic preference. The epistemic cut names the distinction
+between a description and what it describes, and the line where that distinction
+gets drawn. That is the same line this project has worked on from the first day
+under other names: the **membrane**, **ink against object**, **map against
+terrain**, the linear form against the drawn form against the thing both denote.
+Arisbe did not have to reach for Pattee's problem. It has been living in it.
+
+The other four fail differently, and both failures are instructive. Bickhard's
+indication and detection stand already past the crossing. Deacon's autogen stops
+short of *for what?*. Barbieri's code sets the bar so high that only something
+with a codemaker qualifies, which puts the origin question one step further back
+rather than answering it. Millikan needs a lineage before content exists — true
+and important, but a constraint on where content *settles*, not an account of
+where signs *begin*.
+
+**The positive proposal: intent as discriminated binding.**
+
+Call any brute Secondness **Intent 0** — reaction with no options. The rock
+falls; nothing chooses. Everything above that requires a system and a process
+that **discriminates bindings between input and output**: the same input admits
+more than one output, and something settles which.
+
+The formulation earns its keep by asking for less than its rivals. It needs no
+indicating, no detecting, no representing. It needs a binding that could have
+gone otherwise and something that discriminates it — which is exactly a
+rate-independent constraint governing rate-dependent dynamics, so Pattee's cut
+and this proposal name one thing from two directions.
+
+Two cautions travel with it. A thermostat discriminates bindings, and few would
+grant it intent, so **discrimination looks necessary and not yet sufficient** —
+what remains missing is that the discrimination bear on the system's own
+persistence, which returns us to the stake and to §5's verdict on the built
+system. And *cut* now carries three senses in this project's vocabulary that
+must not be allowed to merge: Peirce's scope cut in a graph, Pattee's epistemic
+cut between description and described, and the kytos membrane. They share the
+family resemblance this chapter turns on — each separates **within** rather than
+**from** — and they are not the same device. §4a keeps them apart.
 
 ## 4 · Where Peirce sits: an asymmetry, not a co-presence
 
@@ -353,12 +411,11 @@ ablation showing the standing-for does work.
 The chapter records a lineage and settles nothing empirically. Four questions
 stay live, and the first one governs the rest.
 
-**Which threshold does a reconstruction aim at?** §3's candidates disagree, and
-the disagreement decides the apparatus. Pattee's cut asks for form-driven
-constraint; Bickhard's asks for interaction failure the system registers;
-Deacon's asks for reciprocal enabling; Barbieri's asks for an arbitrary code;
-Millikan's asks for a lineage. A design aimed at all five would build
-everything and demonstrate nothing.
+~~**Which threshold does a reconstruction aim at?**~~ **RULED 2026-07-31:
+Pattee's** — see §3a, with intent as discriminated binding and Intent 0 as the
+optionless base. What stays open under it is narrower and sharper: **what makes
+a discriminated binding bear on the system's own persistence**, since
+discrimination alone reads necessary and not yet sufficient.
 
 **Can a simulated stake do the work a thermodynamic one does?** The posit stays
 honest, but a stipulated persistence condition may prove too thin to generate

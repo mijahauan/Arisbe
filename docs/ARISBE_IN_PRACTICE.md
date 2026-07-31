@@ -626,8 +626,13 @@ sociable reading stays graded: the claim that deliberate, reversible
 basin-crossing is what *politics* names stands recorded as a finding about the
 model, not about history. West's own question — how a *community's* rate scales
 with its size, its terminal unit left free to hold or fail — still awaits a
-harness whose units reason and talk to one another, and it still has much to
-teach whoever builds one.
+harness whose units reason and talk to one another — and, a later series
+found, two conditions beyond that. The units must be able to **die**, since the
+exponent measures the cost of keeping them alive, and their per-unit quantum
+must stay **fixed**, since a scaling law counts an invariant unit. A successor
+supplied the reasoning and the talking, satisfied every condition then on the
+list, and produced no exponent at all. It still has much to teach whoever builds
+one.
 
 ## The population experimenter
 

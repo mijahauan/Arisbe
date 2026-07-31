@@ -336,7 +336,10 @@ into one claim. The claim-by-claim examination lives in
    `runs/WEST_E3C_LOG.md`). The units of that harness accumulate and forget without
    reasoning or exchanging content, so West's scaling law proper — a community's rate against
    its size — remains the open prospect, not a result
-   ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). *[measured-with-priors —
+   ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). A successor series
+   supplied both the reasoning and the exchanging and still produced no
+   exponent, which added two conditions there: the terminal units must be able
+   to **die**, and their per-unit quantum must stay **fixed**. *[measured-with-priors —
    [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
 3. **Berger & Luckmann — objectivation across membranes.** What confronts participants as
    facticity is sustained only by participation; ratified into house doctrine as *judgment is

@@ -264,6 +264,9 @@ without reasoning or exchanging content, so the runs measure partition
 economics and leave West's law proper — how a *community's* rate scales with
 its size — standing as the prospect it always was, with much still to teach
 whoever builds the harness for it (see the West program document, section 8).
+A successor series did supply the reasoning and the exchanging, and still
+returned no exponent, which added two conditions to that section: the terminal
+units must be able to **die**, and their per-unit quantum must stay **fixed**.
 What West's framework lacked, on this reading, concerns what the unit
 *does*: an economics of the unit without its semantic work. The return-gift
 offered back holds as a conjecture, that the allocation layer of such units

@@ -321,4 +321,4 @@ here rather than only in `runs/`.
 - **West-in-kytē E3b — disposed 2026-07-26.** Basin map. 19 local optima; one dominant 10/1/1 cost
   family capturing 75% of the attractor mass; PM4's sparsity prior refuted-as-finding.
   [runs/WEST_E3B_LOG.md](../runs/WEST_E3B_LOG.md).
-- **West-in-kytē E3c — in flight.** Symmetry-breaking rider, pre-registered in the E3b spec §10.
+- **West-in-kytē E3c — disposed 2026-07-27.** Symmetry-breaking rider: PS1 refuted, PS2 held (`runs/WEST_E3C_LOG.md`). The West question itself now waits on two further conditions (mortality; a fixed per-unit quantum) recorded in WEST_IN_KYTE_PROGRAM §8.

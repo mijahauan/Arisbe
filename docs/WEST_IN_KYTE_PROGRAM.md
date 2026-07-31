@@ -339,6 +339,17 @@ Named here so the next attempt starts honest, not so it starts soon:
   or fail rather than pinned by construction.
 - **Selection between communities**, if the exponents are to mean what they
   mean in *Scale*.
+- **Mortality of the terminal units.** West's β measures the maintenance cost of
+  keeping terminal units alive, so with immortal units there is no cost and no
+  exponent. Selection *between communities* is a different condition and does not
+  supply this one: a series can have budget selection and still have units that
+  never die. *(Added 2026-07-30 from the C-series' stage-4 examination.)*
+- **A fixed per-unit quantum.** A scaling law gets its exponent by counting an
+  invariant unit, so capacity and rate — and therefore maintenance cost per unit —
+  must not vary with the unit's own state. A mechanism that lets a unit enlarge
+  its own budget dissolves the terminal unit and the exponent with it, and would
+  still bite after mortality is installed. *(Added 2026-07-31; see
+  ADVERSARIAL_EXAMINATION Examination VII, VII.8.)*
 
 Until then the honest statement of the E-series is narrow and still worth
 something: *partitioning a maintenance workload across bounded units lowers

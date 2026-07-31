@@ -251,8 +251,16 @@ Three outcomes, all informative. If specialization dominates, each unit needs
 *less* as N grows (its niche narrows). If coordination dominates, each needs
 *more* (it must model more peers). If the requirement holds flat across an order
 of magnitude of N — **that is West's invariant terminal unit, discovered rather
-than imposed**, which is what the E-series could not produce and what would make a
-letter to West worth writing.
+than imposed**, which is what the E-series could not produce.
+
+**It would not, on its own, make a letter to West worth writing** — a claim this
+section made before §11 existed, and which §11.5 contradicts. A flat requirement
+across a size sweep of **immortal** units shows invariance and still yields no
+exponent, because β measures the maintenance cost of keeping terminal units
+alive and immortal units cost nothing to keep. Two further conditions were added
+to WEST_IN_KYTE_PROGRAM §8 on that account: mortality of the terminal units, and
+a fixed per-unit quantum. Read this rung as *necessary and not sufficient*, and
+read §11.5 for what remains.
 
 **The sensitivity discipline** (author, 2026-07-28) has a counterpart in West's own
 theory and should be pre-registered in that form: in the WBE derivation the

@@ -170,8 +170,10 @@ reasoning, and none of the *between*.
 
 ## 7 · What a corrected test requires
 
-Named so the next attempt starts honest, not so it starts soon. Six conditions,
-set out at length in WEST_IN_KYTE_PROGRAM §8:
+Named so the next attempt starts honest, not so it starts soon. Eight
+conditions, set out at length in WEST_IN_KYTE_PROGRAM §8. Six of them were
+listed here first; conditions 7 and 8 arrived in 2026, when a successor series
+satisfied the original six and still produced no exponent:
 
 1. **Communication between units** carrying content, not a vocabulary census —
    otherwise no community exists to scale.
@@ -188,6 +190,18 @@ set out at length in WEST_IN_KYTE_PROGRAM §8:
    pinning it by construction.
 6. **Selection between communities**, if the exponents are to mean what they
    mean in *Scale*.
+7. **Mortality of the terminal units.** The exponent measures the maintenance
+   cost of keeping terminal units alive, so with immortal units there is no cost
+   and no exponent. Condition 6 does not supply this one — a series can select
+   between communities while no unit ever dies.
+8. **A fixed per-unit quantum.** A scaling law gets its exponent by counting an
+   invariant unit, so capacity and rate, and therefore maintenance cost per
+   unit, must not vary with a unit's own state. A mechanism letting a unit
+   enlarge its own budget dissolves the terminal unit, and would still do so
+   after mortality was installed.
+
+Conditions 7 and 8 carry a warning the first six do not. A builder could satisfy
+every one of the original six and still get nothing, which is what happened.
 
 ## 8 · Replicability, and one conjecture left untouched
 
