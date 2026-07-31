@@ -75,7 +75,7 @@ system must have to count as alive at all.
 None of these authors reaches a sign. They establish the scaffold and its
 gradient, and they leave a real gap above them.
 
-## 3 · The transition, and the disagreement that matters
+## 3 · The nesting, and the disagreement that matters
 
 Above the floor the tradition splits, and the split repays attention, because
 the candidates place the threshold in different places and each placement
@@ -162,28 +162,77 @@ of the thing the experiment hopes to observe.
 *What this threshold demands of a model:* heritable variation and differential
 reproduction — a population with a history, not an individual with a ledger.
 
-## 4 · Where Peirce sits, and the tension worth keeping
+## 4 · Where Peirce sits: an asymmetry, not a co-presence
 
-The project takes Peirce as its ground, so an honest record has to name a
-tension rather than smooth it.
+The project takes Peirce as its ground, so the record has to state his bearing
+precisely — and one careless formulation would undo the whole enquiry.
 
-Peirce held Thirdness irreducible. Genuine mediation does not decompose into
-brute dyadic reaction, and no amount of Secondness sums to a sign. Read
-strictly, that puts him against any story deriving semiosis bottom-up from
-dynamics, which describes most of §3.
+**The entailment runs one way only.** Where Thirdness stands, Secondness and
+Firstness stand with it; we never escape mediation, and our ruminations always
+ride on what lies underneath. The converse fails. Firstness may exist without
+Secondness or Thirdness. Firstness and Secondness may exist without Thirdness,
+and that condition has a name — **pre-semiosis**. About any of it we can only
+speculate, since we cannot get outside to look.
 
-Two things ease the tension without dissolving it. Peirce's cosmology already
-makes habit-taking a *tendency* rather than a finished fact — habits grow, and
-the universe acquires them. And his later work makes the final interpretant a
-**habit of action**, which places the terminus of semiosis in disposition
-rather than in contemplation. A story that ends at "a system disposed to act
-one way rather than another, and correctable when the world declines" lands
-much closer to Peirce than its thermodynamic starting point suggests.
+An earlier draft of this chapter said the three categories are "modes present in
+every phenomenon." That formulation is worse than loose: it licenses the
+converse and thereby **dissolves the question this chapter exists to ask**. If
+Thirdness inhabits everything, semiosis is coeval with being, nothing was ever
+pre-semiotic, and no transition remains to reconstruct. The answer would have
+been smuggled into the categories.
 
-The residue stays real. Peirce would likely deny that the bacterium's switch
-constitutes a genuine sign rather than a degenerate case, and this chapter does
-not claim to have settled that against him. It records where the disagreement
-falls.
+The confusion beneath it is worth keeping separate too. "Present in every
+phenomenon" verges on trivial, because a phenomenon already carries an
+interpretant — that is what makes it a phenomenon rather than an occurrence. The
+claim says something about appearing and nothing about being. Only the
+asymmetric reading leaves room for a world that stood there before anything
+appeared to anyone.
+
+**And the reduction thesis governs modelling more than phenomenology.** That
+genuine triadic relations do not decompose into dyadic ones constrains what an
+adequate *representation* can be built from; it does not legislate what the
+world had to contain. Read that way it bears directly on any population design
+here, and uncomfortably: a community whose units relate only pairwise — this one
+answers that one, this one credits that one — has dyadic machinery throughout.
+If a sign is to arise in such a place, the apparatus must be able to hold a
+genuine triad, and Arisbe's channels are pairwise by construction. Nobody has
+checked whether they can.
+
+Nothing here claims Peirce would bless the bacterium's switch as a genuine sign
+rather than a degenerate case. The disagreement stays on the record.
+
+## 4a · The cut is the match, and the core already carries it
+
+The correspondence between Peirce's insight and this system does not need
+arguing into place. The calculus has been carrying it.
+
+**A cut separates *in*, never *from*.** Nothing scribed inside a cut leaves the
+sheet. It acquires a context, and its meaning becomes a function of the shape
+and contents of what contains it. That is why the reading runs outside-in:
+`semantic_game` evaluates a graph **endoporeutically**, from outside in, and
+says so in its own first lines.
+
+**The regress stops by construction rather than by stipulation.** The sheet of
+assertion has no parent — `presentation_ops.cut_parents` omits it, and
+`parent_map.get(sheet)` returns None. We cannot step outside the outermost
+container to give it a context, and the formalism holds no representation for
+the attempt. What philosophy states as *we never escape the membrane*, the
+protected data model states as a fact about a tree with an uncontained root.
+
+Two further echoes follow. Meaning something locally without surveying the whole
+is the vocabulary-bounded horizon already built — *enough of the model is what
+the proposal touches* — which amounts to living inside a container one cannot
+inspect and still meaning something in it. And in existential graphs **to assert
+is to scribe**, so no reading occurs that does not also write: our vision of the
+gradients and our action in them arrive as one act, and the whole differs
+afterward. That reads as a fact about the notation before it reads as a claim
+about participation.
+
+**Premise 1 acquires its ground here.** That reality resides in the unit, and
+that the field's regime never scores anything, has stood as a methodological
+rule. Under this reading it follows from the categories instead: a unit cannot
+be scored against a view from outside because there is no outside to be had. A
+rule with a ground survives pressure that a bare rule does not.
 
 ## 5 · What the lineage asks of Arisbe
 
@@ -216,6 +265,51 @@ attention, and the silence window — a bounded inquiry budget, the one genuinel
 scarce resource in the design — became the only mechanism in the series that
 ever discriminated on whether a law holds.
 
+## 5a · What a substrate must do — stated functionally
+
+Chess needs a substrate on which players can objectify the game, and that
+substrate takes a wild variety of forms: wood, a screen, the mail, two people
+playing blindfold. What constrains it stays functional — individuate the
+players, constrain the legal moves, order the sequence, hold a pace. Meet those
+and the material never mattered.
+
+The same relief applies here, and it converts a metaphysical problem into a
+specification problem. Nobody needs molecules. What a reconstruction needs is
+whatever discharges the functions the physics happens to discharge in our case:
+
+- **Cessation stays possible** — the thing can stop being, and only work
+  prevents it. *(Forced: without cessation there is no selection at all.)*
+- **A gradient exists without a witness** — some differences bear on persistence
+  whether or not anything registers them. *(Forced.)*
+- **Resources stay rival and exhaustible**, so acquiring competes. *(Forced:
+  without rivalry no strategy dominates another.)*
+- **Consequence arrives without adjudication** — failure happens *to* the
+  system; nothing scores it. The world referees nothing; it simply ends things.
+  *(Forced.)*
+- **The substrate pre-exists and stays indifferent** — there first, and not
+  waiting to be seen. *(Inferred.)*
+- **Time runs one way and sets its own pace.** *(Inferred.)*
+
+Marking which requirements come forced matters more than the list. Four of the
+six follow from what selection structurally needs rather than from what
+terrestrial life happens to look like, so the specification is not a wish list
+assembled from a single instance.
+
+**But chess covers only half of what is needed here, and the half it covers is
+the half already built.** A chess substrate must objectify the game; it need not
+supply the stake, because the players want to win for reasons entirely outside
+the game — they are already alive, already interested, already there. **Chess
+borrows its stake from the world.** A reconstruction of semiosis has no world to
+borrow from; that absence *is* the exercise.
+
+| substrate | what it must do | where this project stands |
+|---|---|---|
+| **objectifying** | make the game public, inspectable, shared between players | **built, and unusually good** — the sheet, the marks, the record, the outside-in reading |
+| **sustaining** | make anything be at stake at all | **absent**, and the chess analogy stays silent about it |
+
+Which explains how the built system came to have one and never notice the other
+was missing. Everything Arisbe does well lives on the objectifying side.
+
 ## 6 · The rule that keeps a reconstruction honest
 
 The circularity turns vicious only in one specific way, and naming it precisely
@@ -226,7 +320,14 @@ gives the escape.
 Positing the predicament does not beg the question — it sets the question.
 Physics hands real organisms their stake for free; a simulation, having no
 thermodynamics, must posit one, and that posit stays honest and unavoidable. It
-differs in kind from positing the response. A genome carrying a `typify` switch
+differs in kind from positing the response.
+
+**The asymmetry deserves stating, because it locates the danger.** Out there the
+substrate arrives given, pre-existing, and indifferent — biology never had to
+author it and so never had to get it right. In here we author every bit of it.
+So the place most exposed to smuggling turns out to be exactly the place the
+real world exempted itself from: not the strategies installed on top, but the
+predicament fabricated underneath. A genome carrying a `typify` switch
 makes "typification evolved" mean only that selection flipped a bit somebody
 installed. A genome carrying general capacities — allocate effort, retain
 outcomes, condition action on what got retained — leaves typification as one
