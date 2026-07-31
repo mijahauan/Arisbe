@@ -145,6 +145,73 @@ machinery cannot detect it must not define away. This partially discharges the
 standing kyto-pathologies agenda item; the remainder, the cross-map onto the
 dragons, stays named-open.
 
+### 1.3 · Where an act's effect resides — and where it never reaches
+
+An act's effect resides in three places, and the act's own decision counts as none of
+them:
+
+1. **the report of the act**, inside the membrane — what the kytos records of having
+   acted, which reaches *further* thought and never the thought that acted;
+2. **resources**, outside it — what the act spent or freed: the field drawn on, the
+   budget consumed, the interior grown (and interior growth gets charged
+   super-linearly, so an act pays twice);
+3. **the shared reports among kytē**, in the commens — the only residence a second
+   kytos can read, and the reason the board rather than a private instrument holds
+   the socially available record.
+
+**The timing law: no report precedes its act.** Awareness of a decision affects not
+that decision but the *outcome*, by adding a component that then influences
+downstream decisions. Elaborate planning amounts to an accumulation of these ex post
+facto events — nested, notional AlternativeSets — objectivated at intervals as
+intermediate actualities, and finally unfolding and collapsing into what actually and
+necessarily occurs. Intention never gets out in front of the actuality however
+convoluted the nesting; we imagine it does and speak as if it does.
+
+**The ground, and one caution.** Libet's readiness potential offers the familiar
+illustration and does *not* carry this doctrine: the 350 ms has a competent
+stochastic-accumulation account (Schurger and others) that dissolves it as evidence
+of a prior decision. What carries the doctrine survives that dispute — a neuron must
+fire for a thought to occur, so a representation stands materially posterior to its
+substrate, and no nesting of deliberation reverses that order. The doctrine belongs
+to the same family as the origin thread's ordering: the physical fact comes first and
+in service of nothing; the report elaborates on what the fact leaves
+([FROM_THERMODYNAMICS_TO_SEMIOSIS.md](FROM_THERMODYNAMICS_TO_SEMIOSIS.md)).
+
+**Already enacted, and not by design.** Three built disciplines turn out to be this
+law wearing engineering clothes. The **PEEL-twin** records a step *earned at record
+time*, its params carrying what actually ran — the record cannot precede the act.
+**AS1's `emerged_from`** makes a record's legitimacy the survey ink, so no
+alternative exists in advance of the act that surfaced it. And
+**ENTERTAIN → DISCHARGE** is the nesting itself: the forceless exhibit (vacuity
+rider) stands as an intermediate actuality, and the ⊥-door ruling requires the
+collapse to cite a peel that *already happened*.
+
+**The design rule it imposes.** An instrument that changes the act it measures has
+got out in front of it. So a report gets written after its act completes and read no
+earlier than the kytos's next occasion to act; and observation must be
+non-interfering, which is testable exactly as it sounds — instrumenting an act moves
+no measured figure. This also corrects how we have been describing the economy: the
+attention economy does not deliberate ahead of action, it is prior reports steering a
+*later* act, which is where "doubt may reorder a fixed budget, never enlarge it"
+takes its ground.
+
+**The absence, stated honestly.** Arisbe's reports are not even downstream-effective.
+Nothing reads `MembraneLedger`; it stands as an observer's scorecard. So the built
+kytos has an act's effect residing in resources and in the commens, and a report that
+reaches nothing — the same absence as *nothing at stake*, seen from the timing side
+rather than the thermodynamic one.
+
+**A falsifiable consequence.** A post-hoc record can bite only on a *later* act of the
+same kind under contention. Typification has read inert in every arm run — the
+counter of occasions on which a unit's preference for whom to ask actually changed
+whom it asked (`occ_bite`) has read 0 in all of them. Under this law that is what one should expect of a design supplying
+almost no contended downstream, so the scarcity test — cap answering until it becomes
+rival — is the direct test rather than one more arm, and a null there would say
+typification is broken rather than unexercised.
+
+Grade: **doctrine, its enacted half built-and-gated, its influence half
+named-not-built.**
+
 ## 2 · Kytē all the way up — the fractal instantiation
 
 One anatomy, many scales; each level already met in the record:
@@ -378,6 +445,12 @@ force.
   whose default answers "untracked"; and the pathology taxonomy carries enforcement
   only for the depth class — the non-depth families (§1.2) stand as an open
   AlternativeSet, presumed non-empty, unenumerated.
+- **Named, not built (§1.3's influence half, 2026-07-31):** an act's effect resides
+  in its report, but no report reaches further thought — nothing reads
+  `MembraneLedger`, so the interior residence stands instrumented and inert. The
+  enacted half (records never preceding their acts) is built-and-gated; making a
+  report downstream-effective *and only downstream* remains a real change to what a
+  kytos is, with the scarcity test as its first measurable form.
 - **Named, not modeled (the two non-semiotic determinants — Examination VI,
   2026-07-27):** (1) the **normative/identity axis** — identity/plausibility-structure
   maintenance (Berger & Luckmann's universe-maintenance: M defended as a *home*, not as a
