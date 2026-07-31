@@ -2292,3 +2292,432 @@ un-constitutable) stand as posed; E3's multi-basin result remains their empirica
 rulings on G (the marks doctrine) and B (givenness, the exit boundary, the Golden Rule as
 hope) reshaped the proposed dispositions and are quoted above in substance. All nine
 threads disposed; none remain queued.*
+
+
+---
+
+# Examination VII — The Stage-4 Design (pre-commitment review, 2026-07-30)
+
+## Preface
+
+Stage 3 of the C-series built four communication channels — assert, ask,
+challenge-corroborate, typify — and none of them discriminated on whether a law
+holds. The author's diagnosis, given across four exchanges as the results came
+in, became **§11 of the community-scaling design spec**: one mechanism in three
+parts (slot-questions · a doubt metric · alarm reliability), with P-H3 declared
+the gate. Before any of it is built, he ruled an examination.
+
+He also ruled its **method**: open with a graphify pass scoped to the
+*claim / evidence / prediction* structure of stage 3's findings and stage 4's
+design — not a wholesale capture — and treat the resulting graph as the
+examination's **first exhibit, not a record of conclusions**. His reason, stated
+at the ruling: most of stage 4 is unexamined conjecture, and encoding conjecture
+as graph structure makes it read as settled.
+
+Four independent panels then examined the design, each mandated to refute:
+**A** (the vector guard, tensions 2 and 4), **B** (adaptive thresholds vs "units
+identical", tension 3), **C** (where a reliability ledger lives, tension 5),
+**D** (the West letter's backward step, tension 6, plus the factual basis for
+three standing decisions). The examiner who drafted §11 from the author's
+rulings recorded but did not conduct. Panels A, B and C reproduced VII.1
+independently, from three different directions; VII.2's figure and VII.6's
+omission were re-verified by the recorder before entry.
+
+## The verdict in one line
+
+**The diagnosis holds and the instrument does not.** §11.1's account of why
+stage 3 read null is correct and verified in code; §11.2(a) repairs the defect it
+names. But the gate — P-H3, alarm reliability — is unbuildable as pre-registered:
+it violates a guard the same section states two paragraphs earlier, it runs in a
+world containing nothing for it to measure, and it cannot fail on its first
+clause or reach a category on its second. **Stage 4's parts (a) and (b) stand;
+part (c) as the gate does not.**
+
+## Exhibit 1 — the shape of the null
+
+The author's first target was a question about shape: stage 3's null now has four
+explanations (no unreliable speaker · no disagreement by construction · a channel
+across the wrong axis · no doubt or urgency). *Four findings, or one wearing four
+hats?* — with the standing warning that **a series which keeps discovering new
+reasons its null was inevitable is drifting toward unfalsifiability.**
+
+The graph (273 nodes / 311 edges over the spec, the measurement ledger, and the
+four channel task reports) answers: **neither**. The four form a **chain**, not a
+set —
+
+```
+wrong_axis --0.95--> no_disagreement --1.00 EXTRACTED--> no_unreliable_speaker --0.75--> no_doubt_urgency
+```
+
+— every adjacent pair joined by `semantically_similar_to`, with evidence decaying
+monotonically along it. Measurements attached at one hop: **5 / 3 / 0 / 0**.
+
+- **Hats 1 and 2 are one finding.** 8 of wrong-axis's 9 measurements (2-hop) are
+  also no-disagreement's. "The channel queried the intersection" and "two answers
+  to one question are the same atom by construction" are one measurement set said
+  twice — the second promoted from task 6's conjecture by task 7, which re-read
+  the same numbers.
+- **Hat 3 rests on no measurement of its own.** Degree 10, zero attached
+  measurements; it inherits the Gate-2 figures through hats 1–2 and adds one
+  premise (units identical).
+- **Hat 4 rests on nothing measured at all** — zero measurements, zero
+  predictions, zero shared measurements with any sibling. It is the newest
+  explanation, the least evidenced, and the one stage 4's part (b) is built to
+  answer.
+
+**Verdict on the drift charge:** the pattern is real but not uniform. The series
+did not invent four reasons; it re-described one finding twice, then extended it
+twice, each extension resting on less than the last. What warrants the warning is
+the **terminal** extension — pure conjecture standing where a finding is being
+read.
+
+**And the falsifiers do not attach.** P-H1 through P-H4 connect only to
+`MECHANISM` and `PREMISE` nodes. Not one touches a stage-3 measurement. Each
+names what it would test but not the baseline it would move against.
+
+**One provenance note.** The spec's §11 never enumerates four nulls; §11.1 gives
+the wrong-axis reason alone. The four-fold grouping is the session summary's, not
+the design's.
+
+## Fundamental findings
+
+**VII.1 — The scalar guard is stated at §11.2(b) and omitted at §11.2(c), where
+it bites (Panels A, B and C, independently).** §11.2(b) carries it verbatim:
+"*a within-unit throttle may be a scalar because it is a knob, not a ranking; a
+cross-unit doubt score would violate THE_MEASURE_OF_KNOWLEDGE's rule that the
+measure stays a vector and never collapses to a scalar over agents.*" That
+exemption holds only while the doubt scalar stays inside the unit. **Part (c)
+publishes it**, and P-H3 then reads: "*a receiver's measured alarm-reliability
+**for a peer** predicts that peer's later usefulness*" — one number per peer,
+unqualified by domain, and the pre-registered gate.
+
+That is precisely the shape stage 3 refused. `Unit.peers` (`src/c_unit.py:358`)
+is keyed `Dict[peer, Dict[relation, int]]`, and its docstring gives the reason:
+"*KEYED BY RELATION RATHER THAN BY PEER ALONE, because a peer's aperture is
+partial … one number per peer would average competence over domains the peer
+never sees.*" **Stage 4 proposes as its gate what stage 3 was careful not to
+build.** The remedy exists in the repo and costs one dictionary level: key alarm
+reliability by `(peer, relation)` or `(peer, domain)`. Panel C names the same
+remedy from doctrine — *type the alarm, not the alarmist*.
+
+**VII.2 — Bits invert too, by a mechanism `net_score` does not have, and stage
+3's own pinned figures already compute the sixth inversion (Panel A; recomputed
+by the recorder).** §11.3 proposes mutual information as stage 4's transfer
+measure and raises its own caution ("*mutual information is itself a scalar, and
+net_score failed precisely as a scalar summary*"). That caution is
+**misdiagnosed, and the true defect is worse.**
+
+*Misdiagnosed:* `net_score` did not fail through arity. Live −106 vs mute −1421
+came with per-bet quality *falling* (hit-rate 0.0254 → 0.0182) — an unnormalized
+sum over a **trial count the agent controls**, where abstention scores 0 and
+silence therefore pays. The proposed replacement is four scalars, and it is the
+scalar `bets placed` that reverses the reading. Bits are innocent of this: per-
+message MI is ≥ 0, so silence buys nothing.
+
+*Worse:* mutual information is **sign-free**. `I(X;Y) = I(X;¬Y)` — a channel that
+reliably reports the opposite of the truth carries maximal bits. Stage 3 built
+that case and the suite pins it (`tests/test_c_channels.py:1928`,
+`assert (true_defeats, true_held) == (64, 0)`: 64 of 64 true laws defeated, 2 of
+32 false ones). Recomputed independently:
+
+```
+P(true)=0.6667   H(truth)=0.9183   H(defeat)=0.8960   H(defeat|truth)=0.1124
+I(truth ; defeated) = 0.7836 bits = 85.3% of the available truth entropy
+```
+
+The challenge channel — the one that destroyed every true law — carries **85.3%
+of all the information there is** about whether a law holds. The ask channel,
+which restored 28 of those 64, §11.1 concedes carries approximately none. **A
+bits gate applied to stage 3 ranks the destroyer far above the repairer.** That
+is the sixth inversion, computable before stage 4 writes a line. `net_score`
+inverted on *volume*; bits invert on *valence* — they measure that the receiver
+changed, never whether it changed toward a law that holds. No clause in
+THE_MEASURE_OF_KNOWLEDGE currently forbids sign-freeness.
+
+**VII.3 — P-H3 cannot fail on clause 1 and has no category on clause 2 — the
+P-G1 failure mode, in advance (Panel B).** P-H3 is the only one of the four
+pre-registered hypotheses with **no stated baseline** (P-H1: "stage 3's figure is
+zero by construction"; P-H2: "at or near zero"; P-H4 states a direction).
+
+*Clause 1* ("units with identical rules diverge in alarm policy through their own
+histories") nearly cannot fail: any counter incrementing on a unit's own history
+takes different values in units with different apertures, and apertures are
+guaranteed distinct by premise 3. "Differentiated" and "differed by arithmetic"
+are indistinguishable without a null.
+
+*Clause 2* ("predicts that peer's later usefulness") names no measured quantity.
+The only usefulness measure the code owns is `settle_credit`'s replication
+verdict, whose own docstring calls it "*unbiased and nearly powerless*" — 1
+positive record of 96 at four units, 5 of 107 at six. **A gate with a measured
+dynamic range of 1/96.**
+
+Predicted reading: clause 1 passes trivially, clause 2 reads *no category to
+measure* — the exact shape that bit P-G1 at task 6.
+
+**VII.4 — The world P-H3 needs does not exist, and stage 4 does not propose
+building it (Panels B and C).** `Field.deliver` is keyed on `(seed, domain,
+round)` and never on unit (`src/c_field.py:156`); `withhold_rate` and
+`spurious_rate` are single spec-wide scalars. Panel B verified by execution that
+two units sharing aperture and attendance parity end 60 live rounds **bit-
+identical in facts, laws, suspended, first_seen, peers and net_score at 8 of 8
+seeds**. So `P(my failure | peer's alarm)` is a property of the *domain*, not the
+*speaker*. Any per-peer reliability stage 4 measures is sampling noise aliased
+onto aperture overlap.
+
+This is task 6's finding restated in code — "*THIS SERIES HAS NO UNRELIABLE
+SPEAKER … no unit here lies, guesses, or has a noisier field than another*" —
+and **§11 does not propose changing the field**; §11.5 defers regime shift and
+mortality to stage 5. Stage 4 would run the cry-wolf mechanism in the world task
+6 already diagnosed as having nothing to sort.
+
+Compounding it: `challenge` is once-per-law-ever, so the nearest built analogue to
+an alarm fires **1–2 times per unit-run over 60 rounds** (measured: mean 1.88,
+32 unit-runs). A per-peer reliability estimate is arithmetically unavailable at
+n ≤ 2, and the design specifies no run length, sample floor, or power
+calculation for its declared gate.
+
+**VII.5 — The unruled hole is narrower than "where does a reliability ledger
+live," and the answer the code gives is the one forbidden on publication (Panel
+C).** Examination VI already settled the seam: settlements are "**negotiated at
+the commens level and given at the member level**" (THE_COMMENS §12(b)). A
+reliability ledger decomposes cleanly along it — its **schema** (what counts as
+an alarm, what counts as a failure met, over what window) is a *marking
+practice*, commens-side and negotiable; its **entries** (which arrivals this unit
+met) are *content that arrives to be marked*, member-side and given. The shipped
+code has the entries and **no schema**, which is why it keys by token.
+
+So the unruled question is one step down:
+
+> **What publicly-inscribed attribute of a mark may a reliability ledger be
+> keyed by?**
+
+`agon_metalearning.mechanism_principles` answers it for editorial disputes — the
+recorded **resolution mechanism**, a publicly-inscribed practice; `MechanismPrinciple`
+carries no field naming a speaker. Nothing answers it for alarms. Absent a
+ruling the only available key is `Mark.author`, which is legal while private
+(nothing publishes it; `Mark` has no addressee field), **forbidden the moment it
+is published** (THE_COMMENS §2(a)'s vector-not-scalar bar and §2(c)'s "judgment
+objectivated, never owned"), and unable to coordinate cry-wolf while it stays
+private.
+
+And it must coordinate: the parable's villagers published no assessments, but
+they *all met the same non-wolf*. Premise 3 forbids that here — under PAIRS every
+domain has exactly three witnesses, so of five receivers of an alarm about domain
+*d*, **at most two can ever reach a verdict** and the other three abstain by
+design. **Cry-wolf in this design does require a shared reliability practice**,
+which is the object premise 2's neighbourhood guards.
+
+**VII.6 — Mortality is absent from both canonical lists of what a proper
+terminal-unit test requires (Panel D; verified by the recorder).**
+WEST_IN_KYTE_PROGRAM §8's six conditions — communication · laws in the corpus ·
+provenance · a live K2 · community-level scaling · selection between communities
+— **do not name mortality**, and WEST_METHODS_NOTE repeats them verbatim in
+outside-reader prose. Spec §11.5 says: "*West's β measures the maintenance cost
+of keeping terminal units alive, so with immortal kytē there is no cost and no
+exponent — the C-series cannot answer the West question until units can die.*"
+Selection-between-communities is not mortality-of-units: the C-series *has*
+budget selection and its units were still immortal. **A builder who satisfies all
+six conditions still gets no exponent.** This is the §8 audit's own failure mode
+reproduced one level up — a list that reads complete and is not.
+
+Five graded book chapters compound it by naming the outstanding condition as
+*reasoning and communication*, which stage 3 supplied: ARISBE_IN_PRACTICE:627
+("still awaits a harness whose units reason and talk to one another"),
+THE_LINEAGE_AND_THE_TRIBUTARIES:252, VISION_AND_SCOPE:336, THE_KYTOS:213,
+WEST_IN_KYTE_PROGRAM:353. An outside reader takes these as *one harness away*;
+§11.5 says two rungs.
+
+**VII.7 — The spec contradicts itself: §8's promotion rung carries no mortality
+precondition (Panel D).** §8 ("What promotes a conjecture"): "*If the requirement
+holds flat across an order of magnitude of N — that is West's invariant terminal
+unit, discovered rather than imposed … which would make **a letter to West worth
+writing**.*" §11.5, written 2026-07-30, says the series cannot reach the question
+until stage 5. §8 is the older text, sits where a builder reads for *what
+promotes*, and **would license the held letter off a size sweep of immortal
+units.**
+
+## Amendable findings
+
+(a) **`Unit.peers` folds its constituents.** Examination V's V.2 remedy was two
+moves — rename out of the doctrinal namespace, *and* keep the constituents
+distinct. `peers` passes the first (no field named `warrant`) and fails the
+second: `credit` writes `proved − failed` as one integer, irreversibly. Panel A
+reproduced the collision — 10-proved/10-failed is byte-identical to
+never-credited, to `whom_to_ask` *and* to the distrust arm's predicate — and
+censused it at 5 of 96 records (4u) and 3 of 107 (6u). Remedy: store
+`(proved, failed)`. One field. — (b) **The B&L citation on `peers` is
+mis-applied**: it claims reciprocal typification by *types* of actor, but keys a
+per-token dossier that no other unit can read; nothing is reciprocal and nothing
+is available. — (c) **§11.2(c) is not the reuse it claims.** `credit` refuses any
+non-fact mark and `settle_credit`'s only verdict is replication; "did this peer's
+alarms precede failures I met" needs a new mark kind, a new verdict semantics,
+and relaxation of a guard placed for a stated reason. — (d) **Strike or replace
+the West-fidelity appeal in §11.2**: West's invariance is *cross-scale*
+(capillaries constant as mass grows), not within-organism identity, and
+WEST_IN_KYTE_PROGRAM:227 already says ours "is an assumption confirmed." P-H3
+requires units to become *non*-invariant, which is orthogonal either way. —
+(e) **"the first place two identical units can diverge in behaviour" is false as
+written** (verified: u0 ends seed 1 with `laws=[]`, u1 with one law); the true
+claim is *the first divergence in **policy** rather than in content*. —
+(f) **Per-unit thresholds collide with `MAX_PENDING_RATE`'s measured rationale**
+("*THE SAME STANDARD MUST GOVERN HOLDING A LAW AND LOSING IT* … 98 distinct
+defeats became 426 retraction events … module-level *so that the two readers
+cannot drift apart*"). The collision may be desirable — genuine disagreement is
+what §11.1 says stage 3 could not produce — but pre-register the thrash count or
+the mechanism will produce disagreement and the instrument will not say whether
+it produced knowledge. — (g) **P-H2 does not name its two random variables**, and
+the two natural choices disagree on whether pure noise scores: `I(answer ;
+subsequent membrane arrivals)` gives a fabricated filler 0 bits, `I(answer ;
+receiver state change)` gives it maximal bits. As written P-H2 can be passed by
+making the channel noisier. — (h) **Stale status and prior-art prose**:
+CONTRIBUTION_AND_PRIOR_ART:239 ("exponents the run corpus can already ask") and
+:249 ("tested it five times"); THE_COMMENS:198 (an experiment since retired);
+CAPABILITY_MAP:219 and ROADMAP:324/131 still say E3c is *in flight* (disposed
+2026-07-27); CAPABILITY_MAP §J.1 has **no C-series row at all** for five shipped
+modules and 178 tests. — (i) **§11.6's obligation is currently vacuous**: the
+"what stage 3 established" paragraph exists in no tracked document, so the
+requirement to carry the three limits binds the next doc-writing sitting, not a
+published doc.
+
+## What withstood
+
+**§11.1's diagnosis is correct and verified in code.** "Two answers to one
+question are the same atom by construction" is confirmed at `_wants` — a want is
+licensed by a law and a body the unit already holds — and by the 0-of-939
+fabricated-adoption figure. **Slot-questions (part (a)) repair the real defect**,
+and address the best-evidenced link of Exhibit 1's chain.
+
+**Tension 2 fails on the merits.** Panel A tried the narrow reading of guard #3
+(K1–K4 only) so `Unit.peers` would escape on a technicality; the narrow reading is
+untenable, the guard binds — and `peers` satisfies it anyway, for the guard's own
+stated reason, arrived at independently in aperture terms. Panel C reached the
+same verdict from doctrine: no `Mark` kind's content can be a speaker, `Mark`
+carries no addressee, so a reliability judgment cannot reach the board at all.
+The discipline is **structural, not nominal**.
+
+**The charge against adaptive thresholds does not land — and neither does its
+denial.** Per-unit state already diverges from encountered history alone
+(`first_seen`, `laws`, `peers`, `ledger`), the codebase treats that as legitimate
+throughout, and a rule identical in every unit driven only by each unit's own
+record is what "emergent" means in an agent-based model. But the state divergence
+traces without residue to two modeler-assigned labels — aperture and attendance
+parity — and **`apertures_for` refuses to build the one control that would
+decide it** (two units with identical aperture *and* parity), because premise 3
+forbids it. The question is currently **formally undecidable in this design**,
+which is worse than either answer.
+
+**Part (c) is philosophically the right move, and gets credit for it.** `peers`
+is a belief about another unit built from that unit's testimony; an alarm policy
+is a disposition of the *self* that others can only infer from expressive
+behaviour. That is the veil structure Examination VI ratified, instantiated for
+the first time in this series. **Its problem is the world it would run in, not
+its shape.**
+
+**`net_score`'s retirement is correct and well-evidenced** — five inversions, one
+on the pre-registered gate itself, plus a decomposition in which the statistic
+moves the same direction for opposite epistemic reasons. **§11.2(b)'s claim that
+the throttle "exists and is simply not connected" is true** (`AttentionEconomy`
+scores severity-weighted decayed yield per cost; no C-series module imports it).
+**Selection's per-domain allocation satisfies guard #3** — and was designed from
+anti-monopoly reasoning, not from the guard, which is the examination's strongest
+evidence that the guard tracks something real. **`credit`'s self-credit refusal**
+is the anti-worth-ladder clause actually enforced in code, with a test; no panel
+could break it.
+
+## The decision fork (author's ruling required)
+
+**1. Alarm reliability — index it, defer it, or type it.** Three panels converged
+that P-H3 as pre-registered breaches the guard §11.2(b) states. Three routes:
+*(i)* **index** it by `(peer, relation)` as `peers` already is — one dictionary
+level, keeps the gate at stage 4, but leaves VII.4 standing (nothing to measure);
+*(ii)* **type the alarm, not the alarmist** — a new mark kind carrying a
+publicly-inscribable practice-token (the doubt band it was raised at), receivers
+keeping stick-rates by band, `whom_to_ask` demoted to a private tiebreak no mark
+can express. This is the `mechanism_principles` pattern and it satisfies VII.5's
+seam; its cost is that "differentially reliable **speakers**" becomes
+differentially reliable **alarm practices**, with speaker-differentiation an
+emergent correlate no unit may act on; *(iii)* **defer** — stage 4 measures (a)
+and (b), P-H3 moves to stage 5 where mortality supplies the stakes. Panel C
+recommends (ii) with an atom-citation folded in; Panel B recommends (iii) unless
+decision 2 goes the other way.
+
+**2. Does stage 4 get world-variance, or does the gate move to stage 5?** Alarm
+reliability measures a property of speakers and the field has none. The minimum
+change is a per-unit or per-domain `withhold_rate`. Decline it and P-H3 should
+not be stage 4's gate; gate instead on P-H1/P-H2, which have baselines and
+address the well-evidenced links.
+
+**3. Authorize the twin control?** One community containing two units with
+identical aperture *and* parity, control arm only (~10 lines, and an explicit
+exemption to premise 3 for that arm). It converts "emergent or seeded?" from a
+doctrinal dispute into a measurement: identical thresholds mean seeded, divergent
+mean emerged. Without it P-H3 cannot mean what §11.2 says it means.
+
+**4. Bits: instrument, never gate.** VII.2's 0.7836 figure comes from figures
+already asserted in the suite. If bits are kept, require every bits figure
+reported *beside* `true laws held`, never instead — the discipline §11.3 imposes
+on the statistic it retires. And require P-H2 to name its two random variables
+before the run.
+
+**5. Add sign-freeness to THE_MEASURE_OF_KNOWLEDGE's guards, and add guard #3's
+missing clause.** Guard #3 forbids collapsing the item index, not per-item
+comparison — every finding in Panel A turned on that sentence being absent. And
+no guard currently forbids a measure that scores a reliably-inverted channel as
+maximally informative.
+
+**6. Mortality into the six conditions, and the §8/§11.5 contradiction closed.**
+VII.6 and VII.7 are the West letter's backward step made precise: the defect is
+**omission, not overstatement** — no document claims the C-series produced a β.
+Amend §8 to carry §11.5's precondition, add mortality as a seventh condition in
+both canonical lists, and rule the five book-chapter sentences that name
+"reasoning and communication" as the outstanding requirement. **Grade rows await
+his ruling** (CONTRIBUTION_AND_PRIOR_ART:347 — the "queued-conjecture" grade may
+still be right, but its stated reason, "a redesign is named," is now wrong;
+VISION_AND_SCOPE:339; THE_KYTOS:389; THE_COMMENS:187; ROADMAP:92).
+
+## The three standing decisions, with their measured basis
+
+**`corroboration_window` (default 5, `src/c_unit.py:226`).** Without an ask
+channel every column at 3/5/8 is identical — the delay's length is irrelevant
+when nothing comes back. With it, at six units, 3 → 8 saves **49 true laws**
+(96 → 47 lost) while sparing **3** converses (20 → 17), at monotone cost in score
+(−29 → −77 → −134); at four units it saves 44 and spares 0. Corroboration stays
+flat at 45 across every window, so window and witness rule are independent knobs.
+*Not decisive, and the reason is structural: the benefit counts in laws and the
+cost in `net_score`. Rule decision 2 first or this is priced in a retired
+currency.*
+
+**Retire `net_score` as a gate statistic?** The evidence is close to decisive on
+the narrow question: five inversions, one on the gate itself, and the
+decomposition mute −1421 (64/64 true held) → challenge-only −433 (0/64) → all
+four channels −106 (28/64) — +988 by destroying every true law, +327 by restoring
+28. Cost of retiring: **14 test functions across 5 files** assert on it, of which
+5 pin the ledger's arithmetic (survive a gate-only retirement) and 5 are
+load-bearing gates; and every cross-task comparison denominated in it becomes
+unreadable (stage 1's ordering, task 2b's 28/28 arms and run-length plateau, task
+4's −33 vs −412, task 5's four-rule series, decision 1's entire cost column).
+*What evidence does not settle is the replacement — no candidate has been tested
+for inversion, and VII.2 shows the leading candidate inverts.*
+
+**Does "2 independent witnesses" mean two *besides* the challenger?** The
+stricter reading (`corroborating_witnesses=3`) reads **0 of 144** at six units —
+holder + challenger + one corroborator exhausts three witnesses — and needs four
+witnesses per domain, i.e. **five domains and ten units**, a `default_spec`
+change. At the reachable size outcomes are a wash (29 vs 27 true laws standing,
+14 vs 17 converses dead). Weigh task 5f's controlling finding — **witnesses per
+domain, not community size** (cyclic-4 2/2/2/2 → 0 corroborations; pairs-4
+3/2/2/1 → 4; pairs-6 3/3/3/3 → 45) — and task 7's: at six units the extra
+witnesses were **not independent in fact** (394 of 928 two-voice decisions, all
+394 meeting the atom on the same round, 0 relaying). *Buying more independent
+witnesses by adding domains and units buys more twins until the premise that
+produces twins changes.* Not decisive; the only evidence about the unreachable
+size is arithmetic.
+
+*Conducted 2026-07-30 by four panels mandated to refute, on the author's ruling
+that the stage-4 design be examined before it is built. Panels A, B and C
+reproduced VII.1 independently; VII.2's mutual-information figure, VII.6's
+omission, and the §11.2(b)/(c) asymmetry were re-verified by the recorder against
+the pinned suite and the source. The examiner who drafted §11 recorded but did
+not conduct. Exhibit 1's graph is retained at
+`.superpowers/sdd/2026-07-30-c-series-stage-3-channels/graph/` (local only).
+Dispositions await the author's rulings on the fork above.*
