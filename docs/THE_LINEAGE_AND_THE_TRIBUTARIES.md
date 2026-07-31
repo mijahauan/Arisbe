@@ -142,6 +142,17 @@ with evidence and grades, stand as the concordance map's rows
 ([CONTRIBUTION_AND_PRIOR_ART.md](CONTRIBUTION_AND_PRIOR_ART.md)); the
 tellings here read the map as narrative.
 
+**Beneath all of them, the thermodynamic floor.** One tributary runs deeper
+than the rest and reached this record late. Before any organism carries a
+model, some structures simply persist — and that fact, in service of nothing,
+leaves the gradient on which purpose later elaborates. The lineage from
+Schrödinger through Prigogine to Bickhard, Pattee, Deacon and Millikan asks how
+mere persistence becomes *using* something as standing for something else, and
+its authors disagree productively about where that line falls.
+[FROM_THERMODYNAMICS_TO_SEMIOSIS.md](FROM_THERMODYNAMICS_TO_SEMIOSIS.md) tells
+it, and reports the uncomfortable verdict it returns on the built system:
+Arisbe's units have never had anything at stake.
+
 **The Umwelt (von Uexküll, 1934; Hoffmeyer and biosemiotics after him).**
 Before anyone built a model-holding machine, von Uexküll saw that every
 organism already carries one. Its world amounts not to *the* world but to
