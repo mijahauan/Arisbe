@@ -1,6 +1,128 @@
 # Current Plan
 
-**Last Updated**: 2026-07-29 (ninth arc) — **THE C-SERIES IS DESIGNED AND ITS FIRST TWO
+**Last Updated**: 2026-07-31 (tenth arc) — **EXAMINATION VII, THE SPEAKER-VARIANCE
+RULING BUILT, AND THE THREAD THAT RAN PAST BOTH INTO THE ORIGIN OF SEMIOSIS.**
+Eleven commits, `859d070..ec29aed`. Four panels examined the stage-4 design before it
+was built; ten findings; the author's rulings then reopened it twice and moved it
+somewhere neither party planned.
+
+**The examination.** Opened, on his ruling, with a `/graphify` pass scoped to the
+claim/evidence/prediction structure — the graph as *first exhibit, not a record of
+conclusions*, because most of stage 4 was unexamined conjecture and encoding
+conjecture as graph structure makes it read as settled. Its first target: are stage
+3's four explanations for its null four findings or one wearing four hats? **Neither.
+They form a chain** joined by semantic-similarity edges, evidence decaying
+monotonically (5/3/0/0 measurements at one hop): hats 1–2 are one finding said twice
+(8 shared measurements), hat 3 has none of its own, and hat 4 — the one stage 4's
+doubt metric answers — rests on nothing measured at all.
+
+**Findings that bit.** VII.1 (three panels, independently): the scalar guard is stated
+at §11.2(b) and omitted at §11.2(c), where P-H3 asks for exactly the per-peer number
+`Unit.peers`' docstring refuses. VII.2: **bits invert too** — mutual information is
+sign-free, and recomputed from suite-pinned figures the channel that destroyed 64/64
+true laws carries **0.7836 bits, 85.3% of the available truth entropy**. VII.8: §11.2(b)
+described *enlarging* a budget while `AttentionEconomy.choose(k,…)` can only *reorder*
+one — and terminal-unit invariance lives in that gap, a **second** bar on the West
+question that survives mortality.
+
+**The author's two rulings, which cleared doctrine and moved no measurement.**
+(1) Reliability by speaker is real and objectivated in **two layers** — an earned,
+domain-indexed, publicly-inscribed **credential** at the commens plus a private
+**personal modifier** at the member. Disposed VII.5, and beat Panel C's own escape.
+(2) What "identical" restricts in a terminal unit: **capacity and rate invariant**
+(West), **content, position and policy free** (so adaptive policy preserves
+invariance; amendable (d) reversed, and the twin control needs no premise-3
+exemption). Both cleared doctrine and neither touched VII.4 — which is how VII.4 went
+from one finding among seven to the one everything hung on.
+
+**BUILT on his YES**: `ObserverNoise`/`FieldSpec.observers`/`Field.deliver(observer=)`
+(two rates — `withhold` = quieter but sound, `spurious` = **unreliable in good faith**,
+cry-wolf with no deceit modelled; keyed on observer *id*, so equal rates ≠ equal
+experience), the twin control, `Unit.peers` as `(proved, failed)`. The build re-found
+Examination V's V.5: **`Field.at` dropped the `unit_id` its own `Aperture` carried**, so
+observer noise reached nothing — the ruling would have been test-only.
+
+**VII.10, the run that reframed everything.** Typification re-tested in the world the
+ruling built, and **still exactly inert** — for a reason nobody expected. A unit at
+`spurious=0.9` mis-observes **314 atoms and transmits none of them**: a question names
+an atom the asker already licenses, so a fabrication is something nobody asked about
+and the channel has no move by which a unit volunteers anything. Make *every* unit
+unreliable and lies do cross (23 of 474) — because an unreliable **asker** licenses a
+question about an unlicensed atom. **A lie enters by being asked about, never by being
+told**; the channel's inability to carry error is the same property as its inability
+to carry news.
+
+**Then the thread ran past the C-series.** Scarcity → why economize at all → what
+drives an interpretant to hold a representation *for* anything. The unifying finding:
+**Arisbe's units have nothing at stake** (immortal, unfunded; `MembraneLedger` is an
+observer's scorecard, not a stake). **One absence, three symptoms** — no scarcity (no
+gradient for economizing), no mortality (no maintenance cost, no exponent), **no stake
+(no third party a sign could serve, so every strategy must be installed by hand)**.
+Retrodicted by our own data: every mechanism built in abundance read inert or harmful;
+the ask channel paid *only* under bounded attention; **the silence window, the one
+genuinely scarce resource in the design, is the only mechanism that ever discriminated
+on a law's truth.**
+
+**New book chapter** `docs/FROM_THERMODYNAMICS_TO_SEMIOSIS.md` (48/48 renders), his
+framing as its spine: the thermodynamic fact comes first and **in service of nothing**;
+purpose elaborates on the gradient it leaves. Six concordance rows added.
+
+**Six rulings at close (2026-07-31).** Retire `net_score` · `corroboration_window` = 8 ·
+**weight witnesses, not count** · the West corrections · **the nested reading is
+doctrine** · keep the title. Plus the threshold ruled: **Pattee**, over Bickhard
+(*"somehow indicate" and "detect failure" have already crossed the line they were
+called to explain*) and Deacon (*cooperative persistence, never "for what?"*), with the
+author's own **Intent 0** — brute Secondness, no options — and intent above it as **a
+system that discriminates bindings between input and output**, which asks less than
+its rivals and meets Pattee's cut from the other direction.
+
+---
+
+▶ **NEXT SESSION: the re-measurement pass, then the credential, then the scarcity test.**
+
+**1 · One pass, two rulings** (`tasks/todo.md` has the sizing). Retire `net_score` as a
+gate statistic — 18 assertions, 5 load-bearing gates re-expressed on the vector
+(*bets placed · hits among bets · true laws held · converses held*), **plus a per-unit
+cost component**, or ruling 2's invariance condition stays unmeasurable. And
+`corroboration_window` 5 → 8, which is one constant and a large downstream. **Do them
+together** — the suite narrates measured figures throughout at 14 minutes a run, so
+this is one re-measurement, not two.
+
+**2 · BLOCKED, and deliberately not worked around: weight witnesses.** The count is one
+line (`c_unit.py:1759-1766`). What to weight *by* is the **credential**, which is ruled
+and unbuilt. Weighting by the challenger's private `peers` standing would make
+corroboration turn on one unit's private opinion, defeating the socially-available
+objectified reality §9d grounds it in; inventing a weight would install the solution.
+**Needs the credential built, or an interim weight ruled.**
+
+**3 · The scarcity test, small and sharp.** Cap answering so it becomes rival — the
+first contact scarcity the design has ever had — and re-run typify against its mute
+twin. `occ_bite` has been 0 in every arm ever run. If a preference still never bites
+when answering is scarce, typification is broken rather than unexercised, which is a
+bigger finding than the reverse.
+
+**4 · Then the D-series as a design sitting, not a build.** Threshold now ruled
+(Pattee), so the open decisions are: what the minimal kytos carries; what the genome
+encodes (**general capacities, never a `typify` bit** — the standing rule is *install
+the problem, never the solution*); which limit-kind the environment enforces; and what
+would count as having crossed, **written down before the first run**. Lewontin's three
+conditions: the C-series has zero, and stage 5's mortality alone is death without
+birth, a ratchet not evolution. Ruling 2 already made it coherent — West wants
+capacity/rate invariant, Darwin wants policy variable and heritable, different axes.
+Note: **the repo evolves models, never modelers.** Standing falsifier for anything
+here: **ablate the putative sign** — occlude it, and if performance holds, nothing
+stood for anything.
+
+**Still open and his:** grades for the five West rows the corrections touched; the
+chapter's title (kept for now, still carries the directional metaphor he corrected).
+
+**State at close:** working tree clean, 11 commits pushed-ready, C suite 199, core 152,
+book 48/48. Memory: `project_examination_vii_stage4.md`,
+`project_thermodynamics_to_semiosis.md`.
+
+---
+
+**Last Updated (prior)**: 2026-07-29 (ninth arc) — **THE C-SERIES IS DESIGNED AND ITS FIRST TWO
 STAGES ARE BUILT.** The corrected successor to the E-series, brainstormed section by section
 with the author and executed as 8 TDD tasks + a fix wave (13 commits, `9a1305f..18f99f3`,
 pushed). **Design** (`docs/superpowers/specs/2026-07-28-community-scaling-experiment-design.md`):
