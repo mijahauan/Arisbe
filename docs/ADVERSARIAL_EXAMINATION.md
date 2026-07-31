@@ -2777,9 +2777,11 @@ the entire price appears as a worse `net_score`.
 **And that price is the statistic under indictment.** The score worsens *because*
 the saved true laws stay in play and keep betting, and under bounded attention
 their withheld consequents lose. That is inversion #2 exactly: the score improved
-when true laws were destroyed. **Under B1 the cost column disappears and 8
-dominates on every remaining measure. Under B2 the trade is real and 5 is a
-defensible middle.**
+when true laws were destroyed. **So this decision has no fixed answer until
+decision B is ruled.** Retire `net_score` as a gate and the cost column above
+stops counting — 8 then dominates on every remaining measure, saving 49 true laws
+at no price the gates read. Keep `net_score` and the trade is real, paid in the
+currency the gates still spend, and 5 is a defensible middle.
 
 **One control worth knowing:** with no answering channel, 3, 5 and 8 read
 *identical* in every column. The knob does nothing unless something answers —
