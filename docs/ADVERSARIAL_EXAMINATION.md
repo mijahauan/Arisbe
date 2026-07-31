@@ -2507,6 +2507,13 @@ domain has exactly three witnesses, so of five receivers of an alarm about domai
 design. **Cry-wolf in this design does require a shared reliability practice**,
 which is the object premise 2's neighbourhood guards.
 
+> **DISPOSED 2026-07-30 by the author's ruling 1 below.** The shared practice
+> the panel found necessary and could not license is the **credential**: an
+> earned, domain-indexed, publicly-inscribed *type of actor*, with the personal
+> modifier kept private at the member. The hole is closed; what remains of VII.5
+> is the empirical condition it shares with VII.4 — a credential must be
+> *earnable*, and nothing in stage 3's field lets a unit earn one.
+
 **VII.6 — Mortality is absent from both canonical lists of what a proper
 terminal-unit test requires (Panel D; verified by the recorder).**
 WEST_IN_KYTE_PROGRAM §8's six conditions — communication · laws in the corpus ·
@@ -2536,6 +2543,33 @@ until stage 5. §8 is the older text, sits where a builder reads for *what
 promotes*, and **would license the held letter off a size sweep of immortal
 units.**
 
+**VII.8 — §11.2(b) describes enlarging a budget; the mechanism it points at can
+only reorder one, and terminal-unit invariance lives in that gap (found after
+the panels reported, on the author's ruling 2; verified by the recorder).**
+§11.2(b) says doubt "*rises to an alarm that raises **how often** and how loudly
+a unit queries*." Read literally that **enlarges** the unit's per-round
+allocation. But `AttentionEconomy.choose(k, round_idx)` takes the slot count
+**k as a caller-supplied argument**, and severity enters only through `_score`,
+which sorts the pool; severity never touches `k`. As built the attention economy
+is a **fixed-budget reordering machine** — it changes *what* a unit spends its
+slots on, never *how many* it gets.
+
+The gap matters because that is exactly where terminal-unit invariance sits. A
+unit whose per-round cost is a free variable is **not a terminal unit**: there is
+no fixed quantum to count, so no exponent, whatever else is repaired. This is a
+**second and independent** bar on the West question, and unlike VII.6's it would
+still bite after units can die. The rule it yields: **doubt may reorder a unit's
+fixed budget; it may never enlarge it.**
+
+Two consequences the panels did not reach. `corroboration_window` governs how
+many questions a unit asks about a doubted law, so **it is part of the unit's
+rate parameter** — choosing it is choosing the terminal unit's size, it must stay
+uniform across units (it is a per-unit dataclass field, so nothing enforces
+that), and it must be held constant across any size sweep or the sweep measures
+the window instead of scaling. And **the real price of patience has never been
+measured**: a longer window makes every unit do more work per doubt, which
+`net_score` — a count of bets — cannot see.
+
 ## Amendable findings
 
 (a) **`Unit.peers` folds its constituents.** Examination V's V.2 remedy was two
@@ -2551,11 +2585,13 @@ per-token dossier that no other unit can read; nothing is reciprocal and nothing
 is available. — (c) **§11.2(c) is not the reuse it claims.** `credit` refuses any
 non-fact mark and `settle_credit`'s only verdict is replication; "did this peer's
 alarms precede failures I met" needs a new mark kind, a new verdict semantics,
-and relaxation of a guard placed for a stated reason. — (d) **Strike or replace
-the West-fidelity appeal in §11.2**: West's invariance is *cross-scale*
-(capillaries constant as mass grows), not within-organism identity, and
-WEST_IN_KYTE_PROGRAM:227 already says ours "is an assumption confirmed." P-H3
-requires units to become *non*-invariant, which is orthogonal either way. —
+and relaxation of a guard placed for a stated reason. — (d) ~~**Strike or replace
+the West-fidelity appeal in §11.2**~~ **— REVERSED by the author's ruling below.**
+The panel held that West's invariance is *cross-scale* (capillaries constant as
+mass grows), not within-organism identity, so the appeal did no work. That reads
+the invariance too coarsely. The appeal needed **making precise, not deleting**:
+capacity and rate invariant, content and position and policy free. See "The
+author's two rulings", ruling 2, and finding VII.8. —
 (e) **"the first place two identical units can diverge in behaviour" is false as
 written** (verified: u0 ends seed 1 with `laws=[]`, u1 with one law); the true
 claim is *the first divergence in **policy** rather than in content*. —
@@ -2624,272 +2660,229 @@ evidence that the guard tracks something real. **`credit`'s self-credit refusal*
 is the anti-worth-ladder clause actually enforced in code, with a test; no panel
 could break it.
 
+## The author's two rulings (2026-07-30, after the panels reported)
+
+The panels' report drew two rulings that change what the findings mean. Both are
+the author's; the recorder verified their code-level consequences and drafted the
+statements below from his reasoning.
+
+### Ruling 1 — reliability by speaker is real, and it is objectivated in two layers
+
+> *We cannot deny the evidence and significance that who speaks makes a
+> difference. A doctor's advice to take a medicine has more weight than a used-car
+> salesman's. A radar technician's warning of in-bound bombers has more weight
+> than a sooth-sayer's. That increased weight is earned and typified in the
+> objective reality by, say, diplomas or other credentials — so not "who they
+> are" but an objectified criterion in the social reality, modifiable by any
+> additional information about that individual in the personal M recorded in
+> previous history. "He's never steered me wrong." Or "He's an inveterate liar."*
+
+This closes VII.5, and it closes it better than Panel C's own escape route
+(*type the alarm, not the alarmist*), because it keeps the alarmist and still
+clears both doctrinal bars. Reliability decomposes:
+
+| layer | what it is | where it lives | why it is licensed |
+|---|---|---|---|
+| **credential** | an earned, **domain-indexed**, publicly-inscribed *type of actor* — the diploma, the technician's rating | the commens; it **is** a mark | not a scalar ranking persons but a categorical type keyed to a domain — a diploma certifies medicine and says nothing about radar. THE_COMMENS §2(c) is *satisfied rather than strained*: a diploma is objectivated judgment, which is what §2(c) requires judgment to be |
+| **personal modifier** | "he's never steered me wrong" / "he's an inveterate liar" | the member, in that unit's own M, from its own history | the content that arrives to be marked — given, not negotiated |
+
+That is Examination VI's apportionment landing exactly on its seam: **negotiated
+at the commens** (what earns a credential), **given at the member** (my own
+history with him). It survives THE_MEASURE_OF_KNOWLEDGE guard #3 for the reason
+Panel A extracted independently — the guard forbids *aggregating* the index, not
+comparing within it, and a credential preserves the domain index where a bare
+per-peer score destroys it. Panel A reached that shape from the guard and the
+author reached it from Berger & Luckmann; the convergence is earned rather than
+echoed.
+
+Two consequences. **It earns a citation the code currently makes falsely**
+(Panel C's C.3): `Unit.peers` claims B&L's "reciprocal typification of
+habitualized action by TYPES of actor" while implementing a private per-token
+dossier that nothing is reciprocal about and nobody else can read. The credential
+is the *type*; the modifier is the *token* adjustment. Build both and the
+citation is earned. **And the repo already owns the shape** — the warrant
+gradient (○ posited → ⛓ derived → ⚔ withstood, *rising only by surviving
+challenge*) is a credential: standing earned by record, publicly inspectable,
+never a claim about worth.
+
+**What it does not fix.** A credential must be *earnable*. VII.4 stands
+untouched: field noise is keyed on `(seed, domain, round)` and never on unit, so
+no unit differs from another in anything a credential could certify. The ruling
+resolves the doctrinal problem and leaves the empirical one exactly where it was.
+
+### Ruling 2 — what "identical" restricts in a terminal unit
+
+West assumes no absolute identity between terminal units, and the examination had
+not said what precisely is fixed. The decomposition:
+
+**West's capillary.** Invariant: its **size** and its **flow rate**, and
+therefore **the cost of maintaining one**. Free to vary: **how many** there are,
+**how many branching levels** separate them from the source, **where** they sit,
+and **which tissue** they serve. A whale's capillary is a mouse's capillary; the
+whale has vastly more of them, further down a deeper network. The invariance is
+load-bearing in a specific way — the theory gets its exponent by **counting a
+fixed quantum**, so a quantum that drifted with mass would leave nothing to count
+and no exponent.
+
+**Mapped onto kytē:**
+
+| must be invariant | free to vary |
+|---|---|
+| **capacity** — what one unit can hold in use | **content** — what it met (aperture, history) |
+| **rate** — how many acts it can afford per round | **position** — whom it talks to, where it sits |
+| ∴ **maintenance cost per unit** | **policy** — how it spends its fixed allocation |
+
+**Therefore an adapting doubt threshold is *policy*, and policy variation
+preserves invariance** — two units of equal capacity spending it differently are
+still the same terminal unit, which is the freedom West already grants. Amendable
+finding (d) is reversed on this ground: the West appeal in §11.2 needed making
+precise, not striking.
+
+**The condition, and it is not currently met:** see VII.8. Doubt may reorder a
+unit's fixed budget; it may never enlarge it.
+
+**A second consequence for the twin control.** Panel B held that the control
+deciding *emergent vs seeded* — two units with identical aperture **and**
+attendance parity — requires an explicit exemption to premise 3. Under this
+decomposition it requires none. Premise 3 exists to stop units converging on
+near-identical **models**, a claim about *content*; the twin control holds content
+and position fixed precisely in order to probe whether **policy** diverges. The
+two govern different axes, so premise 3's purpose is untouched and the control is
+simply legal.
+
 
 ## What you need to decide
 
-Six rulings. Each states the question, why it is live, the options with their
-consequences, and what is not known. **They are ordered by dependency: B changes
-how C must be read, and A subsumes three questions that cannot be ruled apart.**
+**Revised after the author's two rulings above.** Those rulings dissolved the
+doctrinal objections and converted the fidelity objection into a design
+condition. **One empirical decision now carries the rest** — everything else is
+either consequent on it or is instrument hygiene.
 
 ---
 
-### A · Does stage 4 keep P-H3 — alarm reliability — as its gate?
+### THE DECISION · Does stage 4 give the field speaker-variance?
 
-**The question.** §11.4 declares P-H3 the gate: *units with identical rules
-diverge in alarm policy through their own histories, and a receiver's measured
-alarm-reliability for a peer predicts that peer's later usefulness.* Findings
-VII.1, VII.3 and VII.4 each independently block it. Keeping it means paying for
-all three repairs; the repairs cannot be bought separately, which is why the
-three questions are one decision.
+**The question.** Today `Field.deliver` draws noise from `(seed, domain, round)`
+and never from the unit, so `withhold_rate` and `spurious_rate` are the same for
+everyone. Two units sharing an aperture and an attendance parity finish 60 live
+rounds **bit-identical at 8 of 8 seeds**. Making the rate per-unit or per-domain
+is a small change to one file. Everything below turns on whether you make it.
 
-**Why it is live.** Cry-wolf is the mechanism that would make units into
-differentially reliable speakers — *discovered rather than seeded* — which is
-what stage 3 could not produce and what the ruling that units stay identical
-requires. It is the whole payoff of §11.2, and the two other parts are built to
-feed it.
+**Why it now carries everything.** Ruling 1 licensed the credential, so keying
+reliability to a speaker is no longer forbidden — but a credential must be
+*earnable*, and nothing here can be earned when no speaker differs from any
+other. Ruling 2 licensed adaptive policy, so heterogeneity of policy is no longer
+a fidelity problem — but there is nothing for a policy to be *right or wrong
+about*. **Both rulings clear the doctrine and neither touches VII.4.** The
+cry-wolf mechanism, the credential, the typify channel and P-H3 all measure a
+property of speakers, in a world whose speakers are interchangeable by
+construction.
 
-**What blocks it, in the order the repairs would have to land.**
-
-1. *It breaches the guard §11.2(b) states two paragraphs earlier.* P-H3 asks for
-   one reliability number **per peer**. `Unit.peers` already refuses that shape,
-   for a reason its own docstring gives: a peer's aperture is partial, so one
-   number per peer averages competence over domains the peer never sees. **Fix:
-   key it `(peer, relation)`. One dictionary level.**
-2. *The field contains no differentially reliable speaker.* Noise is keyed on
-   `(seed, domain, round)` and never on unit, so two units sharing aperture and
-   attendance parity end 60 live rounds bit-identical at 8 of 8 seeds. A peer's
-   alarms cannot predict anything about that peer, because nothing about that
-   peer differs. **Fix: per-unit or per-domain `withhold_rate` — a field change
-   §11 does not currently propose.**
-3. *As written it cannot fail on clause 1 and has no category on clause 2.* Any
-   counter incrementing on a unit's own history differs between units with
-   different apertures, so clause 1 passes by arithmetic. Clause 2's "later
-   usefulness" names no measured quantity; the nearest one has a measured range
-   of 1 positive record in 96. **Fix: a null for clause 1 (the twin control
-   below), and a named outcome variable with a demonstrated nonzero base rate
-   for clause 2.**
-
-**The options.**
-
-| | What you get | What it costs |
-|---|---|---|
-| **A1 · Keep the gate, pay all three repairs** | Stage 4 tests the payoff it was designed for | A field change (speaker-variance), an index change, a null, and an **explicit exemption to premise 3** for the twin control — that control needs two units with the *same* aperture and parity, which premise 3 currently forbids. Largest scope increase. |
-| **A2 · Keep the mechanism, move the gate** | Stage 4 gates on **P-H1/P-H2** — both have stated baselines and both address the well-evidenced links of Exhibit 1's chain. Alarm reliability still gets built and reported, exploratory. | The heterogeneity question goes unmeasured another stage. Cheapest honest option. |
-| **A3 · Defer part (c) to stage 5 entirely** | Mortality then supplies the stakes that make an alarm worth typing at all — §11.5's own reasoning, *mistakes bite right there* | Stage 4 loses its declared gate and its headline. Against that: the claim it would test — *this series has no unreliable speaker* — has **zero attached measurements** (Exhibit 1), so deferring it retires nothing that was ever weighed. |
-
-**A separable sub-ruling, needed under A1 and A2 both:** *how* reliability is
-keyed. Keying by `Mark.author` is legal while private and **forbidden the moment
-it is published** (THE_COMMENS §2(a) and §2(c)) — yet cry-wolf needs coordination,
-and premise 3 denies it the common outcome the parable's villagers had. The
-licensed alternative already exists in the repo: `mechanism_principles` keys by a
-publicly-inscribed *practice*, never a speaker. **Type the alarm, not the
-alarmist** — a mark carries the doubt band it was raised at, and receivers keep
-stick-rates by band. Cost: "differentially reliable **speakers**" becomes
-differentially reliable **alarm practices**, with speaker-differentiation an
-emergent correlate no unit may act on.
-
-**Not known.** Whether any of this differentiates within 60 rounds. The nearest
-built analogue to an alarm — `challenge`, once per law ever — fires a mean of
-**1.88 times per unit-run**. No run length, sample floor, or power calculation
-exists for the declared gate.
-
----
-
-### B · Retire `net_score` as a gate statistic?
-
-**Rule this before C.**
-
-**The question.** §9a already retired `accuracy` by this precedent. Does
-`net_score` follow it?
-
-**Why it is live.** `net_score` is hits minus misses, summed over a run. Placing
-no bet scores zero, so **silence pays**. Across stage 3 the statistic rose five
-times when the epistemics got worse — most damagingly on the pre-registered gate
-itself, where the live world beat its mute twin thirteenfold (−106 against −1421)
-while bets placed fell 1497 → 110 and true laws held fell 64/64 → 28/64. The live
-world bought its score by very nearly ceasing to forecast.
-
-**The decisive evidence is the decomposition** — one arm, three stages:
-
-| four units, 8 seeds, 60 rounds | net_score | true laws held |
-|---|---|---|
-| mute twin | −1421 | **64/64** |
-| challenge channel only | −433 | **0/64** |
-| all four channels | −106 | **28/64** |
-
-The score improves by 988 **by destroying every true law**, then by a further 327
-**by restoring 28 of them.** A statistic that rises in both directions of the
-thing being studied cannot gate it.
-
-**The options.**
-
-| | What you get | What it costs |
-|---|---|---|
-| **B1 · Retire as a gate; keep as one reported component** | Gates read the vector — *bets placed · hits among bets placed · true laws held · converses held* — where the collapse to abstention is visible as `bets placed` falling. Decision C becomes decidable. | **5 load-bearing gate tests** must be re-expressed (3 in `test_c_stage_gates.py`, 2 in `test_c_channels.py`); 5 more in `test_c_membrane.py` pin the ledger's arithmetic and survive untouched. Cross-task comparisons denominated in it become unreadable: stage 1's learner-beats-rival ordering, task 2b's 28/28 positive arms and run-length plateau, task 4's −33 vs −412, task 5's four-rule series, and **C's entire cost column**. |
-| **B2 · Keep it** | Nothing to re-express; every prior figure stays comparable | Every future gate remains passable by ceasing to forecast, and C cannot be priced honestly. |
-| **B3 · Retire it and adopt bits as the replacement** | — | **Refused by VII.2.** Mutual information is sign-free: the channel that destroyed 64/64 true laws carries 0.7836 bits, 85.3% of the available truth entropy, while the channel that restored 28 of them carries almost none. Bits would rank the destroyer above the repairer. Keep bits as an instrument reported *beside* `true laws held`, never as a gate. |
-
-**Not known.** Whether the replacement vector itself inverts — it has never been
-run as a gate. Nor whether `k1_score` (§9a's other suggestion, severity-weighted,
-never adopted into `MembraneLedger`) inverts.
-
----
-
-### C · What should `corroboration_window` be — 3, 5, or 8?
-
-**Read after B.**
-
-**What the knob actually is.** Not a waiting period. When a unit doubts one of
-its own laws it **suspends** the law — asserting nothing, licensing nothing, and
-placing no bets — and then **asks one question per round, up to
-`corroboration_window` questions**, about the fact it is missing. Three exits:
-corroboration arrives and the law is eliminated; the missing head arrives and the
-doubt is rebutted, so the law survives on the merits; or the window runs out in
-silence and **the law is restored** (silence cannot eliminate — that is your own
-ruling's rationale, recorded in the docstring).
-
-So the window is **an inquiry budget: how many questions a unit may ask about a
-doubted law before the matter is settled without them.** That is why patience
-saves true laws — a longer window means the missing head actually arrives, and
-the doubt is resolved rather than lapsing only to recur.
-
-**Why it is live.** It is the **only mechanism in the whole series that
-discriminates on whether a law is true** — and it does so for a reason: *a true
-law's missing head is something a peer can actually supply, and a converse's is
-not.* Its default of 5 was a choice, not a measurement, and it decides 41 to 66
-of every 66 doubts.
-
-**Measured, six units, 8 seeds, 60 rounds, ask channel live:**
-
-| window | true laws lost | converses lost | net_score |
-|---|---|---|---|
-| 3 | **96 of 96** | 20 of 48 | −29 |
-| **5 (current)** | 69 of 96 | 17 of 48 | −77 |
-| 8 | **47 of 96** | 17 of 48 | −134 |
-
-Four units, same run: 3 → 64/64 true lost; 5 → 36/64; 8 → **20/64**, with
-**zero** converses lost at any window.
-
-**The trade, in one sentence.** Going from 3 to 8 saves **49 true laws** while
-sparing only **3** false ones — patience is almost purely a gain in truth — and
-the entire price appears as a worse `net_score`.
-
-**And that price is the statistic under indictment.** The score worsens *because*
-the saved true laws stay in play and keep betting, and under bounded attention
-their withheld consequents lose. That is inversion #2 exactly: the score improved
-when true laws were destroyed. **So this decision has no fixed answer until
-decision B is ruled.** Retire `net_score` as a gate and the cost column above
-stops counting — 8 then dominates on every remaining measure, saving 49 true laws
-at no price the gates read. Keep `net_score` and the trade is real, paid in the
-currency the gates still spend, and 5 is a defensible middle.
-
-**One control worth knowing:** with no answering channel, 3, 5 and 8 read
-*identical* in every column. The knob does nothing unless something answers —
-an inquiry with no answering channel is a delay, not an inquiry.
-
-**Not known.** Only 3, 5 and 8 were measured, at one run length, one noise
-setting, one field spec, on the seeded arm only. **Nothing above 8 was tried and
-there is no sign of a plateau** — this is the middle of a smooth trade, so 8 may
-not be the end of the gain. Window × witness-rule was never swept jointly
-(corroboration stays flat at 45 across all three windows, so they look
-independent).
-
----
-
-### D · Does "2 independent witnesses" mean two *besides* the challenger?
-
-**The question.** Your ruling: *"Corroboration exists largely to generate and
-build confidence in the independent views that build a socially available,
-objectified reality. Repeating one's own observation does not do this. So, 2
-needs at least 2 independent witnesses."* The half that forbids a unit
-corroborating itself is implemented unconditionally and is not in question. The
-open half is whether the **challenger** counts as one of the two.
-
-**Why it is live.** The reading sets the minimum viable community: with aperture
-width *w*, domain count *D*, and *k* witnesses demanded per domain, the floor is
-*U = kD/w*. The current reading puts three witnesses on every domain and fixes
-the community at six units.
-
-**The options.**
-
-| | Consequence |
+| | What follows |
 |---|---|
-| **D1 · Challenger counts (current)** | 4 domains, 6 units, 3 witnesses per domain. Corroboration fires **45 times of 144** — and the induce arm records **24 defeats and 0 permanent losses**: every eliminated law is re-induced from the record that still supports it. **Corroboration fires and buys churn.** |
-| **D2 · Two besides the challenger** | Demands 4 witnesses per domain = **5 domains and 10 units** — a `default_spec` change, with every four-domain figure needing re-measurement and a suite already at 912 s. Until that size change the elimination path is **inert: 0 corroborations of 144.** At the size reachable today the outcomes are a wash — 29 true laws standing against 27, 14 converses dead against 17. |
+| **YES — the field varies by speaker** | P-H3 becomes a real gate. The credential becomes earnable and typification acquires something to sort. Stage 4 tests the payoff §11.2 was designed for. Cost: a field change §11 does not currently propose, and the honest admission that stage 3's four channels were measured in a world that could not exercise them. |
+| **NO — the field stays uniform** | Then say so and move the gate. Stage 4 gates on **P-H1/P-H2**, which have stated baselines and address the well-evidenced links of Exhibit 1's chain; part (c) is built and reported as exploratory, or deferred to stage 5 where mortality supplies the stakes. What is *not* available is keeping P-H3 as the gate: it would be measuring a property nothing in the world has. |
 
-**The finding that should govern this more than either option.** Task 5f: the
-controlling variable is **witnesses per domain, not community size** (cyclic-4
-gives 2/2/2/2 → 0 corroborations; pairs-4 gives 3/2/2/1 → 4; pairs-6 gives
-3/3/3/3 → 45). Only an extra control caught it; the brief's own table would have
-read as a clean hold. **Any future sizing argument in this series must be stated
-in witnesses per domain.**
-
-**And a reason to doubt that either option buys what it is meant to.** Task 7
-measured the extra witnesses at six units and found them **not independent in
-fact**: of 928 uptake decisions, 394 had two voices — and all 394 were twins,
-both witnesses meeting the same atom on the same round, zero relaying, the
-lower-numbered voice answering every time. Buying more independent witnesses by
-adding domains and units buys **more twins**, until the premise that produces
-twins changes — which is §11.2(a)'s slot-questions, decision A's neighbour.
-
-**Not known.** No run exists at 5 domains / 10 units. The requirement is
-arithmetic, not measurement; nothing is known about what corroboration does once
-it can actually fire under the strict rule.
+**Not known either way.** Whether 60 rounds suffices. The nearest built analogue
+to an alarm — `challenge`, once per law ever — fires a mean of **1.88 times per
+unit-run**, and no run length, sample floor or power calculation exists for the
+declared gate.
 
 ---
 
-### E · Two guards to add to THE_MEASURE_OF_KNOWLEDGE (authorization, not a fork)
+### Consequent on that decision
 
-Both are one sentence each, and every finding in Panel A turned on the first
-being absent.
+**1 · Build reliability in two layers** (ruling 1 made this a build, not a
+repair). A **credential**: earned, domain-indexed, publicly inscribed as a mark,
+so it satisfies both the scalar guard and "judgment objectivated, never owned."
+A **personal modifier**: private, in the unit's own M, from its own history, free
+to run in either direction. The bare per-peer number P-H3 currently asks for is
+the one shape neither layer licenses. *(Only worth building under YES; under NO
+it certifies nothing.)*
 
-1. **Guard #3's missing clause.** The guard forbids *aggregating* the item index,
-   not comparing per item — that distinction decides whether `Unit.peers` is legal
-   (it is) and whether P-H3 is (it is not), and it is currently unwritten. Panel A
-   tried and failed to read the guard narrowly enough to let P-H3 through.
-2. **Sign-freeness.** No guard currently forbids a measure that scores a
-   reliably-inverted channel as maximally informative. VII.2 shows that is not
-   hypothetical.
+**2 · Run the twin control** — two units with identical aperture *and* parity.
+Ruling 2 showed this needs **no premise-3 exemption**: premise 3 governs content
+divergence, the twin control probes policy divergence at fixed content, different
+axes. It supplies P-H3 clause 1's missing null, which is what currently lets that
+clause pass by arithmetic. *(Cheap and decisive under YES; under NO it just
+re-measures bit-identity.)*
 
-*Also amendable, listed above and not needing a fork: store `Unit.peers` as
-`(proved, failed)` rather than their difference — one field, and it closes the
-V.2 collision that recurs here (a peer 10-proved/10-failed currently reads
-identical to a peer never heard from).*
+**3 · Fix the enlarge/reorder gap** (VII.8) before any of it runs. Hold **doubt
+may reorder a fixed budget, never enlarge it**, or per-unit cost becomes a free
+variable, the terminal unit dissolves, and the West question is lost for a second
+reason that survives mortality. Concretely: `attention_economy` already enforces
+this (`choose(k, …)` takes the slot count from the caller); §11.2(b)'s prose does
+not. Amend the prose to match the mechanism.
 
 ---
 
-### F · The West corrections (authorization, plus one grade ruling that is yours alone)
+### Independent of it — instrument hygiene
 
-**The defect is omission, not overstatement.** No document claims the C-series
-produced or will produce a β. Four corrections follow from VII.6 and VII.7:
+**4 · Retire `net_score` as a gate statistic?** Unchanged by the rulings, and
+still the decision that must come first among these. The score rose 988 by
+destroying every true law, then 327 by restoring 28 of them; a statistic that
+rises in both directions of the thing being studied cannot gate it. Retiring it
+costs 5 load-bearing gate tests re-expressed and every cross-task comparison
+denominated in it. **Ruling 2 adds a requirement to the replacement vector**: if
+per-unit maintenance cost is the invariant quantum, the vector must carry a
+per-unit cost or capacity-utilization component, or the invariance condition is
+unmeasurable in principle. And **bits are not the replacement** — mutual
+information is sign-free, and would rank the channel that destroyed 64/64 true
+laws above the one that restored 28 (VII.2).
 
-1. **Add mortality as a seventh condition** to both canonical lists —
-   WEST_IN_KYTE_PROGRAM §8 and WEST_METHODS_NOTE. Selection between communities is
-   *not* mortality of units: the C-series has budget selection and its units were
-   still immortal, so a builder can satisfy all six conditions and still get no
-   exponent.
-2. **Close the §8 / §11.5 contradiction in the spec.** §8 still says a flat size
-   sweep "would make a letter to West worth writing"; §11.5 says the series cannot
-   reach the question until units can die. §8 is the older text and sits where a
-   builder reads for *what promotes*.
-3. **Rule the five book-chapter sentences** that name reasoning and communication
-   as the outstanding requirement — ARISBE_IN_PRACTICE:627,
-   THE_LINEAGE_AND_THE_TRIBUTARIES:252, VISION_AND_SCOPE:336, THE_KYTOS:213,
-   WEST_IN_KYTE_PROGRAM:353. Stage 3 supplied both and the answer was still no
-   exponent; an outside reader takes these as *one harness away*.
-4. **Housekeeping** (no ruling needed, only authorization): E3c still reads
-   *in flight* in CAPABILITY_MAP:219 and ROADMAP:324/131 though it was disposed
-   2026-07-27; CONTRIBUTION_AND_PRIOR_ART:239/249 and THE_COMMENS:198 carry
-   retired-experiment prose; and CAPABILITY_MAP §J.1 has **no C-series row at all**
-   for five shipped modules and 178 tests.
+**5 · `corroboration_window` — 3, 5, or 8?** Ruling 2 reframes this. The window
+governs how many questions a unit asks about a doubted law, so **it is part of
+the unit's rate parameter** — choosing it is choosing the terminal unit's size.
+Three riders now attach: it must stay **uniform across units** (nothing currently
+enforces that; it is a per-unit dataclass field), it must be **held constant
+across any size sweep** or the sweep measures the window instead of scaling, and
+**the real price of patience is unmeasured** — a longer window makes every unit
+do more work per doubt, which a count of bets cannot see. On the measured trade,
+3 → 8 saves **49 true laws** while sparing only **3** false ones, with the entire
+visible price landing in `net_score`. So: retire the statistic and 8 dominates;
+keep it and 5 is a defensible middle. **Decide #4 first.**
 
-**The grade rulings are yours by the map's own rule.** The one that matters:
+**6 · The witness rule — and a third option the rulings create.** The two
+standing readings both **count heads**; ruling 1 says heads are not equal.
+**Weight witnesses by credential instead of counting them** — one qualified voice
+in the relevant domain against two unqualified ones — which turns the floor
+*U = kD/w* from a headcount into a weighting and may dissolve the
+five-domains-and-ten-units cost entirely. Against all three options stands task
+7's measurement: at six units the extra witnesses were **not independent in
+fact** — of 928 uptake decisions, 394 had two voices, and all 394 were twins
+meeting the same atom on the same round. Buying more witnesses buys more twins
+until the premise that produces twins changes. *(Credential-weighting is
+buildable now and, like everything else here, has nothing to weigh under NO.)*
+
+**7 · Two guards, one sentence each.** Guard #3's missing clause — it forbids
+*aggregating* the item index, not comparing within it — and it must now
+**explicitly license the credential** (earned, domain-indexed, publicly
+inscribed), or a later reader applies the guard to forbid the very thing ruling 1
+authorizes, which is close to what Panel C nearly concluded. Second: nothing
+currently forbids **sign-freeness**, a measure that scores a reliably-inverted
+channel as maximally informative.
+
+**8 · The West corrections.** The defect is **omission, not overstatement** — no
+document claims the C-series produced a β. The six-condition lists in
+WEST_IN_KYTE_PROGRAM §8 and WEST_METHODS_NOTE now need **two** additions, not
+one: **mortality** (no death, no maintenance cost, no exponent) and **a fixed
+per-unit quantum** (VII.8 — a builder could add mortality and still dissolve the
+terminal unit with a budget-enlarging doubt metric). Also: close the §8/§11.5
+contradiction, which as written would license the held letter off a size sweep of
+immortal units; rule the five book-chapter sentences naming reasoning and
+communication as the outstanding requirement (ARISBE_IN_PRACTICE:627,
+THE_LINEAGE_AND_THE_TRIBUTARIES:252, VISION_AND_SCOPE:336, THE_KYTOS:213,
+WEST_IN_KYTE_PROGRAM:353); and authorize the housekeeping (E3c still reads *in
+flight*; retired-experiment prose in CONTRIBUTION_AND_PRIOR_ART:239/249 and
+THE_COMMENS:198; no C-series row at all in CAPABILITY_MAP §J.1 for five shipped
+modules and 178 tests).
+
+**The grade rulings remain yours** by the map's own rule.
 CONTRIBUTION_AND_PRIOR_ART:347 grades the kytos-as-terminal-unit row
-*queued-conjecture* — **the grade may still be right, but its stated reason is
-now wrong.** It reads "the E-series design cannot test either; a redesign is
-named," and the named redesign is the C-series, which §11.5 says also cannot
-reach it. Companion rows: VISION_AND_SCOPE:339, THE_KYTOS:389, THE_COMMENS:187,
-ROADMAP:92.
+*queued-conjecture* — the grade may still be right, but its stated reason is now
+wrong: it reads "the E-series design cannot test either; a redesign is named,"
+and the named redesign is the C-series, which cannot reach it either. Companions:
+VISION_AND_SCOPE:339, THE_KYTOS:389, THE_COMMENS:187, ROADMAP:92.
 
 *Conducted 2026-07-30 by four panels mandated to refute, on the author's ruling
 that the stage-4 design be examined before it is built. Panels A, B and C
@@ -2897,5 +2890,15 @@ reproduced VII.1 independently; VII.2's mutual-information figure, VII.6's
 omission, and the §11.2(b)/(c) asymmetry were re-verified by the recorder against
 the pinned suite and the source. The examiner who drafted §11 recorded but did
 not conduct. Exhibit 1's graph is retained at
-`.superpowers/sdd/2026-07-30-c-series-stage-3-channels/graph/` (local only).
-Dispositions await the author's rulings on the fork above.*
+`.superpowers/sdd/2026-07-30-c-series-stage-3-channels/graph/` (local only).*
+
+*Reopened the same day on the author's two rulings, which arrived after the
+panels reported and changed what the findings mean: **VII.5 disposed** by the
+credential doctrine, **amendable (d) reversed** (the West appeal needed making
+precise, not striking), **VII.8 entered** (the enlarge-vs-reorder gap, found by
+pressing ruling 2 against `attention_economy` and verified in the source), and
+the decision section rewritten around the one empirical question the rulings do
+not touch. The pattern is worth recording: both rulings **cleared doctrine that
+had looked like a blocker, and neither moved the measurement** — which is how
+VII.4 went from one finding among seven to the finding the rest now hang on.
+Remaining dispositions await his rulings on the decisions above.*
