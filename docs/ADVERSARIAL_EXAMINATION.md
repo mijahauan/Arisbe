@@ -2499,6 +2499,69 @@ calculation for its declared gate.
 > P-H3 clause 2 needs. The world now has speakers to tell apart; whether the
 > run is long enough to tell them apart is unmeasured.
 
+**VII.10 — The ruling was necessary and is not sufficient, and the measurement
+says why: a liar cannot get a lie into the channel (measured 2026-07-31,
+`tests/test_c_speaker_variance.py`).** With the field now able to vary by
+speaker, the obvious next move was to re-run the typify channel in the world
+task 6 said it lacked. It was run, and typification is **still exactly inert**.
+
+The reason is not the one the examination expected. It is not that the credit
+ledger is too weak to notice a liar. **A unit at `spurious=0.9` mis-observes 314
+atoms across a run and transmits none of them** — 0 fabricated adoptions of 798
+uptakes at eight seeds, and 1 of 819 at `spurious=0.5`. `Unit.answer` answers
+open questions from its own facts, and a question names an atom the asker's own
+record already licenses, so an answer either carries **that** atom or is not an
+answer. A fabricated atom is one nobody asked about, and the channel has no move
+by which a unit volunteers anything. Task 6's "confirmation channel, not a
+discovery channel — it can import neither error nor novelty" was inferred from
+the field's spurious atoms; this demonstrates it against a speaker built to lie.
+
+**The one route that does work is the finding's sharp edge.** Make *every* unit
+unreliable and fabrications cross — 23 of 474 uptakes — because an unreliable
+**asker** mis-observes a body, its own record then licenses a question about an
+atom the field never licensed, and the channel confirms it. **A lie enters this
+community by being asked about, never by being told.** Which says something the
+series had not said: the channel's inability to carry error is not a safety
+property, it is the same property as its inability to carry news.
+
+Measured across three levels of unreliability, the typified and untargeted arms
+stay identical on every key, and `occ_bite` — decisions where the preference
+named someone *other* than the peer already answering — is **0 in all three**:
+
+| | true lost | conv lost | uptakes | fabricated | preferences | occ_bite |
+|---|---|---|---|---|---|---|
+| no liar | 36 | 0 | 939 | 0 | 1 | **0** |
+| u1 unreliable | 45 | 2 | 798 | 0 | 3 | **0** |
+| all four unreliable | 58 | 21 | 474 | 23 | 5 | **0** |
+
+So **task 6's stated reason was incomplete rather than wrong** — the same
+correction task 7 applied to task 6 once before. Speaker-variance does not
+rescue typification, because "nothing to sort" was not the only blocker: there
+is no **choice** to make. Task 7 measured all 939 uptake decisions at four units
+as having exactly one voice, and an unreliable speaker does not supply a second.
+Unreliability *does* degrade the community (true laws lost 36 → 45 → 58), but by
+the **observation** path, never the testimony path — units are hurt by what they
+mis-see, not by what they are told.
+
+**What this licenses, and it is the first causal chain the series has produced
+rather than another null.** A liar cannot lie, two peers cannot disagree
+(task 7's structural limit), and typification is never offered two speakers —
+all three are **one property of the question**, and §11.2(a)'s slot-question
+`(R *x)` is exactly the change that removes it. A free slot lets a peer return a
+filler the asker did not name, which is simultaneously the first way two answers
+can differ and the first way a lie can be volunteered.
+
+> **PRE-REGISTERED.** With slot-questions and one unreliable speaker, fabricated
+> adoptions rise above zero and the typified arm stops reproducing the
+> untargeted arm. **If typification is still inert there, the defect is in
+> typification and not in its world**, and the "no unreliable speaker" limit is
+> discharged as an explanation.
+
+The zero is on the record as a baseline before the mechanism that should move it
+exists. *(Note on standing: these figures were measured and then pinned, not
+pre-registered — the series distinguishes the two and the distinction is kept.
+Only the claim in the block above is pre-registered.)*
+
 **VII.5 — The unruled hole is narrower than "where does a reliability ledger
 live," and the answer the code gives is the one forbidden on publication (Panel
 C).** Examination VI already settled the seam: settlements are "**negotiated at

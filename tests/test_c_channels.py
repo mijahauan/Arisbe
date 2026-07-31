@@ -11,6 +11,7 @@ disposed of by its author against its own record. Its measurement gates are at
 the bottom, and they report a NEGATIVE result, deliberately unsmoothed.
 """
 
+import dataclasses
 from collections import Counter
 
 import pytest
@@ -2130,7 +2131,8 @@ def _witness_induce_arm(n_units, scheme, witnesses=None):
 
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                             scheme=CYCLIC, window=None, witnesses=None,
-                            typify=None, rep_window=None, mute=False):
+                            typify=None, rep_window=None, mute=False,
+                            liars=()):
     """A community of `n_units`, planted laws AND converses seeded, no
     induction, bounded attention. `ask` switches the ask/answer/adopt channel on
     and off; the challenge channel runs in both arms, so the only variable is
@@ -2175,7 +2177,14 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
         raise ValueError(
             "mute=True silences publication, so there is nothing for the ask "
             "channel to answer from: pass ask=False with it")
+    # `liars` IS EXAMINATION VII's RULING MADE AVAILABLE HERE: (unit_id,
+    # ObserverNoise) pairs, so one unit's OBSERVATION of its domains can
+    # differ from its neighbours'. Empty by default, and an unnamed unit
+    # reads the domain stream unchanged, so every figure this driver
+    # produced before the argument existed reproduces exactly.
     spec = default_spec(seed=seed)
+    if liars:
+        spec = dataclasses.replace(spec, observers=tuple(liars))
     field = Field(spec)
     aps = apertures_for(spec, n_units=n_units, scheme=scheme)
     planted = {d.name: d.law for d in spec.domains}
@@ -2427,6 +2436,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                  voices=voices, voices_by_rel=voices_by_rel,
                  **exits)
     tally["bets"] = tally["hits"] + tally["misses"]
+    tally["units"] = units          # for per-peer inspection; not aggregated
     for u in units:
         laws, conv = mine[u.unit_id]
         for body, head in sorted(laws):
