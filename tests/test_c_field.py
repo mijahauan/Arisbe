@@ -265,7 +265,9 @@ def test_a_wrong_law_has_a_nonzero_hit_ceiling():
     for r in range(60):
         rival.step(field, r, induce=False)
     assert rival.ledger.hits > 0, "the wrong law cannot win — no real falsifier"
-    assert rival.ledger.net_score < 0, "the wrong law must still lose overall"
+    assert rival.ledger.misses > rival.ledger.hits, (
+        "the wrong law must still lose overall — "
+        f"{rival.ledger.hits}h/{rival.ledger.misses}m")
 
 
 def test_noise_withholds_some_consequents_and_adds_some_spurious():

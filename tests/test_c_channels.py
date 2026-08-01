@@ -576,9 +576,18 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
     abstention would be 0 and where the same pair with FULL attention makes +48.
     Communication here repairs a deficit of attention; it does not substitute for
     attention.
+
+    WHY A NET COMPARISON WAS SAFE HERE AND IS STILL RETIRED. This arm seeds the
+    law and runs no challenge channel, so no law can be lost in either arm and
+    the inversion mechanism — buying a better score by destroying knowledge — is
+    structurally absent. The comparison was therefore trustworthy here in a way
+    it was not in GATE 1. It is retired anyway, because a gate that reads
+    correctly only because of a property of its arm is a gate whose next reader
+    has to rediscover that property. What the arm measures is stated instead:
+    the channel sheds more losing stakes than winning ones.
     """
     live_pairs, mute_pairs = [], []
-    live_hits = mute_hits = 0
+    live_hits = mute_hits = live_misses = mute_misses = 0
     for seed in SEEDS:
         live, board, answers, uptakes = _play(seed, ROUNDS, channel=True,
                                               stagger=2)
@@ -586,16 +595,72 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
         assert answers > 0 and uptakes > 0, (
             f"seed {seed}: the channel carried nothing, so nothing was tested")
         # Per-arm, so a single losing seed fails the gate and names itself.
+        # RE-EXPRESSED 2026-07-31: the old form compared two net scores across
+        # arms, which is the comparison the retirement forbids. In THIS arm no
+        # law can be lost — `_play` seeds the law and runs no challenge channel —
+        # so the score cannot be bought by destroying knowledge, and what the
+        # channel actually does is shed losing stakes. That is stated directly,
+        # and the shedding is made visible rather than folded into a scalar.
         for asking, silent in zip(live, mute):
-            assert asking.ledger.net_score > silent.ledger.net_score, (
-                f"seed {seed} {asking.unit_id}: asking "
-                f"({asking.ledger.net_score:+d}) did not beat mute "
-                f"({silent.ledger.net_score:+d})")
+            assert asking.ledger.misses < silent.ledger.misses, (
+                f"seed {seed} {asking.unit_id}: asking shed no losing stake "
+                f"({asking.ledger.misses} misses vs mute's "
+                f"{silent.ledger.misses})")
+            shed_misses = silent.ledger.misses - asking.ledger.misses
+            shed_hits = silent.ledger.hits - asking.ledger.hits
+            # KEPT CLAUSE FIVE, and named as one. Rearranged, this IS
+            # `asking.net_score > silent.net_score` — the comparison the
+            # retirement forbids as a verdict. It stands here because on THIS
+            # arm no law can be lost (`_play` seeds the law and runs no
+            # challenge channel), so the score cannot be bought by destroying
+            # knowledge, which is the argument the docstring above makes. The
+            # rule is spelling-independent: unfolding a forbidden comparison
+            # into its components does not remove it, so it is annotated rather
+            # than claimed gone.
+            assert shed_misses > shed_hits, (
+                f"seed {seed} {asking.unit_id}: the channel shed {shed_hits} "
+                f"hits against {shed_misses} misses — it cost more than it saved")
+        # NO PARTICIPATION CLAUSE HERE, and the absence is the point. Ceasing to
+        # forecast is exactly the behaviour GATE 1 flags, so this gate must not
+        # assert that the live arm kept betting — it did not, and that IS the
+        # finding. The shedding is made visible by the two clauses above instead.
+        # (Per the author's ruling of 2026-07-31: a participation clause is
+        # asserted only where it can fail; a tautology here would read as
+        # protection that is not there.)
         live_pairs.append(sum(u.ledger.net_score for u in live))
         mute_pairs.append(sum(u.ledger.net_score for u in mute))
         live_hits += sum(u.ledger.hits for u in live)
         mute_hits += sum(u.ledger.hits for u in mute)
-    assert sum(live_pairs) > sum(mute_pairs)
+        live_misses += sum(u.ledger.misses for u in live)
+        mute_misses += sum(u.ledger.misses for u in mute)
+    # THE AGGREGATE, RE-EXPRESSED 2026-07-31 for the same reason as the per-arm
+    # clauses above. `sum(live_pairs) > sum(mute_pairs)` is not asserted here —
+    # but KEPT CLAUSE SIX below (`(mute_misses - live_misses) > (mute_hits -
+    # live_hits)`) is algebraically that same cross-arm net-score comparison,
+    # unfolded into its hit/miss components rather than removed: the
+    # retirement forbids a cross-arm net-score VERDICT, and unfolding a
+    # forbidden comparison into its components does not make it a different
+    # comparison, so it is annotated and kept, not claimed gone — for the same
+    # reason KEPT CLAUSE FIVE gives above (this arm seeds the law and runs no
+    # challenge channel, so no law can be lost and the score cannot be bought
+    # by destroying knowledge). The genuinely NEW clause, not entailed by any
+    # net comparison, is `asking.ledger.misses < silent.ledger.misses` above
+    # (the per-seed miss-shedding clause) — that is what makes this gate
+    # strictly stronger than the one it replaced. Net is REPORTED in the
+    # message, never asserted as the verdict on its own.
+    assert live_misses < mute_misses, (
+        f"the channel shed no losing stake in aggregate — live {live_misses} "
+        f"misses against mute's {mute_misses} (net {sum(live_pairs)} vs "
+        f"{sum(mute_pairs)}, reported not asserted)")
+    # KEPT CLAUSE SIX, and named as one. Rearranged, this IS
+    # `sum(live_pairs) > sum(mute_pairs)` — the aggregate comparison the
+    # retirement forbids as a verdict. It stands here for the reason given
+    # above: no law can be lost on this arm, so the score cannot be bought by
+    # destroying knowledge. Spelling-independent, same as clause five.
+    assert (mute_misses - live_misses) > (mute_hits - live_hits), (
+        f"the channel shed {mute_hits - live_hits} hits against "
+        f"{mute_misses - live_misses} misses in aggregate — it cost more than "
+        f"it saved")
     # AN ANSWER PREVENTS A BET, IT DOES NOT WIN ONE: the live arm takes FEWER
     # hits than the mute arm and improves anyway, by shedding losing stakes.
     assert live_hits <= mute_hits
@@ -643,7 +708,10 @@ def test_with_full_attention_the_ask_channel_is_inert_rather_than_harmful():
                 silent.ledger.hits, silent.ledger.misses), (
                 f"seed {seed} {asking.unit_id}: the channel moved the record "
                 f"without carrying anything")
-            assert asking.ledger.net_score > 0     # full attention makes money
+            # Full attention makes money. Within one arm, and safe: the line
+            # above has just pinned the two arms' hits and misses EQUAL, so no
+            # cross-arm reading is being taken from a scalar here.
+            assert asking.ledger.hits > asking.ledger.misses
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():
@@ -946,10 +1014,11 @@ def test_a_self_raised_doubt_asks_before_it_eliminates():
     asked = [m for m in board.all_marks() if m.kind == "question"]
     assert [m.author for m in asked] == ["u0"]
     assert asked[0].content[0] == "q1"               # about a pending head
-    for r in range(3, 7):                            # the inquiry runs
+    w = u0.corroboration_window
+    for r in range(3, 2 + w):                        # the inquiry runs
         assert not u0.dispose_challenges(board, r)
         assert ("p1", "q1") in u0.suspended
-    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
+    out = u0.dispose_challenges(board, 2 + w)         # round - 2 == the window
     assert out.retracted_internally == [("p1", "q1")]
     assert ("p1", "q1") not in u0.laws and u0.suspended == set()
 
@@ -982,14 +1051,15 @@ def test_the_inquiry_that_repairs_the_record_saves_the_law():
     assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
     assert not u0._meets_criterion(("p1", "q1"), 2)  # condemned when it opened
     u1.facts.update({("q1", (("c", "z2"),)), ("q1", (("c", "z3"),))})
-    for r in range(3, 7):
+    w = u0.corroboration_window
+    for r in range(3, 2 + w):
         for mark in u1.answer(board, r):            # answers what was asked
             u0.adopt(mark, board, r)
         u0.dispose_challenges(board, r)             # asks the next one
     assert ("q1", (("c", "z2"),)) in u0.facts
     assert ("q1", (("c", "z3"),)) in u0.facts
-    assert u0._meets_criterion(("p1", "q1"), 7)     # the record was repaired
-    out = u0.dispose_challenges(board, 7)
+    assert u0._meets_criterion(("p1", "q1"), 2 + w)  # the record was repaired
+    out = u0.dispose_challenges(board, 2 + w)
     assert out.restored_by_silence == [("p1", "q1")]
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1422,7 +1492,7 @@ def test_the_author_s_own_later_observation_restores_the_law():
 def test_silence_restores_the_law_when_the_window_runs_out():
     """SILENCE CANNOT ELIMINATE. A challenge that gathers no support has failed,
     and "do not eliminate until corroboration" fixes the direction the window
-    must end in. The default is five rounds and it is the author's to overrule."""
+    must end in. The default is eight rounds and it is the author's to overrule."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     _sustain(u0)
@@ -1432,11 +1502,12 @@ def test_silence_restores_the_law_when_the_window_runs_out():
     u1.facts.add(("p1", (("c", "z9"),)))
     u1.challenge(board, 1)
     assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
-    assert u0.corroboration_window == 5
-    for r in range(3, 7):
+    w = u0.corroboration_window
+    assert w == 8, "the ruled default (2026-07-31); the arithmetic below derives from it"
+    for r in range(3, 2 + w):
         assert not u0.dispose_challenges(board, r)
         assert ("p1", "q1") in u0.suspended
-    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
+    out = u0.dispose_challenges(board, 2 + w)         # round - 2 == the window
     assert out.restored_by_silence == [("p1", "q1")]
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1456,8 +1527,10 @@ def test_a_challenge_that_failed_to_gather_support_does_not_raise_the_doubt_agai
     u1.facts.add(("p1", (("c", "z9"),)))
     u1.challenge(board, 1)
     u0.dispose_challenges(board, 2)
-    u0.dispose_challenges(board, 7)                  # restored by silence
-    for r in range(8, 14):
+    w = u0.corroboration_window
+    expiry = 2 + w
+    u0.dispose_challenges(board, expiry)             # restored by silence
+    for r in range(expiry + 1, expiry + 7):
         assert not u0.dispose_challenges(board, r)
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1616,6 +1689,25 @@ C_ROUNDS = 60
 C_SEEDS = [1, 2, 3, 4, 5, 7, 42, 99]
 
 
+def _assert_uniform_rate(units):
+    """Every unit in one community must carry the same rate parameters.
+
+    RULING 2 (2026-07-31) made the disposition knobs part of the terminal unit's
+    RATE. West's question asks whether capacity and rate stay invariant as a
+    community grows; a community whose units already disagree about their own
+    rate cannot answer it, and a sweep that changed the window for some units
+    would measure the window rather than the scaling.
+    """
+    rates = {u.unit_id: (u.corroboration_window, u.corroborating_witnesses,
+                         u.replication_window) for u in units}
+    distinct = set(rates.values())
+    if len(distinct) > 1:
+        raise ValueError(
+            "mixed rate parameters across a community: the terminal unit's "
+            "(corroboration_window, corroborating_witnesses, replication_window) "
+            f"must be uniform, got {dict(sorted(rates.items()))}")
+
+
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                     wrong_laws=False, induce=True, n_units=4, scheme=CYCLIC,
                     window=None, witnesses=None):
@@ -1654,6 +1746,7 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
         if witnesses is not None:
             u.corroborating_witnesses = witnesses
         units.append(u)
+    _assert_uniform_rate(units)
     board = MarkBoard()
     raised = 0
     events = []                    # (unit_id, law, why), with repeats: the thrash
@@ -1685,13 +1778,169 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
     return spec, units, board, raised, events, tally
 
 
+def _cost_reading(units, board):
+    """What each unit's acts cost, READ where the acts already reside.
+
+    THE_KYTOS §1.3: an act's effect resides in its report inside the membrane
+    (`MembraneLedger`), in resources outside it, and in the shared reports among
+    kytē (`MarkBoard`, which carries author, kind and round on every mark). None
+    of that needs a counter. Only attendance did, and that is `Unit.attended`.
+
+    KINDS ARE KEPT APART AND NEVER SUMMED. Summing a board read and a challenge
+    into one "cost" would price two different acts alike, which is the collision
+    `Unit.peers` refuses for (borne out, not borne out).
+
+    INTERNAL WORK THAT LEAVES NO REPORT IS NOT COUNTED, deliberately. An act
+    whose effect reaches no report has no channel by which to influence
+    anything, so counting it privately would invent one. This reading therefore
+    sees channel work and attendance and does NOT see materialization or
+    anticipation work — a named limit, not an oversight.
+
+    This lives in the tests because it is an OBSERVER's reading. Putting it in
+    `src/` would hand a unit a faculty it does not have.
+    """
+    authored = Counter((m.author, m.kind) for m in board.all_marks())
+    out = {}
+    for u in units:
+        marks = {kind: n for (author, kind), n in sorted(authored.items())
+                 if author == u.unit_id}
+        out[u.unit_id] = {
+            "attended": u.attended,
+            "marks": marks,
+            "bets": u.ledger.hits + u.ledger.misses,
+            "per_round": ({k: n / u.attended for k, n in marks.items()}
+                          if u.attended else {}),
+        }
+    return out
+
+
+def test_the_cost_reading_reads_residences_that_already_exist():
+    """COST IS READ, NOT INSTRUMENTED (THE_KYTOS §1.3). An act's effect resides
+    in the report inside the membrane, in resources outside it, and in the shared
+    reports among kytē — so a private counter beside the act would duplicate two
+    of the three and invent the observer the doctrine refuses.
+
+    The board already reports every channel act, attributed and dated; the ledger
+    already holds the bets. `Unit.attended` is the only number that existed
+    nowhere. This reader composes the three and adds nothing.
+
+    THE TWIN IS THE POINT. Two units with the same aperture and the same rate
+    parameters must read the same attendance — that is ruling 2's invariance
+    condition made checkable, and it is what a size sweep would have to hold."""
+    _spec, units, board, *_ = _play_challenge(20260728, 20, channel=True,
+                                              stagger=1, seed_laws=True)
+    cost = _cost_reading(units, board)
+
+    # Attendance is uniform where attention is: stagger=1 means all four met
+    # every round.
+    assert {c["attended"] for c in cost.values()} == {20}
+    # Every published mark is attributed to the unit that made it, and the
+    # reading's per-unit totals account for the whole board.
+    assert sum(sum(c["marks"].values()) for c in cost.values()) == \
+        len(board.all_marks())
+    # The reading is per KIND, never summed across kinds: a board read and a
+    # challenge are not the same act and may not be priced alike.
+    assert all(isinstance(c["marks"], dict) for c in cost.values())
+    # And it is a RATE, with attendance as its denominator.
+    for c in cost.values():
+        for kind, n in c["marks"].items():
+            assert c["per_round"][kind] == n / c["attended"]
+
+
+def test_the_cost_reading_reads_zero_for_a_unit_that_never_attended():
+    """A unit that never met the field has no rate, not a zero one — the same
+    discipline `MembraneLedger.accuracy` keeps for an abstainer. Dividing by an
+    attendance of zero would fabricate a denominator."""
+    spec = default_spec(seed=20260728)
+    ap = apertures_for(spec, n_units=4)[0]
+    idle = Unit("u0", ap)
+    cost = _cost_reading([idle], MarkBoard())
+    assert cost["u0"]["attended"] == 0
+    assert cost["u0"]["per_round"] == {}
+
+
+def test_a_community_of_mixed_rates_is_refused():
+    """RULING 2 (2026-07-31): the disposition knobs ARE the terminal unit's rate
+    parameter, so a community whose units disagree on them is not a community of
+    terminal units and any West-shaped reading off it is void. Nothing enforced
+    this before — `corroboration_window` is a per-unit dataclass field any caller
+    could set individually.
+
+    The refusal names what disagreed, in the style `apertures_for`'s
+    `min_witnesses` already uses: a silent mixed-rate run is the failure mode,
+    not a loud one."""
+    spec = default_spec(seed=20260728)
+    aps = apertures_for(spec, n_units=4)
+    units = [Unit(f"u{i}", aps[i]) for i in range(4)]
+    _assert_uniform_rate(units)                     # uniform by construction
+
+    units[2].corroboration_window = 3
+    with pytest.raises(ValueError) as exc:
+        _assert_uniform_rate(units)
+    assert "rate" in str(exc.value)
+    assert "u2" in str(exc.value)
+
+
+def test_a_sweep_still_varies_the_window_for_the_whole_community():
+    """The guard forbids a MIXED community, never a swept one. A sweep sets the
+    window for every unit at once, which is what a sweep should always have been
+    doing — and `test_the_silence_window_at_three_five_and_eight` is exactly such
+    a sweep, so it must keep passing untouched."""
+    spec, units, *_ = _play_challenge(20260728, 10, channel=True, window=3)
+    assert {u.corroboration_window for u in units} == {3}
+
+
 def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
     """THE HEADLINE, AND IT IS POSITIVE — which is not what three of the
     measurements in this file report, so read the counts rather than the
     direction.
 
-    Eight seeds, 60 rounds, four units inducing from what they meet. Four rules
-    have now been measured on this arm, and the columns are the argument:
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Eight seeds, 60
+    rounds, four units inducing from what they meet. Four rules have now been
+    measured on this arm, and the columns are the argument:
+
+                                    existential  suspension  +open world  +inquiry
+        raised                               58          58           60        60
+        suspended                             —          28           60        60
+        eliminated by corroboration           —          18           12         0
+        retracted by internal re-assessment   —          38            6         6
+        restored by rebuttal                  —           2           44        46
+        restored by silence                   —           0            0         4
+        ----------------------------------------------------------------------------
+        distinct (unit, law) defeats         58          56           16         6
+        **true laws still gone at the end**  34           2            0         2
+        retraction events (thrash)          426          56           16         6
+        net live / net mute             384/596     454/596     932/1038   924/1038
+
+    THE LAST COLUMN IS THIS TASK: the internal arm no longer eliminates on the
+    spot, and the corroboration tally no longer counts the author's own record
+    (`Unit.Doubt`). Defeats fall from 16 to 6 and corroborated eliminations from
+    12 to 0 — every one of those 12 had the author's own published challenge in
+    the live set, so what read as a peer bearing out a doubt was a unit's record
+    voting twice. Four doubts now end in silence where none did, which is the
+    window doing the job it was built for and had never once been given.
+
+    TWO TRUE LAWS ARE NOW PERMANENTLY LOST WHERE NONE WERE AT WINDOW 5 — the
+    longer window is not free even on the metric this test exists to protect.
+    A law given up by `retracted_internally` is one whose own author's record
+    stayed against it for the whole window; the window's only job on that path
+    is to give an inquiry more rounds to repair the record before the law goes,
+    and at eight rounds two of the doubts opened simply outlast the repair
+    without a peer ever supplying the missing head. This is the price named but
+    left open in `corroboration_window`'s own docstring ("a longer window makes
+    every unit do more work per doubt") showing up on a different meter: not
+    more work, but two laws the five-round window would have kept.
+
+    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+924 live
+    against +1038 mute** — an 11% cost, materially unchanged from window 5's
+    11%, against 24% for the ruling alone and 36% for the existential rule. The
+    cost is what suspension is: a true law mute for the window forgoes the hits
+    it would have won, and holding a doubt open longer rather than closing it
+    early costs that many more rounds of licence. It loses at 8 of 8 seeds,
+    asserted per-seed.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
                                     existential  suspension  +open world  +inquiry
         raised                               58          58           60        60
@@ -1706,25 +1955,10 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         retraction events (thrash)          426          56           16         4
         net live / net mute             384/596     454/596     932/1038   922/1038
 
-    THE LAST COLUMN IS THIS TASK: the internal arm no longer eliminates on the
-    spot, and the corroboration tally no longer counts the author's own record
-    (`Unit.Doubt`). Defeats fall from 16 to 4 and corroborated eliminations from
-    12 to 0 — every one of those 12 had the author's own published challenge in
-    the live set, so what read as a peer bearing out a doubt was a unit's record
-    voting twice. Ten doubts now end in silence where none did, which is the
-    window doing the job it was built for and had never once been given.
-
-    NOTHING WAS BOUGHT BY LOSING BITE ON THIS ARM: permanent loss of true laws
-    was already 0 and stays 0, and no unplanted law stands at the end of any
-    seed. At three of the eight seeds the run now completes with nothing defeated
-    at all — challenges raised, laws suspended, doubts inquired into and closed.
-
-    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+922 live
-    against +1038 mute** — an 11% cost, against 10% before this task, 24% for the
-    ruling alone and 36% for the existential rule. The cost is what suspension
-    is: a true law mute for the window forgoes the hits it would have won, and
-    holding a doubt open for five rounds rather than closing it in one costs
-    five rounds of licence. It loses at 8 of 8 seeds, asserted per-seed.
+    At window 5 the last column read: defeats fall from 16 to 4 and corroborated
+    eliminations from 12 to 0; ten doubts end in silence; no true law is
+    permanently lost; the score cost is +922 live against +1038 mute, an 11%
+    cost against 10% before that task.
     """
     raised_total = 0
     agg = {k: 0 for k in ("suspended", "internal", "corroborated",
@@ -1756,6 +1990,11 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         lost_false += sum(1 for _u, law in gone if law not in planted)
         live_net = sum(u.ledger.net_score for u in live)
         mute_net = sum(u.ledger.net_score for u in mute)
+        # KEPT UNDER THE RETIREMENT, like GATE 1's decomposition clause. This
+        # compares two arms' net scores, which as a VERDICT the 2026-07-31 ruling
+        # forbids — but its content is that the channel COSTS score while saving
+        # the true laws the existential rule destroyed. It asserts the inversion,
+        # it does not decide by it, and deleting it would remove the evidence.
         assert live_net < mute_net, (
             f"seed {seed}: the channel did not cost anything "
             f"({live_net:+d} against {mute_net:+d})")
@@ -1767,47 +2006,72 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         false_defeats += false_here
         live_total += live_net
         mute_total += mute_net
-    assert (raised_total, defeats, false_defeats) == (60, 4, 4)
-    assert agg == {"suspended": 60, "internal": 4, "corroborated": 0,
-                   "rebutted": 44, "silence": 10}
+    assert (raised_total, defeats, false_defeats) == (60, 6, 6)
+    assert agg == {"suspended": 60, "internal": 6, "corroborated": 0,
+                   "rebutted": 46, "silence": 4}
     # THE COMPARISON THIS TASK EXISTS FOR: 34 of 58 true laws permanently lost
-    # under the existential rule, 2 under the ruling, NONE once `pending` is
-    # read open-world.
-    assert (lost_true, lost_false) == (0, 0)
+    # under the existential rule, 2 under the ruling, 0 at window 5 once
+    # `pending` is read open-world, and 2 again at window 8 (see the
+    # docstring's "TWO TRUE LAWS ARE NOW PERMANENTLY LOST" finding).
+    assert (lost_true, lost_false) == (2, 0)
     # One retraction event per defeat: induction and disposal have stopped
     # fighting (426 events for 98 defeats before).
-    assert events_total == defeats == 4
-    assert (live_total, mute_total) == (922, 1038)
+    assert events_total == defeats == 6
+    assert (live_total, mute_total) == (924, 1038)
 
 
 def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_record():
     """IT DID NOT BECOME TOOTHLESS, and the teeth stayed inward.
 
-    Same eight seeds and rounds, each unit additionally seeded with the CONVERSE
-    of its first domain's law — a law the field does not carry, so defeating it
-    is a correct retraction. Measured after inquiry was put before elimination:
-    **31 of 32 converses defeated and permanently gone, the thirty-second still
-    SUSPENDED when the run ended, 4 true laws defeated and all 4 recovered, none
-    permanently lost.** It was 32 of 32 with 16 recovered before this task, and
-    the one that now survives is not an escape: at seed 42 the converse
-    `g_head -> g_local` is first disputed at round 55 and suspended there, and
-    the run stops at 59 with its five-round window still open. It licenses
-    nothing throughout — the arm asserts that rather than counting it as held.
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Same eight seeds
+    and rounds, each unit additionally seeded with the CONVERSE of its first
+    domain's law — a law the field does not carry, so defeating it is a correct
+    retraction. Measured after inquiry was put before elimination: **31 of 32
+    converses defeated and permanently gone, the thirty-second still SUSPENDED
+    when the run ended, 6 true laws defeated, 4 recovered and 2 permanently
+    lost.** It was 32 of 32 with 16 recovered before the ruling, and 31 of 32
+    with all 4 true laws recovered at window 5. The converse that survives is
+    the same one as at window 5 and is still not an escape: at seed 42 the
+    converse `g_head -> g_local` is first disputed at round 55 and suspended
+    there, and the run stops at 59 with its eight-round window still open. It
+    licenses nothing throughout — the arm asserts that rather than counting it
+    as held.
+
+    THE TWO LOST TRUE LAWS ARE SEED 1's, the same seed and the same finding as
+    `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`'s: a
+    longer window gives an internal doubt more rounds to run, and at seed 1 two
+    of those doubts outlast the eight rounds without a peer supplying the
+    missing head. This is not a new mechanism — it is the same trade read from
+    the false-law test's side of the board.
 
     EVERY ONE OF THE 31 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer,
     exactly as before, and now every one of them waits out the window first. A
     converse's individuals are refuting and stay refuting: `a_head -> a_local`
-    leaves individuals pending whose bodies the unit has held for many rounds, so
-    five rounds of inquiry change nothing about it, and nothing arrives to save
-    it. That is what a delay before elimination is supposed to do to a false law
-    — cost time, not bite.
+    leaves individuals pending whose bodies the unit has held for many rounds,
+    so eight rounds of inquiry change nothing about it, and nothing arrives to
+    save it. That is what a delay before elimination is supposed to do to a
+    false law — cost time, not bite.
 
     THE ARITHMETIC OF THE TRADE. The mute arm pays **77** for holding those
-    converses (+1038 to +961); the live arm is **+922 in both arms**, identical
-    seed by seed, because the wrong law still dies before it can bet much. So the
-    benefit is 77 and the cost is 961 − 922 = **39**, against 29 before this task,
-    142 for the ruling alone and 212 for the existential rule. The delay costs
-    ten points of the seventy-seven and buys the true laws their inquiry.
+    converses (+1038 to +961); the live arm is **+924**, so the benefit is 77
+    and the cost is 961 − 924 = **37**, against 39 at window 5, 29 two tasks
+    before, 142 for the ruling alone and 212 for the existential rule. The two
+    lost true laws show up here too: the live arm no longer matches the mute
+    arm seed by seed as it did at window 5, because seed 1 now loses a true law
+    and forgoes the hits it would have earned, while the mute arm — which
+    disposes of nothing, channel or no, since `dispose_challenges` only runs
+    `if channel` — keeps holding it, so the identity that held at window 5
+    does not hold at window 8.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason: 31 of 32 converses
+    defeated, the thirty-second still SUSPENDED at the run's end; 4 true laws
+    defeated and all 4 recovered, none permanently lost; every one of the 31
+    false-law defeats by internal re-assessment; live and mute arms identical
+    at **+922 both**, so the whole 77-point benefit
+    of holding the converses cost only 1038 − 922 = **39** — the delay costing
+    ten of the seventy-seven and buying the true laws their inquiry, with no
+    loss of a true law to weigh against it.
     """
     internal_false = corroborated_false = 0
     correct = recovered_true = lost_true = 0
@@ -1845,8 +2109,8 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
     assert correct == 31
     # THE AMENDMENT'S QUESTION: which arm does the discriminating work?
     assert (internal_false, corroborated_false) == (31, 0)
-    assert (recovered_true, lost_true) == (4, 0)
-    assert (live_total, mute_total) == (922, 961)
+    assert (recovered_true, lost_true) == (4, 2)
+    assert (live_total, mute_total) == (924, 961)
 
 
 def test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally():
@@ -1933,6 +2197,10 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     # none, and not one of them changes a law's fate, because no channel is
     # carrying anything back.
     assert (internal, external, suspended, calls) == (66, 0, 66, 66)
+    # KEPT UNDER THE RETIREMENT, and this is the sharpest instance of why the
+    # statistic was retired: the score improves while `true_held` above reads 0
+    # of 64. The clause asserts that inversion; it decides nothing by it. The
+    # exact figures are pinned on the next line.
     assert live_total > mute_total
     assert (live_total, mute_total) == (-433, -1421)
 
@@ -2057,31 +2325,63 @@ def test_on_the_induce_arm_corroboration_buys_churn():
     THRASH. Eight seeds, 60 rounds, units inducing from what they meet, the
     challenge channel live — the arm where the previous four rules were compared.
 
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
+
+        arm                raised  susp  CORROB  internal  rebutted  silence  defeats  true lost   net live/mute
+        4 units cyclic         60    60       0         6        46        4        6          2     924 / 1038
+        4 units PAIRS          51    51       6         2        41        0        8          0     923 / 1033
+        6 units pairs          90    90      24         0        66        0       24          0    1398 / 1557
+        6 units pairs w=3      90    90       0         9        69        6        9          3    1386 / 1557
+
+    (The four-unit cyclic row is Task 5e's, reproduced digit for digit; it is
+    asserted in `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`
+    and is repeated here only as the column to read the others against — its
+    window-8 reading is 924/1038 with 6 internal and 2 true laws permanently
+    lost, exactly as that test now reports.)
+
+    TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS still holds at six units with
+    the looser bar (`witnesses` left at the field's own default): every law
+    corroboration eliminates there is induced again from the record that still
+    supports it, so the retraction event happens and the law comes back. The
+    internal arm still goes fully silent at that bar (0 internal retractions, 0
+    restorations by silence) because corroboration closes every doubt before the
+    window can act.
+
+    THE STRICTER BAR NO LONGER READS LIKE THE SMALL COMMUNITY: at witnesses=3,
+    corroboration still never fires (0), but the longer window turns 6 internal
+    retractions into 9 and 15 silences into 6 — the same trade the window's own
+    docstring names, more rounds for an internal doubt to run before it is
+    forced to a verdict. THREE TRUE LAWS ARE NOW PERMANENTLY LOST AT THIS BAR
+    WHERE NONE WERE AT WINDOW 5 — the same mechanism as the four-unit cyclic
+    arm's two, showing up again wherever a doubt is settled by this unit's own
+    record rather than a peer's: eight rounds is long enough for some of those
+    doubts to outlast the repair.
+
+    SO THE CLAIM NARROWS: it is not that nothing is bought at any bar — it is
+    that corroboration itself still buys nothing (0 permanent loss from a
+    corroborated elimination in every arm measured, at either bar) while the
+    window it now shares the arm with has its own separately-measured price.
+    The channel's cost is unchanged in direction and materially unchanged in
+    size: 10.98% at both four units (cyclic) and six units (the stricter bar) —
+    the same figure at both community sizes, which was also true at window 5
+    (11.18% at both). Corroboration produced churn, exactly as before; the
+    window is what now also occasionally costs a law.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
         arm                raised  susp  CORROB  internal  rebutted  silence  defeats  true lost   net live/mute
         4 units cyclic         60    60       0         4        44       10        4          0     922 / 1038
         4 units PAIRS          51    51       6         2        39        4        8          0     919 / 1033
         6 units pairs          90    90      24         0        66        0       24          0    1398 / 1557
         6 units pairs w=3      90    90       0         6        66       15        6          0    1383 / 1557
 
-    (The four-unit cyclic row is Task 5e's, reproduced digit for digit; it is
-    asserted in `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`
-    and is repeated here only as the column to read the others against.)
-
-    **TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS.** Every law corroboration
-    eliminates at six units is induced again from the record that still supports
-    it — the retraction event happens, the law comes back. That is the pattern
-    Task 5 diagnosed as induction and disposal fighting each other, returning at
-    a community size large enough for corroboration to fire. The internal arm
-    goes silent (0 internal retractions, 0 restorations by silence) because
-    corroboration now closes every doubt before the window can.
-
-    The stricter bar reads like the small community again: 0 corroborations, the
-    window doing the work, six defeats.
-
-    NOTHING IS BOUGHT AND LITTLE IS SPENT: permanent true-law loss is 0 in all
-    four arms, and the channel's cost is 10.2% at six units against 11.2% at
-    four. Corroboration is the one thing that changed, and what it produced is
-    churn."""
+    At window 5, TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS read for the
+    loose bar exactly as at window 8. The stricter bar read like the small
+    community again: 0 corroborations, the window doing the work, six defeats,
+    and NOTHING BOUGHT AND LITTLE SPENT — permanent true-law loss 0 in all four
+    arms, cost 10.2% at six units against 11.2% at four (this file's original
+    rounding; the precise figure, recomputed here, is 11.18% at both)."""
     six = _witness_induce_arm(6, PAIRS)
     strict = _witness_induce_arm(6, PAIRS, witnesses=3)
     assert (six["raised"], six["suspended"], six["corroborated"]) == (90, 90, 24)
@@ -2089,9 +2389,9 @@ def test_on_the_induce_arm_corroboration_buys_churn():
     assert (six["defeats"], six["lost_true"]) == (24, 0)
     assert (six["net_live"], six["net_mute"]) == (1398, 1557)
     assert (strict["corroborated"], strict["internal"],
-            strict["silence"]) == (0, 6, 15)
-    assert (strict["defeats"], strict["lost_true"]) == (6, 0)
-    assert (strict["net_live"], strict["net_mute"]) == (1383, 1557)
+            strict["silence"]) == (0, 9, 6)
+    assert (strict["defeats"], strict["lost_true"]) == (9, 3)
+    assert (strict["net_live"], strict["net_mute"]) == (1386, 1557)
 
 
 def _witness_induce_arm(n_units, scheme, witnesses=None):
@@ -2201,6 +2501,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
         if rep_window is not None:
             u.replication_window = rep_window
         units.append(u)
+    _assert_uniform_rate(units)
     board = MarkBoard()
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}
@@ -2471,16 +2772,69 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
 
     THE MEASUREMENT — eight seeds, 60 rounds, four units under bounded attention,
     planted laws and converses seeded, the challenge channel live in both arms.
-    The middle column is the previous task's reading, before inquiry was ordered
-    ahead of elimination:
 
-                              muted     live (was)      live (now)     change
-        refuting, true laws     640            636             349      −45.5%
-        refuting, converses     321             42              20        −94%
-        true laws lost        64/64          64/64           36/64
-        converses lost         2/32           2/32            0/32
-        net score              −433            −39            −106
-        questions / uptakes     0/0        480/448       1024/939
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). The "live (was)" and
+    "live (window 5)" columns are the previous readings, kept for the chain:
+
+                              muted   live (was)  live (window 5)  live (window 8)
+        refuting, true laws     640          636              349               220
+        refuting, converses     321           42               20                21
+        true laws lost        64/64        64/64            36/64             20/64
+        converses lost         2/32         2/32             0/32              0/32
+        net score              −433          −39             −106              −185
+        questions / uptakes     0/0      480/448          1024/939          1258/1151
+
+    **P-C1 IS STILL HELD, AND MORE STRONGLY.** The refuting count on true laws
+    now falls 65.6% (640 → 220, against 45.5% at window 5), and 44 of the 64 true
+    laws permanently lost in the muted arm now survive the run (against 28 at
+    window 5). The mechanism is the same one window 5 showed: nothing about the
+    ask channel changed, a law simply lives longer, so it has more rounds in
+    which testimony can reach it. THE INSTRUMENTED QUESTION-TARGET SPLIT (463
+    true-law / 488 converse, reported at window 5) was NOT re-run this pass — the
+    split-by-target instrumentation was ad hoc and is not carried by
+    `_play_ask_and_challenge`'s returned tally, so it is not reproduced here
+    rather than guessed at. The re-measured totals it would have split
+    (1258 questions, 1151 uptakes, both up from window 5) stand as the evidence
+    in its place.
+
+    **P-C2 IS STILL REFUTED, IN THE SAME DIRECTION, FOR THE THIRD TIME.** The
+    channel now removes 93.5% of the converse's refuting individuals (321 → 21,
+    against 94% at window 5) and still saves both converses the muted arm loses.
+    The premise is refuted exactly as before: a converse `X_head -> X_local`
+    wants an `X_local`, and every peer sharing the domain has plenty.
+
+    THE COMMUNITY'S EVIDENCE MOVES FURTHER. Of the true laws' 640 refuting
+    individuals in the muted arm, 590 are repairable in principle (92.2%,
+    unmoved by the window). In the live arm the repairable residue now falls to
+    170 — **71.2% of what was available has been delivered**, against 49.3% at
+    window 5. The longer window gives testimony more rounds to arrive, and more
+    of it does.
+
+    THE DISPOSAL EXITS MOVE TOWARD REBUTTAL. Live: 66 suspensions, 44 restored by
+    rebuttal, 2 restored by silence, 20 retracted internally — so **22 of the 66
+    doubts end at the window** (internal + silence), down from 41 of 66 at window
+    5. A longer window gives a peer more chances to answer before a doubt is
+    forced to a verdict, so more doubts end by rebuttal (44, up from 25) and
+    fewer by the window closing on them unanswered.
+
+    WHAT IT COSTS: the live arm's net falls again, from −106 (window 5) to −185
+    (window 8) — the same figure GATE 1 and `test_the_silence_window_at_three_
+    five_and_eight`'s four-unit/window-8 row report independently. A repaired
+    law goes on betting for longer under bounded attention, and under bounded
+    attention a true law still cannot pay. Read the counts, not the direction.
+
+    AND WHAT A BIGGER COMMUNITY DOES TO IT, measured in
+    `test_the_silence_window_at_three_five_and_eight` on this same driver at
+    window 8: six units at distinct apertures save 49 of 96 true laws here (51%)
+    against these four units' 44 of 64 (69%), while corroboration fires 45 times
+    rather than never. **The larger community still keeps a SMALLER proportion
+    of its true laws** — at window 5 the same comparison read 27 of 96 (28%)
+    against 28 of 64 (44%); the ratio narrows a little (a longer window helps the
+    smaller community's true laws more, per this task's own P-C1 finding) but
+    the direction is unchanged.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
     **P-C1 IS HELD.** The refuting count on true laws falls by 45.5%, and 28 of
     the 64 true laws that were permanently lost in the muted arm survive the run.
@@ -2535,26 +2889,29 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
             muted_agg[k] += mute[k]
     assert agg["questions"] > 0 and agg["uptakes"] > 0, (
         "the channel carried nothing, so nothing was tested")
-    # P-C1: HELD. The true laws' refuting count falls 45.5%.
-    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 349)
-    # P-C2: refuted the other way, again. The converse's count collapses further.
-    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 20)
-    # AND A LAW'S FATE CHANGES NOW: 28 of the 64 true laws survive.
-    assert (muted_agg["true_lost"], agg["true_lost"]) == (64, 36)
+    # P-C1: HELD, more strongly at window 8. The true laws' refuting count
+    # falls 65.6% (was 45.5% at window 5).
+    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 220)
+    # P-C2: refuted the other way, still. The converse's count collapses further.
+    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 21)
+    # AND A LAW'S FATE CHANGES FURTHER: 44 of the 64 true laws survive (was 28).
+    assert (muted_agg["true_lost"], agg["true_lost"]) == (64, 20)
     assert (muted_agg["conv_lost"], agg["conv_lost"]) == (2, 0)
     # 92.2% of what the true laws needed was held by some peer in the muted arm;
-    # about half of it now reaches the unit that needs it.
+    # 71.2% of it now reaches the unit that needs it (was 49.3% at window 5).
     assert (muted_agg["repairable"], muted_agg["unrepairable"]) == (590, 50)
-    assert agg["repairable"] == 299
-    # THE WINDOW FIRES: 41 of 66 doubts end there, against 0 before this task.
+    assert agg["repairable"] == 170
+    # THE WINDOW FIRES: 22 of 66 doubts end there (internal + silence), against
+    # 41 of 66 at window 5 and 0 before that task — the longer window shifts
+    # more doubts to rebuttal instead.
     assert muted_agg["suspended"] == agg["suspended"] == 66
     assert (muted_agg["internal"], muted_agg["rebutted"],
             muted_agg["silence"]) == (66, 0, 0)
-    assert (agg["internal"], agg["rebutted"], agg["silence"]) == (36, 25, 5)
+    assert (agg["internal"], agg["rebutted"], agg["silence"]) == (20, 44, 2)
     assert muted_agg["corroborated"] == agg["corroborated"] == 0
-    # The net score falls, because a repaired law goes on betting and under
-    # bounded attention a true law still cannot pay.
-    assert (muted_agg["net"], agg["net"]) == (-433, -106)
+    # The net score falls further, because a repaired law goes on betting for
+    # longer and under bounded attention a true law still cannot pay.
+    assert (muted_agg["net"], agg["net"]) == (-433, -185)
 
 
 def test_the_silence_window_at_three_five_and_eight():
@@ -2694,13 +3051,15 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     same distribution of noise, and that the gain requires peers to actually
     differ. The measurement says something sharper than the prediction did: the
     peers did not merely fail to differ usefully, **NO UNIT EVER HAD TWO VOICES
-    TO CHOOSE BETWEEN.** Eight seeds, 60 rounds:
+    TO CHOOSE BETWEEN.** Eight seeds, 60 rounds.
+
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
 
         arm            (unit, relation)   with 2+     uptake decisions   ... at which
                        pairs told by      suppliers   at which a unit    the preference
                        exactly 1 peer                 held a preference  disagreed
-        4 units, cyclic              96          0                  41              0
-        6 units, pairs              107          0                  54              0
+        4 units, cyclic              96          0                  53              0
+        6 units, pairs              107          0                  72              0
 
     THE FIELD IS WHY, AND IT IS ARITHMETIC RATHER THAN LUCK. A unit answers only
     from what it has met, so a reply about `a_head` can come only from a peer
@@ -2714,10 +3073,10 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     THAT SENTENCE ORIGINALLY READ "at both community sizes" AND TASK 7 FALSIFIED
     IT. Six units put three witnesses on a domain, and at alpha they are u0
     (even), u1 (odd) and u2 (even), so the ODD asker has TWO opposite-phase peers
-    rather than one. Counted at the decision, 394 of the 928 uptakes there had
-    two peers standing behind the content
-    (`test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`).
-    The measurement below is unaffected and the reason it is unaffected is worth
+    rather than one
+    (`test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`,
+    where the uptake and choice-count figures also moved at window 8). The
+    measurement below is unaffected and the reason it is unaffected is worth
     keeping: the two candidate voices attend the same rounds as each other, so
     they hold the same facts, and `MarkBoard.answer_to` returns the first mark
     published — which the lower-numbered unit always mints first. One peer is the
@@ -2731,14 +3090,42 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     be the same fact reaching the unit twice rather than two peers informing it.
     The looser count would have reported choices nobody had.
 
-    WHAT THE UNITS DID LEARN, and it is nearly nothing. Of the 96 (peer,
-    relation) pairs a four-unit community accumulates any record about, **1 ends
-    the run with a positive score**; 90 end negative and 5 at zero. Six units:
-    **5 positive of 107**, 99 negative. Replication is a coin flip on whether the
-    field redraws that individual, and the field draws one individual per
-    relation per round from a list of forty, so most testimony is never borne
-    out within a sixty-round run whoever gave it. See
+    WHAT THE UNITS DID LEARN, and at four units it is now LITERALLY NOTHING.
+    Of the 96 (peer, relation) pairs a four-unit community accumulates any
+    record about, **0 end the run with a positive score** (was 1 at window 5);
+    94 end negative and 2 at zero. NO (PEER, RELATION) RECORD AT FOUR UNITS
+    EVER ENDS THE RUN POSITIVE — that is the precise claim, not that a
+    preference was never consulted: the mechanism still decided 53 uptakes at
+    four units (`occ_pref`, up from 41 at window 5), it simply never once
+    favoured a record that ended positive. The same fact
+    `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
+    now reports directly (its own `prefs` tally sums to 0 at four units, where
+    it summed to 1 at window 5): a longer window gives the field more rounds to
+    redraw against a testimony pair before the run ends, and the one relation
+    that used to end up barely positive no longer does. Six units: **2 positive
+    of 107** (was 5), 105 negative, 0 at zero. Replication is a coin flip on
+    whether the field redraws that individual, and the field draws one
+    individual per relation per round from a list of forty, so most testimony is
+    never borne out within a sixty-round run whoever gave it — and a longer
+    window means more rounds in which it can still be overturned. See
     `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
+        arm            (unit, relation)   with 2+     uptake decisions   ... at which
+                       pairs told by      suppliers   at which a unit    the preference
+                       exactly 1 peer                 held a preference  disagreed
+        4 units, cyclic              96          0                  41              0
+        6 units, pairs              107          0                  54              0
+
+    Counted at the decision, 394 of the 928 uptakes at six units had two peers
+    standing behind the content (the window-5 reading of
+    `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`).
+    A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
+    Of the 96 (peer, relation) pairs a four-unit community accumulates any
+    record about, 1 ended the run with a positive score, 90 negative and 5 at
+    zero. Six units: 5 positive of 107, 99 negative, 3 at zero.
     """
     for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
         control = _aggregate_ask(n_units, scheme, ask=True)
@@ -2751,24 +3138,23 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     six = _aggregate_ask(6, PAIRS, ask=True, typify="prefer", keys=_TYPIFY_KEYS)
     # The channel carried something, so inertness is a result rather than a
     # measurement that never ran.
-    assert (four["questions"], four["uptakes"]) == (1024, 939)
-    assert (six["questions"], six["uptakes"]) == (1045, 928)
-    # A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
-    assert (four["occ_pref"], four["occ_bite"]) == (41, 0)
-    assert (six["occ_pref"], six["occ_bite"]) == (54, 0)
+    assert (four["questions"], four["uptakes"]) == (1258, 1151)
+    assert (six["questions"], six["uptakes"]) == (1358, 1213)
+    # A preference WAS held at 53 and 72 uptake decisions, and disagreed at none.
+    assert (four["occ_pref"], four["occ_bite"]) == (53, 0)
+    assert (six["occ_pref"], six["occ_bite"]) == (72, 0)
     # AND NO UNIT, AT EITHER SIZE, WAS EVER TOLD SOMETHING NEW ABOUT ONE
     # RELATION BY TWO DIFFERENT PEERS. Every (unit, relation) pair that acquired
     # anything at all acquired it from exactly one voice.
     assert (four["one_supplier"], four["many_suppliers"]) == (96, 0)
     assert (six["one_supplier"], six["many_suppliers"]) == (107, 0)
-    # And almost nothing was learned. THE PEERS DO CONVERGE TO THE SAME SCORE,
-    # and the score they converge to is negative: of the 96 (peer, relation)
-    # pairs a four-unit community accumulates any record about, 1 ends positive,
-    # 90 negative and 5 at zero; six units read 5 / 99 / 3 of 107.
-    assert (four["preferences"], six["preferences"]) == (1, 5)
+    # And almost nothing was learned — and at four units, NOTHING: no
+    # (peer, relation) pair ever earns a positive score, where one did at
+    # window 5 (see `test_gate_two_...`'s own `prefs` tally, 0 vs 1).
+    assert (four["preferences"], six["preferences"]) == (0, 2)
     assert (four["score_pos"], four["score_neg"], four["score_zero"]) == (
-        1, 90, 5)
-    assert (six["score_pos"], six["score_neg"], six["score_zero"]) == (5, 99, 3)
+        0, 94, 2)
+    assert (six["score_pos"], six["score_neg"], six["score_zero"]) == (2, 105, 0)
 
 
 def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure():
@@ -2796,9 +3182,13 @@ def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure()
 
     MEASURED, over eight seeds and 60 rounds: the field licensed **1004** head
     atoms and fabricated **37** that no antecedent ever licensed, all 37 inside
-    some unit's aperture. Adoptions of a fabricated atom, in every arm and at
-    both community sizes: **0 of 939 and 0 of 928.** Whatever typification could
-    do to a fabrication, it has nothing here to do it to.
+    some unit's aperture — both figures are the field's own and do not depend on
+    `corroboration_window`. Adoptions of a fabricated atom, in every arm and at
+    both community sizes: **0 of 1151 and 0 of 1213** (RE-MEASURED AT WINDOW 8,
+    the ruled default, 2026-07-31 — the totals were 0 of 939 and 0 of 928 at
+    window 5, kept below for comparison; the zero itself does not move at either
+    window, only the total adoptions it is a fraction of). Whatever typification
+    could do to a fabrication, it has nothing here to do it to.
 
     WHAT WOULD HAVE TO CHANGE for the category to exist: units would have to be
     able to ask about atoms their own record does not already license — which
@@ -2817,14 +3207,17 @@ def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure()
                 f"was adopted, so P-G1 has a category after all")
             assert arm["adopted_licensed"] > 0, (
                 "no head atom was adopted at all, so the zero above is vacuous")
-    # THE SPLIT, so the zero above is read against what WAS taken up. Of the 939
-    # adoptions at four units, 479 are head atoms — every one of them licensed —
-    # and 460 are atoms of an ANTECEDENT relation, which `spurious_rate` never
-    # fabricates at all. Six units: 478 and 450 of 928.
+    # THE SPLIT, so the zero above is read against what WAS taken up.
+    # RE-MEASURED AT WINDOW 8: of the 1151 adoptions at four units, 697 are head
+    # atoms (every one of them licensed) and 454 are atoms of an ANTECEDENT
+    # relation, which `spurious_rate` never fabricates at all. Six units: 754
+    # and 459 of 1213. AT WINDOW 5, the previous default: of 939 adoptions at
+    # four units, 479 head / 460 antecedent; six units 478 / 450 of 928 — kept
+    # for comparison, this is the reading the ruling was made on.
     four = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
     six = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
-    assert (four["adopted_licensed"], four["adopted_body"]) == (479, 460)
-    assert (six["adopted_licensed"], six["adopted_body"]) == (478, 450)
+    assert (four["adopted_licensed"], four["adopted_body"]) == (697, 454)
+    assert (six["adopted_licensed"], six["adopted_body"]) == (754, 459)
     # The field really does fabricate: 37 head atoms over eight seeds that no
     # antecedent ever licensed, every one of them inside some unit's aperture.
     fabricated = 0
@@ -2849,7 +3242,45 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
     exercises it: a unit with no preference refuses a reply from a peer whose
     testimony about that relation has already failed.
 
-    IT BITES HARD AND BUYS NOTHING. Eight seeds, 60 rounds:
+    IT BITES HARD AND BUYS NOTHING.
+
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Eight seeds, 60
+    rounds:
+
+        arm                     uptakes   refuting (true)   refuting (conv)   true lost   conv lost     net
+        4u untargeted              1151               220                21       20/64        0/32    −185
+        4u distrust                 466               488               223       20/64        0/32    −745
+        6u untargeted              1213               517               152       47/96       17/48    −134
+        6u distrust                 496               815               328       47/96       17/48    −760
+
+    **NOT ONE LAW'S FATE MOVES, STILL.** The same 20 of 64 true laws are lost at
+    four units and the same 47 of 96 at six, the same converses stand, and every
+    disposal exit is identical to the untargeted control's — because a doubt is
+    settled from the credit a unit has accumulated by the time its window
+    closes, and refusing a peer changes what testimony arrives, not when the
+    window itself acts. What the refusals do reach is the evidence: **687 and
+    717 questions go unanswered** (up from 525/505 at window 5 — a longer window
+    means more questions are asked in total, so more of them go unanswered under
+    distrust too), and the refuting counts rise on true laws and converses
+    alike.
+
+    THE ONE ASYMMETRY STILL RUNS THE WRONG WAY FOR THE SERIES' PURPOSES. The
+    converse's refuting count rises by a factor of **10.6** (223/21, essentially
+    unchanged from window 5's 10.6) against the true law's **2.2** (488/220, up
+    from 1.5) — distrust still weighs harder against the false law than the true
+    one, though less lopsidedly than at window 5, and it still changes no
+    outcome whatever, because nothing reads those counts after the window has
+    closed.
+
+    AND IT COSTS THE SCORE, MORE STEEPLY STILL, for the same reason: an adopted
+    head atom mostly PREVENTS A LOSING BET rather than winning one. A unit that
+    holds `a_head(x)` no longer stakes on it, so refusing the answer buys back a
+    forecast the field was never going to deliver. Net falls −185 → −745 (4.0×,
+    against 5.2× at window 5) and −134 → −760 (5.7×, against 6.9× at window 5).
+    Read the counts, not the direction.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
         arm                     uptakes   refuting (true)   refuting (conv)   true lost   conv lost     net
         4u untargeted               939               349                20       36/64        0/32    −106
@@ -2857,25 +3288,9 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
         6u untargeted               928               695               158       69/96       17/48     −77
         6u distrust                 423               849               333       69/96       17/48    −534
 
-    **NOT ONE LAW'S FATE MOVES.** The same 36 of 64 true laws are lost at four
-    units and the same 69 of 96 at six, the same converses stand, and every
-    disposal exit is identical — because a doubt is settled inside its five-round
-    window and the negative credit that drives the refusals has barely
-    accumulated by then. What the refusals do reach is the evidence: 525 and 505
-    questions go unanswered, and the refuting counts rise on true laws and
-    converses alike.
-
-    THE ONE ASYMMETRY RUNS THE WRONG WAY FOR THE SERIES' PURPOSES. The
-    converse's refuting count rises by a factor of **10.6** against the true
-    law's **1.5**, so distrust weighs harder against the false law than the true
-    one — the shape P-G2 hoped for — and it changes no outcome whatever, because
-    nothing reads those counts after the window has closed.
-
-    AND IT COSTS THE SCORE FIVEFOLD, for a reason worth naming: an adopted head
-    atom mostly PREVENTS A LOSING BET rather than winning one. A unit that holds
-    `a_head(x)` no longer stakes on it, so refusing the answer buys back a
-    forecast the field was never going to deliver. Net falls −106 → −551 and
-    −77 → −534. Read the counts, not the direction.
+    525 and 505 questions went unanswered; the converse's refuting count rose by
+    a factor of 10.6 against the true law's 1.5; net fell −106 → −551 (5.2×) and
+    −77 → −534 (6.9×).
     """
     four = _aggregate_ask(4, CYCLIC, ask=True, typify="distrust",
                           keys=_TYPIFY_KEYS)
@@ -2884,14 +3299,14 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
     four_control = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
     six_control = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
     # The refusals happened, so the arm is not the control under another name.
-    assert (four["refused"], six["refused"]) == (525, 505)
-    assert (four_control["uptakes"], four["uptakes"]) == (939, 417)
-    assert (six_control["uptakes"], six["uptakes"]) == (928, 423)
+    assert (four["refused"], six["refused"]) == (687, 717)
+    assert (four_control["uptakes"], four["uptakes"]) == (1151, 466)
+    assert (six_control["uptakes"], six["uptakes"]) == (1213, 496)
     # The evidence moves, and it moves harder against the converse.
-    assert (four_control["true_ref"], four["true_ref"]) == (349, 518)
-    assert (four_control["conv_ref"], four["conv_ref"]) == (20, 211)
-    assert (six_control["true_ref"], six["true_ref"]) == (695, 849)
-    assert (six_control["conv_ref"], six["conv_ref"]) == (158, 333)
+    assert (four_control["true_ref"], four["true_ref"]) == (220, 488)
+    assert (four_control["conv_ref"], four["conv_ref"]) == (21, 223)
+    assert (six_control["true_ref"], six["true_ref"]) == (517, 815)
+    assert (six_control["conv_ref"], six["conv_ref"]) == (152, 328)
     # AND NOT ONE LAW'S FATE MOVES, at either size, on either kind of law.
     for control, arm in ((four_control, four), (six_control, six)):
         assert (control["true_lost"], control["conv_lost"]) == (
@@ -2900,11 +3315,11 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
                                      "rebutted", "silence")] == [
             arm[k] for k in ("suspended", "internal", "corroborated",
                              "rebutted", "silence")]
-    assert (four["true_lost"], four["conv_lost"]) == (36, 0)
-    assert (six["true_lost"], six["conv_lost"]) == (69, 17)
-    # The score falls fivefold, because an adopted head mostly prevents a bet.
-    assert (four_control["net"], four["net"]) == (-106, -551)
-    assert (six_control["net"], six["net"]) == (-77, -534)
+    assert (four["true_lost"], four["conv_lost"]) == (20, 0)
+    assert (six["true_lost"], six["conv_lost"]) == (47, 17)
+    # The score falls steeply, because an adopted head mostly prevents a bet.
+    assert (four_control["net"], four["net"]) == (-185, -745)
+    assert (six_control["net"], six["net"]) == (-134, -760)
 
 
 def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
@@ -2916,26 +3331,43 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
     individual per relation per round from a list of forty — so an individual
     waits about forty rounds for its next turn and a unit under bounded
     attention meets half of those. Four units, cyclic, eight seeds, 60 rounds,
-    the replication window the only variable:
+    the replication window (`rep_window`, distinct from `corroboration_window`)
+    the only variable.
 
-        window   proved   failed   still pending   preferences held at the end
-        5           347      552              40                             0
-        10          347      508              84                             1
-        20          347      434             158                             5
+    RE-MEASURED AT WINDOW 8 (`corroboration_window`, the ruled default,
+    2026-07-31 — `rep_window` itself still swept at 5/10/20 as before):
 
-    **THE PROVED COUNT DOES NOT MOVE AT ALL.** 347 of the 939 adoptions are
-    borne out by a second route and the rest are not, whatever deadline the unit
-    keeps; all the window decides is how many of the unreplicated ones get read
-    as failures and how many are still waiting when the run ends. A knob that
+        rep_window   proved   failed   still pending   preferences held at the end
+        5               431      673              47                             0
+        10              431      618             102                             0
+        20              431      522             198                             4
+
+    **THE PROVED COUNT STILL DOES NOT MOVE AT ALL.** 431 of the 1151 adoptions
+    (up from 347 of 939, a nearly identical ~37% share either way) are borne out
+    by a second route and the rest are not, whatever deadline the unit keeps;
+    all the window decides is how many of the unreplicated ones get read as
+    failures and how many are still waiting when the run ends. A knob that
     changes only the denominator is reading the field's cadence, not the peer's
     reliability — which is the whole reason the preference machinery above has
-    nothing to bite on.
+    nothing to bite on. This still holds unchanged by the `corroboration_window`
+    default; the invariant is about `rep_window`, a different knob.
 
-    A LONGER WINDOW LEARNS MORE PREFERENCES ONLY BY DECLINING TO CONCLUDE. It
-    goes 0 → 1 → 5 of 96 (peer, relation) pairs across the three windows, and it
-    does so by leaving failures pending rather than by finding successes. That
-    is honest — an undecided verdict credits nothing either way — and it is not
-    a route to a channel that discriminates.
+    A LONGER `rep_window` STILL LEARNS MORE PREFERENCES ONLY BY DECLINING TO
+    CONCLUDE, though the exact count moved: it now goes 0 → 0 → 4 of 96 (peer,
+    relation) pairs across the three windows (was 0 → 1 → 5), consistent with
+    this file's other finding that four units hold zero preferences by default
+    at `corroboration_window` 8 — the middle `rep_window` no longer resolves
+    even the one pair it used to. It still does so by leaving failures pending
+    rather than by finding successes; that is honest and is not a route to a
+    channel that discriminates.
+
+    AT WINDOW 5 (`corroboration_window`), the previous default, for comparison —
+    this is the reading the ruling was made on and it is kept for that reason:
+
+        rep_window   proved   failed   still pending   preferences held at the end
+        5               347      552              40                             0
+        10              347      508              84                             1
+        20              347      434             158                             5
     """
     # THE ARMS ARE MEMOISED AND READ BY FOUR GATES, so determinism is not a
     # nicety here: it is what makes a cached arm the same run rather than a
@@ -2948,10 +3380,10 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
 
     arms = [_aggregate_ask(4, CYCLIC, ask=True, typify="prefer", rep_window=w,
                            keys=_TYPIFY_KEYS) for w in (5, 10, 20)]
-    assert [a["proved"] for a in arms] == [347, 347, 347]
-    assert [a["failed"] for a in arms] == [552, 508, 434]
-    assert [a["pending"] for a in arms] == [40, 84, 158]
-    assert [a["preferences"] for a in arms] == [0, 1, 5]
+    assert [a["proved"] for a in arms] == [431, 431, 431]
+    assert [a["failed"] for a in arms] == [673, 618, 522]
+    assert [a["pending"] for a in arms] == [47, 102, 198]
+    assert [a["preferences"] for a in arms] == [0, 0, 4]
     # Every verdict is accounted for: nothing is entered twice and nothing is
     # dropped, at every window.
     for arm in arms:
@@ -2966,11 +3398,100 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
 # the only size at which any unit was ever offered a second voice.
 
 
-def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less():
-    """**GATE 1 PASSES ON `net_score` AND THE PASS MEANS THE OPPOSITE OF WHAT IT
-    LOOKS LIKE.** Four units, eight seeds, 60 rounds, planted laws and converses
+def test_gate_one_the_score_improves_while_the_community_learns_less():
+    """**GATE 1 PASSED ON `net_score`, THE PASS MEANT THE OPPOSITE OF WHAT IT LOOKED
+    LIKE, AND ON 2026-07-31 THE STATISTIC WAS RETIRED FROM THE GATE ROLE FOR IT.**
+    The figures below are pinned and reported; the verdict is carried by the laws
+    held and the bets placed.
+
+    Four units, eight seeds, 60 rounds, planted laws and converses
     seeded, bounded attention. The live world runs all four stage-3 channels; the
     mute twin runs none, so each unit meets the same field alone.
+
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
+
+        four units                mute twin      live world
+        net score                     −1421            −185
+        bets placed                    1497             193
+        hits                             38               4
+        misses                         1459             189
+        hit rate among bets           0.0254          0.0207
+        abstentions                    5009            5619
+        true laws held at the end     64/64           44/64
+        converses held at the end     32/32           32/32
+
+    **THIS IS EXACTLY THE FOUR-UNIT WINDOW-8 ROW `corroboration_window`'s OWN
+    SWEEP TABLE ALREADY PREDICTED** (`4 / 8 / internal 20 / rebutted 44 /
+    true-lost 20-of-64 / net −185`) — the ruling's evidence and this gate's
+    re-measurement are the same run read twice, and they agree digit for digit.
+
+    THE FOLD ITSELF MOVED, WHICH IS FURTHER EVIDENCE AGAINST LEANING ON IT: the
+    live world's score now exceeds the mute twin's by a factor of **7.7**, not
+    thirteen (−1421 / −185 vs the window-5 −1421 / −106). A statistic whose own
+    headline number is this sensitive to an unrelated knob — the window governs
+    how long a doubt stays open, not how communication trades score for
+    forecasting — is exactly the kind of instability the retirement argument
+    rests on; the test's own name is left as it stands, on purpose, as a visible
+    record of what net_score does under a knob that has nothing to do with its
+    claim. It still places 87.1% fewer bets (down from 92.7%), lands 4 hits
+    against 38, holds 20 fewer of the 64 true laws it was given (down from 36
+    fewer), and holds every one of the 32 false ones in both arms.
+    **Communication still buys a better score by very nearly ceasing to
+    forecast — the direction is unchanged, only the size of the effect.**
+
+    **`net_score` ALONE STILL CANNOT CARRY THIS GATE, and the four earlier
+    inversions now read (window 8, with window 5 beside them):**
+
+    - Task 5, bounded attention with the challenge channel: net rose −1421 →
+      −433 while 64 of 64 true laws were destroyed — unchanged at either window,
+      because this arm has no ask channel for the window length to act through.
+    - Task 5e, the ask channel with inquiry ordered before elimination: net fell
+      −39 → **−185** (was −39 → −106) while **44** of the 64 true laws were
+      saved (was 28) — see
+      `test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask`.
+    - Task 5f, six units mute: net read exactly 0 against four units' −2122,
+      unchanged — no unit survived to place a bet at all, at either window.
+    - Task 6, the distrust arm: net fell **−185 → −745** (was −106 → −551) with
+      every law's fate and every disposal exit identical, because an adopted
+      head atom mostly prevents a losing bet rather than winning one — see
+      `test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law`.
+
+    Spec §9a retired `accuracy` at these bet volumes for a related reason, and
+    the hit rates above show why it stays retired: 4 hits of 193 and 3 of 140
+    decide a ratio, so the six-unit live arm's 0.0214 against its mute twin's
+    0.0199 rests on three events and carries nothing. **Read bets placed and laws
+    held; the ratio is reported for completeness and should not be leaned on.**
+
+    THE DECOMPOSITION IS WHAT SETTLES IT. Inserting the challenge-channel-only
+    arm between the two shows both steps moving the score the same way for
+    opposite epistemic reasons:
+
+        four units              net    bets   true held   converses held
+        mute twin             −1421    1497       64/64            32/32
+        challenge only         −433     455        0/64            30/32
+        all four channels      −185     193       44/64            32/32
+
+    The first step improves the score by 988 by destroying every true law
+    (unchanged); the second improves it by a further **248** by restoring
+    **44** of them (was +327 restoring 28). **A statistic that rises both when
+    true laws are destroyed and when they are restored is still not measuring
+    what the gate asks about.**
+
+    SIX UNITS READS THE SAME WAY AND HARDER: net −2122 → **−134** (was −77),
+    bets 2210 → **140** (was 83), hits 44 → 3 (unchanged), true laws held
+    96/96 → **49/96** (was 27/96), converses held 48/48 → 31/48 (unchanged).
+    Converses die there where the live arm at four units loses none, and the
+    channels stay anti-discriminating all the same: **49.0% of the true laws
+    lost against 35.4% of the converses** (was 71.9% against 35.4%).
+
+    The mute twin reproduces Task 5's −1421 and the challenge-only arm its −433,
+    which is the check that this new arm is the same world under a new switch
+    rather than a differently-configured one — both figures window-invariant,
+    confirming again that a doubt with no ask channel behind it does not read
+    `corroboration_window` at all.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
         four units                mute twin      live world
         net score                     −1421            −106
@@ -2982,54 +3503,21 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
         true laws held at the end     64/64           28/64
         converses held at the end     32/32           32/32
 
-    The live world's score exceeds the mute twin's by a factor of thirteen. It
-    also places 92.7% fewer bets, lands 2 hits against 38, holds 36 fewer of the
-    64 true laws it was given, and holds every one of the 32 false ones in both
-    arms. **Communication bought a better score by very nearly ceasing to
-    forecast.**
-
-    **`net_score` ALONE CANNOT CARRY THIS GATE, and the evidence is four earlier
-    inversions in this series, each with the outcome measured beside it:**
-
-    - Task 5, bounded attention with the challenge channel: net rose −1421 →
-      −433 while 64 of 64 true laws were destroyed.
-    - Task 5e, the ask channel with inquiry ordered before elimination: net fell
-      −39 → −106 while 28 of the 64 true laws were saved.
-    - Task 5f, six units mute: net read exactly 0 against four units' −2122,
-      because no unit survived to place a bet at all.
-    - Task 6, the distrust arm: net fell −106 → −551 with every law's fate and
-      every disposal exit identical, because an adopted head atom mostly prevents
-      a losing bet rather than winning one.
-
-    Spec §9a retired `accuracy` at these bet volumes for a related reason, and
-    the hit rates above show why it stays retired: 2 hits of 110 and 3 of 83
-    decide a ratio, so the six-unit live arm's 0.0361 against its mute twin's
-    0.0199 rests on three events and carries nothing. **Read bets placed and laws
-    held; the ratio is reported for completeness and should not be leaned on.**
-
-    THE DECOMPOSITION IS WHAT SETTLES IT. Inserting the challenge-channel-only
-    arm between the two shows both steps moving the score the same way for
-    opposite epistemic reasons:
+    The live world's score exceeded the mute twin's by a factor of thirteen. It
+    also placed 92.7% fewer bets, landed 2 hits against 38, held 36 fewer of the
+    64 true laws it was given, and held every one of the 32 false ones in both
+    arms.
 
         four units              net    bets   true held   converses held
         mute twin             −1421    1497       64/64            32/32
         challenge only         −433     455        0/64            30/32
         all four channels      −106     110       28/64            32/32
 
-    The first step improves the score by 988 by destroying every true law; the
-    second improves it by a further 327 by restoring 28 of them. **A statistic
-    that rises both when true laws are destroyed and when they are restored is
-    not measuring what the gate asks about.**
-
-    SIX UNITS READS THE SAME WAY AND HARDER: net −2122 → −77, bets 2210 → 83,
-    hits 44 → 3, true laws held 96/96 → 27/96, converses held 48/48 → 31/48.
-    Converses die there where the live arm at four units loses none, and the
-    channels stay anti-discriminating all the same: **71.9% of the true laws
-    lost against 35.4% of the converses.**
-
-    The mute twin reproduces Task 5's −1421 and the challenge-only arm its −433,
-    which is the check that this new arm is the same world under a new switch
-    rather than a differently-configured one.
+    The first step improved the score by 988 by destroying every true law; the
+    second improved it by a further 327 by restoring 28 of them. Six units read
+    net −2122 → −77, bets 2210 → 83, hits 44 → 3, true laws held 96/96 → 27/96,
+    converses held 48/48 → 31/48 — 71.9% of the true laws lost against 35.4% of
+    the converses.
     """
     four_mute = _aggregate_ask(4, CYCLIC, ask=False, mute=True, keys=_GATE_KEYS)
     four_live = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS)
@@ -3042,29 +3530,36 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     assert (four_mute["questions"], four_mute["uptakes"]) == (0, 0)
     assert [four_mute[k] for k in ("suspended", "internal", "corroborated",
                                    "rebutted", "silence")] == [0] * 5
-    # THE GATE'S OWN CLAUSE, AND IT PASSES.
-    assert four_live["net"] > four_mute["net"]
-    assert (four_mute["net"], four_live["net"]) == (-1421, -106)
+    # THE GATE'S OWN CLAUSE, DEMOTED 2026-07-31. It passed, and passing meant the
+    # opposite of what it looked like, which is why `net_score` was retired from
+    # the gate role. The figures are PINNED — pinning is reporting, with teeth —
+    # and the verdict is carried by the law and participation clauses below.
+    assert (four_mute["net"], four_live["net"]) == (-1421, -185)
     # AND THE COMPANIONS SAY IT PASSED BY BETTING ALMOST NOT AT ALL.
-    assert (four_mute["bets"], four_live["bets"]) == (1497, 110)
-    assert (four_mute["hits"], four_live["hits"]) == (38, 2)
-    assert (four_mute["misses"], four_live["misses"]) == (1459, 108)
-    assert (four_mute["abstain"], four_live["abstain"]) == (5009, 5654)
-    assert four_live["bets"] / four_mute["bets"] < 0.08
-    # THE OUTCOME THE SERIES CARES ABOUT MOVES THE OTHER WAY: 36 of the 64 true
-    # laws are gone and every one of the 32 converses still stands.
+    assert (four_mute["bets"], four_live["bets"]) == (1497, 193)
+    assert (four_mute["hits"], four_live["hits"]) == (38, 4)
+    assert (four_mute["misses"], four_live["misses"]) == (1459, 189)
+    assert (four_mute["abstain"], four_live["abstain"]) == (5009, 5619)
+    # 87.1% fewer bets at window 8, against 92.7% at window 5 — the ratio moved
+    # (0.0735 -> 0.1289), so the threshold moved with it.
+    assert four_live["bets"] / four_mute["bets"] < 0.13
+    # THE OUTCOME THE SERIES CARES ABOUT MOVES THE OTHER WAY: 20 of the 64 true
+    # laws are gone (was 36) and every one of the 32 converses still stands.
     assert (four_mute["true_total"], four_live["true_total"]) == (64, 64)
-    assert (four_mute["true_lost"], four_live["true_lost"]) == (0, 36)
+    assert (four_mute["true_lost"], four_live["true_lost"]) == (0, 20)
     assert (four_mute["conv_total"], four_live["conv_total"]) == (32, 32)
     assert (four_mute["conv_lost"], four_live["conv_lost"]) == (0, 0)
     # No law standing at the end is standing suspended, so "held" means "held
     # and licensing anticipations" in both arms.
     assert (four_mute["true_susp"], four_live["true_susp"]) == (0, 0)
     assert (four_mute["conv_susp"], four_live["conv_susp"]) == (0, 0)
-    # THE DECOMPOSITION: both steps raise the score, the first by destroying
-    # every true law and the second by restoring 28 of them.
     assert (four_chal["net"], four_chal["bets"]) == (-433, 455)
     assert (four_chal["true_lost"], four_chal["conv_lost"]) == (64, 2)
+    # THE DECOMPOSITION, AND THIS COMPARISON IS KEPT ON PURPOSE. Its content is
+    # that the score rose in BOTH directions — the first step by destroying every
+    # true law, the second by restoring 28 — so it asserts the inversion itself
+    # rather than deciding anything by it. Retiring it would delete the evidence
+    # the retirement rests on.
     assert four_mute["net"] < four_chal["net"] < four_live["net"]
     # The hit rate is reported and not leaned on: it falls in the live arm at
     # four units and rises at six, on 2 and 3 hits respectively.
@@ -3072,26 +3567,118 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     assert six_live["hits"] / six_live["bets"] > six_mute["hits"] / six_mute["bets"]
     assert (six_live["hits"], six_mute["hits"]) == (3, 44)
     # SIX UNITS, THE SAME SHAPE AND HARDER.
-    assert (six_mute["net"], six_live["net"]) == (-2122, -77)
-    assert (six_mute["bets"], six_live["bets"]) == (2210, 83)
-    assert (six_mute["true_lost"], six_live["true_lost"]) == (0, 69)
+    assert (six_mute["net"], six_live["net"]) == (-2122, -134)
+    assert (six_mute["bets"], six_live["bets"]) == (2210, 140)
+    assert (six_mute["true_lost"], six_live["true_lost"]) == (0, 47)
     assert (six_mute["conv_lost"], six_live["conv_lost"]) == (0, 17)
     assert six_live["true_lost"] / 96 > six_live["conv_lost"] / 48
 
 
 def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice():
-    """**GATE 2 READS THE PRE-REGISTERED NULL.** Its first clause holds by a
-    single record and its second holds for a reason that has nothing to do with
-    consultation.
+    """**GATE 2 READS THE PRE-REGISTERED NULL.** Its first clause now holds only
+    by the larger community's record, and its second still holds for a reason
+    that has nothing to do with consultation.
 
-    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`: **yes, exactly
-    one.** Of the 96 (peer, relation) records a four-unit community accumulates,
-    1 ends the run positive; six units read 5 of 107.
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31).
+
+    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`:
+    **NO LONGER TRUE AT FOUR UNITS AT ALL.** Of the 96 (peer, relation) records a
+    four-unit community accumulates, **0 end the run positive** (was 1 at window
+    5): no (peer, relation) record at four units ever ends the run positive at
+    the ruled default. Six units still do: **2 of 107** (was 5). The clause
+    survives only through the six-unit reading now.
+
+    WHAT ACTUALLY MOVED IS THIS CLAUSE, NOT THE TEST'S OWN NAME. The name's
+    claim — no unit at four ever had a CHOICE between two voices — was already
+    unconditionally true at window 5 too: the window-5 matrix below shows all
+    939 decisions at four units with exactly one voice behind them, so a
+    preference never had two voices to decide between, then or now (`four
+    ["choice_lowest"] == 0` at window 8, same fact). **FINDING: a longer
+    window removed typification's last foothold at four units** — the one
+    (peer, relation) pair that used to end the run barely positive no longer
+    does, because eight rounds give the field more chances to redraw against
+    it before the run ends (the same mechanism
+    `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`
+    shows directly by sweeping the OTHER window, `rep_window`).
 
     CLAUSE 2 — the who-asks-whom distribution is not uniform: **yes, and it is
-    the aperture layout that made it so.** Four units, eight seeds, 60 rounds,
-    939 uptakes over the twelve ordered (asker, answerer) pairs, where uniform
-    would put 78 in each:
+    still the aperture layout that made it so.** Four units, eight seeds, 60
+    rounds, 1151 uptakes over the twelve ordered (asker, answerer) pairs, where
+    uniform would put 96 in each:
+
+              takes from     u0     u1     u2     u3
+              u0              —     78      0    204
+              u1            218      —     69      0
+              u2              0    207      —     80
+              u3             87      0    208      —
+
+    The four empty cells are still exactly the two pairs of units that share no
+    domain, and every non-empty cell is still a pair that shares one. Each unit
+    now takes roughly **70–76%** of its uptake from the single peer that
+    witnesses the domain its own seeded converse names (was ~90%) — 204 of 282,
+    218 of 287, 207 of 287, 208 of 295 — because that converse still wants an
+    ANTECEDENT relation the field delivers every round, but the longer window
+    gives more rounds for the OTHER peer's testimony to also be taken up before
+    a doubt resolves, so the dominant peer's share of the total falls even
+    though its raw count barely moves.
+
+    THE DIAGNOSTIC THE PLAN DID NOT ASK FOR, AND IT IS STILL THE ONE THAT
+    MATTERS, AT FOUR UNITS. Counting, at each uptake decision, how many distinct
+    peers had already published that content: **all 1151 decisions at four
+    units still had exactly one.** A community in which every question has
+    exactly one possible answerer has not failed to typify; it never posed the
+    question typification answers — unmoved by the window, because it is a fact
+    about the apertures' phase structure, not about how long a doubt is allowed
+    to stand.
+
+    SIX UNITS STILL OFFERS A CHOICE, AND NOW THE CHOICE IS NOT ALWAYS BETWEEN
+    TWINS. There, **498** of 1213 decisions had two peers standing behind the
+    content (was 394 of 928) — **469 independent first-hand witnesses and, NEW
+    AT WINDOW 8, 29 THAT RELAY ADOPTED TESTIMONY** (was 0 relayed at window 5).
+    Of the 469 independent ones, all 469 still met the atom on the SAME ROUND
+    (the twin count still equals the independent count exactly), because a
+    domain at six units is witnessed by three units of which two attend the
+    same rounds — that half of the finding is unmoved. The 29 relayed decisions
+    are the new thing a longer window makes possible: enough rounds now pass
+    for a peer to have adopted a third party's testimony and republish it before
+    the asker's own decision, so a second "voice" can now be someone repeating
+    what it was told rather than what it met. On the 498, a preference was held
+    at 25 decisions (was 23) and named the answering peer at every one.
+
+    AND THE "LOWER-NUMBERED ANSWERS" PATTERN IS NO LONGER ABSOLUTE. At window 5
+    the lower-numbered of two voices answered literally every one of 394 two-
+    voice decisions. At window 8 it answers **481 of 498 (96.6%)**, not all —
+    the 17 exceptions arrive in the same window that introduced the 29 relayed
+    decisions, which is consistent with (though not separately proven to be
+    caused by) a relayed reply sometimes reaching the board after the
+    lower-numbered peer's first-hand one would have, rather than always before.
+
+    THE INSTRUMENT WAS TIGHTENED BEFORE THESE NUMBERS WERE PUBLISHED, the same
+    way Task 6's supplier count was. A first cut counted voices at every decision
+    rather than at every decision that told the unit something, and read 13
+    gamma-relation choices at six units. Every one was a reply whose content the
+    asker's own membrane had delivered in the meantime. Counted on fresh uptake,
+    gamma still vanishes at window 8 — unmoved, since all three gamma witnesses
+    still attend the same rounds and hold the same gamma facts regardless of the
+    window.
+
+    WHAT A LOOSER READING WOULD HAVE SAID, kept as `could` so the tight number
+    can be read against it: counting, per question, how many peers ever met the
+    atom first-hand at any round of the run, four units now read 85 questions no
+    peer could ever have answered and 1173 answerable by exactly one (was 68 and
+    956); six units read 87, 464 and 807 with two (was 72, 324 and 649). The
+    looser count still credits a peer that met the atom forty rounds after the
+    question closed, which is still why the decision-time count is the one
+    reported.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
+    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`: yes, exactly
+    one. Of the 96 (peer, relation) records a four-unit community accumulates,
+    1 ended the run positive; six units read 5 of 107.
+
+    CLAUSE 2's matrix, 939 uptakes:
 
               takes from     u0     u1     u2     u3
               u0              —     22      0    189
@@ -3099,46 +3686,15 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
               u2              0    197      —     21
               u3             21      0    234      —
 
-    The four empty cells are exactly the two pairs of units that share no
-    domain, and every non-empty cell is a pair that shares one. Each unit takes
-    about 90% of its uptake from the single peer that witnesses the domain its
-    own seeded converse names — 189 of 211, 229 of 255, 197 of 218, 234 of 255 —
-    because that converse wants an ANTECEDENT relation the field delivers every
-    round.
-
-    THE DIAGNOSTIC THE PLAN DID NOT ASK FOR, AND IT IS THE ONE THAT MATTERS.
-    Counting, at each uptake decision, how many distinct peers had already
-    published that content: **all 939 decisions at four units had exactly one.**
-    Every relation reads the same — a_head 95, a_local 115, b_head 137, b_local
-    114, d_head 135, d_local 120, g_head 112, g_local 111, and not one decision
-    at any relation with two. A community in which every question has exactly one
-    possible answerer has not failed to typify; it never posed the question
-    typification answers.
-
-    SIX UNITS DID OFFER A CHOICE, AND THE CHOICE WAS BETWEEN TWINS. There, 394
-    of 928 decisions had two peers standing behind the content. All 394 are
-    independent first-hand witnesses — none was relaying adopted testimony — and
-    all 394 met the atom on the SAME ROUND, because a domain at six units is
-    witnessed by three units of which two attend the same rounds. Two records of
-    one identical observation stream differ in name and in nothing else. On the
-    394, a preference was held at 23 decisions and named the answering peer at
-    every one of the 23.
-
-    THE INSTRUMENT WAS TIGHTENED BEFORE THESE NUMBERS WERE PUBLISHED, the same
-    way Task 6's supplier count was. A first cut counted voices at every decision
-    rather than at every decision that told the unit something, and read 13
-    gamma-relation choices at six units. Every one was a reply whose content the
-    asker's own membrane had delivered in the meantime. Counted on fresh uptake,
-    gamma vanishes — which is what the layout predicts, since all three gamma
-    witnesses attend the same rounds and hold the same gamma facts.
-
-    WHAT A LOOSER READING WOULD HAVE SAID, kept as `could` so the tight number
-    can be read against it: counting, per question, how many peers ever met the
-    atom first-hand at any round of the run, four units read 68 questions no peer
-    could ever have answered and 956 answerable by exactly one; six units read
-    72, 324 and 649 with two. The looser count credits a peer that met the atom
-    forty rounds after the question closed, which is why the decision-time count
-    is the one reported.
+    Each unit took about 90% of its uptake from the single peer that witnesses
+    the domain its own seeded converse names — 189 of 211, 229 of 255, 197 of
+    218, 234 of 255. All 939 decisions at four units had exactly one voice
+    behind them. Six units: 394 of 928 decisions had two peers standing behind
+    the content, all 394 independent first-hand witnesses met on the same
+    round (twins), none relaying adopted testimony, and the lower-numbered
+    voice answered all 394 of them. A preference was held at 23 of the 394 and
+    named the answering peer every time. The looser `could` reading: four units
+    68/956 at 0/1 peers; six units 72/324/649 at 0/1/2 peers.
     """
     four = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
     six = _aggregate_ask(6, PAIRS, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
@@ -3147,18 +3703,18 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
     six_pref = _aggregate_ask(6, PAIRS, ask=True, typify="prefer",
                               keys=_GATE_KEYS + _MATRIX_KEYS)
 
-    # CLAUSE 1: a preference exists, and it is one record of 96.
-    assert sum(four["prefs"].values()) == 1
-    assert sum(six["prefs"].values()) == 5
-    assert four["preferences"] == 1 and six["preferences"] == 5
+    # CLAUSE 1: no preference at all at four units any more; six still has two.
+    assert sum(four["prefs"].values()) == 0
+    assert sum(six["prefs"].values()) == 2
+    assert four["preferences"] == 0 and six["preferences"] == 2
 
     # CLAUSE 2: the matrix, exactly as tabulated.
     assert dict(four["consult"]) == {
-        ("u0", "u1"): 22, ("u0", "u3"): 189,
-        ("u1", "u0"): 229, ("u1", "u2"): 26,
-        ("u2", "u1"): 197, ("u2", "u3"): 21,
-        ("u3", "u0"): 21, ("u3", "u2"): 234}
-    assert sum(four["consult"].values()) == four["uptakes"] == 939
+        ("u0", "u1"): 78, ("u0", "u3"): 204,
+        ("u1", "u0"): 218, ("u1", "u2"): 69,
+        ("u2", "u1"): 207, ("u2", "u3"): 80,
+        ("u3", "u0"): 87, ("u3", "u2"): 208}
+    assert sum(four["consult"].values()) == four["uptakes"] == 1151
     # NON-UNIFORM, AND EXPLAINED BY THE APERTURES: a cell is non-empty exactly
     # when the two units share a domain.
     aps = {a.unit_id: set(a.domains)
@@ -3169,13 +3725,13 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
                 continue
             assert (four["consult"][(a, b)] > 0) == bool(aps[a] & aps[b]), (
                 f"{a} took from {b} in a way the apertures do not explain")
-    # About 90% of each unit's uptake comes from one peer.
+    # Roughly 70-76% of each unit's uptake comes from one peer (was ~90%).
     for a in sorted(aps):
         row = {b: n for (x, b), n in four["consult"].items() if x == a}
-        assert max(row.values()) / sum(row.values()) > 0.89
+        assert max(row.values()) / sum(row.values()) > 0.70
 
     # THE DIAGNOSTIC: not one decision at four units offered a second voice.
-    assert dict(four["voices"]) == {1: 939}
+    assert dict(four["voices"]) == {1: 1151}
     assert {n for _rel, n in four["voices_by_rel"]} == {1}
     assert sorted(rel for rel, _n in four["voices_by_rel"]) == [
         "a_head", "a_local", "b_head", "b_local", "d_head", "d_local",
@@ -3184,29 +3740,29 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
     assert four_pref["pref_choice"] == 0, (
         "a preference decided something at four units, where no decision had "
         "two voices to decide between")
-    assert (four_pref["occ_pref"], four_pref["occ_bite"]) == (41, 0)
+    assert (four_pref["occ_pref"], four_pref["occ_bite"]) == (53, 0)
 
-    # SIX UNITS: a choice existed, and both voices were the same observation.
-    assert dict(six["voices"]) == {1: 534, 2: 394}
-    assert six["independent"] == 394 and six["relayed"] == 0
-    assert six["twin"] == 394, (
-        "a second voice met the atom on a different round from the first, so "
-        "the two are not duplicate records of one stream")
-    # AND ONE PEER IS THE PERPETUAL ANSWERER. `answer_to` returns the first mark
-    # published and every phase walks the units in order, so the lower-numbered
-    # of two equally-informed voices answers all 394 times — which is why Task
-    # 6's `many_suppliers` reads 0 even where a choice existed.
-    assert six["choice_lowest"] == 394
+    # SIX UNITS: a choice existed, and now not every voice is first-hand.
+    assert dict(six["voices"]) == {1: 715, 2: 498}
+    assert six["independent"] == 469 and six["relayed"] == 29, (
+        "at window 8 a second voice can now be relayed testimony, not only a "
+        "first-hand twin — see the docstring's window-5-vs-8 comparison")
+    assert six["twin"] == 469, (
+        "every independent second voice still met the atom on the same round "
+        "as the first, so among the independent decisions none are non-twins")
+    # THE "LOWER-NUMBERED ANSWERS" PATTERN IS NOW ALMOST BUT NOT QUITE ABSOLUTE:
+    # 481 of the 498 two-voice decisions, not all 498 (was all 394 at window 5).
+    assert six["choice_lowest"] == 481
     assert four["choice_lowest"] == 0
-    assert (six_pref["pref_choice"], six_pref["pref_choice_bite"]) == (23, 0)
-    assert (six_pref["occ_pref"], six_pref["occ_bite"]) == (54, 0)
-    # Gamma offers nothing at six units: all three of its witnesses attend the
-    # same rounds, so no peer can supply what another lacks.
+    assert (six_pref["pref_choice"], six_pref["pref_choice_bite"]) == (25, 0)
+    assert (six_pref["occ_pref"], six_pref["occ_bite"]) == (72, 0)
+    # Gamma still offers nothing at six units: all three of its witnesses
+    # attend the same rounds, so no peer can supply what another lacks.
     assert not [rel for rel, _n in six["voices_by_rel"] if rel.startswith("g_")]
 
     # THE LOOSER READING, KEPT FOR CONTRAST.
-    assert dict(four["could"]) == {0: 68, 1: 956}
-    assert dict(six["could"]) == {0: 72, 1: 324, 2: 649}
+    assert dict(four["could"]) == {0: 85, 1: 1173}
+    assert dict(six["could"]) == {0: 87, 1: 464, 2: 807}
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

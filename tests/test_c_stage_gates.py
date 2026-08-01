@@ -8,16 +8,22 @@ reading five test modules. Do not refactor it into imports from those files.
 STAGE 3'S TWO GATES ARE NOT RESTATED HERE, and the reason is cost rather than
 principle. They compare whole communities over eight seeds and 60 rounds, so
 they read the measurement driver and the memoised arms in
-`tests/test_c_channels.py`; restating them would re-run about a hundred seconds
-of arms for no new assertion. They are:
+`tests/test_c_channels.py`; restating them would re-run substantial arms for
+no new assertion. They are:
 
-- `test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less`
-  — does communication buy anything? The live world scores −106 against the mute
-  twin's −1421 and gets there by placing 110 bets against 1497 and holding 28 of
-  64 true laws against 64.
+- `test_gate_one_the_score_improves_while_the_community_learns_less`
+  — does communication buy anything? RE-MEASURED AT WINDOW 8 (the ruled
+  default, 2026-07-31): the live world scores −185 against the mute twin's
+  −1421 and gets there by placing 193 bets against 1497 and holding 44 of 64
+  true laws against 64. AT WINDOW 5, the previous default, for comparison —
+  the reading the ruling was made on: −106 against −1421, 110 bets against
+  1497, 28 of 64 true laws held.
 - `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
-  — does consultation depart from uniform? It does, and all 939 uptake decisions
-  at four units had exactly one voice standing behind the content.
+  — does consultation depart from uniform? It does. RE-MEASURED AT WINDOW 8
+  (the ruled default, 2026-07-31): all 1151 uptake decisions at four units had
+  exactly one voice standing behind the content. AT WINDOW 5, the previous
+  default, for comparison — the reading the ruling was made on: all 939
+  uptake decisions had exactly one voice.
 """
 
 from c_field import Field, default_spec, apertures_for
@@ -47,7 +53,7 @@ def _arms():
     return spec, field, ap, converse, shared_head
 
 
-def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
+def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_bets_pay():
     """Stage 1 gate: induction earns its keep.
 
     The learner must (a) induce a law the field actually planted and (b)
@@ -62,13 +68,15 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     at 9 of 14 seeds. A forecast now resolves EXACTLY ONCE, at the round it is
     due. No assertion here was weakened.
 
-    THE STATISTIC IS `net_score` (hits − misses), not `accuracy`. Two reasons.
-    A ratio over few bets is unstable — one lucky hit reads as a perfect score,
-    which is what made an earlier version of this gate flip across seeds. And
-    the `fixed` arm never bets, so its `accuracy` is `None` (an abstainer has no
-    accuracy rather than a zero one); comparing a ratio against it would raise.
-    `net_score` puts a better and an abstainer on one honest scale: abstention
-    is 0, betting and winning is positive, betting and losing is negative.
+    THE STATISTIC WAS `net_score` UNTIL 2026-07-31, AND IS NOT ANY LONGER. The
+    reasons it was chosen still hold — a ratio over few bets is unstable, and the
+    `fixed` arm never bets so its `accuracy` is `None` rather than 0.0 — but the
+    retirement is about a different failure: compared ACROSS ARMS the score rose
+    988 while the channels destroyed 64 of 64 true laws, then rose a further 327
+    while 28 were restored. So this gate now reads the laws each arm holds and
+    the bets each arm placed on them, and reports net without asserting on it.
+    Abstention is still an honest zero: the `fixed` arm places no bets, which the
+    gate now says directly.
 
     RE-MEASURED at this seed (20260728), 60 rounds, under noise, with a forecast
     resolving once: learner 35 hits / 4 misses, net +31, accuracy 0.8974, holding
@@ -135,12 +143,22 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     assert misled.ledger.hits + misled.ledger.misses > 0
     # It can also WIN some of them; that the ceiling is nonzero is a property
     # of the field, pinned in tests/test_c_field.py rather than restated here.
-    # And the learner beats it, and beats abstention — on `net_score`, the
-    # statistic that is stable at low bet volumes and that an abstainer can
-    # share a scale with (its `accuracy` is None, not 0.0).
-    assert learner.ledger.net_score > misled.ledger.net_score
-    assert learner.ledger.net_score > fixed.ledger.net_score
-    assert fixed.ledger.accuracy is None      # it never bet; no ratio exists
+    # THE VERDICT, RE-EXPRESSED 2026-07-31. It used to read on `net_score`, and
+    # the retirement is why it no longer does: that statistic rose 988 while the
+    # channels destroyed every true law the field carried, so a gate decided by
+    # comparing it across arms is decided by a number that moves both ways.
+    # The claim, stated where it is actually made — in the laws held (the
+    # learner's true law already checked at (a) above) and in the bets each
+    # arm placed on them:
+    assert not (misled.laws & {d.law for d in spec.domains})  # holds a false one
+    assert learner.ledger.hits > learner.ledger.misses        # and it pays
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
+    assert misled.ledger.misses > misled.ledger.hits          # and it costs
+    assert fixed.ledger.hits + fixed.ledger.misses == 0       # and it never bet
+    assert fixed.ledger.accuracy is None      # no bet placed, so no ratio exists
 
 
 def test_a_true_law_held_alone_makes_money_at_every_seed():
@@ -176,9 +194,10 @@ def test_a_true_law_held_alone_makes_money_at_every_seed():
             led = u.ledger
             assert led.hits + led.misses > 0, (
                 f"seed {seed} {domain.law}: never bet, so nothing was tested")
-            assert led.net_score > 0, (
+            assert led.hits > led.misses, (
                 f"seed {seed}: the planted law {domain.law} held alone LOSES "
-                f"money — {led.hits}h/{led.misses}m net {led.net_score}")
+                f"money — {led.hits}h/{led.misses}m (net {led.net_score}, "
+                f"reported not asserted)")
             # And it loses no bet twice: one charge per distinct atom.
             assert led.misses == len({e.fact for e in led.entries
                                      if e.result == "miss"})
@@ -232,14 +251,17 @@ def test_the_converse_law_arm_now_bets_and_loses():
 
     # It bets now — the noise gave it something to be wrong about.
     assert conv_arm.ledger.hits + conv_arm.ledger.misses > 0
-    # And it loses: a converse held is a converse that costs.
+    # And it loses: a converse held is a converse that costs. One clause, on the
+    # bets; `net_score < 0` said the same thing in retired vocabulary.
     assert conv_arm.ledger.misses > conv_arm.ledger.hits
-    assert conv_arm.ledger.net_score < 0
     # The abstainer is unchanged, and remains the honest zero.
     assert lawless.ledger.hits + lawless.ledger.misses == 0
     assert lawless.ledger.accuracy is None
-    assert lawless.ledger.net_score == 0
-    assert conv_arm.ledger.net_score < lawless.ledger.net_score
+    # THE CROSS-ARM CLAUSE, RE-EXPRESSED. The old form compared two net scores.
+    # What it meant is that one arm bet and lost while the other never played —
+    # and BOTH halves are already asserted above (`:253` the converse arm bets,
+    # `:258` the abstainer does not), so the claim now stands on those and the
+    # scalar comparison is simply deleted rather than restated.
 
 
 def test_stage_2_gate_support_is_recoverable_and_changes_what_survives():

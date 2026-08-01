@@ -223,22 +223,36 @@ class Unit:
     false ones, because rebuttability tracks how common the head relation is in
     the author's record rather than whether the law is true. Suspension is what
     lets a doubt be entertained without being obeyed."""
-    corroboration_window: int = 5
+    corroboration_window: int = 8
     """How many rounds a call for corroboration stands before silence restores
-    the law. DEFAULT 5, and it is a choice rather than a measurement.
+    the law. DEFAULT 8 SINCE 2026-07-31, by author ruling and on the measured
+    trade below.
 
     THE RATIONALE IS THE RULING'S OWN. A challenge that gathers no support has
     failed, and "do not eliminate until corroboration" means silence cannot
-    eliminate — so the window must end in restoration, not in retraction. Five
-    rounds is long enough for the community to have spoken several times (the
-    field's lag is one round, and under bounded attention a peer attends every
-    other round, so five rounds is two or three chances for every peer to publish
-    what bears on the case) and short enough that a law is not mute for a
-    material part of a sixty-round run.
+    eliminate — so the window must end in restoration, not in retraction.
 
-    3, 5 AND 8 ARE NOW MEASURED, AND THE DEFAULT WAS LEFT ALONE — it is the
-    author's. Eight seeds, 60 rounds, bounded attention, planted laws and
-    converses seeded.
+    EIGHT SINCE 2026-07-31, BY AUTHOR RULING, ON THE MEASURED TRADE BELOW: at six
+    units, 3 → 8 saves 49 true laws (96 lost to 47) while sparing only 3
+    converses (20 to 17). A true law's missing head is the thing a peer can
+    actually supply and a converse's is not, so waiting longer helps the true law
+    disproportionately. The entire visible price of the patience landed in
+    `net_score`, which was retired from the gate role in the same ruling — so the
+    trade is read on the laws, and 8 dominates.
+
+    IT IS PART OF THE TERMINAL UNIT'S RATE (ruling 2), which carries two riders.
+    It must stay UNIFORM across a community — enforced since 2026-07-31 by
+    `tests/test_c_channels.py::_assert_uniform_rate`, which refuses a mixed-rate
+    community outright. And it must be held CONSTANT across any size sweep, or
+    the sweep measures the window instead of the scaling.
+
+    THE PRICE OF PATIENCE IS STILL UNMEASURED IN ONE RESPECT: a longer window
+    makes every unit do more work per doubt, and the cost reading sees channel
+    acts and attendance but not the internal work a standing doubt occasions.
+    Named, not closed.
+
+    3, 5 AND 8 ARE NOW MEASURED, AND 8 IS THE RULED DEFAULT — see above. Eight
+    seeds, 60 rounds, bounded attention, planted laws and converses seeded.
 
     WITHOUT AN ANSWERING CHANNEL THE VALUE CHANGES NOTHING. At four units and at
     six, windows of 3, 5 and 8 read identical suspensions, corroborations,
@@ -269,11 +283,25 @@ class Unit:
     the author's own record long before five rounds passed, or by a peer, or not
     at all. With the internal arm routed through the same lifecycle it carries
     most of the traffic — over eight seeds, 60 rounds, four units under bounded
-    attention with the ask channel live, **41 of 66 doubts end at the window**
-    (36 given up, 5 restored) against 25 closed early by rebuttal; with the ask
-    channel muted, all 66. So the value of this number now matters to the
-    outcome in a way it did not, and it is worth the author's attention rather
-    than a default's."""
+    attention with the ask channel live, RE-MEASURED AT WINDOW 8 (the ruled
+    default, 2026-07-31): **22 of 66 doubts end at the window** (20 given up, 2
+    restored) against 44 closed early by rebuttal; with the ask channel muted,
+    all 66 (unaffected by the window, since nothing ever answers to end a doubt
+    early). Cross-checked against the sweep table five lines above (the 4/8 row:
+    internal 20, rebutted 44 — the window-ending count is internal + silence,
+    66 − 20 − 44 = 2) and against
+    `tests/test_c_channels.py::test_peer_testimony_repairs_the_true_law_once_
+    the_law_survives_to_ask`'s own re-measurement (internal 20, rebutted 44,
+    silence 2), which report the identical split.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason: 41 of 66 doubts ended at
+    the window (36 given up, 5 restored) against 25 closed early by rebuttal;
+    with the ask channel muted, all 66.
+
+    So the value of this number now matters to the outcome in a way it did not
+    before this task, and it is worth the author's attention rather than a
+    default's."""
     corroborating_witnesses: int = 2
     """How many DISTINCT FOREIGN RECORDS must stand against a law before the
     doubt is corroborated and the law eliminated.
@@ -355,6 +383,22 @@ class Unit:
     when the run ends. A longer window holds more preferences only by declining
     to conclude. Measured in
     `tests/test_c_channels.py::test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`."""
+    attended: int = 0
+    """How many rounds this unit actually met the field — the denominator of
+    every rate reading, and the only act-count that exists nowhere else.
+
+    WRITTEN AFTER THE ACT, NEVER BEFORE (THE_KYTOS §1.3). `step` increments this
+    once it has anticipated, observed, been scored and recorded, so no decision
+    in the round it counts can read it. Nothing in `src/` reads it at all: it is
+    an observer's number, and a unit that consulted its own cost to decide
+    whether to act would be the thing the doctrine says does not happen.
+
+    WHY ATTENDANCE AND NOT ROUNDS ELAPSED. Under bounded attention a unit meets
+    the field on half the rounds, so rounds elapsed would price a sleeping unit
+    the same as a working one and would let a rate be lowered by sleeping. The
+    acts a unit performed OUTSIDE the membrane need no counter here — they are
+    already reported on the board, attributed and dated, which is where the
+    community can read them."""
     peers: Dict[str, Dict[str, Tuple[int, int]]] = dc_field(default_factory=dict)
     """What this unit has learned about WHOM IT IS TALKING TO: per peer, per
     relation, `(borne out, not borne out)` — the two counts kept apart, with
@@ -839,13 +883,17 @@ class Unit:
         consequent one round after its antecedent and `_record` runs after
         scoring, so every fact the stake was derived from was held at r−1 or
         earlier. Resolve-once (see `anticipate`) is what makes "due now" mean
-        "decided now" instead of "decided now and every round after"."""
+        "decided now" instead of "decided now and every round after".
+
+        Attendance is counted last, after the round's work is done, so the
+        report of having acted cannot reach the act it reports on."""
         anticipated = self.anticipate()
         arrived = set(field.at(self.aperture, round_idx))
         self.ledger.score(anticipated, arrived, round_idx)
         self._record(arrived, round_idx)
         if induce:
             self.induce(round_idx)
+        self.attended += 1        # AFTER the act — THE_KYTOS §1.3
 
     # --- the assert channel: publish, read, adopt ---------------------------
     #

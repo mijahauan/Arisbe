@@ -69,7 +69,19 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert lawless.ledger.accuracy is None   # no bet placed, so no ratio
-    assert lawful.ledger.net_score > misled.ledger.net_score
+    # THE VERDICT, ON THE LAW COMPONENTS AND THE BETS — not on a cross-arm
+    # scalar. The lawful arm holds a law the field carries and its bets pay; the
+    # rival holds one it does not and its bets lose. That is the whole claim, and
+    # it cannot be satisfied by an arm that improved a score by not betting,
+    # which is how `net_score` passed five gates it should have failed.
+    assert lawful.laws & {d.law for d in spec.domains}
+    assert not (misled.laws & {d.law for d in spec.domains})
+    assert lawful.ledger.hits > lawful.ledger.misses
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
+    assert misled.ledger.misses > misled.ledger.hits
 
 
 def _unary(rel, names):
@@ -379,8 +391,8 @@ def test_the_learner_induces_only_planted_laws_across_many_seeds():
 
     Exactness of induction and PROFITABILITY are separate claims, measured
     separately: this test asserts only the former. The latter is
-    `test_inducing_unit_learns_the_planted_law_and_its_score_rises` (a positive
-    `net_score` at all 14 seeds, now that a forecast resolves once) and
+    `test_inducing_unit_learns_the_planted_law_and_its_bets_pay` (hits exceed
+    misses at all 14 seeds, now that a forecast resolves once) and
     `test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice` (why it used
     not to be)."""
     from c_field import Field, default_spec, apertures_for
@@ -444,8 +456,10 @@ def test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice():
     assert max(missed.values()) == 1, f"a bet was re-charged: {missed}"
     assert u.ledger.misses == len(missed)
     assert u.ledger.restaked == 0     # the unit never even re-offers a settled bet
-    # And with the re-charges gone, a record holding only true laws PAYS.
-    assert u.ledger.net_score > 0
+    # And with the re-charges gone, a record holding only true laws PAYS —
+    # stated on the bets themselves rather than on the retired scalar
+    # (src/c_membrane.py's `net_score`, observability only since 2026-07-31).
+    assert u.ledger.hits > u.ledger.misses
     # Every miss is still a head atom the unit's law licensed but the field
     # withheld — not a wrong law firing.
     heads = {d.law[1] for d in spec.domains}
@@ -469,16 +483,21 @@ def test_misses_no_longer_grow_with_the_run_length():
         u = Unit("u0", ap, laws={spec.domains[0].law})
         for r in range(rounds):
             u.step(field, r)
-        return u.ledger.misses, u.ledger.net_score
+        return u.ledger.misses, u.ledger.hits, u.ledger.net_score
 
-    short_m, short_net = misses_over(20)
-    long_m, long_net = misses_over(80)
+    short_m, short_h, short_net = misses_over(20)
+    long_m, long_h, long_net = misses_over(80)
     assert long_m <= short_m + 5, "misses still scale with run length"
-    assert short_net > 0 and long_net > 0
+    # WITHIN-ARM, so stated on the bets themselves (the 2026-07-31 retirement):
+    # a true law held alone pays at both run lengths.
+    assert short_h > short_m and long_h > long_m
+    # KEPT ON NET, deliberately. This clause is a claim ABOUT the statistic's
+    # behaviour over run length — the quadratic-miss pathology resolve-once
+    # fixed — so net is the thing under test, not the thing deciding.
     assert long_net >= short_net, "a longer run made a true law look worse"
 
 
-def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
+def test_inducing_unit_learns_the_planted_law_and_its_bets_pay():
     """The Stage 1 gate: a unit that may induce ends up holding a law the
     regime actually planted, and outperforms both a unit that may not induce
     and a unit seeded with a law the field does not carry.
@@ -528,8 +547,17 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert fixed.ledger.accuracy is None     # it never bet; no ratio exists
-    assert learner.ledger.net_score > fixed.ledger.net_score
-    assert learner.ledger.net_score > misled.ledger.net_score
+    # THE VERDICT, ON THE LAW COMPONENTS AND THE BETS. The learner induced a law
+    # the field carries and its bets pay; the rival holds one it does not and its
+    # bets lose; the abstainer never played. Three within-arm readings decide it,
+    # so no arm can pass by improving a scalar while forecasting less.
+    assert learner.ledger.hits > learner.ledger.misses
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
+    assert misled.ledger.misses > misled.ledger.hits
+    assert fixed.ledger.hits + fixed.ledger.misses == 0
 
 
 # --- the unit reasons through the project's real forward-chainer -------------
@@ -644,3 +672,29 @@ def test_anticipation_is_deterministic_across_repeated_renderings():
     u.absorb(field, 0)
     first, first_prov = u.anticipate(), dict(u.last_provenance)
     assert (u.anticipate(), dict(u.last_provenance)) == (first, first_prov)
+
+
+def test_attendance_is_counted_and_written_after_the_act():
+    """`Unit.attended` is the denominator of every rate reading, and it is
+    written AFTER the step completes — THE_KYTOS §1.3's write-after rule, which
+    is what keeps a report from reaching the act it reports on.
+
+    A unit that attends every round of a 20-round run reads 20; a unit stepped
+    on even rounds only reads 10. Attendance counts occasions met, never rounds
+    elapsed, so bounded attention cannot inflate a rate by shortening its own
+    denominator."""
+    spec = default_spec(seed=20260728)
+    field = Field(spec)
+    ap = apertures_for(spec, n_units=4)[0]
+
+    every = Unit("u0", ap)
+    assert every.attended == 0               # nothing acted, nothing reported
+    for r in range(20):
+        every.step(field, r)
+    assert every.attended == 20
+
+    staggered = Unit("u1", ap)
+    for r in range(20):
+        if r % 2 == 0:
+            staggered.step(field, r)
+    assert staggered.attended == 10

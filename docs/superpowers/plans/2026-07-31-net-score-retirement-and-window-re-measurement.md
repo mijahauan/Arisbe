@@ -32,6 +32,12 @@ it is [THE_KYTOS.md](../../THE_KYTOS.md) §1.3's non-interference rule under tes
   is decided on the law components with a **participation clause** (bets placed);
   within one arm, "a held law pays" is stated on `hits` and `misses` directly.
   **Pinning is reporting** — an assertion of an exact measured value stays.
+- **A participation clause is asserted only where it can fail** (author ruling,
+  2026-07-31, during execution). `hits > misses` over non-negative counts already
+  forces `hits ≥ 1`, so at any site whose law clause is a strict inequality the
+  participation guarantee is *entailed*. Record the entailment in a comment; never
+  assert a tautology. A clause that cannot fire reads as protection that is not there,
+  which is the defect class this project has caught itself in three times.
 - **Phases 1 and 2 must move no measured figure.** If a figure moves, STOP and report;
   it is a finding, not a nuisance.
 - The C suite takes ~14 minutes. Full-suite runs are called out explicitly; everything
@@ -781,10 +787,13 @@ with:
             assert shed_misses > shed_hits, (
                 f"seed {seed} {asking.unit_id}: the channel shed {shed_hits} "
                 f"hits against {shed_misses} misses — it cost more than it saved")
-            # PARTICIPATION, REPORTED: what the shedding cost in forecasts made.
-            # Not asserted, because ceasing to forecast is exactly the behaviour
-            # GATE 1 flags, and this gate must not reward it.
-            assert asking.ledger.hits + asking.ledger.misses >= 0
+        # NO PARTICIPATION CLAUSE HERE, and the absence is the point. Ceasing to
+        # forecast is exactly the behaviour GATE 1 flags, so this gate must not
+        # assert that the live arm kept betting — it did not, and that IS the
+        # finding. The shedding is made visible by the two clauses above instead.
+        # (Per the author's ruling of 2026-07-31: a participation clause is
+        # asserted only where it can fail; a tautology here would read as
+        # protection that is not there.)
 ```
 
 - [ ] **Step 2: Add the reason to the docstring**
@@ -886,25 +895,158 @@ git commit -m "GATE 1: the net clause demoted to a pin, the inversion clause kep
 
 ---
 
+### Task 7b: The three survivors the gate map missed
+
+**Why this task exists.** Tasks 4-7 worked from a gate map built by grepping
+`assert.*net_score`. That method under-counted twice: Task 6's review found a deciding
+comparison whose `net_score` reads lived in earlier `append` lines, and the Task 8
+audit — tracing *reads* rather than assertions — found three more. The complete audit
+is now this: after Tasks 4-7, **every surviving net comparison in the C suite asserts a
+pathology OF the statistic rather than deciding BY it** — except one, which is a
+straightforward within-arm miss. That is a good result, but a future reader cannot tell
+a kept comparison from a removed one without a comment saying which is which.
+
+**Files:**
+- Modify: `tests/test_c_channels.py:1936` (in
+  `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`)
+- Modify: `tests/test_c_channels.py:2113` (in
+  `test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally`)
+- Modify: `tests/test_c_unit.py:481-492` (in
+  `test_misses_no_longer_grow_with_the_run_length`)
+
+- [ ] **Step 1: Annotate the suspension test's inversion clause (KEEP the assertion)**
+
+`assert live_net < mute_net` asserts that the channel *costs* score while saving true
+laws — the inversion itself, not a verdict. Insert above it:
+
+```python
+        # KEPT UNDER THE RETIREMENT, like GATE 1's decomposition clause. This
+        # compares two arms' net scores, which as a VERDICT the 2026-07-31 ruling
+        # forbids — but its content is that the channel COSTS score while saving
+        # the true laws the existential rule destroyed. It asserts the inversion,
+        # it does not decide by it, and deleting it would remove the evidence.
+```
+
+- [ ] **Step 2: Annotate the bounded-attention test's inversion clause (KEEP)**
+
+`assert live_total > mute_total` sits directly beneath
+`assert (true_defeats, true_held) == (64, 0)`. Its content is that the score improved
+by 988 while every one of the 64 true laws died. Insert above it:
+
+```python
+    # KEPT UNDER THE RETIREMENT, and this is the sharpest instance of why the
+    # statistic was retired: the score improves while `true_held` above reads 0
+    # of 64. The clause asserts that inversion; it decides nothing by it. The
+    # exact figures are pinned on the next line.
+```
+
+- [ ] **Step 3: Re-express the one genuine within-arm miss**
+
+In `test_misses_no_longer_grow_with_the_run_length`, change the helper to return hits
+as well:
+
+```python
+    def misses_over(rounds):
+        u = Unit("u0", ap, laws={spec.domains[0].law})
+        for r in range(rounds):
+            u.step(field, r)
+        return u.ledger.misses, u.ledger.hits, u.ledger.net_score
+```
+
+and its two call sites plus the assertions:
+
+```python
+    short_m, short_h, short_net = misses_over(20)
+    long_m, long_h, long_net = misses_over(80)
+    assert long_m <= short_m + 5, "misses still scale with run length"
+    # WITHIN-ARM, so stated on the bets themselves (the 2026-07-31 retirement):
+    # a true law held alone pays at both run lengths.
+    assert short_h > short_m and long_h > long_m
+    # KEPT ON NET, deliberately. This clause is a claim ABOUT the statistic's
+    # behaviour over run length — the quadratic-miss pathology resolve-once
+    # fixed — so net is the thing under test, not the thing deciding.
+    assert long_net >= short_net, "a longer run made a true law look worse"
+```
+
+- [ ] **Step 4: Run the covering tests**
+
+Run: `uv run pytest tests/test_c_unit.py -q`
+Run: `uv run pytest tests/test_c_channels.py -k "suspension_saves or discrimination_still_inverts" -v`
+Expected: all pass, no figure moved.
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add tests/test_c_channels.py tests/test_c_unit.py
+git commit -m "The three survivors: two inversion clauses annotated, one within-arm miss re-expressed"
+```
+
+---
+
 ### Task 8: Phase-2 verification — no figure has moved
 
 **Files:** none modified.
 
 **Interfaces:** none.
 
-- [ ] **Step 1: Confirm no cross-arm net comparison survives**
+- [ ] **Step 1: Confirm no cross-arm net comparison survives — by tracing reads, not by grepping assertions**
 
-Run:
+**No grep over assertions is sound here, and three separate under-counts prove it.**
+The gate map missed `assert sum(live_pairs) > sum(mute_pairs)` because the `net_score`
+reads live in earlier `append` lines; it then missed three more for the same reason;
+and the *verification* grep first drafted here (`grep "assert.*net"`) misses
+`assert live_total > mute_total`, whose variable names contain no "net" at all. A grep
+matches names; what matters is roles. **The sound method is to enumerate every read of
+`net_score` and trace its variable to every assertion that consumes it.**
 
 ```bash
 grep -rn "net_score" tests/test_c_*.py | grep -v "test_c_membrane.py"
-grep -rn '\["net' tests/test_c_channels.py
 ```
 
+For each hit that is a *read* (not a comment or an f-string), name the variable it
+feeds and find that variable's consuming assertions. Every consumer must be one of:
+
+- **a pin** — `== (…)`, an exact measured value, which is reporting with teeth;
+- **a message** — the value appears only inside an f-string on another assertion;
+- **an annotated kept clause** — a comparison that asserts a pathology OF the
+  statistic, carrying a comment that says so.
+
+Anything else is a miss.
+
+**The completed accounting, as of Task 7b** (re-derive it rather than trusting this
+table if any of these files changed since):
+
+| Read site | Variable | Consumers | Verdict |
+|---|---|---|---|
+| `channels` `live_pairs`/`mute_pairs` append | `live_pairs`, `mute_pairs` | f-string in the aggregate shedding message | message |
+| `channels` `live_net`/`mute_net` (suspension test) | `live_net`, `mute_net` | `assert live_net < mute_net` | annotated kept |
+| `channels` `live_total`/`mute_total` (corroboration-churn test) | `live_total`, `mute_total` | `== (922, 961)` | pin |
+| `channels` `live_total`/`mute_total` (bounded-attention test) | `live_total`, `mute_total` | `assert live_total > mute_total` + `== (-433, -1421)` | annotated kept + pin |
+| `channels` `agg["net_live"]`/`["net_mute"]` (×2 aggregators) | `agg[…]` | five `== (…)` pins | pins |
+| `channels` `tally net=` | `agg["net"]` | eight `== (…)` pins + GATE 1's decomposition | pins + annotated kept |
+| `unit` `misses_over` return | `short_net`, `long_net` | `assert long_net >= short_net` | annotated kept |
+| `stage_gates` `led.net_score` | — | f-string only | message |
+| `channels` `shed_misses`/`shed_hits` (asking-vs-mute test, per-seed) | `shed_misses`, `shed_hits` | `assert shed_misses > shed_hits` | annotated kept (a net-score comparison unfolded into hit/miss components — undetected by `grep net_score` since neither name contains it; found in the final review pass, 2026-08-01) |
+| `channels` `live_misses`/`mute_misses`/`live_hits`/`mute_hits` (asking-vs-mute test, aggregate) | `live_misses`, `mute_misses`, `live_hits`, `mute_hits` | `assert (mute_misses - live_misses) > (mute_hits - live_hits)` | annotated kept (same unfolding, aggregate form) |
+
+**Six** annotated kept clauses survive, not four — the table above undercounted by
+exactly the shape its own Step 1 warned about: `shed_misses > shed_hits` and
+`(mute_misses - live_misses) > (mute_hits - live_hits)` read no field named
+`net_score`, so the tracing grep missed them, but each is algebraically the
+forbidden cross-arm net-score comparison (`asking.net_score > silent.net_score`
+and `sum(live_pairs) > sum(mute_pairs)` respectively) unfolded into its hit and
+miss components rather than removed. Both are kept, not deleted, because the arm
+they sit in seeds the law and runs no challenge channel — no law can be lost
+there, so the score cannot be bought by destroying knowledge, which is the
+argument that makes the unfolded form trustworthy where the general case is not.
+No verdict anywhere is decided by a cross-arm net comparison whose arm COULD lose
+a law.
+
 Expected: every surviving hit is either (a) an f-string reporting a figure, (b) an
-equality pin, (c) `test_c_membrane.py`'s five arithmetic pins, or (d) GATE 1's
-kept inversion clause at ~3068. **Any surviving `>` or `<` between two arms' net
-values outside (d) is a miss — go back and fix it.**
+equality pin, (c) `test_c_membrane.py`'s five arithmetic pins, (d) GATE 1's
+kept inversion clause at ~3068, or (e) one of the two asking-vs-mute unfolded
+clauses above. **Any surviving `>` or `<` between two arms' net
+values outside (d)/(e) is a miss — go back and fix it.**
 
 - [ ] **Step 2: Full C suite**
 

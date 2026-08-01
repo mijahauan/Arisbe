@@ -35,7 +35,11 @@ def test_net_score_is_stable_where_a_ratio_is_not():
         f = ("r", (("c", f"x{i}"),))
         solid.score(anticipated={f}, arrived={f} if hit else set(), round_idx=i)
     assert lucky.accuracy > solid.accuracy      # the ratio's pathology, shown
-    assert solid.net_score > lucky.net_score    # the stable statistic, fixed
+    # Stable at THIS low bet volume, not fit to compare arms: net_score was
+    # retired from the gate role by author ruling 2026-07-31 (five measured
+    # cross-arm inversions) — this test is about the statistic's own
+    # behaviour on a handful of bets, never a cross-arm verdict.
+    assert solid.net_score > lucky.net_score
 
 
 # --- a forecast resolves exactly once ----------------------------------------
