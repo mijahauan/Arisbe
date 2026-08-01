@@ -3371,7 +3371,7 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
 # the only size at which any unit was ever offered a second voice.
 
 
-def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less():
+def test_gate_one_the_score_improves_while_the_community_learns_less():
     """**GATE 1 PASSED ON `net_score`, THE PASS MEANT THE OPPOSITE OF WHAT IT LOOKED
     LIKE, AND ON 2026-07-31 THE STATISTIC WAS RETIRED FROM THE GATE ROLE FOR IT.**
     The figures below are pinned and reported; the verdict is carried by the laws

@@ -11,10 +11,11 @@ they read the measurement driver and the memoised arms in
 `tests/test_c_channels.py`; restating them would re-run about a hundred seconds
 of arms for no new assertion. They are:
 
-- `test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less`
-  — does communication buy anything? The live world scores −106 against the mute
-  twin's −1421 and gets there by placing 110 bets against 1497 and holding 28 of
-  64 true laws against 64.
+- `test_gate_one_the_score_improves_while_the_community_learns_less`
+  — does communication buy anything? At the ruled `corroboration_window` default
+  (8, since 2026-07-31) the live world scores −185 against the mute twin's
+  −1421 and gets there by placing 193 bets against 1497 and holding 44 of 64
+  true laws against 64.
 - `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
   — does consultation depart from uniform? It does, and all 939 uptake decisions
   at four units had exactly one voice standing behind the content.
