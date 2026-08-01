@@ -523,15 +523,17 @@ with:
 
 ```python
     assert lawless.ledger.accuracy is None
-    # THE CROSS-ARM CLAUSE, RE-EXPRESSED. The old form compared two net scores;
-    # what it meant is that one arm bet and lost while the other never played,
-    # which the two arms' own bets say without a scalar.
-    assert conv_arm.ledger.hits + conv_arm.ledger.misses > 0
-    assert lawless.ledger.hits + lawless.ledger.misses == 0
+    # THE CROSS-ARM CLAUSE, RE-EXPRESSED. The old form compared two net scores.
+    # What it meant is that one arm bet and lost while the other never played —
+    # and BOTH halves are already asserted above (`:236` the converse arm bets,
+    # `:240` the abstainer does not), so the claim now stands on those and the
+    # scalar comparison is simply deleted rather than restated.
 ```
 
-(The line `assert lawless.ledger.hits + lawless.ledger.misses == 0` already appears
-two lines above at `:240`; delete the earlier duplicate so the clause reads once.)
+**Add no new assertion here.** The two lines above already carry the claim; the
+correct edit is to delete `assert lawless.ledger.net_score == 0` and
+`assert conv_arm.ledger.net_score < lawless.ledger.net_score` and leave the
+comment in their place. Do not duplicate `:236` or `:240`.
 
 - [ ] **Step 5: Re-express `tests/test_c_field.py:268`**
 
