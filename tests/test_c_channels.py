@@ -608,6 +608,15 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
                 f"{silent.ledger.misses})")
             shed_misses = silent.ledger.misses - asking.ledger.misses
             shed_hits = silent.ledger.hits - asking.ledger.hits
+            # KEPT CLAUSE FIVE, and named as one. Rearranged, this IS
+            # `asking.net_score > silent.net_score` — the comparison the
+            # retirement forbids as a verdict. It stands here because on THIS
+            # arm no law can be lost (`_play` seeds the law and runs no
+            # challenge channel), so the score cannot be bought by destroying
+            # knowledge, which is the argument the docstring above makes. The
+            # rule is spelling-independent: unfolding a forbidden comparison
+            # into its components does not remove it, so it is annotated rather
+            # than claimed gone.
             assert shed_misses > shed_hits, (
                 f"seed {seed} {asking.unit_id}: the channel shed {shed_hits} "
                 f"hits against {shed_misses} misses — it cost more than it saved")
@@ -625,15 +634,29 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
         live_misses += sum(u.ledger.misses for u in live)
         mute_misses += sum(u.ledger.misses for u in mute)
     # THE AGGREGATE, RE-EXPRESSED 2026-07-31 for the same reason as the per-arm
-    # clauses above: `sum(live_pairs) > sum(mute_pairs)` compared two arms' net
-    # scores, which the retirement forbids as a verdict. The claim aggregates
-    # the per-seed one — across every seed the live arm sheds losing stakes, and
-    # sheds more of them than it sheds winning ones. Net is REPORTED in the
-    # message, never the verdict.
+    # clauses above. `sum(live_pairs) > sum(mute_pairs)` is not asserted here —
+    # but KEPT CLAUSE SIX below (`(mute_misses - live_misses) > (mute_hits -
+    # live_hits)`) is algebraically that same cross-arm net-score comparison,
+    # unfolded into its hit/miss components rather than removed: the
+    # retirement forbids a cross-arm net-score VERDICT, and unfolding a
+    # forbidden comparison into its components does not make it a different
+    # comparison, so it is annotated and kept, not claimed gone — for the same
+    # reason KEPT CLAUSE FIVE gives above (this arm seeds the law and runs no
+    # challenge channel, so no law can be lost and the score cannot be bought
+    # by destroying knowledge). The genuinely NEW clause, not entailed by any
+    # net comparison, is `asking.ledger.misses < silent.ledger.misses` above
+    # (the per-seed miss-shedding clause) — that is what makes this gate
+    # strictly stronger than the one it replaced. Net is REPORTED in the
+    # message, never asserted as the verdict on its own.
     assert live_misses < mute_misses, (
         f"the channel shed no losing stake in aggregate — live {live_misses} "
         f"misses against mute's {mute_misses} (net {sum(live_pairs)} vs "
         f"{sum(mute_pairs)}, reported not asserted)")
+    # KEPT CLAUSE SIX, and named as one. Rearranged, this IS
+    # `sum(live_pairs) > sum(mute_pairs)` — the aggregate comparison the
+    # retirement forbids as a verdict. It stands here for the reason given
+    # above: no law can be lost on this arm, so the score cannot be bought by
+    # destroying knowledge. Spelling-independent, same as clause five.
     assert (mute_misses - live_misses) > (mute_hits - live_hits), (
         f"the channel shed {mute_hits - live_hits} hits against "
         f"{mute_misses - live_misses} misses in aggregate — it cost more than "
@@ -2005,15 +2028,14 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
     domain's law — a law the field does not carry, so defeating it is a correct
     retraction. Measured after inquiry was put before elimination: **31 of 32
     converses defeated and permanently gone, the thirty-second still SUSPENDED
-    when the run ended, 4 true laws defeated, 2 recovered and 2 permanently
+    when the run ended, 6 true laws defeated, 4 recovered and 2 permanently
     lost.** It was 32 of 32 with 16 recovered before the ruling, and 31 of 32
     with all 4 true laws recovered at window 5. The converse that survives is
     the same one as at window 5 and is still not an escape: at seed 42 the
     converse `g_head -> g_local` is first disputed at round 55 and suspended
-    there, and the run stops at 59 with its eight-round window still open (a
-    five-round window would have expired at 60, the very last round, which is
-    why it read differently there — see below). It licenses nothing throughout
-    — the arm asserts that rather than counting it as held.
+    there, and the run stops at 59 with its eight-round window still open. It
+    licenses nothing throughout — the arm asserts that rather than counting it
+    as held.
 
     THE TWO LOST TRUE LAWS ARE SEED 1's, the same seed and the same finding as
     `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`'s: a
@@ -2036,15 +2058,17 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
     before, 142 for the ruling alone and 212 for the existential rule. The two
     lost true laws show up here too: the live arm no longer matches the mute
     arm seed by seed as it did at window 5, because seed 1 now loses a true law
-    the mute arm still loses too but by a different route, so the identity that
-    held at window 5 does not hold at window 8.
+    and forgoes the hits it would have earned, while the mute arm — which
+    disposes of nothing, channel or no, since `dispose_challenges` only runs
+    `if channel` — keeps holding it, so the identity that held at window 5
+    does not hold at window 8.
 
     AT WINDOW 5, the previous default, for comparison — this is the reading the
-    ruling was made on and it is kept for that reason: 32 of 32 converses
-    defeated, 16 permanently gone, the thirty-second still SUSPENDED at the
-    run's end; 4 true laws defeated and all 4 recovered, none permanently lost;
-    every one of the 31 [sic, 32] false-law defeats by internal re-assessment;
-    live and mute arms identical at **+922 both**, so the whole 77-point benefit
+    ruling was made on and it is kept for that reason: 31 of 32 converses
+    defeated, the thirty-second still SUSPENDED at the run's end; 4 true laws
+    defeated and all 4 recovered, none permanently lost; every one of the 31
+    false-law defeats by internal re-assessment; live and mute arms identical
+    at **+922 both**, so the whole 77-point benefit
     of holding the converses cost only 1038 − 922 = **39** — the delay costing
     ten of the seventy-seven and buying the true laws their inquiry, with no
     loss of a true law to weigh against it.
@@ -3069,8 +3093,11 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     WHAT THE UNITS DID LEARN, and at four units it is now LITERALLY NOTHING.
     Of the 96 (peer, relation) pairs a four-unit community accumulates any
     record about, **0 end the run with a positive score** (was 1 at window 5);
-    94 end negative and 2 at zero. NO PEER AT FOUR UNITS EVER EARNED A
-    PREFERENCE — the same fact
+    94 end negative and 2 at zero. NO (PEER, RELATION) RECORD AT FOUR UNITS
+    EVER ENDS THE RUN POSITIVE — that is the precise claim, not that a
+    preference was never consulted: the mechanism still decided 53 uptakes at
+    four units (`occ_pref`, up from 41 at window 5), it simply never once
+    favoured a record that ended positive. The same fact
     `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
     now reports directly (its own `prefs` tally sums to 0 at four units, where
     it summed to 1 at window 5): a longer window gives the field more rounds to
@@ -3555,18 +3582,24 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
     RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31).
 
     CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`:
-    **NO LONGER TRUE AT FOUR UNITS AT ALL — this test's own name is now exactly
-    and unconditionally true, where at window 5 it needed the qualification the
-    rest of this docstring supplied.** Of the 96 (peer, relation) records a
+    **NO LONGER TRUE AT FOUR UNITS AT ALL.** Of the 96 (peer, relation) records a
     four-unit community accumulates, **0 end the run positive** (was 1 at window
-    5): no unit at four units ever earns a preference at the ruled default. Six
-    units still do: **2 of 107** (was 5). The clause survives only through the
-    six-unit reading now. **FINDING: a longer window removed typification's
-    last foothold at four units** — the one (peer, relation) pair that used to
-    end the run barely positive no longer does, because eight rounds give the
-    field more chances to redraw against it before the run ends (the same
-    mechanism `test_the_replication_verdict_reads_the_field_s_cadence_not_the_
-    peer` shows directly by sweeping the OTHER window, `rep_window`).
+    5): no (peer, relation) record at four units ever ends the run positive at
+    the ruled default. Six units still do: **2 of 107** (was 5). The clause
+    survives only through the six-unit reading now.
+
+    WHAT ACTUALLY MOVED IS THIS CLAUSE, NOT THE TEST'S OWN NAME. The name's
+    claim — no unit at four ever had a CHOICE between two voices — was already
+    unconditionally true at window 5 too: the window-5 matrix below shows all
+    939 decisions at four units with exactly one voice behind them, so a
+    preference never had two voices to decide between, then or now (`four
+    ["choice_lowest"] == 0` at window 8, same fact). **FINDING: a longer
+    window removed typification's last foothold at four units** — the one
+    (peer, relation) pair that used to end the run barely positive no longer
+    does, because eight rounds give the field more chances to redraw against
+    it before the run ends (the same mechanism
+    `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`
+    shows directly by sweeping the OTHER window, `rep_window`).
 
     CLAUSE 2 — the who-asks-whom distribution is not uniform: **yes, and it is
     still the aperture layout that made it so.** Four units, eight seeds, 60

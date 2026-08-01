@@ -1026,14 +1026,27 @@ table if any of these files changed since):
 | `channels` `tally net=` | `agg["net"]` | eight `== (…)` pins + GATE 1's decomposition | pins + annotated kept |
 | `unit` `misses_over` return | `short_net`, `long_net` | `assert long_net >= short_net` | annotated kept |
 | `stage_gates` `led.net_score` | — | f-string only | message |
+| `channels` `shed_misses`/`shed_hits` (asking-vs-mute test, per-seed) | `shed_misses`, `shed_hits` | `assert shed_misses > shed_hits` | annotated kept (a net-score comparison unfolded into hit/miss components — undetected by `grep net_score` since neither name contains it; found in the final review pass, 2026-08-01) |
+| `channels` `live_misses`/`mute_misses`/`live_hits`/`mute_hits` (asking-vs-mute test, aggregate) | `live_misses`, `mute_misses`, `live_hits`, `mute_hits` | `assert (mute_misses - live_misses) > (mute_hits - live_hits)` | annotated kept (same unfolding, aggregate form) |
 
-Four annotated kept clauses survive, and no verdict anywhere is decided by a cross-arm
-net comparison.
+**Six** annotated kept clauses survive, not four — the table above undercounted by
+exactly the shape its own Step 1 warned about: `shed_misses > shed_hits` and
+`(mute_misses - live_misses) > (mute_hits - live_hits)` read no field named
+`net_score`, so the tracing grep missed them, but each is algebraically the
+forbidden cross-arm net-score comparison (`asking.net_score > silent.net_score`
+and `sum(live_pairs) > sum(mute_pairs)` respectively) unfolded into its hit and
+miss components rather than removed. Both are kept, not deleted, because the arm
+they sit in seeds the law and runs no challenge channel — no law can be lost
+there, so the score cannot be bought by destroying knowledge, which is the
+argument that makes the unfolded form trustworthy where the general case is not.
+No verdict anywhere is decided by a cross-arm net comparison whose arm COULD lose
+a law.
 
 Expected: every surviving hit is either (a) an f-string reporting a figure, (b) an
-equality pin, (c) `test_c_membrane.py`'s five arithmetic pins, or (d) GATE 1's
-kept inversion clause at ~3068. **Any surviving `>` or `<` between two arms' net
-values outside (d) is a miss — go back and fix it.**
+equality pin, (c) `test_c_membrane.py`'s five arithmetic pins, (d) GATE 1's
+kept inversion clause at ~3068, or (e) one of the two asking-vs-mute unfolded
+clauses above. **Any surviving `>` or `<` between two arms' net
+values outside (d)/(e) is a miss — go back and fix it.**
 
 - [ ] **Step 2: Full C suite**
 
