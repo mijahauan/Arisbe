@@ -576,6 +576,15 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
     abstention would be 0 and where the same pair with FULL attention makes +48.
     Communication here repairs a deficit of attention; it does not substitute for
     attention.
+
+    WHY A NET COMPARISON WAS SAFE HERE AND IS STILL RETIRED. This arm seeds the
+    law and runs no challenge channel, so no law can be lost in either arm and
+    the inversion mechanism — buying a better score by destroying knowledge — is
+    structurally absent. The comparison was therefore trustworthy here in a way
+    it was not in GATE 1. It is retired anyway, because a gate that reads
+    correctly only because of a property of its arm is a gate whose next reader
+    has to rediscover that property. What the arm measures is stated instead:
+    the channel sheds more losing stakes than winning ones.
     """
     live_pairs, mute_pairs = [], []
     live_hits = mute_hits = 0
@@ -586,11 +595,29 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
         assert answers > 0 and uptakes > 0, (
             f"seed {seed}: the channel carried nothing, so nothing was tested")
         # Per-arm, so a single losing seed fails the gate and names itself.
+        # RE-EXPRESSED 2026-07-31: the old form compared two net scores across
+        # arms, which is the comparison the retirement forbids. In THIS arm no
+        # law can be lost — `_play` seeds the law and runs no challenge channel —
+        # so the score cannot be bought by destroying knowledge, and what the
+        # channel actually does is shed losing stakes. That is stated directly,
+        # and the shedding is made visible rather than folded into a scalar.
         for asking, silent in zip(live, mute):
-            assert asking.ledger.net_score > silent.ledger.net_score, (
-                f"seed {seed} {asking.unit_id}: asking "
-                f"({asking.ledger.net_score:+d}) did not beat mute "
-                f"({silent.ledger.net_score:+d})")
+            assert asking.ledger.misses < silent.ledger.misses, (
+                f"seed {seed} {asking.unit_id}: asking shed no losing stake "
+                f"({asking.ledger.misses} misses vs mute's "
+                f"{silent.ledger.misses})")
+            shed_misses = silent.ledger.misses - asking.ledger.misses
+            shed_hits = silent.ledger.hits - asking.ledger.hits
+            assert shed_misses > shed_hits, (
+                f"seed {seed} {asking.unit_id}: the channel shed {shed_hits} "
+                f"hits against {shed_misses} misses — it cost more than it saved")
+        # NO PARTICIPATION CLAUSE HERE, and the absence is the point. Ceasing to
+        # forecast is exactly the behaviour GATE 1 flags, so this gate must not
+        # assert that the live arm kept betting — it did not, and that IS the
+        # finding. The shedding is made visible by the two clauses above instead.
+        # (Per the author's ruling of 2026-07-31: a participation clause is
+        # asserted only where it can fail; a tautology here would read as
+        # protection that is not there.)
         live_pairs.append(sum(u.ledger.net_score for u in live))
         mute_pairs.append(sum(u.ledger.net_score for u in mute))
         live_hits += sum(u.ledger.hits for u in live)
