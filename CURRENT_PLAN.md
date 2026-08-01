@@ -1,6 +1,124 @@
 # Current Plan
 
-**Last Updated**: 2026-07-31 (tenth arc) — **EXAMINATION VII, THE SPEAKER-VARIANCE
+**Last Updated**: 2026-08-01 (eleventh arc) — **THE RE-MEASUREMENT PASS: `net_score`
+RETIRED AS A GATE STATISTIC, THE WINDOW MOVED TO 8, AND A DESIGN REFUSED ALONG THE
+WAY.** Branch `remeasurement-pass-2026-07-31`, 29 commits, `3ba6816..f66b67e`.
+Executes two of the six 2026-07-31 rulings (`tasks/todo.md`): retire `net_score`,
+and `corroboration_window` 5 → 8.
+
+**The design refused, and why the refusal outranks the build.** The first draft
+proposed a new module, `src/c_score.py` — a `CostLedger` of thirteen hand-maintained
+act counters feeding a `ScoreVector`. The author refused it. Under
+[THE_KYTOS.md](THE_KYTOS.md) §1.3 an act's effect resides in three places — the
+**report** of the act inside the membrane, the **resources** outside it, and the
+**shared reports** among kytē in the commens — and the act's own decision is none of
+them. A private instrument built alongside the act, by an observer, to see the act
+from in front of it, commits the doctrine's error one level up in Python; the
+elaboration of the modelling *was itself the symptom*. The redraft reads cost where
+it already resides instead: `MarkBoard` for every channel act (already attributed
+and append-only), `MembraneLedger` for bets/hits/misses, and one new integer,
+`Unit.attended`, incremented at the **end** of `Unit.step` — the write-after-the-act
+rule §1.3 names, so nothing in `src/` can read its own report within the round it
+counts. A test-side reader composes the three; no new `src/` module, no counters an
+observer invented.
+
+**The retirement, as a rule rather than a deletion.** Five measured inversions —
+the score rising 988 by destroying every true law the field carried, then a further
+327 by restoring 28 of them — showed `net_score` rising in both directions of the
+thing it was meant to gate. The rule that follows their shape: no gate may be
+decided by comparing hits − misses BETWEEN arms; a cross-arm gate is decided on the
+**law components** (true laws held, converses held) with a **participation
+clause** (the winning arm didn't win by ceasing to forecast); within one arm, "a
+held law pays" is stated on `hits`/`misses` directly, never on the derived scalar.
+Pinning an exact measured value stays — that's reporting, not gating.
+`MembraneLedger.net_score` survives as a property, docstring demoted to
+"observability, never a gate." Four net comparisons survive by name, each now
+annotated as asserting a pathology OF the statistic rather than deciding BY it.
+
+**The window, and the guard ruling 2 required.** `corroboration_window` 5 → 8
+(`src/c_unit.py:226`), with the rider that the window is part of the terminal
+unit's *rate* and so must be uniform across a community. The guard
+(`_assert_uniform_rate`, at both multi-unit community builders) fired **zero times**
+in the existing suite — the uniformity it now enforces structurally was already
+being held in practice.
+
+**Verification held the line the design demanded: a moved figure has exactly one
+cause.** Phases 1 (`Unit.attended` + the cost reader + the guard) and 2 (the
+`net_score` re-expression) each ran the full C suite at 204 passed, byte-identical
+to the pre-phase baseline — no measured figure moved in either phase. Phase 3 (the
+window change) is the pass's one sanctioned re-measurement: 204 passed with every
+touched docstring keeping both the window-5 and window-8 readings, each labelled.
+
+**Three findings the re-measurement produced, not merely recorded.** (1) The
+ruling's own sweep table predicted its own consequence and the prediction held:
+GATE 1's live-world net moved −106 → −185, exactly the four-unit/window-8 row
+already sitting in the ruled default's own measured table — the ruling's evidence
+and the gate's re-measurement are the same run read twice, agreeing digit for
+digit. (2) **Typification lost its last foothold.** Scoring preferences at four
+units fell 1 → 0 — across eight seeds exactly one unit ever held a preference about
+whom to ask at four units, and at window 8 there are none, so the standing test's
+own name ("no unit at four ever had a choice") is now true without qualification.
+(3) **A methodological finding worth more than either measured one.** The gate map
+that sized this work was built by grepping `assert.*net_score`, and it stayed an
+undercount through three rounds: reads that happened upstream in `append` lines;
+then more of the same shape; then the corrected verification grep itself missed
+`assert live_total > mute_total`, whose variables carry no "net" anywhere in their
+name. A grep matches names; what matters is roles — the standing method now is to
+trace every read to every consumer and require each to be a pin, a message, or an
+annotated kept clause. Separately, stale narration needed four correction rounds in
+one file before every digit token in its docstring was accounted for: only pinned
+assertions fail when the world moves, and a figure living only in prose is
+unprotected.
+
+**State at close:** working tree clean, 29 commits on `remeasurement-pass-2026-07-31`,
+C suite 204, core suite green throughout, book 48/48 (HTML; the PDF format still
+fails on a pre-existing, unrelated YAML-alias error, flagged not fixed). No code or
+test touched by this closing pass — documentation only.
+
+---
+
+▶ **NEXT SESSION: the credential build, then the scarcity test.**
+
+**1 · The credential build (stage 4 part (c)).** This is what unblocks weighted
+witnesses — `src/c_unit.py:1759-1766`'s `witnesses = {m.author for m in live} -
+{self.unit_id}` still counts rather than weights, and the natural weight is the
+credential, ruled (author's ruling 1, Examination VII) and still unbuilt. Two ways
+not to take it, both still forbidden: weighting by the challenger's private `peers`
+standing (defeats the socially-available objectified reality §9d's ruling grounds
+corroboration in) and inventing an interim weight to make the code compile
+(installs the solution the standing rule forbids). Build the credential, or get an
+author ruling on an interim weight — nothing else unblocks this.
+
+**2 · The scarcity test, small and sharp.** Cap answering so it becomes rival — the
+first genuine contact-scarcity the design has ever had — and re-run typify against
+its mute twin. `occ_bite` has been 0 in every arm ever run, and this pass's own
+finding sharpens the question: at window 8 typification's last foothold (the one
+four-unit scoring preference) is gone. If a preference still never bites when
+answering is scarce, typification is broken rather than merely unexercised — a
+bigger finding than the reverse.
+
+**3 · Open, and the author's: the environment was never defined, and he ruled which
+end to start from.** During this pass the author observed that nothing in the
+C-series' autonomous form has an environment in West's sense: no clock measuring
+resource burn, no defined terminal-unit capacities, no external source competed
+over with a quantity and a replenishment rate. His ruling: **meaning emerges
+outside-in** — so the D-series design sitting should define the environment
+*first* and let unit parameters fall out of what the environment charges, rather
+than defining unit capacities and hoping an environment to match them emerges.
+The design rule that follows: **the environment must carry structure the unit does
+not already encode.** This is a design sitting, not a build, and it is his to open.
+Standing falsifier for anything the D-series eventually builds:
+**ablate the putative sign** — occlude it, and if performance holds, nothing stood
+for anything.
+
+**State at close:** working tree clean, 29 commits pushed-ready on
+`remeasurement-pass-2026-07-31`, C suite 204, core suite green, book 48/48. This
+arc's own record (task briefs, reports, review diffs, suite output) lives in
+`.superpowers/sdd/2026-07-31-net-score-retirement-and-window-re-measurement/`.
+
+---
+
+**Last Updated (prior)**: 2026-07-31 (tenth arc) — **EXAMINATION VII, THE SPEAKER-VARIANCE
 RULING BUILT, AND THE THREAD THAT RAN PAST BOTH INTO THE ORIGIN OF SEMIOSIS.**
 Eleven commits, `859d070..ec29aed`. Four panels examined the stage-4 design before it
 was built; ten findings; the author's rulings then reopened it twice and moved it
