@@ -116,10 +116,44 @@ Standing falsifier for anything the D-series eventually builds:
 **ablate the putative sign** — occlude it, and if performance holds, nothing stood
 for anything.
 
-**State at close:** working tree clean, `remeasurement-pass-2026-07-31` (based at
-`3ba6816`), C suite 204, core suite green, book 48/48. This
-arc's own record (task briefs, reports, review diffs, suite output) lives in
-`.superpowers/sdd/2026-07-31-net-score-retirement-and-window-re-measurement/`.
+**4 · The sitting that ran on after the merge — boundary controls and socialization.**
+Recorded at
+[docs/superpowers/specs/2026-08-01-the-received-world-boundary-controls-and-socialization.md](docs/superpowers/specs/2026-08-01-the-received-world-boundary-controls-and-socialization.md).
+The author's rulings, in order: **parsimony produces boundary errors** (conflation ·
+exposure · level-slip, scoped to the economics of viewing/processing/communicating,
+not a theory of every error) · the errors live **at the boundary**, where the internal
+rigor does not apply but is assumed, or where **external objectified controls** apply
+that do not share its logic (fresh instance: four narration-correction rounds inside a
+fully green `pytest`) · **Shannon's pre-coordination** makes drift in the shared model
+a second impediment beside channel noise, out of scope of the signal · the **origin of
+a control** is the crux — provided by us, or negotiated by a community; the sign
+carries no marker of its own provenance ("repeat" on the gun line and on the shampoo
+bottle) — so crossing outward requires **situating**, the Endoporeutic move *in what
+model does this G fit* · and **socialization**: a kytos is not born full-grown, so part
+of all communication is orientation and model-building, primary and secondary.
+
+His formal resolution of the apparent tension with the polarity discipline: **INS in
+verso, IT+ into sub-recto** — `~[ A ~[ A ] ]`, *if A then A*. The received world enters
+held as a **conditional whose antecedent is what was given**, so nothing contingent
+stands at depth 0 and the first content never claimed the standing a record would have
+had to license. Sophistication then grows with **plurality of antecedents** — a second
+authoritative adult makes the first *an* authority rather than *the* world, which is
+`corroborating_witnesses`' distinct-records rule and the branching DAG's ◇/□ reading,
+recognised as one mechanism.
+
+Two gaps the sitting names, both cheap and neither authorized: the **inverse pivot's
+model catalogue is ours** (the open membranes import content *into* M; nothing imports
+an M to situate *against*), and a unit's **initial model is assigned, not scribed** —
+`Unit(laws={...})` is a Python set with no chain, no antecedent, nothing recorded to
+revise. Seeding by DC+ · INS · IT+ would put primary socialization in the ink. That
+last one shares its defect with **reliability living in `Unit.peers`**, never
+objectivated — which is a prior explanation for typification's inertness that does not
+depend on scarcity, and would still stand after item 2.
+
+**State at close:** merged to `main` at `c6ce5a7` and pushed; branch deleted; working
+tree clean; C suite 204, core suite green, book 48/48 HTML. (The **PDF** book format
+fails on a YAML-alias parse error that pre-dates this work and was deliberately not
+touched.) Method lessons in `tasks/lessons.md`.
 
 ---
 
