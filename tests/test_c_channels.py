@@ -1734,8 +1734,8 @@ def test_the_cost_reading_reads_residences_that_already_exist():
     THE TWIN IS THE POINT. Two units with the same aperture and the same rate
     parameters must read the same attendance — that is ruling 2's invariance
     condition made checkable, and it is what a size sweep would have to hold."""
-    spec, units, board, *_ = _play_challenge(20260728, 20, channel=True,
-                                             stagger=1, seed_laws=True)
+    _spec, units, board, *_ = _play_challenge(20260728, 20, channel=True,
+                                              stagger=1, seed_laws=True)
     cost = _cost_reading(units, board)
 
     # Attendance is uniform where attention is: stagger=1 means all four met
