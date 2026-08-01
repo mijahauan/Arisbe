@@ -1933,6 +1933,11 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         lost_false += sum(1 for _u, law in gone if law not in planted)
         live_net = sum(u.ledger.net_score for u in live)
         mute_net = sum(u.ledger.net_score for u in mute)
+        # KEPT UNDER THE RETIREMENT, like GATE 1's decomposition clause. This
+        # compares two arms' net scores, which as a VERDICT the 2026-07-31 ruling
+        # forbids — but its content is that the channel COSTS score while saving
+        # the true laws the existential rule destroyed. It asserts the inversion,
+        # it does not decide by it, and deleting it would remove the evidence.
         assert live_net < mute_net, (
             f"seed {seed}: the channel did not cost anything "
             f"({live_net:+d} against {mute_net:+d})")
@@ -2110,6 +2115,10 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     # none, and not one of them changes a law's fate, because no channel is
     # carrying anything back.
     assert (internal, external, suspended, calls) == (66, 0, 66, 66)
+    # KEPT UNDER THE RETIREMENT, and this is the sharpest instance of why the
+    # statistic was retired: the score improves while `true_held` above reads 0
+    # of 64. The clause asserts that inversion; it decides nothing by it. The
+    # exact figures are pinned on the next line.
     assert live_total > mute_total
     assert (live_total, mute_total) == (-433, -1421)
 

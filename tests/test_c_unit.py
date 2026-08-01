@@ -483,12 +483,17 @@ def test_misses_no_longer_grow_with_the_run_length():
         u = Unit("u0", ap, laws={spec.domains[0].law})
         for r in range(rounds):
             u.step(field, r)
-        return u.ledger.misses, u.ledger.net_score
+        return u.ledger.misses, u.ledger.hits, u.ledger.net_score
 
-    short_m, short_net = misses_over(20)
-    long_m, long_net = misses_over(80)
+    short_m, short_h, short_net = misses_over(20)
+    long_m, long_h, long_net = misses_over(80)
     assert long_m <= short_m + 5, "misses still scale with run length"
-    assert short_net > 0 and long_net > 0
+    # WITHIN-ARM, so stated on the bets themselves (the 2026-07-31 retirement):
+    # a true law held alone pays at both run lengths.
+    assert short_h > short_m and long_h > long_m
+    # KEPT ON NET, deliberately. This clause is a claim ABOUT the statistic's
+    # behaviour over run length — the quadratic-miss pathology resolve-once
+    # fixed — so net is the thing under test, not the thing deciding.
     assert long_net >= short_net, "a longer run made a true law look worse"
 
 
