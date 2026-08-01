@@ -587,7 +587,7 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
     the channel sheds more losing stakes than winning ones.
     """
     live_pairs, mute_pairs = [], []
-    live_hits = mute_hits = 0
+    live_hits = mute_hits = live_misses = mute_misses = 0
     for seed in SEEDS:
         live, board, answers, uptakes = _play(seed, ROUNDS, channel=True,
                                               stagger=2)
@@ -622,7 +622,22 @@ def test_asking_and_answering_beats_being_mute_at_equal_run_length():
         mute_pairs.append(sum(u.ledger.net_score for u in mute))
         live_hits += sum(u.ledger.hits for u in live)
         mute_hits += sum(u.ledger.hits for u in mute)
-    assert sum(live_pairs) > sum(mute_pairs)
+        live_misses += sum(u.ledger.misses for u in live)
+        mute_misses += sum(u.ledger.misses for u in mute)
+    # THE AGGREGATE, RE-EXPRESSED 2026-07-31 for the same reason as the per-arm
+    # clauses above: `sum(live_pairs) > sum(mute_pairs)` compared two arms' net
+    # scores, which the retirement forbids as a verdict. The claim aggregates
+    # the per-seed one — across every seed the live arm sheds losing stakes, and
+    # sheds more of them than it sheds winning ones. Net is REPORTED in the
+    # message, never the verdict.
+    assert live_misses < mute_misses, (
+        f"the channel shed no losing stake in aggregate — live {live_misses} "
+        f"misses against mute's {mute_misses} (net {sum(live_pairs)} vs "
+        f"{sum(mute_pairs)}, reported not asserted)")
+    assert (mute_misses - live_misses) > (mute_hits - live_hits), (
+        f"the channel shed {mute_hits - live_hits} hits against "
+        f"{mute_misses - live_misses} misses in aggregate — it cost more than "
+        f"it saved")
     # AN ANSWER PREVENTS A BET, IT DOES NOT WIN ONE: the live arm takes FEWER
     # hits than the mute arm and improves anyway, by shedding losing stakes.
     assert live_hits <= mute_hits
