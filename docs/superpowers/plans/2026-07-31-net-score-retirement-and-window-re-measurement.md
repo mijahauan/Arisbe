@@ -903,7 +903,19 @@ git commit -m "GATE 1: the net clause demoted to a pin, the inversion clause kep
 
 - [ ] **Step 1: Confirm no cross-arm net comparison survives**
 
-Run:
+**Two greps are not enough — Task 6's review proved it.** A deciding cross-arm net
+comparison hid at `test_asking_and_answering_beats_being_mute_at_equal_run_length` as
+`assert sum(live_pairs) > sum(mute_pairs)`, where the `net_score` reads live in
+earlier `append` lines and the assertion names only the sums. Grep for the *reads* as
+well as the assertions, and read every hit's surrounding lines:
+
+```bash
+grep -rn "net_score" tests/test_c_*.py | grep -v "test_c_membrane.py"
+grep -rn '\["net' tests/test_c_channels.py
+grep -rn "net_score" tests/test_c_channels.py -A 6 | grep -n "assert"
+```
+
+Then run:
 
 ```bash
 grep -rn "net_score" tests/test_c_*.py | grep -v "test_c_membrane.py"
