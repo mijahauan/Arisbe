@@ -283,11 +283,25 @@ class Unit:
     the author's own record long before five rounds passed, or by a peer, or not
     at all. With the internal arm routed through the same lifecycle it carries
     most of the traffic — over eight seeds, 60 rounds, four units under bounded
-    attention with the ask channel live, **41 of 66 doubts end at the window**
-    (36 given up, 5 restored) against 25 closed early by rebuttal; with the ask
-    channel muted, all 66. So the value of this number now matters to the
-    outcome in a way it did not, and it is worth the author's attention rather
-    than a default's."""
+    attention with the ask channel live, RE-MEASURED AT WINDOW 8 (the ruled
+    default, 2026-07-31): **22 of 66 doubts end at the window** (20 given up, 2
+    restored) against 44 closed early by rebuttal; with the ask channel muted,
+    all 66 (unaffected by the window, since nothing ever answers to end a doubt
+    early). Cross-checked against the sweep table five lines above (the 4/8 row:
+    internal 20, rebutted 44 — the window-ending count is internal + silence,
+    66 − 20 − 44 = 2) and against
+    `tests/test_c_channels.py::test_peer_testimony_repairs_the_true_law_once_
+    the_law_survives_to_ask`'s own re-measurement (internal 20, rebutted 44,
+    silence 2), which report the identical split.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason: 41 of 66 doubts ended at
+    the window (36 given up, 5 restored) against 25 closed early by rebuttal;
+    with the ask channel muted, all 66.
+
+    So the value of this number now matters to the outcome in a way it did not
+    before this task, and it is worth the author's attention rather than a
+    default's."""
     corroborating_witnesses: int = 2
     """How many DISTINCT FOREIGN RECORDS must stand against a law before the
     doubt is corroborated and the law eliminated.
