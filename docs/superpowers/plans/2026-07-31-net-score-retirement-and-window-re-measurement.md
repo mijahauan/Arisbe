@@ -989,26 +989,46 @@ git commit -m "The three survivors: two inversion clauses annotated, one within-
 
 **Interfaces:** none.
 
-- [ ] **Step 1: Confirm no cross-arm net comparison survives**
+- [ ] **Step 1: Confirm no cross-arm net comparison survives — by tracing reads, not by grepping assertions**
 
-**Two greps are not enough — Task 6's review proved it.** A deciding cross-arm net
-comparison hid at `test_asking_and_answering_beats_being_mute_at_equal_run_length` as
-`assert sum(live_pairs) > sum(mute_pairs)`, where the `net_score` reads live in
-earlier `append` lines and the assertion names only the sums. Grep for the *reads* as
-well as the assertions, and read every hit's surrounding lines:
-
-```bash
-grep -rn "net_score" tests/test_c_*.py | grep -v "test_c_membrane.py"
-grep -rn '\["net' tests/test_c_channels.py
-grep -rn "net_score" tests/test_c_channels.py -A 6 | grep -n "assert"
-```
-
-Then run:
+**No grep over assertions is sound here, and three separate under-counts prove it.**
+The gate map missed `assert sum(live_pairs) > sum(mute_pairs)` because the `net_score`
+reads live in earlier `append` lines; it then missed three more for the same reason;
+and the *verification* grep first drafted here (`grep "assert.*net"`) misses
+`assert live_total > mute_total`, whose variable names contain no "net" at all. A grep
+matches names; what matters is roles. **The sound method is to enumerate every read of
+`net_score` and trace its variable to every assertion that consumes it.**
 
 ```bash
 grep -rn "net_score" tests/test_c_*.py | grep -v "test_c_membrane.py"
-grep -rn '\["net' tests/test_c_channels.py
 ```
+
+For each hit that is a *read* (not a comment or an f-string), name the variable it
+feeds and find that variable's consuming assertions. Every consumer must be one of:
+
+- **a pin** — `== (…)`, an exact measured value, which is reporting with teeth;
+- **a message** — the value appears only inside an f-string on another assertion;
+- **an annotated kept clause** — a comparison that asserts a pathology OF the
+  statistic, carrying a comment that says so.
+
+Anything else is a miss.
+
+**The completed accounting, as of Task 7b** (re-derive it rather than trusting this
+table if any of these files changed since):
+
+| Read site | Variable | Consumers | Verdict |
+|---|---|---|---|
+| `channels` `live_pairs`/`mute_pairs` append | `live_pairs`, `mute_pairs` | f-string in the aggregate shedding message | message |
+| `channels` `live_net`/`mute_net` (suspension test) | `live_net`, `mute_net` | `assert live_net < mute_net` | annotated kept |
+| `channels` `live_total`/`mute_total` (corroboration-churn test) | `live_total`, `mute_total` | `== (922, 961)` | pin |
+| `channels` `live_total`/`mute_total` (bounded-attention test) | `live_total`, `mute_total` | `assert live_total > mute_total` + `== (-433, -1421)` | annotated kept + pin |
+| `channels` `agg["net_live"]`/`["net_mute"]` (×2 aggregators) | `agg[…]` | five `== (…)` pins | pins |
+| `channels` `tally net=` | `agg["net"]` | eight `== (…)` pins + GATE 1's decomposition | pins + annotated kept |
+| `unit` `misses_over` return | `short_net`, `long_net` | `assert long_net >= short_net` | annotated kept |
+| `stage_gates` `led.net_score` | — | f-string only | message |
+
+Four annotated kept clauses survive, and no verdict anywhere is decided by a cross-arm
+net comparison.
 
 Expected: every surviving hit is either (a) an f-string reporting a figure, (b) an
 equality pin, (c) `test_c_membrane.py`'s five arithmetic pins, or (d) GATE 1's
