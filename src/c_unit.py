@@ -355,6 +355,22 @@ class Unit:
     when the run ends. A longer window holds more preferences only by declining
     to conclude. Measured in
     `tests/test_c_channels.py::test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`."""
+    attended: int = 0
+    """How many rounds this unit actually met the field — the denominator of
+    every rate reading, and the only act-count that exists nowhere else.
+
+    WRITTEN AFTER THE ACT, NEVER BEFORE (THE_KYTOS §1.3). `step` increments this
+    once it has anticipated, observed, been scored and recorded, so no decision
+    in the round it counts can read it. Nothing in `src/` reads it at all: it is
+    an observer's number, and a unit that consulted its own cost to decide
+    whether to act would be the thing the doctrine says does not happen.
+
+    WHY ATTENDANCE AND NOT ROUNDS ELAPSED. Under bounded attention a unit meets
+    the field on half the rounds, so rounds elapsed would price a sleeping unit
+    the same as a working one and would let a rate be lowered by sleeping. The
+    acts a unit performed OUTSIDE the membrane need no counter here — they are
+    already reported on the board, attributed and dated, which is where the
+    community can read them."""
     peers: Dict[str, Dict[str, Tuple[int, int]]] = dc_field(default_factory=dict)
     """What this unit has learned about WHOM IT IS TALKING TO: per peer, per
     relation, `(borne out, not borne out)` — the two counts kept apart, with
@@ -839,13 +855,17 @@ class Unit:
         consequent one round after its antecedent and `_record` runs after
         scoring, so every fact the stake was derived from was held at r−1 or
         earlier. Resolve-once (see `anticipate`) is what makes "due now" mean
-        "decided now" instead of "decided now and every round after"."""
+        "decided now" instead of "decided now and every round after".
+
+        Attendance is counted last, after the round's work is done, so the
+        report of having acted cannot reach the act it reports on."""
         anticipated = self.anticipate()
         arrived = set(field.at(self.aperture, round_idx))
         self.ledger.score(anticipated, arrived, round_idx)
         self._record(arrived, round_idx)
         if induce:
             self.induce(round_idx)
+        self.attended += 1        # AFTER the act — THE_KYTOS §1.3
 
     # --- the assert channel: publish, read, adopt ---------------------------
     #

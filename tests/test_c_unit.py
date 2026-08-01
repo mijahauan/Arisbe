@@ -644,3 +644,29 @@ def test_anticipation_is_deterministic_across_repeated_renderings():
     u.absorb(field, 0)
     first, first_prov = u.anticipate(), dict(u.last_provenance)
     assert (u.anticipate(), dict(u.last_provenance)) == (first, first_prov)
+
+
+def test_attendance_is_counted_and_written_after_the_act():
+    """`Unit.attended` is the denominator of every rate reading, and it is
+    written AFTER the step completes — THE_KYTOS §1.3's write-after rule, which
+    is what keeps a report from reaching the act it reports on.
+
+    A unit that attends every round of a 20-round run reads 20; a unit stepped
+    on even rounds only reads 10. Attendance counts occasions met, never rounds
+    elapsed, so bounded attention cannot inflate a rate by shortening its own
+    denominator."""
+    spec = default_spec(seed=20260728)
+    field = Field(spec)
+    ap = apertures_for(spec, n_units=4)[0]
+
+    every = Unit("u0", ap)
+    assert every.attended == 0               # nothing acted, nothing reported
+    for r in range(20):
+        every.step(field, r)
+    assert every.attended == 20
+
+    staggered = Unit("u1", ap)
+    for r in range(20):
+        if r % 2 == 0:
+            staggered.step(field, r)
+    assert staggered.attended == 10
