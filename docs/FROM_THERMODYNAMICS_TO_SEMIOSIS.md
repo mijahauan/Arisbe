@@ -1,4 +1,11 @@
-# From Thermodynamics to Semiosis
+# The Uncertain Ground of Semiosis
+
+> *Titled by the author, 2026-08-01, replacing "From Thermodynamics to Semiosis" —
+> the directional metaphor he had already corrected in the chapter's own argument.
+> The thermodynamic fact comes first and **in service of nothing**; purpose
+> elaborates on the gradient it leaves. There is no journey from one to the other,
+> and the ground the second stands on is not firm. The filename is retained so the
+> chapter's inbound references keep resolving.*
 
 > **What this chapter holds.** The intellectual history behind one question:
 > how does a structure that merely persists come to *use* something as standing
@@ -219,6 +226,50 @@ must not be allowed to merge: Peirce's scope cut in a graph, Pattee's epistemic
 cut between description and described, and the kytos membrane. They share the
 family resemblance this chapter turns on — each separates **within** rather than
 **from** — and they are not the same device. §4a keeps them apart.
+
+## 3b · Kandel's *Aplysia*: intent 1 achieved by a molecule
+
+The threshold above is a definition; this is a specimen, and the author's — added
+2026-08-01 as a new thread of the lineage.
+
+Eric Kandel's work on the marine snail *Aplysia californica* traced the
+gill-withdrawal reflex down to identified cells and then to the molecules that
+change when the animal learns. The reflex itself sits at **intent 0**: a stimulus,
+a response, brute Secondness with no options in it. Take two such stimuli. Call
+them X and Y, each producing response Z. Neither association is more than a
+mechanism.
+
+What the snail learns is not a new stimulus but an **order**:
+
+> **X then Y → Z⁺**, while **Y then X → Z.**
+
+The paired presentation in one sequence enhances the response; the same two
+stimuli in the reverse sequence do not. Nothing has been added to X or to Y. What
+the animal now discriminates is a **binding between them** — which is exactly the
+author's proposed criterion for **intent 1**, *a system that discriminates
+bindings between input and output*, met here at its floor.
+
+The mechanism is why this specimen carries weight rather than merely illustrating.
+The order-sensitivity is molecular: a coincidence detector (adenylyl cyclase)
+primed by the calcium influx of the first stimulus and then amplified by the
+neuromodulatory signal of the second, so the enzyme's response to the pair exceeds
+its response to either — and the priming must come first. **The discrimination of
+a binding is achieved by a molecule, in a snail, with no interpreter, no model,
+and nothing anyone need call a representation.**
+
+That is the value of the thread for this chapter's question. It shows the
+threshold crossed at a scale where inflation is impossible: whatever intent 1 is,
+it does not require the apparatus we habitually reach for, and a criterion that
+places it above *Aplysia* is asking for too much. It also warns from the other
+side — a molecular coincidence detector is a long way from anything with a stake
+in its own persistence, so **intent 1 is a floor and not an arrival**, consistent
+with §3a's caution about the thermostat.
+
+For Arisbe the bearing is direct and uncomfortable. Order-sensitive association is
+*conditional structure*: the pair means something the members do not. That is a
+scroll, and the calculus has carried it from the start — but the built units
+associate nothing over time, so the snail currently does something the C-series
+cannot.
 
 ## 4 · Where Peirce sits: an asymmetry, not a co-presence
 
@@ -451,7 +502,11 @@ Cognition* (1980) · Pattee, "The Physics of Symbols" (2001) · Bickhard,
 (2015) · Millikan, *Language, Thought, and Other Biological Categories* (1984) ·
 von Uexküll, *A Foray into the Worlds of Animals and Humans* (1934) · Hoffmeyer,
 *Biosemiotics* (2008) · Conant & Ashby, "Every Good Regulator of a System Must
-Be a Model of That System" (1970) · Peirce, on Thirdness and habit (CP 1.343ff,
+Be a Model of That System" (1970) · **Kandel, on learning in *Aplysia* — the
+gill-withdrawal reflex, activity-dependent presynaptic facilitation, and
+adenylyl cyclase as a molecular coincidence detector (Nobel lecture, "The
+Molecular Biology of Memory Storage," 2001; with Abrams, Carew, Hawkins and
+Byrne through the 1980s)** · Peirce, on Thirdness and habit (CP 1.343ff,
 5.480ff).
 
 *Citations record where each idea sits in the literature. They have not been

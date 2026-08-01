@@ -256,6 +256,56 @@ the scarcity test.
 whether or not anyone attends. Confine the terminal unit so it cannot hold a private
 register and the whole third tier becomes unrepresentable.
 
+## 6a · RULED (2026-08-01): move the Python externals into the graphs
+
+**The author's directive.** Resolve what can be resolved by moving the Python
+externals **into the EGs themselves**. Specifically:
+
+> Reliability becomes an issue to resolve **only after alternate sources for reality
+> formation appear**. This means graphs that describe **who provided, or whence
+> arrived, a notion** — with attributes, and with **revisable reliability based on how
+> possibilities resolve into necessities, or notional outcomes into actual ones**.
+
+Three things this settles that had been left as diagnosis.
+
+**It fixes when reliability is even a question.** Not at a unit's birth, and not as a
+standing property of a peer. Only once §5.2's plurality obtains — a second source, a
+second antecedent — is there anything for reliability to discriminate *between*. That
+is why `Unit.peers` reads inert in a world of one aperture per domain: it is answering
+a question the situation has not yet posed.
+
+**It fixes what reliability attaches to.** Not a peer, and not a peer-and-relation
+pair, but a **provenance record in the ink** — a graph saying that *this* notion
+arrived from *that* source, with whatever attributes the arrival carried. The
+quotation device already supports mentioning a notion without asserting it, and
+banking already writes `(asserted "author" ⌜…⌝)`; provenance graphs are that pattern
+generalised past the author to any source.
+
+**It fixes how reliability is computed, and therefore that it is never stored.**
+Reliability is **derived from the record's own resolution history**: how many of a
+source's contributions moved from ◇ to □ across the branching DAG, and how many of its
+notional exhibits were **discharged** rather than **abandoned**. Both readings already
+exist as machinery — `modal_query` reads possibility and necessity off the trajectory,
+and `entertain_episode` → `discharge_episode` / `abandon_episode` is precisely
+"notional outcome into actual one." So reliability becomes **index-over-ink**: a view
+recomputable from the chain, re-checkable forever, with no field anywhere holding a
+score. That is the AlternativeSet pattern applied to sources, and it removes the third
+tier's largest occupant (§6) rather than reforming it.
+
+*Assistant note, unruled:* this also answers §3's missing third defense in the one
+place it can be answered internally. A stored reliability number is exactly a
+pre-coordinated codebook — it cannot report its own drift. A reliability *recomputed
+from resolution history* carries its decoder with it, so drift in what a source is
+worth shows up as a changed computation rather than as a stale constant nobody
+re-checks.
+
+**Not settled by this ruling, and worth naming:** what attributes a provenance graph
+carries besides the source; whether a source is itself a kytos-level entity with a
+model, or only a name; and whether reliability so computed is per-source, per-source-
+and-relation, or per-source-and-practice. The B&L reading in §5.2 suggests the last —
+a source is reliable *within a practice*, which is what "secondary socialization"
+means — but that is a reading, not a ruling.
+
 ## 7 · Candidate work, ordered by cost — none authorized
 
 1. **Seed by DC+ · INS · IT+ instead of `Unit(laws={...})`.** Small, needs no new
