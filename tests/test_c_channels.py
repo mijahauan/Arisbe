@@ -3547,18 +3547,104 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
 
 
 def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice():
-    """**GATE 2 READS THE PRE-REGISTERED NULL.** Its first clause holds by a
-    single record and its second holds for a reason that has nothing to do with
-    consultation.
+    """**GATE 2 READS THE PRE-REGISTERED NULL.** Its first clause now holds only
+    by the larger community's record, and its second still holds for a reason
+    that has nothing to do with consultation.
 
-    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`: **yes, exactly
-    one.** Of the 96 (peer, relation) records a four-unit community accumulates,
-    1 ends the run positive; six units read 5 of 107.
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31).
+
+    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`:
+    **NO LONGER TRUE AT FOUR UNITS AT ALL — this test's own name is now exactly
+    and unconditionally true, where at window 5 it needed the qualification the
+    rest of this docstring supplied.** Of the 96 (peer, relation) records a
+    four-unit community accumulates, **0 end the run positive** (was 1 at window
+    5): no unit at four units ever earns a preference at the ruled default. Six
+    units still do: **2 of 107** (was 5). The clause survives only through the
+    six-unit reading now. **FINDING: a longer window removed typification's
+    last foothold at four units** — the one (peer, relation) pair that used to
+    end the run barely positive no longer does, because eight rounds give the
+    field more chances to redraw against it before the run ends (the same
+    mechanism `test_the_replication_verdict_reads_the_field_s_cadence_not_the_
+    peer` shows directly by sweeping the OTHER window, `rep_window`).
 
     CLAUSE 2 — the who-asks-whom distribution is not uniform: **yes, and it is
-    the aperture layout that made it so.** Four units, eight seeds, 60 rounds,
-    939 uptakes over the twelve ordered (asker, answerer) pairs, where uniform
-    would put 78 in each:
+    still the aperture layout that made it so.** Four units, eight seeds, 60
+    rounds, 1151 uptakes over the twelve ordered (asker, answerer) pairs, where
+    uniform would put 96 in each:
+
+              takes from     u0     u1     u2     u3
+              u0              —     78      0    204
+              u1            218      —     69      0
+              u2              0    207      —     80
+              u3             87      0    208      —
+
+    The four empty cells are still exactly the two pairs of units that share no
+    domain, and every non-empty cell is still a pair that shares one. Each unit
+    now takes roughly **70–76%** of its uptake from the single peer that
+    witnesses the domain its own seeded converse names (was ~90%) — 204 of 282,
+    218 of 287, 207 of 287, 208 of 295 — because that converse still wants an
+    ANTECEDENT relation the field delivers every round, but the longer window
+    gives more rounds for the OTHER peer's testimony to also be taken up before
+    a doubt resolves, so the dominant peer's share of the total falls even
+    though its raw count barely moves.
+
+    THE DIAGNOSTIC THE PLAN DID NOT ASK FOR, AND IT IS STILL THE ONE THAT
+    MATTERS, AT FOUR UNITS. Counting, at each uptake decision, how many distinct
+    peers had already published that content: **all 1151 decisions at four
+    units still had exactly one.** A community in which every question has
+    exactly one possible answerer has not failed to typify; it never posed the
+    question typification answers — unmoved by the window, because it is a fact
+    about the apertures' phase structure, not about how long a doubt is allowed
+    to stand.
+
+    SIX UNITS STILL OFFERS A CHOICE, AND NOW THE CHOICE IS NOT ALWAYS BETWEEN
+    TWINS. There, **498** of 1213 decisions had two peers standing behind the
+    content (was 394 of 928) — **469 independent first-hand witnesses and, NEW
+    AT WINDOW 8, 29 THAT RELAY ADOPTED TESTIMONY** (was 0 relayed at window 5).
+    Of the 469 independent ones, all 469 still met the atom on the SAME ROUND
+    (the twin count still equals the independent count exactly), because a
+    domain at six units is witnessed by three units of which two attend the
+    same rounds — that half of the finding is unmoved. The 29 relayed decisions
+    are the new thing a longer window makes possible: enough rounds now pass
+    for a peer to have adopted a third party's testimony and republish it before
+    the asker's own decision, so a second "voice" can now be someone repeating
+    what it was told rather than what it met. On the 498, a preference was held
+    at 25 decisions (was 23) and named the answering peer at every one.
+
+    AND THE "LOWER-NUMBERED ANSWERS" PATTERN IS NO LONGER ABSOLUTE. At window 5
+    the lower-numbered of two voices answered literally every one of 394 two-
+    voice decisions. At window 8 it answers **481 of 498 (96.6%)**, not all —
+    the 17 exceptions arrive in the same window that introduced the 29 relayed
+    decisions, which is consistent with (though not separately proven to be
+    caused by) a relayed reply sometimes reaching the board after the
+    lower-numbered peer's first-hand one would have, rather than always before.
+
+    THE INSTRUMENT WAS TIGHTENED BEFORE THESE NUMBERS WERE PUBLISHED, the same
+    way Task 6's supplier count was. A first cut counted voices at every decision
+    rather than at every decision that told the unit something, and read 13
+    gamma-relation choices at six units. Every one was a reply whose content the
+    asker's own membrane had delivered in the meantime. Counted on fresh uptake,
+    gamma still vanishes at window 8 — unmoved, since all three gamma witnesses
+    still attend the same rounds and hold the same gamma facts regardless of the
+    window.
+
+    WHAT A LOOSER READING WOULD HAVE SAID, kept as `could` so the tight number
+    can be read against it: counting, per question, how many peers ever met the
+    atom first-hand at any round of the run, four units now read 85 questions no
+    peer could ever have answered and 1173 answerable by exactly one (was 68 and
+    956); six units read 87, 464 and 807 with two (was 72, 324 and 649). The
+    looser count still credits a peer that met the atom forty rounds after the
+    question closed, which is still why the decision-time count is the one
+    reported.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
+    CLAUSE 1 — at least one unit's `whom_to_ask` is non-`None`: yes, exactly
+    one. Of the 96 (peer, relation) records a four-unit community accumulates,
+    1 ended the run positive; six units read 5 of 107.
+
+    CLAUSE 2's matrix, 939 uptakes:
 
               takes from     u0     u1     u2     u3
               u0              —     22      0    189
@@ -3566,46 +3652,15 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
               u2              0    197      —     21
               u3             21      0    234      —
 
-    The four empty cells are exactly the two pairs of units that share no
-    domain, and every non-empty cell is a pair that shares one. Each unit takes
-    about 90% of its uptake from the single peer that witnesses the domain its
-    own seeded converse names — 189 of 211, 229 of 255, 197 of 218, 234 of 255 —
-    because that converse wants an ANTECEDENT relation the field delivers every
-    round.
-
-    THE DIAGNOSTIC THE PLAN DID NOT ASK FOR, AND IT IS THE ONE THAT MATTERS.
-    Counting, at each uptake decision, how many distinct peers had already
-    published that content: **all 939 decisions at four units had exactly one.**
-    Every relation reads the same — a_head 95, a_local 115, b_head 137, b_local
-    114, d_head 135, d_local 120, g_head 112, g_local 111, and not one decision
-    at any relation with two. A community in which every question has exactly one
-    possible answerer has not failed to typify; it never posed the question
-    typification answers.
-
-    SIX UNITS DID OFFER A CHOICE, AND THE CHOICE WAS BETWEEN TWINS. There, 394
-    of 928 decisions had two peers standing behind the content. All 394 are
-    independent first-hand witnesses — none was relaying adopted testimony — and
-    all 394 met the atom on the SAME ROUND, because a domain at six units is
-    witnessed by three units of which two attend the same rounds. Two records of
-    one identical observation stream differ in name and in nothing else. On the
-    394, a preference was held at 23 decisions and named the answering peer at
-    every one of the 23.
-
-    THE INSTRUMENT WAS TIGHTENED BEFORE THESE NUMBERS WERE PUBLISHED, the same
-    way Task 6's supplier count was. A first cut counted voices at every decision
-    rather than at every decision that told the unit something, and read 13
-    gamma-relation choices at six units. Every one was a reply whose content the
-    asker's own membrane had delivered in the meantime. Counted on fresh uptake,
-    gamma vanishes — which is what the layout predicts, since all three gamma
-    witnesses attend the same rounds and hold the same gamma facts.
-
-    WHAT A LOOSER READING WOULD HAVE SAID, kept as `could` so the tight number
-    can be read against it: counting, per question, how many peers ever met the
-    atom first-hand at any round of the run, four units read 68 questions no peer
-    could ever have answered and 956 answerable by exactly one; six units read
-    72, 324 and 649 with two. The looser count credits a peer that met the atom
-    forty rounds after the question closed, which is why the decision-time count
-    is the one reported.
+    Each unit took about 90% of its uptake from the single peer that witnesses
+    the domain its own seeded converse names — 189 of 211, 229 of 255, 197 of
+    218, 234 of 255. All 939 decisions at four units had exactly one voice
+    behind them. Six units: 394 of 928 decisions had two peers standing behind
+    the content, all 394 independent first-hand witnesses met on the same
+    round (twins), none relaying adopted testimony, and the lower-numbered
+    voice answered all 394 of them. A preference was held at 23 of the 394 and
+    named the answering peer every time. The looser `could` reading: four units
+    68/956 at 0/1 peers; six units 72/324/649 at 0/1/2 peers.
     """
     four = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
     six = _aggregate_ask(6, PAIRS, ask=True, keys=_GATE_KEYS + _MATRIX_KEYS)
@@ -3614,18 +3669,18 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
     six_pref = _aggregate_ask(6, PAIRS, ask=True, typify="prefer",
                               keys=_GATE_KEYS + _MATRIX_KEYS)
 
-    # CLAUSE 1: a preference exists, and it is one record of 96.
-    assert sum(four["prefs"].values()) == 1
-    assert sum(six["prefs"].values()) == 5
-    assert four["preferences"] == 1 and six["preferences"] == 5
+    # CLAUSE 1: no preference at all at four units any more; six still has two.
+    assert sum(four["prefs"].values()) == 0
+    assert sum(six["prefs"].values()) == 2
+    assert four["preferences"] == 0 and six["preferences"] == 2
 
     # CLAUSE 2: the matrix, exactly as tabulated.
     assert dict(four["consult"]) == {
-        ("u0", "u1"): 22, ("u0", "u3"): 189,
-        ("u1", "u0"): 229, ("u1", "u2"): 26,
-        ("u2", "u1"): 197, ("u2", "u3"): 21,
-        ("u3", "u0"): 21, ("u3", "u2"): 234}
-    assert sum(four["consult"].values()) == four["uptakes"] == 939
+        ("u0", "u1"): 78, ("u0", "u3"): 204,
+        ("u1", "u0"): 218, ("u1", "u2"): 69,
+        ("u2", "u1"): 207, ("u2", "u3"): 80,
+        ("u3", "u0"): 87, ("u3", "u2"): 208}
+    assert sum(four["consult"].values()) == four["uptakes"] == 1151
     # NON-UNIFORM, AND EXPLAINED BY THE APERTURES: a cell is non-empty exactly
     # when the two units share a domain.
     aps = {a.unit_id: set(a.domains)
@@ -3636,13 +3691,13 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
                 continue
             assert (four["consult"][(a, b)] > 0) == bool(aps[a] & aps[b]), (
                 f"{a} took from {b} in a way the apertures do not explain")
-    # About 90% of each unit's uptake comes from one peer.
+    # Roughly 70-76% of each unit's uptake comes from one peer (was ~90%).
     for a in sorted(aps):
         row = {b: n for (x, b), n in four["consult"].items() if x == a}
-        assert max(row.values()) / sum(row.values()) > 0.89
+        assert max(row.values()) / sum(row.values()) > 0.70
 
     # THE DIAGNOSTIC: not one decision at four units offered a second voice.
-    assert dict(four["voices"]) == {1: 939}
+    assert dict(four["voices"]) == {1: 1151}
     assert {n for _rel, n in four["voices_by_rel"]} == {1}
     assert sorted(rel for rel, _n in four["voices_by_rel"]) == [
         "a_head", "a_local", "b_head", "b_local", "d_head", "d_local",
@@ -3651,29 +3706,29 @@ def test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_cho
     assert four_pref["pref_choice"] == 0, (
         "a preference decided something at four units, where no decision had "
         "two voices to decide between")
-    assert (four_pref["occ_pref"], four_pref["occ_bite"]) == (41, 0)
+    assert (four_pref["occ_pref"], four_pref["occ_bite"]) == (53, 0)
 
-    # SIX UNITS: a choice existed, and both voices were the same observation.
-    assert dict(six["voices"]) == {1: 534, 2: 394}
-    assert six["independent"] == 394 and six["relayed"] == 0
-    assert six["twin"] == 394, (
-        "a second voice met the atom on a different round from the first, so "
-        "the two are not duplicate records of one stream")
-    # AND ONE PEER IS THE PERPETUAL ANSWERER. `answer_to` returns the first mark
-    # published and every phase walks the units in order, so the lower-numbered
-    # of two equally-informed voices answers all 394 times — which is why Task
-    # 6's `many_suppliers` reads 0 even where a choice existed.
-    assert six["choice_lowest"] == 394
+    # SIX UNITS: a choice existed, and now not every voice is first-hand.
+    assert dict(six["voices"]) == {1: 715, 2: 498}
+    assert six["independent"] == 469 and six["relayed"] == 29, (
+        "at window 8 a second voice can now be relayed testimony, not only a "
+        "first-hand twin — see the docstring's window-5-vs-8 comparison")
+    assert six["twin"] == 469, (
+        "every independent second voice still met the atom on the same round "
+        "as the first, so among the independent decisions none are non-twins")
+    # THE "LOWER-NUMBERED ANSWERS" PATTERN IS NOW ALMOST BUT NOT QUITE ABSOLUTE:
+    # 481 of the 498 two-voice decisions, not all 498 (was all 394 at window 5).
+    assert six["choice_lowest"] == 481
     assert four["choice_lowest"] == 0
-    assert (six_pref["pref_choice"], six_pref["pref_choice_bite"]) == (23, 0)
-    assert (six_pref["occ_pref"], six_pref["occ_bite"]) == (54, 0)
-    # Gamma offers nothing at six units: all three of its witnesses attend the
-    # same rounds, so no peer can supply what another lacks.
+    assert (six_pref["pref_choice"], six_pref["pref_choice_bite"]) == (25, 0)
+    assert (six_pref["occ_pref"], six_pref["occ_bite"]) == (72, 0)
+    # Gamma still offers nothing at six units: all three of its witnesses
+    # attend the same rounds, so no peer can supply what another lacks.
     assert not [rel for rel, _n in six["voices_by_rel"] if rel.startswith("g_")]
 
     # THE LOOSER READING, KEPT FOR CONTRAST.
-    assert dict(four["could"]) == {0: 68, 1: 956}
-    assert dict(six["could"]) == {0: 72, 1: 324, 2: 649}
+    assert dict(four["could"]) == {0: 85, 1: 1173}
+    assert dict(six["could"]) == {0: 87, 1: 464, 2: 807}
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():
