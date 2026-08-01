@@ -3303,26 +3303,43 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
     individual per relation per round from a list of forty — so an individual
     waits about forty rounds for its next turn and a unit under bounded
     attention meets half of those. Four units, cyclic, eight seeds, 60 rounds,
-    the replication window the only variable:
+    the replication window (`rep_window`, distinct from `corroboration_window`)
+    the only variable.
 
-        window   proved   failed   still pending   preferences held at the end
-        5           347      552              40                             0
-        10          347      508              84                             1
-        20          347      434             158                             5
+    RE-MEASURED AT WINDOW 8 (`corroboration_window`, the ruled default,
+    2026-07-31 — `rep_window` itself still swept at 5/10/20 as before):
 
-    **THE PROVED COUNT DOES NOT MOVE AT ALL.** 347 of the 939 adoptions are
-    borne out by a second route and the rest are not, whatever deadline the unit
-    keeps; all the window decides is how many of the unreplicated ones get read
-    as failures and how many are still waiting when the run ends. A knob that
+        rep_window   proved   failed   still pending   preferences held at the end
+        5               431      673              47                             0
+        10              431      618             102                             0
+        20              431      522             198                             4
+
+    **THE PROVED COUNT STILL DOES NOT MOVE AT ALL.** 431 of the 1151 adoptions
+    (up from 347 of 939, a nearly identical ~37% share either way) are borne out
+    by a second route and the rest are not, whatever deadline the unit keeps;
+    all the window decides is how many of the unreplicated ones get read as
+    failures and how many are still waiting when the run ends. A knob that
     changes only the denominator is reading the field's cadence, not the peer's
     reliability — which is the whole reason the preference machinery above has
-    nothing to bite on.
+    nothing to bite on. This still holds unchanged by the `corroboration_window`
+    default; the invariant is about `rep_window`, a different knob.
 
-    A LONGER WINDOW LEARNS MORE PREFERENCES ONLY BY DECLINING TO CONCLUDE. It
-    goes 0 → 1 → 5 of 96 (peer, relation) pairs across the three windows, and it
-    does so by leaving failures pending rather than by finding successes. That
-    is honest — an undecided verdict credits nothing either way — and it is not
-    a route to a channel that discriminates.
+    A LONGER `rep_window` STILL LEARNS MORE PREFERENCES ONLY BY DECLINING TO
+    CONCLUDE, though the exact count moved: it now goes 0 → 0 → 4 of 96 (peer,
+    relation) pairs across the three windows (was 0 → 1 → 5), consistent with
+    this file's other finding that four units hold zero preferences by default
+    at `corroboration_window` 8 — the middle `rep_window` no longer resolves
+    even the one pair it used to. It still does so by leaving failures pending
+    rather than by finding successes; that is honest and is not a route to a
+    channel that discriminates.
+
+    AT WINDOW 5 (`corroboration_window`), the previous default, for comparison —
+    this is the reading the ruling was made on and it is kept for that reason:
+
+        rep_window   proved   failed   still pending   preferences held at the end
+        5               347      552              40                             0
+        10              347      508              84                             1
+        20              347      434             158                             5
     """
     # THE ARMS ARE MEMOISED AND READ BY FOUR GATES, so determinism is not a
     # nicety here: it is what makes a cached arm the same run rather than a
@@ -3335,10 +3352,10 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
 
     arms = [_aggregate_ask(4, CYCLIC, ask=True, typify="prefer", rep_window=w,
                            keys=_TYPIFY_KEYS) for w in (5, 10, 20)]
-    assert [a["proved"] for a in arms] == [347, 347, 347]
-    assert [a["failed"] for a in arms] == [552, 508, 434]
-    assert [a["pending"] for a in arms] == [40, 84, 158]
-    assert [a["preferences"] for a in arms] == [0, 1, 5]
+    assert [a["proved"] for a in arms] == [431, 431, 431]
+    assert [a["failed"] for a in arms] == [673, 618, 522]
+    assert [a["pending"] for a in arms] == [47, 102, 198]
+    assert [a["preferences"] for a in arms] == [0, 0, 4]
     # Every verdict is accounted for: nothing is entered twice and nothing is
     # dropped, at every window.
     for arm in arms:
