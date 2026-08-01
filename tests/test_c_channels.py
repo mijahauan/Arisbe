@@ -1685,6 +1685,87 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
     return spec, units, board, raised, events, tally
 
 
+def _cost_reading(units, board):
+    """What each unit's acts cost, READ where the acts already reside.
+
+    THE_KYTOS §1.3: an act's effect resides in its report inside the membrane
+    (`MembraneLedger`), in resources outside it, and in the shared reports among
+    kytē (`MarkBoard`, which carries author, kind and round on every mark). None
+    of that needs a counter. Only attendance did, and that is `Unit.attended`.
+
+    KINDS ARE KEPT APART AND NEVER SUMMED. Summing a board read and a challenge
+    into one "cost" would price two different acts alike, which is the collision
+    `Unit.peers` refuses for (borne out, not borne out).
+
+    INTERNAL WORK THAT LEAVES NO REPORT IS NOT COUNTED, deliberately. An act
+    whose effect reaches no report has no channel by which to influence
+    anything, so counting it privately would invent one. This reading therefore
+    sees channel work and attendance and does NOT see materialization or
+    anticipation work — a named limit, not an oversight.
+
+    This lives in the tests because it is an OBSERVER's reading. Putting it in
+    `src/` would hand a unit a faculty it does not have.
+    """
+    authored = Counter((m.author, m.kind) for m in board.all_marks())
+    out = {}
+    for u in units:
+        marks = {kind: n for (author, kind), n in sorted(authored.items())
+                 if author == u.unit_id}
+        out[u.unit_id] = {
+            "attended": u.attended,
+            "marks": marks,
+            "bets": u.ledger.hits + u.ledger.misses,
+            "per_round": ({k: n / u.attended for k, n in marks.items()}
+                          if u.attended else {}),
+        }
+    return out
+
+
+def test_the_cost_reading_reads_residences_that_already_exist():
+    """COST IS READ, NOT INSTRUMENTED (THE_KYTOS §1.3). An act's effect resides
+    in the report inside the membrane, in resources outside it, and in the shared
+    reports among kytē — so a private counter beside the act would duplicate two
+    of the three and invent the observer the doctrine refuses.
+
+    The board already reports every channel act, attributed and dated; the ledger
+    already holds the bets. `Unit.attended` is the only number that existed
+    nowhere. This reader composes the three and adds nothing.
+
+    THE TWIN IS THE POINT. Two units with the same aperture and the same rate
+    parameters must read the same attendance — that is ruling 2's invariance
+    condition made checkable, and it is what a size sweep would have to hold."""
+    spec, units, board, *_ = _play_challenge(20260728, 20, channel=True,
+                                             stagger=1, seed_laws=True)
+    cost = _cost_reading(units, board)
+
+    # Attendance is uniform where attention is: stagger=1 means all four met
+    # every round.
+    assert {c["attended"] for c in cost.values()} == {20}
+    # Every published mark is attributed to the unit that made it, and the
+    # reading's per-unit totals account for the whole board.
+    assert sum(sum(c["marks"].values()) for c in cost.values()) == \
+        len(board.all_marks())
+    # The reading is per KIND, never summed across kinds: a board read and a
+    # challenge are not the same act and may not be priced alike.
+    assert all(isinstance(c["marks"], dict) for c in cost.values())
+    # And it is a RATE, with attendance as its denominator.
+    for c in cost.values():
+        for kind, n in c["marks"].items():
+            assert c["per_round"][kind] == n / c["attended"]
+
+
+def test_the_cost_reading_reads_zero_for_a_unit_that_never_attended():
+    """A unit that never met the field has no rate, not a zero one — the same
+    discipline `MembraneLedger.accuracy` keeps for an abstainer. Dividing by an
+    attendance of zero would fabricate a denominator."""
+    spec = default_spec(seed=20260728)
+    ap = apertures_for(spec, n_units=4)[0]
+    idle = Unit("u0", ap)
+    cost = _cost_reading([idle], MarkBoard())
+    assert cost["u0"]["attended"] == 0
+    assert cost["u0"]["per_round"] == {}
+
+
 def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
     """THE HEADLINE, AND IT IS POSITIVE — which is not what three of the
     measurements in this file report, so read the counts rather than the
