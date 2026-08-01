@@ -47,7 +47,7 @@ def _arms():
     return spec, field, ap, converse, shared_head
 
 
-def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
+def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_bets_pay():
     """Stage 1 gate: induction earns its keep.
 
     The learner must (a) induce a law the field actually planted and (b)
@@ -62,13 +62,15 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     at 9 of 14 seeds. A forecast now resolves EXACTLY ONCE, at the round it is
     due. No assertion here was weakened.
 
-    THE STATISTIC IS `net_score` (hits − misses), not `accuracy`. Two reasons.
-    A ratio over few bets is unstable — one lucky hit reads as a perfect score,
-    which is what made an earlier version of this gate flip across seeds. And
-    the `fixed` arm never bets, so its `accuracy` is `None` (an abstainer has no
-    accuracy rather than a zero one); comparing a ratio against it would raise.
-    `net_score` puts a better and an abstainer on one honest scale: abstention
-    is 0, betting and winning is positive, betting and losing is negative.
+    THE STATISTIC WAS `net_score` UNTIL 2026-07-31, AND IS NOT ANY LONGER. The
+    reasons it was chosen still hold — a ratio over few bets is unstable, and the
+    `fixed` arm never bets so its `accuracy` is `None` rather than 0.0 — but the
+    retirement is about a different failure: compared ACROSS ARMS the score rose
+    988 while the channels destroyed 64 of 64 true laws, then rose a further 327
+    while 28 were restored. So this gate now reads the laws each arm holds and
+    the bets each arm placed on them, and reports net without asserting on it.
+    Abstention is still an honest zero: the `fixed` arm places no bets, which the
+    gate now says directly.
 
     RE-MEASURED at this seed (20260728), 60 rounds, under noise, with a forecast
     resolving once: learner 35 hits / 4 misses, net +31, accuracy 0.8974, holding
@@ -135,12 +137,20 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_score_rises():
     assert misled.ledger.hits + misled.ledger.misses > 0
     # It can also WIN some of them; that the ceiling is nonzero is a property
     # of the field, pinned in tests/test_c_field.py rather than restated here.
-    # And the learner beats it, and beats abstention — on `net_score`, the
-    # statistic that is stable at low bet volumes and that an abstainer can
-    # share a scale with (its `accuracy` is None, not 0.0).
-    assert learner.ledger.net_score > misled.ledger.net_score
-    assert learner.ledger.net_score > fixed.ledger.net_score
-    assert fixed.ledger.accuracy is None      # it never bet; no ratio exists
+    # THE VERDICT, RE-EXPRESSED 2026-07-31. It used to read on `net_score`, and
+    # the retirement is why it no longer does: that statistic rose 988 while the
+    # channels destroyed every true law the field carried, so a gate decided by
+    # comparing it across arms is decided by a number that moves both ways.
+    # The claim, stated where it is actually made — in the laws held and in the
+    # bets each arm placed on them:
+    assert learner.laws & {d.law for d in spec.domains}      # holds a true law
+    assert not (misled.laws & {d.law for d in spec.domains})  # holds a false one
+    assert learner.ledger.hits > learner.ledger.misses        # and it pays
+    assert misled.ledger.misses > misled.ledger.hits          # and it costs
+    assert fixed.ledger.hits + fixed.ledger.misses == 0       # and it never bet
+    assert fixed.ledger.accuracy is None      # no bet placed, so no ratio exists
+    # PARTICIPATION: the learner did not win by falling silent.
+    assert learner.ledger.hits + learner.ledger.misses > 0
 
 
 def test_a_true_law_held_alone_makes_money_at_every_seed():

@@ -69,7 +69,17 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert lawless.ledger.accuracy is None   # no bet placed, so no ratio
-    assert lawful.ledger.net_score > misled.ledger.net_score
+    # THE VERDICT, ON THE LAW COMPONENTS AND THE BETS — not on a cross-arm
+    # scalar. The lawful arm holds a law the field carries and its bets pay; the
+    # rival holds one it does not and its bets lose. That is the whole claim, and
+    # it cannot be satisfied by an arm that improved a score by not betting,
+    # which is how `net_score` passed five gates it should have failed.
+    assert lawful.laws & {d.law for d in spec.domains}
+    assert not (misled.laws & {d.law for d in spec.domains})
+    assert lawful.ledger.hits > lawful.ledger.misses
+    assert misled.ledger.misses > misled.ledger.hits
+    # PARTICIPATION: neither arm won by falling silent.
+    assert lawful.ledger.hits + lawful.ledger.misses > 0
 
 
 def _unary(rel, names):
@@ -379,8 +389,8 @@ def test_the_learner_induces_only_planted_laws_across_many_seeds():
 
     Exactness of induction and PROFITABILITY are separate claims, measured
     separately: this test asserts only the former. The latter is
-    `test_inducing_unit_learns_the_planted_law_and_its_score_rises` (a positive
-    `net_score` at all 14 seeds, now that a forecast resolves once) and
+    `test_inducing_unit_learns_the_planted_law_and_its_bets_pay` (hits exceed
+    misses at all 14 seeds, now that a forecast resolves once) and
     `test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice` (why it used
     not to be)."""
     from c_field import Field, default_spec, apertures_for
@@ -480,7 +490,7 @@ def test_misses_no_longer_grow_with_the_run_length():
     assert long_net >= short_net, "a longer run made a true law look worse"
 
 
-def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
+def test_inducing_unit_learns_the_planted_law_and_its_bets_pay():
     """The Stage 1 gate: a unit that may induce ends up holding a law the
     regime actually planted, and outperforms both a unit that may not induce
     and a unit seeded with a law the field does not carry.
@@ -530,8 +540,15 @@ def test_inducing_unit_learns_the_planted_law_and_its_score_rises():
     assert misled.ledger.hits + misled.ledger.misses > 0
     assert misled.ledger.misses > 0          # the wrong law bets and loses
     assert fixed.ledger.accuracy is None     # it never bet; no ratio exists
-    assert learner.ledger.net_score > fixed.ledger.net_score
-    assert learner.ledger.net_score > misled.ledger.net_score
+    # THE VERDICT, ON THE LAW COMPONENTS AND THE BETS. The learner induced a law
+    # the field carries and its bets pay; the rival holds one it does not and its
+    # bets lose; the abstainer never played. Three within-arm readings decide it,
+    # so no arm can pass by improving a scalar while forecasting less.
+    assert learner.ledger.hits > learner.ledger.misses
+    assert misled.ledger.misses > misled.ledger.hits
+    assert fixed.ledger.hits + fixed.ledger.misses == 0
+    # PARTICIPATION: the learner is still betting, not merely surviving.
+    assert learner.ledger.hits + learner.ledger.misses > 0
 
 
 # --- the unit reasons through the project's real forward-chainer -------------
