@@ -82,7 +82,59 @@ only (docstrings, comments, docs).
 
 ---
 
-▶ **NEXT SESSION: the credential build, then the scarcity test.**
+▶ **NEXT SESSION (ruled 2026-08-01): a session exclusively for brainstorming and
+skepticism — the West MAPPING on trial, not the experiments.**
+
+The author's call, after the sitting recorded at
+[docs/superpowers/specs/2026-08-01-the-received-world-boundary-controls-and-socialization.md](docs/superpowers/specs/2026-08-01-the-received-world-boundary-controls-and-socialization.md):
+enough has changed that the five West rows need re-thinking rather than re-grading.
+Six-plus runs (E1–E3c, then the C-series) all returned nulls while every arm assumed
+the mapping and tested the units; the pattern says examine the mapping before
+building another arm for it.
+
+**The docket, four questions, costliest-if-true first.**
+
+1. **Where is the terminal unit?** West's terminal units are structural invariants of
+   a *distribution network*. The author's Kandel ruling (`Aplysia`, §3b of
+   [The Uncertain Ground of Semiosis](docs/FROM_THERMODYNAMICS_TO_SEMIOSIS.md)) puts
+   intent 1 at a molecular coincidence detector — far below anything called a kytos.
+   If the semiotic terminal unit sits elsewhere than assumed, the nulls were foregone.
+2. **Is there a network at all?** — the objection not yet squarely faced. West's
+   exponents come from *geometry*: space-filling fractal networks, invariant
+   terminals, minimized dissipation. Arisbe has no space, no flow, no distribution
+   topology; the board is not a network and apertures are not a plumbing. If the
+   mechanism is geometric and there is no geometry, the correspondence is an analogy
+   of *results* with no shared mechanism — deeper than any missing environment.
+3. **Are the condition lists written in the wrong voice?** They enumerate what units
+   must be (able to die; fixed quantum). Under the environment-first ruling those are
+   *consequences* of a world where maintenance costs and the source depletes — so a
+   list of unit-side stipulations, where the requirement is environment-side, commits
+   the cart-before-horse error inside the document that diagnoses it.
+4. **Does a vector optimand admit an exponent?** If West's universality *depends* on
+   scalarity, the "return gift" is a departure from his framework rather than an
+   extension, and should be graded as one.
+
+**Two method riders.** (a) The assistant is **not a neutral party** — most of the
+readings that make the mapping look shakier were generated in the sitting above, so a
+panel must be mandated to **defend** West-in-kytē with equal force, or the session
+ratifies its own premises. (b) Pre-registered priors as in every prior examination:
+fix the reading beforehand, never the result.
+
+**The five rows get their grades from whatever survives**, and there may be fewer than
+five — if the network objection lands, `CONTRIBUTION_AND_PRIOR_ART:347` and
+`ROADMAP:92` concern a different thing than `THE_KYTOS:385` and
+`THE_COMMENS_AND_THE_COMMUNITY:187`.
+
+**Explicitly NOT in that session — the ruled ink-work, which depends on none of it.**
+Provenance in the graphs, reliability derived rather than stored, and seeding by
+DC+ · INS · IT+ fix defects that stand whether or not West ever maps (spec §6a, §5.3).
+They would make the examination better informed — "does a unit whose origins and
+reliability are in the ink behave differently" becomes a fact to consult — but they do
+not gate it.
+
+---
+
+**Deferred behind the examination, unchanged and still blocked:**
 
 **1 · The credential build (stage 4 part (c)).** This is what unblocks weighted
 witnesses — `src/c_unit.py:1807-1814`'s `witnesses = {m.author for m in live} -
