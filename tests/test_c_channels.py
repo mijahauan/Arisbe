@@ -991,10 +991,11 @@ def test_a_self_raised_doubt_asks_before_it_eliminates():
     asked = [m for m in board.all_marks() if m.kind == "question"]
     assert [m.author for m in asked] == ["u0"]
     assert asked[0].content[0] == "q1"               # about a pending head
-    for r in range(3, 7):                            # the inquiry runs
+    w = u0.corroboration_window
+    for r in range(3, 2 + w):                        # the inquiry runs
         assert not u0.dispose_challenges(board, r)
         assert ("p1", "q1") in u0.suspended
-    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
+    out = u0.dispose_challenges(board, 2 + w)         # round - 2 == the window
     assert out.retracted_internally == [("p1", "q1")]
     assert ("p1", "q1") not in u0.laws and u0.suspended == set()
 
@@ -1027,14 +1028,15 @@ def test_the_inquiry_that_repairs_the_record_saves_the_law():
     assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
     assert not u0._meets_criterion(("p1", "q1"), 2)  # condemned when it opened
     u1.facts.update({("q1", (("c", "z2"),)), ("q1", (("c", "z3"),))})
-    for r in range(3, 7):
+    w = u0.corroboration_window
+    for r in range(3, 2 + w):
         for mark in u1.answer(board, r):            # answers what was asked
             u0.adopt(mark, board, r)
         u0.dispose_challenges(board, r)             # asks the next one
     assert ("q1", (("c", "z2"),)) in u0.facts
     assert ("q1", (("c", "z3"),)) in u0.facts
-    assert u0._meets_criterion(("p1", "q1"), 7)     # the record was repaired
-    out = u0.dispose_challenges(board, 7)
+    assert u0._meets_criterion(("p1", "q1"), 2 + w)  # the record was repaired
+    out = u0.dispose_challenges(board, 2 + w)
     assert out.restored_by_silence == [("p1", "q1")]
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1467,7 +1469,7 @@ def test_the_author_s_own_later_observation_restores_the_law():
 def test_silence_restores_the_law_when_the_window_runs_out():
     """SILENCE CANNOT ELIMINATE. A challenge that gathers no support has failed,
     and "do not eliminate until corroboration" fixes the direction the window
-    must end in. The default is five rounds and it is the author's to overrule."""
+    must end in. The default is eight rounds and it is the author's to overrule."""
     _spec, _field, u0, u1 = _two_units()
     board = MarkBoard()
     _sustain(u0)
@@ -1477,11 +1479,11 @@ def test_silence_restores_the_law_when_the_window_runs_out():
     u1.facts.add(("p1", (("c", "z9"),)))
     u1.challenge(board, 1)
     assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
-    assert u0.corroboration_window == 5
-    for r in range(3, 7):
+    w = u0.corroboration_window
+    for r in range(3, 2 + w):
         assert not u0.dispose_challenges(board, r)
         assert ("p1", "q1") in u0.suspended
-    out = u0.dispose_challenges(board, 7)            # 7 - 2 == the window
+    out = u0.dispose_challenges(board, 2 + w)         # round - 2 == the window
     assert out.restored_by_silence == [("p1", "q1")]
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1501,8 +1503,10 @@ def test_a_challenge_that_failed_to_gather_support_does_not_raise_the_doubt_agai
     u1.facts.add(("p1", (("c", "z9"),)))
     u1.challenge(board, 1)
     u0.dispose_challenges(board, 2)
-    u0.dispose_challenges(board, 7)                  # restored by silence
-    for r in range(8, 14):
+    w = u0.corroboration_window
+    expiry = 2 + w
+    u0.dispose_challenges(board, expiry)             # restored by silence
+    for r in range(expiry + 1, expiry + 7):
         assert not u0.dispose_challenges(board, r)
     assert ("p1", "q1") in u0.laws and u0.suspended == set()
 
@@ -1867,8 +1871,52 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
     measurements in this file report, so read the counts rather than the
     direction.
 
-    Eight seeds, 60 rounds, four units inducing from what they meet. Four rules
-    have now been measured on this arm, and the columns are the argument:
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Eight seeds, 60
+    rounds, four units inducing from what they meet. Four rules have now been
+    measured on this arm, and the columns are the argument:
+
+                                    existential  suspension  +open world  +inquiry
+        raised                               58          58           60        60
+        suspended                             —          28           60        60
+        eliminated by corroboration           —          18           12         0
+        retracted by internal re-assessment   —          38            6         6
+        restored by rebuttal                  —           2           44        46
+        restored by silence                   —           0            0         4
+        ----------------------------------------------------------------------------
+        distinct (unit, law) defeats         58          56           16         6
+        **true laws still gone at the end**  34           2            0         2
+        retraction events (thrash)          426          56           16         6
+        net live / net mute             384/596     454/596     932/1038   924/1038
+
+    THE LAST COLUMN IS THIS TASK: the internal arm no longer eliminates on the
+    spot, and the corroboration tally no longer counts the author's own record
+    (`Unit.Doubt`). Defeats fall from 16 to 6 and corroborated eliminations from
+    12 to 0 — every one of those 12 had the author's own published challenge in
+    the live set, so what read as a peer bearing out a doubt was a unit's record
+    voting twice. Four doubts now end in silence where none did, which is the
+    window doing the job it was built for and had never once been given.
+
+    TWO TRUE LAWS ARE NOW PERMANENTLY LOST WHERE NONE WERE AT WINDOW 5 — the
+    longer window is not free even on the metric this test exists to protect.
+    A law given up by `retracted_internally` is one whose own author's record
+    stayed against it for the whole window; the window's only job on that path
+    is to give an inquiry more rounds to repair the record before the law goes,
+    and at eight rounds two of the doubts opened simply outlast the repair
+    without a peer ever supplying the missing head. This is the price named but
+    left open in `corroboration_window`'s own docstring ("a longer window makes
+    every unit do more work per doubt") showing up on a different meter: not
+    more work, but two laws the five-round window would have kept.
+
+    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+924 live
+    against +1038 mute** — an 11% cost, materially unchanged from window 5's
+    11%, against 24% for the ruling alone and 36% for the existential rule. The
+    cost is what suspension is: a true law mute for the window forgoes the hits
+    it would have won, and holding a doubt open longer rather than closing it
+    early costs that many more rounds of licence. It loses at 8 of 8 seeds,
+    asserted per-seed.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
                                     existential  suspension  +open world  +inquiry
         raised                               58          58           60        60
@@ -1883,25 +1931,10 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         retraction events (thrash)          426          56           16         4
         net live / net mute             384/596     454/596     932/1038   922/1038
 
-    THE LAST COLUMN IS THIS TASK: the internal arm no longer eliminates on the
-    spot, and the corroboration tally no longer counts the author's own record
-    (`Unit.Doubt`). Defeats fall from 16 to 4 and corroborated eliminations from
-    12 to 0 — every one of those 12 had the author's own published challenge in
-    the live set, so what read as a peer bearing out a doubt was a unit's record
-    voting twice. Ten doubts now end in silence where none did, which is the
-    window doing the job it was built for and had never once been given.
-
-    NOTHING WAS BOUGHT BY LOSING BITE ON THIS ARM: permanent loss of true laws
-    was already 0 and stays 0, and no unplanted law stands at the end of any
-    seed. At three of the eight seeds the run now completes with nothing defeated
-    at all — challenges raised, laws suspended, doubts inquired into and closed.
-
-    THE PRICE IN SCORE, at equal run length (60 rounds both arms): **+922 live
-    against +1038 mute** — an 11% cost, against 10% before this task, 24% for the
-    ruling alone and 36% for the existential rule. The cost is what suspension
-    is: a true law mute for the window forgoes the hits it would have won, and
-    holding a doubt open for five rounds rather than closing it in one costs
-    five rounds of licence. It loses at 8 of 8 seeds, asserted per-seed.
+    At window 5 the last column read: defeats fall from 16 to 4 and corroborated
+    eliminations from 12 to 0; ten doubts end in silence; no true law is
+    permanently lost; the score cost is +922 live against +1038 mute, an 11%
+    cost against 10% before that task.
     """
     raised_total = 0
     agg = {k: 0 for k in ("suspended", "internal", "corroborated",
@@ -1949,47 +1982,71 @@ def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
         false_defeats += false_here
         live_total += live_net
         mute_total += mute_net
-    assert (raised_total, defeats, false_defeats) == (60, 4, 4)
-    assert agg == {"suspended": 60, "internal": 4, "corroborated": 0,
-                   "rebutted": 44, "silence": 10}
+    assert (raised_total, defeats, false_defeats) == (60, 6, 6)
+    assert agg == {"suspended": 60, "internal": 6, "corroborated": 0,
+                   "rebutted": 46, "silence": 4}
     # THE COMPARISON THIS TASK EXISTS FOR: 34 of 58 true laws permanently lost
-    # under the existential rule, 2 under the ruling, NONE once `pending` is
-    # read open-world.
-    assert (lost_true, lost_false) == (0, 0)
+    # under the existential rule, 2 under the ruling, 0 at window 5 once
+    # `pending` is read open-world, and 2 again at window 8 (see the
+    # docstring's "TWO TRUE LAWS ARE NOW PERMANENTLY LOST" finding).
+    assert (lost_true, lost_false) == (2, 0)
     # One retraction event per defeat: induction and disposal have stopped
     # fighting (426 events for 98 defeats before).
-    assert events_total == defeats == 4
-    assert (live_total, mute_total) == (922, 1038)
+    assert events_total == defeats == 6
+    assert (live_total, mute_total) == (924, 1038)
 
 
 def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_record():
     """IT DID NOT BECOME TOOTHLESS, and the teeth stayed inward.
 
-    Same eight seeds and rounds, each unit additionally seeded with the CONVERSE
-    of its first domain's law — a law the field does not carry, so defeating it
-    is a correct retraction. Measured after inquiry was put before elimination:
-    **31 of 32 converses defeated and permanently gone, the thirty-second still
-    SUSPENDED when the run ended, 4 true laws defeated and all 4 recovered, none
-    permanently lost.** It was 32 of 32 with 16 recovered before this task, and
-    the one that now survives is not an escape: at seed 42 the converse
-    `g_head -> g_local` is first disputed at round 55 and suspended there, and
-    the run stops at 59 with its five-round window still open. It licenses
-    nothing throughout — the arm asserts that rather than counting it as held.
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Same eight seeds
+    and rounds, each unit additionally seeded with the CONVERSE of its first
+    domain's law — a law the field does not carry, so defeating it is a correct
+    retraction. Measured after inquiry was put before elimination: **31 of 32
+    converses defeated and permanently gone, the thirty-second still SUSPENDED
+    when the run ended, 4 true laws defeated, 2 recovered and 2 permanently
+    lost.** It was 32 of 32 with 16 recovered before the ruling, and 31 of 32
+    with all 4 true laws recovered at window 5. The converse that survives is
+    the same one as at window 5 and is still not an escape: at seed 42 the
+    converse `g_head -> g_local` is first disputed at round 55 and suspended
+    there, and the run stops at 59 with its eight-round window still open (a
+    five-round window would have expired at 60, the very last round, which is
+    why it read differently there — see below). It licenses nothing throughout
+    — the arm asserts that rather than counting it as held.
+
+    THE TWO LOST TRUE LAWS ARE SEED 1's, the same seed and the same finding as
+    `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`'s: a
+    longer window gives an internal doubt more rounds to run, and at seed 1 two
+    of those doubts outlast the eight rounds without a peer supplying the
+    missing head. This is not a new mechanism — it is the same trade read from
+    the false-law test's side of the board.
 
     EVERY ONE OF THE 31 DIES BY INTERNAL RE-ASSESSMENT — not one needed a peer,
     exactly as before, and now every one of them waits out the window first. A
     converse's individuals are refuting and stay refuting: `a_head -> a_local`
-    leaves individuals pending whose bodies the unit has held for many rounds, so
-    five rounds of inquiry change nothing about it, and nothing arrives to save
-    it. That is what a delay before elimination is supposed to do to a false law
-    — cost time, not bite.
+    leaves individuals pending whose bodies the unit has held for many rounds,
+    so eight rounds of inquiry change nothing about it, and nothing arrives to
+    save it. That is what a delay before elimination is supposed to do to a
+    false law — cost time, not bite.
 
     THE ARITHMETIC OF THE TRADE. The mute arm pays **77** for holding those
-    converses (+1038 to +961); the live arm is **+922 in both arms**, identical
-    seed by seed, because the wrong law still dies before it can bet much. So the
-    benefit is 77 and the cost is 961 − 922 = **39**, against 29 before this task,
-    142 for the ruling alone and 212 for the existential rule. The delay costs
-    ten points of the seventy-seven and buys the true laws their inquiry.
+    converses (+1038 to +961); the live arm is **+924**, so the benefit is 77
+    and the cost is 961 − 924 = **37**, against 39 at window 5, 29 two tasks
+    before, 142 for the ruling alone and 212 for the existential rule. The two
+    lost true laws show up here too: the live arm no longer matches the mute
+    arm seed by seed as it did at window 5, because seed 1 now loses a true law
+    the mute arm still loses too but by a different route, so the identity that
+    held at window 5 does not hold at window 8.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason: 32 of 32 converses
+    defeated, 16 permanently gone, the thirty-second still SUSPENDED at the
+    run's end; 4 true laws defeated and all 4 recovered, none permanently lost;
+    every one of the 31 [sic, 32] false-law defeats by internal re-assessment;
+    live and mute arms identical at **+922 both**, so the whole 77-point benefit
+    of holding the converses cost only 1038 − 922 = **39** — the delay costing
+    ten of the seventy-seven and buying the true laws their inquiry, with no
+    loss of a true law to weigh against it.
     """
     internal_false = corroborated_false = 0
     correct = recovered_true = lost_true = 0
@@ -2027,8 +2084,8 @@ def test_the_channel_still_kills_every_false_law_and_now_by_the_author_s_own_rec
     assert correct == 31
     # THE AMENDMENT'S QUESTION: which arm does the discriminating work?
     assert (internal_false, corroborated_false) == (31, 0)
-    assert (recovered_true, lost_true) == (4, 0)
-    assert (live_total, mute_total) == (922, 961)
+    assert (recovered_true, lost_true) == (4, 2)
+    assert (live_total, mute_total) == (924, 961)
 
 
 def test_under_bounded_attention_the_discrimination_still_inverts_and_now_internally():

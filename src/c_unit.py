@@ -223,22 +223,36 @@ class Unit:
     false ones, because rebuttability tracks how common the head relation is in
     the author's record rather than whether the law is true. Suspension is what
     lets a doubt be entertained without being obeyed."""
-    corroboration_window: int = 5
+    corroboration_window: int = 8
     """How many rounds a call for corroboration stands before silence restores
-    the law. DEFAULT 5, and it is a choice rather than a measurement.
+    the law. DEFAULT 8 SINCE 2026-07-31, by author ruling and on the measured
+    trade below.
 
     THE RATIONALE IS THE RULING'S OWN. A challenge that gathers no support has
     failed, and "do not eliminate until corroboration" means silence cannot
-    eliminate — so the window must end in restoration, not in retraction. Five
-    rounds is long enough for the community to have spoken several times (the
-    field's lag is one round, and under bounded attention a peer attends every
-    other round, so five rounds is two or three chances for every peer to publish
-    what bears on the case) and short enough that a law is not mute for a
-    material part of a sixty-round run.
+    eliminate — so the window must end in restoration, not in retraction.
 
-    3, 5 AND 8 ARE NOW MEASURED, AND THE DEFAULT WAS LEFT ALONE — it is the
-    author's. Eight seeds, 60 rounds, bounded attention, planted laws and
-    converses seeded.
+    EIGHT SINCE 2026-07-31, BY AUTHOR RULING, ON THE MEASURED TRADE BELOW: at six
+    units, 3 → 8 saves 49 true laws (96 lost to 47) while sparing only 3
+    converses (20 to 17). A true law's missing head is the thing a peer can
+    actually supply and a converse's is not, so waiting longer helps the true law
+    disproportionately. The entire visible price of the patience landed in
+    `net_score`, which was retired from the gate role in the same ruling — so the
+    trade is read on the laws, and 8 dominates.
+
+    IT IS PART OF THE TERMINAL UNIT'S RATE (ruling 2), which carries two riders.
+    It must stay UNIFORM across a community — enforced since 2026-07-31 by
+    `tests/test_c_channels.py::_assert_uniform_rate`, which refuses a mixed-rate
+    community outright. And it must be held CONSTANT across any size sweep, or
+    the sweep measures the window instead of the scaling.
+
+    THE PRICE OF PATIENCE IS STILL UNMEASURED IN ONE RESPECT: a longer window
+    makes every unit do more work per doubt, and the cost reading sees channel
+    acts and attendance but not the internal work a standing doubt occasions.
+    Named, not closed.
+
+    3, 5 AND 8 ARE NOW MEASURED, AND 8 IS THE RULED DEFAULT — see above. Eight
+    seeds, 60 rounds, bounded attention, planted laws and converses seeded.
 
     WITHOUT AN ANSWERING CHANNEL THE VALUE CHANGES NOTHING. At four units and at
     six, windows of 3, 5 and 8 read identical suspensions, corroborations,
