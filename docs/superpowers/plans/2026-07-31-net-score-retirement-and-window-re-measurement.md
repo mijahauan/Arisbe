@@ -32,6 +32,12 @@ it is [THE_KYTOS.md](../../THE_KYTOS.md) §1.3's non-interference rule under tes
   is decided on the law components with a **participation clause** (bets placed);
   within one arm, "a held law pays" is stated on `hits` and `misses` directly.
   **Pinning is reporting** — an assertion of an exact measured value stays.
+- **A participation clause is asserted only where it can fail** (author ruling,
+  2026-07-31, during execution). `hits > misses` over non-negative counts already
+  forces `hits ≥ 1`, so at any site whose law clause is a strict inequality the
+  participation guarantee is *entailed*. Record the entailment in a comment; never
+  assert a tautology. A clause that cannot fire reads as protection that is not there,
+  which is the defect class this project has caught itself in three times.
 - **Phases 1 and 2 must move no measured figure.** If a figure moves, STOP and report;
   it is a finding, not a nuisance.
 - The C suite takes ~14 minutes. Full-suite runs are called out explicitly; everything
@@ -781,10 +787,13 @@ with:
             assert shed_misses > shed_hits, (
                 f"seed {seed} {asking.unit_id}: the channel shed {shed_hits} "
                 f"hits against {shed_misses} misses — it cost more than it saved")
-            # PARTICIPATION, REPORTED: what the shedding cost in forecasts made.
-            # Not asserted, because ceasing to forecast is exactly the behaviour
-            # GATE 1 flags, and this gate must not reward it.
-            assert asking.ledger.hits + asking.ledger.misses >= 0
+        # NO PARTICIPATION CLAUSE HERE, and the absence is the point. Ceasing to
+        # forecast is exactly the behaviour GATE 1 flags, so this gate must not
+        # assert that the live arm kept betting — it did not, and that IS the
+        # finding. The shedding is made visible by the two clauses above instead.
+        # (Per the author's ruling of 2026-07-31: a participation clause is
+        # asserted only where it can fail; a tautology here would read as
+        # protection that is not there.)
 ```
 
 - [ ] **Step 2: Add the reason to the docstring**
