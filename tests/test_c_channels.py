@@ -3026,13 +3026,15 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     same distribution of noise, and that the gain requires peers to actually
     differ. The measurement says something sharper than the prediction did: the
     peers did not merely fail to differ usefully, **NO UNIT EVER HAD TWO VOICES
-    TO CHOOSE BETWEEN.** Eight seeds, 60 rounds:
+    TO CHOOSE BETWEEN.** Eight seeds, 60 rounds.
+
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
 
         arm            (unit, relation)   with 2+     uptake decisions   ... at which
                        pairs told by      suppliers   at which a unit    the preference
                        exactly 1 peer                 held a preference  disagreed
-        4 units, cyclic              96          0                  41              0
-        6 units, pairs              107          0                  54              0
+        4 units, cyclic              96          0                  53              0
+        6 units, pairs              107          0                  72              0
 
     THE FIELD IS WHY, AND IT IS ARITHMETIC RATHER THAN LUCK. A unit answers only
     from what it has met, so a reply about `a_head` can come only from a peer
@@ -3046,10 +3048,10 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     THAT SENTENCE ORIGINALLY READ "at both community sizes" AND TASK 7 FALSIFIED
     IT. Six units put three witnesses on a domain, and at alpha they are u0
     (even), u1 (odd) and u2 (even), so the ODD asker has TWO opposite-phase peers
-    rather than one. Counted at the decision, 394 of the 928 uptakes there had
-    two peers standing behind the content
-    (`test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`).
-    The measurement below is unaffected and the reason it is unaffected is worth
+    rather than one
+    (`test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`,
+    where the uptake and choice-count figures also moved at window 8). The
+    measurement below is unaffected and the reason it is unaffected is worth
     keeping: the two candidate voices attend the same rounds as each other, so
     they hold the same facts, and `MarkBoard.answer_to` returns the first mark
     published — which the lower-numbered unit always mints first. One peer is the
@@ -3063,14 +3065,39 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     be the same fact reaching the unit twice rather than two peers informing it.
     The looser count would have reported choices nobody had.
 
-    WHAT THE UNITS DID LEARN, and it is nearly nothing. Of the 96 (peer,
-    relation) pairs a four-unit community accumulates any record about, **1 ends
-    the run with a positive score**; 90 end negative and 5 at zero. Six units:
-    **5 positive of 107**, 99 negative. Replication is a coin flip on whether the
-    field redraws that individual, and the field draws one individual per
-    relation per round from a list of forty, so most testimony is never borne
-    out within a sixty-round run whoever gave it. See
+    WHAT THE UNITS DID LEARN, and at four units it is now LITERALLY NOTHING.
+    Of the 96 (peer, relation) pairs a four-unit community accumulates any
+    record about, **0 end the run with a positive score** (was 1 at window 5);
+    94 end negative and 2 at zero. NO PEER AT FOUR UNITS EVER EARNED A
+    PREFERENCE — the same fact
+    `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
+    now reports directly (its own `prefs` tally sums to 0 at four units, where
+    it summed to 1 at window 5): a longer window gives the field more rounds to
+    redraw against a testimony pair before the run ends, and the one relation
+    that used to end up barely positive no longer does. Six units: **2 positive
+    of 107** (was 5), 105 negative, 0 at zero. Replication is a coin flip on
+    whether the field redraws that individual, and the field draws one
+    individual per relation per round from a list of forty, so most testimony is
+    never borne out within a sixty-round run whoever gave it — and a longer
+    window means more rounds in which it can still be overturned. See
     `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer`.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
+        arm            (unit, relation)   with 2+     uptake decisions   ... at which
+                       pairs told by      suppliers   at which a unit    the preference
+                       exactly 1 peer                 held a preference  disagreed
+        4 units, cyclic              96          0                  41              0
+        6 units, pairs              107          0                  54              0
+
+    Counted at the decision, 394 of the 928 uptakes at six units had two peers
+    standing behind the content (the window-5 reading of
+    `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`).
+    A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
+    Of the 96 (peer, relation) pairs a four-unit community accumulates any
+    record about, 1 ended the run with a positive score, 90 negative and 5 at
+    zero. Six units: 5 positive of 107, 99 negative, 3 at zero.
     """
     for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
         control = _aggregate_ask(n_units, scheme, ask=True)
@@ -3083,24 +3110,23 @@ def test_typified_asking_changes_nothing_and_the_reason_is_that_nobody_had_a_cho
     six = _aggregate_ask(6, PAIRS, ask=True, typify="prefer", keys=_TYPIFY_KEYS)
     # The channel carried something, so inertness is a result rather than a
     # measurement that never ran.
-    assert (four["questions"], four["uptakes"]) == (1024, 939)
-    assert (six["questions"], six["uptakes"]) == (1045, 928)
-    # A preference WAS held at 41 and 54 uptake decisions, and disagreed at none.
-    assert (four["occ_pref"], four["occ_bite"]) == (41, 0)
-    assert (six["occ_pref"], six["occ_bite"]) == (54, 0)
+    assert (four["questions"], four["uptakes"]) == (1258, 1151)
+    assert (six["questions"], six["uptakes"]) == (1358, 1213)
+    # A preference WAS held at 53 and 72 uptake decisions, and disagreed at none.
+    assert (four["occ_pref"], four["occ_bite"]) == (53, 0)
+    assert (six["occ_pref"], six["occ_bite"]) == (72, 0)
     # AND NO UNIT, AT EITHER SIZE, WAS EVER TOLD SOMETHING NEW ABOUT ONE
     # RELATION BY TWO DIFFERENT PEERS. Every (unit, relation) pair that acquired
     # anything at all acquired it from exactly one voice.
     assert (four["one_supplier"], four["many_suppliers"]) == (96, 0)
     assert (six["one_supplier"], six["many_suppliers"]) == (107, 0)
-    # And almost nothing was learned. THE PEERS DO CONVERGE TO THE SAME SCORE,
-    # and the score they converge to is negative: of the 96 (peer, relation)
-    # pairs a four-unit community accumulates any record about, 1 ends positive,
-    # 90 negative and 5 at zero; six units read 5 / 99 / 3 of 107.
-    assert (four["preferences"], six["preferences"]) == (1, 5)
+    # And almost nothing was learned — and at four units, NOTHING: no
+    # (peer, relation) pair ever earns a positive score, where one did at
+    # window 5 (see `test_gate_two_...`'s own `prefs` tally, 0 vs 1).
+    assert (four["preferences"], six["preferences"]) == (0, 2)
     assert (four["score_pos"], four["score_neg"], four["score_zero"]) == (
-        1, 90, 5)
-    assert (six["score_pos"], six["score_neg"], six["score_zero"]) == (5, 99, 3)
+        0, 94, 2)
+    assert (six["score_pos"], six["score_neg"], six["score_zero"]) == (2, 105, 0)
 
 
 def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure():
