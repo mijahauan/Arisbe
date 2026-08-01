@@ -8,8 +8,8 @@ reading five test modules. Do not refactor it into imports from those files.
 STAGE 3'S TWO GATES ARE NOT RESTATED HERE, and the reason is cost rather than
 principle. They compare whole communities over eight seeds and 60 rounds, so
 they read the measurement driver and the memoised arms in
-`tests/test_c_channels.py`; restating them would re-run about a hundred seconds
-of arms for no new assertion. They are:
+`tests/test_c_channels.py`; restating them would re-run substantial arms for
+no new assertion. They are:
 
 - `test_gate_one_the_score_improves_while_the_community_learns_less`
   — does communication buy anything? RE-MEASURED AT WINDOW 8 (the ruled
@@ -259,8 +259,8 @@ def test_the_converse_law_arm_now_bets_and_loses():
     assert lawless.ledger.accuracy is None
     # THE CROSS-ARM CLAUSE, RE-EXPRESSED. The old form compared two net scores.
     # What it meant is that one arm bet and lost while the other never played —
-    # and BOTH halves are already asserted above (`:236` the converse arm bets,
-    # `:240` the abstainer does not), so the claim now stands on those and the
+    # and BOTH halves are already asserted above (`:253` the converse arm bets,
+    # `:258` the abstainer does not), so the claim now stands on those and the
     # scalar comparison is simply deleted rather than restated.
 
 

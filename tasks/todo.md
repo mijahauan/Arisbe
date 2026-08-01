@@ -1,8 +1,8 @@
 # The 2026-07-31 rulings — execution status
 
 Six rulings taken. **Six are done and committed** (`43096ba`, `c2ee801`, and the
-re-measurement pass below, `remeasurement-pass-2026-07-31`, 29 commits). One code
-ruling remains, sized below, blocked on a decision.
+re-measurement pass below, `remeasurement-pass-2026-07-31`, based at `3ba6816`).
+One code ruling remains, sized below, blocked on a decision.
 
 ## Done
 
@@ -22,10 +22,15 @@ ruling remains, sized below, blocked on a decision.
       gate," and the rule now reads: no gate decided by comparing hits −
       misses BETWEEN arms; a cross-arm gate decides on the law components with
       a participation clause; within one arm a held law pays on `hits`/`misses`
-      directly; pinning an exact measured value is reporting and stays. Four
-      net comparisons survive, each annotated as asserting a pathology OF the
-      statistic rather than deciding BY it. Phase ran and verified at 204 C
-      tests passing, identical to the pre-change baseline — no figure moved.
+      directly; pinning an exact measured value is reporting and stays. Six
+      net comparisons survive (the final review pass found two more the
+      tracing grep had missed, both in the asking-vs-mute test — see
+      `tests/test_c_channels.py`'s "KEPT CLAUSE FIVE"/"SIX"), each annotated
+      as asserting a pathology OF the statistic rather than deciding BY it;
+      two of the six are the forbidden cross-arm comparison unfolded into its
+      hit/miss components, kept only because the arm they sit in cannot lose
+      a law. Phase ran and verified at 204 C tests passing, identical to the
+      pre-change baseline — no figure moved.
 - [x] **`corroboration_window` default 5 → 8.** One line
       (`src/c_unit.py:226`), plus the uniformity guard the rider in ruling 2
       required (`_assert_uniform_rate`, refusing a community whose units
@@ -38,7 +43,7 @@ ruling remains, sized below, blocked on a decision.
 ## Remaining, with honest sizing
 
 - [ ] **BLOCKED — weight witnesses rather than count them.** The count sits at
-      `src/c_unit.py:1759-1766`: `witnesses = {m.author for m in live} -
+      `src/c_unit.py:1807-1814`: `witnesses = {m.author for m in live} -
       {self.unit_id}`, then `len(witnesses) >= corroborating_witnesses`.
       Replacing the count with a weighted sum needs **something to weight by**,
       and the natural weight is the **credential** — which is designed

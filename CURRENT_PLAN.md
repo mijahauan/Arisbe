@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-08-01 (eleventh arc) — **THE RE-MEASUREMENT PASS: `net_score`
 RETIRED AS A GATE STATISTIC, THE WINDOW MOVED TO 8, AND A DESIGN REFUSED ALONG THE
-WAY.** Branch `remeasurement-pass-2026-07-31`, 29 commits, `3ba6816..f66b67e`.
+WAY.** Branch `remeasurement-pass-2026-07-31`, based at `3ba6816`.
 Executes two of the six 2026-07-31 rulings (`tasks/todo.md`): retire `net_score`,
 and `corroboration_window` 5 → 8.
 
@@ -32,8 +32,12 @@ clause** (the winning arm didn't win by ceasing to forecast); within one arm, "a
 held law pays" is stated on `hits`/`misses` directly, never on the derived scalar.
 Pinning an exact measured value stays — that's reporting, not gating.
 `MembraneLedger.net_score` survives as a property, docstring demoted to
-"observability, never a gate." Four net comparisons survive by name, each now
-annotated as asserting a pathology OF the statistic rather than deciding BY it.
+"observability, never a gate." Six net comparisons survive by name (the final
+review pass found two the tracing grep had missed, undetected because neither
+reads a variable named `net_score`), each now annotated as asserting a
+pathology OF the statistic rather than deciding BY it; two of the six are the
+forbidden cross-arm comparison unfolded into its hit/miss components, kept
+only because the arm they sit in cannot lose a law.
 
 **The window, and the guard ruling 2 required.** `corroboration_window` 5 → 8
 (`src/c_unit.py:226`), with the rider that the window is part of the terminal
@@ -70,17 +74,18 @@ one file before every digit token in its docstring was accounted for: only pinne
 assertions fail when the world moves, and a figure living only in prose is
 unprotected.
 
-**State at close:** working tree clean, 29 commits on `remeasurement-pass-2026-07-31`,
-C suite 204, core suite green throughout, book 48/48 (HTML; the PDF format still
-fails on a pre-existing, unrelated YAML-alias error, flagged not fixed). No code or
-test touched by this closing pass — documentation only.
+**State at close:** working tree clean, `remeasurement-pass-2026-07-31` (based at
+`3ba6816`), C suite 204, core suite green throughout, book 48/48 (HTML; the PDF
+format still fails on a pre-existing, unrelated YAML-alias error, flagged not
+fixed). No code or test-assertion logic touched by this closing pass — narration
+only (docstrings, comments, docs).
 
 ---
 
 ▶ **NEXT SESSION: the credential build, then the scarcity test.**
 
 **1 · The credential build (stage 4 part (c)).** This is what unblocks weighted
-witnesses — `src/c_unit.py:1759-1766`'s `witnesses = {m.author for m in live} -
+witnesses — `src/c_unit.py:1807-1814`'s `witnesses = {m.author for m in live} -
 {self.unit_id}` still counts rather than weights, and the natural weight is the
 credential, ruled (author's ruling 1, Examination VII) and still unbuilt. Two ways
 not to take it, both still forbidden: weighting by the challenger's private `peers`
@@ -111,8 +116,8 @@ Standing falsifier for anything the D-series eventually builds:
 **ablate the putative sign** — occlude it, and if performance holds, nothing stood
 for anything.
 
-**State at close:** working tree clean, 29 commits pushed-ready on
-`remeasurement-pass-2026-07-31`, C suite 204, core suite green, book 48/48. This
+**State at close:** working tree clean, `remeasurement-pass-2026-07-31` (based at
+`3ba6816`), C suite 204, core suite green, book 48/48. This
 arc's own record (task briefs, reports, review diffs, suite output) lives in
 `.superpowers/sdd/2026-07-31-net-score-retirement-and-window-re-measurement/`.
 
@@ -207,7 +212,7 @@ together** — the suite narrates measured figures throughout at 14 minutes a ru
 this is one re-measurement, not two.
 
 **2 · BLOCKED, and deliberately not worked around: weight witnesses.** The count is one
-line (`c_unit.py:1759-1766`). What to weight *by* is the **credential**, which is ruled
+line (`c_unit.py:1807-1814`). What to weight *by* is the **credential**, which is ruled
 and unbuilt. Weighting by the challenger's private `peers` standing would make
 corroboration turn on one unit's private opinion, defeating the socially-available
 objectified reality §9d grounds it in; inventing a weight would install the solution.
