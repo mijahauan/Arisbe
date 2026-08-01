@@ -176,9 +176,10 @@ def test_a_true_law_held_alone_makes_money_at_every_seed():
             led = u.ledger
             assert led.hits + led.misses > 0, (
                 f"seed {seed} {domain.law}: never bet, so nothing was tested")
-            assert led.net_score > 0, (
+            assert led.hits > led.misses, (
                 f"seed {seed}: the planted law {domain.law} held alone LOSES "
-                f"money — {led.hits}h/{led.misses}m net {led.net_score}")
+                f"money — {led.hits}h/{led.misses}m (net {led.net_score}, "
+                f"reported not asserted)")
             # And it loses no bet twice: one charge per distinct atom.
             assert led.misses == len({e.fact for e in led.entries
                                      if e.result == "miss"})
@@ -232,14 +233,17 @@ def test_the_converse_law_arm_now_bets_and_loses():
 
     # It bets now — the noise gave it something to be wrong about.
     assert conv_arm.ledger.hits + conv_arm.ledger.misses > 0
-    # And it loses: a converse held is a converse that costs.
+    # And it loses: a converse held is a converse that costs. One clause, on the
+    # bets; `net_score < 0` said the same thing in retired vocabulary.
     assert conv_arm.ledger.misses > conv_arm.ledger.hits
-    assert conv_arm.ledger.net_score < 0
     # The abstainer is unchanged, and remains the honest zero.
     assert lawless.ledger.hits + lawless.ledger.misses == 0
     assert lawless.ledger.accuracy is None
-    assert lawless.ledger.net_score == 0
-    assert conv_arm.ledger.net_score < lawless.ledger.net_score
+    # THE CROSS-ARM CLAUSE, RE-EXPRESSED. The old form compared two net scores.
+    # What it meant is that one arm bet and lost while the other never played —
+    # and BOTH halves are already asserted above (`:236` the converse arm bets,
+    # `:240` the abstainer does not), so the claim now stands on those and the
+    # scalar comparison is simply deleted rather than restated.
 
 
 def test_stage_2_gate_support_is_recoverable_and_changes_what_survives():

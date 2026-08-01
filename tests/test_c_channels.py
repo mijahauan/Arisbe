@@ -643,7 +643,10 @@ def test_with_full_attention_the_ask_channel_is_inert_rather_than_harmful():
                 silent.ledger.hits, silent.ledger.misses), (
                 f"seed {seed} {asking.unit_id}: the channel moved the record "
                 f"without carrying anything")
-            assert asking.ledger.net_score > 0     # full attention makes money
+            # Full attention makes money. Within one arm, and safe: the line
+            # above has just pinned the two arms' hits and misses EQUAL, so no
+            # cross-arm reading is being taken from a scalar here.
+            assert asking.ledger.hits > asking.ledger.misses
 
 
 def test_the_channel_leaves_anticipate_before_observe_alone():

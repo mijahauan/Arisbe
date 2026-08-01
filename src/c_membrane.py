@@ -101,10 +101,29 @@ class MembraneLedger:
 
     @property
     def net_score(self) -> int:
-        """Hits minus misses — stable at low bet volumes, where a bare ratio is
-        not (one lucky hit reads as a perfect score). This is the statistic to
-        compare two arms by, and the only one an abstainer can honestly share a
-        scale with: abstention is 0, not a fabricated worst case."""
+        """Hits minus misses. **OBSERVABILITY, NEVER A GATE** — the standing
+        `restaked` and `late_arrivals` already carry, retired from the gate role
+        by author ruling on 2026-07-31.
+
+        WHY IT WAS RETIRED. Five measured inversions, each with its outcome
+        recorded beside it: the score rose 988 while the channels destroyed 64 of
+        the 64 true laws the field carried, then rose a further 327 while 28 of
+        them were restored. A statistic that rises in both directions of the
+        thing under study cannot gate it. (The other three:
+        `tests/test_c_channels.py::test_gate_one_...` names them all.)
+
+        REPORT IT, NEVER ASSERT A VERDICT ON IT. No gate may be decided by
+        comparing this number BETWEEN ARMS; a cross-arm gate is decided on the
+        law components — true laws held, converses held — and must carry a
+        participation clause, because an arm can improve this number by very
+        nearly ceasing to forecast, and one did. Within a single arm, whether a
+        held law pays is stated on `hits` and `misses` directly. Pinning an exact
+        measured value is reporting, and stays.
+
+        It remains computed and remains read: GATE 1's whole argument is that
+        this number rose while the community learned less, which needs the number
+        legible. `resolving_membrane.PredictionLedger.net_score` is a different
+        class and is unaffected."""
         return self.hits - self.misses
 
     @property

@@ -444,8 +444,10 @@ def test_every_miss_is_a_distinct_atom_no_bet_is_charged_twice():
     assert max(missed.values()) == 1, f"a bet was re-charged: {missed}"
     assert u.ledger.misses == len(missed)
     assert u.ledger.restaked == 0     # the unit never even re-offers a settled bet
-    # And with the re-charges gone, a record holding only true laws PAYS.
-    assert u.ledger.net_score > 0
+    # And with the re-charges gone, a record holding only true laws PAYS —
+    # stated on the bets themselves rather than on the retired scalar
+    # (src/c_membrane.py's `net_score`, observability only since 2026-07-31).
+    assert u.ledger.hits > u.ledger.misses
     # Every miss is still a head atom the unit's law licensed but the field
     # withheld — not a wrong law firing.
     heads = {d.law[1] for d in spec.domains}
