@@ -3145,8 +3145,12 @@ def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
 
 
 def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_less():
-    """**GATE 1 PASSES ON `net_score` AND THE PASS MEANS THE OPPOSITE OF WHAT IT
-    LOOKS LIKE.** Four units, eight seeds, 60 rounds, planted laws and converses
+    """**GATE 1 PASSED ON `net_score`, THE PASS MEANT THE OPPOSITE OF WHAT IT LOOKED
+    LIKE, AND ON 2026-07-31 THE STATISTIC WAS RETIRED FROM THE GATE ROLE FOR IT.**
+    The figures below are pinned and reported; the verdict is carried by the laws
+    held and the bets placed.
+
+    Four units, eight seeds, 60 rounds, planted laws and converses
     seeded, bounded attention. The live world runs all four stage-3 channels; the
     mute twin runs none, so each unit meets the same field alone.
 
@@ -3220,8 +3224,10 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     assert (four_mute["questions"], four_mute["uptakes"]) == (0, 0)
     assert [four_mute[k] for k in ("suspended", "internal", "corroborated",
                                    "rebutted", "silence")] == [0] * 5
-    # THE GATE'S OWN CLAUSE, AND IT PASSES.
-    assert four_live["net"] > four_mute["net"]
+    # THE GATE'S OWN CLAUSE, DEMOTED 2026-07-31. It passed, and passing meant the
+    # opposite of what it looked like, which is why `net_score` was retired from
+    # the gate role. The figures are PINNED — pinning is reporting, with teeth —
+    # and the verdict is carried by the law and participation clauses below.
     assert (four_mute["net"], four_live["net"]) == (-1421, -106)
     # AND THE COMPANIONS SAY IT PASSED BY BETTING ALMOST NOT AT ALL.
     assert (four_mute["bets"], four_live["bets"]) == (1497, 110)
@@ -3239,10 +3245,13 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     # and licensing anticipations" in both arms.
     assert (four_mute["true_susp"], four_live["true_susp"]) == (0, 0)
     assert (four_mute["conv_susp"], four_live["conv_susp"]) == (0, 0)
-    # THE DECOMPOSITION: both steps raise the score, the first by destroying
-    # every true law and the second by restoring 28 of them.
     assert (four_chal["net"], four_chal["bets"]) == (-433, 455)
     assert (four_chal["true_lost"], four_chal["conv_lost"]) == (64, 2)
+    # THE DECOMPOSITION, AND THIS COMPARISON IS KEPT ON PURPOSE. Its content is
+    # that the score rose in BOTH directions — the first step by destroying every
+    # true law, the second by restoring 28 — so it asserts the inversion itself
+    # rather than deciding anything by it. Retiring it would delete the evidence
+    # the retirement rests on.
     assert four_mute["net"] < four_chal["net"] < four_live["net"]
     # The hit rate is reported and not leaned on: it falls in the live arm at
     # four units and rises at six, on 2 and 3 hits respectively.
