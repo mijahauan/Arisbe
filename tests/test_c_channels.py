@@ -3154,9 +3154,13 @@ def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure()
 
     MEASURED, over eight seeds and 60 rounds: the field licensed **1004** head
     atoms and fabricated **37** that no antecedent ever licensed, all 37 inside
-    some unit's aperture. Adoptions of a fabricated atom, in every arm and at
-    both community sizes: **0 of 939 and 0 of 928.** Whatever typification could
-    do to a fabrication, it has nothing here to do it to.
+    some unit's aperture — both figures are the field's own and do not depend on
+    `corroboration_window`. Adoptions of a fabricated atom, in every arm and at
+    both community sizes: **0 of 1151 and 0 of 1213** (RE-MEASURED AT WINDOW 8,
+    the ruled default, 2026-07-31 — the totals were 0 of 939 and 0 of 928 at
+    window 5, kept below for comparison; the zero itself does not move at either
+    window, only the total adoptions it is a fraction of). Whatever typification
+    could do to a fabrication, it has nothing here to do it to.
 
     WHAT WOULD HAVE TO CHANGE for the category to exist: units would have to be
     able to ask about atoms their own record does not already license — which
@@ -3175,14 +3179,17 @@ def test_no_fabricated_fact_is_ever_adopted_so_p_g1_has_no_category_to_measure()
                 f"was adopted, so P-G1 has a category after all")
             assert arm["adopted_licensed"] > 0, (
                 "no head atom was adopted at all, so the zero above is vacuous")
-    # THE SPLIT, so the zero above is read against what WAS taken up. Of the 939
-    # adoptions at four units, 479 are head atoms — every one of them licensed —
-    # and 460 are atoms of an ANTECEDENT relation, which `spurious_rate` never
-    # fabricates at all. Six units: 478 and 450 of 928.
+    # THE SPLIT, so the zero above is read against what WAS taken up.
+    # RE-MEASURED AT WINDOW 8: of the 1151 adoptions at four units, 697 are head
+    # atoms (every one of them licensed) and 454 are atoms of an ANTECEDENT
+    # relation, which `spurious_rate` never fabricates at all. Six units: 754
+    # and 459 of 1213. AT WINDOW 5, the previous default: of 939 adoptions at
+    # four units, 479 head / 460 antecedent; six units 478 / 450 of 928 — kept
+    # for comparison, this is the reading the ruling was made on.
     four = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
     six = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
-    assert (four["adopted_licensed"], four["adopted_body"]) == (479, 460)
-    assert (six["adopted_licensed"], six["adopted_body"]) == (478, 450)
+    assert (four["adopted_licensed"], four["adopted_body"]) == (697, 454)
+    assert (six["adopted_licensed"], six["adopted_body"]) == (754, 459)
     # The field really does fabricate: 37 head atoms over eight seeds that no
     # antecedent ever licensed, every one of them inside some unit's aperture.
     fabricated = 0
