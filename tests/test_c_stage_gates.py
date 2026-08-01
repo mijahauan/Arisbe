@@ -19,8 +19,11 @@ of arms for no new assertion. They are:
   the reading the ruling was made on: −106 against −1421, 110 bets against
   1497, 28 of 64 true laws held.
 - `test_gate_two_consultation_is_non_uniform_and_no_unit_at_four_ever_had_a_choice`
-  — does consultation depart from uniform? It does, and all 939 uptake decisions
-  at four units had exactly one voice standing behind the content.
+  — does consultation depart from uniform? It does. RE-MEASURED AT WINDOW 8
+  (the ruled default, 2026-07-31): all 1151 uptake decisions at four units had
+  exactly one voice standing behind the content. AT WINDOW 5, the previous
+  default, for comparison — the reading the ruling was made on: all 939
+  uptake decisions had exactly one voice.
 """
 
 from c_field import Field, default_spec, apertures_for
