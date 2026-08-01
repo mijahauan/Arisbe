@@ -308,20 +308,28 @@ means — but that is a reading, not a ruling.
 
 ## 7 · Candidate work, ordered by cost — none authorized
 
-1. **Seed by DC+ · INS · IT+ instead of `Unit(laws={...})`.** Small, needs no new
-   environment, and makes the existing units' origins legible and revisable. §5.3.
-2. **Let the inverse pivot's model catalogue grow from outside.** §4.
-3. **Convert load-bearing boundary controls from stating to biting** — starting with
+**Items 1 and 2 are now the ruled direction (§6a): move the Python externals into
+the graphs.** The rest stay unauthorized candidates.
+
+1. **Provenance in the ink.** Graphs recording who provided or whence arrived a
+   notion, with attributes — the pattern `(asserted "author" ⌜…⌝)` already uses,
+   generalised past the author to any source. §6a.
+2. **Reliability derived, never stored** — computed from how a source's contributions
+   moved ◇ → □ across the branching DAG and how many of its entertained exhibits were
+   discharged rather than abandoned. Both readings already exist (`modal_query`;
+   ENTERTAIN → DISCHARGE / ABANDON). Retires `Unit.peers` rather than reforming it. §6a.
+3. **Seed by DC+ · INS · IT+ instead of `Unit(laws={...})`.** Small, needs no new
+   environment, makes the existing units' origins legible and revisable, and is the
+   natural companion to 1 — a seeded law and a provided notion want the same
+   provenance shape. §5.3.
+4. **Let the inverse pivot's model catalogue grow from outside.** §4.
+5. **Convert load-bearing boundary controls from stating to biting** — starting with
    the one this session paid for four times: a figure a document asserts about a
    measured world has no mechanism that fails when the world moves. §2.
-4. **Reliability as a public decaying mark** rather than `Unit.peers`; test whether a
-   mark-borne reliability reproduces what the private dict does. If it does, the
-   register was never load-bearing; if it differs, that is the social objectification
-   the C-series has never exhibited. §6.
-5. **The environment-first D-series sitting** — clock, unit capacities, contested
+6. **The environment-first D-series sitting** — clock, unit capacities, contested
    source with quantity and replenishment; the design rule *the environment must
    carry structure the unit does not already encode.*
-6. **The socialization loop** as TUTOR_LOOP transposed. §5.3.
+7. **The socialization loop** as TUTOR_LOOP transposed. §5.3.
 
 ## 8 · Open decisions, the author's
 
