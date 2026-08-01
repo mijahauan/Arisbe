@@ -3380,38 +3380,57 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     seeded, bounded attention. The live world runs all four stage-3 channels; the
     mute twin runs none, so each unit meets the same field alone.
 
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
+
         four units                mute twin      live world
-        net score                     −1421            −106
-        bets placed                    1497             110
-        hits                             38               2
-        misses                         1459             108
-        hit rate among bets           0.0254          0.0182
-        abstentions                    5009            5654
-        true laws held at the end     64/64           28/64
+        net score                     −1421            −185
+        bets placed                    1497             193
+        hits                             38               4
+        misses                         1459             189
+        hit rate among bets           0.0254          0.0207
+        abstentions                    5009            5619
+        true laws held at the end     64/64           44/64
         converses held at the end     32/32           32/32
 
-    The live world's score exceeds the mute twin's by a factor of thirteen. It
-    also places 92.7% fewer bets, lands 2 hits against 38, holds 36 fewer of the
-    64 true laws it was given, and holds every one of the 32 false ones in both
-    arms. **Communication bought a better score by very nearly ceasing to
-    forecast.**
+    **THIS IS EXACTLY THE FOUR-UNIT WINDOW-8 ROW `corroboration_window`'s OWN
+    SWEEP TABLE ALREADY PREDICTED** (`4 / 8 / internal 20 / rebutted 44 /
+    true-lost 20-of-64 / net −185`) — the ruling's evidence and this gate's
+    re-measurement are the same run read twice, and they agree digit for digit.
 
-    **`net_score` ALONE CANNOT CARRY THIS GATE, and the evidence is four earlier
-    inversions in this series, each with the outcome measured beside it:**
+    THE FOLD ITSELF MOVED, WHICH IS FURTHER EVIDENCE AGAINST LEANING ON IT: the
+    live world's score now exceeds the mute twin's by a factor of **7.7**, not
+    thirteen (−1421 / −185 vs the window-5 −1421 / −106). A statistic whose own
+    headline number is this sensitive to an unrelated knob — the window governs
+    how long a doubt stays open, not how communication trades score for
+    forecasting — is exactly the kind of instability the retirement argument
+    rests on; the test's own name is left as it stands, on purpose, as a visible
+    record of what net_score does under a knob that has nothing to do with its
+    claim. It still places 87.1% fewer bets (down from 92.7%), lands 4 hits
+    against 38, holds 20 fewer of the 64 true laws it was given (down from 36
+    fewer), and holds every one of the 32 false ones in both arms.
+    **Communication still buys a better score by very nearly ceasing to
+    forecast — the direction is unchanged, only the size of the effect.**
+
+    **`net_score` ALONE STILL CANNOT CARRY THIS GATE, and the four earlier
+    inversions now read (window 8, with window 5 beside them):**
 
     - Task 5, bounded attention with the challenge channel: net rose −1421 →
-      −433 while 64 of 64 true laws were destroyed.
+      −433 while 64 of 64 true laws were destroyed — unchanged at either window,
+      because this arm has no ask channel for the window length to act through.
     - Task 5e, the ask channel with inquiry ordered before elimination: net fell
-      −39 → −106 while 28 of the 64 true laws were saved.
+      −39 → **−185** (was −39 → −106) while **44** of the 64 true laws were
+      saved (was 28) — see
+      `test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask`.
     - Task 5f, six units mute: net read exactly 0 against four units' −2122,
-      because no unit survived to place a bet at all.
-    - Task 6, the distrust arm: net fell −106 → −551 with every law's fate and
-      every disposal exit identical, because an adopted head atom mostly prevents
-      a losing bet rather than winning one.
+      unchanged — no unit survived to place a bet at all, at either window.
+    - Task 6, the distrust arm: net fell **−185 → −745** (was −106 → −551) with
+      every law's fate and every disposal exit identical, because an adopted
+      head atom mostly prevents a losing bet rather than winning one — see
+      `test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law`.
 
     Spec §9a retired `accuracy` at these bet volumes for a related reason, and
-    the hit rates above show why it stays retired: 2 hits of 110 and 3 of 83
-    decide a ratio, so the six-unit live arm's 0.0361 against its mute twin's
+    the hit rates above show why it stays retired: 4 hits of 193 and 3 of 140
+    decide a ratio, so the six-unit live arm's 0.0214 against its mute twin's
     0.0199 rests on three events and carries nothing. **Read bets placed and laws
     held; the ratio is reported for completeness and should not be leaned on.**
 
@@ -3422,22 +3441,55 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
         four units              net    bets   true held   converses held
         mute twin             −1421    1497       64/64            32/32
         challenge only         −433     455        0/64            30/32
-        all four channels      −106     110       28/64            32/32
+        all four channels      −185     193       44/64            32/32
 
-    The first step improves the score by 988 by destroying every true law; the
-    second improves it by a further 327 by restoring 28 of them. **A statistic
-    that rises both when true laws are destroyed and when they are restored is
-    not measuring what the gate asks about.**
+    The first step improves the score by 988 by destroying every true law
+    (unchanged); the second improves it by a further **248** by restoring
+    **44** of them (was +327 restoring 28). **A statistic that rises both when
+    true laws are destroyed and when they are restored is still not measuring
+    what the gate asks about.**
 
-    SIX UNITS READS THE SAME WAY AND HARDER: net −2122 → −77, bets 2210 → 83,
-    hits 44 → 3, true laws held 96/96 → 27/96, converses held 48/48 → 31/48.
+    SIX UNITS READS THE SAME WAY AND HARDER: net −2122 → **−134** (was −77),
+    bets 2210 → **140** (was 83), hits 44 → 3 (unchanged), true laws held
+    96/96 → **49/96** (was 27/96), converses held 48/48 → 31/48 (unchanged).
     Converses die there where the live arm at four units loses none, and the
-    channels stay anti-discriminating all the same: **71.9% of the true laws
-    lost against 35.4% of the converses.**
+    channels stay anti-discriminating all the same: **49.0% of the true laws
+    lost against 35.4% of the converses** (was 71.9% against 35.4%).
 
     The mute twin reproduces Task 5's −1421 and the challenge-only arm its −433,
     which is the check that this new arm is the same world under a new switch
-    rather than a differently-configured one.
+    rather than a differently-configured one — both figures window-invariant,
+    confirming again that a doubt with no ask channel behind it does not read
+    `corroboration_window` at all.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
+        four units                mute twin      live world
+        net score                     −1421            −106
+        bets placed                    1497             110
+        hits                             38               2
+        misses                         1459             108
+        hit rate among bets           0.0254          0.0182
+        abstentions                    5009            5654
+        true laws held at the end     64/64           28/64
+        converses held at the end     32/32           32/32
+
+    The live world's score exceeded the mute twin's by a factor of thirteen. It
+    also placed 92.7% fewer bets, landed 2 hits against 38, held 36 fewer of the
+    64 true laws it was given, and held every one of the 32 false ones in both
+    arms.
+
+        four units              net    bets   true held   converses held
+        mute twin             −1421    1497       64/64            32/32
+        challenge only         −433     455        0/64            30/32
+        all four channels      −106     110       28/64            32/32
+
+    The first step improved the score by 988 by destroying every true law; the
+    second improved it by a further 327 by restoring 28 of them. Six units read
+    net −2122 → −77, bets 2210 → 83, hits 44 → 3, true laws held 96/96 → 27/96,
+    converses held 48/48 → 31/48 — 71.9% of the true laws lost against 35.4% of
+    the converses.
     """
     four_mute = _aggregate_ask(4, CYCLIC, ask=False, mute=True, keys=_GATE_KEYS)
     four_live = _aggregate_ask(4, CYCLIC, ask=True, keys=_GATE_KEYS)
@@ -3454,17 +3506,19 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     # opposite of what it looked like, which is why `net_score` was retired from
     # the gate role. The figures are PINNED — pinning is reporting, with teeth —
     # and the verdict is carried by the law and participation clauses below.
-    assert (four_mute["net"], four_live["net"]) == (-1421, -106)
+    assert (four_mute["net"], four_live["net"]) == (-1421, -185)
     # AND THE COMPANIONS SAY IT PASSED BY BETTING ALMOST NOT AT ALL.
-    assert (four_mute["bets"], four_live["bets"]) == (1497, 110)
-    assert (four_mute["hits"], four_live["hits"]) == (38, 2)
-    assert (four_mute["misses"], four_live["misses"]) == (1459, 108)
-    assert (four_mute["abstain"], four_live["abstain"]) == (5009, 5654)
-    assert four_live["bets"] / four_mute["bets"] < 0.08
-    # THE OUTCOME THE SERIES CARES ABOUT MOVES THE OTHER WAY: 36 of the 64 true
-    # laws are gone and every one of the 32 converses still stands.
+    assert (four_mute["bets"], four_live["bets"]) == (1497, 193)
+    assert (four_mute["hits"], four_live["hits"]) == (38, 4)
+    assert (four_mute["misses"], four_live["misses"]) == (1459, 189)
+    assert (four_mute["abstain"], four_live["abstain"]) == (5009, 5619)
+    # 87.1% fewer bets at window 8, against 92.7% at window 5 — the ratio moved
+    # (0.0735 -> 0.1289), so the threshold moved with it.
+    assert four_live["bets"] / four_mute["bets"] < 0.13
+    # THE OUTCOME THE SERIES CARES ABOUT MOVES THE OTHER WAY: 20 of the 64 true
+    # laws are gone (was 36) and every one of the 32 converses still stands.
     assert (four_mute["true_total"], four_live["true_total"]) == (64, 64)
-    assert (four_mute["true_lost"], four_live["true_lost"]) == (0, 36)
+    assert (four_mute["true_lost"], four_live["true_lost"]) == (0, 20)
     assert (four_mute["conv_total"], four_live["conv_total"]) == (32, 32)
     assert (four_mute["conv_lost"], four_live["conv_lost"]) == (0, 0)
     # No law standing at the end is standing suspended, so "held" means "held
@@ -3485,9 +3539,9 @@ def test_gate_one_the_score_improves_thirteenfold_while_the_community_learns_les
     assert six_live["hits"] / six_live["bets"] > six_mute["hits"] / six_mute["bets"]
     assert (six_live["hits"], six_mute["hits"]) == (3, 44)
     # SIX UNITS, THE SAME SHAPE AND HARDER.
-    assert (six_mute["net"], six_live["net"]) == (-2122, -77)
-    assert (six_mute["bets"], six_live["bets"]) == (2210, 83)
-    assert (six_mute["true_lost"], six_live["true_lost"]) == (0, 69)
+    assert (six_mute["net"], six_live["net"]) == (-2122, -134)
+    assert (six_mute["bets"], six_live["bets"]) == (2210, 140)
+    assert (six_mute["true_lost"], six_live["true_lost"]) == (0, 47)
     assert (six_mute["conv_lost"], six_live["conv_lost"]) == (0, 17)
     assert six_live["true_lost"] / 96 > six_live["conv_lost"] / 48
 
