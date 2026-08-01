@@ -481,20 +481,58 @@ Ordered; none of it started at the time of writing.
    decision in §6), and name the scalarization where `WEST_METHODS_NOTE` currently says
    "shadow".
 
+## 5.3 · Two further rulings (2026-08-01)
+
+**Ruling A — the grade vocabulary gains a term.** The three mechanism rows do not take
+an existing grade, because none of the seven can express what VIII.3 found.
+`queued-conjecture` means *not yet evidenced*; VIII.3 is stronger — the mapping's own
+primary source predicts **β = 1 exactly** for a flat board, so the claim is
+derived-false *in this substrate*, contingent on the ninth condition. The grade table's
+stated job is to mark how far the rigor extends, and it could not previously express
+*their equations say not here, not ever, until X.* A new grade is coined for it.
+
+*Naming is the author's; the assistant's proposal, with its reason, is recorded in §6.*
+
+**Ruling B — K is an instrument, not an optimand; Q4 dissolves.**
+`THE_MEASURE_OF_KNOWLEDGE.md`'s guard 2 already says any knowledge-score is an
+instrument, never a target. If K is never optimized then it is not an optimand, nothing
+replaces anything in West's objective, and **there is nothing to depart from** — the
+vector is a dashboard standing beside a scalar optimand, not a substitute for one.
+
+Consequences, and note that this ruling *shrinks* the work rather than adding to it:
+
+- **VIII.20's departure verdict is withdrawn**, and `ROADMAP.md:92`'s venue claim needs
+  no amendment on Q4's account.
+- **Two texts must change**, because both currently speak in the language of the
+  objective: `WEST_IN_KYTE_PROGRAM.md:38` ("does West's universality itself need a
+  vector **operand**?") and `THE_KYTOS.md:390` ("West's universality may itself **need**
+  a vector operand"). Under Ruling B the honest form is that West's formalism *does not
+  represent* the allocation layer, and a kytos instruments it — a claim about what is
+  **observable**, not about what is **optimized**.
+- **`WEST_METHODS_NOTE.md`'s "frozen-landscape shadow"** (VIII.22) must go or be named.
+  A shadow is a projection and a projection is a scalarization; under Ruling B there is
+  no manifold-as-objective for it to be a shadow *of*.
+- **VIII.21 survives and is worth keeping**: the E-series' *minimize cost at equal K2*
+  is an ε-constraint scalarization, provably complete. That remains true and remains
+  licit — it is a constrained *measurement*, which is exactly what Ruling B says K is
+  for.
+
 ## 6 · Open, and the author's
 
-- **The specific grades.** The ruling says the three mechanism rows regrade *down*; it
-  does not say to what. Grade assignment is the author's by the map's own rule — *the
-  one who can see past the instrument is the one who says where it stops.*
-- **Optimand or instrument?** `WEST_IN_KYTE_PROGRAM.md:38` and `THE_KYTOS.md:390` both
-  use the language of the objective ("operand", "universality may itself need"), while
-  `THE_MEASURE_OF_KNOWLEDGE.md`'s guard 2 says any knowledge-score is *an instrument,
-  never a target*. If K is never optimized then it is not an optimand, nothing replaces
-  anything in West's objective, and **Q4 dissolves entirely**. The answer decides the
-  verdict.
+- **The name of the new grade.** *Assistant's proposal, for his ruling:*
+  **`predicted-absent`**, defined as *the borrowed theory's own derivation predicts this
+  phenomenon cannot appear in the present substrate; a named condition would lift it.*
+  Preferred over `refuted-under-current-substrate` and `conditionally-refuted` for one
+  substantive reason, not brevity: **nothing here refutes the mapping as such.** VIII.3
+  is a prediction about *Arisbe as currently built* — flat board, no accessibility
+  gradient — not a finding that a kytos could never obey a scaling law. "Refuted"
+  would overclaim in the direction this examination spent five panels guarding against.
+  `predicted-absent` also pairs naturally with a named blocker, which is how it will
+  actually be written: *predicted-absent (blocker: the ninth condition)*.
 - **Whether the ninth condition changes the D-series' scope.** It is environment-side
-  and it is a *reach* structure, which is neither a clock, a capacity, nor a source —
-  the three the environment-first ruling named.
+  and it is a *reach* structure — neither a clock, a capacity, nor a source, which are
+  the three the environment-first ruling named. So it either widens that sitting's
+  agenda or belongs to a fourth category.
 
 ## 7 · Evidentiary limits, stated rather than implied
 
