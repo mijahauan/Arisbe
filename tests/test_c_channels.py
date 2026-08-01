@@ -3214,7 +3214,45 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
     exercises it: a unit with no preference refuses a reply from a peer whose
     testimony about that relation has already failed.
 
-    IT BITES HARD AND BUYS NOTHING. Eight seeds, 60 rounds:
+    IT BITES HARD AND BUYS NOTHING.
+
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). Eight seeds, 60
+    rounds:
+
+        arm                     uptakes   refuting (true)   refuting (conv)   true lost   conv lost     net
+        4u untargeted              1151               220                21       20/64        0/32    −185
+        4u distrust                 466               488               223       20/64        0/32    −745
+        6u untargeted              1213               517               152       47/96       17/48    −134
+        6u distrust                 496               815               328       47/96       17/48    −760
+
+    **NOT ONE LAW'S FATE MOVES, STILL.** The same 20 of 64 true laws are lost at
+    four units and the same 47 of 96 at six, the same converses stand, and every
+    disposal exit is identical to the untargeted control's — because a doubt is
+    settled from the credit a unit has accumulated by the time its window
+    closes, and refusing a peer changes what testimony arrives, not when the
+    window itself acts. What the refusals do reach is the evidence: **687 and
+    717 questions go unanswered** (up from 525/505 at window 5 — a longer window
+    means more questions are asked in total, so more of them go unanswered under
+    distrust too), and the refuting counts rise on true laws and converses
+    alike.
+
+    THE ONE ASYMMETRY STILL RUNS THE WRONG WAY FOR THE SERIES' PURPOSES. The
+    converse's refuting count rises by a factor of **10.6** (223/21, essentially
+    unchanged from window 5's 10.6) against the true law's **2.2** (488/220, up
+    from 1.5) — distrust still weighs harder against the false law than the true
+    one, though less lopsidedly than at window 5, and it still changes no
+    outcome whatever, because nothing reads those counts after the window has
+    closed.
+
+    AND IT COSTS THE SCORE, MORE STEEPLY STILL, for the same reason: an adopted
+    head atom mostly PREVENTS A LOSING BET rather than winning one. A unit that
+    holds `a_head(x)` no longer stakes on it, so refusing the answer buys back a
+    forecast the field was never going to deliver. Net falls −185 → −745 (4.0×,
+    against 5.2× at window 5) and −134 → −760 (5.7×, against 6.9× at window 5).
+    Read the counts, not the direction.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
         arm                     uptakes   refuting (true)   refuting (conv)   true lost   conv lost     net
         4u untargeted               939               349                20       36/64        0/32    −106
@@ -3222,25 +3260,9 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
         6u untargeted               928               695               158       69/96       17/48     −77
         6u distrust                 423               849               333       69/96       17/48    −534
 
-    **NOT ONE LAW'S FATE MOVES.** The same 36 of 64 true laws are lost at four
-    units and the same 69 of 96 at six, the same converses stand, and every
-    disposal exit is identical — because a doubt is settled inside its five-round
-    window and the negative credit that drives the refusals has barely
-    accumulated by then. What the refusals do reach is the evidence: 525 and 505
-    questions go unanswered, and the refuting counts rise on true laws and
-    converses alike.
-
-    THE ONE ASYMMETRY RUNS THE WRONG WAY FOR THE SERIES' PURPOSES. The
-    converse's refuting count rises by a factor of **10.6** against the true
-    law's **1.5**, so distrust weighs harder against the false law than the true
-    one — the shape P-G2 hoped for — and it changes no outcome whatever, because
-    nothing reads those counts after the window has closed.
-
-    AND IT COSTS THE SCORE FIVEFOLD, for a reason worth naming: an adopted head
-    atom mostly PREVENTS A LOSING BET rather than winning one. A unit that holds
-    `a_head(x)` no longer stakes on it, so refusing the answer buys back a
-    forecast the field was never going to deliver. Net falls −106 → −551 and
-    −77 → −534. Read the counts, not the direction.
+    525 and 505 questions went unanswered; the converse's refuting count rose by
+    a factor of 10.6 against the true law's 1.5; net fell −106 → −551 (5.2×) and
+    −77 → −534 (6.9×).
     """
     four = _aggregate_ask(4, CYCLIC, ask=True, typify="distrust",
                           keys=_TYPIFY_KEYS)
@@ -3249,14 +3271,14 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
     four_control = _aggregate_ask(4, CYCLIC, ask=True, keys=_TYPIFY_KEYS)
     six_control = _aggregate_ask(6, PAIRS, ask=True, keys=_TYPIFY_KEYS)
     # The refusals happened, so the arm is not the control under another name.
-    assert (four["refused"], six["refused"]) == (525, 505)
-    assert (four_control["uptakes"], four["uptakes"]) == (939, 417)
-    assert (six_control["uptakes"], six["uptakes"]) == (928, 423)
+    assert (four["refused"], six["refused"]) == (687, 717)
+    assert (four_control["uptakes"], four["uptakes"]) == (1151, 466)
+    assert (six_control["uptakes"], six["uptakes"]) == (1213, 496)
     # The evidence moves, and it moves harder against the converse.
-    assert (four_control["true_ref"], four["true_ref"]) == (349, 518)
-    assert (four_control["conv_ref"], four["conv_ref"]) == (20, 211)
-    assert (six_control["true_ref"], six["true_ref"]) == (695, 849)
-    assert (six_control["conv_ref"], six["conv_ref"]) == (158, 333)
+    assert (four_control["true_ref"], four["true_ref"]) == (220, 488)
+    assert (four_control["conv_ref"], four["conv_ref"]) == (21, 223)
+    assert (six_control["true_ref"], six["true_ref"]) == (517, 815)
+    assert (six_control["conv_ref"], six["conv_ref"]) == (152, 328)
     # AND NOT ONE LAW'S FATE MOVES, at either size, on either kind of law.
     for control, arm in ((four_control, four), (six_control, six)):
         assert (control["true_lost"], control["conv_lost"]) == (
@@ -3265,11 +3287,11 @@ def test_refusing_a_peer_that_let_you_down_halves_uptake_and_saves_no_law():
                                      "rebutted", "silence")] == [
             arm[k] for k in ("suspended", "internal", "corroborated",
                              "rebutted", "silence")]
-    assert (four["true_lost"], four["conv_lost"]) == (36, 0)
-    assert (six["true_lost"], six["conv_lost"]) == (69, 17)
-    # The score falls fivefold, because an adopted head mostly prevents a bet.
-    assert (four_control["net"], four["net"]) == (-106, -551)
-    assert (six_control["net"], six["net"]) == (-77, -534)
+    assert (four["true_lost"], four["conv_lost"]) == (20, 0)
+    assert (six["true_lost"], six["conv_lost"]) == (47, 17)
+    # The score falls steeply, because an adopted head mostly prevents a bet.
+    assert (four_control["net"], four["net"]) == (-185, -745)
+    assert (six_control["net"], six["net"]) == (-134, -760)
 
 
 def test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer():
