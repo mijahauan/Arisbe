@@ -141,16 +141,18 @@ def test_stage_1_gate_a_unit_learns_a_planted_law_and_its_bets_pay():
     # the retirement is why it no longer does: that statistic rose 988 while the
     # channels destroyed every true law the field carried, so a gate decided by
     # comparing it across arms is decided by a number that moves both ways.
-    # The claim, stated where it is actually made — in the laws held and in the
-    # bets each arm placed on them:
-    assert learner.laws & {d.law for d in spec.domains}      # holds a true law
+    # The claim, stated where it is actually made — in the laws held (the
+    # learner's true law already checked at (a) above) and in the bets each
+    # arm placed on them:
     assert not (misled.laws & {d.law for d in spec.domains})  # holds a false one
     assert learner.ledger.hits > learner.ledger.misses        # and it pays
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
     assert misled.ledger.misses > misled.ledger.hits          # and it costs
     assert fixed.ledger.hits + fixed.ledger.misses == 0       # and it never bet
     assert fixed.ledger.accuracy is None      # no bet placed, so no ratio exists
-    # PARTICIPATION: the learner did not win by falling silent.
-    assert learner.ledger.hits + learner.ledger.misses > 0
 
 
 def test_a_true_law_held_alone_makes_money_at_every_seed():

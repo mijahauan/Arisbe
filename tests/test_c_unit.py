@@ -77,9 +77,11 @@ def test_held_law_beats_a_wrong_law_over_a_run():
     assert lawful.laws & {d.law for d in spec.domains}
     assert not (misled.laws & {d.law for d in spec.domains})
     assert lawful.ledger.hits > lawful.ledger.misses
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
     assert misled.ledger.misses > misled.ledger.hits
-    # PARTICIPATION: neither arm won by falling silent.
-    assert lawful.ledger.hits + lawful.ledger.misses > 0
 
 
 def _unary(rel, names):
@@ -545,10 +547,12 @@ def test_inducing_unit_learns_the_planted_law_and_its_bets_pay():
     # bets lose; the abstainer never played. Three within-arm readings decide it,
     # so no arm can pass by improving a scalar while forecasting less.
     assert learner.ledger.hits > learner.ledger.misses
+    # PARTICIPATION IS ENTAILED HERE, not separately asserted: `hits > misses`
+    # over non-negative counts forces hits >= 1, so this arm demonstrably
+    # forecast. A clause that cannot fail would read as protection that is not
+    # there (author's ruling, 2026-07-31).
     assert misled.ledger.misses > misled.ledger.hits
     assert fixed.ledger.hits + fixed.ledger.misses == 0
-    # PARTICIPATION: the learner is still betting, not merely surviving.
-    assert learner.ledger.hits + learner.ledger.misses > 0
 
 
 # --- the unit reasons through the project's real forward-chainer -------------
