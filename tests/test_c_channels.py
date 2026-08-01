@@ -1480,6 +1480,7 @@ def test_silence_restores_the_law_when_the_window_runs_out():
     u1.challenge(board, 1)
     assert u0.dispose_challenges(board, 2).suspended == [("p1", "q1")]
     w = u0.corroboration_window
+    assert w == 8, "the ruled default (2026-07-31); the arithmetic below derives from it"
     for r in range(3, 2 + w):
         assert not u0.dispose_challenges(board, r)
         assert ("p1", "q1") in u0.suspended
