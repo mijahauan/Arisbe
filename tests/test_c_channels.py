@@ -2747,16 +2747,69 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
 
     THE MEASUREMENT — eight seeds, 60 rounds, four units under bounded attention,
     planted laws and converses seeded, the challenge channel live in both arms.
-    The middle column is the previous task's reading, before inquiry was ordered
-    ahead of elimination:
 
-                              muted     live (was)      live (now)     change
-        refuting, true laws     640            636             349      −45.5%
-        refuting, converses     321             42              20        −94%
-        true laws lost        64/64          64/64           36/64
-        converses lost         2/32           2/32            0/32
-        net score              −433            −39            −106
-        questions / uptakes     0/0        480/448       1024/939
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31). The "live (was)" and
+    "live (window 5)" columns are the previous readings, kept for the chain:
+
+                              muted   live (was)  live (window 5)  live (window 8)
+        refuting, true laws     640          636              349               220
+        refuting, converses     321           42               20                21
+        true laws lost        64/64        64/64            36/64             20/64
+        converses lost         2/32         2/32             0/32              0/32
+        net score              −433          −39             −106              −185
+        questions / uptakes     0/0      480/448          1024/939          1258/1151
+
+    **P-C1 IS STILL HELD, AND MORE STRONGLY.** The refuting count on true laws
+    now falls 65.6% (640 → 220, against 45.5% at window 5), and 44 of the 64 true
+    laws permanently lost in the muted arm now survive the run (against 28 at
+    window 5). The mechanism is the same one window 5 showed: nothing about the
+    ask channel changed, a law simply lives longer, so it has more rounds in
+    which testimony can reach it. THE INSTRUMENTED QUESTION-TARGET SPLIT (463
+    true-law / 488 converse, reported at window 5) was NOT re-run this pass — the
+    split-by-target instrumentation was ad hoc and is not carried by
+    `_play_ask_and_challenge`'s returned tally, so it is not reproduced here
+    rather than guessed at. The re-measured totals it would have split
+    (1258 questions, 1151 uptakes, both up from window 5) stand as the evidence
+    in its place.
+
+    **P-C2 IS STILL REFUTED, IN THE SAME DIRECTION, FOR THE THIRD TIME.** The
+    channel now removes 93.5% of the converse's refuting individuals (321 → 21,
+    against 94% at window 5) and still saves both converses the muted arm loses.
+    The premise is refuted exactly as before: a converse `X_head -> X_local`
+    wants an `X_local`, and every peer sharing the domain has plenty.
+
+    THE COMMUNITY'S EVIDENCE MOVES FURTHER. Of the true laws' 640 refuting
+    individuals in the muted arm, 590 are repairable in principle (92.2%,
+    unmoved by the window). In the live arm the repairable residue now falls to
+    170 — **71.2% of what was available has been delivered**, against 49.3% at
+    window 5. The longer window gives testimony more rounds to arrive, and more
+    of it does.
+
+    THE DISPOSAL EXITS MOVE TOWARD REBUTTAL. Live: 66 suspensions, 44 restored by
+    rebuttal, 2 restored by silence, 20 retracted internally — so **22 of the 66
+    doubts end at the window** (internal + silence), down from 41 of 66 at window
+    5. A longer window gives a peer more chances to answer before a doubt is
+    forced to a verdict, so more doubts end by rebuttal (44, up from 25) and
+    fewer by the window closing on them unanswered.
+
+    WHAT IT COSTS: the live arm's net falls again, from −106 (window 5) to −185
+    (window 8) — the same figure GATE 1 and `test_the_silence_window_at_three_
+    five_and_eight`'s four-unit/window-8 row report independently. A repaired
+    law goes on betting for longer under bounded attention, and under bounded
+    attention a true law still cannot pay. Read the counts, not the direction.
+
+    AND WHAT A BIGGER COMMUNITY DOES TO IT, measured in
+    `test_the_silence_window_at_three_five_and_eight` on this same driver at
+    window 8: six units at distinct apertures save 49 of 96 true laws here (51%)
+    against these four units' 44 of 64 (69%), while corroboration fires 45 times
+    rather than never. **The larger community still keeps a SMALLER proportion
+    of its true laws** — at window 5 the same comparison read 27 of 96 (28%)
+    against 28 of 64 (44%); the ratio narrows a little (a longer window helps the
+    smaller community's true laws more, per this task's own P-C1 finding) but
+    the direction is unchanged.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
 
     **P-C1 IS HELD.** The refuting count on true laws falls by 45.5%, and 28 of
     the 64 true laws that were permanently lost in the muted arm survive the run.
@@ -2811,26 +2864,29 @@ def test_peer_testimony_repairs_the_true_law_once_the_law_survives_to_ask():
             muted_agg[k] += mute[k]
     assert agg["questions"] > 0 and agg["uptakes"] > 0, (
         "the channel carried nothing, so nothing was tested")
-    # P-C1: HELD. The true laws' refuting count falls 45.5%.
-    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 349)
-    # P-C2: refuted the other way, again. The converse's count collapses further.
-    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 20)
-    # AND A LAW'S FATE CHANGES NOW: 28 of the 64 true laws survive.
-    assert (muted_agg["true_lost"], agg["true_lost"]) == (64, 36)
+    # P-C1: HELD, more strongly at window 8. The true laws' refuting count
+    # falls 65.6% (was 45.5% at window 5).
+    assert (muted_agg["true_ref"], agg["true_ref"]) == (640, 220)
+    # P-C2: refuted the other way, still. The converse's count collapses further.
+    assert (muted_agg["conv_ref"], agg["conv_ref"]) == (321, 21)
+    # AND A LAW'S FATE CHANGES FURTHER: 44 of the 64 true laws survive (was 28).
+    assert (muted_agg["true_lost"], agg["true_lost"]) == (64, 20)
     assert (muted_agg["conv_lost"], agg["conv_lost"]) == (2, 0)
     # 92.2% of what the true laws needed was held by some peer in the muted arm;
-    # about half of it now reaches the unit that needs it.
+    # 71.2% of it now reaches the unit that needs it (was 49.3% at window 5).
     assert (muted_agg["repairable"], muted_agg["unrepairable"]) == (590, 50)
-    assert agg["repairable"] == 299
-    # THE WINDOW FIRES: 41 of 66 doubts end there, against 0 before this task.
+    assert agg["repairable"] == 170
+    # THE WINDOW FIRES: 22 of 66 doubts end there (internal + silence), against
+    # 41 of 66 at window 5 and 0 before that task — the longer window shifts
+    # more doubts to rebuttal instead.
     assert muted_agg["suspended"] == agg["suspended"] == 66
     assert (muted_agg["internal"], muted_agg["rebutted"],
             muted_agg["silence"]) == (66, 0, 0)
-    assert (agg["internal"], agg["rebutted"], agg["silence"]) == (36, 25, 5)
+    assert (agg["internal"], agg["rebutted"], agg["silence"]) == (20, 44, 2)
     assert muted_agg["corroborated"] == agg["corroborated"] == 0
-    # The net score falls, because a repaired law goes on betting and under
-    # bounded attention a true law still cannot pay.
-    assert (muted_agg["net"], agg["net"]) == (-433, -106)
+    # The net score falls further, because a repaired law goes on betting for
+    # longer and under bounded attention a true law still cannot pay.
+    assert (muted_agg["net"], agg["net"]) == (-433, -185)
 
 
 def test_the_silence_window_at_three_five_and_eight():
