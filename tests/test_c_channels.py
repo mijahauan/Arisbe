@@ -1616,6 +1616,25 @@ C_ROUNDS = 60
 C_SEEDS = [1, 2, 3, 4, 5, 7, 42, 99]
 
 
+def _assert_uniform_rate(units):
+    """Every unit in one community must carry the same rate parameters.
+
+    RULING 2 (2026-07-31) made the disposition knobs part of the terminal unit's
+    RATE. West's question asks whether capacity and rate stay invariant as a
+    community grows; a community whose units already disagree about their own
+    rate cannot answer it, and a sweep that changed the window for some units
+    would measure the window rather than the scaling.
+    """
+    rates = {u.unit_id: (u.corroboration_window, u.corroborating_witnesses,
+                         u.replication_window) for u in units}
+    distinct = set(rates.values())
+    if len(distinct) > 1:
+        raise ValueError(
+            "mixed rate parameters across a community: the terminal unit's "
+            "(corroboration_window, corroborating_witnesses, replication_window) "
+            f"must be uniform, got {dict(sorted(rates.items()))}")
+
+
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                     wrong_laws=False, induce=True, n_units=4, scheme=CYCLIC,
                     window=None, witnesses=None):
@@ -1654,6 +1673,7 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
         if witnesses is not None:
             u.corroborating_witnesses = witnesses
         units.append(u)
+    _assert_uniform_rate(units)
     board = MarkBoard()
     raised = 0
     events = []                    # (unit_id, law, why), with repeats: the thrash
@@ -1764,6 +1784,37 @@ def test_the_cost_reading_reads_zero_for_a_unit_that_never_attended():
     cost = _cost_reading([idle], MarkBoard())
     assert cost["u0"]["attended"] == 0
     assert cost["u0"]["per_round"] == {}
+
+
+def test_a_community_of_mixed_rates_is_refused():
+    """RULING 2 (2026-07-31): the disposition knobs ARE the terminal unit's rate
+    parameter, so a community whose units disagree on them is not a community of
+    terminal units and any West-shaped reading off it is void. Nothing enforced
+    this before — `corroboration_window` is a per-unit dataclass field any caller
+    could set individually.
+
+    The refusal names what disagreed, in the style `apertures_for`'s
+    `min_witnesses` already uses: a silent mixed-rate run is the failure mode,
+    not a loud one."""
+    spec = default_spec(seed=20260728)
+    aps = apertures_for(spec, n_units=4)
+    units = [Unit(f"u{i}", aps[i]) for i in range(4)]
+    _assert_uniform_rate(units)                     # uniform by construction
+
+    units[2].corroboration_window = 3
+    with pytest.raises(ValueError) as exc:
+        _assert_uniform_rate(units)
+    assert "rate" in str(exc.value)
+    assert "u2" in str(exc.value)
+
+
+def test_a_sweep_still_varies_the_window_for_the_whole_community():
+    """The guard forbids a MIXED community, never a swept one. A sweep sets the
+    window for every unit at once, which is what a sweep should always have been
+    doing — and `test_the_silence_window_at_three_five_and_eight` is exactly such
+    a sweep, so it must keep passing untouched."""
+    spec, units, *_ = _play_challenge(20260728, 10, channel=True, window=3)
+    assert {u.corroboration_window for u in units} == {3}
 
 
 def test_suspension_saves_the_true_laws_the_existential_rule_destroyed():
@@ -2282,6 +2333,7 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
         if rep_window is not None:
             u.replication_window = rep_window
         units.append(u)
+    _assert_uniform_rate(units)
     board = MarkBoard()
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}
