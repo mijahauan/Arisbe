@@ -2300,31 +2300,63 @@ def test_on_the_induce_arm_corroboration_buys_churn():
     THRASH. Eight seeds, 60 rounds, units inducing from what they meet, the
     challenge channel live — the arm where the previous four rules were compared.
 
+    RE-MEASURED AT WINDOW 8 (the ruled default, 2026-07-31):
+
+        arm                raised  susp  CORROB  internal  rebutted  silence  defeats  true lost   net live/mute
+        4 units cyclic         60    60       0         6        46        4        6          2     924 / 1038
+        4 units PAIRS          51    51       6         2        41        0        8          0     923 / 1033
+        6 units pairs          90    90      24         0        66        0       24          0    1398 / 1557
+        6 units pairs w=3      90    90       0         9        69        6        9          3    1386 / 1557
+
+    (The four-unit cyclic row is Task 5e's, reproduced digit for digit; it is
+    asserted in `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`
+    and is repeated here only as the column to read the others against — its
+    window-8 reading is 924/1038 with 6 internal and 2 true laws permanently
+    lost, exactly as that test now reports.)
+
+    TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS still holds at six units with
+    the looser bar (`witnesses` left at the field's own default): every law
+    corroboration eliminates there is induced again from the record that still
+    supports it, so the retraction event happens and the law comes back. The
+    internal arm still goes fully silent at that bar (0 internal retractions, 0
+    restorations by silence) because corroboration closes every doubt before the
+    window can act.
+
+    THE STRICTER BAR NO LONGER READS LIKE THE SMALL COMMUNITY: at witnesses=3,
+    corroboration still never fires (0), but the longer window turns 6 internal
+    retractions into 9 and 15 silences into 6 — the same trade the window's own
+    docstring names, more rounds for an internal doubt to run before it is
+    forced to a verdict. THREE TRUE LAWS ARE NOW PERMANENTLY LOST AT THIS BAR
+    WHERE NONE WERE AT WINDOW 5 — the same mechanism as the four-unit cyclic
+    arm's two, showing up again wherever a doubt is settled by this unit's own
+    record rather than a peer's: eight rounds is long enough for some of those
+    doubts to outlast the repair.
+
+    SO THE CLAIM NARROWS: it is not that nothing is bought at any bar — it is
+    that corroboration itself still buys nothing (0 permanent loss from a
+    corroborated elimination in every arm measured, at either bar) while the
+    window it now shares the arm with has its own separately-measured price.
+    The channel's cost is unchanged in direction and materially unchanged in
+    size: 10.98% at both four units (cyclic) and six units (the stricter bar) —
+    the same figure at both community sizes, which was also true at window 5
+    (11.18% at both). Corroboration produced churn, exactly as before; the
+    window is what now also occasionally costs a law.
+
+    AT WINDOW 5, the previous default, for comparison — this is the reading the
+    ruling was made on and it is kept for that reason:
+
         arm                raised  susp  CORROB  internal  rebutted  silence  defeats  true lost   net live/mute
         4 units cyclic         60    60       0         4        44       10        4          0     922 / 1038
         4 units PAIRS          51    51       6         2        39        4        8          0     919 / 1033
         6 units pairs          90    90      24         0        66        0       24          0    1398 / 1557
         6 units pairs w=3      90    90       0         6        66       15        6          0    1383 / 1557
 
-    (The four-unit cyclic row is Task 5e's, reproduced digit for digit; it is
-    asserted in `test_suspension_saves_the_true_laws_the_existential_rule_destroyed`
-    and is repeated here only as the column to read the others against.)
-
-    **TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS.** Every law corroboration
-    eliminates at six units is induced again from the record that still supports
-    it — the retraction event happens, the law comes back. That is the pattern
-    Task 5 diagnosed as induction and disposal fighting each other, returning at
-    a community size large enough for corroboration to fire. The internal arm
-    goes silent (0 internal retractions, 0 restorations by silence) because
-    corroboration now closes every doubt before the window can.
-
-    The stricter bar reads like the small community again: 0 corroborations, the
-    window doing the work, six defeats.
-
-    NOTHING IS BOUGHT AND LITTLE IS SPENT: permanent true-law loss is 0 in all
-    four arms, and the channel's cost is 10.2% at six units against 11.2% at
-    four. Corroboration is the one thing that changed, and what it produced is
-    churn."""
+    At window 5, TWENTY-FOUR DEFEATS AND NOT ONE PERMANENT LOSS read for the
+    loose bar exactly as at window 8. The stricter bar read like the small
+    community again: 0 corroborations, the window doing the work, six defeats,
+    and NOTHING BOUGHT AND LITTLE SPENT — permanent true-law loss 0 in all four
+    arms, cost 10.2% at six units against 11.2% at four (this file's original
+    rounding; the precise figure, recomputed here, is 11.18% at both)."""
     six = _witness_induce_arm(6, PAIRS)
     strict = _witness_induce_arm(6, PAIRS, witnesses=3)
     assert (six["raised"], six["suspended"], six["corroborated"]) == (90, 90, 24)
@@ -2332,9 +2364,9 @@ def test_on_the_induce_arm_corroboration_buys_churn():
     assert (six["defeats"], six["lost_true"]) == (24, 0)
     assert (six["net_live"], six["net_mute"]) == (1398, 1557)
     assert (strict["corroborated"], strict["internal"],
-            strict["silence"]) == (0, 6, 15)
-    assert (strict["defeats"], strict["lost_true"]) == (6, 0)
-    assert (strict["net_live"], strict["net_mute"]) == (1383, 1557)
+            strict["silence"]) == (0, 9, 6)
+    assert (strict["defeats"], strict["lost_true"]) == (9, 3)
+    assert (strict["net_live"], strict["net_mute"]) == (1386, 1557)
 
 
 def _witness_induce_arm(n_units, scheme, witnesses=None):
