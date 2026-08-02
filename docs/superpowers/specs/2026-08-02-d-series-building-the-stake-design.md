@@ -194,7 +194,7 @@ ruling 8 turned population into a result. What remains:
 | `E0` | the entry price | **measured** from arm 0 (§4). |
 | `N₀` | initial population | **derived**: the smallest community in which every domain has three witnesses — the corroboration ruling's own requirement, computed by `units_for_witnesses`. |
 | seats | the population ceiling | **the world's**, from `apertures_for` over the field. |
-| the field | 8 domains | **the one remaining outside choice** (§8). |
+| the field | 8 domains | **the one remaining outside choice**, set by the author 2026-08-02 on a stated criterion: large enough to leave room for an equilibrium to develop (§8, §11). |
 
 The birth threshold `2·E0` is not a chosen multiple: `E0` *is* the world's entry price, so
 the rule reads *you may reproduce when you can pay a newcomer's entry and remain viable
@@ -229,10 +229,10 @@ is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim
 
 | | | why here |
 |---|---|---|
-| **D-0** | retire `Unit.peers` | **must precede pricing.** Once asking is priced, every `peers`-derived figure moves and the retirement's before/after becomes unreadable. `source_reliability` exists and is tested. |
+| **D-0** | retire `Unit.peers` | **must precede pricing.** Once asking is priced, every `peers`-derived figure moves and the retirement's before/after becomes unreadable. `source_reliability` exists and is tested. Its **before/after reading stands as its own note**, not in this record (author's ruling, 2026-08-02) — a retirement's evidence belongs with the retirement. |
 | **D-1** | the priced world, determined τ, endogenous population | the core build |
 | **D-1b** | seed by DC+ · INS · IT+, with a price and a provenance | separate stage, one figure per cause. `notion_provenance` already supplies the held-until-affirmed shape. |
-| **D-2** | the shared pool across communities | pre-registered, not built — ruling 3 |
+| **D-2** | the shared pool across **equal-sized** communities | pre-registered, not built — ruling 3. Equal size first (author's ruling, 2026-08-02): unequal communities sharpen the niche argument but confound it with a size difference, and the point of D-2 is that a bounded source is too small for all, not that a big community beats a small one. |
 | **D-3** | **habits as ink** | §5.1 |
 
 **The implementation plan that follows this spec covers D-0 and D-1 only.** The rest is
@@ -362,10 +362,13 @@ three entries by removing the parameters they guarded:
    choice of units, and the null one, but still ours.
 5. **`E0` inherits `t*` from the measured learner.** A faster induction routine would shrink
    it and kill more units. The entry price is set by an artefact of the baseline.
-6. **The field's 8 domains are the one remaining outside choice.** Chosen so the seat
-   ceiling (28) sits well above where the economy will settle — otherwise the cap decides
-   the population and `P-D7` is uninterpretable. If the equilibrium approaches the ceiling,
-   the field must grow and the measurement must be repeated.
+6. **The field's 8 domains are the one remaining outside choice**, set by the author on the
+   criterion *at least enough room for an equilibrium to develop*. The seat ceiling (28)
+   must sit well above where the economy settles, or the cap decides the population and
+   `P-D7` is uninterpretable. **The escalation rule is stated in advance**: if a measured
+   equilibrium reaches 80% of the ceiling in any arm, the field grows and every figure is
+   re-measured — a result taken at a binding ceiling is not reported as an equilibrium.
+   §11.1 records the standing search for a version of this that needs no number at all.
 
 ## 9 · Refused, and why
 
@@ -405,10 +408,44 @@ Beyond ordinary coverage of `Source` / `Reserves` / `Seats` / `PricedWorld`:
   attribute, so a future chooser cannot read one by accident. And **birth refuses when no
   seat is free** rather than seating a twin.
 
-## 11 · Open for the author
+## 11 · Rulings on the open items
 
-- Whether D-2's shared pool should serve communities of **equal or unequal** size — the
-  latter sharpens the niche argument and complicates the measurement.
-- Whether D-0's before/after reading belongs in this record or stands as its own note.
-- **The field's 8 domains** (§8 item 6) is the last number the design has not derived. If
-  he would rather it too fell out of something, the sitting has not found what.
+All three ruled by the author, 2026-08-02, and folded into the sections above.
+
+- **D-2 starts with equal-sized communities** (§5). Unequal ones sharpen the niche argument
+  but confound it with a size difference; D-2's claim is that a bounded source is too small
+  for all, not that a big community beats a small one.
+- **D-0's before/after reading stands as its own note** (§5), not in this record. A
+  retirement's evidence belongs with the retirement.
+- **The field's domain count is set for now**, on the stated criterion *at least enough room
+  for an equilibrium to develop* (§3.4, §8 item 6), with the escalation rule pre-registered
+  — and the search for an emergent version continues.
+
+### 11.1 · The standing search: a population ceiling that needs no number
+
+The field-size number exists **only** to keep the seat ceiling clear of the equilibrium.
+The ceiling itself exists only because apertures are drawn from a finite combinatorial set
+and `apertures_for` refuses to seat two units on the same slice. So the number would
+disappear entirely if a newborn could take an **occupied** aperture — the population would
+then be bounded by the economy alone, which is what ruling 8 wanted.
+
+**There is already textual support for allowing it.** `apertures_for`'s own docstring argues
+that the `twin_of` control does not violate premise 3: the premise "requires units to meet
+the field through different apertures, or they converge on near-identical models" — *a claim
+about CONTENT* — while a twin "holds content and position fixed on purpose, in order to ask a
+different question… Different axis, so the premise is untouched."
+
+**The candidate reading, which the author has not ruled on:** premise 3 is a claim about
+*initialization*, not about lifetime. A unit **born** onto an occupied aperture is not the
+same case as a unit **seeded** onto one — it arrives at a different round, into a board
+already carrying marks its aperture-mate helped write, and adopts different content in
+consequence. Its history diverges even where its aperture does not.
+
+**And it is checkable rather than hopeful.** Measure model divergence between same-aperture
+pairs against different-aperture pairs in a D-1 run that permits twin births. If
+same-aperture pairs diverge comparably, premise 3's refusal is over-strict for born units,
+the seat cap can go, and the last outside number goes with it. If they converge, the number
+stays and the reason for it is now measured rather than assumed.
+
+Recorded here rather than built, so the search has a shape instead of remaining an
+intention.
