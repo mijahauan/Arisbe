@@ -954,7 +954,8 @@ def test_a_newborn_takes_a_free_seat_and_inherits_nothing_but_the_board():
     assert child.facts == set() and child.laws == set()
     _, aperture = created[0]
     assert aperture.unit_id == child.unit_id
-    assert aperture.domains != parent.unit_id
+    assert len(aperture.domains) == 2
+    assert child.unit_id != parent.unit_id
 
 
 def test_birth_needs_a_positive_entry_price():
@@ -1317,7 +1318,12 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
             for u in units:
                 u.answer(hear_board, r)
 
-        report = world.settle(units, r, make_unit=make_unit)  # (e) the world
+        # (e) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
+        # never falls and every unit would split every round until the seats ran
+        # out -- an artefact of the control, not a finding. The control's job is
+        # to leave the community exactly as it would have been.
+        report = world.settle(units, r,
+                              make_unit=None if arm == "A0" else make_unit)
         for uid, amount in report.charges.items():
             charges[uid] = charges.get(uid, 0.0) + amount
         born += len(report.born)
