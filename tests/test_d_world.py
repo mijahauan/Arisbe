@@ -165,3 +165,178 @@ def test_releasing_an_unseated_unit_refuses():
 def test_seats_from_the_wide_spec_gives_twenty_eight():
     seats = seats_from(wide_spec())
     assert seats.free() == 28
+
+
+from dataclasses import dataclass, field as dc_field
+from typing import List, Set, Tuple
+
+from c_marks import FACT, Mark, MarkBoard
+from d_world import PricedWorld, RoundReport, demand_of, hits_of
+
+
+@dataclass
+class _Entry:
+    round_idx: int
+    result: str
+
+
+@dataclass
+class _Ledger:
+    entries: List[_Entry] = dc_field(default_factory=list)
+
+
+@dataclass
+class _StubUnit:
+    """A unit-shaped stand-in. The world reads only these four things, so the
+    stub pins exactly the surface `PricedWorld` depends on -- and if the real
+    Unit ever stops offering it, Task 6's integration test says so."""
+    unit_id: str
+    facts: Set[Tuple[str, tuple]] = dc_field(default_factory=set)
+    laws: Set[Tuple[str, str]] = dc_field(default_factory=set)
+    ledger: _Ledger = dc_field(default_factory=_Ledger)
+
+
+def _stub(uid, n_facts=0, n_laws=0, hits=0, round_idx=0):
+    u = _StubUnit(uid)
+    u.facts = {(f"r{i}", (("c", "a"),)) for i in range(n_facts)}
+    u.laws = {(f"b{i}", f"h{i}") for i in range(n_laws)}
+    u.ledger.entries = [_Entry(round_idx, "hit") for _ in range(hits)]
+    return u
+
+
+def _world(entry_price=0.0, subtract=True, board=None):
+    return PricedWorld(Source(1.0, entry_price),
+                       seats_from(wide_spec()),
+                       board if board is not None else MarkBoard(),
+                       subtract=subtract)
+
+
+def test_demand_counts_held_content_and_acts_minted_this_round():
+    """A held fact-round and a minted act each count 1 -- the NULL choice of
+    units, asserting no difference between holding and speaking (spec 3.3)."""
+    board = MarkBoard()
+    board.publish(Mark(author="u0", content=("p", (("c", "a"),)),
+                       kind=FACT, round_idx=7))
+    board.publish(Mark(author="u0", content=("q", (("c", "a"),)),
+                       kind=FACT, round_idx=7))
+    board.publish(Mark(author="u1", content=("z", (("c", "a"),)),
+                       kind=FACT, round_idx=7))
+    board.publish(Mark(author="u0", content=("old", (("c", "a"),)),
+                       kind=FACT, round_idx=6))
+    u = _stub("u0", n_facts=3, n_laws=2)
+    # 3 facts + 2 laws + 2 acts minted AT ROUND 7 (the round-6 mark is not this
+    # round's act, and u1's is not this unit's).
+    assert demand_of(u, board, 7) == 7.0
+
+
+def test_hits_are_this_round_s_only():
+    u = _stub("u0")
+    u.ledger.entries = [_Entry(4, "hit"), _Entry(5, "hit"),
+                        _Entry(5, "miss"), _Entry(5, "abstain")]
+    assert hits_of(u, 5) == 1
+    assert hits_of(u, 4) == 1
+    assert hits_of(u, 6) == 0
+
+
+def test_tau_is_determined_by_demand_not_set():
+    """tau = E1 / demand. Nobody sets it; it is what clears the world's bounded
+    supply against what the community actually did (spec ruling 7)."""
+    world = _world()
+    units = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
+    for u in units:
+        world.admit(u)
+    report = world.settle(units, 0)
+    assert report.demand == 4.0
+    assert report.tau == pytest.approx(0.25)
+
+
+def test_income_is_pro_rata_by_hits():
+    world = _world()
+    units = [_stub("u0", n_facts=1, hits=3), _stub("u1", n_facts=1, hits=1)]
+    for u in units:
+        world.admit(u)
+    report = world.settle(units, 0)
+    assert report.incomes["u0"] == pytest.approx(0.75)
+    assert report.incomes["u1"] == pytest.approx(0.25)
+
+
+def test_a_hitless_round_pays_nothing_and_burns_the_pool():
+    """THE WORLD'S TEETH. A round in which nobody predicted anything correctly
+    charges E1 and pays nothing back, so the stock falls -- which is how a
+    community comes to have a lifespan of its own doing (spec 3.3)."""
+    world = _world()
+    units = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 10.0)
+    before = world.reserves.total()
+    report = world.settle(units, 0)
+    assert report.incomes == {}
+    assert world.reserves.total() == pytest.approx(before - 1.0)
+
+
+def test_the_world_is_conservative_whenever_anyone_hits():
+    """Total charge equals total income to the last unit of account. The one
+    place a rounding bug would silently create or destroy wealth (spec 10)."""
+    world = _world()
+    units = [_stub("u0", n_facts=3, n_laws=1, hits=2),
+             _stub("u1", n_facts=7, hits=1),
+             _stub("u2", n_facts=1, n_laws=4)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 10.0)
+    before = world.reserves.total()
+    report = world.settle(units, 0)
+    assert sum(report.charges.values()) == pytest.approx(
+        sum(report.incomes.values()))
+    assert world.reserves.total() == pytest.approx(before)
+
+
+def test_charge_is_proportional_to_a_unit_s_own_demand():
+    world = _world()
+    units = [_stub("u0", n_facts=3), _stub("u1", n_facts=1)]
+    for u in units:
+        world.admit(u)
+    report = world.settle(units, 0)
+    assert report.charges["u0"] == pytest.approx(0.75)
+    assert report.charges["u1"] == pytest.approx(0.25)
+
+
+def test_arm_zero_computes_the_charge_and_does_not_subtract_it():
+    """A0 -- the control and the calibration source. The meter READ, which is
+    exactly today's system, so the wrapper must change nothing (spec 6)."""
+    world = _world(subtract=False)
+    units = [_stub("u0", n_facts=2, hits=1), _stub("u1", n_facts=2)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 5.0)
+    report = world.settle(units, 0)
+    assert report.charges["u0"] == pytest.approx(0.5)   # reported
+    assert world.reserves.balance("u0") == pytest.approx(5.0)   # not subtracted
+    assert world.reserves.balance("u1") == pytest.approx(5.0)
+
+
+def test_a_community_with_no_demand_has_no_price():
+    """Nothing held and nothing said: tau would divide by zero, so it is None
+    and nothing is charged. Named rather than crashed."""
+    world = _world()
+    units = [_stub("u0"), _stub("u1")]
+    for u in units:
+        world.admit(u)
+    report = world.settle(units, 0)
+    assert report.demand == 0.0
+    assert report.tau is None
+    assert report.charges == {}
+
+
+def test_settle_is_deterministic():
+    def run():
+        world = _world()
+        units = [_stub("u1", n_facts=2, hits=1), _stub("u0", n_facts=3)]
+        for u in units:
+            world.admit(u)
+            world.reserves.seed(u.unit_id, 4.0)
+        return world.settle(units, 0)
+    a, b = run(), run()
+    assert a.charges == b.charges and a.incomes == b.incomes
+    assert a.tau == b.tau
