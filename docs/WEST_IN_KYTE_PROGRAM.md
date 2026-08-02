@@ -32,10 +32,18 @@ Three questions carry the program (CURRENT_PLAN item -8; THE_KYTOS §4):
   the monolith's already-evidenced super-linear per-round cost avoidable by apportionment?
 - **Q-C (terminal-unit invariance).** As the community grows, does per-kytos cost-per-doubt-cycle
   stay *invariant* (West's cell-metabolism-per-unit-mass falling with size — the economy of scale)?
-- **Q-E (the vector optimand).** West's clean *scalar* exponent lives at the **supply** layer he
+- **Q-E (the vector *instrument*).** West's clean *scalar* exponent lives at the **supply** layer he
   modelled; the **allocation-toward-purposes** layer is vectorial and niche-constructing. A kytos
-  makes that vector explicit (the disposition taxonomy, the K1–K4 measure). Does West's universality
-  itself need a vector operand — is the kytos the lens on the structure *beneath* the scalar exponent?
+  makes that vector explicit (the disposition taxonomy, the K1–K4 measure). Is the kytos the lens on
+  the structure *beneath* the scalar exponent — the layer West's formalism does not represent?
+  *(Re-voiced 2026-08-01, Examination VIII, the author's Ruling B. This question formerly asked
+  whether West's universality "itself needs a vector operand". It does not, and the question was
+  malformed twice over. **Scalarity is not what selects the exponent** — WBE call their derivation
+  "essentially a geometric one", and three redoings minimizing three different things, one of them
+  minimizing nothing at all, converge on 3/4. And under Ruling B a knowledge measure is an
+  **instrument, never an optimand**, so it replaces nothing in West's objective and there is nothing
+  to depart from. What remains, and is worth asking, is whether a kytos can make **observable** a
+  layer the scaling program brackets.)*
 
 The program is deliberately **conjecture-until-measured** (THE_KYTOS §5 honesty ledger): the
 scaling exponents and the whole community rung are flagged as unmeasured. These experiments are the
@@ -322,34 +330,89 @@ that it never needs the bird's-eye view to reach a verdict.
 
 ### What a proper terminal-unit test requires
 
-Named here so the next attempt starts honest, not so it starts soon:
+Named here so the next attempt starts honest, not so it starts soon.
 
-- **Communication between units**, carrying content rather than a vocabulary
-  census — otherwise no community exists to scale, per THE_COMMENS.
+**Written environment-side, on the author's ruling of 2026-08-01** (Examination
+VIII, Q3). The earlier draft of this list enumerated what *units* must be — able
+to die, holding a fixed quantum — and five of its eight conditions were mis-voiced
+that way. That is the cart before the horse inside the document that diagnoses it:
+mortality and a fixed quantum are **consequences** of a world in which maintenance
+costs something and the source depletes, not properties a modeller installs. The
+design rule that follows is **the environment must carry structure the unit does not
+already encode**, and the practical test applied to each item below was *would
+building to the environment-side version produce a different implementation?* For
+every one of the five, it would.
+
+- **A source split across apertures**, such that the facts confirming a law are
+  never all delivered to one unit — so that a unit ignoring another's mark
+  forecasts measurably worse, and communication carrying content becomes a
+  *finding* rather than a channel we build and then hope gets used. (Was:
+  "communication between units".) Otherwise no community exists to scale, per
+  THE_COMMENS.
 - **Laws in the corpus**, so units derive rather than only accumulate; K3 above
-  zero is the signal that anything is being metabolized at all.
-- **Provenance in the materializer** — the support set behind a derived atom —
-  so that *use* can mean an atom doing work rather than an atom arriving again.
+  zero is the signal that anything is being metabolized at all. *(Already
+  environment-side — a property of the field.)*
+- **A world that charges for holding and pays for anticipating**, so that *use*
+  means an atom that entered a derivation which met an arrival, not an atom
+  re-delivered. (Was: "provenance in the materializer" — instrument-side.)
   Today's `delivered_atom_keys` defines use as re-delivery and says in its own
   docstring that inference-use was "deliberately not taken here."
 - **A live K2**, which needs a membrane with world-teeth: some way for a
   standing item to be defeated by something other than the decay clock.
-- **Community-level scaling** — the size swept being the number of
-  communicating units, with the terminal unit's invariance left free to emerge
-  or fail rather than pinned by construction.
-- **Selection between communities**, if the exponents are to mean what they
+  *(Already environment-side — a charge the world levies.)*
+- **A source of fixed quantity and replenishment rate, independent of N**, so
+  that adding units divides a fixed supply rather than regenerating a field per
+  N — the size swept being the number of communicating units, and the terminal
+  unit's invariance left free to emerge or fail. *(Method-side as written; the
+  environment-side version is what makes the invariance measurable rather than
+  assigned. `c_field.deliver` today has no global budget, which is exactly how
+  the E-series came to impose per-unit invariance.)*
+- **A niche too small for all** — a finite source that a better-anticipating
+  community retains more of, so a worse one starves. (Was: "selection between
+  communities", which as an *operator* needs an external fitness scorer that this
+  document forbids three paragraphs above: *reality resides inside the kytos, and
+  nothing is ever scored against a view from outside it.* **Extinction is running
+  out**, and it needs no scorer.) Required if the exponents are to mean what they
   mean in *Scale*.
-- **Mortality of the terminal units.** West's β measures the maintenance cost of
-  keeping terminal units alive, so with immortal units there is no cost and no
-  exponent. Selection *between communities* is a different condition and does not
-  supply this one: a series can have budget selection and still have units that
-  never die. *(Added 2026-07-30 from the C-series' stage-4 examination.)*
-- **A fixed per-unit quantum.** A scaling law gets its exponent by counting an
-  invariant unit, so capacity and rate — and therefore maintenance cost per unit —
-  must not vary with the unit's own state. A mechanism that lets a unit enlarge
-  its own budget dissolves the terminal unit and the exponent with it, and would
-  still bite after mortality is installed. *(Added 2026-07-31; see
-  ADVERSARIAL_EXAMINATION Examination VII, VII.8.)*
+- **Maintenance that costs, against a source that depletes**, so that a unit whose
+  intake falls below its standing upkeep stops. West's β measures the maintenance
+  cost of keeping terminal units alive, so with immortal units there is no cost and
+  no exponent. **Death is failure to meet a charge, not a capability** — the
+  environment-side build is the *smaller* one, since the E-series already has a
+  meter charging model size each round and needs only finite income, where the
+  unit-side version needs a lifespan parameter somebody picks. *(Added 2026-07-30
+  from the C-series' stage-4 examination; re-voiced 2026-08-01.)*
+- **A fixed price per slot, levied by the world against an exogenous income**, so
+  that slot count is determined outside the unit and cannot be enlarged from
+  inside — the unit has no lever on price. A scaling law gets its exponent by
+  counting an invariant unit, so capacity and rate must not vary with the unit's
+  own state. *(As a unit-side prohibition this was **vacuous**: it is already
+  satisfied by construction, since `AttentionEconomy.choose(k, round_idx)` takes
+  `k` from the caller and severity only reorders the pool. Building to it required
+  no code. Added 2026-07-31, see ADVERSARIAL_EXAMINATION Examination VII, VII.8;
+  re-voiced 2026-08-01.)*
+- **A reach structure in which the cost of reaching grows with the community's
+  extent.** *(Added 2026-08-01, Examination VIII, and derived rather than
+  enumerated — by the panel mandated to **defend** the mapping.)* Every West
+  derivation, biological and urban alike, gets its exponent from a graded
+  accessibility structure: WBE from space-filling fractal branching, Bettencourt
+  from `δ = H/(D(D+H))`. A flat board where every unit reaches every other at
+  uniform cost is the `H → 0` limit — equivalently `D → ∞` — and Bettencourt's own
+  Table 1 says *agglomeration effects vanish as H → 0*. Then δ = 0, α = 1, and
+  `Y = GN²/A_n ∝ N`: **linear, no exponent, however well the other eight are met.**
+  Two blind panels reached this from opposite limits of the one equation. Note the
+  bar this sets: the accessibility structure must be **measurable from the
+  substrate before the run**, so the exponent is *predicted* rather than fitted —
+  no non-spatial derivation in the literature predicts a value, and a fitted θ is
+  a free parameter wearing a law's clothes.
+
+**Two contradictions the old voicing carried, both dissolved above.** The
+community-scaling condition asked for invariance *left free to emerge*, while the
+fixed-quantum condition demanded it *pinned by construction*; environment-first
+reconciles them exactly — **fix the price, let the quantum fall out**, and
+invariance becomes measurable rather than stipulated. And selection-as-operator
+required the external scorer premise 1 forbids; only the niche reading is
+consistent with this document's own commitments.
 
 Until then the honest statement of the E-series is narrow and still worth
 something: *partitioning a maintenance workload across bounded units lowers

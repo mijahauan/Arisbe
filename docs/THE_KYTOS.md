@@ -279,11 +279,18 @@ ran six experiments against pre-registered priors to find out — run logs
 > below; §8 of the program document records the audit, the mis-mapping, and the
 > conditions a proper terminal-unit test would have to meet — six then, eight
 > since 2026-07-30, when a successor series met the original six and still
-> yielded no exponent. The two added: the terminal units must be able to **die**
-> (the exponent measures the cost of keeping them alive) and their per-unit
-> quantum must stay **fixed** (a scaling law counts an invariant unit). The
-> prospect stays open: designed properly, the question still has much to
-> teach.
+> yielded no exponent, and **nine since 2026-08-01**. The two added in July
+> concerned mortality (the exponent measures the cost of keeping terminal units
+> alive) and a fixed per-unit quantum (a scaling law counts an invariant unit).
+> The ninth, derived in Examination VIII **by the panel mandated to defend the
+> mapping**, is a **reach structure whose cost of reaching grows with the
+> community's extent** — without which the other eight can all be met and
+> Bettencourt's own equations still predict **β = 1**, no exponent at all. The
+> same examination re-voiced the whole list **environment-side**: mortality and a
+> fixed quantum are consequences of a world that charges for maintenance and
+> depletes, not properties a modeller installs. The prospect stays open, and is
+> now better specified than it was: designed properly, the question still has
+> much to teach.
 
 **Measured (with priors; refutations reported as findings):**
 
@@ -375,21 +382,53 @@ temperament, and the temperament is a studiable knob**: a pre-registerable exper
 — sweep `self_damping`, measure settlement latency against discovery yield — remains
 the named follow-on (the self-damping study).
 
-**Reliability, not analogy (2026-07-20; qualified 2026-07-28).** The connection to West rests on no
+**Reliability, not analogy (2026-07-20; qualified 2026-07-28; grade `predicted-absent`
+2026-08-01).** The connection to West was claimed to rest on no
 metaphor laid over biology: a kytos optimizing for **reliable reasoning** and an organism optimizing
 for **reliable energy economics** amount to the same *kind* of thing — selection-driven
 reliability-optimizations over associative networks of invariant terminal units, the "ought"
 functional and enforced by what persists (Peirce's *Fixation of Belief* names
 reliability-under-recalcitrance, the semiotic instance of metabolism's
-reliability-under-physical-constraint). Two cautions now govern how far that reading may travel.
+reliability-under-physical-constraint).
+
+**That sentence does not survive Examination VIII (2026-08-01), and the grade is now
+`predicted-absent`.** Five blind adversarial panels — three of them mandated to *defend*
+this reading from primary sources — audited its four load-bearing nouns. *Selection-driven*:
+nothing in either run series selects between arrangements. *Networks*: one flat board, no
+addressing, no distance, no levels. *Invariant terminal units*: imposed by assignment, then
+enforced by a test that refuses a community whose units disagree. And *reliability
+optimization* is absent in the successor series outright. The defense's own summary, which
+this chapter now adopts: **a shared architectural constraint — invariant unit, growth by
+multiplication, bounded per-unit rate — without the shared derivation.** More than a loose
+analogy; considerably less than "no metaphor".
+
+The grade is `predicted-absent` rather than merely un-evidenced because the finding is
+positive: applied to a flat board, where reach does not grow with extent, Bettencourt's own
+`δ = H/(D(D+H))` gives **β = 1 exactly** — the borrowed theory predicts that no exponent can
+appear here. The blocker is named and liftable: **condition 9**, a reach structure whose cost
+of reaching grows with the community's extent
+([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). Two cautions, both predating the
+examination, govern how far the older reading may travel; a third has been added.
 
 *The layer caution (2026-07-20).* West's clean *scalar* exponent lives only at the **supply**
 layer, the distribution network he actually modeled. The **allocation-toward-purposes** layer works
 vectorially and reshapes its own selection landscape by niche construction; West brackets it, and a
 kytos could make it *explicit and instrumented* (the disposition taxonomy, the K1–K4 vector
-measure, the participation-sustained commens). So West's universality may itself need a **vector
-operand**, and the kytos may serve as the lens on the vector, landscape-changing structure
-*beneath* the scalar exponent — a contribution back to West, not only borrowed from him.
+measure, the participation-sustained commens). So the kytos may serve as the lens on the
+vector, landscape-changing structure *beneath* the scalar exponent — a contribution back to
+West, not only borrowed from him.
+
+*(Re-voiced 2026-08-01, the author's Ruling B. This paragraph formerly said West's
+universality "may itself need a **vector operand**". Two things were wrong with that.
+**Scalarity does not select his exponent** — WBE call the derivation "essentially a
+geometric one", and three independent redoings minimizing three different things, one of
+them using no Lagrange multiplier at all, converge on 3/4. And a knowledge measure is an
+**instrument, never an optimand** — the guard in
+[THE_MEASURE_OF_KNOWLEDGE.md](THE_MEASURE_OF_KNOWLEDGE.md) already says a score optimized
+directly Goodharts. If K is never optimized, it replaces nothing in West's objective and
+there is nothing to depart from. The offer is about what a kytos makes **observable**, not
+about what it optimizes — and Examination VIII notes it is aimed at the wrong organ anyway:
+what a kytos would have to supply West is a **geometry**, not an optimand.)*
 
 *The evidence caution (2026-07-28).* That vector proposal remains **conjecture, and the E-series
 did not touch it**: three of the four measure-components sat pinned at constants by the choice of

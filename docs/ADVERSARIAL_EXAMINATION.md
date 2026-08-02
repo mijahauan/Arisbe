@@ -2620,6 +2620,31 @@ THE_LINEAGE_AND_THE_TRIBUTARIES:252, VISION_AND_SCOPE:336, THE_KYTOS:213,
 WEST_IN_KYTE_PROGRAM:353. An outside reader takes these as *one harness away*;
 §11.5 says two rungs.
 
+> **DISCHARGED 2026-08-01 (Examination VIII), with a rider that cost more than the
+> finding.** Both lists now name mortality (added 2026-07-30) and a fixed per-unit
+> quantum (2026-07-31), and all the compounding chapters carry the additions, so
+> VII.6 is closed on its own terms — it was true when written and the ink was
+> amended in direct response.
+>
+> **The rider: the repair introduced a different defect.** Both amendments were
+> written in **unit-side voice** — units must be able to *die*, their quantum must
+> stay *fixed* — and the environment-first ruling landed the day after the second.
+> Examination VIII found five of the eight conditions mis-voiced that way, with the
+> build differing materially in every case and **two of them inverting**: the
+> environment-side mortality build is the *smaller* one (a meter charging model size
+> already exists and needs only finite income, where a lifespan is a parameter
+> somebody picks), and the fixed-quantum condition as written was **vacuous**,
+> already satisfied by construction. It also exposed two contradictions the voicing
+> carried — the community-scaling condition asking invariance be *left free to
+> emerge* against the quantum condition demanding it *pinned*, and
+> selection-as-operator requiring the external scorer the same document forbids.
+> **Closing a completeness hole opened a voice hole**, which is VII.6's own failure
+> mode — a list that reads complete and is not — recurring in the repair rather than
+> in the original. Both lists were re-voiced environment-side on 2026-08-01, and a
+> **ninth** condition added: a reach structure whose cost of reaching grows with the
+> community's extent, without which the theory predicts β = 1 however well the other
+> eight are met.
+
 **VII.7 — The spec contradicts itself: §8's promotion rung carries no mortality
 precondition (Panel D).** §8 ("What promotes a conjecture"): "*If the requirement
 holds flat across an order of magnitude of N — that is West's invariant terminal

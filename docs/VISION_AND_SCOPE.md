@@ -338,9 +338,18 @@ into one claim. The claim-by-claim examination lives in
    its size — remains the open prospect, not a result
    ([WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). A successor series
    supplied both the reasoning and the exchanging and still produced no
-   exponent, which added two conditions there: the terminal units must be able
-   to **die**, and their per-unit quantum must stay **fixed**. *[measured-with-priors —
-   [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
+   exponent, which added two conditions there — later re-voiced, with the rest of
+   the list, as charges the *world* levies rather than properties a unit has:
+   maintenance must **cost** against a source that **depletes** (so a unit that
+   cannot meet its upkeep stops), and the price per slot must be **fixed by the
+   world** rather than settable from inside. In 2026-08 the mapping itself was
+   tried rather than the experiments, and a **ninth** condition was derived — a
+   **reach structure whose cost of reaching grows with the community's extent**,
+   without which the borrowed theory's own equations predict **β = 1**, no
+   exponent, however well the other eight are met. *[measured-with-priors (the
+   partition/upkeep result) · **predicted-absent** (the scaling law proper — the
+   borrowed derivation predicts it cannot appear in the present substrate;
+   blocker: condition 9) — [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md).]*
 3. **Berger & Luckmann — objectivation across membranes.** What confronts participants as
    facticity is sustained only by participation; ratified into house doctrine as *judgment is
    objectivated, never owned* ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md)
@@ -406,7 +415,7 @@ quasi-mind.
 
 ### The grading discipline
 
-Four grades, never flattened into one flat claim:
+Five grades, never flattened into one flat claim:
 
 | Grade | Meaning |
 |---|---|
@@ -414,6 +423,17 @@ Four grades, never flattened into one flat claim:
 | **measured-with-priors** | run against pre-registered priors, verdicts on the record |
 | **ratified-doctrine** | the author's ruled doctrine, carried in a design-of-record |
 | **queued-conjecture** | named and held, deliberately not yet examined |
+| **predicted-absent** | a borrowed theory's own derivation predicts this cannot appear in the present substrate; a named condition would lift it |
+
+`predicted-absent` was coined on 2026-08-01 (Examination VIII, the author's Ruling A)
+because none of the other four could say what had been found. `queued-conjecture` reads as
+*not got round to measuring*, and the finding was stronger: applied to Arisbe's own
+substrate, the scaling theory being borrowed predicts **β = 1 exactly** — there is no
+exponent there to measure. The grade is deliberately **not** "refuted": nothing was shown
+false about West, or about whether a kytos could ever obey a scaling law. What was shown is
+that the phenomenon cannot appear *here, as built*. So the grade always travels with its
+**blocker** — the condition whose absence produces the prediction, and whose construction
+would retire the grade. Written as *predicted-absent (blocker: …)*.
 
 The grades serve as the proposition's **warrant annotations** — they record where each strand
 currently stands, never what it is worth. The most exposed phrase in the program's vicinity — an

@@ -184,7 +184,7 @@ and **poise is its reading** (`agon_metalearning.poise_report`): rigidity names 
 (the process stops engaging with the outside), thrash names A starving S (the process never
 settles enough to consolidate what it takes in).
 
-## 5 · West, operationalized *[ratified intent / flagged mapping]*
+## 5 · West, operationalized *[ratified intent / mapping graded `predicted-absent` 2026-08-01]*
 
 Because each kytos now carries measurable S, measurable A, and a measurable allocation between
 them, a community of kytē becomes something one can model — "possibly to better
@@ -200,6 +200,33 @@ apportionment / West experiment recovers (the Q-B sketch, CURRENT_PLAN.md item -
 Arisbe vs. distributed kytē plus a coordinator, measuring cost curves, K3 exponents, and
 poise). It stands as a **conjecture-until-measured**, and stays one permanently in the sense
 that matters here: the measurement itself remains an ongoing act, never a closing one (see [§7](#7--no-final-ratified)).
+
+**Graded `predicted-absent`, 2026-08-01 (Examination VIII).** Two things must now be said
+about the paragraph above, and neither is a hedge.
+
+*The instrument it awaits cannot produce what it asks for.* The conjecture defers to "the
+exponents the Q-B apportionment / West experiment recovers". That experiment ran six times
+and recovered none — and the design audit found it could not have: terminal-unit invariance
+was imposed rather than discovered, and the sweep is capped at six units where the promotion
+bar is an order of magnitude of N.
+
+*More decisively, the superlinear half is predicted false for this substrate.* Bettencourt's
+derivation gets superlinearity from **bounded reach against rising interaction density**, and
+the density rises only because infrastructure scales sublinearly — which requires the
+geometry. On a commens where every kytos reaches every mark at uniform cost, the path-fractal
+dimension is zero, `δ = H/(D(D+H))` vanishes, and production scales **linearly**. So
+"superlinear K-generation from interaction density" is not merely unmeasured: as stated, over
+a flat commens, the borrowed theory says it will not appear.
+
+The blocker is named and liftable, and it is the interesting part — a **reach structure in
+which the cost of reaching grows with the community's extent** (condition 9,
+[WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8). Berger & Luckmann already supply its
+shape sociologically: **typification rises and influence wanes with social distance**, which
+is exactly the graded accessibility the derivation needs, arriving from a tributary this
+project already grades `ratified-doctrine` rather than imported from urban geometry. That
+also explains something the runs kept measuring and could not account for — typification
+reads inert because **a flat board has no social distance**, and at four units everyone is a
+significant other.
 
 ## 6 · The rung-boundary *[flagged formulation]*
 

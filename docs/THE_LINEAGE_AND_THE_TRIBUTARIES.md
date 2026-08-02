@@ -265,12 +265,27 @@ economics and leave West's law proper — how a *community's* rate scales with
 its size — standing as the prospect it always was, with much still to teach
 whoever builds the harness for it (see the West program document, section 8).
 A successor series did supply the reasoning and the exchanging, and still
-returned no exponent, which added two conditions to that section: the terminal
-units must be able to **die**, and their per-unit quantum must stay **fixed**.
+returned no exponent, which added two conditions to that section — since
+re-voiced, with the rest, as charges the world levies rather than properties a
+unit has: maintenance must **cost** against a source that **depletes**, and the
+price per slot must be **fixed by the world** rather than settable from inside.
+
+A 2026-08 examination then tried the *mapping* rather than the experiments, with
+panels appointed to defend it as well as to prosecute, and the defense closed the
+strongest escape itself. Where every unit reaches every other at uniform cost,
+the borrowed theory's own equations give **β = 1**: no exponent exists to be
+found, and six runs of nulls are what that prediction looks like from the inside.
+Hence a **ninth** condition — a reach structure whose cost of reaching grows with
+the community's extent — and a grade of `predicted-absent` on the scaling claim
+proper: not un-measured, but derived-false for the substrate as built, with a
+named condition that would lift it.
+
 What West's framework lacked, on this reading, concerns what the unit
 *does*: an economics of the unit without its semantic work. The return-gift
-offered back holds as a conjecture, that the allocation layer of such units
-runs vectorial, not scalar (a self-contained methods account stands at
+offered back is now stated as a claim about what a kytos makes **observable** —
+the allocation layer his formalism does not represent — rather than as a proposal
+to replace his objective, since scalarity turns out not to be what selects his
+exponent (a self-contained methods account stands at
 [WEST_METHODS_NOTE.md](WEST_METHODS_NOTE.md)).
 
 **Anthropology against the ladder (Graeber & Wengrow, *The Dawn of

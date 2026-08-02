@@ -233,10 +233,16 @@ instruct as much as the agreements. The design consequences live in
   analyses systems that aggregate, interact, and distribute resources through
   space-filling hierarchical networks, and finds discoverable **scaling exponents**
   (quarter-power metabolic laws; cities superlinear in innovation, companies sublinear
-  and mortal). The mapping runs like this. Deliverance throughput serves as the system's
+  and mortal). ~~The mapping runs like this. Deliverance throughput serves as the system's
   metabolism, the membrane hierarchy as its distribution network, decay as its cellular
-  turnover. So the measure's components should themselves *scale lawfully*, and the
-  exponents stand as empirical questions the run corpus can already ask: how do derived
+  turnover.~~ **Withdrawn 2026-08-01 (Examination VIII; grade `predicted-absent`).** All
+  three nouns fail audit: nothing is conserved and nothing flows (a mark taken up by one
+  unit remains available to all — *signs are non-rival, blood is not*); there is no
+  membrane **hierarchy** (one flat board, no addressing, no levels); and the built units
+  have no decay wired at all. The struck sentence is kept visible rather than deleted
+  because it is the only text in the project that named the network premise outright, and
+  it is what the examination was checking. What may still be asked, and is not withdrawn:
+  how do derived
   atoms scale with explicit atoms (K3's exponent), and how does question-yield scale with
   |M|? The most striking correspondence lies in West's **companies die, cities don't** —
   bounded closed systems scale sublinearly toward stagnation while open-networked ones
@@ -248,6 +254,13 @@ instruct as much as the agreements. The design consequences live in
   test, not assume.
   *(The project has since tested it five times: the West-in-kytē program E1–E3b, 2026-07-22→26 — see "The
   graded concordance map" below for the verdicts, including the refuted priors.)*
+  *(And on 2026-08-01 put the **mapping itself** on trial rather than the experiments —
+  Examination VIII, five blind adversarial panels. The result is stronger than a null:
+  applied to a flat board, Bettencourt's own `δ = H/(D(D+H))` gives **β = 1 exactly**, so
+  the theory being borrowed predicts there is no exponent here to find. A ninth condition
+  was derived — **a reach structure whose cost of reaching grows with extent** — without
+  which the other eight can all be met and nothing appears. The "one honest differentiator"
+  named at the end of this entry turned out to be the whole of it.)*
 
 - **Reinforcement learning & artificial curiosity (Sutton's temporal-difference learning;
   Schmidhuber; Oudeyer & Kaplan).** The machine-learning face of the same loop. The **TD
@@ -344,7 +357,7 @@ and never graded here.
 |---|---|---|---|---|---|
 | von Neumann / Conway / aLife | Can iterated simple steps yield unscripted global order? | Semantics and negotiation — dynamics under a fixed rule; no assertion, no negotiated outcome | The doubt-cycle as a *round of a game* | `agon_evolution.py` (gate `test_agon_evolution.py`); the open-membrane runs (`runs/`); the halting duals ([THE_KYTOS.md](THE_KYTOS.md)) | **built-and-gated** (the loop) · **queued-conjecture** (the open-endedness *reading* — that the negotiated sheet achieves what fixed rules cannot is not yet a measured claim) |
 | Ashby / Conant (cybernetics) | Must every good regulator be a model of its world? | An assertion calculus — the model held, with no licensed way to assert, retract, or test it | Interior M | The M-residence discipline ([M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md](M_RESIDENCE_AND_THE_VALIDITY_DISCIPLINE.md)); `world_scroll.py`; the peel (`semantic_game.py`); gate `test_corpus_polarity_discipline.py` | **built-and-gated** |
-| West (*Scale*) | Do aggregated units obey discoverable scaling laws? | What the unit *does* — economics of the unit without its semantic work; the scalar→vector return-gift | Budget & rates — the upkeep cost of a bounded model *(not "metabolism": see the correction below)* | Six runs (`runs/WEST_E1_LOG.md` … `WEST_E3C_LOG.md`; program [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md)). **What they measured:** partitioning a maintenance workload across bounded units lowers total upkeep under a meter that charges a model's size each round, and the magnitude traces to **coordinator scan discipline** (25× spread at the largest size) rather than to the partition — E2's own finding. The partition landscape holds real structure: interior optimum N\*=3 · multi-basin · 21 known optima · balance strands in a dear basin. **What they did NOT measure (design error, found 2026-07-28, [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8):** terminal-unit invariance was **imposed** by fixing each unit's slice and round budget, not discovered; "at equal K2" rests on a durability metric that cannot read *false* on this harness; the units never communicate and never reason (zero derived facts per round), so the ~5.2× tracks member count arithmetically. **Refuted/limited priors listed:** P1² separation-only · PB3 refuted (broker never fired) · PB4 undetermined · PE2, PE5, PM4, PS1 refuted | **measured-with-priors** (the partition/upkeep result, narrowly) · **queued-conjecture** (kytos-as-terminal-unit and the vector optimand — the E-series design cannot test either; a redesign is named) |
+| West (*Scale*) | Do aggregated units obey discoverable scaling laws? | What the unit *does* — economics of the unit without its semantic work; the scalar→vector return-gift | Budget & rates — the upkeep cost of a bounded model *(not "metabolism": see the correction below)* | Six runs (`runs/WEST_E1_LOG.md` … `WEST_E3C_LOG.md`; program [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md)). **What they measured:** partitioning a maintenance workload across bounded units lowers total upkeep under a meter that charges a model's size each round, and the magnitude traces to **coordinator scan discipline** (25× spread at the largest size) rather than to the partition — E2's own finding. The partition landscape holds real structure: interior optimum N\*=3 · multi-basin · 21 known optima · balance strands in a dear basin. **What they did NOT measure (design error, found 2026-07-28, [WEST_IN_KYTE_PROGRAM.md](WEST_IN_KYTE_PROGRAM.md) §8):** terminal-unit invariance was **imposed** by fixing each unit's slice and round budget, not discovered; "at equal K2" rests on a durability metric that cannot read *false* on this harness; the units never communicate and never reason (zero derived facts per round), so the ~5.2× tracks member count arithmetically. **Refuted/limited priors listed:** P1² separation-only · PB3 refuted (broker never fired) · PB4 undetermined · PE2, PE5, PM4, PS1 refuted. **The mapping itself tried 2026-08-01** (Examination VIII, five blind adversarial panels; `docs/superpowers/specs/2026-08-01-examination-viii-the-west-mapping-on-trial.md`): a **ninth condition** was derived *by the defending panel* — a reach structure whose cost of reaching grows with extent — and without it Bettencourt's own `δ = H/(D(D+H))` gives **β = 1 exactly** on a flat board. Two blind panels reached that from opposite limits (`H → 0`, `D → ∞`). The vector-optimand question was **dissolved**, not graded: scalarity does not select West's exponent (geometry does), and under the author's Ruling B a knowledge measure is an instrument, never an optimand | **measured-with-priors** (the partition/upkeep result, narrowly) · **predicted-absent** (kytos-as-terminal-unit — the borrowed theory's own derivation predicts this cannot appear in the present substrate; blocker: condition 9. Formerly `queued-conjecture`, which understated it: this is not un-measured but derived-false-for-now) |
 | Berger & Luckmann | How does the subjective become objective — objectivation, institutionalization? | Mechanism — a description of typification with nothing that executes it | The commens — the community-of-kytē face | [THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §2(c) (judgment objectivated, never owned); the E1–E3 federation runs as the first instrumented step | **ratified-doctrine** |
 | Popper / Campbell (evolutionary epistemology) | Knowledge grows by conjecture and refutation | A record — selection with no earned, replayable transcript | The doubt-cycle's disposal arm — the project level of the fractal | The `Pⁿ`/`Fⁿ` run-log discipline itself (`runs/`): pre-registered priors, mechanical verdicts, author disposal | **measured-with-priors** *(as practice — the discipline is exercised on every run, not itself a measured claim)* |
 | Uexküll / Hoffmeyer (biosemiotics) | The organism's world is its sign-repertoire — the Umwelt | Soundness — a membrane with no calculus behind it | Membrane + horizon | [THE_KYTOS.md](THE_KYTOS.md) (the membrane doctrine, incl. the reception taxonomy and the two apertures); the vocabulary-bounded horizon ([DOMAIN_ORACLE_AND_M.md](DOMAIN_ORACLE_AND_M.md)); vault custody (`vault_world.py`) | **ratified-doctrine** |
@@ -360,7 +373,7 @@ and never graded here.
 | Graeber & Wengrow (*The Dawn of Everything*) | Was there ever one ladder of social development — or many viable commens from the start? | Measurement — historical evidence of plurality, with no cost/durability instrumentation | The commens face — plurality of settlements | The Examination VI triangulation (2026-07-27): the apportionment conjecture *predicts* plural settlements; the E-series *measured* them (multi-basin, 21 known optima, balance strands, stranding a positive-measure dear basin — PE2/PM4/PS1 refutations kept as findings); G&W supply the *historical* form. Deliberate, reversible basin-crossing (their evidence) against rare random escape (E3c) is recorded as the finding *politics = coordinated basin-crossing* | **ratified-doctrine** *(the negative claim only — no teleology; the book's sweeping narrative not adopted; reading discipline planted in [THE_KYTOS.md](THE_KYTOS.md) §4)* |
 | The deliberative-interval reading of agency | Is freedom the determined considering between branching-at-doubt and licensed resolution? | — (the project's own reading; queued until examined) | The quasi-mind — the agentive face | Examination VI Unit IV (2026-07-27), ratified with four additions: the interval as *where determination happens* (computational irreducibility); responsibility **earned cumulatively by record, never by origin**; the three-ground predestination disposal with the forecast/foretell guard; the accounting sufficient-not-exhaustive. Any "operational model of consciousness" reading of this map still stays in this row — the reflexive run remains queued | **ratified-doctrine** *(promoted by Examination VI per this map's own rule; measurement awaits the reflexive run)* |
 
-**The four grades** (never flattened into one scale):
+**The five grades** (never flattened into one scale):
 
 - **built-and-gated** — shipped code in `src/`, held by a standing test gate in `tests/` that
   would fail if the correspondence claimed here broke; re-checked on every suite run.
@@ -370,6 +383,12 @@ and never graded here.
   prose, carrying no measurement claim.
 - **queued-conjecture** — named and deliberately unexamined; on the docket for a future sitting,
   with no evidence claimed.
+- **predicted-absent** — the borrowed theory's **own derivation** predicts the phenomenon cannot
+  appear in the present substrate, so this is not un-measured but derived-false-for-now. Always
+  written with its **blocker**: the named condition whose absence produces the prediction and whose
+  construction would retire the grade. Coined 2026-08-01 (Examination VIII, Ruling A). Deliberately
+  *not* "refuted" — nothing here shows the borrowed theory false, or the correspondence impossible;
+  only that it cannot show up here, as built.
 
 How a grade changes: **promotion is only by the author's ruling** — a queued-conjecture becomes
 ratified-doctrine by a ruling at a sitting, and reaching a measured grade additionally requires a

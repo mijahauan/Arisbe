@@ -170,38 +170,67 @@ reasoning, and none of the *between*.
 
 ## 7 · What a corrected test requires
 
-Named so the next attempt starts honest, not so it starts soon. Eight
-conditions, set out at length in WEST_IN_KYTE_PROGRAM §8. Six of them were
-listed here first; conditions 7 and 8 arrived in 2026, when a successor series
-satisfied the original six and still produced no exponent:
+Named so the next attempt starts honest, not so it starts soon. **Nine**
+conditions, set out at length in WEST_IN_KYTE_PROGRAM §8. Six were listed here
+first; 7 and 8 arrived in 2026, when a successor series satisfied the original
+six and still produced no exponent; 9 arrived on 2026-08-01, derived rather than
+enumerated — and derived by the panel mandated to *defend* the mapping.
 
-1. **Communication between units** carrying content, not a vocabulary census —
-   otherwise no community exists to scale.
+The list is written **environment-side**. An earlier draft enumerated what units
+must be (able to die; holding a fixed quantum), and five of the eight were
+mis-voiced that way. Mortality and a fixed quantum are *consequences* of a world
+where maintenance costs and the source depletes — not properties a modeller
+installs. The rule: **the environment must carry structure the unit does not
+already encode.**
+
+1. **A source split across apertures**, so the facts confirming a law never all
+   reach one unit — making a unit that ignores another's mark forecast measurably
+   worse, and uptake a finding rather than a channel we build and hope gets used.
 2. **Rules in the corpus**, so units derive rather than only accumulate; a
    non-zero derivation ratio signals that anything gets metabolized at all.
-3. **Provenance in the materializer** — the support set behind a derived atom —
-   so *use* can mean an atom doing work rather than an atom arriving again.
-   Today's disuse clock defines use as re-delivery, and says so in its own
-   docstring.
+3. **A world that charges for holding and pays for anticipating**, so *use* means
+   an atom that did work rather than an atom that arrived again. Today's disuse
+   clock defines use as re-delivery, and says so in its own docstring.
 4. **A live durability score**, which needs a feed with world-teeth: some way
    for a standing item to be defeated by something other than the decay clock.
-5. **Community-level scaling** — sweep the number of *communicating* units, and
-   leave the terminal unit's invariance free to emerge or fail rather than
-   pinning it by construction.
-6. **Selection between communities**, if the exponents are to mean what they
-   mean in *Scale*.
-7. **Mortality of the terminal units.** The exponent measures the maintenance
-   cost of keeping terminal units alive, so with immortal units there is no cost
-   and no exponent. Condition 6 does not supply this one — a series can select
-   between communities while no unit ever dies.
-8. **A fixed per-unit quantum.** A scaling law gets its exponent by counting an
-   invariant unit, so capacity and rate, and therefore maintenance cost per
-   unit, must not vary with a unit's own state. A mechanism letting a unit
-   enlarge its own budget dissolves the terminal unit, and would still do so
-   after mortality was installed.
+5. **A source of fixed quantity and replenishment rate, independent of N**, so
+   adding units divides a fixed supply instead of regenerating a field per N —
+   sweeping the number of *communicating* units with the terminal unit's
+   invariance left free to emerge or fail.
+6. **A niche too small for all**: a finite source a better-anticipating community
+   retains more of, so a worse one starves. Selection as an *operator* would need
+   an external fitness scorer, which the programme's own premise forbids —
+   **extinction is running out**, and it needs no scorer.
+7. **Maintenance that costs, against a source that depletes**, so a unit whose
+   intake falls below its upkeep stops. The exponent measures the maintenance cost
+   of keeping terminal units alive, so with immortal units there is no cost and no
+   exponent. **Death is failure to meet a charge, not a capability** — and this
+   build is the *smaller* one, since a meter charging model size already exists and
+   needs only finite income, where a lifespan is a parameter somebody picks.
+   Condition 6 does not supply this one.
+8. **A fixed price per slot, levied by the world against an exogenous income**, so
+   slot count is set outside the unit and cannot be enlarged from inside. As a
+   unit-side prohibition this was **vacuous** — already satisfied by construction,
+   since the attention economy takes its budget from the caller and severity only
+   reorders. Building to it required no code.
+9. **A reach structure in which the cost of reaching grows with the community's
+   extent.** Every West derivation gets its exponent from a graded accessibility
+   structure. A flat board, where every unit reaches every other at uniform cost,
+   is the `H → 0` limit — equivalently `D → ∞` — and there `δ = H/(D(D+H))` goes to
+   zero and output scales **linearly**. Without this condition the other eight can
+   all be met and the theory still predicts no exponent. It also sets a bar: the
+   structure must be measurable from the substrate *before* the run, so the
+   exponent is predicted rather than fitted.
 
-Conditions 7 and 8 carry a warning the first six do not. A builder could satisfy
-every one of the original six and still get nothing, which is what happened.
+Conditions 7, 8 and 9 carry a warning the first six do not. A builder could
+satisfy every one of the original six and still get nothing, which is what
+happened — and under condition 9 could satisfy all eight and still get nothing.
+
+**Two contradictions the earlier voicing carried.** Condition 5 asked for
+invariance *left free to emerge* while 8 demanded it *pinned by construction*;
+environment-first reconciles them — **fix the price, let the quantum fall out**.
+And selection-as-operator needed the external scorer the programme forbids. Both
+dissolve above.
 
 ## 8 · Replicability, and one conjecture left untouched
 
@@ -212,12 +241,35 @@ endogenous walks keep move ledgers that replay clean, so a doctored verdict gets
 caught. Determinism and custody hold; the design error sits upstream of them.
 
 The conjecture the program hoped to offer back to the scaling program — that the
-allocation layer of such units runs **vectorial** (a multi-component knowledge
-measure) rather than scalar, so the right object may be a scaling *manifold*
-whose frozen-landscape shadow shows up as the observed exponent — **these runs
-leave untouched**. Of the four components of that vector, one went uncomputed
+allocation layer of such units is **observable vectorially** (a multi-component
+knowledge measure) where the scaling program represents it scalarly or not at all
+— **these runs leave untouched**. Of the four components of that vector, one went uncomputed
 (the predictive track record: declared N/A, since the feed never refutes), and
 the other three held constants across every cell — durability pinned at 1.0 by
 construction, derivation at 0.0 for want of rules, and use tracking nothing but
 the decay clock the design fixed. A vector whose components do not vary cannot
-show a manifold. The conjecture stands where it stood before the runs.
+show anything. The conjecture stands where it stood before the runs.
+
+**Amended 2026-08-01 (Examination VIII, the author's Ruling B).** This paragraph
+formerly proposed a scaling *manifold whose frozen-landscape shadow shows up as
+the observed exponent*. That wording claimed more than the project may claim, in
+two ways. First, a shadow is a projection and a projection of a vector objective
+is a **scalarization** — and the weight ratio *is* the front's local slope, so the
+"shadow" would be set by the freezing rather than by the manifold. Second, and
+decisively: under Ruling B the knowledge measure is an **instrument, never an
+optimand**. `THE_MEASURE_OF_KNOWLEDGE`'s guard already says any knowledge-score
+optimized directly Goodharts. If K is never optimized then it replaces nothing in
+West's objective and there is no manifold-as-objective for an exponent to be a
+shadow of. What survives, and is worth offering, is narrower and true: West's
+formalism **does not represent** the allocation layer, and a kytos instruments it.
+That is a claim about what is *observable*, not about what is *optimized*.
+
+Two further corrections from the same examination. **Scalarity is not what makes
+West's exponent unique** — WBE's own sentence is that the derivation "is
+essentially a geometric one", and three independent redoings minimizing three
+different things (impedance; blood volume; nothing at all, in Banavar et al. 2010,
+which uses no Lagrange multiplier) converge on 3/4. So a vector measure was never
+in tension with his framework in the way this section implied. And the E-series'
+actual construction — *minimize cost at equal K2* — is an **ε-constraint
+scalarization**, which is provably complete; that remains licit precisely because
+it is a constrained *measurement*, which is what Ruling B says K is for.

@@ -627,12 +627,21 @@ basin-crossing is what *politics* names stands recorded as a finding about the
 model, not about history. West's own question — how a *community's* rate scales
 with its size, its terminal unit left free to hold or fail — still awaits a
 harness whose units reason and talk to one another — and, a later series
-found, two conditions beyond that. The units must be able to **die**, since the
-exponent measures the cost of keeping them alive, and their per-unit quantum
-must stay **fixed**, since a scaling law counts an invariant unit. A successor
+found, two conditions beyond that: maintenance must **cost** against a source
+that **depletes**, since the exponent measures the cost of keeping units alive,
+and the price per slot must be **fixed by the world** rather than settable from
+inside, since a scaling law counts an invariant unit. A successor
 supplied the reasoning and the talking, satisfied every condition then on the
-list, and produced no exponent at all. It still has much to teach whoever builds
-one.
+list, and produced no exponent at all.
+
+In 2026-08 the *mapping* went on trial rather than the experiments, and the
+answer was sharper than another null: on a board where every unit reaches every
+other at the same cost, the borrowed theory's own equations give **β = 1
+exactly** — there is no exponent here to find. That yielded a ninth condition, a
+**reach structure whose cost of reaching grows with the community's extent**,
+and it was derived by the panel appointed to *defend* the mapping rather than by
+its critics. The question still has much to teach whoever builds one; it is now
+much better specified than it was.
 
 ## The population experimenter
 
