@@ -1426,7 +1426,7 @@ These are the spec §10 checks. They test the *design*, not a behaviour, and eac
 Append to `tests/test_d_world.py`:
 
 ```python
-import re
+import ast
 
 
 SRC = Path(__file__).resolve().parents[1] / "src"
@@ -1434,14 +1434,30 @@ SRC = Path(__file__).resolve().parents[1] / "src"
 
 def test_no_die_no_ttl_no_lifespan_in_the_d_world():
     """P-D1 is worthless if something installs mortality. Death must be
-    `reserve <= 0` and nothing else (spec ruling 1)."""
-    text = (SRC / "d_world.py").read_text()
-    code = "\n".join(
-        line for line in text.splitlines()
-        if not line.lstrip().startswith("#"))
-    for banned in (r"\bdef die\b", r"\bttl\b", r"\blifespan\b", r"\bmax_age\b"):
-        assert not re.search(banned, code, re.IGNORECASE), \
-            f"{banned} installs what P-D1 predicts must emerge"
+    `reserve <= 0` and nothing else (spec ruling 1).
+
+    THE GUARD READS THE CODE, NOT THE PROSE. A regex over the file text would
+    fire on the module docstring, which names `die()`, TTL and lifespan
+    precisely to say they are absent -- and a guard that punishes a design for
+    documenting its own refusals teaches the next author to stop documenting
+    them. Walking the AST for IDENTIFIERS asks the question actually worth
+    asking: does any name in this module install mortality?"""
+    tree = ast.parse((SRC / "d_world.py").read_text())
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef,
+                             ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, ast.arg):
+            names.add(node.arg)
+    banned = ("die", "ttl", "lifespan", "max_age", "age", "expires")
+    for name in sorted(names):
+        assert name.lower() not in banned, \
+            f"{name!r} installs the mortality P-D1 predicts must emerge"
 
 
 def test_the_unit_never_gains_a_reserve():
