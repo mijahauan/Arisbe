@@ -141,6 +141,41 @@ def default_spec(seed: int = 20260728) -> FieldSpec:
     )
 
 
+def wide_spec(seed: int = 20260802, n_domains: int = 8) -> FieldSpec:
+    """`default_spec`'s construction at a width the D-series needs.
+
+    WHY A WIDER FIELD EXISTS. Under `PAIRS` a field of k domains offers exactly
+    C(k, 2) distinct apertures, and `apertures_for` refuses to seat two units on
+    one slice — so the field's width IS the population ceiling. At the four
+    domains `default_spec` carries, that ceiling is six, which sits close enough
+    to any plausible equilibrium that the CAP would decide the population rather
+    than the economy, and the D-series' P-D7 would be uninterpretable. Eight
+    domains give twenty-eight.
+
+    ADDITIVE, AND `default_spec` IS UNTOUCHED. Every C-series figure was measured
+    on the four-domain field and none of them moves.
+
+    Rates and construction are `default_spec`'s exactly — the ten-strong shared
+    core plus thirty private individuals per domain, `shared` in every domain's
+    antecedents, one hidden unary law each — so the only thing that varies
+    between the two is width."""
+    domains = []
+    for i in range(n_domains):
+        prefix = f"x{i}"
+        domains.append(Domain(
+            f"dom{i}",
+            ("shared", f"{prefix}_local"),
+            (f"{prefix}_local", f"{prefix}_head"),
+            _individuals(prefix),
+        ))
+    return FieldSpec(
+        seed=seed,
+        withhold_rate=0.1,
+        spurious_rate=0.1,
+        domains=tuple(domains),
+    )
+
+
 class Field:
     """Deterministic deliverance. `deliver` is a pure function of
     (seed, domain, round) — it holds no mutable state, so any unit may read
