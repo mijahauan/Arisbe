@@ -154,7 +154,8 @@ demand_r  =  Σ_i ( |facts_i| + |laws_i| + acts_i )     # acts counted off MarkB
 charge_i  =  τ_r · ( |facts_i| + |laws_i| + acts_i )
 income_i  =  E1 · ( hits_i / Σ hits )                  # paid only when Σ hits > 0
 
-birth:     reserve_i ≥ 2·E0  and a seat is free  →  split; parent and child take E0 each
+birth:     reserve_i ≥ 2·E0  and a seat is free  →  split; each takes HALF the parent's
+                                                      reserve (so each starts ≥ E0)
 death:     reserve_i ≤ 0                          →  leaves; its seat frees
 ```
 
@@ -198,7 +199,11 @@ ruling 8 turned population into a result. What remains:
 
 The birth threshold `2·E0` is not a chosen multiple: `E0` *is* the world's entry price, so
 the rule reads *you may reproduce when you can pay a newcomer's entry and remain viable
-yourself.*
+yourself.* **Splitting the reserve in half rather than issuing each `E0` keeps birth
+conservative** — a parent at `3·E0` yields two units at `1.5·E0`, not two at `E0` with the
+remainder burned. Wealth is redistributed and never created or destroyed, which is what
+makes the conservation test in §10 meaningful. **Birth requires a positive entry price**, so
+the calibration arm (where `E0` is not yet known) breeds not at all.
 
 ## 4 · Calibrating E0
 
@@ -229,14 +234,43 @@ is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim
 
 | | | why here |
 |---|---|---|
-| **D-0** | retire `Unit.peers` | **must precede pricing.** Once asking is priced, every `peers`-derived figure moves and the retirement's before/after becomes unreadable. `source_reliability` exists and is tested. Its **before/after reading stands as its own note**, not in this record (author's ruling, 2026-08-02) — a retirement's evidence belongs with the retirement. |
+| ~~**D-0**~~ | ~~retire `Unit.peers`~~ | **REMOVED from the D-series at planning time, 2026-08-02** — see §5.2. It is a doctrinal change, not a cleanup, and it earns its own sitting. |
 | **D-1** | the priced world, determined τ, endogenous population | the core build |
 | **D-1b** | seed by DC+ · INS · IT+, with a price and a provenance | separate stage, one figure per cause. `notion_provenance` already supplies the held-until-affirmed shape. |
 | **D-2** | the shared pool across **equal-sized** communities | pre-registered, not built — ruling 3. Equal size first (author's ruling, 2026-08-02): unequal communities sharpen the niche argument but confound it with a size difference, and the point of D-2 is that a bounded source is too small for all, not that a big community beats a small one. |
 | **D-3** | **habits as ink** | §5.1 |
 
-**The implementation plan that follows this spec covers D-0 and D-1 only.** The rest is
-recorded so the sequencing argument survives the sitting; each earns its own spec.
+**The implementation plan that follows this spec covers D-1 only.** The rest is recorded so
+the sequencing argument survives the sitting; each earns its own spec.
+
+### 5.2 Why D-0 left the series
+
+Checked at planning time: **`Unit.peers` and `source_reliability.SourceStanding` are not the
+same measurement, and one cannot replace the other as things stand.**
+
+| | `Unit.peers` | `SourceStanding` |
+|---|---|---|
+| the verdict comes from | the unit's own later arrivals (`settle_credit`) | affirmation recorded in the ink |
+| shape | `(borne out, not borne out)` per (peer, relation) | contributed / affirmed / □ / ◇ / absent |
+| requires | nothing | a `TransformationChain` of provenance-bearing states |
+| standpoint | **first-person** — what I found out about you | **third-person** — what the record says, address-blind |
+
+The C-series builds **no chain at all**; units are plain objects stepping over rounds, so
+`standing_of` has nothing to read. `source_reliability`'s promise of a "like-for-like"
+migration is about *granularity* (per-author, per-relation) and not about where the verdict
+comes from.
+
+So retiring `peers` would swap **private typification for public standing** — and the
+C-series chose the private form deliberately: *"a peer earns its standing where it actually
+has an aperture and nowhere else."* The public form may well be better; it is Berger &
+Luckmann's objectivation and it is address-blind, which Examination VIII made a design
+constraint. But that is a sitting, not a task, and it lands on `P-D4`, whose meaning depends
+on which standing is meant. **In D-1, `P-D4` means first-person typification** — what
+`whom_to_ask` measures today.
+
+**The before/after is not lost.** D-0's stated reason for going first was that pricing would
+move every `peers`-derived figure. **Arm A0 is the unpriced reading**, preserved permanently
+and available whenever the retirement is actually done.
 
 ### 5.1 D-3 — habits as ink
 
