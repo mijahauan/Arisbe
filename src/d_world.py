@@ -22,7 +22,9 @@ the membrane, never in a private field beside the act.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional, Tuple
+
+from c_field import PAIRS, Aperture, FieldSpec, apertures_for
 
 
 @dataclass(frozen=True)
@@ -89,4 +91,68 @@ class Reserves:
         return sorted(u for u, a in self._amounts.items() if a > 0.0)
 
 
-__all__ = ["Source", "Reserves"]
+class SeatsFull(Exception):
+    """No slice of the field is free. RAISED, NEVER DEGRADED: handing a newcomer
+    an occupied aperture would seat a twin, and premise 3 requires units to meet
+    the field differently. Whether a unit BORN onto an occupied slice is the same
+    case as one SEEDED onto it is the design spec's section 11.1 candidate, and
+    it is unruled -- so this refuses until it is."""
+
+
+class Seats:
+    """The slices of the field a community may occupy, and who holds them.
+
+    THE CEILING IS THE WORLD'S, not a parameter. `apertures_for` yields C(k, 2)
+    distinct two-domain slices over k domains and refuses to seat two units on
+    one, so the field's width is the population ceiling and nobody chose a
+    maximum."""
+
+    def __init__(self, domain_sets: List[Tuple[str, ...]]):
+        self._domain_sets = list(domain_sets)
+        self._occupant: List[Optional[str]] = [None] * len(self._domain_sets)
+
+    def take(self, unit_id: str) -> Aperture:
+        """Seat `unit_id` on the lowest free slice and hand back ITS OWN
+        aperture.
+
+        Lowest-free rather than next-in-sequence so that a run is a
+        deterministic function of who died and when, and not of an allocation
+        counter that remembers history nobody can read.
+
+        The aperture is MINTED HERE with the occupant's id, because `Field.at`
+        reads `aperture.unit_id` as the observer and a newcomer inheriting the
+        previous occupant's object would meet the field through a dead unit's
+        membrane."""
+        for i, held in enumerate(self._occupant):
+            if held is None:
+                self._occupant[i] = unit_id
+                return Aperture(unit_id=unit_id, domains=self._domain_sets[i])
+        raise SeatsFull(
+            f"no free seat for {unit_id}: all {len(self._domain_sets)} slices of "
+            f"this field are occupied, and seating a twin would defeat premise 3"
+        )
+
+    def release(self, unit_id: str) -> None:
+        for i, held in enumerate(self._occupant):
+            if held == unit_id:
+                self._occupant[i] = None
+                return
+        raise ValueError(f"{unit_id} is not seated in this world")
+
+    def free(self) -> int:
+        return sum(1 for held in self._occupant if held is None)
+
+    def occupied(self) -> int:
+        return sum(1 for held in self._occupant if held is not None)
+
+
+def seats_from(spec: FieldSpec, scheme: str = PAIRS) -> Seats:
+    """Every distinct slice `scheme` allows over `spec` -- the world's ceiling,
+    read off the field rather than declared."""
+    k = len(spec.domains)
+    ceiling = k if scheme != PAIRS else k * (k - 1) // 2
+    return Seats([ap.domains
+                  for ap in apertures_for(spec, ceiling, scheme=scheme)])
+
+
+__all__ = ["Source", "Reserves", "Seats", "SeatsFull", "seats_from"]

@@ -110,3 +110,58 @@ def test_seeding_twice_refuses():
     r.seed("u0", 1.0)
     with pytest.raises(ValueError, match="already"):
         r.seed("u0", 1.0)
+
+
+from d_world import Seats, SeatsFull, seats_from
+
+
+def test_seats_hand_out_the_lowest_free_slice():
+    seats = Seats([("a", "b"), ("a", "c"), ("b", "c")])
+    assert seats.take("u0").domains == ("a", "b")
+    assert seats.take("u1").domains == ("a", "c")
+    assert seats.free() == 1
+    assert seats.occupied() == 2
+
+
+def test_a_seat_carries_the_occupant_s_own_id():
+    """Field.at reads aperture.unit_id as the OBSERVER, so a newcomer taking a
+    vacated slice must observe through its own membrane, not the dead unit's."""
+    seats = Seats([("a", "b")])
+    first = seats.take("u0")
+    assert first.unit_id == "u0"
+    seats.release("u0")
+    second = seats.take("u9")
+    assert second.unit_id == "u9"
+    assert second.domains == first.domains
+
+
+def test_release_frees_the_slice_for_reuse():
+    seats = Seats([("a", "b"), ("a", "c")])
+    seats.take("u0")
+    seats.take("u1")
+    assert seats.free() == 0
+    seats.release("u0")
+    assert seats.free() == 1
+    assert seats.take("u2").domains == ("a", "b")
+
+
+def test_a_full_world_refuses_rather_than_seating_a_twin():
+    """The ceiling is the world's. Seating two units on one slice would defeat
+    premise 3's requirement that units meet the field differently -- and the
+    candidate reading that would permit it for BORN units is unruled (spec
+    section 11.1)."""
+    seats = Seats([("a", "b")])
+    seats.take("u0")
+    with pytest.raises(SeatsFull, match="no free seat"):
+        seats.take("u1")
+
+
+def test_releasing_an_unseated_unit_refuses():
+    seats = Seats([("a", "b")])
+    with pytest.raises(ValueError, match="not seated"):
+        seats.release("ghost")
+
+
+def test_seats_from_the_wide_spec_gives_twenty_eight():
+    seats = seats_from(wide_spec())
+    assert seats.free() == 28
