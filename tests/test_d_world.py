@@ -340,3 +340,135 @@ def test_settle_is_deterministic():
     a, b = run(), run()
     assert a.charges == b.charges and a.incomes == b.incomes
     assert a.tau == b.tau
+
+
+def _maker(created):
+    def make_unit(unit_id, aperture):
+        u = _stub(unit_id)
+        created.append((unit_id, aperture))
+        return u
+    return make_unit
+
+
+def test_a_unit_that_runs_out_leaves_and_frees_its_seat():
+    """Mortality is a CONSEQUENCE: no die(), no TTL, no lifespan (spec P-D1)."""
+    world = _world(entry_price=1.0)
+    units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 0.5)
+    seated = world.seats.occupied()
+    report = world.settle(units, 0)
+    assert "u1" in report.died
+    assert [u.unit_id for u in report.units] == ["u0"]
+    assert world.seats.occupied() == seated - 1
+
+
+def test_a_rich_unit_splits_and_the_split_is_conservative():
+    """Each takes HALF the parent's reserve, so wealth is redistributed and
+    never created -- a parent at 3*E0 yields two at 1.5*E0, not two at E0 with
+    the remainder burned (spec 3.4)."""
+    created = []
+    world = _world(entry_price=1.0)
+    parent = _stub("u0", n_facts=1, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 6.0)
+    before = world.reserves.total()
+    report = world.settle([parent], 0, make_unit=_maker(created))
+    assert len(report.born) == 1
+    parent_id, child_id = report.born[0]
+    assert parent_id == "u0"
+    assert world.reserves.total() == pytest.approx(before)
+    assert world.reserves.balance(parent_id) == pytest.approx(
+        world.reserves.balance(child_id))
+    assert world.reserves.balance(child_id) >= world.source.entry_price
+    assert len(created) == 1 and created[0][0] == child_id
+
+
+def test_a_newborn_takes_a_free_seat_and_inherits_nothing_but_the_board():
+    """It arrives with no facts, no laws and no standing, and is socialized by
+    marks it never made -- Berger and Luckmann's secondary socialization, and
+    already built (spec 3.3)."""
+    created = []
+    world = _world(entry_price=1.0)
+    parent = _stub("u0", n_facts=1, n_laws=2, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 8.0)
+    report = world.settle([parent], 0, make_unit=_maker(created))
+    child = [u for u in report.units if u.unit_id != "u0"][0]
+    assert child.facts == set() and child.laws == set()
+    _, aperture = created[0]
+    assert aperture.unit_id == child.unit_id
+    assert len(aperture.domains) == 2
+    assert child.unit_id != parent.unit_id
+
+
+def test_birth_needs_a_positive_entry_price():
+    """The calibration arm does not breed: E0 is not yet known there, so a zero
+    threshold would make every unit split every round (spec 3.4)."""
+    created = []
+    world = _world(entry_price=0.0)
+    parent = _stub("u0", n_facts=1, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 100.0)
+    report = world.settle([parent], 0, make_unit=_maker(created))
+    assert report.born == ()
+    assert created == []
+
+
+def test_birth_needs_a_maker():
+    """Without one the world cannot construct a unit, and it says so rather than
+    silently declining to reproduce."""
+    world = _world(entry_price=1.0)
+    parent = _stub("u0", n_facts=1, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 9.0)
+    report = world.settle([parent], 0)          # no make_unit
+    assert report.born == ()
+
+
+def test_a_full_world_simply_does_not_breed():
+    """SeatsFull is a refusal at the seat, but a world with no room is a world
+    where births do not happen -- not an error the run should die on."""
+    created = []
+    world = PricedWorld(Source(1.0, 1.0), Seats([("a", "b")]), MarkBoard())
+    parent = _stub("u0", n_facts=1, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 9.0)
+    report = world.settle([parent], 0, make_unit=_maker(created))
+    assert report.born == ()
+    assert created == []
+
+
+def test_death_is_settled_before_birth():
+    """A seat freed this round is available this round: the world settles who
+    left before it asks who may arrive, so a community at the ceiling can still
+    turn over."""
+    created = []
+    world = PricedWorld(Source(1.0, 1.0), Seats([("a", "b"), ("a", "c")]),
+                        MarkBoard())
+    rich = _stub("u0", n_facts=1, hits=1)
+    poor = _stub("u1", n_facts=50)
+    for u, amount in ((rich, 9.0), (poor, 0.01)):
+        world.admit(u)
+        world.reserves.seed(u.unit_id, amount)
+    report = world.settle([rich, poor], 0, make_unit=_maker(created))
+    assert report.died == ("u1",)
+    assert len(report.born) == 1
+
+
+def test_a_newborn_id_is_never_reused():
+    created = []
+    world = _world(entry_price=1.0)
+    parent = _stub("u0", n_facts=1, hits=1)
+    world.admit(parent)
+    world.reserves.seed("u0", 40.0)
+    seen = set()
+    units = [parent]
+    for r in range(4):
+        report = world.settle(units, r, make_unit=_maker(created))
+        for _, child_id in report.born:
+            assert child_id not in seen
+            seen.add(child_id)
+        units = list(report.units)
+    assert len(seen) == len(created)

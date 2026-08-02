@@ -288,8 +288,53 @@ class PricedWorld:
                            born=born, died=died, units=tuple(living))
 
     def _settle_population(self, living, make_unit):
-        """Task 5 fills this in. Until then the population is fixed."""
-        return (), (), living
+        """Who left, then who arrived.
+
+        DEATH FIRST, so a seat freed this round is available this round and a
+        community at the ceiling can still turn over.
+
+        BIRTH SPLITS THE RESERVE IN HALF rather than issuing each unit the entry
+        price, which keeps it CONSERVATIVE: a parent at three times the entry
+        price yields two units at one and a half times it, not two at the entry
+        price with the remainder burned. Wealth is redistributed and never
+        created or destroyed, which is what makes the conservation reading
+        meaningful.
+
+        THE THRESHOLD IS NOT A CHOSEN MULTIPLE. The entry price IS what it costs
+        to enter this world, so `2 * entry_price` reads: you may reproduce when
+        you can pay a newcomer's entry and remain viable yourself. A world with
+        no entry price -- the calibration arm, where it is not yet measured --
+        does not breed at all, since a zero threshold would split every unit
+        every round.
+
+        A FULL WORLD SIMPLY DOES NOT BREED. `SeatsFull` is the right refusal
+        when someone asks for a seat, but a world with no room is a fact about
+        the world and not an error the run should die on."""
+        died = []
+        for u in list(living):
+            if not self.reserves.alive(u.unit_id):
+                self.seats.release(u.unit_id)
+                self.reserves.drop(u.unit_id)
+                died.append(u.unit_id)
+        survivors = [u for u in living if u.unit_id not in set(died)]
+
+        born = []
+        if make_unit is not None and self.source.entry_price > 0.0:
+            threshold = 2.0 * self.source.entry_price
+            for u in list(survivors):
+                if self.reserves.balance(u.unit_id) < threshold:
+                    continue
+                if self.seats.free() == 0:
+                    break
+                child_id = self._mint_id()
+                aperture = self.seats.take(child_id)
+                half = self.reserves.balance(u.unit_id) / 2.0
+                self.reserves.charge(u.unit_id, half)
+                self.reserves.seed(child_id, half)
+                survivors.append(make_unit(child_id, aperture))
+                born.append((u.unit_id, child_id))
+
+        return tuple(born), tuple(died), survivors
 
 
 __all__ = ["Source", "Reserves", "Seats", "SeatsFull", "seats_from",
