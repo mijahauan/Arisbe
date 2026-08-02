@@ -82,3 +82,34 @@ hand a unit a faculty it does not have. And check the temporal direction: a repo
 is written after its act and read no earlier than the next occasion — an instrument
 that changes the act it measures has got out in front of it, which is testable
 exactly as it sounds (instrumenting must move no measured figure).
+
+## 2026-08-01/02 — Examination VIII and the provenance build
+
+**A pre-registered prior can be wrong in its SPECIFICATION, not only in its
+prediction.** `P-W1` demanded conserved flow + branching topology + minimized
+dissipation. That is right for West's metabolic family and over-demands for the
+socioeconomic one, whose minimal premise is a scale-free accessibility gradient.
+Pre-registration protects against motivated *reading* of results; it does not protect
+against a mis-specified test. Only an adversary with primary sources caught it.
+**Rule:** when mandating a defending panel, license it to correct the reading, not
+only to contest the verdict.
+
+**Search by role, not by name — again, and the failure mode was "the concept felt
+new".** `src/provenance.py` already existed (bibliographic bundle) and the collision
+surfaced only when `tests/test_provenance.py` refused to be overwritten. No grep was
+run because the *idea* was new; the word was not. **Rule:** grep the vocabulary before
+naming a module, especially when confident the concept is unprecedented.
+
+**A reading no test can reach is not a reading.** The ◇/`possible` column of
+`source_reliability` was dead code through every linear test — nothing in the suite
+could produce it — and writing one branching test exposed a real bug (a source's
+record depended on branch write order). Same shape as the examination's own finding
+that a sweep capped at 4→6 units cannot measure invariance across an order of
+magnitude. **Rule:** for every enumerated outcome a function can return, ask which
+test produces it; an unreachable branch is untested, not merely uncovered.
+
+**Prefer probing the running system to reasoning about it.** Three design defects —
+generic antecedents over-firing, quotations silently breaking Horn recognition,
+quotation-bearing graphs having no linear form — were found in four short probes
+before a line of production code existed. Two of the three fail *silently*: the rule
+stops firing and nothing raises. Argument would not have found them.

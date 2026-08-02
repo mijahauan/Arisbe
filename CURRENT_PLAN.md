@@ -1,6 +1,115 @@
 # Current Plan
 
-**Last Updated**: 2026-08-01 (eleventh arc) — **THE RE-MEASUREMENT PASS: `net_score`
+**Last Updated**: 2026-08-02 (twelfth arc) — **EXAMINATION VIII: THE WEST MAPPING
+TRIED AND SPLIT, AND THE FIRST TWO ITEMS OF THE RULED INK-WORK BUILT.**
+Working on `main`. Spec:
+[Examination VIII](docs/superpowers/specs/2026-08-01-examination-viii-the-west-mapping-on-trial.md)
+· [provenance design](docs/superpowers/specs/2026-08-01-provenance-in-the-ink-and-derived-reliability-design.md).
+
+**The examination, and what rider (a) bought.** Five blind adversarial panels — three
+defending West-in-kytē from primary sources only, forbidden the sitting spec and the
+docket; two prosecuting the four questions. Pre-registration `P-W1`…`P-W6` was
+committed at `e962b80` **before any panel reported**, findings in a later commit, so
+the ordering is checkable rather than asserted.
+
+**Q1 lands, on metabolism rather than on imposition.** A genuine invariant quantum
+exists and it is not the unit: the **proposition as unit of account**, converged on
+independently by four mechanisms, one of them *forced by measurement*. It has a
+capacity and **no rate** — uncapped channels, Θ(|M|) cost against a model that never
+shrinks, and `c_use.WorkUsageLedger` has **no consumer in `src/` at all**. Both
+panels corrected the referee here: West *assumes* terminal invariance too, so
+"we imposed it" was the wrong charge.
+
+**Q2 lands and converts into a signed prediction.** The escape `P-W2` reserved is
+real (Arbesman/Kleinberg/Strogatz derive an exponent from a social tree with no
+geography) and the same literature closes it (Ribeiro & Rybski: `φ = γ/D_p`, the
+tree's branching factor doing full dimensional duty — **no space ≠ no dimension**).
+Two blind panels then reached **β = 1 exactly** from opposite limits of one
+Bettencourt equation, `H → 0` and `D → ∞`. Six nulls are what that prediction looks
+like from inside. And `a = −ln n / ln(γβ²)` needs levels: on a flat board β and γ are
+undefined, so **no expression in Arisbe could equal 3/4**.
+
+**Q3 lands as a design defect, sharper than charged** — five of eight conditions
+mis-voiced with the build differing in every case, two of them *inverting* (A7's
+environment-side build is the *smaller* one; A8 as written is **vacuous**, already
+satisfied by `choose(k, …)`), plus two contradictions nobody had found: **A5 ⟂ A8**
+and **A6 ⟂ premise 1**. Both dissolve under environment-first. The lists carry
+**eight**, not six — and Examination VII's own repair introduced the voice defect.
+
+**Q4's premise is false.** Scalarity is not load-bearing in WBE — three derivations
+minimizing three different things (impedance, blood volume, nothing at all) converge
+on 3/4. Author's **Ruling B**: K is an **instrument, never an optimand**, so Q4
+**dissolves** and `ROADMAP` candidate (v) needs no amendment.
+
+**`P-W1` was over-strict and the defense corrected it** — the three-premise test is
+right for the metabolic family and over-demands for the socioeconomic. The real
+irreducible premise is **a scale-free accessibility gradient**, which Arisbe also
+lacks, so the verdict held on narrower and firmer grounds.
+
+**The finding that outranks the verdicts.** Three of four questions land on **one
+thing**, and the defense derived a **ninth condition**: *a reach structure in which
+the cost of reaching grows with the community's extent.* Without it Bettencourt
+predicts β = 1 however well the other eight are met. It is environment-side — so the
+mapping's failure and the environment-first ruling are **one finding seen twice**,
+and the D-series sitting is this examination's principal output, not something queued
+behind it.
+
+**Author's rulings:** *split, regrade, keep the frontier* (his predicted row split
+held exactly; a **fifth** unlisted row was found at `CONTRIBUTION_AND_PRIOR_ART:231`,
+the only text naming the network premise outright) · **Ruling A**, a new grade is
+coined because none of the seven can say *their equations say not here, not ever,
+until X* (assistant's proposal `predicted-absent`, **name still his to rule**) ·
+**Ruling B** above.
+
+**Then his three questions moved the ground.** (1) *Signs are non-rival* was
+**overstated** — rivalry for **standing** (contradiction makes it scarce, and nobody
+installed it) and rivalry for **attention** are both real and already built; only
+*rivalry in consumption* is absent, and the socioeconomic branch never needed it.
+(2) The fractal holds — **Property 1** (self-similar anatomy across levels of
+description) without **Property 2** (a branching distribution geometry within one
+level); the word was doing double duty, which is a level slip in his own §1 sense.
+(3) **B&L supply the gradient**: typification rises and influence wanes with social
+distance, which is θ arriving from a row already graded `ratified-doctrine`, and it
+**explains typification's inertness better than scarcity or the Python dict** — a
+flat board has no social distance, so at four units everyone is a significant other.
+His prophet case then fixes a design constraint: **legitimacy must be address-blind**,
+never derived from reach.
+
+**BUILT (steps 1–2, general machinery only per his staging ruling):**
+`src/notion_provenance.py` (17 tests) — a notion arrives **held** as
+`~[ (provided_by S k) ~[ notion ] ]` and derives only once its antecedent is
+affirmed, through the existing Horn chainer with no new inference code; retract the
+affirmation and the notion goes, because nothing stored it. Plurality and
+corroboration are one mechanism. `src/source_reliability.py` (14 tests) —
+`SourceStanding` recomputed from the chain, **no scalar** and **address-blind**, both
+enforced by tests rather than by convention. **The C-series is untouched and
+`Unit.peers` still works**, as ruled.
+
+**Three defects found by probing and building rather than by arguing**, each now
+pinned: a generic antecedent **over-fires** (one affirmation derived a notion nobody
+affirmed); a quotation on the key **silently** breaks Horn recognition (`complex_body`
+— the rule stops firing and nothing raises); and the reader's first version made a
+source's record depend on **branch write order**, invisible until a branching test
+existed — the ◇ column was dead code until then. **A reading no test can reach is not
+a reading.**
+
+**State at close:** `main`, suite **4493 passed / 217 skipped / 0 failures** (45
+errors are three E2E files needing an uninstalled Chromium — pre-existing, unrelated;
+note `CLAUDE.md` claims they skip cleanly when it is absent, and they error instead).
+
+▶ **NEXT: §5.2's chapter work, which needs one ruling first — the grade's name.**
+Then: regrade the three mechanism rows; add the ninth condition to both lists and
+re-voice A1/A3/A6/A7/A8 environment-side; resolve A5 ⟂ A8 (*fix the price, let the
+quantum fall out*) and A6 ⟂ premise 1 (*extinction is running out*); correct the stale
+"six" in five places; discharge VII.6 with VIII.18's rider; replace the two "operand"
+texts under Ruling B. **Then step 3** (seed by DC+ · INS · IT+) and **step 4**
+(retire `Unit.peers`), both of which move measured C-series figures and want their own
+pass. The **D-series sitting** is his to open, and its scope now has a fourth item
+beside clock/capacities/source: the reach structure.
+
+---
+
+**Last Updated (prior)**: 2026-08-01 (eleventh arc) — **THE RE-MEASUREMENT PASS: `net_score`
 RETIRED AS A GATE STATISTIC, THE WINDOW MOVED TO 8, AND A DESIGN REFUSED ALONG THE
 WAY.** Branch `remeasurement-pass-2026-07-31`, based at `3ba6816`.
 Executes two of the six 2026-07-31 rulings (`tasks/todo.md`): retire `net_score`,
