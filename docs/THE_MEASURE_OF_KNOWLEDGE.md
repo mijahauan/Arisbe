@@ -60,12 +60,78 @@ mediation — and the machinery now running gives each clause a measurable count
   FIDELITY_AND_DEPARTURES): the "set of situations" did the work of context-indexing
   before Arisbe enforced it structurally.
 
-**The revision** (assistant's formulation, for the author to amend): **knowledge is the
-resident content of M whose habits reliably mediate the membrane's deliverances —
-quantified by severity-weighted track record, durability under revision, compression of
-the deliverance stream, and continued use — always indexed to the horizon within which
-the record was earned.** The correspondence-not-truth discipline survives intact: this
-quantifies *warranted reliability in context*, never truth.
+**The revision — the author's, ruled 2026-08-02** after an examination that rejected three
+assistant formulations in a row. Each failed in a way worth keeping on the record, because
+the errors are instructive and the project's own doctrine forbade all three.
+
+> **Knowledge is a situation — of one kytos or of many — in which mediation brought the
+> doubt that motivated it to rest.**
+
+Four clauses govern the reading, none of them decoration.
+
+**(a) Not owned, and not bounded by a membrane.** Knowledge is not an attribute or
+possession of any kytos. Under Peirce's continuity the mediation may run across several —
+through the commens and the marks it holds in common — and asking *whose* knowledge it was
+is often a malformed question. This is `THE_COMMENS_AND_THE_COMMUNITY` §2(c) one level up:
+**judgment is objectivated, never owned**, and so is knowledge. The rejected formulations
+made it the content of M, then the habit of a kytos; both were possessions, and the second
+also committed a plain category error — *a model does not act; an agent acts using one*.
+
+**(b) The doubt must be genuine, and the resting must be caused by the mediation.** A
+mediation that settled nothing anyone was in doubt about resolved nothing (Peirce: paper
+doubt is not doubt). And doubt rises and falls on a gradient rather than switching, so
+"to rest" means *below the level at which it moved inquiry* — **because of the
+mediation**. A doubt quieted by fatigue, distraction or desensitization was not resolved.
+**Fatigue is the false positive of resolution**, and the two paths are properly distinct in
+the machinery already: `AttentionEconomy.settle` marks genuine settlement, while
+`attempt_decay ** attempts` merely damps an unsettled want.
+
+**(c) The situation must be poised** — which promotes poise from a vital sign to a
+*condition of resolution*. The two poles named by `agon_metalearning.poise_report` are two
+ways the **doubt clause** fails, not two ways mediation fails: at **rigidity** nothing rises
+far enough to trouble, so there is no doubt to resolve; at **thrash** nothing settles, so
+nothing is resolved. Knowledge happens in the band between. The author's two error kinds
+give that band a second axis — *blindness* (false negatives, what should trouble us and
+does not) pushes toward rigidity; *hallucination* (false positives, energy spent on
+unfounded doubt) pushes toward thrash. **The band's geometry is deliberately left open** —
+threshold, line, or landscape — as something to measure rather than stipulate.
+
+**(d) Read in situ. The later trajectory never reaches back.** What follows — refutation,
+retirement with a deliverance-type, re-reading under a widened horizon — is a fact about
+*that trajectory*, and it neither constitutes nor degrades what was knowledge then. **A
+child on its way to adulthood does not know nothing.** Reliable trepanning did register as
+knowledge; what makes the same act malpractice today is that the situation now contains
+alternatives and a community that has objectivated better habits — **the situation changed,
+not the knowledge**. Grading past states by their distance from a present one is a ladder,
+and this project refuses ladders everywhere else (`CONTRIBUTION_AND_PRIOR_ART`, Graeber &
+Wengrow adopted for the negative claim; the halting duals with no destination). Admitting
+one into the chapter that measures would be the dragon let in through the back door. The
+symmetry rule that keeps it out: a later view may say *they took that as settled; we would
+not*, and that is a statement about **two situations**, never a demotion of one.
+
+**Severity belongs to the measure, not to the definition.** An earlier draft used severity
+to disqualify trepanning *retroactively* — the same telos error in a different coat. Whether
+knowledge occurred is settled by (b); **how much a resolution is worth** is K1's business
+(§2). Fermat needs no severity clause to come out right: five confirmations never resolved
+the doubt, which stayed openly open, and Euler's F5 did.
+
+**What this leaves the measure.** Being-knowledge (in situ) and being-durable (across
+trajectories) are two properties, neither reducible to the other. K2 and the ◇/□ reading
+remain exactly as built — they measure the *trajectory*, and are simply forbidden from
+deciding whether something was knowledge. The correspondence-not-truth discipline survives
+intact: this quantifies *warranted competence in context*, never truth.
+
+**The limit, stated rather than smoothed.** Doubt in the full sense presupposes something at
+stake, and Arisbe's autonomous units have none — immortal, unfunded, unable to fail at
+anything that costs them. Their "doubt" is a scheduling signal, not an irritation. The
+definition can therefore be written correctly now while the machinery instruments only part
+of it; closing that gap is the D-series' whole purpose
+([2026-08-02-d-series-building-the-stake-design-opening.md](superpowers/specs/2026-08-02-d-series-building-the-stake-design-opening.md)).
+One measured symptom of the same absence: the attention economy can **fatigue but never
+inflame** — `_score` damps monotonically by `attempt_decay ** attempts` and no term anywhere
+rises with repeated non-resolution — so *the itch one cannot scratch* is currently
+unrepresentable. Under stake it should need no new term: as reserves fall, an unresolved
+doubt is income not earned, and urgency rises on its own.
 
 *Prior-art anchors* (see CONTRIBUTION_AND_PRIOR_ART §"Concordances" for the fuller
 survey): Peirce's belief-as-habit; Ramsey's success semantics; Ryle's knowing-how;

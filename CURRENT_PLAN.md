@@ -122,21 +122,58 @@ failures** (45 errors are three E2E files needing an uninstalled Chromium —
 pre-existing, unrelated; note `CLAUDE.md` claims they skip cleanly when it is absent
 and they error instead). **Book renders 48/48 HTML.**
 
+**Then the session ran past the examination into doctrine, and the author overturned three
+assistant formulations of *knowledge* in a row.** Recorded at
+[THE_MEASURE_OF_KNOWLEDGE §1](docs/THE_MEASURE_OF_KNOWLEDGE.md). His ruling:
+**knowledge is a situation — of one kytos or of many — in which mediation brought the
+doubt that motivated it to rest.** Four clauses: **not owned and not bounded by a
+membrane** (continuity; `THE_COMMENS` §2(c) one level up — a model does not act, an agent
+acts using one); **the doubt genuine and the resting caused by the mediation** (fatigue is
+the false positive of resolution — `settle` and `attempt_decay` are properly distinct
+paths); **the situation poised**, which promotes poise from vital sign to *condition of
+resolution* since rigidity and thrash are two ways the **doubt clause** fails, with
+blindness and hallucination as the band's second axis and its geometry deliberately left
+open to measure; and **read in situ — the later trajectory never reaches back**. *A child
+on its way to adulthood does not know nothing.* Reliable trepanning was knowledge; what
+changed is the situation, not the knowledge. Grading past states by a present one is the
+ladder this project refuses everywhere else. **Severity moved out of the definition into
+the measure** — using it to disqualify trepanning retroactively was the same telos error in
+another coat, and Fermat comes out right without it.
+
+**The author then opened the D-series: build the stake.**
+[Design opening](docs/superpowers/specs/2026-08-02-d-series-building-the-stake-design-opening.md).
+His framing unifies most of Examination VIII: **the user was the environment** — doubt,
+severity, situation, stake and a moving threshold were all supplied by a person, and
+autonomy removed them and replaced nothing. Consequently **the interactive form already
+produces knowledge under the new definition and the autonomous form does not**, which
+inverts which one is the derivative. **Autonomy and stake are different axes**, and the
+program bought the first while assuming the second came along; Conway's Life is fully
+autonomous and epistemically dead. Proposal for his amendment: **four outside numbers and
+one rule** (source quantity/rate · maintenance tariff · reach tariff · allocation rule),
+with **no unit parameter set at all** — his own *fix the price, let the quantum fall out*.
+Mortality, selection, sensitization, typification and the reach gradient are **pre-registered
+to follow, not be built**. The cheap conversion: the cost meter already exists as an
+observer's scorecard — *make it a subtraction instead of a reading and it becomes a world*.
+E2/E3 are Secondness (the tariff takes regardless of belief); E4 is where Thirdness earns
+its keep (Bickhard: the truth condition becomes the system's own when acting wrongly
+shortens your life). And *ablate the putative sign* finally bites, because survival becomes
+measurable.
+
 ▶ **NEXT, and none of it is blocked.**
 
-1. **Step 3 — seed by DC+ · INS · IT+** instead of `Unit(laws={...})`, putting primary
-   socialization in the ink. Needs a fuller description first, and it wants **rewriting**
-   before it is written: the original sketch routed communication through aperture
-   overlap, and the author's B&L point supplies a better-grounded structure with a
-   typification gradient the aperture scheme does not have.
-2. **Step 4 — retire `Unit.peers`**, now that the replacement exists and is tested.
-   Moves measured C-series figures, so it wants its own pass with a before/after
-   reading, on the re-measurement pass's discipline: **a moved figure has exactly one
+1. **The D-series design spec** — the author's opening is recorded; next session turns it
+   into a full design with his amendments to the four parameters and the follow-not-build
+   predictions, and pre-registers before anything is built.
+2. **Step 3 — seed by DC+ · INS · IT+** instead of `Unit(laws={...})`. **Folds into the
+   D-series design** rather than standing alone: under a priced world a unit's initial
+   model needs a *price and a provenance*, not an assignment. The original sketch (routing
+   communication through aperture overlap) is superseded by the author's B&L point —
+   typification rising with social distance is the graded accessibility condition 9 needs,
+   from a tributary already graded `ratified-doctrine`.
+3. **Step 4 — retire `Unit.peers`**, now that `source_reliability` exists and is tested.
+   Independent of the above; moves measured C-series figures, so it wants its own pass
+   with a before/after reading, on the standing rule that **a moved figure has exactly one
    cause.**
-3. **The D-series sitting**, the author's to open. Its scope now has a **fourth** item
-   beside clock / capacities / contested source: **the reach structure** — and the
-   examination argues this sitting is not a queue item behind the West question but the
-   answer to it.
 
 *Deferred and unchanged:* the credential build (stage 4 part (c)) still blocks weighted
 witnesses; the scarcity test is now partly **subsumed** — capping answering *is* making
