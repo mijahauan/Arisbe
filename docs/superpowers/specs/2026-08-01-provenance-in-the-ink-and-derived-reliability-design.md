@@ -158,6 +158,33 @@ bite this design now that the oval is gone, but **any path that serializes M as 
 breaks on quotations** — which will matter to the C-series migration, whose segment
 carry is already structural JSON for a related reason (Examination IV ④).
 
+## 5a · What the build found (added after implementation)
+
+**5a.1 · The module name was already taken, and only the test file revealed it.**
+`src/provenance.py` exists and is the unrelated **bibliographic** bundle — theorem /
+EG-derivation / calculus layers with per-layer warrant, sidecar-persisted, surfaced on
+the Organon detail route. Nothing to reuse; entirely different layer. The collision
+surfaced only because `tests/test_provenance.py` refused to be overwritten. Built as
+`notion_provenance.py` — provenance *of a notion*, which is what §6a actually names.
+A fresh instance of the standing lesson **search by role, not by name**: a grep for
+"provenance" would have found this, and the design never ran one because the *concept*
+felt new.
+
+**5a.2 · The reader's first version made a source's record depend on branch write
+order.** `_records_for` read provenance off `chain.steps[-1].to_state_id` — whichever
+step happened to be recorded last. On a branching DAG that is arbitrary: a source that
+contributed on branch A and B was measured `contributed=1, affirmed=0` when both
+should count. Fixed by reading across **all** states and merging by `(source, key)`,
+with `affirmed` meaning *affirmed anywhere* — an affirmation on one branch is a real
+event even if a sibling never made it. Pinned by
+`test_a_contribution_on_a_sibling_branch_still_counts`.
+
+This is worth naming beyond the fix: the bug was invisible on every linear test and
+appeared only once a **branching** test existed. The ◇ column was itself dead code
+until that test was written — nothing in the suite produced `possible` — which is the
+same shape as VIII.11's finding that an unreachable sweep cannot measure invariance.
+**A reading that no test can reach is not a reading.**
+
 ## 6 · Testing
 
 New: `tests/test_provenance.py`, `tests/test_source_reliability.py`.

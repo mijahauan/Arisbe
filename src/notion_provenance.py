@@ -80,6 +80,12 @@ class ProvenanceRecord:
     source: str
     key: str
     relations: FrozenSet[str]
+    notion_atoms: FrozenSet[Tuple[str, Tuple[str, ...]]]
+    """The consequent's **ground** atoms, as ``(relation, labels)`` — read out
+    of the ink, so a reader never has to be told what a source said. Ground
+    only: an atom carrying a generic line contributes nothing here, which is a
+    named limit rather than an oversight (the derived reader asks whether a
+    notion *stood*, and only a ground notion can be looked up)."""
     affirmed: bool
     cut_id: ElementID
 
@@ -121,6 +127,23 @@ def _relations_within(g: RelationalGraphWithCuts,
     return frozenset(names)
 
 
+def _ground_atoms_within(
+    g: RelationalGraphWithCuts, area: ElementID
+) -> FrozenSet[Tuple[str, Tuple[str, ...]]]:
+    """Ground atoms scribed anywhere inside ``area``, recursively."""
+    atoms = set()
+    for eid in g.rel:
+        ctx = g.get_context(eid)
+        while ctx is not None and ctx != g.sheet:
+            if ctx == area:
+                labels = _atom_labels(g, eid)
+                if all(l is not None for l in labels):
+                    atoms.add((g.rel[eid], tuple(labels)))
+                break
+            ctx = g.get_context(ctx)
+    return frozenset(atoms)
+
+
 def provenance_records(m: RelationalGraphWithCuts) -> List[ProvenanceRecord]:
     """Every provenance conditional standing in M, with whether its antecedent
     has been affirmed. A pure read — nothing is cached anywhere."""
@@ -150,6 +173,7 @@ def provenance_records(m: RelationalGraphWithCuts) -> List[ProvenanceRecord]:
         records.append(ProvenanceRecord(
             source=source, key=key,
             relations=_relations_within(held, consequent),
+            notion_atoms=_ground_atoms_within(held, consequent),
             affirmed=(source, key) in affirmations,
             cut_id=cut_id))
     return sorted(records, key=lambda r: (r.source, r.key))

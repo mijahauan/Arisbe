@@ -237,3 +237,23 @@ class TestChainRecording:
             assert step.parameters["earned"] is True
             assert step.parameters["derivation"] == ["INS"]
         assert _derives(pc.current, "white", "s1")
+
+
+class TestNotionContent:
+    """The reader (``source_reliability``) must ask whether a source's notion
+    actually stood, so the record has to carry what the notion says — and it
+    must come out of the ink, not from a caller's memory."""
+
+    def test_records_carry_the_notion_as_ground_atoms(self):
+        m, _key = record_provenance(_resident(), source="wiki",
+                                    notion_egif='(white "s1")')
+        (rec,) = provenance_records(m)
+        assert rec.notion_atoms == frozenset({("white", ("s1",))})
+
+    def test_a_multi_atom_notion_carries_all_of_it(self):
+        m, _key = record_provenance(
+            _resident(), source="wiki",
+            notion_egif='(white "s1") (tall "s1")')
+        (rec,) = provenance_records(m)
+        assert rec.notion_atoms == frozenset({("white", ("s1",)),
+                                              ("tall", ("s1",))})
