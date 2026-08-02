@@ -93,19 +93,54 @@ source's record depend on **branch write order**, invisible until a branching te
 existed — the ◇ column was dead code until then. **A reading no test can reach is not
 a reading.**
 
-**State at close:** `main`, suite **4493 passed / 217 skipped / 0 failures** (45
-errors are three E2E files needing an uninstalled Chromium — pre-existing, unrelated;
-note `CLAUDE.md` claims they skip cleanly when it is absent, and they error instead).
+**§5.2's chapter work: DONE.** The author named the grade — **`predicted-absent`**,
+hyphenated to match the four it joins — and it is defined where the vocabulary lives
+(`VISION_AND_SCOPE` grading discipline, four grades → **five**;
+`CONTRIBUTION_AND_PRIOR_ART`'s grade list). It always carries its **blocker**, and is
+deliberately *not* "refuted": nothing here shows West false or the correspondence
+impossible, only that it cannot appear here as built.
 
-▶ **NEXT: §5.2's chapter work, which needs one ruling first — the grade's name.**
-Then: regrade the three mechanism rows; add the ninth condition to both lists and
-re-voice A1/A3/A6/A7/A8 environment-side; resolve A5 ⟂ A8 (*fix the price, let the
-quantum fall out*) and A6 ⟂ premise 1 (*extinction is running out*); correct the stale
-"six" in five places; discharge VII.6 with VIII.18's rider; replace the two "operand"
-texts under Ruling B. **Then step 3** (seed by DC+ · INS · IT+) and **step 4**
-(retire `Unit.peers`), both of which move measured C-series figures and want their own
-pass. The **D-series sitting** is his to open, and its scope now has a fourth item
-beside clock/capacities/source: the reach structure.
+- **Three mechanism rows regraded.** The prose row's three nouns are **struck rather
+  than deleted** — kept visible because it was the only text naming the network premise
+  outright, which is what the examination was checking. `THE_KYTOS`'s "reliability, not
+  analogy" loses all four load-bearing nouns and adopts the defense's own summary.
+  `THE_COMMENS` §5 gains the sharper finding: its *superlinear* half is predicted false
+  over a flat commens, and **B&L supply the missing gradient sociologically** —
+  typification rising with social distance is the graded accessibility the derivation
+  needs, from a tributary already graded `ratified-doctrine`.
+- **Both condition lists re-voiced environment-side and grown to NINE**, with the two
+  contradictions resolved in the ink: A5 ⟂ A8 by *fix the price, let the quantum fall
+  out*; A6 ⟂ premise 1 by *extinction is running out*.
+- **Ruling B applied** to all three "vector operand" texts — they now claim what a kytos
+  makes **observable**, not what it optimizes — and `WEST_METHODS_NOTE`'s
+  "frozen-landscape shadow" is retired with its reason.
+- **VII.6 discharged**, with the rider that its own repair introduced the voice defect.
+- The stale "six"/"eight" corrected in five chapters; `ROADMAP` candidate (v) amended.
+
+**State at close:** `main`, working tree clean, suite **4493 passed / 217 skipped / 0
+failures** (45 errors are three E2E files needing an uninstalled Chromium —
+pre-existing, unrelated; note `CLAUDE.md` claims they skip cleanly when it is absent
+and they error instead). **Book renders 48/48 HTML.**
+
+▶ **NEXT, and none of it is blocked.**
+
+1. **Step 3 — seed by DC+ · INS · IT+** instead of `Unit(laws={...})`, putting primary
+   socialization in the ink. Needs a fuller description first, and it wants **rewriting**
+   before it is written: the original sketch routed communication through aperture
+   overlap, and the author's B&L point supplies a better-grounded structure with a
+   typification gradient the aperture scheme does not have.
+2. **Step 4 — retire `Unit.peers`**, now that the replacement exists and is tested.
+   Moves measured C-series figures, so it wants its own pass with a before/after
+   reading, on the re-measurement pass's discipline: **a moved figure has exactly one
+   cause.**
+3. **The D-series sitting**, the author's to open. Its scope now has a **fourth** item
+   beside clock / capacities / contested source: **the reach structure** — and the
+   examination argues this sitting is not a queue item behind the West question but the
+   answer to it.
+
+*Deferred and unchanged:* the credential build (stage 4 part (c)) still blocks weighted
+witnesses; the scarcity test is now partly **subsumed** — capping answering *is* making
+contact rival, which is item 1's precondition rather than a separate experiment.
 
 ---
 
