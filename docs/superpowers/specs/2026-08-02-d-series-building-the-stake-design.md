@@ -24,29 +24,46 @@ the system and affecting nothing. This turns the reading into a subtraction. Not
 ever subtracted from anything; that is the whole omission.
 
 It does **not** build a chooser, a sense organ for the reserve, a `die()`, a TTL, a
-lifespan, a genome, a mutation operator, or a birth rule. Every one of those was
-considered in the sitting and refused for a stated reason, recorded in §9.
+lifespan, a genome, or a mutation operator. Every one was considered in the sitting and
+refused for a stated reason, recorded in §9.
 
-**The limit of D-1, stated plainly so nothing reads past it.** With no reproduction the
-world can only shrink. Units die, survivors coast, nothing new is tried. D-1 can measure
-whether a stake bites at all; **it cannot measure evolution of unit policy**, and §7's
-priors are written so that none of them pretends otherwise. What it *can* measure —
-because the substrate already affords it — is selection over **laws**, which is §5's D-3
-finding and §7's `P-D2`.
+### 1.1 It is not an attempt to recover the West correspondence
+
+This has to be said at the top, because the opening's §4 pre-registered the reach gradient
+as "the conjecture most worth testing" and **the design's own rulings make it unreachable**
+(§7's `P-D5`). Under a conservative world the total metabolic cost is pinned to the source
+and does not vary with community size at all, and the price of reaching *falls* as the
+community grows rather than rising with its extent — the opposite of condition 9.
+
+So the D-series builds the stake because **the stake is what knowledge requires**
+(THE_MEASURE_OF_KNOWLEDGE §1: a situation in which mediation brought a genuine doubt to
+rest), not because it would yield an exponent. Examination VIII's `predicted-absent` grade
+stands undisturbed, and §7 pre-registers that **no exponent is measurable here, by
+construction**, so that nobody later fits one to an identity.
+
+### 1.2 The limit that remains
+
+Model content can now vary, spread and be selected — the law is a replicator (§5.1). **Unit
+policy cannot**, because `corroboration_window` and the induction criteria are not
+transmissible; they are Python, not ink. D-1 therefore measures whether a stake bites and
+whether laws have lineages. It does not measure the evolution of policy, and §7's priors
+are written so that none of them pretends otherwise. That gap is what D-3 names.
 
 ## 2 · The rulings this sitting produced
 
-Seven, each with the reason it was made.
+Nine. The last three came from the author applying one principle — *let it develop rather
+than set it* — three times running, each application removing a parameter the assistant had
+installed.
 
 1. **Nothing is declined; a unit runs out.** The tariff subtracts regardless. No act is
    ever refused, no reserve is ever consulted, no chooser exists. `reserve ≤ 0` is death,
-   which is §4's mortality prediction with nothing installed to produce it. The
+   which is the opening's mortality prediction with nothing installed to produce it. The
    alternative — the world declining unaffordable acts — was refused because whoever fixes
    the **attempt order** fixes the priority, and which acts get dropped first is a
    substantive claim a designer would be making on the world's behalf.
 
 2. **No sense organ, because there is nothing for one to reach.** Inspection of `c_unit.py`
-   found that the unit has **no chooser anywhere**: `step` always anticipates and records,
+   found the unit has **no chooser anywhere**: `step` always anticipates and records,
    `publish` publishes everything held unconditionally, `ask` / `challenge` fire on their
    own internal conditions. What the C-series tests call "bounded attention" is not a
    scarcity but a stagger the *test driver* imposes
@@ -57,159 +74,169 @@ Seven, each with the reason it was made.
    a designer writes the answer and calls it emergent.
 
 3. **Allocation is pro rata by matches, over a pool whose boundary defaults to
-   per-community.** Rivalrous, so another unit's success is your loss and a crowded niche
-   starves everyone in it — which is the only form under which community size could bend
-   anything. The wider boundary (one pool serving every community, so communities compete
-   directly) is **not a rival mechanism but the same rule with a wider `Σ`**, costs one
-   named parameter to add, and is deferred to D-2 for two reasons: under a shared pool a
-   community's figures move when a *neighbouring* community changes, which breaks the
-   standing rule that a moved figure has exactly one cause on the very first measurement;
-   and without a single community's own survival curve, extinction-by-crowding cannot be
-   told from extinction-by-profligacy.
+   per-community.** Rivalrous, so another unit's success is your loss. The wider boundary
+   (one pool serving every community) is **not a rival mechanism but the same rule with a
+   wider `Σ`**, and is deferred to D-2: under a shared pool a community's figures move when
+   a *neighbouring* community changes, which breaks the standing rule that a moved figure
+   has exactly one cause on the very first measurement.
 
-4. **Prices are calibrated to the measured baseline, not chosen.** §4 of the opening warned
-   that four numbers is a small enough space to tune until something appears. Calibration
-   removes the search: the numbers are derived from a zero-price arm of this same world,
-   which serves twice — as the calibration source and as the control. See §4.
-
-5. **The reach tariff prices acts MINTED, not marks met.** `Unit.read` returns the entire
+4. **The reach tariff prices acts MINTED, not marks met.** `Unit.read` returns the entire
    board minus the unit's own marks, with no filter and no chooser, so a price per mark
    read would make each unit's reach cost proportional to community size *by construction*:
    total cost `∝ N²`, **β = 2 written rather than found** — the exact defect Examination
-   VIII convicted the West mapping of. Pricing minted acts leaves per-unit cost independent
-   of `N`, so any superlinearity has to be earned. It also gives `whom_to_ask` — built, fed
-   by `credit` and `standing_with`, and recorded in its own docstring as **measured inert**
-   — a reason to matter, because a unit that asks the wrong peer now pays for nothing. That
-   is not installing typification; the organ has been idle for want of a price.
+   VIII convicted the West mapping of. It also gives `whom_to_ask` — built, fed by `credit`
+   and `standing_with`, and recorded in its own docstring as **measured inert** — a reason
+   to matter, because a unit that asks the wrong peer now pays for nothing. That is not
+   installing typification; the organ has been idle for want of a price.
 
-6. **§4's sensitization prediction is restated as a finding-in-advance.** It read: *"as
-   reserves fall, an unresolved doubt is income not earned, so urgency rises on its own."*
-   Under rulings 1 and 2 there is nothing in a unit whose urgency *can* rise — doubting is
-   unconditional and the reserve reaches no decision. Leaving it as a live prediction would
-   put an unfalsifiable null on the books. It becomes the claim the rulings entail:
-   **scarcity alone cannot produce sensitization.** §7's `P-D6` records it with its weak
-   negative check acknowledged.
+5. **The opening's sensitization prediction is restated as a finding-in-advance.** It read:
+   *"as reserves fall, an unresolved doubt is income not earned, so urgency rises on its
+   own."* Under rulings 1 and 2 there is nothing in a unit whose urgency *can* rise —
+   doubting is unconditional and the reserve reaches no decision. Leaving it live would put
+   an unfalsifiable null on the books. `P-D6` records the claim the rulings entail.
 
-7. **The law, not the unit, is the replicator — and D-3 is habits as ink.** This ruling came
-   from the author's objection to the whole preceding line of reasoning, and it corrected
-   the assistant rather than the design. Recorded in §5.
+6. **The law, not the unit, is the replicator — and D-3 is habits as ink.** The author's
+   objection to the assistant's genome proposal, recorded in §5.1. It corrected the
+   assistant rather than the design.
+
+7. **Price is determined, not set.** *"We can set cost or perhaps it will develop as a
+   negotiation?"* The assistant had fixed two prices and declared a 50/50 split between
+   them. Fixing the **supply** instead and letting the price clear against realised demand
+   dissolves both. See §3.3. **Naming it exactly: this is not negotiation** — nobody
+   bargains, nobody can refuse or counter, since that would need a chooser. It is
+   scarcity-determined price, and calling it negotiated would claim more than the mechanism
+   delivers.
+
+8. **Population is found, not set.** *"Letting them adjust as they compete and find their
+   solution is another."* This refuted an objection the assistant had made — that birth
+   without heredity gives selection nothing to act on — which ruling 6 had already made
+   false: birth is what gives the **law** a population to spread through. Without it the
+   law-lineage measurement runs over a monotonically shrinking set and reads almost nothing.
+
+9. **The schedule cannot develop, and the no is informative.** For attendance to find an
+   optimum something must be able to *not attend* — a chooser, which ruling 1 excludes.
+   What changes is that attending is no longer free: a unit that attends accumulates facts,
+   raising its demand and its cost share. The pressure becomes real and measurable, and
+   nothing can answer it. **This is the same diagnosis as `P-D6`, arriving by a second
+   independent road**, and two arrivals at one finding are worth recording as such.
 
 ## 3 · Architecture
 
 ### 3.1 Where the reserve lives
 
 **Not on `Unit`.** The world holds it, keyed by unit id. This is not a discipline anyone
-has to remember to keep — the architecture enforces ruling 2, because a unit cannot read
-what it does not have. It also puts the reserve where THE_KYTOS §1.3 says an act's effect
-resides: in the **resources**, outside the membrane, never in a private field beside the
-act. `c_unit.py` is not modified.
+has to remember — the architecture enforces ruling 2, because a unit cannot read what it
+does not have. It also puts the reserve where THE_KYTOS §1.3 says an act's effect resides:
+in the **resources**, outside the membrane, never in a private field beside the act.
+`c_unit.py` is not modified.
 
 ### 3.2 The module
 
-One new module, `src/d_world.py`, holding three things and no more.
+One new module, `src/d_world.py`.
 
 | | |
 |---|---|
-| `Prices` | frozen: `pool_per_round`, `maintenance`, `reach`, `endowment` |
+| `Source` | frozen: `pool_per_round` (E1), `entry_price` (E0) |
 | `Reserves` | `{unit_id: amount}` with `charge` / `credit` / `alive` |
-| `PricedWorld` | owns both; runs the round |
+| `Seats` | free/occupied apertures from `apertures_for`; hands a newborn the lowest free index, refuses when full |
+| `PricedWorld` | owns all three; runs the round |
 
-Deterministic and geometry-free, like every module in the C-series. Not protected.
+Deterministic and geometry-free, like every C-series module. Not protected.
 
 ### 3.3 The round
 
 ```
-for each living unit:   unit.step(field, r)            # unchanged C-series code
-                        unit.publish / ask / ...       # unchanged
+for each living unit:  unit.step(field, r)             # unchanged C-series code
+                       unit.publish / ask / ...        # unchanged
 
-charge maintenance:     E2 · (|facts| + |laws|)        # per living unit
-charge reach:           E3 · (acts minted this round)  # counted off MarkBoard
-allocate income:        E1 · (hits_i / Σ hits)         # pro rata, this round's hits
-retire:                 reserve ≤ 0  →  leaves the community
+demand_r  =  Σ_i ( |facts_i| + |laws_i| + acts_i )     # acts counted off MarkBoard
+τ_r       =  E1 / demand_r                             # DETERMINED, not set
+charge_i  =  τ_r · ( |facts_i| + |laws_i| + acts_i )
+income_i  =  E1 · ( hits_i / Σ hits )                  # paid only when Σ hits > 0
+
+birth:     reserve_i ≥ 2·E0  and a seat is free  →  split; parent and child take E0 each
+death:     reserve_i ≤ 0                          →  leaves; its seat frees
 ```
 
-Three consequences worth stating rather than leaving to be inferred.
+Six consequences, each stated rather than left to be inferred.
 
-- **A match is a `MembraneLedger` hit** — anticipated *and* arrived. Already computed;
-  no new statistic is introduced, and the world therefore scores matches and nothing
-  else, which is §6's discipline in the opening.
+- **A match is a `MembraneLedger` hit** — anticipated *and* arrived. Already computed; no
+  new statistic, so the world scores matches and nothing else.
 - **A miss carries no separate penalty.** It is already punished exactly once, by the
-  maintenance paid on a law that earned nothing. A penalty would be another number
-  buying nothing.
+  charge paid on a law that earned nothing.
 - **An act is a mark minted** — by `publish`, `ask`, `answer`, `challenge` or
-  `corroborate`, without distinction between them. Charging the kinds at different rates
-  would be a designer's claim about which speech is dear, which is exactly what ruling 5
-  was made to avoid.
-- **Acts are counted off `MarkBoard`**, which already attributes and dates every one.
-  Nothing new is instrumented; an existing reading becomes a subtraction. This is the
-  same discipline the 2026-07-31 re-measurement pass adopted after its own first draft
-  was refused for building a private instrument beside the act.
+  `corroborate`, without distinction. Charging the kinds differently would be a designer's
+  claim about which speech is dear.
+- **A held fact-round and a minted act each count 1** toward demand. This is a choice of
+  units, and it is the *null* one — it asserts no difference between holding and speaking.
+  It replaces the 50/50 split, which asserted no difference in a more contrived way (by
+  equalising totals, which depends on how many facts and acts happen to occur). §8 records
+  it.
+- **The world is conservative except on hitless rounds.** τ takes back exactly what the
+  pool gives, so total wealth is a fixed stock that birth redistributes and never creates.
+  A round in which nobody hits charges `E1` and pays nothing, burning it from the stock.
+  **So a community has a lifespan, and it is its own doing** — Bickhard's condition at
+  community scale: acting wrongly shortens your life.
+- **A newborn takes a free seat, not its parent's.** It inherits **nothing but the board** —
+  no facts, no laws, no standing — and is socialized by marks it never made, which is
+  Berger & Luckmann's secondary socialization and is already built. Giving it the parent's
+  aperture would make it a twin, and twins at scale defeat premise 3's requirement that
+  units meet the field differently.
 
-### 3.4 It is five numbers, not four
+### 3.4 One outside number, and it is measured
 
-The opening proposed four. Reserves starting at zero die in round one, before any income
-can arrive, so an **endowment** is unavoidable. Named here rather than buried inside E1.
-§4 derives it from measurement, so it is not a fifth *free* number — but it is a fifth
-number and the register in §8 says so.
+The opening proposed four. Ruling 7 dissolved two of them and the split between them;
+ruling 8 turned population into a result. What remains:
 
-## 4 · The numbers, and how they are set
+| | | |
+|---|---|---|
+| `E1` | the source per round | **= 1, the numéraire.** Free — it fixes the unit of account and nothing else. |
+| `E0` | the entry price | **measured** from arm 0 (§4). |
+| `N₀` | initial population | **derived**: the smallest community in which every domain has three witnesses — the corroboration ruling's own requirement, computed by `units_for_witnesses`. |
+| seats | the population ceiling | **the world's**, from `apertures_for` over the field. |
+| the field | 8 domains | **the one remaining outside choice** (§8). |
 
-**Arm 0 — the same world at zero prices — is both the calibration source and the control.**
-Calibrating against a C-series figure instead would inherit the imposed stagger and the
-cyclic aperture convention; running the calibration inside the D-world removes both
-dependencies.
+The birth threshold `2·E0` is not a chosen multiple: `E0` *is* the world's entry price, so
+the rule reads *you may reproduce when you can pay a newcomer's entry and remain viable
+yourself.*
 
-Two conventions are **declared rather than derived**, and both are in §8's register:
+## 4 · Calibrating E0
 
-- **E1 = 1, the numéraire.** The pool is the unit of account and the other prices are
-  pool-shares.
-- **A 50/50 split at baseline** — maintenance and reach each carry half the community's
-  total cost, so neither holding nor speaking is the dearer habit before anything runs.
+**Arm 0 — the charge computed and reported but never subtracted — is both the calibration
+source and the control.** That is exactly today's system, and exactly the opening's own
+sentence: *make the meter a subtraction instead of a reading.* It is also the only coherent
+control now that price is determined, since `τ = E1/demand` has no zero.
 
-**The reference configuration, fixed once.** Arm 0 runs at **four units, PAIRS scheme,
-eight seeds, 60 rounds, every unit inducing** (`induce=True`). Induction rather than
-seeding, because `t*` is a fact about learning and a seeded unit never learns anything. The
-resulting prices are then **used unchanged at both sizes**: re-calibrating at six units
-would make the size comparison a comparison of two price regimes.
-
-Arm 0 supplies `R` (rounds), `S_M` (model size summed over units and rounds), `S_A` (acts
-minted, summed over units), and `t*` — the **median**, over units and seeds, of the round
-at which a unit induces its first planted law. Median rather than first-or-mean, so one
-lucky unit does not set the world's knife edge. The prices follow with nothing left to
-choose:
+Arm 0 runs at the reference configuration: **8 domains, PAIRS scheme, `N₀` as derived
+above, eight seeds, 60 rounds, every unit inducing** (`induce=True`). Induction rather than
+seeding, because `t*` is a fact about learning and a seeded unit never learns anything.
 
 ```
-E1 = 1
-E2 = R / (2 · S_M)          maintenance, per held fact-or-law per round
-E3 = R / (2 · S_A)          reach, per act minted
-E0 = the cost of surviving rounds 0 … t*  at those prices
+t*  =  the MEDIAN, over units and seeds, of the round at which a unit
+       induces its first planted law
+E0  =  the charge a median unit accrues over rounds 0 … t*
 ```
 
-**Why the endowment is `t*` and not a horizon.** An austere endowment — one round's living
-— kills every unit before induction can happen and the run is empty. A horizon chosen by
-hand is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim
-sharp: **a unit that learns slower than the recorded baseline dies before it learns.**
+Median rather than first-or-mean at both steps, so one lucky unit does not set the world's
+entry price. **Why `t*` and not a horizon.** An austere endowment — one round's living —
+kills every unit before induction can happen and the run is empty; a horizon chosen by hand
+is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim sharp:
+**a unit that learns slower than the recorded baseline dies before it learns.**
 
-**The community runs at a deficit, by exactly the hitless rounds.** The calibration assumes
-the pool is fully allocated every round, but a round in which nobody hits allocates
-nothing. So realised income is `R` minus the hitless rounds, and the shortfall is precisely
-*how often nobody predicted anything correctly*. That is the world having teeth rather than
-a defect, and it is preferred to the exact-break-even alternative (calibrating on
-rounds-with-hits) for that reason. It is a third declared convention; §8 records it.
+`E0` is computed once at the reference configuration and used unchanged everywhere.
 
 ## 5 · Staging
 
 | | | why here |
 |---|---|---|
-| **D-0** | retire `Unit.peers` (the opening's §7.3 / step 4) | **must precede pricing.** Once asking is priced, every `peers`-derived figure moves and the retirement's before/after becomes unreadable. `source_reliability` exists and is tested, so the replacement is ready. |
-| **D-1a** | the priced world, seeding unchanged | the core build |
-| **D-1b** | seed by DC+ · INS · IT+, with a price and a provenance (the opening's §7.2 / step 3) | separate stage, so one figure moves per cause. Under a priced world a unit's initial model needs a price and a provenance rather than an assignment; `notion_provenance` already supplies the held-until-affirmed shape. |
+| **D-0** | retire `Unit.peers` | **must precede pricing.** Once asking is priced, every `peers`-derived figure moves and the retirement's before/after becomes unreadable. `source_reliability` exists and is tested. |
+| **D-1** | the priced world, determined τ, endogenous population | the core build |
+| **D-1b** | seed by DC+ · INS · IT+, with a price and a provenance | separate stage, one figure per cause. `notion_provenance` already supplies the held-until-affirmed shape. |
 | **D-2** | the shared pool across communities | pre-registered, not built — ruling 3 |
-| **D-3** | **habits as ink** | see below |
+| **D-3** | **habits as ink** | §5.1 |
 
-**The implementation plan that follows this spec covers D-0 and D-1a only.** D-1b, D-2 and
-D-3 are recorded here so that the sequencing argument survives the sitting; each earns its
-own spec when its turn comes.
+**The implementation plan that follows this spec covers D-0 and D-1 only.** The rest is
+recorded so the sequencing argument survives the sitting; each earns its own spec.
 
 ### 5.1 D-3 — habits as ink
 
@@ -217,179 +244,171 @@ The sitting first proposed a genome: promote `corroboration_window`,
 `corroborating_witnesses`, `replication_window`, `MIN_SUPPORT` and the induction criteria
 to per-unit heritable values, add a birth rule and a mutation operator. **The author
 refused it in one line — "yet, somehow, it developed without external programming."** The
-refusal is right and it is the project's own standing rule applied one level up: *install
-the problem, never the solution.* A designed genome installs the very thing it was meant
-to explain, and the mutation operator is a designed variation-generator.
+refusal is the project's own standing rule applied one level up: *install the problem,
+never the solution.* A designed genome installs the thing it was meant to explain, and the
+mutation operator is a designed variation-generator.
 
-The correct question is what heredity emerged **from**: a substrate in which a pattern
-could template itself at all, plus a world in which persisting was the only criterion.
+The right question is what heredity emerged **from**: a substrate in which a pattern could
+template itself, plus a world in which persisting was the only criterion.
 
 **Our substrate already affords copying.** `publish` inscribes a law on the board; `adopt`
 copies it into another unit's record. Variation is present too — different apertures and
 `ObserverNoise` make units induce different laws from the same world. The missing term was
 the third: **nothing died, so nothing was selected.** D-1 supplies it, and supplies it for
 free. Once holders can die, **the law is a replicator**: laws that spread to units that
-survive persist; laws whose holders starve go with them. No genome, no birth rule, no
-mutation operator. The assistant had been looking for the thing that reproduces while it
-was already reproducing.
+survive persist; laws whose holders starve go with them. The assistant had been looking for
+the thing that reproduces while it was already reproducing.
 
 **And the limit that names D-3.** Memetic copying varies *model content*. It cannot vary
-*policy*, because `corroboration_window` and the induction criteria are not transmissible
-— they are not ink, they are Python. Nature had no such split; at the molecular level the
+*policy*, because `corroboration_window` and the induction criteria are not transmissible —
+they are not ink, they are Python. Nature had no such split; at the molecular level the
 code **is** the machinery. Ours is severed by the architecture.
 
 So D-3 is: **a unit's dispositions written in the same medium as its model** — habits held
-as EGs, published and adopted like any other mark, so that a habit can spread, mutate in
+as EGs, published and adopted like any other mark, so a habit can spread, mutate in
 transmission, and die with its holder. That installs nothing the substrate does not already
 afford, and it is about as Peircean a proposition as this codebase could make: habit as
 inscribed law. Its real cost is an interpreter over held rules, which makes it a series
-rather than a stage.
-
-**The genome route is kept on the record as rejected, with its reason**, rather than
-silently dropped — because nobody chooses a smuggle deliberately; they reach for the one
-already written down.
+rather than a stage. **The genome route stays on the record as rejected, with its reason** —
+nobody chooses a smuggle deliberately; they reach for the one already written down.
 
 ## 6 · Arms and measurement
 
-**Arms for D-1a.**
-
 | | |
 |---|---|
-| **A0** | zero prices — control, and the calibration source |
-| **A1** | calibrated prices |
-| **A2a** | calibrated, mark channel occluded entirely (cost *and* benefit removed) |
-| **A2b** | calibrated, acts still minted and charged but peers receive nothing (cost held, sign removed) |
+| **A0** | charge computed and reported, **not subtracted** — control and calibration source |
+| **A1** | charge subtracted |
+| **A2a** | subtracted, mark channel occluded entirely (cost *and* benefit removed) |
+| **A2b** | subtracted, acts still minted and charged but peers receive nothing (cost held, sign removed) |
 
 **Why the ablation needs two arms.** A single occlusion is confounded: a unit with the
-channel switched off mints no marks and therefore **pays no reach tariff**, so it could
-outlive its peers by being mute rather than by being right. A2b is the honest ablation of
-the putative sign, holding cost fixed. Reporting both is what keeps the confound visible.
+channel off mints no marks and therefore **pays less**, so it could outlive its peers by
+being mute rather than by being right. A2b is the honest ablation of the putative sign,
+holding cost fixed. Reporting both keeps the confound visible.
 
-**Configuration.** Eight seeds, 60 rounds, sizes 4 and 6 — the C-series conventions.
+**Configuration.** 8 domains, PAIRS, `N₀` derived, eight seeds, 60 rounds. **Community size
+is not an arm** — it is a reported result (`P-D7`).
 
 **There is no stagger.** The C-series "bounded attention" was a schedule imposed from
-outside (ruling 2), and the whole point of a priced world is that a unit's rate should fall
-out of what it can afford rather than be set. Under ruling 1 nothing is declined, so every
-living unit attends every round and pays for it. The stagger is therefore **not carried
-into the D-world at all** — which is the opening's *fix the price, let the quantum fall
-out* applied to attendance, and another reason D-series figures do not compare with
-C-series ones.
-
-**One consequence to accept.** A size comparison needs the **PAIRS** aperture scheme at
-*both* 4 and 6, since cyclic cannot give six distinct apertures (`apertures_for` refuses
-rather than handing two units the same slice). PAIRS is not the C-series default, so
-**D-series figures are not cross-comparable with C-series ones.** Stated now rather than
-discovered later.
+outside (ruling 2). Under ruling 1 nothing is declined, so every living unit attends every
+round and pays for it — *fix the price, let the quantum fall out*, applied to attendance.
+Together with the field change and the PAIRS scheme, this means **D-series figures do not
+compare with C-series ones**, and no reading should try.
 
 ## 7 · Pre-registration
 
 Committed before anything is built or run.
 
-- **P-D1 · mortality is a consequence.** At calibrated prices at least one reserve reaches
+- **P-D1 · mortality is a consequence.** At subtracted charge, at least one reserve reaches
   zero within 60 rounds in a majority of the eight seeds, with no `die()`, TTL or lifespan
   anywhere in `src/`. **Fails** if nobody ever dies, or if everybody dies in round one.
 
-- **P-D2 · survival tracks mediation, and laws have lineages.** Two readings, the second
-  being the sharper one the author's D-3 objection produced. (a) Units alive at round 60
-  hold more planted true laws than units that died. (b) **Per law-content**: how many units
-  held it, by adoption or by induction, for how long, and whether its holders lived —
-  computable from `MarkBoard` (attributed, dated) against the reserves. **Fails** if
-  survival is uncorrelated with holding true laws, which would say the world pays for
-  something other than mediating well.
+- **P-D2 · laws have lineages, and survival tracks mediation.** Per law-content: how many
+  units held it, by adoption or by induction, for how long, and whether its holders lived —
+  computable from `MarkBoard` (attributed, dated) against the reserves. Planted true laws
+  should show longer lineages and more holders than converses and unplanted regularities.
+  **Fails** if lineage length is uncorrelated with a law's truth, which would say the world
+  pays for something other than mediating well.
 
-- **P-D3 · the ablation bites.** A2b shows shorter mean survival than A1. This is the
-  standing falsifier *ablate the putative sign*, unrunnable until now because nothing
-  survived or failed. **Fails** if occluding the sign changes nothing — in which case the
-  marks were never doing work. A2a is reported beside it to expose the mute-and-rich
-  confound.
+- **P-D3 · the ablation bites, measured in survival time.** A2b's communities die sooner
+  than A1's — occlude the marks, prediction worsens, hitless rounds multiply, the stock
+  burns faster. This is the standing falsifier *ablate the putative sign*, unrunnable until
+  now because nothing survived or failed. **Fails** if occluding the sign changes lifespan
+  none. A2a is reported beside it to expose the mute-and-cheaper confound.
 
 - **P-D4 · typification becomes consequential.** Units whose asks go to higher-standing
-  peers survive longer. **Testable only at six units**: the C-series measured that at four,
-  all 939 uptake decisions had exactly one peer standing behind them, so there is nothing
-  to prefer against. **Fails** if the preference remains inert once priced.
+  peers survive longer. The C-series measured this inert at four units — all 939 uptake
+  decisions had exactly one peer standing behind them — so it needs a population where a
+  choice exists, which the 8-domain field supplies. **Fails** if the preference stays inert
+  once priced.
 
-- **P-D5 · β ≈ 1, said first.** Per-unit cost is size-independent by construction (ruling
-  5), so total community cost should scale about linearly from 4 to 6 units. A superlinear
-  reading would be a surprise owing an explanation, not a result to celebrate. **β is not
-  measured in D-1** — two sizes is not a scaling measurement. The realised ask/answer
-  topology is *recorded* for a later series and nothing is fitted to it.
+- **P-D5 · no exponent is measurable here, and that is said in advance.** Under a
+  conservative world total cost is **pinned to `E1` every round regardless of `N`**, so
+  total metabolic cost does not scale with community size at all and per-capita cost is
+  `E1/N` by identity. **Anyone fitting a β to this world is fitting an identity.** The
+  opening's condition-9 conjecture is likewise unreachable: the price of reaching *falls*
+  as the community grows, the opposite of a cost of reaching that rises with extent. This
+  is the second of the opening's §4 predictions restated as a finding-in-advance, and
+  §1.1 carries it forward.
 
-- **P-D6 · sensitization is absent, and structurally so.** No measure of urgency varies
-  with reserve level, because none can (ruling 6). Recorded as a result of this sitting
-  rather than of a run. **The negative check is weak** — nothing sensitization-like could
-  appear in this build — and the prior earns its keep by saying so rather than by being
-  refutable here.
+- **P-D6 · sensitization is absent, and structurally so.** No measure of urgency varies with
+  reserve level, because none can (ruling 5), and the same gap blocks the schedule from
+  finding an optimum (ruling 9). Recorded as a result of this sitting rather than of a run.
+  **The negative check is weak** — nothing sensitization-like could appear in this build —
+  and the prior earns its keep by saying so.
+
+- **P-D7 · population finds a level, and the level is earned.** Community size settles
+  rather than running to the seat cap or to extinction in every seed, and `N_eq / N₀` is
+  **higher in A1 than in A2b** — a community that predicts better holds its number. Stated
+  as a ratio because total wealth starts at `N₀·E0`, so the absolute equilibrium scales
+  with `N₀` and only the ratio carries information. **Fails** if size runs to the ceiling
+  (the cap is deciding, not the economy) or if the ratio is flat across arms.
 
 ## 8 · The cheat register — stated before building, not after
 
 The opening's three, kept:
 
-1. **E4 scores matches and nothing else.** No credit for communicating, corroborating or
-   typifying. If those pay, they pay only by producing better anticipations.
-2. **"Success" is not our standard.** The field delivers, a match is a match, and we get
-   no vote — THE_MEASURE_OF_KNOWLEDGE §1(d)'s trepanning problem one level up.
-3. **Pre-register.** §7 above, before any build.
+1. **The world scores matches and nothing else.** No credit for communicating,
+   corroborating or typifying. If those pay, they pay only by producing better
+   anticipations.
+2. **"Success" is not our standard.** The field delivers, a match is a match, and we get no
+   vote — THE_MEASURE_OF_KNOWLEDGE §1(d)'s trepanning problem one level up.
+3. **Pre-register.** §7, before any build.
 
-Three this design adds:
+What this design adds — shorter than the previous draft's, because rulings 7 and 8 removed
+three entries by removing the parameters they guarded:
 
-4. **E1 = 1 and the 50/50 baseline split are declared, not derived.** The split in
-   particular decides whether *holding* or *speaking* is the dearer habit, and a different
-   one could change who dies.
-5. **The endowment inherits `t*` from the measured learner.** A faster induction routine
-   would shrink it and kill more units. The knife edge is set by an artefact of the
-   baseline, not by the world.
-6. **Income is calibrated against all rounds, so the community runs a deficit equal to its
-   hitless rounds** (§4). Chosen deliberately over exact break-even, and therefore a choice
-   that has to be declared.
+4. **Unit parity in the demand sum** — a held fact-round and a minted act each count 1. A
+   choice of units, and the null one, but still ours.
+5. **`E0` inherits `t*` from the measured learner.** A faster induction routine would shrink
+   it and kill more units. The entry price is set by an artefact of the baseline.
+6. **The field's 8 domains are the one remaining outside choice.** Chosen so the seat
+   ceiling (28) sits well above where the economy will settle — otherwise the cap decides
+   the population and `P-D7` is uninterpretable. If the equilibrium approaches the ceiling,
+   the field must grow and the measurement must be repeated.
 
 ## 9 · Refused, and why
 
-Each of these was considered in the sitting and refused for a reason, recorded so the next
-reader does not rediscover the hole and fill it.
+Recorded so the next reader does not rediscover the hole and fill it.
 
 - **A chooser** — where a designer writes the answer and calls it emergent (ruling 1).
-- **A sense organ for the reserve** — reaches no decision without a chooser, so it changes
-  nothing while reopening what ruling 1 closed (ruling 2).
+- **A sense organ for the reserve** — reaches no decision without a chooser (ruling 2).
 - **An attempt-ordering rule** — the order *is* the priority, and nobody argued for it.
-- **A separate penalty for a miss** — already punished once, by maintenance paid on a law
-  that earned nothing.
-- **A price per mark read** — installs `β = 2` (ruling 5).
-- **A genome, a birth rule, a mutation operator** — installs the explanandum (§5.1).
-- **Building the genome and the stake together** — relaxes the uniformity guard and
-  introduces the mutation operator in the same pass that first subtracts a cost, so a null
-  could not be attributed and a positive result could not be trusted.
+- **A separate penalty for a miss** — already punished once.
+- **A price per mark read** — installs `β = 2` (ruling 4).
+- **Two fixed prices and a split between them** — dissolved by ruling 7.
+- **A weight between holding and speaking** — reintroduces as a knob the ratio parity
+  dissolved, and a knob invites a sweep.
+- **A genome, a birth threshold chosen by hand, a mutation operator** — installs the
+  explanandum (§5.1). The threshold is derived from `E0` instead.
+- **Fixing community size** — ruling 8.
 
-Deferred rather than refused, and named so the hole stays visible:
-
-- The shared pool (D-2).
-- **E1 as a replenishing stock** rather than a per-round flow — the opening's "quantity +
-  replenishment rate" collapsed into one number here.
-- Habits as ink (D-3), with its interpreter over held rules.
-- The credential build (Examination VII's stage 4 part (c)), which still blocks weighted
-  witnesses.
+Deferred rather than refused, and named so the hole stays visible: the shared pool (D-2) ·
+habits as ink (D-3), with its interpreter over held rules · the credential build
+(Examination VII stage 4 (c)), which still blocks weighted witnesses.
 
 ## 10 · Testing
 
-Beyond the ordinary unit coverage of `Prices` / `Reserves` / `PricedWorld`:
+Beyond ordinary coverage of `Source` / `Reserves` / `Seats` / `PricedWorld`:
 
-- **At zero prices the wrapper is inert.** A run through `PricedWorld` with all prices at
-  zero is byte-identical to the same community run without it — same units, same field,
-  same board, same scheme. This is a claim about the wrapper changing nothing, **not** a
-  claim to reproduce published C-series figures, which were measured under a different
-  aperture scheme and an imposed stagger (§6).
-- **A determinism canary** — two runs agree, as `test_c_stage_gates.py` already keeps for
-  the C-series.
-- **Two adversarial checks.** That no `die()`, TTL or lifespan exists in `src/` — the
-  mortality prior is worthless if something installs it. And that `Unit` carries no reserve
-  attribute, so there is nothing for a future chooser to read by accident.
-- **The seat cap is a refusal, not a truncation** — `apertures_for` already refuses more
-  units than distinct slices, and D-1 must not paper over it.
+- **In arm 0 the wrapper is inert.** A run with the charge computed but not subtracted is
+  byte-identical to the same community run without `PricedWorld` at all. This is a claim
+  about the wrapper changing nothing, **not** a claim to reproduce published C-series
+  figures, which were measured under a different field, a different aperture scheme and an
+  imposed stagger (§6).
+- **A determinism canary** — two runs agree, as `test_c_stage_gates.py` already keeps.
+- **Conservation** — in any round with at least one hit, total charge equals total income
+  to the last unit of account. The one place a rounding bug would silently create or
+  destroy wealth.
+- **Three adversarial checks.** No `die()`, TTL or lifespan anywhere in `src/` — the
+  mortality prior is worthless if something installs it. `Unit` carries no reserve
+  attribute, so a future chooser cannot read one by accident. And **birth refuses when no
+  seat is free** rather than seating a twin.
 
 ## 11 · Open for the author
 
-- The 50/50 baseline split (§4) is the assistant's, chosen for symmetry. Whether holding or
-  speaking *should* be the dearer habit is his to rule, and the ruling would move who dies.
 - Whether D-2's shared pool should serve communities of **equal or unequal** size — the
-  latter makes the niche argument sharper and the measurement harder.
-- Whether D-0 (retiring `Unit.peers`) should carry its before/after reading into this
-  spec's record or stand as its own note.
+  latter sharpens the niche argument and complicates the measurement.
+- Whether D-0's before/after reading belongs in this record or stands as its own note.
+- **The field's 8 domains** (§8 item 6) is the last number the design has not derived. If
+  he would rather it too fell out of something, the sitting has not found what.
