@@ -521,3 +521,98 @@ def test_collection_falls_short_while_the_full_pool_still_arrives():
         world.source.pool_per_round)
     assert world.reserves.total() == pytest.approx(
         before + (world.source.pool_per_round - report.collected))
+
+
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+
+from run_d1 import ARMS, ArmResult, calibrate, play   # noqa: E402
+
+
+def test_all_four_arms_run_and_report():
+    for arm in ARMS:
+        result = play(arm, seed=1, rounds=8, source=Source(1.0, 0.05))
+        assert isinstance(result, ArmResult)
+        assert result.arm == arm
+        assert result.survivors >= 0
+
+
+def test_arm_zero_never_subtracts_so_nobody_dies():
+    """A0 is the control: the meter READ. Reserves must not move at all."""
+    result = play("A0", seed=1, rounds=12, source=Source(1.0, 0.0))
+    assert result.died == 0
+    assert result.born == 0
+    balances = {uid: result.world.reserves.balance(uid)
+                for uid in result.world.reserves.living()}
+    assert balances, "A0 must still seat and endow its units"
+    assert len(set(round(b, 9) for b in balances.values())) == 1, \
+        "every A0 balance is its untouched endowment"
+
+
+def test_a_founder_is_endowed_at_the_entry_price_and_must_double_to_breed():
+    """The endowment is E0 exactly, so a founder starts ON the entry price and
+    has to double before it may breed. An endowment floored at 1.0 would put
+    every founder above the threshold whenever the measured E0 fell below 1.0,
+    and round 0 would be a birth wave that measured the endowment rather than
+    the world.
+
+    ENTRY PRICE 0.25, NOT 0.05: `wide_spec(seed=1)` at `MIN_WITNESSES=3` seats
+    18 founders, and round 0's demand comes out exactly uniform across all of
+    them (the field is structurally symmetric before anyone has diverged), so
+    every founder's nominal charge is precisely `pool_per_round / 18 ≈
+    0.0556`. At 0.05 every founder is charged its entire balance and the whole
+    founding cohort dies in round 0 -- a real property of this reference
+    community, not a bug, but it collapses this test's premise (there is
+    nothing left to check the threshold on). 0.25 clears that round-0 tariff
+    share with room to spare while staying far below the 2x-entry-price
+    breeding threshold, so the test again exercises what it names."""
+    source = Source(1.0, 0.25)
+    result = play("A1", seed=1, rounds=1, source=source)
+    seeded = [result.world.reserves.balance(uid)
+              for uid in result.world.reserves.living()]
+    assert seeded, "the arm must seat and endow its founders"
+    # Nobody can have started at or above 2*E0, so no birth is an artefact of
+    # the endowment. (Balances have moved by one round of settling, so this
+    # checks the threshold rather than the seed value itself.)
+    assert result.born == 0
+
+
+def test_the_real_unit_offers_the_surface_the_world_reads():
+    """The stub in the unit tests pins a surface; this pins that the REAL Unit
+    still offers it, so the two cannot drift apart.
+
+    Entry price 0.25 for the same reason as the breeding test above: at 0.05
+    the founding cohort does not survive round 0, `final_units` is empty, and
+    the loop below would silently check nothing."""
+    result = play("A1", seed=1, rounds=6, source=Source(1.0, 0.25))
+    for u in result.final_units:
+        assert isinstance(u.unit_id, str)
+        assert isinstance(u.facts, set) and isinstance(u.laws, set)
+        assert hasattr(u.ledger, "entries")
+
+
+def test_a2b_mints_and_is_charged_while_nothing_reaches_anyone():
+    """The honest ablation: cost held, sign removed."""
+    a2b = play("A2b", seed=1, rounds=10, source=Source(1.0, 0.05))
+    a2a = play("A2a", seed=1, rounds=10, source=Source(1.0, 0.05))
+    assert sum(a2b.charges_by_unit.values()) > 0
+    # A2a mints nothing at all; A2b mints and pays for it.
+    assert a2b.acts_minted > 0
+    assert a2a.acts_minted == 0
+
+
+def test_calibrate_returns_a_positive_entry_price():
+    """E0 is MEASURED -- the charge a median unit accrues through t*, the median
+    round at which a unit induces its first planted law (spec 4)."""
+    e0 = calibrate([1, 2], rounds=25)
+    assert e0 > 0.0
+
+
+def test_two_runs_of_one_arm_agree():
+    """The determinism canary."""
+    a = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05))
+    b = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05))
+    assert (a.survivors, a.born, a.died) == (b.survivors, b.born, b.died)
+    assert a.charges_by_unit == b.charges_by_unit
