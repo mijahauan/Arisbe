@@ -185,31 +185,55 @@ Six consequences, each stated rather than left to be inferred.
   rather than measured and reconciled afterwards. The world takes **what is actually
   there** and gives back **exactly what it took**:
 
+  **The world is OPEN** — conservation of energy does not require a closed system.
+  Organisms are open systems; conservation asserts that nothing is created or destroyed
+  *within*, while a genuine inflow arrives from outside.
+
   ```
-  charges_i   = τ · demand_i                      the nominal price — the meter reading
-  collected_i = min(charges_i, balance_i)         extraction is bounded by what exists
-  pot         = Σ collected_i                     ≤ E1, short exactly when someone is exhausted
-  income_i    = pot · hits_i / Σ hits             the world redistributes only what it gathered
+  charges_i   = τ · demand_i                   the nominal price — the meter reading
+  collected_i = min(charges_i, balance_i)      OUTFLOW: extraction bounded by what exists
+  income_i    = E1 · hits_i / Σ hits           INFLOW: the external source, to predictors
+  ```
+
+  The exact invariant, and the conservation test:
+
+  ```
+  total_after == total_before − Σ collected + Σ incomes
   ```
 
   A unit too exhausted to pay in full lands at exactly `0.0` and dies, because `alive` is
   `balance > 0`. There is no debt to forgive, so nothing has to be counted.
 
-  **The refused alternative, and the reasoning error behind it.** A first implementation
-  charged without bound, so a dying unit ended *negative* and dropping it made the stock
-  **rise** by the erased debt — 1.0 before and 1.49 after, on the very first death test.
-  The proposed repair was a write-off counter (`extinguished`), reconciling the books
-  after the fact. The assistant had argued against clamping on the ground that it is *a
-  form of declining*, and that was wrong: **the no-decline ruling governs acts**, and the
-  unit still held its model, still minted its marks, still acted. What clamping bounds is
-  **extraction**, which is exhaustion rather than refusal — you cannot take 0.99 out of
-  something holding 0.5.
+  **A consequence kept rather than compensated for:** when someone starves, less leaves
+  the community than the price nominally demanded while the full pool still enters, so
+  the total can *rise* in a round where a unit dies. That is right — the survivors are
+  not charged for a dead peer's shortfall, and the inflow came from outside.
+  `RoundReport.collected` makes it legible: the gap between `Σ charges` and `collected`
+  is exactly where insolvency shows.
 
-  **One consequence, kept rather than compensated for:** in a round where someone cannot
-  pay in full, *everyone's* income is slightly lower, because the world can only
-  redistribute what it gathered. That is another way scarcity bites, and `RoundReport.pot`
-  makes it visible — the gap between `Σ charges` and `pot` is exactly where insolvency
-  shows.
+  **Two refused alternatives, and the reasoning errors behind them** — recorded because
+  the assistant got this axis wrong twice, and the record is the point.
+
+  *First:* charging without bound, so a dying unit ended **negative** and dropping it made
+  the stock rise by the erased debt — 1.0 before, 1.49 after, on the very first death
+  test. The proposed repair was a write-off counter (`extinguished`) reconciling the books
+  afterwards. The assistant had argued against clamping as *a form of declining*, which
+  was wrong: **the no-decline ruling governs acts**, and the unit still held its model,
+  still minted its marks, still acted. Clamping bounds **extraction** — exhaustion, not
+  refusal. (The counter was also *arithmetically backwards*, `+` where `−` was needed;
+  the implementer caught it. An instrument that was both unnecessary and wrong.)
+
+  *Second:* over-correcting to a **closed** loop, paying income out of what was collected.
+  That built a world with no source at all: total wealth fixed at the founding endowment,
+  falling forever, every community dying however well it predicted, and a broke community
+  unable to recover because a zero pot pays nothing. A pre-existing test that never seeded
+  reserves failed and was diagnostic — it is what exposed the missing source.
+
+  **The standing lesson, which has now cost two rounds.** Both errors reached for an
+  *instrument* — a counter to observe a leak, then a reconciliation to close it — where
+  the answer was to build a world in which the leak cannot occur. That is the same defect
+  the 2026-07-31 sitting caught in the refused `c_score.py`: elaborating the modelling
+  instead of fixing what is modelled.
 - **A newborn takes a free seat, not its parent's.** It inherits **nothing but the board** —
   no facts, no laws, no standing — and is socialized by marks it never made, which is
   Berger & Luckmann's secondary socialization and is already built. Giving it the parent's
