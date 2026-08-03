@@ -179,17 +179,37 @@ Six consequences, each stated rather than left to be inferred.
   from the stock. **So a community has a lifespan, and it is its own doing** — Bickhard's
   condition at community scale: acting wrongly shortens your life.
 
-  **The conserved quantity is `total() + extinguished`, not `total()` alone** (found in
-  review, ruled 2026-08-02). Charging is unbounded, so a dying unit normally ends *in
-  debt* — its demand outruns its dwindling reserve as it crosses zero, which is how most
-  natural deaths happen rather than an edge case. Dropping that unit silently would make
-  the stock **rise** by the erased debt, inventing wealth. Death extinguishes the debt,
-  because that is what death is economically; the world **counts what it wrote off**.
-  `Reserves.extinguished` is observability and never a score, in the idiom
-  `MembraneLedger.restaked` / `late_arrivals` and `MarkBoard.republished` already keep.
-  The alternative — clamping the charge so nobody can owe — was refused: it has the world
-  collect less than it charged, which is a form of declining, and the ruling that nothing
-  is ever declined is load-bearing.
+  **Conservation holds by construction, and no unit can ever end in debt** (found in
+  review, ruled 2026-08-02). The author's ruling: *conservation of energy is a condition
+  of the world, and needs no confirmation from the local system* — so it is built in
+  rather than measured and reconciled afterwards. The world takes **what is actually
+  there** and gives back **exactly what it took**:
+
+  ```
+  charges_i   = τ · demand_i                      the nominal price — the meter reading
+  collected_i = min(charges_i, balance_i)         extraction is bounded by what exists
+  pot         = Σ collected_i                     ≤ E1, short exactly when someone is exhausted
+  income_i    = pot · hits_i / Σ hits             the world redistributes only what it gathered
+  ```
+
+  A unit too exhausted to pay in full lands at exactly `0.0` and dies, because `alive` is
+  `balance > 0`. There is no debt to forgive, so nothing has to be counted.
+
+  **The refused alternative, and the reasoning error behind it.** A first implementation
+  charged without bound, so a dying unit ended *negative* and dropping it made the stock
+  **rise** by the erased debt — 1.0 before and 1.49 after, on the very first death test.
+  The proposed repair was a write-off counter (`extinguished`), reconciling the books
+  after the fact. The assistant had argued against clamping on the ground that it is *a
+  form of declining*, and that was wrong: **the no-decline ruling governs acts**, and the
+  unit still held its model, still minted its marks, still acted. What clamping bounds is
+  **extraction**, which is exhaustion rather than refusal — you cannot take 0.99 out of
+  something holding 0.5.
+
+  **One consequence, kept rather than compensated for:** in a round where someone cannot
+  pay in full, *everyone's* income is slightly lower, because the world can only
+  redistribute what it gathered. That is another way scarcity bites, and `RoundReport.pot`
+  makes it visible — the gap between `Σ charges` and `pot` is exactly where insolvency
+  shows.
 - **A newborn takes a free seat, not its parent's.** It inherits **nothing but the board** —
   no facts, no laws, no standing — and is socialized by marks it never made, which is
   Berger & Luckmann's secondary socialization and is already built. Giving it the parent's
@@ -446,12 +466,11 @@ Beyond ordinary coverage of `Source` / `Reserves` / `Seats` / `PricedWorld`:
   figures, which were measured under a different field, a different aperture scheme and an
   imposed stagger (§6).
 - **A determinism canary** — two runs agree, as `test_c_stage_gates.py` already keeps.
-- **Conservation, across a death and not merely a birth** — in any round with at least one
-  hit, total charge equals total income to the last unit of account, and
-  `total() + extinguished` is unchanged across a round in which a unit dies in debt. The
-  birth half is exact for free (halving is lossless in binary floating point); it was the
-  **death** half that a first implementation got wrong, and only a test that kills a unit
-  in debt can see it.
+- **Conservation, across a death and not merely a birth** — `Reserves.total()` is
+  unchanged across any round with at least one hit, and falls by exactly `pot` on a
+  hitless one. **No balance ever goes below zero.** The birth half is exact for free
+  (halving is lossless in binary floating point); it was the **death** half a first
+  implementation got wrong, and only a test that kills an *insolvent* unit can see it.
 - **Three adversarial checks.** No `die()`, TTL or lifespan anywhere in `src/` — the
   mortality prior is worthless if something installs it. `Unit` carries no reserve
   attribute, so a future chooser cannot read one by accident. And **birth refuses when no
