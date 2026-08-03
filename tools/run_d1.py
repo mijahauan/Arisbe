@@ -59,9 +59,14 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
     """One community, one seed, one arm.
 
     THE ROUND ORDER matters and is the C-series' own: adopt, attend, then the
-    channel acts, then the world settles. Settling LAST means the round's acts
+    channel acts (publish/ask/challenge, answer, corroborate, dispose
+    challenges), then the world settles. Settling LAST means the round's acts
     are already on the board before anything is charged, so no charge can reach
-    the acts it prices.
+    the acts it prices. CORROBORATE AND DISPOSE ARE NOT OPTIONAL (fix round 2):
+    without them a challenge is minted, charged, and never resolves anything --
+    `dispose_challenges` is the only route by which an induced law is ever
+    suspended or retracted, so leaving it out made every law permanent once
+    induced, true or false.
 
     THERE IS NO STAGGER. The C-series' bounded attention was a schedule imposed
     from outside; under a priced world every living unit attends every round and
@@ -147,8 +152,26 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         if hear_board is not None:                        # (d) hear
             for u in units:
                 u.answer(hear_board, r)
+        if speak_board is not None:                       # (e) corroborate
+            for u in units:
+                u.corroborate(speak_board, r)
+        if hear_board is not None:                        # (f) dispose
+            # THE MISSING HALF OF THE DOUBT LIFECYCLE (fix round 2). Without
+            # this call `challenge` mints marks that are counted and charged
+            # like any other act but never resolve anything: `dispose_
+            # challenges` is the SOLE caller of `_suspend` and one of only two
+            # callers of `retract_law` in c_unit.py -- the only route by
+            # which an induced law is ever suspended or retracted. Left out,
+            # a unit bets on every law it induces, true or false, for the
+            # rest of the run. Reads `hear_board`, mirroring (a)/(d): under
+            # A2b it reads the permanently empty `void_board`, so a standing
+            # challenge is minted and charged but can never be corroborated
+            # or answered -- the same "cost held, sign removed" ablation the
+            # rest of the round already applies.
+            for u in units:
+                u.dispose_challenges(hear_board, r)
 
-        # (e) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
+        # (g) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
         # never falls and every unit would split every round until the seats ran
         # out -- an artefact of the control, not a finding. The control's job is
         # to leave the community exactly as it would have been.

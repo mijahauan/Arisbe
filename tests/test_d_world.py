@@ -559,24 +559,25 @@ def test_a_founder_is_endowed_at_the_entry_price_and_must_double_to_breed():
     and round 0 would be a birth wave that measured the endowment rather than
     the world.
 
-    ENTRY PRICE 0.25, NOT 0.05: `wide_spec(seed=1)` at `MIN_WITNESSES=3` seats
-    18 founders, and round 0's demand comes out exactly uniform across all of
-    them (the field is structurally symmetric before anyone has diverged), so
-    every founder's nominal charge is precisely `pool_per_round / 18 ≈
-    0.0556`. At 0.05 every founder is charged its entire balance and the whole
-    founding cohort dies in round 0 -- a real property of this reference
-    community, not a bug, but it collapses this test's premise (there is
-    nothing left to check the threshold on). 0.25 clears that round-0 tariff
-    share with room to spare while staying far below the 2x-entry-price
-    breeding threshold, so the test again exercises what it names."""
+    FIX ROUND 2 (finding 3): this now checks what its name claims.
+    `rounds=1` let one round of settling run before reading balances, so the
+    old body actually checked "nobody breeds after paying a round's tariff",
+    which holds for essentially any sub-threshold entry price -- no income is
+    possible before the consequent lag elapses regardless of the exact
+    endowment. `rounds=0` runs the loop zero times, so `play` still seats and
+    endows every founder (the seeding happens before the round loop) but
+    nothing ever touches a balance, and the test can assert the endowment
+    itself: each founder's balance is `source.entry_price` EXACTLY, and it
+    sits strictly below the `2 * entry_price` breeding threshold by
+    construction (entry_price > 0), so no birth is possible from the
+    endowment alone."""
     source = Source(1.0, 0.25)
-    result = play("A1", seed=1, rounds=1, source=source)
-    seeded = [result.world.reserves.balance(uid)
-              for uid in result.world.reserves.living()]
-    assert seeded, "the arm must seat and endow its founders"
-    # Nobody can have started at or above 2*E0, so no birth is an artefact of
-    # the endowment. (Balances have moved by one round of settling, so this
-    # checks the threshold rather than the seed value itself.)
+    result = play("A1", seed=1, rounds=0, source=source)
+    living = result.world.reserves.living()
+    assert living, "the arm must seat and endow its founders"
+    for uid in living:
+        assert result.world.reserves.balance(uid) == pytest.approx(
+            source.entry_price)
     assert result.born == 0
 
 
@@ -584,10 +585,23 @@ def test_the_real_unit_offers_the_surface_the_world_reads():
     """The stub in the unit tests pins a surface; this pins that the REAL Unit
     still offers it, so the two cannot drift apart.
 
-    Entry price 0.25 for the same reason as the breeding test above: at 0.05
-    the founding cohort does not survive round 0, `final_units` is empty, and
-    the loop below would silently check nothing."""
-    result = play("A1", seed=1, rounds=6, source=Source(1.0, 0.25))
+    ENTRY PRICE 0.5, NOT 0.25 (fix round 2, finding 1 side effect): wiring
+    `corroborate`/`dispose_challenges` into the round loop (finding 1) adds
+    two more minted, charged acts per unit per round, raising demand and
+    therefore the round-0 tariff share; measured directly, 0.25 now goes
+    extinct by round 6 (0/18 survive) where 0.4 already holds all 18, so 0.5
+    keeps a real margin rather than sitting just above the new threshold.
+
+    FIX ROUND 2 (finding 2): guarded explicitly rather than relying on the
+    entry price alone to keep it that way -- this test's own docstring named
+    the vacuous-pass failure mode, and finding 1's wiring of corroborate/
+    dispose_challenges changes law counts and therefore demand, so the guard
+    matters more now, not less."""
+    result = play("A1", seed=1, rounds=6, source=Source(1.0, 0.5))
+    assert result.final_units, (
+        "the founding cohort must survive to round 6, or this loop silently "
+        "checks nothing"
+    )
     for u in result.final_units:
         assert isinstance(u.unit_id, str)
         assert isinstance(u.facts, set) and isinstance(u.laws, set)

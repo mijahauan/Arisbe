@@ -317,15 +317,38 @@ class PricedWorld:
         Income is the round's INFLOW, drawn from the full external
         `pool_per_round` and split pro rata by hits -- not from what was
         collected -- so the community is fed from outside it, not merely
-        redistributed among its own dwindling stock."""
+        redistributed among its own dwindling stock.
+
+        DEMAND IS COMPUTED FROM ONE BOARD SCAN, NOT `2 * len(living)` OF THEM
+        (fix round 2, performance). `demand_of` itself is untouched -- it
+        stays the public, per-unit function the tests call directly -- but
+        calling it once for the aggregate and again per unit for the nominal
+        charge meant every round re-scanned `board.since(round_idx)` (an
+        unindexed, append-only, ever-growing list) twice per living unit.
+        Here the board is scanned exactly ONCE per round, building a
+        `{author: acts_this_round}` map that both the aggregate and the
+        per-unit charge read from; this is arithmetically identical to
+        calling `demand_of` per unit (same filter: `m.round_idx == round_idx`
+        grouped by `m.author`), so no figure changes. `hits_of` is likewise
+        called once per living unit, not twice."""
         living = [u for u in units]
-        demand = sum(demand_of(u, self.board, round_idx) for u in living)
+
+        acts_by_author: Dict[str, int] = {}
+        for m in self.board.since(round_idx):
+            if m.round_idx == round_idx:
+                acts_by_author[m.author] = acts_by_author.get(m.author, 0) + 1
+
+        def _demand(u) -> float:
+            return float(len(u.facts) + len(u.laws)
+                         + acts_by_author.get(u.unit_id, 0))
+
+        demand = sum(_demand(u) for u in living)
         tau = (self.source.pool_per_round / demand) if demand > 0 else None
 
         charges: Dict[str, float] = {}
         if tau is not None:
             for u in living:
-                charges[u.unit_id] = tau * demand_of(u, self.board, round_idx)
+                charges[u.unit_id] = tau * _demand(u)
 
         collected: Dict[str, float] = {}
         for uid, amount in charges.items():
@@ -333,11 +356,12 @@ class PricedWorld:
                                if self.subtract else amount)
         total_collected = sum(collected.values())
 
-        total_hits = sum(hits_of(u, round_idx) for u in living)
+        hits_by_unit = {u.unit_id: hits_of(u, round_idx) for u in living}
+        total_hits = sum(hits_by_unit.values())
         incomes: Dict[str, float] = {}
         if total_hits > 0:
             for u in living:
-                h = hits_of(u, round_idx)
+                h = hits_by_unit[u.unit_id]
                 if h:
                     incomes[u.unit_id] = (
                         self.source.pool_per_round * h / total_hits)
