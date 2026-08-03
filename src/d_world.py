@@ -197,7 +197,7 @@ class RoundReport:
     round_idx: int
     demand: float
     tau: Optional[float]
-    pot: float
+    collected: float
     charges: Dict[str, float]
     incomes: Dict[str, float]
     born: Tuple[Tuple[str, str], ...]
@@ -228,23 +228,30 @@ class PricedWorld:
     0.5 -- so `collected = min(charge, balance)`. That is exhaustion, not
     refusal: the unit still held its model, still minted its marks, still
     acted, and none of that was ever declined. Only extraction is bounded, and
-    a bound is not a choice among candidates.
+    a bound is not a choice among candidates. NO UNIT CAN EVER END IN DEBT:
+    extraction never exceeds what exists, so a dying unit lands at exactly
+    0.0, never below it, and there is no debt to forgive.
 
-    CONSERVATIVE BY CONSTRUCTION, EXCEPT ON HITLESS ROUNDS. The world is a
-    closed loop: it takes what is actually there (the `pot = sum(collected)`)
-    and gives back exactly that (`incomes` sum to `pot`, split pro rata by
-    hits). So `reserves.total()` is unchanged by any round with at least one
-    hit, and falls by exactly `pot` on a hitless one, where the pot is charged
-    and burned rather than paid back -- so a community has a lifespan, and it
-    is its own doing. NO UNIT CAN EVER END IN DEBT: extraction never exceeds
-    what exists, so a dying unit lands at exactly 0.0, never below it, and
-    there is no debt to forgive. This holds by construction; it needs no
-    counter to confirm it, because conservation of energy is a condition of
-    the world, not a finding it reports. ONE CONSEQUENCE, KEPT NOT SUPPRESSED:
-    in a round where someone is too exhausted to pay in full, the pot falls
-    short of the nominal pool and everyone's income is slightly lower, because
-    the world can only redistribute what it actually gathered -- another way
-    scarcity bites."""
+    THE WORLD IS OPEN, NOT CLOSED. `pool_per_round` is a genuine inflow from
+    a source OUTSIDE the community -- the design spec calls it "how much
+    sustenance exists per round" -- and it enters in full whenever anyone
+    hits, independent of what the tariff could collect. Conservation of
+    energy does not require a closed system; it requires that nothing be
+    created or destroyed WITHIN the system while accounting honestly for
+    what crosses its boundary. The exact invariant, true every round by
+    construction:
+
+        total_after == total_before - collected + sum(incomes)
+
+    where `collected` is the outflow (bounded by what existed to take) and
+    `sum(incomes)` is the inflow (the pool, split pro rata by hits, paid in
+    full whenever `total_hits > 0`). A round with no hits pays nothing in and
+    still takes `collected` out -- so a community has a lifespan, and it is
+    its own doing. A round where someone is too exhausted to pay in full
+    takes LESS than the nominal charge out while the SAME pool comes in, so
+    total wealth can RISE on a round where a peer starves -- the survivors
+    are not charged for a dead unit's shortfall, and the inflow came from
+    outside them. That is accepted, not compensated for."""
 
     def __init__(self, source: Source, seats: Seats, board,
                  subtract: bool = True):
@@ -282,13 +289,14 @@ class PricedWorld:
         actually played.
 
         `charges` IS THE NOMINAL METER READING (`tau * demand`), reported in
-        full regardless of what a unit can actually pay. `collected` is what
-        the world actually takes -- bounded by each unit's own balance, so
-        extraction can never drive a balance below zero. `pot` is the sum
-        actually gathered, and income is paid pro rata out of the POT, not out
-        of the nominal pool -- so the world never pays out more than it took
-        in, and total wealth is conserved by construction rather than by a
-        counter reconciling what a bound quietly removed."""
+        full regardless of what a unit can actually pay. `collected` (the dict)
+        is what the world actually takes -- bounded by each unit's own
+        balance, so extraction can never drive a balance below zero;
+        `RoundReport.collected` (the total) is its sum, the round's OUTFLOW.
+        Income is the round's INFLOW, drawn from the full external
+        `pool_per_round` and split pro rata by hits -- not from what was
+        collected -- so the community is fed from outside it, not merely
+        redistributed among its own dwindling stock."""
         living = [u for u in units]
         demand = sum(demand_of(u, self.board, round_idx) for u in living)
         tau = (self.source.pool_per_round / demand) if demand > 0 else None
@@ -302,7 +310,7 @@ class PricedWorld:
         for uid, amount in charges.items():
             collected[uid] = (min(amount, self.reserves.balance(uid))
                                if self.subtract else amount)
-        pot = sum(collected.values())
+        total_collected = sum(collected.values())
 
         total_hits = sum(hits_of(u, round_idx) for u in living)
         incomes: Dict[str, float] = {}
@@ -310,7 +318,8 @@ class PricedWorld:
             for u in living:
                 h = hits_of(u, round_idx)
                 if h:
-                    incomes[u.unit_id] = pot * h / total_hits
+                    incomes[u.unit_id] = (
+                        self.source.pool_per_round * h / total_hits)
 
         if self.subtract:
             for uid, amount in sorted(collected.items()):
@@ -320,8 +329,9 @@ class PricedWorld:
 
         born, died, living = self._settle_population(living, make_unit)
         return RoundReport(round_idx=round_idx, demand=demand, tau=tau,
-                           pot=pot, charges=charges, incomes=incomes,
-                           born=born, died=died, units=tuple(living))
+                           collected=total_collected, charges=charges,
+                           incomes=incomes, born=born, died=died,
+                           units=tuple(living))
 
     def _settle_population(self, living, make_unit):
         """Who left, then who arrived.

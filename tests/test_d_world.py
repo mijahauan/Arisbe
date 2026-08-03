@@ -475,17 +475,19 @@ def test_a_newborn_id_is_never_reused():
 
 
 def test_conservation_holds_across_a_death():
-    """Extraction is bounded by what a unit actually holds, so a dying unit
-    lands at exactly 0.0 rather than in debt, and total wealth is conserved
-    by construction -- no counter needed (author ruling, fix round 1)."""
+    """The world is OPEN, not closed: what leaves is `collected` (bounded by
+    what each unit actually holds), what enters is the pool-derived income,
+    and total_after == total_before - collected + sum(incomes) holds exactly
+    by construction, even across a death (author ruling, fix round 2)."""
     world = _world(entry_price=1.0)
     units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
     for u in units:
         world.admit(u)
         world.reserves.seed(u.unit_id, 0.5)
     before = world.reserves.total()
-    world.settle(units, 0)
-    assert world.reserves.total() == pytest.approx(before)
+    report = world.settle(units, 0)
+    assert world.reserves.total() == pytest.approx(
+        before - report.collected + sum(report.incomes.values()))
 
 
 def test_a_balance_never_goes_below_zero():
@@ -501,15 +503,21 @@ def test_a_balance_never_goes_below_zero():
     assert not world.reserves.alive("u1")
 
 
-def test_the_pot_is_short_when_someone_is_insolvent():
-    """The world can only redistribute what it actually gathered: when u1
-    cannot pay its full nominal charge, the pot falls short of the nominal
-    total, and income is paid out of the pot, not the nominal pool."""
+def test_collection_falls_short_while_the_full_pool_still_arrives():
+    """u1 cannot pay its full nominal charge, so less leaves the community
+    than the tariff nominally demanded -- but the full pool still enters,
+    since the inflow is external and does not depend on what was collected.
+    Total wealth can RISE on a round where a peer starves; that is accepted,
+    not compensated for (author ruling, fix round 2)."""
     world = _world(entry_price=1.0)
     units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
     for u in units:
         world.admit(u)
         world.reserves.seed(u.unit_id, 0.5)
+    before = world.reserves.total()
     report = world.settle(units, 0)
-    assert report.pot < sum(report.charges.values())
-    assert sum(report.incomes.values()) == pytest.approx(report.pot)
+    assert report.collected < sum(report.charges.values())
+    assert sum(report.incomes.values()) == pytest.approx(
+        world.source.pool_per_round)
+    assert world.reserves.total() == pytest.approx(
+        before + (world.source.pool_per_round - report.collected))
