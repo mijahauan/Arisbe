@@ -173,11 +173,23 @@ Six consequences, each stated rather than left to be inferred.
   It replaces the 50/50 split, which asserted no difference in a more contrived way (by
   equalising totals, which depends on how many facts and acts happen to occur). §8 records
   it.
-- **The world is conservative except on hitless rounds.** τ takes back exactly what the
-  pool gives, so total wealth is a fixed stock that birth redistributes and never creates.
-  A round in which nobody hits charges `E1` and pays nothing, burning it from the stock.
-  **So a community has a lifespan, and it is its own doing** — Bickhard's condition at
-  community scale: acting wrongly shortens your life.
+- **The world is conservative except on hitless rounds — and death is counted, not
+  forgiven.** τ takes back exactly what the pool gives, so wealth is redistributed and
+  never created. A round in which nobody hits charges `E1` and pays nothing, burning it
+  from the stock. **So a community has a lifespan, and it is its own doing** — Bickhard's
+  condition at community scale: acting wrongly shortens your life.
+
+  **The conserved quantity is `total() + extinguished`, not `total()` alone** (found in
+  review, ruled 2026-08-02). Charging is unbounded, so a dying unit normally ends *in
+  debt* — its demand outruns its dwindling reserve as it crosses zero, which is how most
+  natural deaths happen rather than an edge case. Dropping that unit silently would make
+  the stock **rise** by the erased debt, inventing wealth. Death extinguishes the debt,
+  because that is what death is economically; the world **counts what it wrote off**.
+  `Reserves.extinguished` is observability and never a score, in the idiom
+  `MembraneLedger.restaked` / `late_arrivals` and `MarkBoard.republished` already keep.
+  The alternative — clamping the charge so nobody can owe — was refused: it has the world
+  collect less than it charged, which is a form of declining, and the ruling that nothing
+  is ever declined is load-bearing.
 - **A newborn takes a free seat, not its parent's.** It inherits **nothing but the board** —
   no facts, no laws, no standing — and is socialized by marks it never made, which is
   Berger & Luckmann's secondary socialization and is already built. Giving it the parent's
@@ -434,9 +446,12 @@ Beyond ordinary coverage of `Source` / `Reserves` / `Seats` / `PricedWorld`:
   figures, which were measured under a different field, a different aperture scheme and an
   imposed stagger (§6).
 - **A determinism canary** — two runs agree, as `test_c_stage_gates.py` already keeps.
-- **Conservation** — in any round with at least one hit, total charge equals total income
-  to the last unit of account. The one place a rounding bug would silently create or
-  destroy wealth.
+- **Conservation, across a death and not merely a birth** — in any round with at least one
+  hit, total charge equals total income to the last unit of account, and
+  `total() + extinguished` is unchanged across a round in which a unit dies in debt. The
+  birth half is exact for free (halving is lossless in binary floating point); it was the
+  **death** half that a first implementation got wrong, and only a test that kills a unit
+  in debt can see it.
 - **Three adversarial checks.** No `die()`, TTL or lifespan anywhere in `src/` — the
   mortality prior is worthless if something installs it. `Unit` carries no reserve
   attribute, so a future chooser cannot read one by accident. And **birth refuses when no
