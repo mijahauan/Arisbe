@@ -38,7 +38,14 @@ class Source:
     `entry_price` is E0, MEASURED rather than chosen -- the charge a median unit
     accrues over the rounds it takes the measured baseline learner to induce its
     first law (design spec section 4). It is zero in the calibration arm, where
-    it is not yet known, and a zero entry price breeds not at all."""
+    it is not yet known, and a zero entry price breeds not at all.
+
+    BOTH FIELDS ARE ASSUMED NON-NEGATIVE. Nothing constructs a `Source` with a
+    negative `pool_per_round` or `entry_price`, and this is a precondition,
+    not a validated one -- a guard here would be speculative. `PricedWorld`'s
+    "a balance never goes below zero" guarantee (see `PricedWorld.settle`)
+    relies on it: a negative `pool_per_round` would pay negative income, and
+    a negative `entry_price` would invert the reproduction threshold."""
 
     pool_per_round: float = 1.0
     entry_price: float = 0.0
@@ -81,9 +88,23 @@ class Reserves:
         self._amounts.pop(unit_id, None)
 
     def total(self) -> float:
-        """Total wealth. Conservative except on hitless rounds, where the pool
-        is charged and nothing is paid back -- which is how a community comes to
-        have a lifespan of its own doing."""
+        """Total wealth. NOT A FIXED STOCK -- the world is open: an external
+        source pays income to predictors, and the tariff dissipates what each
+        unit can actually pay, so this figure moves both ways.
+
+        THE EXACT INVARIANT, true every round by construction (see
+        `PricedWorld.settle`, which computes both terms):
+
+            total_after == total_before - collected + incomes
+
+        where `collected` is what the tariff actually took (bounded by each
+        unit's own balance) and `incomes` is what the external source paid in
+        (the pool, split pro rata by hits). A hitless round still burns:
+        nothing enters and `collected` still leaves, which is how a community
+        comes to have a lifespan of its own doing. When a unit cannot pay in
+        full, LESS leaves than the price demanded while the full pool still
+        enters, so this figure can RISE in a round where a peer starves --
+        the survivors are not charged for a dead unit's shortfall."""
         return sum(self._amounts.values())
 
     def living(self) -> List[str]:
