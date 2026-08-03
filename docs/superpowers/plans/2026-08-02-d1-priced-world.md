@@ -1152,6 +1152,23 @@ def test_arm_zero_never_subtracts_so_nobody_dies():
         "every A0 balance is its untouched endowment"
 
 
+def test_a_founder_is_endowed_at_the_entry_price_and_must_double_to_breed():
+    """The endowment is E0 exactly, so a founder starts ON the entry price and
+    has to double before it may breed. An endowment floored at 1.0 would put
+    every founder above the threshold whenever the measured E0 fell below 1.0,
+    and round 0 would be a birth wave that measured the endowment rather than
+    the world."""
+    source = Source(1.0, 0.05)
+    result = play("A1", seed=1, rounds=1, source=source)
+    seeded = [result.world.reserves.balance(uid)
+              for uid in result.world.reserves.living()]
+    assert seeded, "the arm must seat and endow its founders"
+    # Nobody can have started at or above 2*E0, so no birth is an artefact of
+    # the endowment. (Balances have moved by one round of settling, so this
+    # checks the threshold rather than the seed value itself.)
+    assert result.born == 0
+
+
 def test_the_real_unit_offers_the_surface_the_world_reads():
     """The stub in the unit tests pins a surface; this pins that the REAL Unit
     still offers it, so the two cannot drift apart."""
@@ -1286,7 +1303,18 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         aperture = world.seats.take(uid)
         unit = Unit(uid, aperture)
         world._next_id = max(world._next_id, i + 1)
-        world.reserves.seed(uid, max(source.entry_price, 1.0))
+        # A FOUNDER IS ENDOWED AT THE WORLD'S ENTRY PRICE, exactly. It must
+        # then DOUBLE before it may breed (threshold 2*E0), which is the rule
+        # reading "pay a newcomer's entry and remain viable yourself".
+        #
+        # `max(..., 1.0)` would break that: with a measured E0 below 1.0 every
+        # founder would start above the breeding threshold and split in round
+        # 0, an artefact of the endowment rather than a finding. The fallback
+        # applies ONLY to the calibration arm, where the entry price is not yet
+        # known -- a zero endowment there would read as dead at round 0, since
+        # `alive` is `balance > 0`.
+        world.reserves.seed(uid, source.entry_price
+                            if source.entry_price > 0.0 else 1.0)
         units.append(unit)
 
     planted = _planted(spec)
