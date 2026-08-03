@@ -99,13 +99,22 @@ installed.
    objection to the assistant's genome proposal, recorded in §5.1. It corrected the
    assistant rather than the design.
 
-7. **Price is determined, not set.** *"We can set cost or perhaps it will develop as a
-   negotiation?"* The assistant had fixed two prices and declared a 50/50 split between
-   them. Fixing the **supply** instead and letting the price clear against realised demand
-   dissolves both. See §3.3. **Naming it exactly: this is not negotiation** — nobody
-   bargains, nobody can refuse or counter, since that would need a chooser. It is
-   scarcity-determined price, and calling it negotiated would claim more than the mechanism
-   delivers.
+7. **Price is measured, never chosen — and the demand-normalised form of that was retired
+   at build time.** *"We can set cost or perhaps it will develop as a negotiation?"* The
+   assistant had fixed two prices and declared a 50/50 split between them; fixing the
+   **supply** and letting `τ = E1/demand` clear against realised demand dissolved both.
+   **Running it showed that form has no aggregate bite.** With τ inversely proportional to
+   demand, the total collected is *exactly* `E1` every round whatever the community does —
+   measured, A2b at demand 408 and A2a at demand 294 both collected `1.0000` and produced
+   **identical** survivors, births and deaths at every seed, despite A2b minting ~2,600
+   acts and A2a none. Speaking more lowers τ and costs the community nothing, so the
+   tariff was purely **positional**: a unit paid for holding or speaking more than its
+   *peers*, never for holding or speaking as such.
+
+   So **τ is now a calibrated constant** (§4), derived from arm 0 exactly as `E0` is. The
+   ruling's principle stands untouched — measured, never chosen — and only the
+   demand-normalised form is gone. **Naming it exactly: this was never negotiation** —
+   nobody bargains and nobody can refuse, which would need a chooser.
 
 8. **Population is found, not set.** *"Letting them adjust as they compete and find their
    solution is another."* This refuted an objection the assistant had made — that birth
@@ -149,9 +158,8 @@ Deterministic and geometry-free, like every C-series module. Not protected.
 for each living unit:  unit.step(field, r)             # unchanged C-series code
                        unit.publish / ask / ...        # unchanged
 
-demand_r  =  Σ_i ( |facts_i| + |laws_i| + acts_i )     # acts counted off MarkBoard
-τ_r       =  E1 / demand_r                             # DETERMINED, not set
-charge_i  =  τ_r · ( |facts_i| + |laws_i| + acts_i )
+demand_i  =  |facts_i| + |laws_i| + acts_i             # acts counted off MarkBoard
+charge_i  =  τ · demand_i                              # τ a CALIBRATED CONSTANT (§4)
 income_i  =  E1 · ( hits_i / Σ hits )                  # paid only when Σ hits > 0
 
 birth:     reserve_i ≥ 2·E0  and a seat is free  →  split; each takes HALF the parent's
@@ -248,7 +256,8 @@ ruling 8 turned population into a result. What remains:
 | | | |
 |---|---|---|
 | `E1` | the source per round | **= 1, the numéraire.** Free — it fixes the unit of account and nothing else. |
-| `E0` | the entry price | **measured** from arm 0 (§4). |
+| `τ` | the price per unit of demand | **measured** from arm 0 (§4) — the value at which the baseline community breaks even. |
+| `E0` | the entry price | **measured** from arm 0 (§4), and it depends on τ, so τ is measured first. |
 | `N₀` | initial population | **derived**: the smallest community in which every domain has three witnesses — the corroboration ruling's own requirement, computed by `units_for_witnesses`. |
 | seats | the population ceiling | **the world's**, from `apertures_for` over the field. |
 | the field | 8 domains | **the one remaining outside choice**, set by the author 2026-08-02 on a stated criterion: large enough to leave room for an equilibrium to develop (§8, §11). |
@@ -272,11 +281,21 @@ Arm 0 runs at the reference configuration: **8 domains, PAIRS scheme, `N₀` as 
 above, eight seeds, 60 rounds, every unit inducing** (`induce=True`). Induction rather than
 seeding, because `t*` is a fact about learning and a seeded unit never learns anything.
 
+**Two prices, measured in this order from one arm-0 run** — the order matters, because a
+charge cannot be computed before the tariff is known and `E0` is a sum of charges.
+
 ```
+τ   =  E1 · (rounds in which at least one unit hit) / (total demand over units and rounds)
+       — the value at which the baseline community breaks even over its run
+
 t*  =  the MEDIAN, over units and seeds, of the round at which a unit
        scores its FIRST HIT — its first income
-E0  =  the charge a median unit accrues over rounds 0 … t*
+
+E0  =  the MEDIAN over units of that unit's cumulative charge through t*,
+       each round's charge being τ · demand in that round
 ```
+
+Summed across every seed, so no single seed sets a price.
 
 Median rather than first-or-mean at both steps, so one lucky unit does not set the world's
 entry price. **Why `t*` and not a horizon.** An austere endowment — one round's living —
@@ -430,14 +449,18 @@ Committed before anything is built or run.
   choice exists, which the 8-domain field supplies. **Fails** if the preference stays inert
   once priced.
 
-- **P-D5 · no exponent is measurable here, and that is said in advance.** Under a
-  conservative world total cost is **pinned to `E1` every round regardless of `N`**, so
-  total metabolic cost does not scale with community size at all and per-capita cost is
-  `E1/N` by identity. **Anyone fitting a β to this world is fitting an identity.** The
-  opening's condition-9 conjecture is likewise unreachable: the price of reaching *falls*
-  as the community grows, the opposite of a cost of reaching that rises with extent. This
-  is the second of the opening's §4 predictions restated as a finding-in-advance, and
-  §1.1 carries it forward.
+- **P-D5 · an exponent is measurable, and β ≈ 1 is predicted.** *(Rewritten at build time.
+  Under the retired demand-normalised τ this prior read "no exponent is measurable here,
+  by construction", because total cost was pinned to `E1` regardless of `N` or of
+  activity. That was true of that form and is false of the calibrated constant.)* With
+  `τ` fixed, total cost is `τ · Σᵢ(|Mᵢ| + actsᵢ)` and genuinely grows with the community.
+  Per-unit demand is still size-independent, **unless more peers means a bigger model** —
+  which is exactly what `adopt` does. So model bloat through the channel is a real route
+  to superlinearity, and the question is now askable where an hour of building ago it was
+  foreclosed. **β ≈ 1 is the prediction**; a superlinear reading would be a result owing
+  an explanation, and its explanation would have to be adoption. Still not a scaling
+  *measurement* in D-1 — the realised topology is recorded for a later series, and nothing
+  is fitted.
 
 - **P-D6 · sensitization is absent, and structurally so.** No measure of urgency varies with
   reserve level, because none can (ruling 5), and the same gap blocks the schedule from
