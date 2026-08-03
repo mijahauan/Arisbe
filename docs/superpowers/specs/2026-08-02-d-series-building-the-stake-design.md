@@ -274,15 +274,33 @@ seeding, because `t*` is a fact about learning and a seeded unit never learns an
 
 ```
 t*  =  the MEDIAN, over units and seeds, of the round at which a unit
-       induces its first planted law
+       scores its FIRST HIT — its first income
 E0  =  the charge a median unit accrues over rounds 0 … t*
 ```
 
 Median rather than first-or-mean at both steps, so one lucky unit does not set the world's
 entry price. **Why `t*` and not a horizon.** An austere endowment — one round's living —
-kills every unit before induction can happen and the run is empty; a horizon chosen by hand
-is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim sharp:
-**a unit that learns slower than the recorded baseline dies before it learns.**
+kills every unit before it can earn and the run is empty; a horizon chosen by hand is a
+free parameter wearing a law's clothes. Reading it off `t*` makes the claim sharp:
+**a unit that starts earning later than the recorded baseline dies before it earns.**
+
+**Why FIRST HIT and not first law** (corrected at build time, measured not chosen). The
+first draft set `t*` from the round a unit induced its first planted *law*. That is the
+wrong quantity for its own stated purpose: **holding a law earns nothing — a hit does**,
+and a law that has not yet paid off is not income. Calibrated on law induction the
+endowment covers exactly the learning period and leaves nothing to survive on afterwards,
+because `N₀ · E0 = E1 · (t*+1)` **regardless of `N₀`** — the community always holds
+precisely the learning period's worth of buffer and no margin, by construction.
+
+The consequence was measured and it was total: rounds 0–3 carry **zero hitters**, since no
+unit has induced anything yet, so each burns the full pool with no income against it; the
+community arrives at `t*` broke and **every priced arm went extinct within 30 rounds**.
+First-law median is 3.0, first-hit median 4.0, so `E0` moves 0.2215 → 0.2765 — and that
+25% is the whole difference between extinction and 9–13 survivors at 40 rounds across
+three seeds, in both `A1` and `A2b`.
+
+**That the margin is so thin is itself a finding, not a nuisance**: this world sits on a
+knife edge, which is where §4 said the interesting dynamics would be.
 
 `E0` is computed once at the reference configuration and used unchanged everywhere.
 
