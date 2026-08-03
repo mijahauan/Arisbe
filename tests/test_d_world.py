@@ -523,6 +523,7 @@ def test_collection_falls_short_while_the_full_pool_still_arrives():
         before + (world.source.pool_per_round - report.collected))
 
 
+import statistics
 import sys
 from pathlib import Path
 
@@ -605,7 +606,9 @@ def test_a2b_mints_and_is_charged_while_nothing_reaches_anyone():
 
 def test_calibrate_returns_a_positive_entry_price():
     """E0 is MEASURED -- the charge a median unit accrues through t*, the median
-    round at which a unit induces its first planted law (spec 4)."""
+    round at which a unit's ledger first records a hit (spec 4; fix round 1:
+    first HIT, not first law -- holding a law earns nothing, only a hit
+    earns, so t* must mark the time to first earning)."""
     e0 = calibrate([1, 2], rounds=25)
     assert e0 > 0.0
 
@@ -616,3 +619,32 @@ def test_two_runs_of_one_arm_agree():
     b = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05))
     assert (a.survivors, a.born, a.died) == (b.survivors, b.born, b.died)
     assert a.charges_by_unit == b.charges_by_unit
+
+
+def test_the_calibrated_world_is_viable():
+    """Fix round 1: a calibration that endows a community too poorly to
+    survive its own learning period has not calibrated anything. This tests
+    the CALIBRATION itself, not the underlying experimental finding -- at the
+    E0 `calibrate` actually returns, a real priced arm must survive past its
+    founding cohort's learning period with both births and deaths occurring,
+    not go extinct before anyone could earn a thing.
+
+    A small seed set keeps this quick: calibration alone (2 seeds, 25 rounds)
+    plus one 40-round play is a few seconds, not minutes."""
+    e0 = calibrate([1, 2], rounds=25)
+    result = play("A1", seed=1, rounds=40, source=Source(1.0, e0))
+    assert result.survivors > 0
+    assert result.born > 0
+
+
+def test_first_hit_is_never_earlier_than_first_law():
+    """A unit cannot hit on a law it has not yet induced. Checked on the
+    MEDIANS, not per unit: a unit may hit off a law it induced earlier than
+    the first PLANTED one (any correctly-shaped body->head pair the field
+    happens to satisfy counts as a hit), so a per-unit ordering is not
+    guaranteed even though the aggregate trend is."""
+    result = play("A0", seed=1, rounds=25, source=Source(1.0, 0.0))
+    assert result.first_hit_round, "A0 at 25 rounds must produce some hits"
+    assert result.first_law_round, "A0 at 25 rounds must induce some laws"
+    assert (statistics.median(result.first_hit_round.values())
+            >= statistics.median(result.first_law_round.values()))

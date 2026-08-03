@@ -42,6 +42,12 @@ class ArmResult:
     final_units: List[Unit] = dc_field(default_factory=list)
     charges_by_unit: Dict[str, float] = dc_field(default_factory=dict)
     first_law_round: Dict[str, int] = dc_field(default_factory=dict)
+    first_hit_round: Dict[str, int] = dc_field(default_factory=dict)
+    """The round each unit's ledger first records a `"hit"` -- the quantity
+    `calibrate` actually needs. Holding a law earns nothing; a hit earns.
+    Kept ALONGSIDE `first_law_round` rather than replacing it: the law-round
+    figure stays informative (a later task reads it), it is simply not what
+    the entry price should be calibrated on."""
     world: Optional[PricedWorld] = None
 
 
@@ -103,6 +109,7 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
 
     planted = _planted(spec)
     first_law: Dict[str, int] = {}
+    first_hit: Dict[str, int] = {}
     charges: Dict[str, float] = {}
     born = died = 0
     asked: Dict[str, list] = {}
@@ -119,6 +126,17 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
             u.step(field, r, induce=True)
             if u.unit_id not in first_law and (u.laws & planted):
                 first_law[u.unit_id] = r
+            # E0 must cover the time to first EARNING, not first belief: a
+            # held law that has not yet paid off is not income. Read the
+            # ledger `step` just populated for THIS round's own hits -- a
+            # unit born mid-run reaches this line only once it is part of
+            # `units` (the round after its birth), with its own fresh,
+            # empty ledger, so it is recorded on its OWN first hit, never
+            # skipped and never credited with a parent's.
+            if u.unit_id not in first_hit and any(
+                    e.round_idx == r and e.result == "hit"
+                    for e in u.ledger.entries):
+                first_hit[u.unit_id] = r
         if speak_board is not None:                       # (c) speak
             for u in units:
                 u.publish(speak_board, r)
@@ -149,35 +167,52 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         born=born, died=died,
         acts_minted=len(mint_board.all_marks()),
         final_units=units, charges_by_unit=charges,
-        first_law_round=first_law, world=world)
+        first_law_round=first_law, first_hit_round=first_hit, world=world)
 
 
 def calibrate(seed_list=SEEDS, rounds: int = ROUNDS) -> float:
     """E0 -- the world's entry price, MEASURED and not chosen.
 
     Arm 0 at the reference configuration supplies `t*`, the MEDIAN over units
-    and seeds of the round at which a unit induces its first planted law; E0 is
+    and seeds of the round at which a unit's ledger first records a HIT; E0 is
     the charge a median unit has accrued by then.
+
+    WHY FIRST HIT AND NOT FIRST LAW (fix round 1, measured). Holding a law
+    earns nothing -- only a hit earns, since income is paid pro rata on
+    `hits_of` and nothing else. Calibrating on the round a unit first INDUCES
+    a planted law endows a community with exactly enough to learn and nothing
+    to survive on afterward: measured at the law-calibrated E0 (0.2215),
+    every priced arm (A1, A2a, A2b) went extinct within 30 rounds, because
+    rounds 0 through t*-law have ZERO hitters by construction (nobody has a
+    law to anticipate with yet) and the community burns its whole founding
+    endowment (`n0 * E0`) over exactly that many rounds of pure outflow before
+    a single unit could possibly earn anything. Calibrating on first HIT
+    instead measures the real time-to-self-sufficiency: first-law median was
+    3.0, first-hit median 4.0, E0 rose from 0.2215 to ~0.2765 -- a 25%
+    correction that is enough to cross viability (9-13 survivors at 40 rounds
+    across seeds 1, 2, 3, with both births and deaths occurring, in place of
+    total extinction).
 
     MEDIAN AT BOTH STEPS, so one lucky unit does not set the world's entry
     price. WHY t* AND NOT A HORIZON: an austere endowment kills every unit
-    before induction can happen and the run is empty, while a horizon chosen by
+    before earning can happen and the run is empty, while a horizon chosen by
     hand is a free parameter wearing a law's clothes. Read off t*, the claim is
-    sharp -- a unit that learns slower than the recorded baseline dies before it
-    learns."""
-    rounds_to_law: List[int] = []
+    sharp -- a unit that learns to earn slower than the recorded baseline dies
+    before it earns."""
+    rounds_to_hit: List[int] = []
     per_round_charge: List[float] = []
     for seed in seed_list:
         result = play("A0", seed=seed, rounds=rounds, source=Source(1.0, 0.0))
-        rounds_to_law.extend(result.first_law_round.values())
+        rounds_to_hit.extend(result.first_hit_round.values())
         for uid, total in result.charges_by_unit.items():
             per_round_charge.append(total / result.rounds)
-    if not rounds_to_law:
+    if not rounds_to_hit:
         raise RuntimeError(
-            f"no unit induced a planted law in {rounds} rounds over seeds "
-            f"{list(seed_list)}: t* is undefined and E0 cannot be measured"
+            f"no unit ever hit in {rounds} rounds over seeds "
+            f"{list(seed_list)}: t* is undefined because nothing ever earned, "
+            f"and E0 cannot be measured"
         )
-    t_star = statistics.median(rounds_to_law)
+    t_star = statistics.median(rounds_to_hit)
     return statistics.median(per_round_charge) * (t_star + 1)
 
 
