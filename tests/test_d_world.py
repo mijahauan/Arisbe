@@ -472,3 +472,44 @@ def test_a_newborn_id_is_never_reused():
             seen.add(child_id)
         units = list(report.units)
     assert len(seen) == len(created)
+
+
+def test_conservation_holds_across_a_death():
+    """Extraction is bounded by what a unit actually holds, so a dying unit
+    lands at exactly 0.0 rather than in debt, and total wealth is conserved
+    by construction -- no counter needed (author ruling, fix round 1)."""
+    world = _world(entry_price=1.0)
+    units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 0.5)
+    before = world.reserves.total()
+    world.settle(units, 0)
+    assert world.reserves.total() == pytest.approx(before)
+
+
+def test_a_balance_never_goes_below_zero():
+    """u1's nominal charge (0.99) exceeds its balance (0.5); extraction is
+    bounded, so it lands at exactly 0.0 -- dead, not in debt."""
+    world = _world(entry_price=1.0)
+    units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 0.5)
+    world.settle(units, 0)
+    assert world.reserves.balance("u1") == pytest.approx(0.0)
+    assert not world.reserves.alive("u1")
+
+
+def test_the_pot_is_short_when_someone_is_insolvent():
+    """The world can only redistribute what it actually gathered: when u1
+    cannot pay its full nominal charge, the pot falls short of the nominal
+    total, and income is paid out of the pot, not the nominal pool."""
+    world = _world(entry_price=1.0)
+    units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
+    for u in units:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 0.5)
+    report = world.settle(units, 0)
+    assert report.pot < sum(report.charges.values())
+    assert sum(report.incomes.values()) == pytest.approx(report.pot)

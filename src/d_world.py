@@ -197,6 +197,7 @@ class RoundReport:
     round_idx: int
     demand: float
     tau: Optional[float]
+    pot: float
     charges: Dict[str, float]
     incomes: Dict[str, float]
     born: Tuple[Tuple[str, str], ...]
@@ -212,17 +213,38 @@ class PricedWorld:
     all; the tariff subtracts regardless; running out is death. The alternative
     -- refusing acts a unit cannot afford -- was rejected because whoever fixes
     the ATTEMPT ORDER fixes the priority, and which act gets dropped first is a
-    substantive claim a designer would be making on the world's behalf.
+    substantive claim a designer would be making on the world's behalf. This
+    still governs every ACT: nothing a unit does is ever refused.
 
     THE PRICE IS DETERMINED, NOT SET. `tau = pool / demand` is whatever clears
     the world's bounded supply against what the community actually did. It is
     not a negotiation: nobody bargains and nobody may refuse, which would need
     the chooser this design excludes.
 
-    CONSERVATIVE, EXCEPT ON HITLESS ROUNDS. tau takes back exactly what the pool
-    gives, so total wealth is a fixed stock that birth redistributes and never
-    creates. A round in which nobody hits charges the pool and pays nothing,
-    burning it -- so a community has a lifespan, and it is its own doing."""
+    EXTRACTION IS BOUNDED, WHICH IS NOT DECLINING. The nominal charge
+    `tau * demand` is a meter reading and is reported in full, unchanged, in
+    `RoundReport.charges`. What the world actually TAKES is bounded by what a
+    unit actually HOLDS -- you cannot take 0.99 out of something holding
+    0.5 -- so `collected = min(charge, balance)`. That is exhaustion, not
+    refusal: the unit still held its model, still minted its marks, still
+    acted, and none of that was ever declined. Only extraction is bounded, and
+    a bound is not a choice among candidates.
+
+    CONSERVATIVE BY CONSTRUCTION, EXCEPT ON HITLESS ROUNDS. The world is a
+    closed loop: it takes what is actually there (the `pot = sum(collected)`)
+    and gives back exactly that (`incomes` sum to `pot`, split pro rata by
+    hits). So `reserves.total()` is unchanged by any round with at least one
+    hit, and falls by exactly `pot` on a hitless one, where the pot is charged
+    and burned rather than paid back -- so a community has a lifespan, and it
+    is its own doing. NO UNIT CAN EVER END IN DEBT: extraction never exceeds
+    what exists, so a dying unit lands at exactly 0.0, never below it, and
+    there is no debt to forgive. This holds by construction; it needs no
+    counter to confirm it, because conservation of energy is a condition of
+    the world, not a finding it reports. ONE CONSEQUENCE, KEPT NOT SUPPRESSED:
+    in a round where someone is too exhausted to pay in full, the pot falls
+    short of the nominal pool and everyone's income is slightly lower, because
+    the world can only redistribute what it actually gathered -- another way
+    scarcity bites."""
 
     def __init__(self, source: Source, seats: Seats, board,
                  subtract: bool = True):
@@ -257,7 +279,16 @@ class PricedWorld:
         THE ORDER IS THE MEASUREMENT: the round's acts are already done and on
         the board before anything is charged, so no charge can reach the acts it
         prices. Births and deaths come last, so a unit is judged on the round it
-        actually played."""
+        actually played.
+
+        `charges` IS THE NOMINAL METER READING (`tau * demand`), reported in
+        full regardless of what a unit can actually pay. `collected` is what
+        the world actually takes -- bounded by each unit's own balance, so
+        extraction can never drive a balance below zero. `pot` is the sum
+        actually gathered, and income is paid pro rata out of the POT, not out
+        of the nominal pool -- so the world never pays out more than it took
+        in, and total wealth is conserved by construction rather than by a
+        counter reconciling what a bound quietly removed."""
         living = [u for u in units]
         demand = sum(demand_of(u, self.board, round_idx) for u in living)
         tau = (self.source.pool_per_round / demand) if demand > 0 else None
@@ -267,24 +298,29 @@ class PricedWorld:
             for u in living:
                 charges[u.unit_id] = tau * demand_of(u, self.board, round_idx)
 
+        collected: Dict[str, float] = {}
+        for uid, amount in charges.items():
+            collected[uid] = (min(amount, self.reserves.balance(uid))
+                               if self.subtract else amount)
+        pot = sum(collected.values())
+
         total_hits = sum(hits_of(u, round_idx) for u in living)
         incomes: Dict[str, float] = {}
         if total_hits > 0:
             for u in living:
                 h = hits_of(u, round_idx)
                 if h:
-                    incomes[u.unit_id] = (
-                        self.source.pool_per_round * h / total_hits)
+                    incomes[u.unit_id] = pot * h / total_hits
 
         if self.subtract:
-            for uid, amount in sorted(charges.items()):
+            for uid, amount in sorted(collected.items()):
                 self.reserves.charge(uid, amount)
             for uid, amount in sorted(incomes.items()):
                 self.reserves.credit(uid, amount)
 
         born, died, living = self._settle_population(living, make_unit)
         return RoundReport(round_idx=round_idx, demand=demand, tau=tau,
-                           charges=charges, incomes=incomes,
+                           pot=pot, charges=charges, incomes=incomes,
                            born=born, died=died, units=tuple(living))
 
     def _settle_population(self, living, make_unit):
