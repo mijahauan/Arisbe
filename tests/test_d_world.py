@@ -1,6 +1,7 @@
 """The D-series priced world: reserves, a determined price, and a found population."""
 
 import ast
+import dataclasses
 
 from c_field import (CORE, PAIRS, Field, apertures_for, default_spec,
                      units_for_witnesses, wide_spec, witnesses_per_domain)
@@ -827,7 +828,14 @@ def test_no_die_no_ttl_no_lifespan_in_the_d_world():
     precisely to say they are absent -- and a guard that punishes a design for
     documenting its own refusals teaches the next author to stop documenting
     them. Walking the AST for IDENTIFIERS asks the question actually worth
-    asking: does any name in this module install mortality?"""
+    asking: does any name in this module install mortality?
+
+    KNOWN GAP (fix round 1, finding 3): `ast.keyword` -- a call-site keyword
+    argument's name, as in `dict(expires=True)` -- is a distinct node type
+    from `ast.arg` (a *parameter* name in a `def`) and is not walked here, so
+    a banned name used only as a call-site keyword would pass undetected.
+    Narrow enough in this module's actual shape not to matter today, but
+    named rather than silently assumed complete."""
     tree = ast.parse((SRC / "d_world.py").read_text())
     names = set()
     for node in ast.walk(tree):
@@ -846,14 +854,56 @@ def test_no_die_no_ttl_no_lifespan_in_the_d_world():
             f"{name!r} installs the mortality P-D1 predicts must emerge"
 
 
+_BASELINE_UNIT_FIELDS = {
+    "_credited", "_doubts", "_published", "_spent", "_supplied_by",
+    "adopted_at", "aperture", "attended", "corroborating_witnesses",
+    "corroboration_window", "facts", "first_seen", "last_provenance",
+    "laws", "ledger", "peers", "replication_window", "suspended", "unit_id",
+}
+"""Every field `Unit` declares, frozen at the moment this guard was written
+(fix round 1). Not a claim that this set is somehow correct or minimal --
+just the shape `Unit` had when the D-series guard was last looked at."""
+
+
 def test_the_unit_never_gains_a_reserve():
     """The architecture enforces the ruling: a unit cannot read what it does not
-    have (spec 3.1, THE_KYTOS 1.3)."""
-    spec = wide_spec()
-    unit = Unit("u0", apertures_for(spec, 1, scheme=PAIRS)[0])
-    for banned in ("reserve", "reserves", "balance", "wealth", "budget"):
-        assert not hasattr(unit, banned), \
-            f"Unit.{banned} would give a future chooser something to read"
+    have (spec 3.1, THE_KYTOS 1.3).
+
+    STRUCTURAL, NOT A NAME ALLOWLIST (fix round 1, finding 1). The first
+    version of this guard checked `hasattr` against five chosen names
+    (`reserve`, `reserves`, `balance`, `wealth`, `budget`), and a reviewer
+    defeated it completely by adding `_balance: float = 0.0` to `Unit` --
+    the guard passed, undetected, because gaming a name allowlist only
+    requires a name outside the list (`_balance`, `credits`, `funds`,
+    `purse`, ...). A list of synonyms can never be the concept it stands in
+    for. This version instead snapshots EVERY field `Unit` declares
+    (`dataclasses.fields`) and compares it against `_BASELINE_UNIT_FIELDS`,
+    frozen above: ANY new field fails the guard, not only one that happens
+    to be spelled like a reserve.
+
+    THIS DELIBERATELY FIRES ON INNOCENT ADDITIONS TOO -- a field with
+    nothing to do with reserves will also trip it, and the assertion message
+    says so rather than accusing the maintainer of having added a reserve,
+    which the guard has no way to know. That is the cost of a guard that
+    cannot be evaded by a naming choice, and it is the right trade for this
+    particular refusal: the reserve living OUTSIDE the membrane, keyed by
+    unit id in `d_world.Reserves`, is load-bearing for the whole design
+    (THE_KYTOS section 1.3 -- an act's effect resides in resources, never in
+    a private field beside the act). Failing here is not damning. It means:
+    look at the new field, confirm by hand it is not a reserve the world
+    should be holding instead, and then update `_BASELINE_UNIT_FIELDS`
+    deliberately -- the same "ask a human, don't guess" shape as
+    `test_c_unit_is_not_modified_by_this_series` already accepts for its own
+    weak spot."""
+    current = {f.name for f in dataclasses.fields(Unit)}
+    added = current - _BASELINE_UNIT_FIELDS
+    assert not added, (
+        f"Unit gained field(s) {sorted(added)!r} since this guard's baseline "
+        f"was frozen. This may be entirely innocent -- the guard cannot tell "
+        f"-- but confirm by hand that none of them is a reserve a unit "
+        f"should not be able to read (spec 3.1) before updating "
+        f"_BASELINE_UNIT_FIELDS to include it."
+    )
 
 
 def test_c_unit_is_not_modified_by_this_series():
@@ -930,19 +980,47 @@ def test_the_world_holds_no_chooser():
     """Nothing in d_world may decide WHICH act a unit performs, skip one, or
     order them. The world charges and pays; it never selects.
 
-    AST-BASED, LIKE THE MORTALITY GUARD, RATHER THAN A PLAIN SUBSTRING SCAN
-    OVER THE FILE TEXT. The brief's own `"def choose" in text` form only
-    catches a definition spelled with exactly one space after `def`; it
-    would miss `def _choose_one(...)` (an underscore-prefixed "private"
-    chooser -- the natural way to hide exactly this), `async def
-    select_act(...)`, or a name split across a line continuation. Walking the
-    real function and method definitions and testing their names against the
-    same stems asks the question this guard is actually named for."""
+    THIS IS A NAMING TRAP, NOT A SEMANTIC CHOOSER DETECTOR -- SAY SO PLAINLY
+    (fix round 1, finding 2). It asks only whether some function, assigned
+    name, or attribute is SPELLED with one of five stems (`choose`,
+    `select`, `prioriti`, `decline`, `refuse_act`, leading underscore
+    stripped). A chooser written under any other name defeats it completely:
+    a method named `pick`, a dict-based dispatch table for ordering assigned
+    to a variable called `order_of` or `next_act`, a lambda bound to
+    `handler` -- none contain a banned stem, so all pass silently, and no
+    amount of widening the stem list closes that in general, because the
+    list can only ever enumerate synonyms someone thought of. A detector
+    that actually understood "this callable decides which act runs" is not
+    achievable by static analysis over this module and was deliberately NOT
+    attempted -- it would also misfire on innocent code (a `select` used for
+    something unrelated, a `prioriti`-stemmed docstring reference), which is
+    worse than a guard with a known, named gap. THE REAL GUARANTEE IS
+    REVIEW, not this test -- the same posture `test_c_unit_is_not_modified_
+    by_this_series` already takes toward its own weak spot: this guard
+    catches the cheapest, most naive way of writing exactly the refused
+    thing, and no more.
+
+    WIDENED FROM DEF-ONLY TO NAME/ATTRIBUTE TARGETS (fix round 1): the prior
+    version scanned only `FunctionDef`/`AsyncFunctionDef` names, so a lambda
+    bound to a variable literally named `choose` (`choose = lambda acts:
+    acts[0]`) passed clean -- confirmed by injection during review. Scanning
+    `ast.Name` and `ast.Attribute` nodes too closes that specific hole
+    without pretending to understand what the assigned value does."""
     tree = ast.parse((SRC / "d_world.py").read_text())
     stems = ("choose", "select", "prioriti", "decline", "refuse_act")
+
+    def _spelled_like_a_chooser(raw_name: str) -> bool:
+        name = raw_name.lstrip("_").lower()
+        return any(name.startswith(stem) for stem in stems)
+
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            name = node.name.lstrip("_").lower()
-            for stem in stems:
-                assert not name.startswith(stem), \
-                    f"{node.name!r} is the chooser the design refuses"
+            raw = node.name
+        elif isinstance(node, ast.Name):
+            raw = node.id
+        elif isinstance(node, ast.Attribute):
+            raw = node.attr
+        else:
+            continue
+        assert not _spelled_like_a_chooser(raw), \
+            f"{raw!r} is spelled like the chooser the design refuses"
