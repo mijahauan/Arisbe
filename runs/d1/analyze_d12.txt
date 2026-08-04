@@ -1,0 +1,34 @@
+field 12  seats 66  N0 30  tariff 0.000241  E0 0.048108
+  A0 seed 1: surv 30 born 0 died 0 peak 30 charge 51.189
+  A0 seed 2: surv 30 born 0 died 0 peak 30 charge 53.406
+  A0 seed 3: surv 30 born 0 died 0 peak 30 charge 53.001
+  A0 seed 4: surv 30 born 0 died 0 peak 30 charge 50.166
+  A0 seed 5: surv 30 born 0 died 0 peak 30 charge 52.713
+  A0 seed 7: surv 30 born 0 died 0 peak 30 charge 52.003
+  A0 seed 42: surv 30 born 0 died 0 peak 30 charge 53.500
+  A0 seed 99: surv 30 born 0 died 0 peak 30 charge 52.022
+  A1 seed 1: surv 66 born 228 died 192 peak 66 charge 47.453
+  A1 seed 2: surv 66 born 228 died 192 peak 66 charge 49.713
+  A1 seed 3: surv 66 born 210 died 174 peak 66 charge 49.552
+  A1 seed 4: surv 66 born 212 died 176 peak 66 charge 49.006
+  A1 seed 5: surv 66 born 226 died 190 peak 66 charge 48.243
+  A1 seed 7: surv 66 born 224 died 188 peak 66 charge 48.631
+  A1 seed 42: surv 66 born 231 died 195 peak 66 charge 47.414
+  A1 seed 99: surv 66 born 229 died 193 peak 66 charge 46.104
+  A2a seed 1: surv 66 born 143 died 107 peak 66 charge 56.691
+  A2a seed 2: surv 66 born 161 died 125 peak 66 charge 55.152
+  A2a seed 3: surv 66 born 155 died 119 peak 66 charge 55.316
+  A2a seed 4: surv 66 born 158 died 122 peak 66 charge 56.165
+  A2a seed 5: surv 66 born 141 died 105 peak 66 charge 55.917
+  A2a seed 7: surv 66 born 153 died 117 peak 66 charge 56.508
+  A2a seed 42: surv 66 born 159 died 123 peak 66 charge 56.137
+  A2a seed 99: surv 66 born 149 died 113 peak 66 charge 55.705
+  A2b seed 1: surv 66 born 156 died 120 peak 66 charge 57.660
+  A2b seed 2: surv 66 born 170 died 134 peak 66 charge 57.012
+  A2b seed 3: surv 66 born 163 died 127 peak 66 charge 58.148
+  A2b seed 4: surv 66 born 166 died 130 peak 66 charge 57.746
+  A2b seed 5: surv 65 born 141 died 106 peak 66 charge 57.707
+  A2b seed 7: surv 66 born 165 died 129 peak 66 charge 58.308
+  A2b seed 42: surv 64 born 171 died 137 peak 66 charge 57.409
+  A2b seed 99: surv 64 born 157 died 123 peak 66 charge 58.156
+wrote runs/d1/analysis_d12.json

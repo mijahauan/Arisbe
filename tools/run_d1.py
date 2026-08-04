@@ -5,6 +5,7 @@ Design spec: docs/superpowers/specs/2026-08-02-d-series-building-the-stake-desig
 Usage:
     uv run python tools/run_d1.py                  # calibrate, then all arms
     uv run python tools/run_d1.py --rounds 60
+    uv run python tools/run_d1.py --domains 16     # a wider field, re-measured
 """
 
 from __future__ import annotations
@@ -28,6 +29,18 @@ ARMS = ("A0", "A1", "A2a", "A2b")
 SEEDS = (1, 2, 3, 4, 5, 7, 42, 99)
 ROUNDS = 60
 MIN_WITNESSES = 3
+DOMAINS = 8
+"""The field's width, and with it the SEAT CEILING: under PAIRS a field of k
+domains offers exactly C(k, 2) apertures and no two units may share a slice, so
+8 domains cap the population at 28, 12 at 66, 16 at 120.
+
+IT IS AN OPTION AND NOT A CONSTANT because spec section 8 item 6 pre-registers an
+ESCALATION RULE: if a measured equilibrium reaches 80% of the ceiling in any arm,
+the field grows and every figure is re-measured, since a population taken at a
+binding ceiling is not an equilibrium at all -- the cap decided it, not the
+economy. Growing the field also raises `units_for_witnesses`' N0, so the whole
+calibration (tariff, t*, E0) must be re-measured at each width; nothing carries
+across."""
 
 
 @dataclass
@@ -64,18 +77,59 @@ class ArmResult:
     is the price at which the baseline community's total charge would have
     exactly equalled its total income (see `calibrate`)."""
     world: Optional[PricedWorld] = None
+    n_domains: int = DOMAINS
+    n0: int = 0
+    seat_ceiling: int = 0
+    pop_trace: List[int] = dc_field(default_factory=list)
+    """Population at the END of each round -- the series the ESCALATION CHECK
+    is read off. `max(pop_trace)` against 0.8 * `seat_ceiling` decides whether
+    a settled number may be reported as an equilibrium at all."""
+    death_trace: List[int] = dc_field(default_factory=list)
+    """Deaths in each round. Population alone cannot date the first death,
+    because a birth in the same round hides it -- P-D3 reads survival TIME and
+    needs the death dated, not inferred."""
+    lifespan: Dict[str, Tuple[int, int]] = dc_field(default_factory=dict)
+    """unit_id -> (first round alive, last round alive). A founder starts at 0;
+    a newborn at the round after its birth, since `settle` seats it at the end
+    of one round and it first attends in the next."""
+    holders_by_law: Dict[Tuple[str, str], int] = dc_field(default_factory=dict)
+    """law content -> HOLDER-ROUNDS, summed over every round and every living
+    unit that held it. P-D2's lineage length: how long a law persisted in the
+    community, weighted by how many carried it."""
+    units_by_law: Dict[Tuple[str, str], set] = dc_field(default_factory=dict)
+    """law content -> the set of unit ids that ever held it. P-D2's other half:
+    how far it spread."""
+    planted: set = dc_field(default_factory=set)
+    choice_histogram: Dict[int, int] = dc_field(default_factory=dict)
+    """How many positive-standing peers stood behind a unit's preference, at
+    every (unit, relation) for which ANY peer had earned one -- P-D4's question
+    of whether a CHOICE existed. The C-series measured this degenerate: all 939
+    uptake decisions had exactly one candidate, so `whom_to_ask` never chose
+    anything. Read as {candidates: occurrences}, sampled once per round."""
+    standing_by_unit: Dict[str, int] = dc_field(default_factory=dict)
+    """unit_id -> its LAST observed count of positive-standing peer records.
+    Crossed with `lifespan` this is P-D4's survival reading."""
+
+    @property
+    def total_charge(self) -> float:
+        return sum(self.charges_by_unit.values())
+
+    @property
+    def peak_population(self) -> int:
+        return max(self.pop_trace) if self.pop_trace else 0
 
 
 def _planted(spec) -> set:
     return {d.law for d in spec.domains}
 
 
-def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
+def play(arm: str, seed: int, rounds: int, source: Source,
+         n_domains: int = DOMAINS) -> ArmResult:
     """One community, one seed, one arm.
 
     THE ROUND ORDER matters and is the C-series' own: adopt, attend, then the
     channel acts (publish/ask/challenge, answer, corroborate, dispose
-    challenges), then the world settles. Settling LAST means the round's acts
+    challenges, SETTLE CREDIT), then the world settles. Settling LAST means the round's acts
     are already on the board before anything is charged, so no charge can reach
     the acts it prices. CORROBORATE AND DISPOSE ARE NOT OPTIONAL (fix round 2):
     without them a challenge is minted, charged, and never resolves anything --
@@ -88,7 +142,12 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
     pays for it -- fix the price, let the quantum fall out."""
     if arm not in ARMS:
         raise ValueError(f"arm must be one of {ARMS}, got {arm!r}")
-    spec = wide_spec(seed=seed)
+    # THE FIELD'S WIDTH IS AN ARGUMENT, NOT A CONSTANT (spec section 8 item 6).
+    # It sets the seat ceiling AND, through `units_for_witnesses`, the founding
+    # population: a wider field needs more units before every domain has three
+    # witnesses, so N0 moves with it and no figure measured at one width may be
+    # read at another.
+    spec = wide_spec(seed=seed, n_domains=n_domains)
     field = Field(spec)
     n0 = units_for_witnesses(spec, MIN_WITNESSES, PAIRS)
 
@@ -135,6 +194,13 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
     hit_rounds = 0
     born = died = 0
     asked: Dict[str, list] = {}
+    pop_trace: List[int] = []
+    death_trace: List[int] = []
+    lifespan: Dict[str, Tuple[int, int]] = {}
+    holders_by_law: Dict[Tuple[str, str], int] = {}
+    units_by_law: Dict[Tuple[str, str], set] = {}
+    choice_histogram: Dict[int, int] = {}
+    standing_by_unit: Dict[str, int] = {}
 
     for r in range(rounds):
         if hear_board is not None:                       # (a) adopt replies
@@ -187,6 +253,27 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
             # rest of the round already applies.
             for u in units:
                 u.dispose_challenges(hear_board, r)
+        if hear_board is not None:                        # (g) settle credit
+            # THE TYPIFY CHANNEL'S OTHER HALF, AND IT WAS MISSING (fix round 4,
+            # found by RUNNING the measurement and reading zero). The C-series'
+            # own driver closes the round with `settle_credit`
+            # (`tests/test_c_channels.py`, step (i)); this one did not, and the
+            # docstring above still claimed the order was "the C-series' own".
+            # `credit` is called from nowhere else, so `Unit.peers` stayed
+            # EMPTY at every unit, every seed and every arm -- 0 peer records,
+            # not 0 positive ones -- and P-D4 had no instrument at all rather
+            # than an inert one.
+            #
+            # IT CHANGES NO DYNAMICS, and that is itself the finding. Nothing
+            # in the round reads `peers`: `ask` publishes its question to the
+            # WHOLE board (c_unit.py: "what a question cannot do is choose whom
+            # to ask") and (a) adopts `answer_to`, the first matching fact,
+            # whoever wrote it. `whom_to_ask` has no consumer here, so the
+            # preference cannot reach an act and the price cannot reach the
+            # preference. Pinned by
+            # `test_settling_credit_populates_peers_and_moves_no_dynamics`.
+            for u in units:
+                u.settle_credit(r)
 
         # RECORD EACH LIVING UNIT'S RAW DEMAND THIS ROUND (fix round 3) --
         # the same board state `world.settle()` is about to charge against --
@@ -196,6 +283,27 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         for u in units:
             demand_by_unit.setdefault(u.unit_id, []).append(
                 (r, demand_of(u, mint_board, r)))
+
+        # THE READING PASS -- P-D2 and P-D4, which have no dedicated instrument
+        # in this build and are read by hand off `Unit.laws` and `Unit.peers`
+        # against the reserves. It observes and changes nothing.
+        for u in units:
+            start, _ = lifespan.get(u.unit_id, (r, r))
+            lifespan[u.unit_id] = (start, r)
+            for law in u.laws:                        # P-D2: lineage
+                holders_by_law[law] = holders_by_law.get(law, 0) + 1
+                units_by_law.setdefault(law, set()).add(u.unit_id)
+            positive = 0                              # P-D4: was there a choice?
+            by_relation: Dict[str, int] = {}
+            for author, relations in u.peers.items():
+                for relation in relations:
+                    if u.standing_with(author, relation) > 0:
+                        positive += 1
+                        by_relation[relation] = by_relation.get(relation, 0) + 1
+            for candidates in by_relation.values():
+                choice_histogram[candidates] = (
+                    choice_histogram.get(candidates, 0) + 1)
+            standing_by_unit[u.unit_id] = positive
 
         # (g) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
         # never falls and every unit would split every round until the seats ran
@@ -210,6 +318,8 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         born += len(report.born)
         died += len(report.died)
         units = list(report.units)
+        pop_trace.append(len(units))
+        death_trace.append(len(report.died))
         if not units:
             break
 
@@ -219,10 +329,17 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         acts_minted=len(mint_board.all_marks()),
         final_units=units, charges_by_unit=charges,
         first_law_round=first_law, first_hit_round=first_hit,
-        demand_by_unit=demand_by_unit, hit_rounds=hit_rounds, world=world)
+        demand_by_unit=demand_by_unit, hit_rounds=hit_rounds, world=world,
+        n_domains=n_domains, n0=n0,
+        seat_ceiling=world.seats.free() + world.seats.occupied(),
+        pop_trace=pop_trace, death_trace=death_trace, lifespan=lifespan,
+        holders_by_law=holders_by_law, units_by_law=units_by_law,
+        planted=planted, choice_histogram=choice_histogram,
+        standing_by_unit=standing_by_unit)
 
 
-def calibrate(seed_list=SEEDS, rounds: int = ROUNDS) -> Source:
+def calibrate(seed_list=SEEDS, rounds: int = ROUNDS,
+              n_domains: int = DOMAINS) -> Source:
     """Both prices, MEASURED off ONE arm-0 run per seed -- `tariff` before
     `entry_price` (E0), IN THAT ORDER, because E0 is a SUM OF CHARGES and a
     charge cannot be computed until a tariff exists to compute it with.
@@ -277,7 +394,8 @@ def calibrate(seed_list=SEEDS, rounds: int = ROUNDS) -> Source:
     demand_by_unit: Dict[Tuple[int, str], List[Tuple[int, float]]] = {}
 
     for seed in seed_list:
-        result = play("A0", seed=seed, rounds=rounds, source=baseline)
+        result = play("A0", seed=seed, rounds=rounds, source=baseline,
+                      n_domains=n_domains)
         rounds_to_hit.extend(result.first_hit_round.values())
         hit_rounds_total += result.hit_rounds
         for uid, pairs in result.demand_by_unit.items():
@@ -317,19 +435,38 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="D-1: the priced world")
     parser.add_argument("--rounds", type=int, default=ROUNDS)
     parser.add_argument("--seeds", type=int, nargs="*", default=list(SEEDS))
+    parser.add_argument(
+        "--domains", type=int, default=DOMAINS,
+        help="field width; sets the seat ceiling C(k,2) and, through "
+             "units_for_witnesses, N0. Every price is re-measured at it.")
     args = parser.parse_args()
 
-    source = calibrate(args.seeds, args.rounds)
+    source = calibrate(args.seeds, args.rounds, n_domains=args.domains)
+    probe = wide_spec(seed=args.seeds[0], n_domains=args.domains)
+    n0 = units_for_witnesses(probe, MIN_WITNESSES, PAIRS)
+    ceiling = seats_from(probe).free()
+    print(f"field: {args.domains} domains  seats = {ceiling}  N0 = {n0}  "
+          f"(80% of ceiling = {0.8 * ceiling:.1f})")
     print(f"calibration: tariff = {source.tariff:.6f}  "
           f"E0 = {source.entry_price:.6f}  (both measured, not chosen)")
 
     print(f"\n{'arm':>5} {'seed':>5} {'survivors':>10} {'born':>6} "
-          f"{'died':>6} {'acts':>7}")
+          f"{'died':>6} {'acts':>7} {'charge':>10} {'peak':>6}")
+    peak_overall = 0
     for arm in ARMS:
         for seed in args.seeds:
-            r = play(arm, seed=seed, rounds=args.rounds, source=source)
+            r = play(arm, seed=seed, rounds=args.rounds, source=source,
+                     n_domains=args.domains)
+            peak_overall = max(peak_overall, r.peak_population)
             print(f"{arm:>5} {seed:>5} {r.survivors:>10} {r.born:>6} "
-                  f"{r.died:>6} {r.acts_minted:>7}")
+                  f"{r.died:>6} {r.acts_minted:>7} {r.total_charge:>10.3f} "
+                  f"{r.peak_population:>6}")
+    # THE ESCALATION CHECK, printed by the driver rather than left to the
+    # reader: a population at or above 80% of the ceiling is the CAP's number
+    # and not the economy's, and may not be reported as an equilibrium.
+    print(f"\nescalation check: highest population {peak_overall} vs 80% of "
+          f"{ceiling} = {0.8 * ceiling:.1f} -> "
+          f"{'FIRES: re-measure at a wider field' if peak_overall >= 0.8 * ceiling else 'clear'}")
 
 
 if __name__ == "__main__":

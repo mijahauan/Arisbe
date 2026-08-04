@@ -1024,3 +1024,93 @@ def test_the_world_holds_no_chooser():
             continue
         assert not _spelled_like_a_chooser(raw), \
             f"{raw!r} is spelled like the chooser the design refuses"
+
+
+def test_a_wider_field_moves_the_seat_ceiling_and_the_founding_population():
+    """The escalation rule (spec section 8 item 6) needs the field's width to
+    be an ARGUMENT, and it needs widening to move the two numbers the rule is
+    about: the seat ceiling a population could run to, and the N0 the
+    community starts at.
+
+    Under PAIRS a field of k domains offers C(k, 2) apertures -- 28, 66, 120 at
+    8, 12 and 16 -- and `units_for_witnesses` needs more founders to put three
+    witnesses on every domain as the field widens. A `--domains` option that
+    left either number where it was would let a re-measurement report the same
+    binding ceiling under a different name, which is exactly the failure the
+    escalation rule exists to catch."""
+    from c_field import PAIRS, units_for_witnesses, wide_spec
+
+    seen = {}
+    for k, expected_ceiling in ((8, 28), (12, 66), (16, 120)):
+        spec = wide_spec(seed=1, n_domains=k)
+        assert seats_from(spec).free() == expected_ceiling
+        result = play("A1", seed=1, rounds=2,
+                      source=Source(1.0, 0.25, 0.05), n_domains=k)
+        assert result.n_domains == k
+        assert result.seat_ceiling == expected_ceiling
+        assert result.n0 == units_for_witnesses(spec, 3, PAIRS)
+        seen[k] = (result.seat_ceiling, result.n0)
+
+    ceilings = [c for c, _ in seen.values()]
+    founders = [n for _, n in seen.values()]
+    assert ceilings == sorted(set(ceilings)), \
+        "a wider field must offer strictly more seats"
+    assert founders == sorted(set(founders)), \
+        "a wider field must need strictly more founders to witness it"
+    assert play("A1", seed=1, rounds=2,
+                source=Source(1.0, 0.25, 0.05)).n_domains == 8, \
+        "the default field is unchanged, so every prior figure still reads"
+
+
+def test_calibration_is_re_measured_at_each_field_width():
+    """No price carries across a widening. `calibrate` takes the same
+    `n_domains` the arms will be played at, so tariff and E0 are measured in
+    the world they will be charged in -- a price measured at 8 domains and
+    applied at 16 would be a chosen number wearing a measurement's clothes."""
+    narrow = calibrate([1], rounds=10, n_domains=8)
+    wide = calibrate([1], rounds=10, n_domains=12)
+    assert narrow.tariff > 0 and wide.tariff > 0
+    assert narrow != wide, \
+        "a different field must yield a different measured pair of prices"
+
+
+def test_settling_credit_populates_peers_and_moves_no_dynamics():
+    """The typify channel's other half, and the reason P-D4 reads the way it
+    does.
+
+    FOUND BY RUNNING THE MEASUREMENT (fix round 4). The driver's round order
+    omitted `settle_credit`, which is `credit`'s only caller, so `Unit.peers`
+    was EMPTY at every unit of every arm of every seed -- zero peer records,
+    not zero positive ones -- and the prior about typification had no
+    instrument rather than an inert one.
+
+    TWO CLAIMS, AND THE SECOND IS THE FINDING. (1) With the step in place the
+    community does accumulate peer records, so there is something to read.
+    (2) Adding it moves NO survivor, birth, death, act or charge figure --
+    because nothing in the round consults `peers`. `ask` publishes its
+    question to the whole board and `adopt` takes `answer_to`, the first
+    matching fact, whoever wrote it; `whom_to_ask` has no consumer. So the
+    preference cannot reach an act, and the price cannot reach the
+    preference."""
+    source = Source(1.0, 0.08, 0.0004)
+    result = play("A1", seed=1, rounds=25, source=source)
+
+    records = sum(len(relations)
+                  for u in result.final_units
+                  for relations in u.peers.values())
+    assert records > 0, \
+        "settle_credit is credit's only caller: without it peers stays empty"
+
+    # The same run with the credit step suppressed -- every other call in the
+    # round is untouched, so any difference in the figures below would have to
+    # come from `settle_credit` itself.
+    import unittest.mock as _mock
+    with _mock.patch.object(Unit, "settle_credit", lambda self, r: []):
+        muted = play("A1", seed=1, rounds=25, source=source)
+        assert sum(len(rel) for u in muted.final_units
+                   for rel in u.peers.values()) == 0
+
+    assert (result.survivors, result.born, result.died, result.acts_minted) == \
+        (muted.survivors, muted.born, muted.died, muted.acts_minted), \
+        "the typify channel is causally disconnected from the economy"
+    assert result.total_charge == pytest.approx(muted.total_charge)

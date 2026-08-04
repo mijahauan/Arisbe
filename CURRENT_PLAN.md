@@ -1,6 +1,98 @@
 # Current Plan
 
-**Last Updated**: 2026-08-02 (twelfth arc) — **EXAMINATION VIII: THE WEST MAPPING
+**Last Updated**: 2026-08-04 (thirteenth arc) — **D-1 BUILT AND RUN: THE STAKE BITES, THE
+POPULATION DOES NOT SETTLE, AND THREE OF SEVEN PRE-REGISTERED PRIORS FAILED.**
+Branch `d1-priced-world-2026-08-02`. Spec:
+[the D-series design](docs/superpowers/specs/2026-08-02-d-series-building-the-stake-design.md)
+(priors `P-D1`…`P-D7` in its §7, committed before anything was built).
+Run log: [runs/RUN_D1_LOG.md](runs/RUN_D1_LOG.md).
+
+**What was built.** One world that **subtracts**. `src/d_world.py` — a reserve held *outside*
+the membrane (`Reserves`), seats read off the field rather than declared (`Seats`,
+`seats_from`), and a `PricedWorld.settle` that charges `τ · demand`, pays `E1 · hits / Σ hits`
+pro rata, drops a unit whose balance reaches zero and splits one that has doubled the entry
+price. Driver `tools/run_d1.py` with the four arms and both **measured** prices. No `die()`,
+no TTL, no lifespan, no chooser, no sense organ for the reserve, no genome — every one
+refused in the sitting with its reason (spec §9), and two of the refusals are now standing
+tests. `src/c_unit.py`, `src/c_field.py`, `src/c_marks.py` **untouched**. 56 tests.
+
+**What the priors said, and what happened.** Four arms × eight seeds × 60 rounds at three
+field widths — **96 communities**, plus 24 calibration runs.
+
+- **`P-D1` mortality is a consequence — HELD.** First death in **round 6 of all eight seeds**
+  in arm A1; 49–60 units die per run; the control that computes the identical charge and does
+  not subtract it buries **nobody**, at any seed or width. Nothing was installed to produce
+  it. This is the series' point and it landed.
+- **`P-D7` population finds a level — REFUTED, by its own stated failure condition.** *"Fails
+  if size runs to the ceiling."* It runs to the ceiling — 8/8 seeds at 28 seats, 8/8 at 66,
+  7/8 at 120. **Spec §8 item 6's escalation rule fired at every width tried and never
+  cleared**, and the reason is structural: `τ` is calibrated to break even against a fixed
+  source, so widening the field *re-prices the world cheaper* (0.000382 → 0.000241 → 0.000174)
+  exactly as fast as it grants more room. **No price was tuned to manufacture an
+  equilibrium**; the calibration is measured and stays measured.
+- **`P-D3` the ablation bites, measured in survival time — REFUTED as stated, confirmed in
+  substance.** Ablated *units* live **31% LONGER** (25.64 rounds vs 19.50) — A1's shorter mean
+  is **turnover**, not mortality, since it breeds 64 newborns to A2b's 46 and a newborn
+  inherits nothing. But at 120 seats the arms finally separate and the ablated *communities*
+  end **25.6% (`A2a`) and 32.0% (`A2b`) short** of the full-channel arm's 119.75. **The first
+  time *ablate the putative sign* has moved a number in this project**, and the
+  mute-and-cheaper confound is ruled out in sign: A2b, which pays for every act, ends *below*
+  the silent A2a rather than above it.
+- **`P-D4` typification becomes consequential — NOT REACHED, and the null outranks the
+  prior.** The priced breeding population supplies exactly what the C-series said was missing:
+  **21.1% of 8 627 preference occasions now have two or more candidates** to prefer between,
+  against the C-series' *none*. And it changes nothing, because **`whom_to_ask` has no
+  consumer**: `ask` publishes to the whole board and uptake takes the first matching fact.
+  Ruling 4 held that pricing gives the organ "a reason to matter, because a unit that asks the
+  wrong peer now pays for nothing" — **a unit cannot ask a wrong peer, because it cannot ask a
+  peer at all.** No price can bridge that while the question is a broadcast; a targeted ask is
+  a `c_unit.py` change and belongs to its own sitting.
+- **`P-D2` laws have lineages — HELD on lineage, selection clause NOT REACHED.** A planted law
+  accumulates ~245 holder-rounds against ~1 for an unplanted one, and all eight are found in
+  every priced run. But **the unpriced control reproduces the same ordering with zero deaths**
+  (204 vs 7.1), so it is evidence that *induction is accurate*, not that survival selects —
+  and the comparison class is a mean of **0.25 unplanted laws per run**, which is not a
+  population. `P-D5` not reached (nothing fitted, by design; cumulative charge is **not
+  monotone in activity** — the arm minting zero acts paid the *most*) · `P-D6` held as the
+  finding-in-advance it was pre-registered to be.
+
+**Three defects the build found by RUNNING the world, each of which would have produced a
+plausible-looking table.** (1) **The calibration guaranteed extinction**, because `E0` was
+read off the time to a unit's first *law* when only a *hit* earns: `N₀·E0 = E1·(t*+1)`
+regardless of `N₀`, so the community held precisely the learning period's buffer and no
+margin, arrived at `t*` broke, and every priced arm went extinct within 30 rounds. Re-reading
+`t*` off the first hit moved `E0` by 25% and that 25% was the whole difference. *Holding a law
+earns nothing; a hit earns.* (2) **The doubt lifecycle was inert** — challenges minted and
+charged, never disposed; `dispose_challenges` is the sole route by which an induced law is
+suspended or retracted, so every unit bet on every law it ever induced, true or false, for the
+rest of the run. (3) **The tariff had no aggregate bite** under `τ = E1/demand`: total
+collected is *exactly* `E1` every round whatever the community does, so A2b (demand 408,
+~2 600 acts) and A2a (demand 294, none) collected `1.0000` alike and came out **byte-identical**
+in survivors, births and deaths at every seed. The price was purely *positional*. `τ` became a
+**calibrated constant** — ruling 7's principle untouched, only its demand-normalised form
+retired. **A fourth was found in the measurement itself**: the driver never called
+`settle_credit`, so `Unit.peers` was empty everywhere and `P-D4` had no instrument at all —
+and closing it moved no figure, which is how the no-consumer finding surfaced.
+
+**State at close:** branch `d1-priced-world-2026-08-02`, `uv run pytest tests/test_d_world.py`
+**56 passed**. Raw output under `runs/d1/`.
+
+▶ **NEXT (D-series).**
+
+1. **`P-D7` cannot be cleared by growing the field** — the escalation rule and the calibration
+   pull against each other. A version that could clear must break the coupling (hold `τ` at
+   one width while widening, or calibrate against asymptotic rather than total demand). That
+   is a re-design and **must not be done as a tuning pass**.
+2. **`whom_to_ask` needs a consumer, or it needs retiring** — a targeted ask in `c_unit.py`,
+   which folds directly into the standing D-0 fork (`peers` vs `SourceStanding`, spec §5.2),
+   where `P-D4`'s meaning was already known to be at stake.
+3. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared
+   pool across equal-sized communities) stand as specified; **D-3** (habits as ink) still
+   waits on an interpreter over held rules.
+
+---
+
+**Last Updated (prior)**: 2026-08-02 (twelfth arc) — **EXAMINATION VIII: THE WEST MAPPING
 TRIED AND SPLIT, AND THE FIRST TWO ITEMS OF THE RULED INK-WORK BUILT.**
 Working on `main`. Spec:
 [Examination VIII](docs/superpowers/specs/2026-08-01-examination-viii-the-west-mapping-on-trial.md)

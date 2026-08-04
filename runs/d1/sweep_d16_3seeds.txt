@@ -1,0 +1,18 @@
+field: 16 domains  seats = 120  N0 = 42  (80% of ceiling = 96.0)
+calibration: tariff = 0.000173  E0 = 0.034859  (both measured, not chosen)
+
+  arm  seed  survivors   born   died    acts     charge   peak
+   A0     1         42      0      0    9160     51.726     42
+   A0     2         42      0      0    9330     53.404     42
+   A0     3         42      0      0    9188     52.870     42
+   A1     1        116    473    399   36410     50.688    120
+   A1     2        103    420    359   34051     50.911    120
+   A1     3        120    431    353   35572     52.179    120
+  A2a     1         97    257    202       0     59.020    120
+  A2a     2         87    274    229       0     59.165    120
+  A2a     3         90    251    203       0     58.882    120
+  A2b     1         90    222    174   28793     59.657    120
+  A2b     2         79    250    213   30023     59.516    120
+  A2b     3         81    236    197   28962     58.852    120
+
+escalation check: highest population 120 vs 80% of 120 = 96.0 -> FIRES: re-measure at a wider field
