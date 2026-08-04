@@ -113,7 +113,26 @@ uniqueness loop and two docstring promises (a death, and deaths) are now actuall
 five were verified by mutation to have been passing vacuously. Sweep of record under
 `runs/d1/`.
 
-▶ **NEXT (D-series).**
+▶▶▶ **NEXT SESSION (ruled 2026-08-04): AUDIT THE C-SERIES' CHANNELS BEFORE BUILDING ANYTHING
+ELSE ON ITS FIGURES.**
+
+This arc found **four channels that ran hundreds of times and did nothing** — challenges
+charged but never disposed, `corroborate` minting zero, `settle_credit` never called, `answer`
+structurally dead and then, once revived, *dynamically inert*. **No economic figure looked
+wrong while any of them ran.** The C-series was measured with the same machinery across many
+arcs, and nobody has checked whether its channels were live when its published numbers were
+taken.
+
+The audit is cheap: `runs/d1/channel_probe.py` counts **marks minted against calls made** and
+costs one short run per arm. What it cannot do is tell us in advance whether the answer is
+reassuring — the C-series plays `answer` **with a stagger**, where the channel should *not* be
+redundant, so the interaction may genuinely differ there. Either result is worth having.
+
+**It may invalidate published C-series findings. That is the reason to run it, not a reason
+to defer it.** The session ends with the probe wired in as standing discipline, so that the
+absence of an effect is never again read as a result without first checking the channel fired.
+
+▶ **THEN, in the order the D-series left them.**
 
 1. **`P-D7` cannot be cleared by growing the field** — the escalation rule and the calibration
    pull against each other. A version that could clear must break the coupling (hold `τ` at
@@ -122,11 +141,7 @@ five were verified by mutation to have been passing vacuously. Sweep of record u
 2. **`whom_to_ask` needs a consumer, or it needs retiring** — a targeted ask in `c_unit.py`,
    which folds directly into the standing D-0 fork (`peers` vs `SourceStanding`, spec §5.2),
    where `P-D4`'s meaning was already known to be at stake.
-3. **Count the channel before reading its absence as a result.** `runs/d1/channel_probe.py`
-   counts *marks minted* against *calls made* and costs one short run. Two of this arc's seven
-   defects were channels that ran hundreds of times and did nothing, and no economic figure
-   looked wrong while they did.
-4. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared
+3. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared
    pool across equal-sized communities) stand as specified; **D-3** (habits as ink) still
    waits on an interpreter over held rules.
 
