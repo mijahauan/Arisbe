@@ -22,7 +22,7 @@ from c_field import (PAIRS, Aperture, Field, apertures_for,  # noqa: E402
                      units_for_witnesses, wide_spec)
 from c_marks import MarkBoard                                # noqa: E402
 from c_unit import Unit                                      # noqa: E402
-from d_world import PricedWorld, Source, seats_from          # noqa: E402
+from d_world import PricedWorld, Source, demand_of, seats_from  # noqa: E402
 
 ARMS = ("A0", "A1", "A2a", "A2b")
 SEEDS = (1, 2, 3, 4, 5, 7, 42, 99)
@@ -48,6 +48,21 @@ class ArmResult:
     Kept ALONGSIDE `first_law_round` rather than replacing it: the law-round
     figure stays informative (a later task reads it), it is simply not what
     the entry price should be calibrated on."""
+    demand_by_unit: Dict[str, List[Tuple[int, float]]] = dc_field(
+        default_factory=dict)
+    """For each unit, its `(round, demand)` pairs for every round it was
+    alive -- fix round 3, the raw material `calibrate` needs to measure a
+    tariff AFTER the fact. The baseline arm-0 run `calibrate` plays is
+    UNPRICED (`tariff=0.0`, since it is not yet known), so `charges_by_unit`
+    reads all zero there and cannot supply either price; this carries the
+    demand `world.settle()` actually charged against, so a tariff measured
+    later can be applied against real history rather than replayed."""
+    hit_rounds: int = 0
+    """How many of this run's rounds had at least one unit hit (i.e.
+    `report.incomes` was non-empty) -- fix round 3, the other half of the
+    tariff measurement: `tariff = pool_per_round * hit_rounds / total_demand`
+    is the price at which the baseline community's total charge would have
+    exactly equalled its total income (see `calibrate`)."""
     world: Optional[PricedWorld] = None
 
 
@@ -116,6 +131,8 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
     first_law: Dict[str, int] = {}
     first_hit: Dict[str, int] = {}
     charges: Dict[str, float] = {}
+    demand_by_unit: Dict[str, List[Tuple[int, float]]] = {}
+    hit_rounds = 0
     born = died = 0
     asked: Dict[str, list] = {}
 
@@ -171,6 +188,15 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
             for u in units:
                 u.dispose_challenges(hear_board, r)
 
+        # RECORD EACH LIVING UNIT'S RAW DEMAND THIS ROUND (fix round 3) --
+        # the same board state `world.settle()` is about to charge against --
+        # so `calibrate` can measure a tariff and an entry price after the
+        # fact even when this arm is played UNPRICED (`tariff=0.0`), where
+        # `report.charges` would read all zero.
+        for u in units:
+            demand_by_unit.setdefault(u.unit_id, []).append(
+                (r, demand_of(u, mint_board, r)))
+
         # (g) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
         # never falls and every unit would split every round until the seats ran
         # out -- an artefact of the control, not a finding. The control's job is
@@ -179,6 +205,8 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
                               make_unit=None if arm == "A0" else make_unit)
         for uid, amount in report.charges.items():
             charges[uid] = charges.get(uid, 0.0) + amount
+        if report.incomes:
+            hit_rounds += 1
         born += len(report.born)
         died += len(report.died)
         units = list(report.units)
@@ -190,53 +218,99 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         born=born, died=died,
         acts_minted=len(mint_board.all_marks()),
         final_units=units, charges_by_unit=charges,
-        first_law_round=first_law, first_hit_round=first_hit, world=world)
+        first_law_round=first_law, first_hit_round=first_hit,
+        demand_by_unit=demand_by_unit, hit_rounds=hit_rounds, world=world)
 
 
-def calibrate(seed_list=SEEDS, rounds: int = ROUNDS) -> float:
-    """E0 -- the world's entry price, MEASURED and not chosen.
+def calibrate(seed_list=SEEDS, rounds: int = ROUNDS) -> Source:
+    """Both prices, MEASURED off ONE arm-0 run per seed -- `tariff` before
+    `entry_price` (E0), IN THAT ORDER, because E0 is a SUM OF CHARGES and a
+    charge cannot be computed until a tariff exists to compute it with.
 
-    Arm 0 at the reference configuration supplies `t*`, the MEDIAN over units
-    and seeds of the round at which a unit's ledger first records a HIT; E0 is
-    the charge a median unit has accrued by then.
+    `tariff` (fix round 3, author's ruling). Running the demand-normalised
+    `tau = pool_per_round / demand` (fix rounds 1-2's form) exposed a deeper
+    defect: total collected is EXACTLY `pool_per_round` every round no
+    matter what the community does, so the tariff had no AGGREGATE bite --
+    measured directly, `A2a` (the channel off entirely) and `A2b` (mints and
+    is charged, reaches nobody) collected identically every round and
+    finished every seed with IDENTICAL survivor/birth/death counts, though
+    `A2b` minted thousands of acts `A2a` never touched. `tariff` REPLACES it
+    as a CALIBRATED CONSTANT: the flat price per unit of demand at which the
+    baseline community BREAKS EVEN over its own run -- total charge equals
+    total income. Total income is `pool_per_round` times the number of
+    ROUNDS with at least one hit (income is paid in full, once, whenever
+    anyone hits that round); total charge is `tariff` times the summed
+    demand over every unit and every round it was alive. Solving
+    `tariff * total_demand == pool_per_round * hit_rounds`:
 
-    WHY FIRST HIT AND NOT FIRST LAW (fix round 1, measured). Holding a law
-    earns nothing -- only a hit earns, since income is paid pro rata on
-    `hits_of` and nothing else. Calibrating on the round a unit first INDUCES
-    a planted law endows a community with exactly enough to learn and nothing
-    to survive on afterward: measured at the law-calibrated E0 (0.2215),
-    every priced arm (A1, A2a, A2b) went extinct within 30 rounds, because
-    rounds 0 through t*-law have ZERO hitters by construction (nobody has a
-    law to anticipate with yet) and the community burns its whole founding
-    endowment (`n0 * E0`) over exactly that many rounds of pure outflow before
-    a single unit could possibly earn anything. Calibrating on first HIT
-    instead measures the real time-to-self-sufficiency: first-law median was
-    3.0, first-hit median 4.0, E0 rose from 0.2215 to ~0.2765 -- a 25%
-    correction that is enough to cross viability (9-13 survivors at 40 rounds
-    across seeds 1, 2, 3, with both births and deaths occurring, in place of
-    total extinction).
+        tariff = pool_per_round * hit_rounds / total_demand
 
-    MEDIAN AT BOTH STEPS, so one lucky unit does not set the world's entry
-    price. WHY t* AND NOT A HORIZON: an austere endowment kills every unit
-    before earning can happen and the run is empty, while a horizon chosen by
-    hand is a free parameter wearing a law's clothes. Read off t*, the claim is
-    sharp -- a unit that learns to earn slower than the recorded baseline dies
-    before it earns."""
+    summed across every seed in the list first, so one seed cannot set the
+    price. Calibration is still MEASUREMENT, not choice -- that principle is
+    unchanged; only the demand-normalised FORM was retired, because it gave
+    the tariff no aggregate bite.
+
+    THE BASELINE RUN ITSELF IS PLAYED UNPRICED (`Source(pool, 0.0, 0.0)`):
+    neither price is known yet, so `ArmResult.charges_by_unit` reads all
+    zero and cannot supply either measurement. `ArmResult.demand_by_unit`
+    carries the raw per-round demand `world.settle()` actually charged
+    against instead, so the just-measured `tariff` can be applied against
+    real recorded history after the fact, with no need to replay anything.
+
+    `t*` and `entry_price` (E0) are as fix round 1 left them: `t*` is the
+    MEDIAN over units and seeds of the round of a unit's first hit (holding
+    a law earns nothing; only a hit earns). `entry_price` is the MEDIAN over
+    units of that unit's own cumulative charge through round `t*`
+    (`tariff * demand_in_that_round`, summed over rounds `0..t*` from its
+    own `demand_by_unit`). MEDIAN AT BOTH STEPS, so one lucky unit sets
+    neither price.
+
+    Returns a `Source(pool_per_round, entry_price, tariff)` rather than a
+    bare float, since there are now two measured numbers and a caller needs
+    both."""
+    pool_per_round = 1.0
+    baseline = Source(pool_per_round, 0.0, 0.0)
+
+    total_demand = 0.0
+    hit_rounds_total = 0
     rounds_to_hit: List[int] = []
-    per_round_charge: List[float] = []
+    demand_by_unit: Dict[Tuple[int, str], List[Tuple[int, float]]] = {}
+
     for seed in seed_list:
-        result = play("A0", seed=seed, rounds=rounds, source=Source(1.0, 0.0))
+        result = play("A0", seed=seed, rounds=rounds, source=baseline)
         rounds_to_hit.extend(result.first_hit_round.values())
-        for uid, total in result.charges_by_unit.items():
-            per_round_charge.append(total / result.rounds)
+        hit_rounds_total += result.hit_rounds
+        for uid, pairs in result.demand_by_unit.items():
+            total_demand += sum(d for _, d in pairs)
+            # Unit ids are only unique WITHIN one seed's run (u0, u1, ... are
+            # re-minted fresh per seed), so key by (seed, uid) -- otherwise a
+            # same-named unit from a different seed's run would silently
+            # overwrite this one's demand history.
+            demand_by_unit[(seed, uid)] = pairs
+
+    if total_demand <= 0.0:
+        raise RuntimeError(
+            f"no unit ever held or spoke in {rounds} rounds over seeds "
+            f"{list(seed_list)}: total demand is zero and tariff cannot be "
+            f"measured"
+        )
+    tariff = pool_per_round * hit_rounds_total / total_demand
+
     if not rounds_to_hit:
         raise RuntimeError(
             f"no unit ever hit in {rounds} rounds over seeds "
             f"{list(seed_list)}: t* is undefined because nothing ever earned, "
-            f"and E0 cannot be measured"
+            f"and entry_price cannot be measured"
         )
     t_star = statistics.median(rounds_to_hit)
-    return statistics.median(per_round_charge) * (t_star + 1)
+
+    per_unit_charge_through_tstar = [
+        sum(tariff * d for r, d in pairs if r <= t_star)
+        for pairs in demand_by_unit.values()
+    ]
+    entry_price = statistics.median(per_unit_charge_through_tstar)
+
+    return Source(pool_per_round, entry_price, tariff)
 
 
 def main() -> None:
@@ -245,9 +319,9 @@ def main() -> None:
     parser.add_argument("--seeds", type=int, nargs="*", default=list(SEEDS))
     args = parser.parse_args()
 
-    e0 = calibrate(args.seeds, args.rounds)
-    print(f"calibration: E0 = {e0:.6f}  (measured, not chosen)")
-    source = Source(pool_per_round=1.0, entry_price=e0)
+    source = calibrate(args.seeds, args.rounds)
+    print(f"calibration: tariff = {source.tariff:.6f}  "
+          f"E0 = {source.entry_price:.6f}  (both measured, not chosen)")
 
     print(f"\n{'arm':>5} {'seed':>5} {'survivors':>10} {'born':>6} "
           f"{'died':>6} {'acts':>7}")

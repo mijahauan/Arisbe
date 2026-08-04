@@ -40,15 +40,39 @@ class Source:
     first law (design spec section 4). It is zero in the calibration arm, where
     it is not yet known, and a zero entry price breeds not at all.
 
-    BOTH FIELDS ARE ASSUMED NON-NEGATIVE. Nothing constructs a `Source` with a
-    negative `pool_per_round` or `entry_price`, and this is a precondition,
-    not a validated one -- a guard here would be speculative. `PricedWorld`'s
-    "a balance never goes below zero" guarantee (see `PricedWorld.settle`)
-    relies on it: a negative `pool_per_round` would pay negative income, and
-    a negative `entry_price` would invert the reproduction threshold."""
+    `tariff` is the price per unit of demand, MEASURED exactly like
+    `entry_price` -- not chosen, not negotiated, and not re-derived every
+    round (fix round 3, author's ruling). It REPLACES the earlier
+    `tau = pool_per_round / demand`, which was retired because it gave the
+    tariff no aggregate bite: normalising the charge to the pool every round
+    means total collected is EXACTLY `pool_per_round` no matter what the
+    community does, so a unit that mints far more acts than its peers pays
+    only by lowering everyone's *share*, never by paying more in absolute
+    terms. Measured directly (fix round 2's own re-run): `A2a` (the channel
+    off entirely) and `A2b` (mints and is charged, reaches nobody) collected
+    exactly the same total every round and finished every seed with
+    IDENTICAL survivor, birth and death counts, despite `A2b` minting
+    thousands of acts `A2a` never touched -- the tariff was purely
+    positional, a unit charged for out-holding or out-speaking its peers,
+    never for holding or speaking as such. `tariff` is calibrated off arm 0
+    exactly as `entry_price` is (see `calibrate` in `tools/run_d1.py`): the
+    value at which the baseline community breaks even over its own run. It
+    is zero in the calibration arm, where it is not yet known -- a zero
+    tariff is an UNPRICED WORLD (every charge is zero, nothing is ever
+    subtracted), used only while arm 0's baseline demand is being measured.
+
+    ALL THREE FIELDS ARE ASSUMED NON-NEGATIVE. Nothing constructs a `Source`
+    with a negative `pool_per_round`, `entry_price` or `tariff`, and this is a
+    precondition, not a validated one -- a guard here would be speculative.
+    `PricedWorld`'s "a balance never goes below zero" guarantee (see
+    `PricedWorld.settle`) relies on it: a negative `pool_per_round` would pay
+    negative income, a negative `entry_price` would invert the reproduction
+    threshold, and a negative `tariff` would pay a unit for having held or
+    spoken."""
 
     pool_per_round: float = 1.0
     entry_price: float = 0.0
+    tariff: float = 0.0
 
 
 class Reserves:
@@ -218,6 +242,12 @@ class RoundReport:
     round_idx: int
     demand: float
     tau: Optional[float]
+    """The tariff actually in force this round -- `self.source.tariff`, a
+    calibrated CONSTANT (fix round 3), not `pool_per_round / demand`. Kept as
+    `tau` and kept `Optional` for signature stability (nothing downstream had
+    to change), but it is never actually `None` any more: there is no longer
+    a division to guard, so a zero-demand round reports the tariff same as
+    any other, simply with every charge at zero."""
     collected: float
     charges: Dict[str, float]
     incomes: Dict[str, float]
@@ -237,16 +267,34 @@ class PricedWorld:
     substantive claim a designer would be making on the world's behalf. This
     still governs every ACT: nothing a unit does is ever refused.
 
-    THE PRICE IS DETERMINED, NOT SET. `tau = pool / demand` is whatever clears
-    the world's bounded supply against what the community actually did. It is
-    not a negotiation: nobody bargains and nobody may refuse, which would need
-    the chooser this design excludes.
+    THE PRICE IS CALIBRATED, NOT SET BY HAND -- AND NO LONGER RE-DERIVED
+    EVERY ROUND (fix round 3, author's ruling). `tau = pool_per_round /
+    demand` was tried first and retired: it is whatever clears the world's
+    bounded supply against what the community actually did, which sounds
+    like a tariff but ACTS like a lottery split -- total collected is
+    exactly `pool_per_round` every round regardless of demand, so mint ten
+    times the acts and each one simply costs a tenth as much; the aggregate
+    bite is always exactly the pool, never more. Measured directly: `A2a`
+    (no channel at all) and `A2b` (mints and is charged, reaches nobody)
+    collected identically every round and finished every seed with
+    IDENTICAL survivor/birth/death counts, though `A2b` minted thousands of
+    acts `A2a` never touched -- the tariff was purely POSITIONAL, pricing a
+    unit only relative to its peers, never in absolute terms. `source.tariff`
+    is now a CALIBRATED CONSTANT, measured off arm 0's baseline run exactly
+    as `entry_price` is (see `tools/run_d1.py:calibrate`): the flat price per
+    unit of demand at which the baseline community breaks even over its own
+    run. Nobody sets it by hand, and nobody bargains it round to round
+    either -- it is measurement, not choice, the same principle as before;
+    only the demand-normalised FORM was retired, because it left the
+    tariff with no aggregate bite. Total cost now grows with activity AND
+    with community size: holding a large model or minting many acts costs
+    ABSOLUTELY, not merely relative to what peers happen to be doing.
 
     EXTRACTION IS BOUNDED, WHICH IS NOT DECLINING. The nominal charge
-    `tau * demand` is a meter reading and is reported in full, unchanged, in
-    `RoundReport.charges`. What the world actually TAKES is bounded by what a
-    unit actually HOLDS -- you cannot take 0.99 out of something holding
-    0.5 -- so `collected = min(charge, balance)`. That is exhaustion, not
+    `tariff * demand` is a meter reading and is reported in full, unchanged,
+    in `RoundReport.charges`. What the world actually TAKES is bounded by
+    what a unit actually HOLDS -- you cannot take more than a unit has --
+    so `collected = min(charge, balance)`. That is exhaustion, not
     refusal: the unit still held its model, still minted its marks, still
     acted, and none of that was ever declined. Only extraction is bounded, and
     a bound is not a choice among candidates. NO UNIT CAN EVER END IN DEBT:
@@ -281,9 +329,10 @@ class PricedWorld:
         self.board = board
         self.subtract = subtract
         """False is ARM 0: the charge computed and reported but never applied,
-        which is exactly today's system. It is the control and the calibration
-        source, and it is the only coherent control now that price is
-        determined, since `tau = pool / demand` has no zero."""
+        which is exactly today's system. It is the control and the
+        calibration source -- the arm run with a zero `tariff` (an unpriced
+        world) while arm 0's baseline demand is measured, before `tariff`
+        itself can be calibrated from that same run."""
         self.reserves = Reserves()
         self._next_id = 0
 
@@ -309,7 +358,8 @@ class PricedWorld:
         prices. Births and deaths come last, so a unit is judged on the round it
         actually played.
 
-        `charges` IS THE NOMINAL METER READING (`tau * demand`), reported in
+        `charges` IS THE NOMINAL METER READING (`source.tariff * demand`,
+        fix round 3 -- no longer `pool_per_round / demand`), reported in
         full regardless of what a unit can actually pay. `collected` (the dict)
         is what the world actually takes -- bounded by each unit's own
         balance, so extraction can never drive a balance below zero;
@@ -343,12 +393,15 @@ class PricedWorld:
                          + acts_by_author.get(u.unit_id, 0))
 
         demand = sum(_demand(u) for u in living)
-        tau = (self.source.pool_per_round / demand) if demand > 0 else None
-
-        charges: Dict[str, float] = {}
-        if tau is not None:
-            for u in living:
-                charges[u.unit_id] = tau * _demand(u)
+        # FIX ROUND 3 (author's ruling): tau is the CALIBRATED tariff, not
+        # pool/demand -- there is no division here any more, so a zero-demand
+        # round needs no guard against one. Every living unit is charged
+        # unconditionally (zero demand simply prices at zero), which is also
+        # why the old `if tau is not None:` branch is gone: tau is never
+        # actually undefined.
+        tau = self.source.tariff
+        charges: Dict[str, float] = {u.unit_id: tau * _demand(u)
+                                     for u in living}
 
         collected: Dict[str, float] = {}
         for uid, amount in charges.items():

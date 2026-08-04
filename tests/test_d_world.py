@@ -204,8 +204,15 @@ def _stub(uid, n_facts=0, n_laws=0, hits=0, round_idx=0):
     return u
 
 
-def _world(entry_price=0.0, subtract=True, board=None):
-    return PricedWorld(Source(1.0, entry_price),
+def _world(entry_price=0.0, subtract=True, board=None, tariff=0.25):
+    """A world at a FIXED tariff (fix round 3). `tariff` used to be derived
+    inside `settle` as `pool_per_round / demand`; it is now a calibrated
+    constant carried on the `Source`, so every unit test that expects a charge
+    has to say what price is in force. `0.25` is a stand-in for a calibrated
+    value -- a legible round number, not a measurement -- and it is a
+    CONSTANT here in the sense that matters: it does not move when the
+    community's demand does."""
+    return PricedWorld(Source(1.0, entry_price, tariff),
                        seats_from(wide_spec()),
                        board if board is not None else MarkBoard(),
                        subtract=subtract)
@@ -238,16 +245,34 @@ def test_hits_are_this_round_s_only():
     assert hits_of(u, 6) == 0
 
 
-def test_tau_is_determined_by_demand_not_set():
-    """tau = E1 / demand. Nobody sets it; it is what clears the world's bounded
-    supply against what the community actually did (spec ruling 7)."""
-    world = _world()
-    units = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
-    for u in units:
+def test_tau_is_the_calibrated_constant_and_does_not_move_with_demand():
+    """FIX ROUND 3, and the property this round exists for. `tau =
+    pool_per_round / demand` was retired: normalising the charge to the pool
+    every round makes total collected EXACTLY the pool no matter what the
+    community does, so a unit that mints ten times its peers' acts pays only
+    by lowering everyone's share and never by paying more. `tau` is now the
+    calibrated constant `source.tariff` -- it is the same price at four units
+    of demand as at forty, and the charge is `tariff * demand`, which is what
+    gives the tariff its aggregate bite."""
+    world = _world(tariff=0.25)
+    small = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
+    for u in small:
         world.admit(u)
-    report = world.settle(units, 0)
+    report = world.settle(small, 0)
     assert report.demand == 4.0
     assert report.tau == pytest.approx(0.25)
+    assert sum(report.charges.values()) == pytest.approx(1.0)
+
+    # TEN TIMES THE DEMAND AT THE SAME PRICE. Under the retired form tau would
+    # have fallen to 1/40 and the total would still have been exactly 1.0.
+    big_world = _world(tariff=0.25)
+    big = [_stub("u2", n_facts=20), _stub("u3", n_facts=20)]
+    for u in big:
+        big_world.admit(u)
+    big_report = big_world.settle(big, 0)
+    assert big_report.demand == 40.0
+    assert big_report.tau == pytest.approx(0.25)
+    assert sum(big_report.charges.values()) == pytest.approx(10.0)
 
 
 def test_income_is_pro_rata_by_hits():
@@ -262,9 +287,12 @@ def test_income_is_pro_rata_by_hits():
 
 def test_a_hitless_round_pays_nothing_and_burns_the_pool():
     """THE WORLD'S TEETH. A round in which nobody predicted anything correctly
-    charges E1 and pays nothing back, so the stock falls -- which is how a
-    community comes to have a lifespan of its own doing (spec 3.3)."""
-    world = _world()
+    charges the tariff on all demand and pays nothing back, so the stock falls
+    -- which is how a community comes to have a lifespan of its own doing
+    (spec 3.3). FIX ROUND 3: the outflow is `tariff * demand` (here 0.25 * 4),
+    not the pool; it happens to equal the pool at this demand and would not at
+    any other."""
+    world = _world(tariff=0.25)
     units = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
     for u in units:
         world.admit(u)
@@ -272,13 +300,23 @@ def test_a_hitless_round_pays_nothing_and_burns_the_pool():
     before = world.reserves.total()
     report = world.settle(units, 0)
     assert report.incomes == {}
-    assert world.reserves.total() == pytest.approx(before - 1.0)
+    assert report.collected == pytest.approx(0.25 * report.demand)
+    assert world.reserves.total() == pytest.approx(before - report.collected)
 
 
 def test_the_world_is_conservative_whenever_anyone_hits():
-    """Total charge equals total income to the last unit of account. The one
-    place a rounding bug would silently create or destroy wealth (spec 10)."""
-    world = _world()
+    """`total_after == total_before - collected + incomes`, to the last unit of
+    account. The one place a rounding bug would silently create or destroy
+    wealth (spec 10).
+
+    FIX ROUND 3: this used to assert `sum(charges) == sum(incomes)` and read
+    `total_after == total_before`. That is the retired `tau = pool / demand`
+    identity, not conservation -- it held BECAUSE the old price normalised
+    total collection to exactly the pool every round, which is precisely the
+    defect this round removes. The world is OPEN: outflow and inflow are two
+    independent quantities and there is no reason for them to be equal. What
+    must hold, and is asserted here, is that the books balance across them."""
+    world = _world(tariff=0.25)
     units = [_stub("u0", n_facts=3, n_laws=1, hits=2),
              _stub("u1", n_facts=7, hits=1),
              _stub("u2", n_facts=1, n_laws=4)]
@@ -287,9 +325,12 @@ def test_the_world_is_conservative_whenever_anyone_hits():
         world.reserves.seed(u.unit_id, 10.0)
     before = world.reserves.total()
     report = world.settle(units, 0)
-    assert sum(report.charges.values()) == pytest.approx(
-        sum(report.incomes.values()))
-    assert world.reserves.total() == pytest.approx(before)
+    assert world.reserves.total() == pytest.approx(
+        before - report.collected + sum(report.incomes.values()))
+    # THE BITE: 16 units of demand at 0.25 is 4.0 out against a 1.0 pool in.
+    # Under the retired form these two were equal by construction.
+    assert report.collected == pytest.approx(4.0)
+    assert sum(report.incomes.values()) == pytest.approx(1.0)
 
 
 def test_charge_is_proportional_to_a_unit_s_own_demand():
@@ -316,17 +357,59 @@ def test_arm_zero_computes_the_charge_and_does_not_subtract_it():
     assert world.reserves.balance("u1") == pytest.approx(5.0)
 
 
-def test_a_community_with_no_demand_has_no_price():
-    """Nothing held and nothing said: tau would divide by zero, so it is None
-    and nothing is charged. Named rather than crashed."""
-    world = _world()
+def test_a_community_with_no_demand_is_charged_nothing():
+    """Nothing held and nothing said: nothing is charged.
+
+    FIX ROUND 3: this used to assert `tau is None` -- the guard against the
+    division in `tau = pool / demand`. There is no division any more, so
+    there is nothing to guard: a zero-demand round reports the standing
+    tariff like any other round and simply prices every unit at zero. The
+    price of a thing does not become undefined because nobody bought
+    any."""
+    world = _world(tariff=0.25)
     units = [_stub("u0"), _stub("u1")]
     for u in units:
         world.admit(u)
     report = world.settle(units, 0)
     assert report.demand == 0.0
-    assert report.tau is None
-    assert report.charges == {}
+    assert report.tau == pytest.approx(0.25)
+    assert set(report.charges) == {"u0", "u1"}
+    assert all(c == 0.0 for c in report.charges.values())
+    assert report.collected == 0.0
+
+
+def test_at_a_fixed_tariff_minting_costs_strictly_more():
+    """THE PROPERTY THIS FIX ROUND EXISTS FOR, and the one whose ABSENCE caused
+    it. Under the retired `tau = pool_per_round / demand` the world collected
+    exactly `pool_per_round` every round no matter what anyone did, so the
+    tariff had no aggregate bite: measured directly, `A2a` (the channel off
+    entirely, minting nothing) and `A2b` (minting thousands of acts that reach
+    nobody) collected THE SAME TOTAL every round and finished every seed with
+    IDENTICAL survivor, birth and death counts. Cost was purely positional --
+    a unit paid for out-speaking its peers, never for speaking as such.
+
+    The contrast is built here at the settle boundary, where `collected` can be
+    read directly: two worlds at the SAME fixed tariff, holding the same
+    content, in the same round, differing ONLY in whether the units minted
+    acts. Minting must cost strictly more in absolute terms."""
+    def collected_when_minting(n_acts: int) -> float:
+        board = MarkBoard()
+        for i in range(n_acts):
+            board.publish(Mark(author="u0", content=(f"p{i}", (("c", "a"),)),
+                               kind=FACT, round_idx=0))
+        world = _world(board=board, tariff=0.25)
+        units = [_stub("u0", n_facts=2), _stub("u1", n_facts=2)]
+        for u in units:
+            world.admit(u)
+            world.reserves.seed(u.unit_id, 100.0)   # rich enough to pay in full
+        return world.settle(units, 0).collected
+
+    a2a_collected = collected_when_minting(0)    # the channel off: nothing minted
+    a2b_collected = collected_when_minting(6)    # mints, is charged, reaches nobody
+
+    assert a2b_collected > a2a_collected
+    # And by exactly the tariff on the extra demand -- six acts at 0.25.
+    assert a2b_collected - a2a_collected == pytest.approx(1.5)
 
 
 def test_settle_is_deterministic():
@@ -367,9 +450,16 @@ def test_a_unit_that_runs_out_leaves_and_frees_its_seat():
 def test_a_rich_unit_splits_and_the_split_is_conservative():
     """Each takes HALF the parent's reserve, so wealth is redistributed and
     never created -- a parent at 3*E0 yields two at 1.5*E0, not two at E0 with
-    the remainder burned (spec 3.4)."""
+    the remainder burned (spec 3.4).
+
+    FIX ROUND 3: the total is read against the round's own flows rather than
+    against `before` alone. `total_after == before` held only because the
+    retired `tau = pool / demand` made this round's outflow exactly equal its
+    inflow; the SPLIT's own conservation -- the claim this test is named for
+    -- is that the two halves are equal and nothing is burned, which is
+    asserted directly."""
     created = []
-    world = _world(entry_price=1.0)
+    world = _world(entry_price=1.0, tariff=0.25)
     parent = _stub("u0", n_facts=1, hits=1)
     world.admit(parent)
     world.reserves.seed("u0", 6.0)
@@ -378,7 +468,8 @@ def test_a_rich_unit_splits_and_the_split_is_conservative():
     assert len(report.born) == 1
     parent_id, child_id = report.born[0]
     assert parent_id == "u0"
-    assert world.reserves.total() == pytest.approx(before)
+    assert world.reserves.total() == pytest.approx(
+        before - report.collected + sum(report.incomes.values()))
     assert world.reserves.balance(parent_id) == pytest.approx(
         world.reserves.balance(child_id))
     assert world.reserves.balance(child_id) >= world.source.entry_price
@@ -431,7 +522,8 @@ def test_a_full_world_simply_does_not_breed():
     """SeatsFull is a refusal at the seat, but a world with no room is a world
     where births do not happen -- not an error the run should die on."""
     created = []
-    world = PricedWorld(Source(1.0, 1.0), Seats([("a", "b")]), MarkBoard())
+    world = PricedWorld(Source(1.0, 1.0, 0.25), Seats([("a", "b")]),
+                        MarkBoard())
     parent = _stub("u0", n_facts=1, hits=1)
     world.admit(parent)
     world.reserves.seed("u0", 9.0)
@@ -445,8 +537,8 @@ def test_death_is_settled_before_birth():
     left before it asks who may arrive, so a community at the ceiling can still
     turn over."""
     created = []
-    world = PricedWorld(Source(1.0, 1.0), Seats([("a", "b"), ("a", "c")]),
-                        MarkBoard())
+    world = PricedWorld(Source(1.0, 1.0, 0.25),
+                        Seats([("a", "b"), ("a", "c")]), MarkBoard())
     rich = _stub("u0", n_facts=1, hits=1)
     poor = _stub("u1", n_facts=50)
     for u, amount in ((rich, 9.0), (poor, 0.01)):
@@ -491,9 +583,13 @@ def test_conservation_holds_across_a_death():
 
 
 def test_a_balance_never_goes_below_zero():
-    """u1's nominal charge (0.99) exceeds its balance (0.5); extraction is
-    bounded, so it lands at exactly 0.0 -- dead, not in debt."""
-    world = _world(entry_price=1.0)
+    """u1's nominal charge (99 units of demand at 0.25, so 24.75) far exceeds
+    its balance (0.5); extraction is bounded, so it lands at exactly 0.0 --
+    dead, not in debt. FIX ROUND 3: the nominal charge used to be 0.99, the
+    retired `pool / demand` share; a flat tariff makes the same point far more
+    starkly, since the meter reading is now absolute rather than a slice of a
+    fixed pool."""
+    world = _world(entry_price=1.0, tariff=0.25)
     units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
     for u in units:
         world.admit(u)
@@ -534,15 +630,20 @@ from run_d1 import ARMS, ArmResult, calibrate, play   # noqa: E402
 
 def test_all_four_arms_run_and_report():
     for arm in ARMS:
-        result = play(arm, seed=1, rounds=8, source=Source(1.0, 0.05))
+        result = play(arm, seed=1, rounds=8, source=Source(1.0, 0.05, 0.05))
         assert isinstance(result, ArmResult)
         assert result.arm == arm
         assert result.survivors >= 0
 
 
 def test_arm_zero_never_subtracts_so_nobody_dies():
-    """A0 is the control: the meter READ. Reserves must not move at all."""
-    result = play("A0", seed=1, rounds=12, source=Source(1.0, 0.0))
+    """A0 is the control: the meter READ. Reserves must not move at all.
+
+    FIX ROUND 3: played at a NONZERO tariff. With `tariff=0.0` every charge is
+    zero anyway, so "reserves untouched" held for the wrong reason and the
+    control tested nothing. A standing price of 0.25 makes the claim real --
+    the meter reads, and `subtract=False` still moves nothing."""
+    result = play("A0", seed=1, rounds=12, source=Source(1.0, 0.0, 0.25))
     assert result.died == 0
     assert result.born == 0
     balances = {uid: result.world.reserves.balance(uid)
@@ -570,8 +671,10 @@ def test_a_founder_is_endowed_at_the_entry_price_and_must_double_to_breed():
     itself: each founder's balance is `source.entry_price` EXACTLY, and it
     sits strictly below the `2 * entry_price` breeding threshold by
     construction (entry_price > 0), so no birth is possible from the
-    endowment alone."""
-    source = Source(1.0, 0.25)
+    endowment alone. The tariff is carried but never applied: `rounds=0` means
+    `settle` is never reached, so this reads the endowment and nothing
+    else."""
+    source = Source(1.0, 0.25, 0.25)
     result = play("A1", seed=1, rounds=0, source=source)
     living = result.world.reserves.living()
     assert living, "the arm must seat and endow its founders"
@@ -585,19 +688,22 @@ def test_the_real_unit_offers_the_surface_the_world_reads():
     """The stub in the unit tests pins a surface; this pins that the REAL Unit
     still offers it, so the two cannot drift apart.
 
-    ENTRY PRICE 0.5, NOT 0.25 (fix round 2, finding 1 side effect): wiring
-    `corroborate`/`dispose_challenges` into the round loop (finding 1) adds
-    two more minted, charged acts per unit per round, raising demand and
-    therefore the round-0 tariff share; measured directly, 0.25 now goes
-    extinct by round 6 (0/18 survive) where 0.4 already holds all 18, so 0.5
-    keeps a real margin rather than sitting just above the new threshold.
+    ENDOWMENT 10.0 AT A TARIFF OF 0.05 (fix round 3, replacing fix round 2's
+    `entry_price=0.5` at the retired demand-normalised price). A flat tariff
+    charges in ABSOLUTE terms, so the old sub-1.0 endowments no longer buy a
+    single round: measured directly at 6 rounds, `(E=5.0, T=0.05)` and
+    `(E=2.0, T=0.05)` both go extinct 18/18 while `(E=10.0, T=0.05)` holds all
+    18. This test pins the real `Unit`'s SURFACE, not the economy, so the
+    endowment is deliberately generous -- it buys the cohort's survival so
+    there is something to inspect, and it is not a claim about what a
+    community can afford.
 
     FIX ROUND 2 (finding 2): guarded explicitly rather than relying on the
     entry price alone to keep it that way -- this test's own docstring named
     the vacuous-pass failure mode, and finding 1's wiring of corroborate/
     dispose_challenges changes law counts and therefore demand, so the guard
     matters more now, not less."""
-    result = play("A1", seed=1, rounds=6, source=Source(1.0, 0.5))
+    result = play("A1", seed=1, rounds=6, source=Source(1.0, 10.0, 0.05))
     assert result.final_units, (
         "the founding cohort must survive to round 6, or this loop silently "
         "checks nothing"
@@ -609,28 +715,57 @@ def test_the_real_unit_offers_the_surface_the_world_reads():
 
 
 def test_a2b_mints_and_is_charged_while_nothing_reaches_anyone():
-    """The honest ablation: cost held, sign removed."""
-    a2b = play("A2b", seed=1, rounds=10, source=Source(1.0, 0.05))
-    a2a = play("A2a", seed=1, rounds=10, source=Source(1.0, 0.05))
-    assert sum(a2b.charges_by_unit.values()) > 0
+    """The honest ablation: cost held, sign removed.
+
+    FIX ROUND 3, the whole-arm reading of `test_at_a_fixed_tariff_minting_
+    costs_strictly_more`. ONE round, deliberately: at round 0 the two arms
+    hold identical content and differ only in that A2b minted, so the charge
+    difference is exactly the tariff on the minted acts and nothing else.
+
+    IT IS READ AT ROUND 0 AND NOT CUMULATIVELY, because cumulative charge is
+    NOT monotone in activity and asserting that it were would be false --
+    measured directly at 10 rounds: A2b pays more per round, so it starves
+    SOONER, and a community that dies in round 4 accrues less total charge
+    than one that limps to round 10. That is the tariff biting, not failing
+    to. The per-round bite is the claim, and it is the claim that was
+    unavailable under the retired price."""
+    tariff = 0.25
+    a2b = play("A2b", seed=1, rounds=1, source=Source(1.0, 1.0, tariff))
+    a2a = play("A2a", seed=1, rounds=1, source=Source(1.0, 1.0, tariff))
     # A2a mints nothing at all; A2b mints and pays for it.
     assert a2b.acts_minted > 0
     assert a2a.acts_minted == 0
+    assert sum(a2b.charges_by_unit.values()) > sum(a2a.charges_by_unit.values())
+    # The gap IS the minted acts at the standing price, to the last unit.
+    assert (sum(a2b.charges_by_unit.values())
+            - sum(a2a.charges_by_unit.values())) == pytest.approx(
+                tariff * a2b.acts_minted)
 
 
-def test_calibrate_returns_a_positive_entry_price():
+def test_calibrate_returns_both_measured_prices():
     """E0 is MEASURED -- the charge a median unit accrues through t*, the median
     round at which a unit's ledger first records a hit (spec 4; fix round 1:
     first HIT, not first law -- holding a law earns nothing, only a hit
-    earns, so t* must mark the time to first earning)."""
-    e0 = calibrate([1, 2], rounds=25)
-    assert e0 > 0.0
+    earns, so t* must mark the time to first earning).
+
+    FIX ROUND 3: `calibrate` now returns a whole `Source`, not a bare float,
+    because there are two measured numbers and a caller needs both. `tariff`
+    is the flat price per unit of demand at which the baseline community
+    breaks even over its own run; it must be measured, positive, and carried
+    on the returned source rather than left at the unpriced default."""
+    source = calibrate([1, 2], rounds=25)
+    assert isinstance(source, Source)
+    assert source.entry_price > 0.0
+    assert source.tariff > 0.0
+    assert source.pool_per_round == 1.0
 
 
 def test_two_runs_of_one_arm_agree():
-    """The determinism canary."""
-    a = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05))
-    b = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05))
+    """The determinism canary. FIX ROUND 3: at a nonzero tariff, so the
+    `charges_by_unit` comparison is between real charges rather than between
+    two dictionaries of zeros."""
+    a = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05, 0.05))
+    b = play("A1", seed=7, rounds=10, source=Source(1.0, 0.05, 0.05))
     assert (a.survivors, a.born, a.died) == (b.survivors, b.born, b.died)
     assert a.charges_by_unit == b.charges_by_unit
 
@@ -644,9 +779,15 @@ def test_the_calibrated_world_is_viable():
     not go extinct before anyone could earn a thing.
 
     A small seed set keeps this quick: calibration alone (2 seeds, 25 rounds)
-    plus one 40-round play is a few seconds, not minutes."""
-    e0 = calibrate([1, 2], rounds=25)
-    result = play("A1", seed=1, rounds=40, source=Source(1.0, e0))
+    plus one 40-round play is a few seconds, not minutes.
+
+    FIX ROUND 3: the calibrated `Source` is played AS RETURNED, carrying both
+    measured prices. Rebuilding it as `Source(1.0, e0)` would silently drop
+    the measured tariff back to the unpriced default and play an arm in which
+    nothing is ever subtracted -- a viability check that could not fail."""
+    source = calibrate([1, 2], rounds=25)
+    assert source.tariff > 0.0, "an unpriced world cannot test viability"
+    result = play("A1", seed=1, rounds=40, source=source)
     assert result.survivors > 0
     assert result.born > 0
 
