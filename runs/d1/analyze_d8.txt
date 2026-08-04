@@ -1,0 +1,35 @@
+field 8  seats 28  N0 18  tariff 0.000397  E0 0.061717
+  A0 seed 1: surv 18 born 0 died 0 peak 18 charge 50.290
+  A0 seed 2: surv 18 born 0 died 0 peak 18 charge 52.569
+  A0 seed 3: surv 18 born 0 died 0 peak 18 charge 52.693
+  A0 seed 4: surv 18 born 0 died 0 peak 18 charge 49.318
+  A0 seed 5: surv 18 born 0 died 0 peak 18 charge 52.701
+  A0 seed 7: surv 18 born 0 died 0 peak 18 charge 51.939
+  A0 seed 42: surv 18 born 0 died 0 peak 18 charge 53.174
+  A0 seed 99: surv 18 born 0 died 0 peak 18 charge 51.316
+  A1 seed 1: surv 28 born 73 died 63 peak 28 charge 43.850
+  A1 seed 2: surv 28 born 59 died 49 peak 28 charge 46.362
+  A1 seed 3: surv 28 born 73 died 63 peak 28 charge 46.064
+  A1 seed 4: surv 28 born 60 died 50 peak 28 charge 47.817
+  A1 seed 5: surv 28 born 60 died 50 peak 28 charge 47.122
+  A1 seed 7: surv 28 born 65 died 55 peak 28 charge 45.625
+  A1 seed 42: surv 28 born 67 died 57 peak 28 charge 46.763
+  A1 seed 99: surv 28 born 61 died 51 peak 28 charge 46.193
+  A2a seed 1: surv 28 born 43 died 33 peak 28 charge 47.833
+  A2a seed 2: surv 28 born 45 died 35 peak 28 charge 48.779
+  A2a seed 3: surv 28 born 45 died 35 peak 28 charge 47.852
+  A2a seed 4: surv 28 born 45 died 35 peak 28 charge 46.965
+  A2a seed 5: surv 28 born 42 died 32 peak 28 charge 50.267
+  A2a seed 7: surv 28 born 42 died 32 peak 28 charge 48.523
+  A2a seed 42: surv 28 born 47 died 37 peak 28 charge 47.559
+  A2a seed 99: surv 28 born 44 died 34 peak 28 charge 48.649
+  A2b seed 1: surv 28 born 44 died 34 peak 28 charge 50.182
+  A2b seed 2: surv 28 born 48 died 38 peak 28 charge 49.540
+  A2b seed 3: surv 28 born 50 died 40 peak 28 charge 49.015
+  A2b seed 4: surv 28 born 47 died 37 peak 28 charge 50.243
+  A2b seed 5: surv 28 born 45 died 35 peak 28 charge 51.948
+  A2b seed 7: surv 28 born 45 died 35 peak 28 charge 50.610
+  A2b seed 42: surv 28 born 50 died 40 peak 28 charge 48.766
+  A2b seed 99: surv 28 born 48 died 38 peak 28 charge 49.046
+wrote runs/d1/analysis_d8_r5.json
+EXIT=0

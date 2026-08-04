@@ -1,0 +1,35 @@
+field 12  seats 66  N0 30  tariff 0.000247  E0 0.038311
+  A0 seed 1: surv 30 born 0 died 0 peak 30 charge 52.774
+  A0 seed 2: surv 30 born 0 died 0 peak 30 charge 54.878
+  A0 seed 3: surv 30 born 0 died 0 peak 30 charge 54.465
+  A0 seed 4: surv 30 born 0 died 0 peak 30 charge 51.548
+  A0 seed 5: surv 30 born 0 died 0 peak 30 charge 54.277
+  A0 seed 7: surv 30 born 0 died 0 peak 30 charge 53.541
+  A0 seed 42: surv 30 born 0 died 0 peak 30 charge 54.973
+  A0 seed 99: surv 30 born 0 died 0 peak 30 charge 53.544
+  A1 seed 1: surv 66 born 233 died 197 peak 66 charge 50.359
+  A1 seed 2: surv 66 born 235 died 199 peak 66 charge 49.169
+  A1 seed 3: surv 66 born 242 died 206 peak 66 charge 50.784
+  A1 seed 4: surv 66 born 269 died 233 peak 66 charge 46.503
+  A1 seed 5: surv 66 born 240 died 204 peak 66 charge 49.381
+  A1 seed 7: surv 66 born 259 died 223 peak 66 charge 49.016
+  A1 seed 42: surv 66 born 247 died 211 peak 66 charge 49.504
+  A1 seed 99: surv 66 born 242 died 206 peak 66 charge 48.087
+  A2a seed 1: surv 66 born 154 died 118 peak 66 charge 56.085
+  A2a seed 2: surv 66 born 168 died 132 peak 66 charge 54.899
+  A2a seed 3: surv 66 born 159 died 123 peak 66 charge 55.806
+  A2a seed 4: surv 66 born 164 died 128 peak 66 charge 56.228
+  A2a seed 5: surv 66 born 148 died 112 peak 66 charge 56.522
+  A2a seed 7: surv 66 born 163 died 127 peak 66 charge 56.004
+  A2a seed 42: surv 66 born 167 died 131 peak 66 charge 55.111
+  A2a seed 99: surv 66 born 160 died 124 peak 66 charge 55.260
+  A2b seed 1: surv 66 born 165 died 129 peak 66 charge 58.982
+  A2b seed 2: surv 66 born 185 died 149 peak 66 charge 57.680
+  A2b seed 3: surv 66 born 172 died 136 peak 66 charge 58.560
+  A2b seed 4: surv 66 born 180 died 144 peak 66 charge 57.850
+  A2b seed 5: surv 66 born 154 died 118 peak 66 charge 58.383
+  A2b seed 7: surv 66 born 173 died 137 peak 66 charge 58.062
+  A2b seed 42: surv 66 born 179 died 143 peak 66 charge 57.697
+  A2b seed 99: surv 66 born 175 died 139 peak 66 charge 57.934
+wrote runs/d1/analysis_d12_r5.json
+EXIT=0

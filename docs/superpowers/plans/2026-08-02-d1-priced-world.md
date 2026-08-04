@@ -954,7 +954,8 @@ def test_a_newborn_takes_a_free_seat_and_inherits_nothing_but_the_board():
     assert child.facts == set() and child.laws == set()
     _, aperture = created[0]
     assert aperture.unit_id == child.unit_id
-    assert aperture.domains != parent.unit_id
+    assert len(aperture.domains) == 2
+    assert child.unit_id != parent.unit_id
 
 
 def test_birth_needs_a_positive_entry_price():
@@ -1151,6 +1152,23 @@ def test_arm_zero_never_subtracts_so_nobody_dies():
         "every A0 balance is its untouched endowment"
 
 
+def test_a_founder_is_endowed_at_the_entry_price_and_must_double_to_breed():
+    """The endowment is E0 exactly, so a founder starts ON the entry price and
+    has to double before it may breed. An endowment floored at 1.0 would put
+    every founder above the threshold whenever the measured E0 fell below 1.0,
+    and round 0 would be a birth wave that measured the endowment rather than
+    the world."""
+    source = Source(1.0, 0.05)
+    result = play("A1", seed=1, rounds=1, source=source)
+    seeded = [result.world.reserves.balance(uid)
+              for uid in result.world.reserves.living()]
+    assert seeded, "the arm must seat and endow its founders"
+    # Nobody can have started at or above 2*E0, so no birth is an artefact of
+    # the endowment. (Balances have moved by one round of settling, so this
+    # checks the threshold rather than the seed value itself.)
+    assert result.born == 0
+
+
 def test_the_real_unit_offers_the_surface_the_world_reads():
     """The stub in the unit tests pins a surface; this pins that the REAL Unit
     still offers it, so the two cannot drift apart."""
@@ -1285,7 +1303,18 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
         aperture = world.seats.take(uid)
         unit = Unit(uid, aperture)
         world._next_id = max(world._next_id, i + 1)
-        world.reserves.seed(uid, max(source.entry_price, 1.0))
+        # A FOUNDER IS ENDOWED AT THE WORLD'S ENTRY PRICE, exactly. It must
+        # then DOUBLE before it may breed (threshold 2*E0), which is the rule
+        # reading "pay a newcomer's entry and remain viable yourself".
+        #
+        # `max(..., 1.0)` would break that: with a measured E0 below 1.0 every
+        # founder would start above the breeding threshold and split in round
+        # 0, an artefact of the endowment rather than a finding. The fallback
+        # applies ONLY to the calibration arm, where the entry price is not yet
+        # known -- a zero endowment there would read as dead at round 0, since
+        # `alive` is `balance > 0`.
+        world.reserves.seed(uid, source.entry_price
+                            if source.entry_price > 0.0 else 1.0)
         units.append(unit)
 
     planted = _planted(spec)
@@ -1317,7 +1346,12 @@ def play(arm: str, seed: int, rounds: int, source: Source) -> ArmResult:
             for u in units:
                 u.answer(hear_board, r)
 
-        report = world.settle(units, r, make_unit=make_unit)  # (e) the world
+        # (e) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
+        # never falls and every unit would split every round until the seats ran
+        # out -- an artefact of the control, not a finding. The control's job is
+        # to leave the community exactly as it would have been.
+        report = world.settle(units, r,
+                              make_unit=None if arm == "A0" else make_unit)
         for uid, amount in report.charges.items():
             charges[uid] = charges.get(uid, 0.0) + amount
         born += len(report.born)
@@ -1420,7 +1454,7 @@ These are the spec §10 checks. They test the *design*, not a behaviour, and eac
 Append to `tests/test_d_world.py`:
 
 ```python
-import re
+import ast
 
 
 SRC = Path(__file__).resolve().parents[1] / "src"
@@ -1428,14 +1462,30 @@ SRC = Path(__file__).resolve().parents[1] / "src"
 
 def test_no_die_no_ttl_no_lifespan_in_the_d_world():
     """P-D1 is worthless if something installs mortality. Death must be
-    `reserve <= 0` and nothing else (spec ruling 1)."""
-    text = (SRC / "d_world.py").read_text()
-    code = "\n".join(
-        line for line in text.splitlines()
-        if not line.lstrip().startswith("#"))
-    for banned in (r"\bdef die\b", r"\bttl\b", r"\blifespan\b", r"\bmax_age\b"):
-        assert not re.search(banned, code, re.IGNORECASE), \
-            f"{banned} installs what P-D1 predicts must emerge"
+    `reserve <= 0` and nothing else (spec ruling 1).
+
+    THE GUARD READS THE CODE, NOT THE PROSE. A regex over the file text would
+    fire on the module docstring, which names `die()`, TTL and lifespan
+    precisely to say they are absent -- and a guard that punishes a design for
+    documenting its own refusals teaches the next author to stop documenting
+    them. Walking the AST for IDENTIFIERS asks the question actually worth
+    asking: does any name in this module install mortality?"""
+    tree = ast.parse((SRC / "d_world.py").read_text())
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef,
+                             ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, ast.arg):
+            names.add(node.arg)
+    banned = ("die", "ttl", "lifespan", "max_age", "age", "expires")
+    for name in sorted(names):
+        assert name.lower() not in banned, \
+            f"{name!r} installs the mortality P-D1 predicts must emerge"
 
 
 def test_the_unit_never_gains_a_reserve():

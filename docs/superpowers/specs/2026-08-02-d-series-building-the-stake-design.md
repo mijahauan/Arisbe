@@ -99,13 +99,22 @@ installed.
    objection to the assistant's genome proposal, recorded in §5.1. It corrected the
    assistant rather than the design.
 
-7. **Price is determined, not set.** *"We can set cost or perhaps it will develop as a
-   negotiation?"* The assistant had fixed two prices and declared a 50/50 split between
-   them. Fixing the **supply** instead and letting the price clear against realised demand
-   dissolves both. See §3.3. **Naming it exactly: this is not negotiation** — nobody
-   bargains, nobody can refuse or counter, since that would need a chooser. It is
-   scarcity-determined price, and calling it negotiated would claim more than the mechanism
-   delivers.
+7. **Price is measured, never chosen — and the demand-normalised form of that was retired
+   at build time.** *"We can set cost or perhaps it will develop as a negotiation?"* The
+   assistant had fixed two prices and declared a 50/50 split between them; fixing the
+   **supply** and letting `τ = E1/demand` clear against realised demand dissolved both.
+   **Running it showed that form has no aggregate bite.** With τ inversely proportional to
+   demand, the total collected is *exactly* `E1` every round whatever the community does —
+   measured, A2b at demand 408 and A2a at demand 294 both collected `1.0000` and produced
+   **identical** survivors, births and deaths at every seed, despite A2b minting ~2,600
+   acts and A2a none. Speaking more lowers τ and costs the community nothing, so the
+   tariff was purely **positional**: a unit paid for holding or speaking more than its
+   *peers*, never for holding or speaking as such.
+
+   So **τ is now a calibrated constant** (§4), derived from arm 0 exactly as `E0` is. The
+   ruling's principle stands untouched — measured, never chosen — and only the
+   demand-normalised form is gone. **Naming it exactly: this was never negotiation** —
+   nobody bargains and nobody can refuse, which would need a chooser.
 
 8. **Population is found, not set.** *"Letting them adjust as they compete and find their
    solution is another."* This refuted an objection the assistant had made — that birth
@@ -149,9 +158,8 @@ Deterministic and geometry-free, like every C-series module. Not protected.
 for each living unit:  unit.step(field, r)             # unchanged C-series code
                        unit.publish / ask / ...        # unchanged
 
-demand_r  =  Σ_i ( |facts_i| + |laws_i| + acts_i )     # acts counted off MarkBoard
-τ_r       =  E1 / demand_r                             # DETERMINED, not set
-charge_i  =  τ_r · ( |facts_i| + |laws_i| + acts_i )
+demand_i  =  |facts_i| + |laws_i| + acts_i             # acts counted off MarkBoard
+charge_i  =  τ · demand_i                              # τ a CALIBRATED CONSTANT (§4)
 income_i  =  E1 · ( hits_i / Σ hits )                  # paid only when Σ hits > 0
 
 birth:     reserve_i ≥ 2·E0  and a seat is free  →  split; each takes HALF the parent's
@@ -173,11 +181,67 @@ Six consequences, each stated rather than left to be inferred.
   It replaces the 50/50 split, which asserted no difference in a more contrived way (by
   equalising totals, which depends on how many facts and acts happen to occur). §8 records
   it.
-- **The world is conservative except on hitless rounds.** τ takes back exactly what the
-  pool gives, so total wealth is a fixed stock that birth redistributes and never creates.
-  A round in which nobody hits charges `E1` and pays nothing, burning it from the stock.
-  **So a community has a lifespan, and it is its own doing** — Bickhard's condition at
-  community scale: acting wrongly shortens your life.
+- **The world is conservative except on hitless rounds — and death is counted, not
+  forgiven.** τ takes back exactly what the pool gives, so wealth is redistributed and
+  never created. A round in which nobody hits charges `E1` and pays nothing, burning it
+  from the stock. **So a community has a lifespan, and it is its own doing** — Bickhard's
+  condition at community scale: acting wrongly shortens your life.
+
+  **Conservation holds by construction, and no unit can ever end in debt** (found in
+  review, ruled 2026-08-02). The author's ruling: *conservation of energy is a condition
+  of the world, and needs no confirmation from the local system* — so it is built in
+  rather than measured and reconciled afterwards. The world takes **what is actually
+  there** and gives back **exactly what it took**:
+
+  **The world is OPEN** — conservation of energy does not require a closed system.
+  Organisms are open systems; conservation asserts that nothing is created or destroyed
+  *within*, while a genuine inflow arrives from outside.
+
+  ```
+  charges_i   = τ · demand_i                   the nominal price — the meter reading
+  collected_i = min(charges_i, balance_i)      OUTFLOW: extraction bounded by what exists
+  income_i    = E1 · hits_i / Σ hits           INFLOW: the external source, to predictors
+  ```
+
+  The exact invariant, and the conservation test:
+
+  ```
+  total_after == total_before − Σ collected + Σ incomes
+  ```
+
+  A unit too exhausted to pay in full lands at exactly `0.0` and dies, because `alive` is
+  `balance > 0`. There is no debt to forgive, so nothing has to be counted.
+
+  **A consequence kept rather than compensated for:** when someone starves, less leaves
+  the community than the price nominally demanded while the full pool still enters, so
+  the total can *rise* in a round where a unit dies. That is right — the survivors are
+  not charged for a dead peer's shortfall, and the inflow came from outside.
+  `RoundReport.collected` makes it legible: the gap between `Σ charges` and `collected`
+  is exactly where insolvency shows.
+
+  **Two refused alternatives, and the reasoning errors behind them** — recorded because
+  the assistant got this axis wrong twice, and the record is the point.
+
+  *First:* charging without bound, so a dying unit ended **negative** and dropping it made
+  the stock rise by the erased debt — 1.0 before, 1.49 after, on the very first death
+  test. The proposed repair was a write-off counter (`extinguished`) reconciling the books
+  afterwards. The assistant had argued against clamping as *a form of declining*, which
+  was wrong: **the no-decline ruling governs acts**, and the unit still held its model,
+  still minted its marks, still acted. Clamping bounds **extraction** — exhaustion, not
+  refusal. (The counter was also *arithmetically backwards*, `+` where `−` was needed;
+  the implementer caught it. An instrument that was both unnecessary and wrong.)
+
+  *Second:* over-correcting to a **closed** loop, paying income out of what was collected.
+  That built a world with no source at all: total wealth fixed at the founding endowment,
+  falling forever, every community dying however well it predicted, and a broke community
+  unable to recover because a zero pot pays nothing. A pre-existing test that never seeded
+  reserves failed and was diagnostic — it is what exposed the missing source.
+
+  **The standing lesson, which has now cost two rounds.** Both errors reached for an
+  *instrument* — a counter to observe a leak, then a reconciliation to close it — where
+  the answer was to build a world in which the leak cannot occur. That is the same defect
+  the 2026-07-31 sitting caught in the refused `c_score.py`: elaborating the modelling
+  instead of fixing what is modelled.
 - **A newborn takes a free seat, not its parent's.** It inherits **nothing but the board** —
   no facts, no laws, no standing — and is socialized by marks it never made, which is
   Berger & Luckmann's secondary socialization and is already built. Giving it the parent's
@@ -192,7 +256,8 @@ ruling 8 turned population into a result. What remains:
 | | | |
 |---|---|---|
 | `E1` | the source per round | **= 1, the numéraire.** Free — it fixes the unit of account and nothing else. |
-| `E0` | the entry price | **measured** from arm 0 (§4). |
+| `τ` | the price per unit of demand | **measured** from arm 0 (§4) — the value at which the baseline community breaks even. |
+| `E0` | the entry price | **measured** from arm 0 (§4), and it depends on τ, so τ is measured first. |
 | `N₀` | initial population | **derived**: the smallest community in which every domain has three witnesses — the corroboration ruling's own requirement, computed by `units_for_witnesses`. |
 | seats | the population ceiling | **the world's**, from `apertures_for` over the field. |
 | the field | 8 domains | **the one remaining outside choice**, set by the author 2026-08-02 on a stated criterion: large enough to leave room for an equilibrium to develop (§8, §11). |
@@ -216,17 +281,45 @@ Arm 0 runs at the reference configuration: **8 domains, PAIRS scheme, `N₀` as 
 above, eight seeds, 60 rounds, every unit inducing** (`induce=True`). Induction rather than
 seeding, because `t*` is a fact about learning and a seeded unit never learns anything.
 
+**Two prices, measured in this order from one arm-0 run** — the order matters, because a
+charge cannot be computed before the tariff is known and `E0` is a sum of charges.
+
 ```
+τ   =  E1 · (rounds in which at least one unit hit) / (total demand over units and rounds)
+       — the value at which the baseline community breaks even over its run
+
 t*  =  the MEDIAN, over units and seeds, of the round at which a unit
-       induces its first planted law
-E0  =  the charge a median unit accrues over rounds 0 … t*
+       scores its FIRST HIT — its first income
+
+E0  =  the MEDIAN over units of that unit's cumulative charge through t*,
+       each round's charge being τ · demand in that round
 ```
+
+Summed across every seed, so no single seed sets a price.
 
 Median rather than first-or-mean at both steps, so one lucky unit does not set the world's
 entry price. **Why `t*` and not a horizon.** An austere endowment — one round's living —
-kills every unit before induction can happen and the run is empty; a horizon chosen by hand
-is a free parameter wearing a law's clothes. Reading it off `t*` makes the claim sharp:
-**a unit that learns slower than the recorded baseline dies before it learns.**
+kills every unit before it can earn and the run is empty; a horizon chosen by hand is a
+free parameter wearing a law's clothes. Reading it off `t*` makes the claim sharp:
+**a unit that starts earning later than the recorded baseline dies before it earns.**
+
+**Why FIRST HIT and not first law** (corrected at build time, measured not chosen). The
+first draft set `t*` from the round a unit induced its first planted *law*. That is the
+wrong quantity for its own stated purpose: **holding a law earns nothing — a hit does**,
+and a law that has not yet paid off is not income. Calibrated on law induction the
+endowment covers exactly the learning period and leaves nothing to survive on afterwards,
+because `N₀ · E0 = E1 · (t*+1)` **regardless of `N₀`** — the community always holds
+precisely the learning period's worth of buffer and no margin, by construction.
+
+The consequence was measured and it was total: rounds 0–3 carry **zero hitters**, since no
+unit has induced anything yet, so each burns the full pool with no income against it; the
+community arrives at `t*` broke and **every priced arm went extinct within 30 rounds**.
+First-law median is 3.0, first-hit median 4.0, so `E0` moves 0.2215 → 0.2765 — and that
+25% is the whole difference between extinction and 9–13 survivors at 40 rounds across
+three seeds, in both `A1` and `A2b`.
+
+**That the margin is so thin is itself a finding, not a nuisance**: this world sits on a
+knife edge, which is where §4 said the interesting dynamics would be.
 
 `E0` is computed once at the reference configuration and used unchanged everywhere.
 
@@ -356,14 +449,18 @@ Committed before anything is built or run.
   choice exists, which the 8-domain field supplies. **Fails** if the preference stays inert
   once priced.
 
-- **P-D5 · no exponent is measurable here, and that is said in advance.** Under a
-  conservative world total cost is **pinned to `E1` every round regardless of `N`**, so
-  total metabolic cost does not scale with community size at all and per-capita cost is
-  `E1/N` by identity. **Anyone fitting a β to this world is fitting an identity.** The
-  opening's condition-9 conjecture is likewise unreachable: the price of reaching *falls*
-  as the community grows, the opposite of a cost of reaching that rises with extent. This
-  is the second of the opening's §4 predictions restated as a finding-in-advance, and
-  §1.1 carries it forward.
+- **P-D5 · an exponent is measurable, and β ≈ 1 is predicted.** *(Rewritten at build time.
+  Under the retired demand-normalised τ this prior read "no exponent is measurable here,
+  by construction", because total cost was pinned to `E1` regardless of `N` or of
+  activity. That was true of that form and is false of the calibrated constant.)* With
+  `τ` fixed, total cost is `τ · Σᵢ(|Mᵢ| + actsᵢ)` and genuinely grows with the community.
+  Per-unit demand is still size-independent, **unless more peers means a bigger model** —
+  which is exactly what `adopt` does. So model bloat through the channel is a real route
+  to superlinearity, and the question is now askable where an hour of building ago it was
+  foreclosed. **β ≈ 1 is the prediction**; a superlinear reading would be a result owing
+  an explanation, and its explanation would have to be adoption. Still not a scaling
+  *measurement* in D-1 — the realised topology is recorded for a later series, and nothing
+  is fitted.
 
 - **P-D6 · sensitization is absent, and structurally so.** No measure of urgency varies with
   reserve level, because none can (ruling 5), and the same gap blocks the schedule from
@@ -434,9 +531,11 @@ Beyond ordinary coverage of `Source` / `Reserves` / `Seats` / `PricedWorld`:
   figures, which were measured under a different field, a different aperture scheme and an
   imposed stagger (§6).
 - **A determinism canary** — two runs agree, as `test_c_stage_gates.py` already keeps.
-- **Conservation** — in any round with at least one hit, total charge equals total income
-  to the last unit of account. The one place a rounding bug would silently create or
-  destroy wealth.
+- **Conservation, across a death and not merely a birth** — `Reserves.total()` is
+  unchanged across any round with at least one hit, and falls by exactly `pot` on a
+  hitless one. **No balance ever goes below zero.** The birth half is exact for free
+  (halving is lossless in binary floating point); it was the **death** half a first
+  implementation got wrong, and only a test that kills an *insolvent* unit can see it.
 - **Three adversarial checks.** No `die()`, TTL or lifespan anywhere in `src/` — the
   mortality prior is worthless if something installs it. `Unit` carries no reserve
   attribute, so a future chooser cannot read one by accident. And **birth refuses when no

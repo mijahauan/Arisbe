@@ -1,0 +1,35 @@
+field 16  seats 120  N0 42  tariff 0.000178  E0 0.027571
+  A0 seed 1: surv 42 born 0 died 0 peak 42 charge 53.487
+  A0 seed 2: surv 42 born 0 died 0 peak 42 charge 55.045
+  A0 seed 3: surv 42 born 0 died 0 peak 42 charge 54.498
+  A0 seed 4: surv 42 born 0 died 0 peak 42 charge 52.109
+  A0 seed 5: surv 42 born 0 died 0 peak 42 charge 55.268
+  A0 seed 7: surv 42 born 0 died 0 peak 42 charge 54.076
+  A0 seed 42: surv 42 born 0 died 0 peak 42 charge 55.350
+  A0 seed 99: surv 42 born 0 died 0 peak 42 charge 54.168
+  A1 seed 1: surv 120 born 552 died 474 peak 120 charge 52.695
+  A1 seed 2: surv 120 born 593 died 515 peak 120 charge 51.754
+  A1 seed 3: surv 120 born 548 died 470 peak 120 charge 51.299
+  A1 seed 4: surv 120 born 581 died 503 peak 120 charge 51.253
+  A1 seed 5: surv 120 born 531 died 453 peak 120 charge 54.453
+  A1 seed 7: surv 120 born 563 died 485 peak 120 charge 52.996
+  A1 seed 42: surv 120 born 578 died 500 peak 120 charge 53.724
+  A1 seed 99: surv 120 born 555 died 477 peak 120 charge 53.057
+  A2a seed 1: surv 90 born 288 died 240 peak 120 charge 59.534
+  A2a seed 2: surv 101 born 328 died 269 peak 120 charge 60.032
+  A2a seed 3: surv 98 born 293 died 237 peak 120 charge 59.701
+  A2a seed 4: surv 102 born 316 died 256 peak 120 charge 59.959
+  A2a seed 5: surv 92 born 258 died 208 peak 120 charge 59.853
+  A2a seed 7: surv 100 born 296 died 238 peak 120 charge 59.925
+  A2a seed 42: surv 91 born 295 died 246 peak 120 charge 60.106
+  A2a seed 99: surv 94 born 299 died 247 peak 120 charge 59.899
+  A2b seed 1: surv 88 born 273 died 227 peak 120 charge 60.168
+  A2b seed 2: surv 87 born 307 died 262 peak 120 charge 60.321
+  A2b seed 3: surv 92 born 275 died 225 peak 120 charge 59.888
+  A2b seed 4: surv 88 born 292 died 246 peak 120 charge 60.471
+  A2b seed 5: surv 88 born 259 died 213 peak 120 charge 60.547
+  A2b seed 7: surv 90 born 281 died 233 peak 120 charge 59.709
+  A2b seed 42: surv 77 born 266 died 231 peak 120 charge 60.404
+  A2b seed 99: surv 95 born 290 died 237 peak 120 charge 59.595
+wrote runs/d1/analysis_d16_r5.json
+EXIT=0
