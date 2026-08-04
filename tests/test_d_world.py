@@ -1017,22 +1017,34 @@ def test_no_die_no_ttl_no_lifespan_in_the_d_world():
             names.add(node.arg)
     banned = ("die", "ttl", "lifespan", "maxage", "age", "expire")
     recorded = {"died"}
-    """WHAT THE WORLD MAY STILL SAY. `RoundReport.died` is the world REPORTING
-    who ran out -- an observation of a consequence, which is the whole point
-    of `P-D1` and must remain sayable. A mechanism is a name the world CALLS
+    """WHAT THE WORLD MAY STILL SAY, AND THE EXEMPTION IS THE WHOLE IDENTIFIER
+    (fix round 5, second pass). `RoundReport.died` is the world REPORTING who
+    ran out -- an observation of a consequence, which is the whole point of
+    `P-D1` and must remain sayable. A mechanism is a name the world CALLS
     (`_die`, `_ttl_expired`, `reap_by_age`); a report is a name it FILLS IN.
-    Static analysis cannot tell those apart, so the one past-tense record word
-    this module actually uses is allowed by name and by name only -- `die`,
-    `dies` and `dying` all still fail."""
+    Static analysis cannot tell those apart, so one name is allowed.
+
+    THE FIRST VERSION OF THIS EXEMPTION FILTERED THE SEGMENT `died` OUT OF
+    EVERY IDENTIFIER, and so re-opened the hole this guard had just been
+    repaired to close: `def _died(unit_id)` and `def died_by_starvation(units)`
+    both passed by injection, because the offending segment was stripped before
+    the stems were tried. Its docstring meanwhile claimed the allowance was "by
+    name and by name only" -- narrower than the behaviour, which is the exact
+    pattern this round's review was convened to catch, reproduced by the repair
+    itself. The check is now `raw in recorded`: the identifier must BE `died`,
+    not merely contain it. `died` is the only name in `d_world.py` carrying that
+    segment, so nothing legitimate is caught, and `_died`, `died_by_starvation`,
+    `die`, `dies` and `dying` all fail."""
 
     def _segments(raw_name: str):
         spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", raw_name)
         return [s for s in spaced.lstrip("_").lower().split("_") if s]
 
     for raw in sorted(names):
-        segments = [s for s in _segments(raw) if s not in recorded]
+        if raw in recorded:
+            continue
         hit = [stem for stem in banned
-               for seg in segments if seg.startswith(stem)]
+               for seg in _segments(raw) if seg.startswith(stem)]
         assert not hit, (
             f"{raw!r} is spelled like {hit[0]!r} and installs the mortality "
             f"P-D1 predicts must EMERGE from running out (spec ruling 1)"
@@ -1185,16 +1197,18 @@ def test_the_world_holds_no_chooser():
 
     THIS IS A NAMING TRAP, NOT A SEMANTIC CHOOSER DETECTOR -- SAY SO PLAINLY
     (fix round 1, finding 2). It asks only whether some function, parameter,
-    assigned name, or attribute CONTAINS one of five stems (`choose`,
-    `select`, `prioriti`, `decline`, `refuse_act`, leading underscore
-    stripped). MATCHING IS SUBSTRING, NOT PREFIX, AND PARAMETERS ARE SCANNED
-    (fix round 5, the final review): under the old `startswith` over
-    def/Name/Attribute nodes only, all four of these passed clean by
-    injection -- `def act_selector(self, acts, choose=None)` (both the name,
-    which does not START with a stem, and the `choose` parameter, which is an
-    `ast.arg` and was not walked), `unit_selector`, `de_select`, and
-    `rank_acts`. The first three now fail. `rank_acts` STILL PASSES, and is
-    left standing as the honest illustration of the paragraph below.
+    assigned name, or attribute CONTAINS one of six stems (`choose`, `select`,
+    `prioriti`, `decline`, `refuse_act`, `rank`, leading underscore stripped).
+    MATCHING IS SUBSTRING, NOT PREFIX, AND PARAMETERS ARE SCANNED (fix round
+    5, the final review): under the old `startswith` over def/Name/Attribute
+    nodes only, all four of these passed clean by injection -- `def
+    act_selector(self, acts, choose=None)` (both the name, which does not
+    START with a stem, and the `choose` parameter, which is an `ast.arg` and
+    was not walked), `unit_selector`, `de_select`, and `rank_acts`. All four
+    now fail: `rank` was added on the review's suggestion after checking that
+    no identifier in `d_world.py` contains it, so the widening costs no false
+    positive. That closing four named holes required two passes, and that the
+    list can only ever enumerate holes somebody named, is the paragraph below.
 
     A chooser written under any other name defeats it completely:
     a method named `pick`, a dict-based dispatch table for ordering assigned
@@ -1220,7 +1234,7 @@ def test_the_world_holds_no_chooser():
     those specific holes without pretending to understand what the assigned
     value does."""
     tree = ast.parse((SRC / "d_world.py").read_text())
-    stems = ("choose", "select", "prioriti", "decline", "refuse_act")
+    stems = ("choose", "select", "prioriti", "decline", "refuse_act", "rank")
 
     def _spelled_like_a_chooser(raw_name: str) -> bool:
         name = raw_name.lstrip("_").lower()

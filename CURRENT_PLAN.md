@@ -29,6 +29,20 @@ asserted both channels were load-bearing. Everything below is from the **re-run*
 pre-fix artefacts were deleted rather than left beside it. *A docstring that asserts a
 property instead of checking it is how a defect this size survives four fix rounds.*
 
+**AND THE CHANNEL TURNED OUT TO BE DYNAMICALLY INERT** — measured, not assumed: HEAD with
+*only* `answer` moved back after `publish` gives **the same τ, the same `E0`, and a
+byte-identical A1 seed 1 (28/73/63/8775)**, differing solely in that `answer` mints 0 instead
+of 179. `publish` emits every held fact not already in `_published` and `answer` a held fact
+matching an open question, so **answer's output is always a subset of publish's**; the order
+decides which method mints, never whether the content reaches the board. What actually moved
+the prices between sweeps (τ 0.000382 → 0.000397, `E0` 0.0768 → 0.0617) was the *other* change
+in the same commit — the `(c) speak` phase restructured from one interleaved per-unit pass
+into three community-wide passes. The re-run was still right: the false docstring had to go
+and the channel now genuinely mints. **But the headline separation softened in the re-run —
+A2b −32.0% → −26.6%, ratio 1.472 → 1.362 — and the log says so.** `answer` is inert *in this
+driver* only, where nothing bounds what a unit publishes; D-1 removed the C-series stagger by
+design, and removing it is what made the channel redundant.
+
 **What the priors said, and what happened.** Four arms × eight seeds × 60 rounds at three
 field widths — **96 communities**, plus 24 calibration runs.
 

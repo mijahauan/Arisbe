@@ -18,7 +18,10 @@
 > **EVERY FIGURE BELOW IS FROM THE RE-RUN OF 2026-08-04**, after the round order was restored
 > (fix round 5). The earlier sweep measured a world with **a dead answer channel** and its
 > artefacts have been deleted rather than left beside these — see *the defects the build found
-> by running*, items 5 and 6. Nothing from before the fix is quoted anywhere in this log.
+> by running*, items 5 and 6. **No pre-fix figure is reported as a result anywhere in this
+> log.** Two pre-fix numbers appear, both under *the measured world*, and both only as the
+> left-hand side of a comparison establishing **which** change moved the prices — a question
+> the log would otherwise have got wrong, and did in its first draft.
 
 ## The result, in one paragraph
 
@@ -63,9 +66,53 @@ clothes (`test_calibration_is_re_measured_at_each_field_width`).
 over its own run — total charge equals total income — summed across all eight seeds so no
 single seed sets it. `E0` is the median over units of a unit's own cumulative charge through
 `t*`, the **median round of a unit's first hit**. A founder is endowed at exactly `E0` and
-must double it before it may breed. **Restoring the answer channel moved both prices** (at 8
-domains `E0` fell 0.0768 → 0.0617, a fifth, because a community that can answer holds and
-earns differently), which is why nothing measured before the fix may be quoted beside these.
+must double it before it may breed.
+
+**The prices moved between the two sweeps, and it was NOT the answer channel that moved
+them** — a claim this log made in its first draft and which its own instrument refutes. The
+fix-round-5 commit changed two things at once: it moved `answer` before `publish`, *and* it
+restructured the `(c) speak` phase from one interleaved per-unit pass (each unit publishing,
+asking and challenging in turn) into three community-wide passes. Separated by measurement,
+at 8 domains over all eight calibration seeds:
+
+| round order | τ | `E0` | A1 seed 1 (surv/born/died/acts) | `answer` marks |
+|---|---|---|---|---|
+| the true pre-fix driver (`c41c1d9`) | 0.000382 | 0.076771 | — | 0 |
+| **HEAD with only `answer` moved back after `publish`** | **0.000397** | **0.061717** | **28 / 73 / 63 / 8775** | **0** |
+| HEAD as committed | 0.000397 | 0.061717 | 28 / 73 / 63 / 8775 | 179 |
+
+**The pass restructuring moved the prices; the answer channel moved nothing.**
+
+### The answer channel is dynamically inert
+
+This is a finding, and it is the shape of finding this log prizes elsewhere — the twin of
+`P-D4`'s note that closing `settle_credit` "changes no figure at all". Restoring `answer`
+makes it mint **179 marks where it minted 0**, and changes **no survivor, birth, death, act
+or charge figure anywhere**: the two bottom rows above are byte-identical, including the
+board's total mark count.
+
+The mechanism is exact. `publish` mints a mark for **every** held fact not already keyed in
+`Unit._published`; `answer` mints one for a held fact that matches an open question and is
+not already keyed there. **Answer's output is always a subset of what publish would emit in
+the same round.** Whichever runs first mints the content and the other skips it. So the order
+decides *which method mints*, never *whether the content reaches the board* — which is why
+`acts_minted` is 8775 either way, and why a channel called 1 606 times to no effect was
+invisible to every economic figure for four fix rounds.
+
+**The re-run was still necessary, and for two reasons that have nothing to do with the
+figures.** The driver asserted an order it did not play, and a false docstring is a defect
+whether or not it costs a number; and the channel now genuinely mints, so what the log reports
+is a community in which `answer` does the work the C-series gives it rather than one where
+`publish` silently absorbs it. That the economy could not tell the difference is the finding,
+not the excuse.
+
+**What this does NOT license** is reading `answer` as useless in general. It is inert *in this
+driver*, where every unit publishes everything it holds every round, so a question can never
+name a fact its holder was not about to broadcast anyway. Under a C-series-style bounded
+attention — a stagger, a publication budget, anything that stops a unit from saying everything
+— an answer would reach the board that publish never would. D-1 removed the stagger by design
+(spec §6, *fix the price, let the quantum fall out*), and removing it is what made this channel
+redundant.
 
 ## The arms
 
@@ -348,7 +395,8 @@ instructive: A1's shorter lifespans are a **turnover** effect, not a mortality e
 domains A1 puts **595.1 units through the world** per run against A2b's 318.0, and a newborn
 inherits nothing, so the full-channel community carries a much larger population of young
 poor units that pulls the mean down. Note also that the *first-death* gap, which at 8 domains
-runs to 23 rounds, narrows to **one round in six of eight seeds** by 16 domains — the ablated
+reaches 24 rounds in one seed, narrows to **at most one round in six of eight seeds** by 16
+domains (the per-seed gaps are 0, 1, 8, 1, 7, 1, 1, 1) — the ablated
 arm's late first death is itself a small-field artefact and should not be leaned on.
 
 **The substance is confirmed on the number the cap finally let us read.** At 16 domains:
@@ -369,6 +417,15 @@ on where in the cycle round 60 happened to fall. Both orderings agree.
 20.0% short, and A2b — which pays for every act — ends **below** A2a rather than above it, on
 both the horizon and the trough. So the channel's benefit is not an artefact of A2a's
 silence, and the cost of speaking does not by itself account for A2b's shortfall.
+
+**The re-run NARROWED this separation, and that is worth stating rather than quietly
+enjoying.** The first sweep put A2b at **−32.0%** of A1's standing population with an
+`N_eq/N₀` ratio of **1.472**; the re-run puts it at **−26.6%** and **1.362**. The earlier,
+stronger numbers are not reported anywhere in this log — they were measured in a world whose
+prices were mis-calibrated relative to this one — but the direction of the correction belongs
+in the record: **the effect this log calls its headline is smaller than the run it replaces
+said it was.** The sign, the arm ordering, and the agreement between horizon and trough all
+survive; the magnitude softened by about a fifth.
 
 **This is the first time in this project's history that *ablate the putative sign* has moved
 a number.** It required exactly what the design said it required: something had to be able to
@@ -492,10 +549,11 @@ standing tests give the weak check what teeth it has: `test_the_unit_never_gains
 this checks *storage*, not *reading*, and the earlier claim that it proved a unit "cannot
 read what it does not have" overstated it) and `test_the_world_holds_no_chooser` (no name in
 `d_world.py` is spelled like a chooser; widened in fix round 5 to substring matching and
-`ast.arg` after `act_selector(..., choose=None)`, `unit_selector` and `de_select` were all
-shown to pass the previous version). Neither proves absence; both catch the cheapest way of
-writing the refused thing, and **both were shown to be defeatable and were repaired in this
-round rather than trusted.**
+`ast.arg`, and a `rank` stem added, after `act_selector(..., choose=None)`, `unit_selector`,
+`de_select` and `rank_acts` were all shown to pass the previous version). Neither proves
+absence; both catch the cheapest way of writing the refused thing, and **both were shown to be
+defeatable and were repaired in this round rather than trusted** — the mortality guard twice,
+since the first repair's own exemption re-opened it.
 
 Nothing in 96 communities behaved as though a unit noticed its reserve, which is what one
 would expect of a world in which the reserve is unreadable.
@@ -631,9 +689,18 @@ first sweep.
    test on which this prior's entire credibility rests. Matching is now per identifier
    segment (a flat substring test fires on `_settle_population` — *se-**ttl**-e*), all three
    injections now fail, and the chooser guard was widened the same way: `act_selector(...,
-   choose=None)`, `unit_selector` and `de_select` all passed the old version and now fail.
-   `rank_acts` still passes and is left in the docstring as the honest illustration of what a
-   naming trap cannot do.
+   choose=None)`, `unit_selector`, `de_select` and `rank_acts` all passed the old version and
+   now fail.
+
+   **And the repair itself re-opened the hole once, which is the part worth keeping.** The
+   first version exempted the world's own report `RoundReport.died` by filtering the *segment*
+   `died` out of every identifier — so `def _died(...)` and `def died_by_starvation(...)`
+   passed by injection, while the exemption's docstring claimed it was "by name and by name
+   only". A guard advertising a narrower allowance than it grants is precisely the defect this
+   round was convened to find, reproduced by the fix for it. The exemption is now an exact
+   identifier match (`raw in recorded`), and both injections fail. **Two passes to close a
+   guard whose whole job is one line of matching** is the honest measure of how hard a naming
+   trap is to get right, and why the docstring says review is the real guarantee.
 
 ## Limitations — what this run does not license
 
@@ -668,7 +735,10 @@ first sweep.
   near-absence of false laws, which is a fact about the induction routine and
   `dispose_challenges` before it is a fact about the world.
 - **`P-D3`'s first-death gap is a small-field artefact.** At 8 domains the ablated arm's first
-  death comes up to 23 rounds after A1's; by 16 domains it is one round in six of eight seeds.
+  death comes as much as 24 rounds after A1's in one seed; by 16 domains the gap is at most
+  one round in six of eight seeds (per-seed: 0, 1, 8, 1, 7, 1, 1, 1). **Both figures are
+  per-seed differences**, not the spread between the arms' range endpoints, which is a
+  different and larger quantity that an earlier draft quoted by mistake.
   Only the *population* reading of `P-D3` survives widening.
 - **`P-D5` and `P-D6` are not run outcomes.** `P-D5` explicitly fits nothing; `P-D6` is a
   finding of the design sitting whose negative check is weak by its own admission — and two of
