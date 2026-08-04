@@ -2,6 +2,7 @@
 
 import ast
 import dataclasses
+import re
 
 from c_field import (CORE, PAIRS, Field, apertures_for, default_spec,
                      units_for_witnesses, wide_spec, witnesses_per_domain)
@@ -99,6 +100,46 @@ def test_living_is_sorted_and_excludes_the_dropped():
     r.drop("u1")
     assert r.living() == ["u0", "u2"]
     assert r.total() == pytest.approx(6.0)
+
+
+def test_dropping_a_solvent_unit_removes_its_balance_from_the_total():
+    """FIX ROUND 5 (the final review): `Reserves.drop` had ZERO OBSERVABLE
+    COVERAGE. Replacing the `self.reserves.drop(...)` call in
+    `_settle_population` with `pass` left all 56 tests passing, and the one
+    test that called `drop` at all
+    (`test_living_is_sorted_and_excludes_the_dropped`) dropped a unit already
+    charged to exactly 0.0, so `total()` could not move and `living()` already
+    excluded it -- every assertion held identically with the method gutted.
+
+    The call SITE cannot be covered through `total()`, and that is worth
+    stating rather than working around: `_settle_population` drops only units
+    the world has just found dead, whose balance is 0.0 by construction, so
+    removing the key changes no sum. What is covered here is `drop` ITSELF, on
+    the only input that can distinguish it from a no-op -- a unit with a
+    POSITIVE balance. The wealth leaves with it, which is what makes `drop` a
+    removal rather than a bookkeeping flourish."""
+    r = Reserves()
+    r.seed("u0", 3.0)
+    r.seed("u1", 7.0)
+    assert r.total() == pytest.approx(10.0)
+    r.drop("u1")
+    assert r.total() == pytest.approx(3.0), \
+        "dropping a solvent unit must take its balance out of the total"
+    assert r.balance("u1") == 0.0
+    assert r.living() == ["u0"]
+    # And the id is genuinely gone, not merely zeroed: a zeroing implementation
+    # would still refuse a re-seed, since `seed` keys on presence.
+    r.seed("u1", 2.0)
+    assert r.total() == pytest.approx(5.0)
+
+
+def test_dropping_an_unknown_unit_is_silent():
+    """`_settle_population` drops after `release`, and a caller that has
+    already dropped must not be punished for it."""
+    r = Reserves()
+    r.seed("u0", 1.0)
+    r.drop("ghost")
+    assert r.total() == pytest.approx(1.0)
 
 
 def test_an_unknown_unit_has_no_balance_and_is_not_alive():
@@ -483,19 +524,90 @@ def test_a_rich_unit_splits_and_the_split_is_conservative():
 def test_a_newborn_takes_a_free_seat_and_inherits_nothing_but_the_board():
     """It arrives with no facts, no laws and no standing, and is socialized by
     marks it never made -- Berger and Luckmann's secondary socialization, and
-    already built (spec 3.3)."""
-    created = []
+    already built (spec 3.3).
+
+    FIX ROUND 5 (the final review): the old body asserted `child.facts ==
+    set()` against a child built by this file's own `_stub`, whose fields
+    default empty -- TRUE BY CONSTRUCTION OF THE TEST, and it would have held
+    just as well if the world had handed the maker the parent's entire
+    record. Two changes make it a claim about the world. (1) The child is a
+    REAL `c_unit.Unit`, exactly as `run_d1.play`'s `make_unit` builds it, so
+    emptiness is a property of the newborn rather than of the stub. (2) The
+    parent is loaded with content first and the maker records everything the
+    world passed it: what the world hands a maker is `(child_id, aperture)`
+    AND NOTHING ELSE, so there is no channel through which inheritance could
+    travel even if a future maker wanted it. That is the checkable half of
+    "inherits nothing"; the seat is the other half."""
+    handed = []
+
+    def make_real_unit(unit_id, aperture):
+        handed.append((unit_id, aperture))
+        return Unit(unit_id, aperture)
+
     world = _world(entry_price=1.0)
-    parent = _stub("u0", n_facts=1, n_laws=2, hits=1)
+    parent = _stub("u0", n_facts=4, n_laws=2, hits=1)
     world.admit(parent)
     world.reserves.seed("u0", 8.0)
-    report = world.settle([parent], 0, make_unit=_maker(created))
+    assert parent.facts and parent.laws, "the parent must have content to withhold"
+    report = world.settle([parent], 0, make_unit=make_real_unit)
+
     child = [u for u in report.units if u.unit_id != "u0"][0]
+    assert isinstance(child, Unit)
     assert child.facts == set() and child.laws == set()
-    _, aperture = created[0]
+    assert child.peers == {} and child.ledger.entries == []
+    # THE WORLD HANDED THE MAKER NOTHING ELSE. One call, two arguments, and
+    # neither of them is the parent or anything the parent holds.
+    assert len(handed) == 1
+    child_id, aperture = handed[0]
+    assert (child_id, aperture) == (child.unit_id, child.aperture)
     assert aperture.unit_id == child.unit_id
     assert len(aperture.domains) == 2
     assert child.unit_id != parent.unit_id
+
+
+def test_the_breeding_threshold_is_twice_the_entry_price_exactly():
+    """FIX ROUND 5 (the final review): THE DESIGN'S LOAD-BEARING NUMBER WAS
+    ENTIRELY UNTESTED. Changing `2.0 * self.source.entry_price` in
+    `_settle_population` to `1.0 *` left all 56 tests passing -- every birth
+    test seeded a parent far above either threshold, so no test could tell the
+    two apart. The multiple is not decoration: it is the whole reading of the
+    rule, "you may reproduce when you can pay a newcomer's entry AND REMAIN
+    VIABLE YOURSELF" (spec 3.4). At `1.0 *` a unit breeds by handing over half
+    of exactly what a newcomer costs and dropping below entry itself.
+
+    Read at a ZERO TARIFF with no hits, so `settle` moves no balance and the
+    threshold is the only thing deciding: the reserve the parent carries into
+    `_settle_population` is exactly the one seeded here."""
+    e0 = 1.0
+    def born_at(balance: float):
+        created = []
+        world = _world(entry_price=e0, tariff=0.0)
+        parent = _stub("u0")                      # no facts, no laws, no hits
+        world.admit(parent)
+        world.reserves.seed("u0", balance)
+        report = world.settle([parent], 0, make_unit=_maker(created))
+        assert report.charges["u0"] == 0.0 and report.incomes == {}
+        assert world.reserves.balance("u0") + sum(
+            world.reserves.balance(c) for _, c in report.born) == \
+            pytest.approx(balance), "nothing may move but the split itself"
+        return report.born
+
+    # BELOW the threshold and NOT below `1.0 * E0` -- the mutation's own range.
+    assert born_at(1.5 * e0) == (), \
+        "1.5*E0 is above the entry price and below twice it: no birth"
+    assert born_at(2.0 * e0 - 1e-9) == (), "just below 2*E0: no birth"
+    # AT and ABOVE it.
+    assert len(born_at(2.0 * e0)) == 1, "at exactly 2*E0 the unit may breed"
+    assert len(born_at(2.0 * e0 + 1e-9)) == 1
+    # And the split leaves BOTH sides viable, which is what the multiple means.
+    world = _world(entry_price=e0, tariff=0.0)
+    parent = _stub("u0")
+    world.admit(parent)
+    world.reserves.seed("u0", 2.0 * e0)
+    report = world.settle([parent], 0, make_unit=_maker([]))
+    _, child_id = report.born[0]
+    assert world.reserves.balance("u0") == pytest.approx(e0)
+    assert world.reserves.balance(child_id) == pytest.approx(e0)
 
 
 def test_birth_needs_a_positive_entry_price():
@@ -554,6 +666,11 @@ def test_death_is_settled_before_birth():
 
 
 def test_a_newborn_id_is_never_reused():
+    """FIX ROUND 5 (the final review): this test had an empty loop body and
+    `0 == 0` for a closing assertion whenever no birth occurred, so DISABLING
+    BIRTHS ENTIRELY left it passing -- verified by injection. A uniqueness
+    check over an empty set is not a uniqueness check. The birth count is now
+    asserted first, so the loop below has something to be about."""
     created = []
     world = _world(entry_price=1.0)
     parent = _stub("u0", n_facts=1, hits=1)
@@ -567,6 +684,10 @@ def test_a_newborn_id_is_never_reused():
             assert child_id not in seen
             seen.add(child_id)
         units = list(report.units)
+    assert len(seen) >= 4, (
+        f"only {len(seen)} births in four rounds from a 40.0 reserve at a 1.0 "
+        f"entry price -- with no births this test checks nothing at all"
+    )
     assert len(seen) == len(created)
 
 
@@ -574,7 +695,13 @@ def test_conservation_holds_across_a_death():
     """The world is OPEN, not closed: what leaves is `collected` (bounded by
     what each unit actually holds), what enters is the pool-derived income,
     and total_after == total_before - collected + sum(incomes) holds exactly
-    by construction, even across a death (author ruling, fix round 2)."""
+    by construction, even across a death (author ruling, fix round 2).
+
+    FIX ROUND 5 (the final review): the death is now ASSERTED. The docstring
+    said "across a death" and the body never checked that one happened, so
+    the test would have gone on passing as a plain conservation check if
+    `u1`'s starvation ever stopped being fatal -- which is the one condition
+    the name promises to cover."""
     world = _world(entry_price=1.0)
     units = [_stub("u0", n_facts=1, hits=1), _stub("u1", n_facts=99)]
     for u in units:
@@ -582,6 +709,8 @@ def test_conservation_holds_across_a_death():
         world.reserves.seed(u.unit_id, 0.5)
     before = world.reserves.total()
     report = world.settle(units, 0)
+    assert report.died == ("u1",), \
+        "no death occurred, so this checks conservation and not the name"
     assert world.reserves.total() == pytest.approx(
         before - report.collected + sum(report.incomes.values()))
 
@@ -788,12 +917,23 @@ def test_the_calibrated_world_is_viable():
     FIX ROUND 3: the calibrated `Source` is played AS RETURNED, carrying both
     measured prices. Rebuilding it as `Source(1.0, e0)` would silently drop
     the measured tariff back to the unpriced default and play an arm in which
-    nothing is ever subtracted -- a viability check that could not fail."""
+    nothing is ever subtracted -- a viability check that could not fail.
+
+    FIX ROUND 5 (the final review): DEATHS ARE NOW ASSERTED. The docstring
+    promised "with both births and deaths occurring" and the body checked only
+    births, so a calibration that priced the world into total safety -- every
+    founder immortal, nothing ever running out -- would have passed a test
+    named for viability while quietly refuting `P-D1`. A world where nobody
+    dies is not a viable priced world; it is an unpriced one."""
     source = calibrate([1, 2], rounds=25)
     assert source.tariff > 0.0, "an unpriced world cannot test viability"
     result = play("A1", seed=1, rounds=40, source=source)
     assert result.survivors > 0
     assert result.born > 0
+    assert result.died > 0, (
+        "nobody ran out in 40 rounds at the calibrated price: the world has "
+        "no teeth, and P-D1's mortality would be reading an unpriced arm"
+    )
 
 
 def test_first_hit_is_never_earlier_than_first_law():
@@ -830,12 +970,39 @@ def test_no_die_no_ttl_no_lifespan_in_the_d_world():
     them. Walking the AST for IDENTIFIERS asks the question actually worth
     asking: does any name in this module install mortality?
 
-    KNOWN GAP (fix round 1, finding 3): `ast.keyword` -- a call-site keyword
-    argument's name, as in `dict(expires=True)` -- is a distinct node type
-    from `ast.arg` (a *parameter* name in a `def`) and is not walked here, so
-    a banned name used only as a call-site keyword would pass undetected.
-    Narrow enough in this module's actual shape not to matter today, but
-    named rather than silently assumed complete."""
+    THE GAP THAT MATTERED WAS NOT THE ONE THIS DOCSTRING NAMED (fix round 5,
+    the final review). The previous version matched EXACTLY and did not strip
+    a leading underscore, unlike its sibling `test_the_world_holds_no_chooser`
+    which had already been widened. Verified by injection, all three of these
+    passed the old guard clean: `def _die(...)`, `def _ttl_expired(...)`,
+    `def reap_by_age(...)`. A fully installed TTL sailed through the guard on
+    which `P-D1`'s entire credibility rests, and the docstring meanwhile
+    advertised a much narrower hole. Matching is now SUBSTRING over the
+    underscore-stripped, lower-cased name, and each of those three fails.
+
+    THE GAPS THAT REMAIN, named honestly. (i) `ast.keyword` -- a call-site
+    keyword argument's name, as in `dict(expires=True)` -- is a distinct node
+    type from `ast.arg` (a *parameter* name in a `def`) and is still not
+    walked, so a banned name used only as a call-site keyword passes. (ii) The
+    banned list is a list of synonyms and can never be the concept: mortality
+    installed under `sunset`, `reap_at`, `cull` or `retire` is invisible here.
+    (iii) The guard reads `d_world.py` and nothing else, so mortality
+    installed in the DRIVER (`tools/run_d1.py`) is out of its reach entirely.
+    As with the chooser guard, THE REAL GUARANTEE IS REVIEW; this catches the
+    cheapest way of writing the refused thing, and one underscore used to be
+    enough to defeat it.
+
+    MATCHING IS PER IDENTIFIER SEGMENT, NOT OVER THE RAW STRING, and the
+    reason is measured rather than aesthetic: a flat substring test fires on
+    `_settle_population`, because `se-TTL-e` contains `ttl`. A guard that
+    accuses this module's own population routine of installing a TTL is a
+    guard the next author disables. So the name is split on underscores and
+    at camelCase boundaries and each SEGMENT is matched by equality or by
+    prefix -- which still catches every injection the old exact test let
+    through (`_die`, `_ttl_expired`, `reap_by_age`) while leaving `settle`
+    alone. It remains blunt at the segment level and will fire on an innocent
+    `age` or `expires`; that is the right trade, since a false alarm costs one
+    reading and a missed TTL costs `P-D1`."""
     tree = ast.parse((SRC / "d_world.py").read_text())
     names = set()
     for node in ast.walk(tree):
@@ -848,10 +1015,28 @@ def test_no_die_no_ttl_no_lifespan_in_the_d_world():
             names.add(node.attr)
         elif isinstance(node, ast.arg):
             names.add(node.arg)
-    banned = ("die", "ttl", "lifespan", "max_age", "age", "expires")
-    for name in sorted(names):
-        assert name.lower() not in banned, \
-            f"{name!r} installs the mortality P-D1 predicts must emerge"
+    banned = ("die", "ttl", "lifespan", "maxage", "age", "expire")
+    recorded = {"died"}
+    """WHAT THE WORLD MAY STILL SAY. `RoundReport.died` is the world REPORTING
+    who ran out -- an observation of a consequence, which is the whole point
+    of `P-D1` and must remain sayable. A mechanism is a name the world CALLS
+    (`_die`, `_ttl_expired`, `reap_by_age`); a report is a name it FILLS IN.
+    Static analysis cannot tell those apart, so the one past-tense record word
+    this module actually uses is allowed by name and by name only -- `die`,
+    `dies` and `dying` all still fail."""
+
+    def _segments(raw_name: str):
+        spaced = re.sub(r"(?<=[a-z0-9])(?=[A-Z])", "_", raw_name)
+        return [s for s in spaced.lstrip("_").lower().split("_") if s]
+
+    for raw in sorted(names):
+        segments = [s for s in _segments(raw) if s not in recorded]
+        hit = [stem for stem in banned
+               for seg in segments if seg.startswith(stem)]
+        assert not hit, (
+            f"{raw!r} is spelled like {hit[0]!r} and installs the mortality "
+            f"P-D1 predicts must EMERGE from running out (spec ruling 1)"
+        )
 
 
 _BASELINE_UNIT_FIELDS = {
@@ -866,8 +1051,18 @@ just the shape `Unit` had when the D-series guard was last looked at."""
 
 
 def test_the_unit_never_gains_a_reserve():
-    """The architecture enforces the ruling: a unit cannot read what it does not
-    have (spec 3.1, THE_KYTOS 1.3).
+    """The architecture enforces the ruling: a unit STORES no balance
+    (spec 3.1, THE_KYTOS 1.3).
+
+    WHAT THIS CHECKS IS STORAGE, NOT READING -- the older claim that "a unit
+    cannot READ what it does not have" overstated it (fix round 5, the final
+    review). This guard compares `dataclasses.fields(Unit)` against a frozen
+    baseline: it can say a unit HOLDS no reserve field, and it says nothing
+    whatever about reading. A method that reached out for the world's
+    `Reserves` -- taking it as an argument, importing `d_world`, walking a
+    board back to a balance -- would keep the field set untouched and pass
+    here clean. Nothing does that today, and nothing in this file would
+    notice if something did.
 
     STRUCTURAL, NOT A NAME ALLOWLIST (fix round 1, finding 1). The first
     version of this guard checked `hasattr` against five chosen names
@@ -980,11 +1175,28 @@ def test_the_world_holds_no_chooser():
     """Nothing in d_world may decide WHICH act a unit performs, skip one, or
     order them. The world charges and pays; it never selects.
 
+    IT DOES NOT GOVERN THE ACT ORDER, AND THE ACT ORDER IS NOT IN THIS FILE.
+    The rule deciding which act each unit performs, in what sequence, is the
+    round loop in `tools/run_d1.py:play` -- outside this guard's reach
+    entirely. What `d_world.py` must not acquire is a chooser of its own; that
+    the DRIVER orders the round is not a violation but a fact the reader needs,
+    because a guard named "the world holds no chooser" invites the inference
+    that nothing anywhere chooses, and something does.
+
     THIS IS A NAMING TRAP, NOT A SEMANTIC CHOOSER DETECTOR -- SAY SO PLAINLY
-    (fix round 1, finding 2). It asks only whether some function, assigned
-    name, or attribute is SPELLED with one of five stems (`choose`,
+    (fix round 1, finding 2). It asks only whether some function, parameter,
+    assigned name, or attribute CONTAINS one of five stems (`choose`,
     `select`, `prioriti`, `decline`, `refuse_act`, leading underscore
-    stripped). A chooser written under any other name defeats it completely:
+    stripped). MATCHING IS SUBSTRING, NOT PREFIX, AND PARAMETERS ARE SCANNED
+    (fix round 5, the final review): under the old `startswith` over
+    def/Name/Attribute nodes only, all four of these passed clean by
+    injection -- `def act_selector(self, acts, choose=None)` (both the name,
+    which does not START with a stem, and the `choose` parameter, which is an
+    `ast.arg` and was not walked), `unit_selector`, `de_select`, and
+    `rank_acts`. The first three now fail. `rank_acts` STILL PASSES, and is
+    left standing as the honest illustration of the paragraph below.
+
+    A chooser written under any other name defeats it completely:
     a method named `pick`, a dict-based dispatch table for ordering assigned
     to a variable called `order_of` or `next_act`, a lambda bound to
     `handler` -- none contain a banned stem, so all pass silently, and no
@@ -1004,14 +1216,15 @@ def test_the_world_holds_no_chooser():
     version scanned only `FunctionDef`/`AsyncFunctionDef` names, so a lambda
     bound to a variable literally named `choose` (`choose = lambda acts:
     acts[0]`) passed clean -- confirmed by injection during review. Scanning
-    `ast.Name` and `ast.Attribute` nodes too closes that specific hole
-    without pretending to understand what the assigned value does."""
+    `ast.Name`, `ast.Attribute` and (fix round 5) `ast.arg` nodes too closes
+    those specific holes without pretending to understand what the assigned
+    value does."""
     tree = ast.parse((SRC / "d_world.py").read_text())
     stems = ("choose", "select", "prioriti", "decline", "refuse_act")
 
     def _spelled_like_a_chooser(raw_name: str) -> bool:
         name = raw_name.lstrip("_").lower()
-        return any(name.startswith(stem) for stem in stems)
+        return any(stem in name for stem in stems)
 
     for node in ast.walk(tree):
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -1020,6 +1233,8 @@ def test_the_world_holds_no_chooser():
             raw = node.id
         elif isinstance(node, ast.Attribute):
             raw = node.attr
+        elif isinstance(node, ast.arg):
+            raw = node.arg
         else:
             continue
         assert not _spelled_like_a_chooser(raw), \

@@ -127,15 +127,43 @@ def play(arm: str, seed: int, rounds: int, source: Source,
          n_domains: int = DOMAINS) -> ArmResult:
     """One community, one seed, one arm.
 
-    THE ROUND ORDER matters and is the C-series' own: adopt, attend, then the
-    channel acts (publish/ask/challenge, answer, corroborate, dispose
-    challenges, SETTLE CREDIT), then the world settles. Settling LAST means the round's acts
-    are already on the board before anything is charged, so no charge can reach
-    the acts it prices. CORROBORATE AND DISPOSE ARE NOT OPTIONAL (fix round 2):
-    without them a challenge is minted, charged, and never resolves anything --
-    `dispose_challenges` is the only route by which an induced law is ever
-    suspended or retracted, so leaving it out made every law permanent once
-    induced, true or false.
+    THE ROUND ORDER IS THE C-SERIES' OWN, AND IT WAS NOT (fix round 5, the
+    author's ruling after the final review). The C-series driver plays
+
+        (a) adopt · (b) attend · (c) ask · (d) ANSWER · (e) publish ·
+        (f) challenge · (g) corroborate · (h) dispose · (i) settle credit
+
+    (`tests/test_c_channels.py`, the round loop's own lettered steps). D-1
+    reordered it to publish-before-answer, and the previous docstring claimed
+    the result "is the C-series' own" while it was not. THE REORDER KILLED THE
+    ANSWER CHANNEL OUTRIGHT: `publish` blankets the board with everything the
+    unit holds and records each `(kind, content)` in `Unit._published`, and
+    `answer` refuses any content already published (`c_unit.py`: "a unit never
+    says one thing twice whether asked or not"). With publish first, `answer`
+    could never mint -- it was called 536-919 times per run and returned an
+    empty list every single time, in every arm, seed and field width. Restored
+    here; the sweep re-run on the restored order is what `runs/RUN_D1_LOG.md`
+    reports, and the dead channel is recorded there as a found-by-running
+    defect.
+
+    SETTLING IS LAST, after every channel act, so the round's acts are already
+    on the board before anything is charged and no charge can reach the acts it
+    prices.
+
+    DISPOSE IS LOAD-BEARING; CORROBORATE, MEASURED, IS NOT. `dispose_challenges`
+    (fix round 2) is the only route by which an induced law is ever suspended or
+    retracted -- omitted, every unit bets on every law it induces, true or
+    false, for the rest of the run; it fires 120-295 times per run and stays.
+    `corroborate` mints EXACTLY ZERO marks per run even under the restored
+    order: it replies to another unit's corroboration call either with the
+    disputed head (refused if that content is already in `_published`, which
+    `publish` has by then guaranteed for anything held) or with its own
+    counterexample through the same ONCE-PER-LAW-EVER mint `challenge` uses,
+    which the challenger already spent. That gating is the C-series' and this
+    series may not touch it. The call is kept because dropping it would be a
+    silent divergence from the C-series order, not because it does anything
+    here -- and saying so is the point: the previous docstring asserted both
+    channels were load-bearing, and only one is.
 
     THERE IS NO STAGGER. The C-series' bounded attention was a schedule imposed
     from outside; under a priced world every living unit attends every round and
@@ -225,20 +253,35 @@ def play(arm: str, seed: int, rounds: int, source: Source,
                     e.round_idx == r and e.result == "hit"
                     for e in u.ledger.entries):
                 first_hit[u.unit_id] = r
-        if speak_board is not None:                       # (c) speak
+        if speak_board is not None:                       # (c) ask
             for u in units:
-                u.publish(speak_board, r)
                 mark = u.ask(speak_board, r)
                 if mark is not None:
                     asked.setdefault(u.unit_id, []).append(mark)
-                u.challenge(speak_board, r)
-        if hear_board is not None:                        # (d) hear
+        if hear_board is not None:                        # (d) answer
+            # BEFORE `publish`, WHICH IS THE WHOLE POINT (fix round 5). `answer`
+            # refuses any content already in `Unit._published`, and `publish`
+            # puts everything the unit holds there; played after it, this call
+            # can never mint a mark and the answer channel is dead. It was, in
+            # every arm of every seed at every width, ~536-919 dead calls a run.
             for u in units:
                 u.answer(hear_board, r)
-        if speak_board is not None:                       # (e) corroborate
+        if speak_board is not None:                       # (e) publish
+            for u in units:
+                u.publish(speak_board, r)
+        if speak_board is not None:                       # (f) challenge
+            for u in units:
+                u.challenge(speak_board, r)
+        if speak_board is not None:                       # (g) corroborate
+            # KEPT FOR ORDER-FIDELITY, AND IT MINTS NOTHING. Measured at zero
+            # marks per run in every arm: a corroborating reply is either the
+            # disputed head (already in `_published`) or a second challenge to
+            # the same law (spent by the challenger under `c_unit.py`'s
+            # once-per-law-ever mint). The gating is the C-series' own and this
+            # series may not touch it.
             for u in units:
                 u.corroborate(speak_board, r)
-        if hear_board is not None:                        # (f) dispose
+        if hear_board is not None:                        # (h) dispose
             # THE MISSING HALF OF THE DOUBT LIFECYCLE (fix round 2). Without
             # this call `challenge` mints marks that are counted and charged
             # like any other act but never resolve anything: `dispose_
@@ -253,7 +296,7 @@ def play(arm: str, seed: int, rounds: int, source: Source,
             # rest of the round already applies.
             for u in units:
                 u.dispose_challenges(hear_board, r)
-        if hear_board is not None:                        # (g) settle credit
+        if hear_board is not None:                        # (i) settle credit
             # THE TYPIFY CHANNEL'S OTHER HALF, AND IT WAS MISSING (fix round 4,
             # found by RUNNING the measurement and reading zero). The C-series'
             # own driver closes the round with `settle_credit`
@@ -305,7 +348,7 @@ def play(arm: str, seed: int, rounds: int, source: Source,
                     choice_histogram.get(candidates, 0) + 1)
             standing_by_unit[u.unit_id] = positive
 
-        # (g) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
+        # (j) the world. A0 NEVER BREEDS: it does not subtract, so a reserve
         # never falls and every unit would split every round until the seats ran
         # out -- an artefact of the control, not a finding. The control's job is
         # to leave the community exactly as it would have been.

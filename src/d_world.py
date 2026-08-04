@@ -116,10 +116,21 @@ class Reserves:
         source pays income to predictors, and the tariff dissipates what each
         unit can actually pay, so this figure moves both ways.
 
-        THE EXACT INVARIANT, true every round by construction (see
-        `PricedWorld.settle`, which computes both terms):
+        THE EXACT INVARIANT, true every round by construction **WHEN
+        `PricedWorld.subtract` IS TRUE**, which is every arm but the control
+        (see `PricedWorld.settle`, which computes both terms):
 
             total_after == total_before - collected + incomes
+
+        UNDER `subtract=False` (ARM 0) IT IS VIOLATED EVERY ROUND, BY DESIGN,
+        and the violation is the arm: nothing is charged and nothing is
+        credited, so `total_after == total_before` while `collected` and
+        `incomes` both read nonzero. Measured directly, 20 rounds of a real
+        A0 community break the identity 20 times out of 20. That is not a bug
+        to repair -- A0 is the meter READ and not applied, which is exactly
+        today's unpriced system -- but a reader who takes the invariant as
+        unconditional will mis-read the control, so it is qualified here
+        rather than asserted flatly.
 
         where `collected` is what the tariff actually took (bounded by each
         unit's own balance) and `incomes` is what the external source paid in
@@ -251,6 +262,12 @@ class RoundReport:
     collected: float
     charges: Dict[str, float]
     incomes: Dict[str, float]
+    """`charges` AND `incomes` DO NOT SHARE A KEY SET -- never zip them.
+    `charges` has an entry for every living unit (a unit with no demand is
+    charged 0.0 and still appears); `incomes` omits every unit that did not
+    hit, and is empty entirely on a hitless round. A consumer that pairs them
+    positionally will silently mis-attribute income to whoever happens to
+    sort alongside; index by `unit_id` and default the miss to 0.0."""
     born: Tuple[Tuple[str, str], ...]
     died: Tuple[str, ...]
     units: Tuple[Any, ...]
@@ -308,9 +325,18 @@ class PricedWorld:
     energy does not require a closed system; it requires that nothing be
     created or destroyed WITHIN the system while accounting honestly for
     what crosses its boundary. The exact invariant, true every round by
-    construction:
+    construction **WHEN `subtract` IS TRUE** -- A1, A2a and A2b, but not the
+    control:
 
         total_after == total_before - collected + sum(incomes)
+
+    ARM 0 BREAKS IT EVERY ROUND AND IS MEANT TO. With `subtract=False` no
+    charge is taken and no income is paid, so the reserves never move at all
+    while `collected` and `sum(incomes)` are still computed and reported in
+    full: `total_after == total_before` with both flow terms nonzero.
+    Measured, that is 20 violations in 20 rounds of a real A0 community. The
+    control's whole content is that the meter reads and nothing flows, so the
+    conservation reading below is a claim about the PRICED arms only.
 
     where `collected` is the outflow (bounded by what existed to take) and
     `sum(incomes)` is the inflow (the pool, split pro rata by hits, paid in
@@ -363,7 +389,15 @@ class PricedWorld:
         full regardless of what a unit can actually pay. `collected` (the dict)
         is what the world actually takes -- bounded by each unit's own
         balance, so extraction can never drive a balance below zero;
-        `RoundReport.collected` (the total) is its sum, the round's OUTFLOW.
+        `RoundReport.collected` (the total) is its sum, the round's OUTFLOW
+        **WHEN `subtract` IS TRUE**. UNDER `subtract=False` (arm 0) NOTHING
+        FLOWS: the per-unit `collected` is set to the unbounded nominal charge
+        and the total is reported like any other round, but no reserve is
+        touched, so the figure is a meter reading and not an outflow. Reading
+        it as money that left the community is the single easiest way to
+        mis-read the control, and the conservation identity below is likewise
+        a claim about the priced arms only.
+
         Income is the round's INFLOW, drawn from the full external
         `pool_per_round` and split pro rata by hits -- not from what was
         collected -- so the community is fed from outside it, not merely
