@@ -1,7 +1,10 @@
 """The D-series priced world: reserves, a determined price, and a found population."""
 
+import ast
+
 from c_field import (CORE, PAIRS, Field, apertures_for, default_spec,
                      units_for_witnesses, wide_spec, witnesses_per_domain)
+from c_unit import Unit
 
 
 def test_wide_spec_gives_eight_domains_and_twenty_eight_seats():
@@ -803,3 +806,143 @@ def test_first_hit_is_never_earlier_than_first_law():
     assert result.first_law_round, "A0 at 25 rounds must induce some laws"
     assert (statistics.median(result.first_hit_round.values())
             >= statistics.median(result.first_law_round.values()))
+
+
+# ---------------------------------------------------------------------------
+# THE GUARDS (spec section 10). These test the DESIGN, not a behaviour: each
+# one fails loudly if a future change quietly reinstalls what this design
+# deliberately refused. `ast`, `Unit` and `SRC` are imported at the top of
+# this file.
+# ---------------------------------------------------------------------------
+
+SRC = Path(__file__).resolve().parents[1] / "src"
+
+
+def test_no_die_no_ttl_no_lifespan_in_the_d_world():
+    """P-D1 is worthless if something installs mortality. Death must be
+    `reserve <= 0` and nothing else (spec ruling 1).
+
+    THE GUARD READS THE CODE, NOT THE PROSE. A regex over the file text would
+    fire on the module docstring, which names `die()`, TTL and lifespan
+    precisely to say they are absent -- and a guard that punishes a design for
+    documenting its own refusals teaches the next author to stop documenting
+    them. Walking the AST for IDENTIFIERS asks the question actually worth
+    asking: does any name in this module install mortality?"""
+    tree = ast.parse((SRC / "d_world.py").read_text())
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef,
+                             ast.ClassDef)):
+            names.add(node.name)
+        elif isinstance(node, ast.Name):
+            names.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            names.add(node.attr)
+        elif isinstance(node, ast.arg):
+            names.add(node.arg)
+    banned = ("die", "ttl", "lifespan", "max_age", "age", "expires")
+    for name in sorted(names):
+        assert name.lower() not in banned, \
+            f"{name!r} installs the mortality P-D1 predicts must emerge"
+
+
+def test_the_unit_never_gains_a_reserve():
+    """The architecture enforces the ruling: a unit cannot read what it does not
+    have (spec 3.1, THE_KYTOS 1.3)."""
+    spec = wide_spec()
+    unit = Unit("u0", apertures_for(spec, 1, scheme=PAIRS)[0])
+    for banned in ("reserve", "reserves", "balance", "wealth", "budget"):
+        assert not hasattr(unit, banned), \
+            f"Unit.{banned} would give a future chooser something to read"
+
+
+def test_c_unit_is_not_modified_by_this_series():
+    """The whole design rests on the units being unchanged.
+
+    WEAK BY CONSTRUCTION, AND KNOWINGLY SO. This reads `git log`, so it
+    catches only a commit that touched `src/c_unit.py` AND labelled itself
+    with the `D-1:` prefix -- a real edit committed under a different message
+    (or squashed, or made outside this series' convention) sails through
+    silently. It is a commit-message-convention check, not an edit detector;
+    kept because the brief calls for it, not because it is a strong guard."""
+    import subprocess
+    changed = subprocess.run(
+        ["git", "log", "--oneline", "-n", "50", "--", "src/c_unit.py"],
+        capture_output=True, text=True,
+        cwd=str(SRC.parent)).stdout
+    assert "D-1:" not in changed, "no D-1 commit may touch src/c_unit.py"
+
+
+def test_the_wrapper_is_inert_when_it_does_not_subtract():
+    """ARM 0 changes nothing. This is a claim about the WRAPPER, not a claim to
+    reproduce published C-series figures, which were measured on a different
+    field, a different aperture scheme and an imposed stagger (spec 10).
+
+    THE TARIFF MUST BE NONZERO, OR THIS PASSES FOR THE WRONG REASON. `Source`
+    is now a three-field dataclass; the brief's own `Source(1.0, 0.0)` leaves
+    `tariff` at its default of 0.0, and a zero tariff prices every act at
+    zero regardless of whether `subtract=False` did anything at all -- the
+    exact vacuity Task 6 found and repaired twice already. `tariff=0.25`
+    makes the meter read something real, and the closing assertion pins that
+    it did, so this guard cannot silently go vacuous again."""
+    spec = wide_spec(seed=3)
+    aps = apertures_for(spec, 3, scheme=PAIRS)
+
+    bare = [Unit(a.unit_id, a) for a in aps]
+    for r in range(15):
+        for u in bare:
+            u.step(Field(spec), r, induce=True)
+
+    wrapped = [Unit(a.unit_id, a) for a in aps]
+    world = PricedWorld(Source(1.0, 0.0, 0.25), seats_from(spec), MarkBoard(),
+                        subtract=False)
+    for u in wrapped:
+        world.admit(u)
+        world.reserves.seed(u.unit_id, 1.0)
+    units = wrapped
+    last_report = None
+    for r in range(15):
+        for u in units:
+            u.step(Field(spec), r, induce=True)
+        last_report = world.settle(units, r)
+        units = list(last_report.units)
+
+    assert [u.unit_id for u in units] == [u.unit_id for u in bare]
+    for a, b in zip(sorted(units, key=lambda u: u.unit_id),
+                    sorted(bare, key=lambda u: u.unit_id)):
+        assert a.facts == b.facts
+        assert a.laws == b.laws
+        assert a.ledger.hits == b.ledger.hits
+        assert a.ledger.misses == b.ledger.misses
+
+    # THE METER MUST BE NON-TRIVIAL: if the tariff had reverted to 0.0 (or
+    # `subtract=False` had been bypassed some other way) this closing check,
+    # not the identical-trajectory checks above, is what would catch it.
+    assert sum(last_report.charges.values()) > 0, \
+        "the meter never read anything -- the trajectory match above would " \
+        "hold even if subtract=False were broken"
+    for uid in world.reserves.living():
+        assert world.reserves.balance(uid) == pytest.approx(1.0), \
+            "a reserve moved even though subtract=False"
+
+
+def test_the_world_holds_no_chooser():
+    """Nothing in d_world may decide WHICH act a unit performs, skip one, or
+    order them. The world charges and pays; it never selects.
+
+    AST-BASED, LIKE THE MORTALITY GUARD, RATHER THAN A PLAIN SUBSTRING SCAN
+    OVER THE FILE TEXT. The brief's own `"def choose" in text` form only
+    catches a definition spelled with exactly one space after `def`; it
+    would miss `def _choose_one(...)` (an underscore-prefixed "private"
+    chooser -- the natural way to hide exactly this), `async def
+    select_act(...)`, or a name split across a line continuation. Walking the
+    real function and method definitions and testing their names against the
+    same stems asks the question this guard is actually named for."""
+    tree = ast.parse((SRC / "d_world.py").read_text())
+    stems = ("choose", "select", "prioriti", "decline", "refuse_act")
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            name = node.name.lstrip("_").lower()
+            for stem in stems:
+                assert not name.startswith(stem), \
+                    f"{node.name!r} is the chooser the design refuses"
