@@ -1,7 +1,8 @@
 # Current Plan
 
-**Last Updated**: 2026-08-04 (thirteenth arc) — **D-1 BUILT AND RUN: THE STAKE BITES, THE
-POPULATION DOES NOT SETTLE, AND THREE OF SEVEN PRE-REGISTERED PRIORS FAILED.**
+**Last Updated**: 2026-08-04 (thirteenth arc) — **D-1 BUILT, RUN, FOUND TO HAVE MEASURED A
+PARTLY-DEAD WORLD, AND RE-RUN: THE STAKE BITES, THE POPULATION DOES NOT SETTLE, AND THREE OF
+SEVEN PRE-REGISTERED PRIORS FAILED.**
 Branch `d1-priced-world-2026-08-02`. Spec:
 [the D-series design](docs/superpowers/specs/2026-08-02-d-series-building-the-stake-design.md)
 (priors `P-D1`…`P-D7` in its §7, committed before anything was built).
@@ -14,33 +15,48 @@ pro rata, drops a unit whose balance reaches zero and splits one that has double
 price. Driver `tools/run_d1.py` with the four arms and both **measured** prices. No `die()`,
 no TTL, no lifespan, no chooser, no sense organ for the reserve, no genome — every one
 refused in the sitting with its reason (spec §9), and two of the refusals are now standing
-tests. `src/c_unit.py`, `src/c_field.py`, `src/c_marks.py` **untouched**. 56 tests.
+tests. `src/c_unit.py`, `src/c_field.py`, `src/c_marks.py` **untouched**. 59 tests.
+
+**THE FIRST SWEEP MEASURED A WORLD WITH A DEAD CHANNEL, AND ITS FIGURES ARE GONE.** The
+driver's round order was `publish → ask → challenge → answer` while its own docstring asserted
+the order "is the C-series' own" — which plays `adopt · attend · ask · ANSWER · publish ·
+challenge · corroborate · dispose · settle_credit`. `publish` blankets the board with
+everything a unit holds and records it in `Unit._published`; `answer` refuses any content
+already there. **Played after `publish`, `answer` can never mint — 1 568 calls, 0 marks, in
+every arm of every seed at every width.** Restored, it mints **179**. `corroborate` mints
+**zero either way**, gated once-per-law-ever by `c_unit.py`, and the same docstring had
+asserted both channels were load-bearing. Everything below is from the **re-run**; the
+pre-fix artefacts were deleted rather than left beside it. *A docstring that asserts a
+property instead of checking it is how a defect this size survives four fix rounds.*
 
 **What the priors said, and what happened.** Four arms × eight seeds × 60 rounds at three
 field widths — **96 communities**, plus 24 calibration runs.
 
-- **`P-D1` mortality is a consequence — HELD.** First death in **round 6 of all eight seeds**
-  in arm A1; 49–60 units die per run; the control that computes the identical charge and does
-  not subtract it buries **nobody**, at any seed or width. Nothing was installed to produce
-  it. This is the series' point and it landed.
+- **`P-D1` mortality is a consequence — HELD.** First death in **round 5 or 6 of all eight
+  seeds** in arm A1, at every width; 49–515 units die per run; the control that computes the
+  identical charge and does not subtract it buries **nobody**, at any seed or width, and no
+  community anywhere went extinct. Nothing was installed to produce it. This is the series'
+  point and it landed.
 - **`P-D7` population finds a level — REFUTED, by its own stated failure condition.** *"Fails
-  if size runs to the ceiling."* It runs to the ceiling — 8/8 seeds at 28 seats, 8/8 at 66,
-  7/8 at 120. **Spec §8 item 6's escalation rule fired at every width tried and never
+  if size runs to the ceiling."* It runs to the ceiling — **8/8 seeds at 28 seats, 8/8 at 66,
+  8/8 at 120**. **Spec §8 item 6's escalation rule fired at every width tried and never
   cleared**, and the reason is structural: `τ` is calibrated to break even against a fixed
-  source, so widening the field *re-prices the world cheaper* (0.000382 → 0.000241 → 0.000174)
+  source, so widening the field *re-prices the world cheaper* (0.000397 → 0.000247 → 0.000178)
   exactly as fast as it grants more room. **No price was tuned to manufacture an
-  equilibrium**; the calibration is measured and stays measured.
+  equilibrium**; the calibration is measured and stays measured. The ablated arms do not
+  settle either — they **oscillate**, swinging 37–42 units at 120 seats, a third outcome the
+  prior never named.
 - **`P-D3` the ablation bites, measured in survival time — REFUTED as stated, confirmed in
-  substance.** Ablated *units* live **31% LONGER** (25.64 rounds vs 19.50) — A1's shorter mean
-  is **turnover**, not mortality, since it breeds 64 newborns to A2b's 46 and a newborn
-  inherits nothing. But at 120 seats the arms finally separate and the ablated *communities*
-  end **25.6% (`A2a`) and 32.0% (`A2b`) short** of the full-channel arm's 119.75. **The first
-  time *ablate the putative sign* has moved a number in this project**, and the
-  mute-and-cheaper confound is ruled out in sign: A2b, which pays for every act, ends *below*
-  the silent A2a rather than above it.
+  substance.** Ablated *units* live **27–61% LONGER** (17.37 vs 10.81 rounds at 16 domains) —
+  A1's shorter mean is **turnover**, not mortality, since it puts 595 units through the world
+  to A2b's 318 and a newborn inherits nothing. But at 120 seats the arms separate and the
+  ablated *communities* end **20.0% (`A2a`) and 26.6% (`A2b`) short** of the full-channel
+  arm's 120.00, with the troughs agreeing (−23.0% and −33.6%). **The first time *ablate the
+  putative sign* has moved a number in this project**, and the mute-and-cheaper confound is
+  ruled out in sign: A2b, which pays for every act, ends *below* the silent A2a.
 - **`P-D4` typification becomes consequential — NOT REACHED, and the null outranks the
   prior.** The priced breeding population supplies exactly what the C-series said was missing:
-  **21.1% of 8 627 preference occasions now have two or more candidates** to prefer between,
+  **26.6% of 25 663 preference occasions now have two or more candidates** to prefer between,
   against the C-series' *none*. And it changes nothing, because **`whom_to_ask` has no
   consumer**: `ask` publishes to the whole board and uptake takes the first matching fact.
   Ruling 4 held that pricing gives the organ "a reason to matter, because a unit that asks the
@@ -48,34 +64,40 @@ field widths — **96 communities**, plus 24 calibration runs.
   peer at all.** No price can bridge that while the question is a broadcast; a targeted ask is
   a `c_unit.py` change and belongs to its own sitting.
 - **`P-D2` laws have lineages — HELD on lineage, selection clause NOT REACHED.** A planted law
-  accumulates ~245 holder-rounds against ~1 for an unplanted one, and all eight are found in
-  every priced run. But **the unpriced control reproduces the same ordering with zero deaths**
-  (204 vs 7.1), so it is evidence that *induction is accurate*, not that survival selects —
-  and the comparison class is a mean of **0.25 unplanted laws per run**, which is not a
-  population. `P-D5` not reached (nothing fitted, by design; cumulative charge is **not
-  monotone in activity** — the arm minting zero acts paid the *most*) · `P-D6` held as the
-  finding-in-advance it was pre-registered to be.
+  accumulates ~261 holder-rounds against ~1 for an unplanted one, and all of the field's are
+  found in every priced run. But **the unpriced control reproduces the same ordering with zero
+  deaths** (217.5 vs 7.1), so it is evidence that *induction is accurate*, not that survival
+  selects — and the comparison class is a mean of **0.38 unplanted laws per run**, which is not
+  a population. `P-D5` not reached (nothing fitted, by design; cumulative charge is **not
+  monotone in activity** — the arm minting zero acts paid the *most*, 59.88 against 52.65) ·
+  `P-D6` held as the finding-in-advance it was pre-registered to be.
 
-**Three defects the build found by RUNNING the world, each of which would have produced a
-plausible-looking table.** (1) **The calibration guaranteed extinction**, because `E0` was
-read off the time to a unit's first *law* when only a *hit* earns: `N₀·E0 = E1·(t*+1)`
-regardless of `N₀`, so the community held precisely the learning period's buffer and no
-margin, arrived at `t*` broke, and every priced arm went extinct within 30 rounds. Re-reading
-`t*` off the first hit moved `E0` by 25% and that 25% was the whole difference. *Holding a law
-earns nothing; a hit earns.* (2) **The doubt lifecycle was inert** — challenges minted and
-charged, never disposed; `dispose_challenges` is the sole route by which an induced law is
-suspended or retracted, so every unit bet on every law it ever induced, true or false, for the
-rest of the run. (3) **The tariff had no aggregate bite** under `τ = E1/demand`: total
-collected is *exactly* `E1` every round whatever the community does, so A2b (demand 408,
-~2 600 acts) and A2a (demand 294, none) collected `1.0000` alike and came out **byte-identical**
-in survivors, births and deaths at every seed. The price was purely *positional*. `τ` became a
-**calibrated constant** — ruling 7's principle untouched, only its demand-normalised form
-retired. **A fourth was found in the measurement itself**: the driver never called
-`settle_credit`, so `Unit.peers` was empty everywhere and `P-D4` had no instrument at all —
-and closing it moved no figure, which is how the no-consumer finding surfaced.
+**Seven defects the build found by RUNNING the world or by attacking its own guards**, each of
+which would have produced a plausible-looking table. (1) **The calibration guaranteed
+extinction**, because `E0` was read off the time to a unit's first *law* when only a *hit*
+earns: `N₀·E0 = E1·(t*+1)` regardless of `N₀`, so the community held precisely the learning
+period's buffer and no margin, arrived at `t*` broke, and every priced arm went extinct within
+30 rounds. *Holding a law earns nothing; a hit earns.* (2) **The doubt lifecycle was inert** —
+challenges minted and charged, never disposed; restored, `dispose_challenges` fires 642 times
+in one A1 run. (3) **The tariff had no aggregate bite** under `τ = E1/demand`: total collected
+is *exactly* `E1` every round whatever the community does, so A2a and A2b came out
+**byte-identical** in survivors, births and deaths at every seed. `τ` became a **calibrated
+constant** — ruling 7's principle untouched, only its demand-normalised form retired. (4) **The
+typify channel was never closed**: `settle_credit` was absent, so `Unit.peers` was empty
+everywhere and `P-D4` had no instrument at all — and closing it moved no figure, which is how
+the no-consumer finding surfaced. (5) **The answer channel was dead** and (6) **`corroborate`
+mints zero** — both above, and (5) invalidated the whole first sweep. (7) **The mortality guard
+did not guard**: it matched banned names exactly without stripping a leading underscore, so
+`def _die(...)`, `def _ttl_expired(...)` and `def reap_by_age(...)` all passed clean —
+**a fully installed TTL sailing through the test `P-D1`'s entire credibility rests on**.
+Verified by injection, repaired to per-segment matching, and the chooser guard widened the same
+way (`act_selector(..., choose=None)`, `unit_selector`, `de_select` all passed before).
 
 **State at close:** branch `d1-priced-world-2026-08-02`, `uv run pytest tests/test_d_world.py`
-**56 passed**. Raw output under `runs/d1/`.
+**59 passed**; the `2 * entry_price` breeding threshold, `Reserves.drop`, the newborn-id
+uniqueness loop and two docstring promises (a death, and deaths) are now actually tested — all
+five were verified by mutation to have been passing vacuously. Sweep of record under
+`runs/d1/`.
 
 ▶ **NEXT (D-series).**
 
@@ -86,7 +108,11 @@ and closing it moved no figure, which is how the no-consumer finding surfaced.
 2. **`whom_to_ask` needs a consumer, or it needs retiring** — a targeted ask in `c_unit.py`,
    which folds directly into the standing D-0 fork (`peers` vs `SourceStanding`, spec §5.2),
    where `P-D4`'s meaning was already known to be at stake.
-3. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared
+3. **Count the channel before reading its absence as a result.** `runs/d1/channel_probe.py`
+   counts *marks minted* against *calls made* and costs one short run. Two of this arc's seven
+   defects were channels that ran hundreds of times and did nothing, and no economic figure
+   looked wrong while they did.
+4. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared
    pool across equal-sized communities) stand as specified; **D-3** (habits as ink) still
    waits on an interpreter over held rules.
 

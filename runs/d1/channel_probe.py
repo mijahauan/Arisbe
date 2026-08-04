@@ -52,16 +52,21 @@ def main() -> None:
     p.add_argument("--rounds", type=int, default=60)
     p.add_argument("--domains", type=int, default=8)
     p.add_argument("--seeds", type=int, nargs="*", default=[1])
+    p.add_argument("--calibrate-seeds", type=int, nargs="*", default=None,
+                   help="seeds the PRICES are measured on, which must be the "
+                        "sweep's eight or this probe plays a differently "
+                        "priced world than the one the log reports")
     p.add_argument("--arms", nargs="*", default=list(ARMS))
     args = p.parse_args()
+    cal_seeds = args.calibrate_seeds or args.seeds
 
     for name in ("publish", "ask", "answer", "challenge", "corroborate",
                  "dispose_challenges", "adopt", "settle_credit"):
         _wrap(name)
 
-    source = calibrate(args.seeds, args.rounds, n_domains=args.domains)
+    source = calibrate(cal_seeds, args.rounds, n_domains=args.domains)
     print(f"field {args.domains} domains  tariff={source.tariff:.6f}  "
-          f"E0={source.entry_price:.6f}")
+          f"E0={source.entry_price:.6f}  (calibrated on seeds {cal_seeds})")
     for arm in args.arms:
         for seed in args.seeds:
             TALLY.clear()

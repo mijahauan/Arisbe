@@ -1,0 +1,42 @@
+field 8 domains  tariff=0.000397  E0=0.061717  (calibrated on seeds [1, 2, 3, 4, 5, 7, 42, 99])
+
+A0 seed=1  survivors=18 born=0 died=0 acts=3981
+   adopt                calls=    497  effects=      5
+   ask                  calls=   1080  effects=    645
+   answer               calls=   1080  effects=    158
+   publish              calls=   1080  effects=   3102
+   challenge            calls=   1080  effects=     40
+   corroborate          calls=   1080  effects=      0
+   dispose_challenges   calls=   1080  effects=     72
+   settle_credit        calls=   1080  effects=      5
+
+A1 seed=1  survivors=28 born=73 died=63 acts=8775
+   adopt                calls=    863  effects=    315
+   ask                  calls=   1606  effects=   1093
+   answer               calls=   1606  effects=    179
+   publish              calls=   1606  effects=   7038
+   challenge            calls=   1606  effects=    234
+   corroborate          calls=   1606  effects=      0
+   dispose_challenges   calls=   1606  effects=    642
+   settle_credit        calls=   1606  effects=    300
+
+A2a seed=1  survivors=28 born=43 died=33 acts=0
+   adopt                calls=      0  effects=      0
+   ask                  calls=      0  effects=      0
+   answer               calls=      0  effects=      0
+   publish              calls=      0  effects=      0
+   challenge            calls=      0  effects=      0
+   corroborate          calls=      0  effects=      0
+   dispose_challenges   calls=      0  effects=      0
+   settle_credit        calls=      0  effects=      0
+
+A2b seed=1  survivors=28 born=44 died=34 acts=8086
+   adopt                calls=      0  effects=      0
+   ask                  calls=   1616  effects=   1187
+   answer               calls=   1616  effects=      0
+   publish              calls=   1616  effects=   6751
+   challenge            calls=   1616  effects=    148
+   corroborate          calls=   1616  effects=      0
+   dispose_challenges   calls=   1616  effects=      0
+   settle_credit        calls=   1616  effects=      0
+EXIT=0

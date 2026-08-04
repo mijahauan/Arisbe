@@ -1,4 +1,0 @@
-A0: surviving units 144  (peer,relation) records 4  positive 1  negative 2  net-zero 1  relations with a preference 1
-A1: surviving units 224  (peer,relation) records 434  positive 428  negative 2  net-zero 4  relations with a preference 266
-A2a: surviving units 224  (peer,relation) records 0  positive 0  negative 0  net-zero 0  relations with a preference 0
-A2b: surviving units 224  (peer,relation) records 0  positive 0  negative 0  net-zero 0  relations with a preference 0
