@@ -1,6 +1,165 @@
 # Current Plan
 
-**Last Updated**: 2026-08-04 (thirteenth arc) — **D-1 BUILT, RUN, FOUND TO HAVE MEASURED A
+**Last Updated**: 2026-08-05 (fourteenth arc) — **THE C-SERIES' CHANNELS AUDITED: ONE IS DEAD IN
+EVERY ONE OF THE TWENTY ARMS THAT PLAY IT, ONE MINTS 668 MARKS AND MOVES NOT ONE FIGURE — AND NO
+PUBLISHED C-SERIES NUMBER IS FALSIFIED. THREE ATTRIBUTIONS ARE.**
+Branch `c-audit-2026-08-04`. Spec:
+[the C-series channel audit](docs/superpowers/specs/2026-08-04-c-series-channel-audit-design.md)
+(priors `P-A1`…`P-A6` in its §7, committed at `9209e2d` **before the probe was written**).
+Run log: [runs/RUN_C_AUDIT_LOG.md](runs/RUN_C_AUDIT_LOG.md).
+
+**What was built.** One instrument and one driver, both outside `src/`.
+`tests/c_channel_probe.py` — `channel_calls()` counts what each of `Unit`'s eight channel
+methods **mints** against how often it is **called**; `muted()` replaces a method with a typed
+no-op so an arm replays with the channel genuinely absent (a counting wrapper would not, since
+`publish` and `corroborate` mint onto the board as a side effect); `audited()` makes a harness
+refuse to report when a channel it played minted nothing. Driver `runs/c_audit/audit.py`,
+**23 arms** at each arm's own seeds across the four harnesses the C-series publishes from —
+count pass, then ablation pass. `src/` untouched, no harness body rewritten. Artefacts
+`runs/c_audit/CALLS.txt` · `runs/c_audit/ABLATION.txt`.
+
+**`Unit.corroborate` is dead in all twenty arms that play it.** 1920 to 2880 calls per arm,
+**zero mints, everywhere** — including the six-unit community whose published table reports 45
+corroborations. It is not empirically silent, it is **structurally preempted**: both harnesses
+run `challenge` before `corroborate` in the same round and the two share the once-per-law-ever
+`_mint_challenge` key `(CHALLENGE, law)`, so the key is always spent; the head branch is
+preempted the same way by `publish` through `(FACT, head)`. The published 45 is nevertheless
+**correct**, because it never came from that method — `dispose_challenges` computes it by
+counting distinct foreign authors of *challenge* marks, which is what its own docstring at
+`c_unit.py:1764` says it does. **The audit's baseline pass re-derived every published figure it
+touched** — C1's `(60, 6, 0, 46, 4)`, C5's 45, K1's −185/1258/1151, K2's −433/455 — **so no
+published C-series number is falsified by a channel defect. Three attributions are wrong**, and
+that distinction is the whole of what this arc buys.
+
+**The second finding is D-1's, reproduced at scale: `answer` is live and inert.** It mints 668
+marks in K1 and moves **not one of that arm's 43 figures**, and the same in **11 of the 13
+full-community arms**. `answer` and `publish` share the per-unit `(FACT, content)` key and
+`MarkBoard.answer_to` matches author-blind and round-blind, so whichever mints, the same content
+from the same author is on the board before the next round's adopt phase reads it. It moves
+figures in exactly one harness — `_play`, the only one with **no `publish` at all**, where it is
+genuinely load-bearing (uptakes 406→0 when muted).
+
+**What the priors said, and what happened.**
+
+- **`P-A1` typification's mechanism ran — HELD, and it is the most reassuring result here.**
+  `settle_credit` mints **1049 in K1/K4, 1116 in K6/K7**, 466/518/907/557 elsewhere; ablation
+  takes the typified arm's `occ_pref` 53→0 (K4) and 72→0 (K7) and leaves the untargeted
+  control's outcome figures alone. **The C-series' typification null is not D-1's defect (4)
+  repeated.** The mechanism ran, decided 53 and 72 uptakes, and changed nothing — a real null.
+- **`P-A2` corroboration's zero is a threshold, not a defect — REFUTED, wider than its own
+  failure condition.** That condition reads *"fails if it mints zero at six units."* It mints
+  zero at six units **and at four, and in all twenty arms that call it**. The prior
+  imagined a defect confined to the six-unit arms; what the probe found is a method that has
+  never minted a mark in any published C-series measurement.
+- **`P-A3` the answer channel is live in the combined arm — HELD, and hollow.** It mints 410 in
+  P1 and 668 in K1, so the prior holds on its terms and its named consequence does not follow.
+  Its *reasoning* is wrong: the prior credited the phase order (answer at (d) before publish at
+  (e)), and the order decides only which method mints, never whether the content reaches the
+  board. Read beside `P-A4`, the 668 marks buy nothing.
+- **`P-A4` ablating `answer` reproduces the `ask=False` arm — REFUTED.** K1 with `answer` muted
+  is **byte-identical to K1's own baseline across all 43 figures** — net −185, uptakes 1151,
+  bets 193 in both — while K2, the arm it was supposed to move toward, reads net −433, uptakes
+  0, bets 455. **What produces the published repair is `adopt`**: muting it on K1 gives net
+  −433, uptakes 0, bets 455, an exact match to K2's own run. Muting `ask` overshoots past K2
+  (net −914). The effect is `ask` + `adopt`, the targeted question-and-uptake machinery.
+- **`P-A5` the control's fourteen figures do not move — HELD.** The fourteen are `_ASK_KEYS`,
+  the set the digit-for-digit null is asserted over, and **none of them moves.** Five other
+  figures do (pending 102→1151, failed 618→0, proved 431→0, score_neg 94→0, score_zero 2→0) and
+  every one is `settle_credit`'s own bookkeeping — `peers` is written only by the function being
+  removed. An earlier draft of the log graded this "refuted literally" on those five; **that was
+  an agreement asserted against a set nobody had checked membership in, which is the exact shape
+  this audit exists to catch, occurring in the audit's own writing** and caught in review.
+- **`P-A6` the audit finds something — HELD.** Two findings, in two classes. `publish`, `ask`,
+  `adopt`, `challenge` and `dispose_challenges` carried no prior; all five mint and all five are
+  consequential wherever they mint. The one exception is `adopt` in P2, which mints zero — and
+  that arm's own gate both asserts the zero and says why, which is the discipline the rest of
+  the suite now carries.
+
+**Which published claims move.** The corroboration finding survives read as *"a law is
+eliminated once two distinct foreign records have independently published a counterexample to
+it"* — what `dispose_challenges` implements — and does **not** survive read as *soliciting and
+receiving* corroboration: 66, 80 and 144 calls for corroboration were published across C3/C4/C5
+and **in no published C-series sweep was one ever answered**. One sentence is contradicted
+outright — `test_under_bounded_attention…`'s "**the apparatus is no longer dead code**" is false;
+it was dead at four units and stayed dead at six while corroboration "started firing". The liar
+findings keep their numbers and lose their causal sentence: what blocks a fabricated atom is at
+the **asker's** end (`answer_to` matching on content), not `Unit.answer`'s filtering, and there
+*is* a move by which a unit volunteers something — `publish`, 4523 marks a run in L1. The
+ask-channel claim (31.7 questions out, 29.3 answered, 29.0 taken up) survives outright, numbers
+and attribution both.
+
+**Three defects.** (1) **D-A1 — `corroborate` has no reachable state left**: the shared
+once-per-law-ever key is deliberate and documented, so the defect is not the key but that with
+the key in place the method cannot mint in any community whose units also challenge. (2)
+**D-A2 — `answer`'s output is always a subset of `publish`'s** in any harness that publishes
+unprompted. **Both are `src/c_unit.py` and both are DEFERRED per spec §9** — a change there
+alters the C-series' subject matter, not its measurement, and cannot be smuggled in as an audit.
+Neither taints a number; both taint sentences. (3) **Five published figures are stale, and no
+channel touches them** — found by the audit's own re-derivation, not by the probe:
+`test_typification_is_still_exactly_inert_with_speakers_to_sort` narrated uptakes **939/798/474**
+where the tree reads **1151/978/569**, window-5 numbers under the window-8 default ruled
+2026-07-31, surviving because every clause those gates assert is an inequality, a zero, or a
+cross-arm equality — **not one narrated count is checked**. All five re-measured and corrected
+(Task 5), no assertion touched. **The same drift had reached this audit's own pre-registered
+spec**, whose `P-A4` quotes 640 → 349 / 321 → 20 against the gate's 640 → 220 / 321 → 21. That
+is recorded, not corrected: the priors are pre-registered and stand as written.
+
+**The discipline that closes the arc.** All three harnesses are now `@audited()`, so a channel
+that mints nothing fails the arm instead of printing a null. There are **exactly three
+declared silences**: `corroborate` on both challenge harnesses (each naming D-A1) and `adopt` at
+the one full-attention `_play` call site whose gate already asserted `uptakes == 0` and gave the
+reason. **The `corroborate` allowlist retires mechanically** —
+`test_the_corroborate_declarations_still_have_something_to_declare` goes red the moment
+`Unit.corroborate` can mint, which is the instruction to delete both declarations and the test.
+An allowlist that outlives its defect re-hides the next regression with the suite green either
+way. The bite demonstration is worth recording because the plan got it wrong: **it staged the
+bite with the instrument's own `muted()`, which the guard deliberately exempts, so it would have
+proved nothing about a defect.** The Task 6 implementer caught it and staged a genuinely dead
+method instead. *A guard nobody has watched fail is a guard nobody knows the shape of* — twice
+now, in two arcs.
+
+**State at close:** branch `c-audit-2026-08-04`, the nine C-series files **217 passed** (94 in
+`test_c_channels.py` at 13m53s, 123 in the other eight). Full suite, run in five chunks under
+the ten-minute cap: **4553 passed, 217 skipped, 1 xfailed, 0 failed**, and **45 errors, every
+one a Playwright browser-launch at fixture setup** (`Executable doesn't exist … chrome-headless-shell`)
+in the ten `*_e2e.py` files — an absent browser in this environment, not a defect, and not
+touched by this arc. Log of record `runs/RUN_C_AUDIT_LOG.md`, artefacts
+`runs/c_audit/{CALLS,ABLATION}.txt`, instrument `tests/c_channel_probe.py` with its own 13 tests
+(it was tested before it was trusted with anything published).
+
+▶▶▶ **NEXT SESSION (ruled 2026-08-05): THE `c_unit.py` CHANNEL SITTING FIRST — D-A1, D-A2 AND
+`whom_to_ask` ARE ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**
+
+The audit's result is that **the C-series' figures stand and may be built on** — no number is
+falsified, three attributions are corrected, and every arm now asserts its channels minted. So
+the D-series list below proceeds; what changed is its order.
+
+1. **D-A1 · D-A2 · `whom_to_ask`, in one sitting.** All three are the same question — *what is
+   a channel, and which of the four does `c_unit.py` actually have?* `corroborate` cannot mint
+   while `challenge` shares its key; `answer` cannot mint anything `publish` has not already
+   emitted; `whom_to_ask` cannot matter while a question is a broadcast (`P-D4`, not reached for
+   exactly that reason). **The ordering argument is re-measurement cost, not taste:** any one of
+   the three re-prices both series, and opening the file three times means three sweeps of the C
+   arms and three of D-1's 96 communities. Deciding them together costs one. Each has a genuine
+   *retire it* branch — corroboration may not deserve to be a distinct act, `answer` may not
+   deserve to be a distinct method, `whom_to_ask` may deserve deleting rather than a consumer —
+   and those three refusals are cheaper together than any one repair is alone. This is a
+   subject-matter change; it wants its own spec and its own pre-registered priors, and it must
+   not be attempted as a repair pass inside an audit.
+2. **`P-D7` cannot be cleared by growing the field** — the escalation rule and the calibration
+   pull against each other, since `τ` is calibrated against a fixed source and so re-prices the
+   world cheaper exactly as fast as widening grants room. A version that could clear must break
+   the coupling (hold `τ` at one width while widening, or calibrate against asymptotic rather
+   than total demand). It touches no channel, so it can be specced independently of item 1 — but
+   it **must not be done as a tuning pass**.
+3. **D-1b** (seed by DC+ · INS · IT+, with a price and a provenance) and **D-2** (the shared pool
+   across equal-sized communities) stand as specified; **D-3** (habits as ink) still waits on an
+   interpreter over held rules. All three read the C-series' channel vocabulary, so they follow
+   item 1 rather than preceding it.
+
+---
+
+**Last Updated (prior)**: 2026-08-04 (thirteenth arc) — **D-1 BUILT, RUN, FOUND TO HAVE MEASURED A
 PARTLY-DEAD WORLD, AND RE-RUN: THE STAKE BITES, THE POPULATION DOES NOT SETTLE, AND THREE OF
 SEVEN PRE-REGISTERED PRIORS FAILED.**
 Branch `d1-priced-world-2026-08-02`. Spec:
@@ -114,7 +273,8 @@ five were verified by mutation to have been passing vacuously. Sweep of record u
 `runs/d1/`.
 
 ▶▶▶ **NEXT SESSION (ruled 2026-08-04): AUDIT THE C-SERIES' CHANNELS BEFORE BUILDING ANYTHING
-ELSE ON ITS FIGURES.**
+ELSE ON ITS FIGURES.** *(DISCHARGED 2026-08-05 — the audit ran; see the entry above and
+`runs/RUN_C_AUDIT_LOG.md`. Kept as written, since what it predicted is part of the record.)*
 
 This arc found **four channels that ran hundreds of times and did nothing** — challenges
 charged but never disposed, `corroborate` minting zero, `settle_credit` never called, `answer`
