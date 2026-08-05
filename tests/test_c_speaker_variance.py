@@ -100,7 +100,7 @@ def test_a_liar_cannot_volunteer_a_lie_because_the_channel_only_answers():
 def test_a_lie_enters_by_being_asked_about_not_by_being_told():
     """AND THE ONE ROUTE THAT DOES WORK, which is the finding's sharp edge.
 
-    Make every unit unreliable and fabrications DO cross — 23 of 474 uptakes.
+    Make every unit unreliable and fabrications DO cross — 25 of 569 uptakes.
     The extra route is not that liars got better at lying. It is that an
     unreliable **asker** mis-observes a body, so its own record licenses a
     question about an atom the field never licensed, and the channel then
@@ -110,7 +110,12 @@ def test_a_lie_enters_by_being_asked_about_not_by_being_told():
     That is the confirmation structure read from the other side, and it says
     something the series has not said before: the channel's inability to carry
     error is not a safety property. It is the same property as its inability to
-    carry news."""
+    carry news.
+
+    RE-MEASURED 2026-08-04 (the channel audit, `RUN_C_AUDIT_LOG.md` §6): "23 of
+    474" was the window-5 reading, narrated past the window-8 ruling of
+    2026-07-31 and never updated. The assertion itself checks only
+    `> 10` and was never touched by the drift."""
     keys = ["adopted_fabricated", "uptakes"]
     one = _arm("prefer", ONE_LIAR, keys)
     every = _arm("prefer", ALL_LIARS, keys)
@@ -128,24 +133,32 @@ def test_typification_is_still_exactly_inert_with_speakers_to_sort():
     one, and the arms are STILL identical on every key, at every level of
     unreliability:
 
-        no liar             true_lost 36  conv_lost  0  uptakes 939  fab  0
-        u1 unreliable       true_lost 45  conv_lost  2  uptakes 798  fab  0
-        all four unreliable true_lost 58  conv_lost 21  uptakes 474  fab 23
+        no liar             true_lost 20  conv_lost  0  uptakes 1151  fab  0
+        u1 unreliable       true_lost 31  conv_lost  4  uptakes  978  fab  0
+        all four unreliable true_lost 59  conv_lost 23  uptakes  569  fab 25
 
     `occ_bite` — the count of uptake decisions where the preference named
     somebody OTHER than the peer already answering — is **0 in all three**.
-    Preferences are earned (1, 3 and 5 of them) and never once disagree.
+    Preferences are earned (0, 2 and 8 of them) and never once disagree.
 
     So Task 6's stated reason was incomplete rather than wrong. Speaker-variance
     does not rescue typification, because the blocker is not "nothing to sort"
     alone. It is that there is no CHOICE to make: Task 7 measured every one of
-    939 uptake decisions at four units as having exactly one voice behind it,
+    1151 uptake decisions at four units as having exactly one voice behind it,
     and an unreliable speaker does not supply a second one.
 
-    Unreliability does degrade the community — true laws lost go 36 -> 45 -> 58
-    and converses 0 -> 2 -> 21 — but by the OBSERVATION path, never the
+    Unreliability does degrade the community — true laws lost go 20 -> 31 -> 59
+    and converses 0 -> 4 -> 23 — but by the OBSERVATION path, never the
     testimony path. Units are hurt by what they mis-see, not by what they are
-    told."""
+    told.
+
+    RE-MEASURED 2026-08-04 (the channel audit, `RUN_C_AUDIT_LOG.md` §6): every
+    number above was narrated at the window-5 default and left standing past
+    the window-8 ruling of 2026-07-31 — uptakes 939/798/474, true_lost
+    36/45/58, conv_lost 0/2/21, fab 0/0/23, preferences 1/3/5. Nothing here
+    changes what the test checks: it asserts the two arms equal on every key,
+    never the keys' values, so the drift moved the docstring and not the
+    gate."""
     keys = ["true_lost", "conv_lost", "true_ref", "conv_ref", "hits", "misses",
             "net", "uptakes", "questions", "adopted_fabricated", "preferences",
             "occ_bite"]

@@ -2130,10 +2130,12 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
     internal arm eliminated on the spot and the external apparatus ran zero
     times: **0 suspended, 0 calls published**, 66 internal retractions at a
     median of round 0. Now **all 66 doubts are suspended, all 66 calls are
-    published, 159 questions go out**, every doubt runs its full five-round
-    window — and all 66 end in retraction anyway, because nothing arrives to
-    repair the record. The apparatus is no longer dead code. It is a channel with
-    nothing coming down it.
+    published, 248 questions go out** (re-measured 2026-08-04 by the channel
+    audit, `RUN_C_AUDIT_LOG.md` §6 — "159" was the window-5 count, narrated
+    past the window-8 ruling of 2026-07-31 and never carried forward), every
+    doubt runs its full five-round window — and all 66 end in retraction
+    anyway, because nothing arrives to repair the record. The apparatus is no
+    longer dead code. It is a channel with nothing coming down it.
 
     THAT IS THE FINDING, AND IT IS EXACT: an inquiry with no answering channel is
     a delay, not an inquiry. Every one of the 66 refusals fails on `min_support`
