@@ -1,0 +1,218 @@
+
+P1  _play  14 seeds x 60 rounds  {'channel': True, 'stagger': 2}
+   ask                  calls=   1680  mints=    444  
+   answer               calls=   1680  mints=    410  
+   adopt                calls=    406  mints=    406  
+   -> silent: none
+
+P2  _play  14 seeds x 40 rounds  {'channel': True, 'stagger': 1}
+   ask                  calls=   1120  mints=    696  
+   answer               calls=   1120  mints=    328  
+   adopt                calls=    323  mints=      0  SILENT
+   -> silent: ('adopt',)
+
+C1  _play_challenge  8 seeds x 60 rounds  {'channel': True}
+   publish              calls=   1920  mints=   5834  
+   challenge            calls=   1920  mints=     60  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    116  
+   (dispose asked)                              28
+   -> silent: ('corroborate',)
+
+C2  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'wrong_laws': True}
+   publish              calls=   1920  mints=   5866  
+   challenge            calls=   1920  mints=     92  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    179  
+   (dispose asked)                              76
+   -> silent: ('corroborate',)
+
+C3  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'stagger': 2, 'seed_laws': True, 'wrong_laws': True, 'induce': False}
+   publish              calls=   1920  mints=   4092  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   (dispose asked)                             248
+   -> silent: ('corroborate',)
+
+C4  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'stagger': 2, 'seed_laws': True, 'wrong_laws': True, 'induce': False, 'n_units': 4, 'scheme': 'pairs'}
+   publish              calls=   1920  mints=   4098  
+   challenge            calls=   1920  mints=     88  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    160  
+   (dispose asked)                             282
+   -> silent: ('corroborate',)
+
+C5  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'stagger': 2, 'seed_laws': True, 'wrong_laws': True, 'induce': False, 'n_units': 6, 'scheme': 'pairs'}
+   publish              calls=   2880  mints=   6136  
+   challenge            calls=   2880  mints=    160  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    288  
+   (dispose asked)                             410
+   -> silent: ('corroborate',)
+
+C6  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'stagger': 2, 'seed_laws': True, 'wrong_laws': True, 'induce': False, 'n_units': 6, 'scheme': 'pairs', 'witnesses': 3}
+   publish              calls=   2880  mints=   6136  
+   challenge            calls=   2880  mints=    160  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    288  
+   (dispose asked)                             536
+   -> silent: ('corroborate',)
+
+C7  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'n_units': 6, 'scheme': 'pairs'}
+   publish              calls=   2880  mints=   8749  
+   challenge            calls=   2880  mints=     90  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    180  
+   -> silent: ('corroborate',)
+
+C8  _play_challenge  8 seeds x 60 rounds  {'channel': True, 'n_units': 6, 'scheme': 'pairs', 'witnesses': 3}
+   publish              calls=   2880  mints=   8749  
+   challenge            calls=   2880  mints=     90  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    174  
+   (dispose asked)                              42
+   -> silent: ('corroborate',)
+
+K1  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True}
+   publish              calls=   1920  mints=   4144  
+   ask                  calls=   1920  mints=   1173  
+   answer               calls=   1920  mints=    668  
+   adopt                calls=   1151  mints=   1151  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   settle_credit        calls=   1920  mints=   1049  
+   (dispose asked)                              85
+   -> silent: ('corroborate',)
+
+K2  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': False}
+   publish              calls=   1920  mints=   4092  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   (dispose asked)                             248
+   -> silent: ('corroborate',)
+
+K3  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': False, 'mute': True}
+   -> silent: none
+
+K4  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'typify': 'prefer'}
+   publish              calls=   1920  mints=   4144  
+   ask                  calls=   1920  mints=   1173  
+   answer               calls=   1920  mints=    668  
+   adopt                calls=   1151  mints=   1151  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   settle_credit        calls=   1920  mints=   1049  
+   (dispose asked)                              85
+   -> silent: ('corroborate',)
+
+K5  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'typify': 'distrust'}
+   publish              calls=   1920  mints=   3674  
+   ask                  calls=   1920  mints=   1173  
+   answer               calls=   1920  mints=    668  
+   adopt                calls=    466  mints=    466  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   settle_credit        calls=   1920  mints=    466  
+   (dispose asked)                              85
+   -> silent: ('corroborate',)
+
+K6  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'n_units': 6, 'scheme': 'pairs'}
+   publish              calls=   2880  mints=   6330  
+   ask                  calls=   2880  mints=   1205  
+   answer               calls=   2880  mints=    535  
+   adopt                calls=   1241  mints=   1213  
+   challenge            calls=   2880  mints=    160  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    288  
+   settle_credit        calls=   2880  mints=   1116  
+   (dispose asked)                             153
+   -> silent: ('corroborate',)
+
+K7  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'typify': 'prefer', 'n_units': 6, 'scheme': 'pairs'}
+   publish              calls=   2880  mints=   6330  
+   ask                  calls=   2880  mints=   1205  
+   answer               calls=   2880  mints=    535  
+   adopt                calls=   1241  mints=   1213  
+   challenge            calls=   2880  mints=    160  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    288  
+   settle_credit        calls=   2880  mints=   1116  
+   (dispose asked)                             153
+   -> silent: ('corroborate',)
+
+K8  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'window': 3}
+   publish              calls=   1920  mints=   4323  
+   ask                  calls=   1920  mints=    557  
+   answer               calls=   1920  mints=    117  
+   adopt                calls=    563  mints=    563  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   settle_credit        calls=   1920  mints=    518  
+   (dispose asked)                              47
+   -> silent: ('corroborate',)
+
+K9  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'window': 8}
+   publish              calls=   1920  mints=   4144  
+   ask                  calls=   1920  mints=   1173  
+   answer               calls=   1920  mints=    668  
+   adopt                calls=   1151  mints=   1151  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    132  
+   settle_credit        calls=   1920  mints=   1049  
+   (dispose asked)                              85
+   -> silent: ('corroborate',)
+
+K10  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'window': 8, 'n_units': 6, 'scheme': 'pairs'}
+   publish              calls=   2880  mints=   6330  
+   ask                  calls=   2880  mints=   1205  
+   answer               calls=   2880  mints=    535  
+   adopt                calls=   1241  mints=   1213  
+   challenge            calls=   2880  mints=    160  
+   corroborate          calls=   2880  mints=      0  SILENT
+   dispose_challenges   calls=   2880  mints=    288  
+   settle_credit        calls=   2880  mints=   1116  
+   (dispose asked)                             153
+   -> silent: ('corroborate',)
+
+L1  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'liars': (('u1', ObserverNoise(withhold=0.0, spurious=0.9)),)}
+   publish              calls=   1920  mints=   4523  
+   ask                  calls=   1920  mints=   1006  
+   answer               calls=   1920  mints=    565  
+   adopt                calls=    978  mints=    978  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    144  
+   settle_credit        calls=   1920  mints=    907  
+   (dispose asked)                             137
+   -> silent: ('corroborate',)
+
+L2  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'typify': 'prefer', 'liars': (('u1', ObserverNoise(withhold=0.0, spurious=0.9)),)}
+   publish              calls=   1920  mints=   4523  
+   ask                  calls=   1920  mints=   1006  
+   answer               calls=   1920  mints=    565  
+   adopt                calls=    978  mints=    978  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    144  
+   settle_credit        calls=   1920  mints=    907  
+   (dispose asked)                             137
+   -> silent: ('corroborate',)
+
+L3  _play_ask_and_challenge  8 seeds x 60 rounds  {'ask': True, 'typify': 'prefer', 'liars': (('u0', ObserverNoise(withhold=0.0, spurious=0.9)), ('u1', ObserverNoise(withhold=0.0, spurious=0.9)), ('u2', ObserverNoise(withhold=0.0, spurious=0.9)), ('u3', ObserverNoise(withhold=0.0, spurious=0.9)))}
+   publish              calls=   1920  mints=   5617  
+   ask                  calls=   1920  mints=    446  
+   answer               calls=   1920  mints=    369  
+   adopt                calls=    569  mints=    569  
+   challenge            calls=   1920  mints=     96  
+   corroborate          calls=   1920  mints=      0  SILENT
+   dispose_challenges   calls=   1920  mints=    176  
+   settle_credit        calls=   1920  mints=    557  
+   (dispose asked)                             324
+   -> silent: ('corroborate',)
