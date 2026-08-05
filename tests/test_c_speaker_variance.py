@@ -76,7 +76,7 @@ def test_a_liar_cannot_volunteer_a_lie_because_the_channel_only_answers():
 
     A unit at `spurious=0.9` mis-observes several hundred atoms across a run and
     gets essentially none of them into anybody else's record: 0 fabricated
-    adoptions of 798 uptakes at 0.9, and 1 of 819 at 0.5, over eight seeds.
+    adoptions of 978 uptakes, over eight seeds.
 
     THE REASON IS THE CHANNEL'S SHAPE, not the ledger's weakness. `Unit.answer`
     answers open questions from its own facts, and a question names an atom the
@@ -88,7 +88,16 @@ def test_a_liar_cannot_volunteer_a_lie_because_the_channel_only_answers():
     atoms; here it is demonstrated against a speaker built to lie.
 
     So giving the field speaker-variance was NECESSARY and is NOT SUFFICIENT.
-    The unreliability is real at the unit's membrane and cannot cross."""
+    The unreliability is real at the unit's membrane and cannot cross.
+
+    RE-MEASURED 2026-08-04 (the channel audit, `RUN_C_AUDIT_LOG.md` §6): "798"
+    was the window-5 reading; window 8 (the ruled default, 2026-07-31) reads
+    978, this test's own `hi = _arm("prefer", ONE_LIAR, keys)` figure. The
+    retired "1 of 819 at 0.5" clause is dropped rather than re-measured — no
+    `spurious=0.5` arm is constructed anywhere in this file (`ONE_LIAR` and
+    `ALL_LIARS` are both `spurious=0.9`), and inventing a number for a
+    configuration that no longer runs would be worse than the drift it
+    replaces."""
     keys = ["adopted_fabricated", "uptakes", "questions"]
     hi = _arm("prefer", ONE_LIAR, keys)
     assert hi["uptakes"] > 500, "the channel must be carrying something"
