@@ -121,9 +121,10 @@ is recorded, not corrected: the priors are pre-registered and stand as written.
 
 **The discipline that closes the arc, and the two things it cannot see.** All three harnesses are
 now `@audited()`, so a channel that mints nothing fails the arm instead of printing a null. **The
-spec's §2 names three classes of deadness and this catches one**, which is worth writing down
+spec's §2 names two classes of deadness and this catches one**, which is worth writing down
 next to the claim rather than after it: it **cannot catch a channel that is never CALLED**
-(`silent()` requires `calls > 0`) — D-1's own defect (4), and `whom_to_ask` is the standing
+(`silent()` requires `calls > 0`) — a third case §2's table does not classify as deadness at all,
+traced to D-1's own defect (4) rather than to the spec, and `whom_to_ask` is the standing
 candidate — and it **cannot catch a LIVE-BUT-INERT channel**, which is D-A2, this arc's own
 second finding, still standing in the tree and passing the new guard forever on 668 mints that
 move nothing. Inertness needs the 45-minute ablation pass, which cannot live in a suite. The
@@ -161,8 +162,42 @@ that keeps the guard's coverage a rule rather than three hand-placed decorators 
 function in `test_c_channels.py` is `@audited()`, and was watched to go red against a
 deliberately undecorated harness before it was trusted.
 
-▶▶▶ **NEXT SESSION (ruled 2026-08-05): THE `c_unit.py` CHANNEL SITTING FIRST — D-A1, D-A2 AND
-`whom_to_ask` ARE ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**
+▶▶▶ **NEXT SESSION (ruled by the author 2026-08-05, on reading this arc): A SOBER, CRITICAL
+ASSESSMENT OF WHETHER THIS IS AN UNTENABLE PATH — BEFORE ANY OF THE WORK BELOW.**
+
+His words: *"a sober, critical assessment of whether we have taken an untenable path here."* The
+assessment comes first and nothing below is begun until it is ruled on. What it has to weigh is
+on the table already and should not be softened in the writing:
+
+- **Three arcs running, and each one's instrument has failed its own audit.** D-1 found four dead
+  channels in its own driver. This audit found two more in the C-series and a fifth defect class
+  (stale narrated figures) that no channel probe could see. The guard installed here catches one
+  of the two kinds of deadness it names, and the finding it cannot catch — **D-A2, `answer` inert
+  on 668 mints a run** — is standing in the tree right now.
+- **The measurement keeps outrunning the thing measured.** Six of this arc's seven tasks were
+  spent establishing what the previous arcs' numbers meant, not producing new ones. A programme
+  that spends that ratio on self-audit is either finally honest or has lost the thread; **saying
+  which is the assessment's job**, and the evidence for both readings is in `runs/`.
+- **The recurring shape has a name now, and it names us:** a docstring that *asserts* a property
+  instead of checking it. It killed D-1's first sweep, it hid `corroborate` across the whole
+  C-series, and the audit's own log carried three of them into review. The question the
+  assessment must not dodge is whether the *architecture* invites that shape — units with no
+  stake, channels with no consumer, nulls that read the same whether the mechanism ran or not —
+  or whether it is ordinary carelessness that discipline has now caught.
+- **The strongest counter-evidence, stated fairly:** every finding here was found by *this
+  project's own machinery pointed at itself*, before it was built on; not one published number
+  turned out false; the priors were committed before the run and three of them were refuted in
+  print. That is the discipline working, and an assessment that reads it as failure is as wrong
+  as one that reads the defects as noise.
+
+**The assessment's own ground rules, so it cannot be a mood.** Name what would have to be true
+for the path to be untenable, and what evidence in `runs/` would show it. Say which specific
+commitments would have to be given up. Distinguish *the instrument is unsound* from *the
+question is unanswerable with this instrument* from *the question is not worth answering* —
+they have different remedies and only the first is a bug.
+
+▶ **THEN, if the path holds: THE `c_unit.py` CHANNEL SITTING — D-A1, D-A2 AND `whom_to_ask` ARE
+ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**
 
 The audit's result is that **the C-series' figures stand and may be built on** — no number is
 falsified, three attributions are corrected, and every arm now asserts its channels minted. So
