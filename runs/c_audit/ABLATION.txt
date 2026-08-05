@@ -1,0 +1,155 @@
+
+P1  fired: ['ask', 'answer', 'adopt']
+   -ask                moved 5/6: answers 410->0, uptakes 406->0, misses 35->423, abstentions 4984->4786, hits 2->11
+   -answer             moved 5/6: answers 410->0, uptakes 406->0, misses 35->423, abstentions 4984->4786, hits 2->11
+   -adopt              moved 4/6: uptakes 406->0, misses 35->423, abstentions 4984->4786, hits 2->11
+
+P2  fired: ['ask', 'answer']
+   -ask                moved 1/6: answers 189->0
+   -answer             moved 1/6: answers 189->0
+
+C1  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 10/11: marks 5982->0, disp_suspended 60->0, raised 60->0, disp_rebutted 46->0, disp_asked 28->0, disp_internal 6->0, events 6->0, disp_silence 4->0
+   -challenge          moved 10/11: marks 5982->5834, disp_suspended 60->0, raised 60->0, disp_rebutted 46->0, disp_asked 28->0, disp_internal 6->0, events 6->0, disp_silence 4->0
+   -dispose_challenges moved 9/11: marks 5982->5894, disp_suspended 60->0, disp_rebutted 46->0, disp_asked 28->0, disp_internal 6->0, events 6->0, disp_silence 4->0, suspended 4->0
+
+C2  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 10/11: marks 6126->0, disp_suspended 92->0, raised 92->0, disp_asked 76->0, disp_rebutted 46->0, disp_internal 37->0, events 37->0, laws 59->92
+   -challenge          moved 10/11: marks 6126->5866, disp_suspended 92->0, raised 92->0, disp_asked 76->0, disp_rebutted 46->0, disp_internal 37->0, events 37->0, laws 59->92
+   -dispose_challenges moved 9/11: marks 6126->5958, disp_suspended 92->0, disp_asked 76->0, disp_rebutted 46->0, disp_internal 37->0, events 37->0, laws 59->92, suspended 5->0
+
+C3  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 7/11: marks 4502->0, disp_asked 248->0, raised 96->0, disp_suspended 66->0, disp_internal 66->0, events 66->0, laws 30->96
+   -challenge          moved 7/11: marks 4502->4092, disp_asked 248->0, raised 96->0, disp_suspended 66->0, disp_internal 66->0, events 66->0, laws 30->96
+   -dispose_challenges moved 6/11: marks 4502->4188, disp_asked 248->0, disp_suspended 66->0, disp_internal 66->0, events 66->0, laws 30->96
+
+C4  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 8/11: marks 4548->0, disp_asked 282->0, raised 88->0, disp_suspended 80->0, events 80->0, laws 16->96, disp_internal 76->0, disp_corroborated 4->0
+   -challenge          moved 8/11: marks 4548->4098, disp_asked 282->0, raised 88->0, disp_suspended 80->0, events 80->0, laws 16->96, disp_internal 76->0, disp_corroborated 4->0
+   -dispose_challenges moved 7/11: marks 4548->4186, disp_asked 282->0, disp_suspended 80->0, events 80->0, laws 16->96, disp_internal 76->0, disp_corroborated 4->0
+
+C5  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 8/11: marks 6850->0, disp_asked 410->0, raised 160->0, disp_suspended 144->0, events 144->0, laws 0->144, disp_internal 99->0, disp_corroborated 45->0
+   -challenge          moved 8/11: marks 6850->6136, disp_asked 410->0, raised 160->0, disp_suspended 144->0, events 144->0, laws 0->144, disp_internal 99->0, disp_corroborated 45->0
+   -dispose_challenges moved 7/11: marks 6850->6296, disp_asked 410->0, disp_suspended 144->0, events 144->0, laws 0->144, disp_internal 99->0, disp_corroborated 45->0
+
+C6  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 7/11: marks 6976->0, disp_asked 536->0, raised 160->0, disp_suspended 144->0, disp_internal 144->0, events 144->0, laws 0->144
+   -challenge          moved 7/11: marks 6976->6136, disp_asked 536->0, raised 160->0, disp_suspended 144->0, disp_internal 144->0, events 144->0, laws 0->144
+   -dispose_challenges moved 6/11: marks 6976->6296, disp_asked 536->0, disp_suspended 144->0, disp_internal 144->0, events 144->0, laws 0->144
+
+C7  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 6/11: marks 8929->0, disp_suspended 90->0, raised 90->0, disp_rebutted 66->0, disp_corroborated 24->0, events 24->0
+   -challenge          moved 6/11: marks 8929->8749, disp_suspended 90->0, raised 90->0, disp_rebutted 66->0, disp_corroborated 24->0, events 24->0
+   -dispose_challenges moved 5/11: disp_suspended 90->0, marks 8929->8839, disp_rebutted 66->0, disp_corroborated 24->0, events 24->0
+
+C8  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 10/11: marks 8971->0, disp_suspended 90->0, raised 90->0, disp_rebutted 69->0, disp_asked 42->0, disp_internal 9->0, events 9->0, disp_silence 6->0
+   -challenge          moved 10/11: marks 8971->8749, disp_suspended 90->0, raised 90->0, disp_rebutted 69->0, disp_asked 42->0, disp_internal 9->0, events 9->0, disp_silence 6->0
+   -dispose_challenges moved 9/11: marks 8971->8839, disp_suspended 90->0, disp_rebutted 69->0, disp_asked 42->0, disp_internal 9->0, events 9->0, disp_silence 6->0, suspended 6->0
+
+K1  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -ask                moved 23/43: questions 1258->206, uptakes 1151->187, bets 193->968, misses 189->941, net -185->-914, failed 618->90, adopted_licensed 697->182, adopted_body 454->5
+   -answer             INERT: not one figure moved
+   -adopt              moved 23/43: uptakes 1151->0, adopted_licensed 697->0, failed 618->0, questions 1258->726, adopted_body 454->0, proved 431->0, true_ref 220->640, repairable 170->590
+   -challenge          moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -dispose_challenges moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -settle_credit      moved 5/43: pending 102->1151, failed 618->0, proved 431->0, score_neg 94->0, score_zero 2->0
+
+K2  fired: ['publish', 'challenge', 'dispose_challenges']
+   -publish            moved 9/43: bets 455->1497, misses 444->1459, net -433->-1421, abstain 5498->5009, suspended 66->0, internal 66->0, true_lost 64->0, hits 11->38
+   -challenge          moved 9/43: bets 455->1497, misses 444->1459, net -433->-1421, abstain 5498->5009, suspended 66->0, internal 66->0, true_lost 64->0, hits 11->38
+   -dispose_challenges moved 9/43: bets 455->1497, misses 444->1459, net -433->-1421, abstain 5498->5009, suspended 66->0, internal 66->0, true_lost 64->0, hits 11->38
+
+K3  fired: []
+
+K4  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 22/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -ask                moved 24/43: questions 1258->206, uptakes 1151->187, bets 193->968, misses 189->941, net -185->-914, failed 618->90, adopted_licensed 697->182, adopted_body 454->5
+   -answer             INERT: not one figure moved
+   -adopt              moved 24/43: uptakes 1151->0, adopted_licensed 697->0, failed 618->0, questions 1258->726, adopted_body 454->0, proved 431->0, true_ref 220->640, repairable 170->590
+   -challenge          moved 22/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -dispose_challenges moved 22/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -settle_credit      moved 6/43: pending 102->1151, failed 618->0, proved 431->0, score_neg 94->0, occ_pref 53->0, score_zero 2->0
+
+K5  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 23/43: bets 795->1065, misses 770->1032, net -745->-999, questions 1258->1483, refused 687->853, abstain 5391->5264, suspended 66->0, rebutted 44->0
+   -ask                moved 25/43: questions 1258->206, refused 687->3, uptakes 466->184, bets 795->968, misses 770->941, net -745->-914, failed 250->90, adopted_body 160->5
+   -answer             INERT: not one figure moved
+   -adopt              moved 24/43: refused 687->0, questions 1258->726, uptakes 466->0, bets 795->455, misses 770->444, net -745->-433, adopted_licensed 306->0, failed 250->0
+   -challenge          moved 23/43: bets 795->1065, misses 770->1032, net -745->-999, questions 1258->1483, refused 687->850, abstain 5391->5264, suspended 66->0, rebutted 44->0
+   -dispose_challenges moved 23/43: bets 795->1065, misses 770->1032, net -745->-999, questions 1258->1483, refused 687->850, abstain 5391->5264, suspended 66->0, rebutted 44->0
+   -settle_credit      moved 18/43: pending 0->1151, refused 687->0, uptakes 466->1151, bets 795->193, misses 770->189, net -745->-185, adopted_licensed 306->697, adopted_body 160->454
+
+K6  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, choice_lowest 481->0, independent 469->0, twin 469->0, uptakes 1213->1575
+   -ask                moved 27/43: questions 1358->279, uptakes 1213->228, bets 140->1045, misses 137->1024, net -134->-1003, adopted_licensed 754->152, failed 632->99, abstain 8526->8121
+   -answer             INERT: not one figure moved
+   -adopt              moved 27/43: uptakes 1213->0, questions 1358->455, adopted_licensed 754->0, failed 632->0, proved 484->0, choice_lowest 481->0, independent 469->0, twin 469->0
+   -challenge          moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -dispose_challenges moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -settle_credit      moved 6/43: pending 97->1213, failed 632->0, proved 484->0, score_neg 105->0, preferences 2->0, score_pos 2->0
+
+K7  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 31/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, choice_lowest 481->0, independent 469->0, twin 469->0, uptakes 1213->1575
+   -ask                moved 29/43: questions 1358->279, uptakes 1213->228, bets 140->1045, misses 137->1024, net -134->-1003, adopted_licensed 754->152, failed 632->99, abstain 8526->8121
+   -answer             INERT: not one figure moved
+   -adopt              moved 29/43: uptakes 1213->0, questions 1358->455, adopted_licensed 754->0, failed 632->0, proved 484->0, choice_lowest 481->0, independent 469->0, twin 469->0
+   -challenge          moved 31/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -dispose_challenges moved 31/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -settle_credit      moved 8/43: pending 97->1213, failed 632->0, proved 484->0, score_neg 105->0, occ_pref 72->0, pref_choice 25->0, preferences 2->0, score_pos 2->0
+
+K8  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 24/43: questions 604->1483, adopted_licensed 100->907, uptakes 563->1348, true_ref 593->60, repairable 543->10, failed 303->748, bets 43->358, misses 42->349
+   -ask                moved 20/43: questions 604->96, uptakes 563->89, adopted_body 463->3, bets 43->484, misses 42->473, net -41->-462, conv_ref 20->319, failed 303->41
+   -answer             INERT: not one figure moved
+   -adopt              moved 23/43: uptakes 563->0, adopted_body 463->0, bets 43->455, misses 42->444, net -41->-433, failed 303->0, conv_ref 20->321, proved 215->0
+   -challenge          moved 24/43: questions 604->1483, adopted_licensed 100->907, uptakes 563->1348, true_ref 593->60, repairable 543->10, failed 303->748, bets 43->358, misses 42->349
+   -dispose_challenges moved 24/43: questions 604->1483, adopted_licensed 100->907, uptakes 563->1348, true_ref 593->60, repairable 543->10, failed 303->748, bets 43->358, misses 42->349
+   -settle_credit      moved 7/43: pending 45->563, failed 303->0, proved 215->0, score_neg 83->0, score_zero 9->0, preferences 2->0, score_pos 2->0
+
+K9  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -ask                moved 23/43: questions 1258->206, uptakes 1151->187, bets 193->968, misses 189->941, net -185->-914, failed 618->90, adopted_licensed 697->182, adopted_body 454->5
+   -answer             INERT: not one figure moved
+   -adopt              moved 23/43: uptakes 1151->0, adopted_licensed 697->0, failed 618->0, questions 1258->726, adopted_body 454->0, proved 431->0, true_ref 220->640, repairable 170->590
+   -challenge          moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -dispose_challenges moved 21/43: questions 1258->1483, adopted_licensed 697->907, uptakes 1151->1348, bets 193->358, true_ref 220->60, repairable 170->10, misses 189->349, net -185->-340
+   -settle_credit      moved 5/43: pending 102->1151, failed 618->0, proved 431->0, score_neg 94->0, score_zero 2->0
+
+K10  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, choice_lowest 481->0, independent 469->0, twin 469->0, uptakes 1213->1575
+   -ask                moved 27/43: questions 1358->279, uptakes 1213->228, bets 140->1045, misses 137->1024, net -134->-1003, adopted_licensed 754->152, failed 632->99, abstain 8526->8121
+   -answer             INERT: not one figure moved
+   -adopt              moved 27/43: uptakes 1213->0, questions 1358->455, adopted_licensed 754->0, failed 632->0, proved 484->0, choice_lowest 481->0, independent 469->0, twin 469->0
+   -challenge          moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -dispose_challenges moved 29/43: questions 1358->2201, bets 140->798, misses 137->790, net -134->-782, uptakes 1213->1575, abstain 8526->8194, adopted_licensed 754->1020, failed 632->850
+   -settle_credit      moved 6/43: pending 97->1213, failed 632->0, proved 484->0, score_neg 105->0, preferences 2->0, score_pos 2->0
+
+L1  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 26/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -ask                moved 23/43: questions 1143->260, uptakes 978->216, bets 230->843, misses 221->814, net -212->-785, failed 491->90, adopted_licensed 592->197, adopted_body 386->19
+   -answer             INERT: not one figure moved
+   -adopt              moved 25/43: uptakes 978->0, adopted_licensed 592->0, failed 491->0, questions 1143->724, proved 416->0, adopted_body 386->0, true_ref 266->604, repairable 194->532
+   -challenge          moved 26/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -dispose_challenges moved 26/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -settle_credit      moved 7/43: pending 71->978, failed 491->0, proved 416->0, score_neg 91->0, score_zero 3->0, preferences 2->0, score_pos 2->0
+
+L2  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 27/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -ask                moved 24/43: questions 1143->260, uptakes 978->216, bets 230->843, misses 221->814, net -212->-785, failed 491->90, adopted_licensed 592->197, adopted_body 386->19
+   -answer             INERT: not one figure moved
+   -adopt              moved 26/43: uptakes 978->0, adopted_licensed 592->0, failed 491->0, questions 1143->724, proved 416->0, adopted_body 386->0, true_ref 266->604, repairable 194->532
+   -challenge          moved 27/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -dispose_challenges moved 27/43: questions 1143->1497, bets 230->572, misses 221->547, net -212->-522, abstain 6815->6514, uptakes 978->1258, adopted_licensed 592->849, true_ref 266->81
+   -settle_credit      moved 8/43: pending 71->978, failed 491->0, proved 416->0, score_neg 91->0, occ_pref 53->0, score_zero 3->0, preferences 2->0, score_pos 2->0
+
+L3  fired: ['publish', 'ask', 'answer', 'adopt', 'challenge', 'dispose_challenges', 'settle_credit']
+   -publish            moved 26/43: abstain 10646->9619, bets 110->1079, misses 104->1019, net -98->-959, questions 770->1523, uptakes 569->1167, adopted_licensed 327->707, failed 187->493
+   -ask                moved 22/43: questions 770->506, uptakes 569->359, proved 370->243, adopted_body 217->91, bets 110->228, misses 104->216, abstain 10646->10538, net -98->-204
+   -answer             INERT: not one figure moved
+   -adopt              moved 26/43: uptakes 569->0, proved 370->0, adopted_licensed 327->0, adopted_body 217->0, failed 187->0, true_ref 345->461, repairable 264->380, one_supplier 96->0
+   -challenge          moved 26/43: abstain 10646->9619, bets 110->1079, misses 104->1019, net -98->-959, questions 770->1523, uptakes 569->1167, adopted_licensed 327->707, failed 187->493
+   -dispose_challenges moved 26/43: abstain 10646->9619, bets 110->1079, misses 104->1019, net -98->-959, questions 770->1523, uptakes 569->1167, adopted_licensed 327->707, failed 187->493
+   -settle_credit      moved 8/43: pending 12->569, proved 370->0, failed 187->0, score_neg 77->0, occ_pref 76->0, score_zero 11->0, preferences 8->0, score_pos 8->0

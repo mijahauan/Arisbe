@@ -62,7 +62,7 @@ measurement harnesses so every future run asserts its channels minted. `src/` is
   `channel_calls()` context manager yielding a `ChannelTally` · `muted(*names)` context manager ·
   `audited(*, expect_silent=())` decorator · `ablating()` context manager · `_effect(name, out)`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `tests/test_c_channel_probe.py`:
 
@@ -208,12 +208,12 @@ def test_the_audited_decorator_stands_down_while_ablating():
         assert arm() == []
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `uv run pytest tests/test_c_channel_probe.py -q`
 Expected: FAIL — `ModuleNotFoundError: No module named 'c_channel_probe'`.
 
-- [ ] **Step 3: Write the instrument**
+- [x] **Step 3: Write the instrument**
 
 Create `tests/c_channel_probe.py`:
 
@@ -388,17 +388,17 @@ def audited(*, expect_silent: Tuple[str, ...] = ()):
     return decorate
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `uv run pytest tests/test_c_channel_probe.py -q`
 Expected: PASS, 10 tests.
 
-- [ ] **Step 5: Verify pytest does not collect the helper**
+- [x] **Step 5: Verify pytest does not collect the helper**
 
 Run: `uv run pytest tests/c_channel_probe.py -q 2>&1 | tail -3`
 Expected: no tests collected (the file has no `test_` prefix and defines no test functions).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/c_channel_probe.py tests/test_c_channel_probe.py
@@ -458,7 +458,7 @@ call site, so the audit measures what the gates measure:
 module-level `_ARMS` cache, which would serve a stale result to the second pass. The audit calls
 the harnesses directly, at the same seeds the aggregators use.
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 Create `runs/c_audit/audit.py`:
 
@@ -600,19 +600,19 @@ if __name__ == "__main__":
     main()
 ```
 
-- [ ] **Step 2: Smoke it on one cheap arm**
+- [x] **Step 2: Smoke it on one cheap arm**
 
 Run: `uv run python runs/c_audit/audit.py --pass count --arms C3`
 Expected: a table with non-zero `calls` for `publish`, `challenge`, `corroborate`,
 `dispose_challenges`, and a `-> silent:` line. Do not interpret it yet; confirm only that the
 script runs and the counts are non-zero somewhere.
 
-- [ ] **Step 3: Run the full count pass**
+- [x] **Step 3: Run the full count pass**
 
 Run: `uv run python runs/c_audit/audit.py --pass count 2>&1 | tail -40`
 Expected: 23 arm blocks, `runs/c_audit/CALLS.txt` written. Takes a few minutes.
 
-- [ ] **Step 4: Read the table against `P-A1`, `P-A2`, `P-A3`**
+- [x] **Step 4: Read the table against `P-A1`, `P-A2`, `P-A3`**
 
 Write down, in the commit message, for each of the three: held / refuted / not reached, with
 the numbers. Do not adjust the priors. Specifically check:
@@ -620,7 +620,7 @@ the numbers. Do not adjust the priors. Specifically check:
 - `corroborate` mints in C5 and is zero in C3 (`P-A2`),
 - `answer` mints in P1 and in K1 (`P-A3`).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add runs/c_audit/audit.py runs/c_audit/CALLS.txt
@@ -645,7 +645,7 @@ git commit -m "The C-series count pass: calls against mints in 23 published arms
 Each harness returns something different, so the diff needs one reader per harness. Every number
 below is one the harness already computes; none is invented.
 
-- [ ] **Step 1: Add the figure readers and the ablation pass**
+- [x] **Step 1: Add the figure readers and the ablation pass**
 
 Insert into `runs/c_audit/audit.py` above `main()`:
 
@@ -716,18 +716,18 @@ And extend `main()`:
         print(f"\nwritten: {path}")
 ```
 
-- [ ] **Step 2: Smoke it on one arm**
+- [x] **Step 2: Smoke it on one arm**
 
 Run: `uv run python runs/c_audit/audit.py --pass ablate --arms P1`
 Expected: one block naming the channels that fired in `P1`, and for each either `INERT` or a
 list of moved figures. `answer` should move figures here — `_play` has no other fact channel.
 
-- [ ] **Step 3: Run the full ablation pass**
+- [x] **Step 3: Run the full ablation pass**
 
 Run: `uv run python runs/c_audit/audit.py --pass ablate 2>&1 | tail -60`
 Expected: `runs/c_audit/ABLATION.txt` written, one block per arm.
 
-- [ ] **Step 4: Check `P-A4` and `P-A5` explicitly**
+- [x] **Step 4: Check `P-A4` and `P-A5` explicitly**
 
 `P-A4`: compare K1 with `answer` muted against arm K2 (`ask=False`) in `CALLS.txt`/the K2 base
 figures — the prediction is that muting `answer` under `ask=True` moves K1's figures toward K2's.
@@ -738,7 +738,7 @@ together.
 `peers`); in K4 it should move the preference figures. Run
 `uv run python runs/c_audit/audit.py --pass ablate --arms K1 K4`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add runs/c_audit/audit.py runs/c_audit/ABLATION.txt
@@ -754,13 +754,13 @@ git commit -m "The C-series ablation pass: which firings actually moved a figure
 **Files:**
 - Create: `runs/RUN_C_AUDIT_LOG.md`
 
-- [ ] **Step 1: Classify every channel in every arm**
+- [x] **Step 1: Classify every channel in every arm**
 
 From `CALLS.txt` and `ABLATION.txt`, build the classification table — one row per (arm, channel)
 that made a call: **dead** (mints 0) · **live but inert** (mints, ablation moves nothing) ·
 **live and consequential** (ablation moves figures, with the largest movers named).
 
-- [ ] **Step 2: Scan the harnesses for unchecked liveness claims**
+- [x] **Step 2: Scan the harnesses for unchecked liveness claims**
 
 Run: `grep -n "mechanism-is-exercised\|actually happened\|the channel carried\|assert answers\|assert agg\[" tests/test_c_channels.py tests/test_c_speaker_variance.py`
 
@@ -769,7 +769,7 @@ For each measurement gate, record whether its docstring **asserts** a channel fi
 a defect survives four fix rounds — is what this list is for. Name the gates that assert without
 checking; they become Task 6's targets.
 
-- [ ] **Step 3: Write the log**
+- [x] **Step 3: Write the log**
 
 Create `runs/RUN_C_AUDIT_LOG.md` with:
 1. **What was audited** — the 23 arms, the two passes, the instrument, and the pointer to the
@@ -786,7 +786,7 @@ Create `runs/RUN_C_AUDIT_LOG.md` with:
 Write it in the run-log voice the other `runs/*_LOG.md` files use: figures first, no smoothing,
 a refuted prior stated as refuted.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add runs/RUN_C_AUDIT_LOG.md
@@ -808,7 +808,21 @@ git commit -m "RUN_C_AUDIT: the C-series' channels read against P-A1..P-A6
 uncalled method, an arm that never reaches the state it claims to measure. If every finding is
 in `src/`, skip to Task 6 and record the deferral.
 
-- [ ] **Step 1: Write the failing test for the defect**
+> **WHAT THIS TASK ACTUALLY BECAME (2026-08-05).** Both channel defects are in
+> `src/c_unit.py` — `D-A1` (`corroborate`'s key always spent) and `D-A2` (`answer`'s output a
+> subset of `publish`'s) — so **the Step 3 escape hatch was taken and both were deferred**, and
+> Steps 1, 2, 3 and 6 below were not run: there was no harness-side mechanism to repair.
+> What the task repaired instead is the **third** defect, which the audit found by re-deriving
+> published figures rather than by probing channels: **five stale narrated figures**, window-5
+> numbers left in docstring tables under the window-8 default ruled 2026-07-31, surviving
+> because every clause those gates assert is an inequality, a zero or a cross-arm equality.
+> Corrected by measurement: uptakes 939/798/474 → **1151/978/569**, "23 of 474" → **25 of 569**,
+> "159 questions" → **248**, `test_c_speaker_variance.py:79`'s 798 → **978**, and an orphaned
+> `spurious=0.5` clause dropped. **No assertion was touched; 99 passed before and after.**
+> "0 corroborations of 144 doubts" was checked and found already correct.
+
+- [ ] **Step 1: Write the failing test for the defect** — **NOT RUN.** No harness-side
+      mechanism defect existed to fail against; both are `src/`.
 
 In `tests/test_c_channels.py`, beside the harness, write a test that fails **because of the
 defect** — the shape D-1 used: assert the channel mints under the arm's own conditions.
@@ -822,34 +836,40 @@ def test_the_<channel>_channel_mints_in_the_arm_that_measures_it():
     assert tally.effects["<channel>"] > 0, tally.calls["<channel>"]
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [ ] **Step 2: Run it and watch it fail** — **NOT RUN**, with Step 1.
 
 Run: `uv run pytest tests/test_c_channels.py::test_the_<channel>_channel_mints_in_the_arm_that_measures_it -q`
 Expected: FAIL, with the call count in the message and the mint count zero.
 
-- [ ] **Step 3: Repair the harness**
+- [x] **Step 3: Repair the harness** — **ESCAPE HATCH TAKEN**, which is this step's own
+      instruction: the repair could not be made without a `c_unit.py` change, so no attempt was
+      kept and `D-A1`/`D-A2` are recorded as deferred in the log.
 
 Make the smallest change that makes the channel mint. **Do not touch `src/`.** If the repair
 cannot be made without a `c_unit.py` change, revert the attempt, delete the test, and record the
 defect as deferred in the log instead.
 
-- [ ] **Step 4: Re-run the affected arms and the new test**
+- [x] **Step 4: Re-run the affected arms and the new test** — done as **re-run the gates whose
+      narrated tables changed**; 99 passed before the corrections and 99 after, since no
+      assertion moved.
 
 Run: `uv run pytest tests/test_c_channels.py -q -k "<the affected gates>"`
 Expected: PASS, with new figures.
 
-- [ ] **Step 5: Rewrite the figures the repair moved**
+- [x] **Step 5: Rewrite the figures the repair moved** — the task's real work: five stale
+      figures rewritten **from measurement**, not from a repair.
 
 Every docstring table in the affected gates is now wrong. Rewrite each from the new run, and add
 one line naming the repair and the date, in the file's existing voice. D-1's precedent: the
 pre-fix artefacts were deleted rather than left beside the new ones.
 
-- [ ] **Step 6: Re-run the audit on the repaired arms**
+- [ ] **Step 6: Re-run the audit on the repaired arms** — **NOT RUN.** No arm's behaviour
+      changed, so the count and ablation passes still read as recorded.
 
 Run: `uv run python runs/c_audit/audit.py --pass ablate --arms <the affected arms>`
 Then update `runs/RUN_C_AUDIT_LOG.md` with the post-repair reading, marked as such.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tests/ runs/
@@ -873,7 +893,7 @@ git commit -m "C-series: <the channel> was <dead|inert>, repaired and the arms r
 - Produces: the three harnesses now accept `expect_silent=(...)` as a keyword and refuse an
   undeclared silent channel.
 
-- [ ] **Step 1: Decorate the three harnesses**
+- [x] **Step 1: Decorate the three harnesses**
 
 At the top of `tests/test_c_channels.py`, after the existing imports:
 
@@ -910,14 +930,14 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False, ...):
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, ...):
 ```
 
-- [ ] **Step 2: Run the C-series suite and let it name every legitimate silence**
+- [x] **Step 2: Run the C-series suite and let it name every legitimate silence**
 
 Run: `uv run pytest tests/test_c_channels.py tests/test_c_speaker_variance.py -q -x 2>&1 | tail -30`
 Expected: FAILURES naming channels and arms. Each one is either a legitimate silence (the
 `channel=False` control, the `mute=True` arm, `ask=False`, corroboration below its witness
 threshold) or a finding Task 4 already recorded.
 
-- [ ] **Step 3: Declare each legitimate silence at its call site**
+- [x] **Step 3: Declare each legitimate silence at its call site**
 
 For each failure that is a *predicted* zero, pass it explicitly, e.g.:
 
@@ -942,7 +962,7 @@ is predicted** — the point of the allowlist is that a predicted zero and a def
 alike. For `_aggregate_ask`, add an `expect_silent=()` parameter, include it in the `arm` cache
 key, and pass it through to `_play_ask_and_challenge`.
 
-- [ ] **Step 4: Demonstrate the guard bites**
+- [x] **Step 4: Demonstrate the guard bites**
 
 Add to `tests/test_c_channel_probe.py`:
 
@@ -962,12 +982,12 @@ Run: `uv run pytest tests/test_c_channel_probe.py -q`
 Expected: PASS. (Note `muted()` alone does not suspend the guard — only `ablating()` does, which
 is exactly what makes this demonstration possible.)
 
-- [ ] **Step 5: Run the whole C-series suite green**
+- [x] **Step 5: Run the whole C-series suite green**
 
 Run: `uv run pytest tests/test_c_channels.py tests/test_c_speaker_variance.py tests/test_c_unit.py tests/test_c_field.py tests/test_c_marks.py tests/test_c_membrane.py tests/test_c_stage_gates.py tests/test_c_use.py tests/test_c_channel_probe.py -q 2>&1 | tail -5`
 Expected: all pass. Record the count and the wall time.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add tests/
@@ -988,13 +1008,13 @@ watching the arm refuse to report."
 - Modify: `docs/CAPABILITY_MAP.md` (the C-series row)
 - Modify: `docs/superpowers/plans/2026-08-04-c-series-channel-audit.md` (check the boxes)
 
-- [ ] **Step 1: Write the arc entry**
+- [x] **Step 1: Write the arc entry**
 
 At the top of `CURRENT_PLAN.md`, in the house style: what was audited, the headline finding,
 each prior's verdict in a line, what was repaired and what was deferred to `src/`, and the state
 at close (test counts, artefact paths).
 
-- [ ] **Step 2: Re-head the next-session block**
+- [x] **Step 2: Re-head the next-session block**
 
 Replace the current `▶▶▶ NEXT SESSION` block. If findings invalidated published figures, the
 next session's first item is whatever the log says needs re-running or re-deciding; otherwise it
@@ -1002,17 +1022,25 @@ is the D-series list the current block already carries (`P-D7`'s coupling, `whom
 missing consumer, D-1b / D-2 / D-3), with the audit's result recorded as the reason those may
 now proceed on the C-series' figures.
 
-- [ ] **Step 3: Update `CAPABILITY_MAP.md`**
+- [x] **Step 3: Update `CAPABILITY_MAP.md`**
 
 Add the standing discipline to the C-series row: every arm asserts its channels minted, the
 instrument is `tests/c_channel_probe.py`, the audit of record is `runs/RUN_C_AUDIT_LOG.md`.
 
-- [ ] **Step 4: Run the full suite**
+- [x] **Step 4: Run the full suite**
 
 Run: `uv run pytest tests/ -q 2>&1 | tail -5`
 Expected: no new failures against the pre-audit baseline. Record the numbers.
 
-- [ ] **Step 5: Commit**
+**Run in five chunks instead** — the whole suite exceeds the ten-minute foreground cap
+(`test_c_channels.py` alone is 13m53s), and a backgrounded run dies with the turn:
+`test_c_channels.py` · the other eight `test_c_*.py` · `test_[ab]*.py test_c[!_]*.py` ·
+`test_[d-l]*.py` · `test_[m-z]*.py`. Totals: **4553 passed, 217 skipped, 1 xfailed, 0 failed**,
+plus **45 errors, all Playwright `BrowserType.launch: Executable doesn't exist` at fixture
+setup** in the ten `*_e2e.py` files — an absent browser in this environment, present before this
+branch and untouched by it. C-series: 94 + 123 = **217**.
+
+- [x] **Step 5: Commit**
 
 ```bash
 git add CURRENT_PLAN.md docs/ runs/
