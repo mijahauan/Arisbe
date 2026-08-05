@@ -125,6 +125,30 @@ def test_the_audited_decorator_accepts_a_declared_silence():
     assert arm(expect_silent=("publish",)) == []
 
 
+def test_the_guard_bites_on_a_real_harness(monkeypatch):
+    """THE GUARD MADE TO FAIL ONCE, ON PURPOSE, ON A PUBLISHED HARNESS. A guard
+    nobody has watched fail is a guard nobody knows the shape of — D-1's
+    mortality guard passed a fully installed TTL because it was never made to
+    bite, and the C-series' corroboration gate passed a channel that had never
+    minted a mark.
+
+    A DEAD CHANNEL DOES NOT LOOK LIKE A MUTED ONE, which is why the bite is
+    staged this way. `muted()` is the ablation device, and `ChannelTally.silent`
+    excludes what it silences on purpose — that is
+    `test_a_muted_channel_is_not_reported_silent`, above — so muting `answer`
+    here would prove nothing about a defect: the guard is built not to fire on
+    a deliberate ablation. What a defect actually looks like is instead the
+    method itself returning an empty list every time it is called
+    while the arm goes on reporting figures — `Unit.corroborate`'s condition in
+    twenty published arms, reproduced here on `Unit.answer`, whose 410 mints
+    `_play` genuinely depends on."""
+    from test_c_channels import _play
+
+    monkeypatch.setattr(Unit, "answer", lambda self, board, r: [])
+    with pytest.raises(AssertionError, match="answer"):
+        _play(1, 10, channel=True, stagger=2)
+
+
 def test_the_audited_decorator_stands_down_while_ablating():
     """An ablation legitimately silences downstream channels, so the standing
     assertion is suspended for the duration rather than worked around."""

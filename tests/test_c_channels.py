@@ -12,13 +12,18 @@ the bottom, and they report a NEGATIVE result, deliberately unsmoothed.
 """
 
 import dataclasses
+import sys
 from collections import Counter
+from pathlib import Path
 
 import pytest
 
-from c_field import CYCLIC, PAIRS, Field, apertures_for, default_spec
-from c_marks import FACT, Mark, MarkBoard
-from c_unit import Unit
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+from c_channel_probe import audited  # noqa: E402
+from c_field import CYCLIC, PAIRS, Field, apertures_for, default_spec  # noqa: E402
+from c_marks import FACT, Mark, MarkBoard  # noqa: E402
+from c_unit import Unit  # noqa: E402
 
 A1 = (("c", "a1"),)
 A2 = (("c", "a2"),)
@@ -488,6 +493,17 @@ ROUNDS = 60
 SEEDS = [1, 2, 3, 4, 5, 7, 42, 99, 555, 808, 2026, 12345, 20260728, 31337]
 
 
+# THE STANDING DISCIPLINE, ADDED BY THE CHANNEL AUDIT (`runs/RUN_C_AUDIT_LOG.md`).
+# `@audited()` runs the arm inside `channel_calls()` and refuses to return if a
+# channel this arm CALLED minted nothing. A finding of "no effect" from a
+# mechanism that never ran is worth nothing at all, and the audit found two of
+# them by hand; from here an arm whose channel goes quiet fails instead of
+# printing a null. A zero that is PREDICTED is declared with `expect_silent=`
+# and says why, at the decorator when the harness makes it structural and at
+# the call site when the arm's own parameters do. A channel that is never
+# called does not trip the guard, so the mute controls (`channel=False`,
+# `ask=False`, `mute=True`) need no declaration.
+@audited()
 def _play(seed, rounds, *, channel, stagger):
     """Two units sharing one domain, each holding that domain's planted law.
 
@@ -695,7 +711,14 @@ def test_with_full_attention_the_ask_channel_is_inert_rather_than_harmful():
     attention, never across a difference in aperture.
     """
     for seed in SEEDS[:8]:
-        live, board, answers, uptakes = _play(seed, 40, channel=True, stagger=1)
+        # `adopt` IS CALLED AND MINTS NOTHING, AND THAT IS THIS GATE'S RESULT.
+        # Under full attention a shared domain delivers identically to both
+        # units, so every reply arrives after the asker met the atom itself and
+        # there is nothing left to take up — the same reason the `uptakes == 0`
+        # assertion below states in its own words. The zero is the finding, not
+        # a dead channel, so it is declared rather than repaired.
+        live, board, answers, uptakes = _play(seed, 40, channel=True, stagger=1,
+                                              expect_silent=("adopt",))
         mute, *_ = _play(seed, 40, channel=False, stagger=1)
         assert [m for m in board.all_marks() if m.kind == "question"]
         assert answers > 0, f"seed {seed}: the peers never even spoke"
@@ -1708,6 +1731,19 @@ def _assert_uniform_rate(units):
             f"must be uniform, got {dict(sorted(rates.items()))}")
 
 
+# `corroborate` IS DECLARED SILENT BECAUSE IT IS THE DEFECT THE AUDIT FOUND, NOT
+# BECAUSE THE ZERO IS INNOCENT. `runs/RUN_C_AUDIT_LOG.md` records it as **D-A1**:
+# `_mint_challenge`'s once-per-law-ever key is shared between `challenge` and
+# `corroborate`, and this harness runs `challenge` at phase (c) before
+# `corroborate` at phase (d), so the key is always spent by the time a call for
+# corroboration is read; the head branch is preempted the same way by `publish`
+# through `(FACT, head)`. The method is STRUCTURALLY PREEMPTED — 1920 to 2880
+# calls per arm, zero mints, in all twenty published arms that play it. Fixing
+# it means changing `src/c_unit.py`, which alters what the C-series models and
+# was deferred by the spec's §9 to its own sitting. THIS DECLARATION IS TO BE
+# REMOVED WHEN D-A1 IS FIXED: once corroboration can mint, a silent
+# `corroborate` is a defect again and the guard should say so.
+@audited(expect_silent=("corroborate",))
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                     wrong_laws=False, induce=True, n_units=4, scheme=CYCLIC,
                     window=None, witnesses=None):
@@ -2209,7 +2245,14 @@ def test_under_bounded_attention_the_discrimination_still_inverts_and_now_intern
 
 def _witness_arm(n_units, scheme, witnesses=None):
     """The bounded-attention arm Task 5e measured corroboration at 0 of 66 in,
-    run over a named community. Returns the aggregate over the eight seeds."""
+    run over a named community. Returns the aggregate over the eight seeds.
+
+    WHAT `agg["corroborated"]` COUNTS, since the gates below read it as the
+    corroboration lifecycle firing: `dispose_challenges` counting DISTINCT
+    FOREIGN AUTHORS of challenge marks (`src/c_unit.py:1764`). It does not come
+    from `Unit.corroborate`, which is declared silent on `_play_challenge`
+    above and mints nothing in any arm — the audit's **D-A1**. The numbers are
+    right; nothing here was solicited and answered."""
     agg = {k: 0 for k in ("suspended", "internal", "corroborated", "rebutted",
                           "silence", "asked")}
     agg.update(raised=0, calls=0, true_defeats=0, true_held=0,
@@ -2431,6 +2474,14 @@ def _witness_induce_arm(n_units, scheme, witnesses=None):
 # ask channel and the challenge channel together so the question can be put.
 
 
+# `corroborate` IS DECLARED SILENT FOR THE SAME REASON AND ON THE SAME TERMS as
+# on `_play_challenge` above — **D-A1** in `runs/RUN_C_AUDIT_LOG.md`, the shared
+# `_mint_challenge` key, with this harness running `challenge` at phase (f)
+# before `corroborate` at phase (g). Zero mints on 1920–2880 calls in every one
+# of the thirteen full-community arms, `tests/test_c_speaker_variance.py`'s
+# three included. Deferred to `src/` by the spec's §9. THIS DECLARATION IS TO BE
+# REMOVED WHEN D-A1 IS FIXED.
+@audited(expect_silent=("corroborate",))
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                             scheme=CYCLIC, window=None, witnesses=None,
                             typify=None, rep_window=None, mute=False,
@@ -2948,6 +2999,13 @@ def test_the_silence_window_at_three_five_and_eight():
     flat at 45 across all three windows, so this knob and
     `corroborating_witnesses` are independent.
     """
+    # THE LIVENESS CLAUSE THIS GATE LACKED, now mechanical rather than narrated.
+    # `mute[0] == mute[1] == mute[2]` below is a three-way equality three dead
+    # arms would satisfy, and the fourteen concrete non-zero figures further
+    # down were its only real protection (`RUN_C_AUDIT_LOG.md`, "Unchecked
+    # liveness claims"). Every arm here goes through `_play_ask_and_challenge`,
+    # which is `@audited()`: a channel it calls that mints nothing fails the arm
+    # before any figure is compared. No prose is asked to carry it.
     for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
         mute = [_aggregate_ask(n_units, scheme, ask=False, window=w)
                 for w in (3, 5, 8)]
@@ -3006,7 +3064,14 @@ BELOW READ THE SAME ONES. Every arm is a deterministic function of its
 arguments — asserted on this driver, typify path included, at the head of
 `test_the_replication_verdict_reads_the_field_s_cadence_not_the_peer` — so
 reading a cached one is reading the same run, not a shortcut past it. Nothing
-here trims a seed or an arm."""
+here trims a seed or an arm.
+
+NO ARM REACHED THROUGH HERE DECLARES A SILENCE, so `expect_silent` is not a
+parameter of this driver: the only zero these arms carry is `corroborate`,
+declared once on `_play_ask_and_challenge` itself. If one ever needs its own
+declaration, IT MUST GO INTO `arm` BELOW — two arms differing only in what they
+allowlist are two different arms, and a cache key that cannot tell them apart
+would serve one the other's figures."""
 
 
 def _aggregate_ask(n_units, scheme, *, ask, window=None, witnesses=None,
