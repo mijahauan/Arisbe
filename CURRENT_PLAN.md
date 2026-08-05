@@ -89,7 +89,8 @@ and **in no published C-series sweep was one ever answered**. One sentence is **
 its attribution is wrong** — `test_under_bounded_attention…`'s "the apparatus is no longer dead
 code" is TRUE on the referent the gate names two sentences earlier ("the external apparatus ran
 zero times: 0 suspended, 0 calls published"), because the raising half genuinely runs and the
-audit reproduces 66 suspended and 66 calls; **its answering half is dead, which the gate's very
+audit reproduces 66 suspended — 66 calls is the gate's own assertion, outside the audit's figure
+set and neither re-derived nor disturbed; **its answering half is dead, which the gate's very
 next sentence already says** ("it is a channel with nothing coming down it"). What is wrong is
 where the gate lays the silence: on the cyclic scheme's two-disputant ceiling, when the method
 mints zero at **every** community size the C-series ever ran. The liar findings keep their

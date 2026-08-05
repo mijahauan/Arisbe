@@ -35,9 +35,12 @@ it *computes* — C1's `(60, 6, 0, 46, 4)`, C5's 45, K1's −185/1258/1151, K2's
 three figure families sit outside `figures()` and were re-derived by nobody
 (`board.corroboration_calls()`, `_witness_arm`'s `true_defeats`/`true_held`, and `witnesses`;
 §1 and the closing section name them). What carries the universal instead is that **a dead
-channel is a pure no-op**: `Unit.corroborate` (`src/c_unit.py:1835–1882`) writes no state of its
-own, every write it could make goes through `_mint_challenge` (`:1488–1506`), which returns
-`None` before touching either the board or `_published` whenever the key is spent — and
+channel is a pure no-op**: `Unit.corroborate` (`src/c_unit.py:1835–1882`) writes through two
+paths — its head branch publishes directly at `:1875–1876`, keyed `(FACT, head)`, and its
+counterexample branch through `_mint_challenge` (`:1488–1506`) — but every path that writes also
+appends the mark to the `minted` list the method returns, so `mints == 0` entails that no write
+happened at all; `_mint_challenge` itself returns `None` before touching either the board or
+`_published` whenever its key is spent — and
 `attended` is incremented once per *observation* (`:896`), never per channel act. A method that
 mints nothing cannot have moved any figure, including the cost readings, whether the audit
 computed that figure or not. What the two dead channels cost is attribution, in
@@ -664,9 +667,11 @@ harness — or one of these three refactored under a new name — cannot quietly
 was watched to fail against a deliberately undecorated harness before it was trusted, on the same
 principle as the bite demonstration above.
 
-**The spec's §2 names three classes of deadness. This guard catches one of them.** Saying only
-that "a channel that mints nothing fails the arm" would leave the other two unnamed, which is the
-shape this audit exists to catch, so they are named here:
+**The spec's §2 names two classes of deadness, and this guard catches one of them.** Saying only
+that "a channel that mints nothing fails the arm" would leave the other — live-but-inert —
+unnamed, and there is a third case besides that §2's table does not classify as deadness at all:
+a channel that is never called, which comes from D-1's own defect (4) rather than from the spec.
+All three are named here:
 
 - **It cannot catch a channel that is never CALLED.** `ChannelTally.silent()` requires
   `calls[n] > 0`; a channel nobody invokes has no calls and no mints and reads clean. That is
