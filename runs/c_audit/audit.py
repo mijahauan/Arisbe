@@ -97,10 +97,30 @@ BY_NAME = {a.name: a for a in ARMS}
 
 
 def count_pass(arms, out=sys.stdout):
-    """Calls against mints, aggregated over the arm's own seeds."""
+    """Calls against mints, aggregated over the arm's own seeds.
+
+    WHY THIS PASS STANDS THE STANDING GUARD DOWN. Task 6 put `@audited()` on all
+    three harnesses, so an arm whose channel mints nothing now raises instead of
+    returning — which is right in the test suite and exactly wrong here. THIS
+    SCRIPT IS THE INSTRUMENT THAT REPORTS A SILENCE. Its whole job a dozen lines
+    below is to print `SILENT` beside a zero; a silence must reach that line,
+    not stop the pass. `ablating()` is the suspension the probe already provides
+    for the case where a zero is the observation rather than the defect.
+
+    A DECLARATION WOULD NOT DO INSTEAD. Passing `expect_silent` through
+    `Arm.kwargs` would put the allowlist into the kwargs line printed into
+    `CALLS.txt`, so the record of what an arm WAS would carry what the audit
+    EXPECTED of it — and it would have to be maintained here as well as in the
+    test file, where a divergence between the two would be invisible.
+
+    Without this, `--pass count` died on arm P2 — whose `adopt` zero is declared
+    at the published call site, which this script does not go through — after
+    `main()` had already truncated `CALLS.txt`, taking the audit's own record
+    with it. 218 lines to 6.
+    """
     tallies = {}
     for arm in arms:
-        with channel_calls() as tally:
+        with channel_calls() as tally, ablating():
             for seed in arm.seeds:
                 arm.play(seed)
         tallies[arm.name] = tally
@@ -152,9 +172,14 @@ def ablate_pass(arms, tallies, out=sys.stdout):
     for arm in arms:
         tally = tallies[arm.name]
         base = {}
-        for seed in arm.seeds:
-            for k, v in figures(arm, arm.play(seed)).items():
-                base[k] = base.get(k, 0) + v
+        # The BASE run stands the guard down for the same reason `count_pass`
+        # does: this is the observer, and an arm's silence is its subject
+        # matter. The ablated runs below already carry `ablating()` — an
+        # ablation silences downstream channels on purpose.
+        with ablating():
+            for seed in arm.seeds:
+                for k, v in figures(arm, arm.play(seed)).items():
+                    base[k] = base.get(k, 0) + v
         firing = [c for c in CHANNELS if tally.effects[c]]
         print(f"\n{arm.name}  fired: {firing}", file=out)
         for channel in firing:

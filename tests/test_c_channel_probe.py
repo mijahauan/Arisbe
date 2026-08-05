@@ -149,6 +149,32 @@ def test_the_guard_bites_on_a_real_harness(monkeypatch):
         _play(1, 10, channel=True, stagger=2)
 
 
+def test_the_corroborate_declarations_still_have_something_to_declare():
+    """THE TRIPWIRE ON THE ALLOWLIST, AND ITS FAILURE IS THE INSTRUCTION.
+
+    `_play_challenge` and `_play_ask_and_challenge` both declare `corroborate`
+    silent, and both comments say to remove the declaration when D-A1 is fixed.
+    That was prose with no mechanism behind it — the same unenforced-claim shape
+    this audit spent five tasks finding, and an allowlist that outlives its
+    defect re-hides the next regression with the suite green either way.
+
+    WHEN THIS TEST FAILS, `Unit.corroborate` has minted. That means D-A1 is
+    fixed, the two `expect_silent=("corroborate",)` declarations are now hiding
+    a channel that can speak for itself, and BOTH MUST BE DELETED — along with
+    this test, which has then done its whole job. Nothing else about a green
+    suite would have said so.
+
+    It checks the harness with its declaration REMOVED, which is the only way to
+    observe a channel an allowlist is covering. Twenty rounds and four units are
+    enough: the zero is structural, not a long-run or large-community effect, so
+    it costs about three seconds."""
+    from test_c_channels import _play_challenge
+
+    bare = audited()(_play_challenge.__wrapped__)
+    with pytest.raises(AssertionError, match="corroborate"):
+        bare(20260728, 20, channel=True, stagger=1, seed_laws=True)
+
+
 def test_the_audited_decorator_stands_down_while_ablating():
     """An ablation legitimately silences downstream channels, so the standing
     assertion is suspended for the duration rather than worked around."""

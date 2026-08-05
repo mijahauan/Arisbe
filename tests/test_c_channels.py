@@ -1742,7 +1742,11 @@ def _assert_uniform_rate(units):
 # it means changing `src/c_unit.py`, which alters what the C-series models and
 # was deferred by the spec's §9 to its own sitting. THIS DECLARATION IS TO BE
 # REMOVED WHEN D-A1 IS FIXED: once corroboration can mint, a silent
-# `corroborate` is a defect again and the guard should say so.
+# `corroborate` is a defect again and the guard should say so. That instruction
+# is enforced rather than merely written down:
+# `test_the_corroborate_declarations_still_have_something_to_declare`, in
+# `tests/test_c_channel_probe.py`, runs this harness with the declaration off
+# and fails the day corroboration mints.
 @audited(expect_silent=("corroborate",))
 def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
                     wrong_laws=False, induce=True, n_units=4, scheme=CYCLIC,
@@ -2328,6 +2332,20 @@ def test_corroboration_fires_once_a_domain_has_three_witnesses():
     the window was already doing. A channel that repairs whatever it is asked
     about cannot tell a true law from a false one, and neither can one that
     eliminates whatever two records dispute.
+
+    WHAT "CORROBORATION FIRES" MEANS HERE, AND IT IS NOT WHAT IT SOUNDS LIKE
+    (the channel audit, `runs/RUN_C_AUDIT_LOG.md` §1). Every figure above is
+    reproduced and every one is right, but not one of them came from
+    `Unit.corroborate`, which mints nothing in any arm this series ever ran —
+    the audit's **D-A1**, and the reason `_play_challenge` declares it silent.
+    `CORROB` is `dispose_challenges` counting DISTINCT FOREIGN AUTHORS of
+    challenge marks. So the finding survives read as *a law is eliminated once
+    two distinct foreign records have independently published a counterexample
+    to it*, and does NOT survive read as a call SOLICITED and ANSWERED: the
+    units counted as corroborators had published their counterexamples a phase
+    earlier and would have published them identically had no call ever existed.
+    The guard cannot carry this one — an allowlisted channel is exactly the
+    channel it cannot speak for — so it is said here, in place.
     """
     cyclic4 = _witness_arm(4, CYCLIC)
     pairs4 = _witness_arm(4, PAIRS)
@@ -2477,10 +2495,13 @@ def _witness_induce_arm(n_units, scheme, witnesses=None):
 # `corroborate` IS DECLARED SILENT FOR THE SAME REASON AND ON THE SAME TERMS as
 # on `_play_challenge` above — **D-A1** in `runs/RUN_C_AUDIT_LOG.md`, the shared
 # `_mint_challenge` key, with this harness running `challenge` at phase (f)
-# before `corroborate` at phase (g). Zero mints on 1920–2880 calls in every one
-# of the thirteen full-community arms, `tests/test_c_speaker_variance.py`'s
-# three included. Deferred to `src/` by the spec's §9. THIS DECLARATION IS TO BE
-# REMOVED WHEN D-A1 IS FIXED.
+# before `corroborate` at phase (g). Zero mints on 1920–2880 calls in TWELVE of
+# the thirteen full-community arms, `tests/test_c_speaker_variance.py`'s three
+# included; the thirteenth is K3 (`ask=False, mute=True`), which makes zero
+# calls on every channel and so shows nothing either way. Deferred to `src/` by
+# the spec's §9. THIS DECLARATION IS TO BE REMOVED WHEN D-A1 IS FIXED, and
+# `test_the_corroborate_declarations_still_have_something_to_declare`, in
+# `tests/test_c_channel_probe.py`, is what will say when.
 @audited(expect_silent=("corroborate",))
 def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
                             scheme=CYCLIC, window=None, witnesses=None,
@@ -3004,8 +3025,12 @@ def test_the_silence_window_at_three_five_and_eight():
     # arms would satisfy, and the fourteen concrete non-zero figures further
     # down were its only real protection (`RUN_C_AUDIT_LOG.md`, "Unchecked
     # liveness claims"). Every arm here goes through `_play_ask_and_challenge`,
-    # which is `@audited()`: a channel it calls that mints nothing fails the arm
-    # before any figure is compared. No prose is asked to carry it.
+    # which is `@audited(expect_silent=("corroborate",))`: a channel it calls
+    # that mints nothing fails the arm before any figure is compared — WITH THE
+    # ONE EXCEPTION THE DECLARATION NAMES. `corroborate` is allowlisted there as
+    # the audit's D-A1, so the `corroborated == 45` line below is still carried
+    # by prose and by `dispose_challenges`, not by the guard. Every other
+    # channel this gate reads is covered.
     for n_units, scheme in ((4, CYCLIC), (6, PAIRS)):
         mute = [_aggregate_ask(n_units, scheme, ask=False, window=w)
                 for w in (3, 5, 8)]
