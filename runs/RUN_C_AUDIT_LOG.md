@@ -26,11 +26,12 @@ one of that arm's 43 figures**, and the same in all eleven full-community arms. 
 refuted with it — muting `answer` leaves K1 byte-identical to its own baseline, while muting
 `adopt` reproduces K2 exactly (net −433, uptakes 0, bets 455). The published repair effect is
 `ask` + `adopt`; `answer` is a redundant re-mint of what `publish` emits a few lines later in
-the same round. **`P-A1` and `P-A6` hold; `P-A3` holds literally and is hollowed out by `P-A4`;
-`P-A5` holds in substance and is refuted in its literal wording.** And the audit's baseline
-pass re-derived every published figure it touched — C1's `(60, 6, 0, 46, 4)`, C5's 45, K1's
-−185/1258/1151, K2's −433/455 — **so not one published C-series number is falsified here.**
-What is wrong is attribution, in three docstrings, plus one stale table.
+the same round. **`P-A1`, `P-A5` and `P-A6` hold; `P-A3` holds literally and is hollowed out by
+`P-A4`.** And the audit's baseline pass re-derived every published figure it touched — C1's
+`(60, 6, 0, 46, 4)`, C5's 45, K1's −185/1258/1151, K2's −433/455 — **so no published C-series
+number is falsified by a channel defect.** What the two dead channels cost is attribution, in
+three docstrings. One published table *is* wrong (§6), for an unrelated reason: docstring drift
+after the window ruling, which the audit found while re-deriving and which no channel touches.
 
 ## What was audited
 
@@ -134,8 +135,8 @@ Movers, K1, in the order `ABLATION.txt` reports them:
 -settle_credit moved 5/43: pending 102->1151, failed 618->0, proved 431->0, score_neg 94->0
 ```
 
-The ◐ / ● split on `settle_credit` is the honest one. In the five ◐ arms (`typify=None`) every
-figure that moves is `settle_credit`'s **own output** — `proved`/`failed`/`pending` census
+The ◐ / ● split on `settle_credit` is the honest one. In the six ◐ arms (`typify=None`: K1, K6,
+K8, K9, K10, L1) every figure that moves is `settle_credit`'s **own output** — `proved`/`failed`/`pending` census
 `u._credited`, `score_*` iterate `u.peers`, and only `settle_credit` writes either. Removing the
 function that produces a number necessarily changes that number. Every figure that would show
 something *acting on* the credit — net, bets, misses, hits, uptakes, questions,
@@ -181,11 +182,17 @@ The preemption is exact, and it is in two places:
 - Its **head branch** mints keyed `(FACT, head)`, which `Unit.publish` — phase (b) and phase (e)
   respectively — has already spent for every fact the unit holds.
 
-An instrumented rerun of C3 counted `_mint_challenge` **9 399 calls inside the corroborate phase,
-returning non-`None` zero times**. The published "CORROB" column comes from a different
-mechanism entirely: `dispose_challenges` counting **distinct foreign authors** of challenge
-marks against one law (`src/c_unit.py:1807–1818`, "WHAT IS COUNTED IS DISTINCT FOREIGN
-AUTHORS"), read as `tally["corroborated"]` in `_witness_arm`.
+**What carries this finding is `CALLS.txt`: `corroborate` mints 0 on 1920–2880 calls, in twenty
+arms.** That figure is in the artefact, twenty times over, and the two-branch reading above is
+verifiable from the source alone. A third piece of evidence is *corroborative only and is not in
+either artefact*: an instrumented rerun of C3 during the count pass counted `_mint_challenge`
+9 399 calls inside the corroborate phase, returning non-`None` zero times. It has not been
+independently reproduced, and nothing above depends on it.
+
+The published "CORROB" column comes from a different mechanism entirely: `dispose_challenges`
+counting **distinct foreign authors** of challenge marks against one law — the ruling stated at
+`src/c_unit.py:1764` ("WHAT IS COUNTED IS DISTINCT FOREIGN AUTHORS") and implemented at
+`:1807–1818` — read as `tally["corroborated"]` in `_witness_arm`.
 
 ### `P-A3` — *"the answer channel is live in the combined arm."* — **HELD, and hollow**
 
@@ -213,25 +220,40 @@ both. K2, the arm K1 was supposed to be moved toward, reads net −433, uptakes 
 moved zero distance on every axis.
 
 **What produces the effect is `adopt`.** Muting `adopt` on K1 gives net −433, uptakes 0, bets 455
-— an exact match to K2's own run. (`questions` differs, 726 against K2's 0, only because muting
+— an exact match to K2's own run. **Provenance:** `net` and `bets` fall outside the eight-mover
+truncation on that `ABLATION.txt` line (23 figures moved, 8 shown), so they are not readable from
+the artefact; they were recomputed from the full base/ablated dicts during the ablation pass and
+independently recomputed in review, agreeing both times. `uptakes 1151→0` is on the line itself.
+(`questions` differs, 726 against K2's 0, only because muting
 `adopt` leaves `ask` running: units still ask, they just never take a reply up.) Muting `ask`
 overshoots past K2 (net −185→−914), because it also removes the questions peers would have
 answered. The published K1/K2 repair — true-law refutations 640 → 220, converses 321 → 21, net
 −433 → −185 — is real, and it is carried by **`ask` + `adopt`**, the targeted question-and-uptake
 machinery. The `answer` method is a redundant re-mint of what `publish` emits in the same round.
 
-### `P-A5` — *"ablating `settle_credit` leaves the control's fourteen figures unmoved."* — **HELD IN SUBSTANCE, REFUTED LITERALLY**
+### `P-A5` — *"ablating `settle_credit` leaves the control's fourteen figures unmoved."* — **HELD**
 
 > Fails if the control's figures move — the claim that the untargeted arm reproduces Tasks 5e/5f
 > exactly would be wrong.
 
-Five of K1's figures move: pending 102→1151, failed 618→0, proved 431→0, score_neg 94→0,
-score_zero 2→0. The literal wording does not survive. All five are `settle_credit`'s own
-bookkeeping — `self.peers` is written **only** in `Unit.credit`, which is called **only** from
+**The prior names fourteen figures, and they are a specific fourteen.** They are `_ASK_KEYS`
+(`tests/test_c_channels.py:2976`), the set the digit-for-digit null at `:3044` is asserted over:
+true_ref, conv_ref, true_lost, conv_lost, repairable, unrepairable, questions, uptakes, net,
+suspended, internal, corroborated, rebutted, silence. **None of the fourteen moves.** The failure
+condition does not fire. Held.
+
+What does move in K1 is five figures — pending 102→1151, failed 618→0, proved 431→0, score_neg
+94→0, score_zero 2→0 — and **not one of them is in the fourteen**. All five are `settle_credit`'s
+own bookkeeping: `self.peers` is written **only** in `Unit.credit`, which is called **only** from
 `settle_credit`, so a figure computed by iterating `peers` cannot survive the function that fills
-it. Every figure that would show something *acting on* the credit is unchanged. The substantive
-claim — the untargeted control's choices do not consult `peers` — holds exactly, and K4 moves
-`occ_pref` 53→0 as predicted. Reported both ways rather than the flattering half.
+it. They appear here only because the audit's own `figures()` reduces the whole 43-key tally
+rather than the gate's fourteen; that is instrument granularity, not a moved control.
+
+An earlier draft of this log graded the prior "refuted literally" on those five. That was wrong,
+and wrong in the shape this audit exists to catch — an agreement asserted against a set nobody
+checked membership in, here in the refuting direction. The substantive claim stands as it did:
+the untargeted control's choices do not consult `peers`, and K4 moves `occ_pref` 53→0 exactly as
+predicted.
 
 ### `P-A6` — *"the audit finds something."* — **HELD**
 
@@ -267,10 +289,17 @@ The table is the whole gate:
 > **THE FIRST CLAUSE HOLDS: 45 corroborations at six units against 0 at four under the cyclic
 > scheme, which is what the whole task was built to produce.**
 
-**Every figure in that table is reproduced by the audit's baseline pass** — C3 (96, 66, —, 66),
-C4 (88, 80, 4, 76), C5 (160, 144, 45, 99), C6 (160, 144, 0, 144). The number 45 is right, and so
-is the finding it supports (`P-F2`: corroboration goes 0 → 4 → 45 while true laws held goes
-0 → 8 → 0).
+**Four of the table's six columns are reproduced by the audit's baseline pass**, each arm against
+its own row — raised / susp / CORROB / window: C3 (96, 66, **0**, 66), C4 (88, 80, **4**, 76),
+C5 (160, 144, **45**, 99), C6 (160, 144, **0**, 144), read from `raised`, `disp_suspended`,
+`disp_corroborated` and `disp_internal`. **The other two columns the audit did not compute.**
+`witnesses` is a property of the aperture layout, and `true lost` comes from `_witness_arm`'s own
+`true_defeats`/`true_held` (`tests/test_c_channels.py:2231–2236`), neither of which is among the
+eleven keys `figures()` returns for `_play_challenge` (`runs/c_audit/audit.py:137–144`) — so
+64/64, 56/64 and 96/96 stand on the gate's own assertions and are not re-derived here. The
+number 45 is right, and the finding it supports (`P-F2`: corroboration goes 0 → 4 → 45 while
+true laws held goes 0 → 8 → 0) is right on its corroboration half and untouched by this audit on
+its true-laws half.
 
 What is wrong is what the series says 45 *is*. The lifecycle comment in `src/c_unit.py:1521`
 describes the external arm as:
@@ -283,8 +312,10 @@ and `Unit.corroborate`'s own docstring opens:
 > THE OTHER HALF OF THE CALL, exactly as `answer` is the other half of `ask`.
 
 **In no published C-series sweep was a call for corroboration ever answered.** 66 calls at C3,
-80 at C4, 144 at C5, 144 at C6, and `Unit.corroborate` — their only reader anywhere in `src/` or
-in either harness — returned an empty list every one of the 1920–2880 times it was invoked. The
+80 at C4 and 144 at C5 (the gates' own asserted figures — `board.corroboration_calls()` is not in
+the audit's figure set and was not re-derived), and `Unit.corroborate` — their only reader
+anywhere in `src/` or in either harness — returned an empty list every one of the 1920–2880 times
+it was invoked. That last number *is* the audit's, and it is the one the finding rests on. The
 units the tally counts as corroborators had published their counterexamples in phase (c), before
 the call existed, and would have published them identically had no call ever been minted.
 
@@ -311,8 +342,10 @@ One sentence is contradicted outright. `test_under_bounded_attention_the_discrim
 > arrives to repair the record. **The apparatus is no longer dead code.** It is a channel with
 > nothing coming down it.
 
-The first half is right and the audit reproduces it (C3: 96 raised, 66 suspended, 66 calls). The
-bolded claim is false: the apparatus **is** dead code, and it stayed dead when the community grew
+The first half is right: the audit reproduces C3's 96 raised and 66 suspended, and the 66 calls
+are the gate's own assertion (`tests/test_c_channels.py:2199`), which the audit does not compute
+either way. The bolded claim is false: the apparatus **is** dead code, and it stayed dead when
+the community grew
 to six units and corroboration started "firing". The gate attributes the silence to the cyclic
 scheme's two-disputant ceiling, which is a correct explanation of why *eliminations* are zero
 there and not an explanation of why *the method* is zero everywhere.
@@ -414,6 +447,14 @@ checked. `test_under_bounded_attention_...`'s "**159 questions go out**" is stal
 the audit counts 248 inquiry questions on that arm (C3, `dispose asked`). Test-side, in scope by
 §9, not repaired here.
 
+**The drift reached this audit's own spec, which is the clearest evidence of how far it runs.**
+`P-A4` as pre-registered reads *"the published repair figures (true-law refutations 640 → 349,
+converse 321 → 20)"*. The gate it cites asserts **640 → 220** and **321 → 21**; 349 and 20 are
+its window-5 column. The prior was written against numbers the tree had already moved past — the
+same drift, from the same ruling, propagating into a document written to catch exactly this. It
+changes nothing about `P-A4`'s verdict, which turns on whether ablating `answer` moves K1 at all,
+and it is recorded rather than corrected: **the priors are pre-registered and stand as written.**
+
 ## Unchecked liveness claims
 
 The scan the spec asked for, run over both files. D-1's lesson is that a docstring asserting a
@@ -442,11 +483,22 @@ where that shape is present.
 |---|---|
 | **`test_corroboration_fires_once_a_domain_has_three_witnesses` (`:2243`)** | the entire corroboration lifecycle — a call published, the community answering it. Asserts only `tally["corroborated"]`, which `dispose_challenges` computes from challenge marks. **No clause anywhere requires `Unit.corroborate` to have minted, and it never does.** The strongest instance in either file. |
 | `test_on_the_induce_arm_corroboration_buys_churn` (`:2323`) | the same, on the induce arm |
-| `test_the_silence_window_at_three_five_and_eight` (`:2917`) | **no liveness clause of any kind**, over six arms and 20+ pinned figures. Its `mute[0] == mute[1] == mute[2]` control is an equality between three arms, which would hold just as well if all three were dead. |
 | `test_typification_is_still_exactly_inert_with_speakers_to_sort` (`variance:123`) | *"Preferences are earned (1, 3 and 5 of them) and never once disagree"* — `occ_bite == 0` is checked; `preferences > 0` is not, so an inertness verdict rests on an unchecked non-zero. Its whole narrated table is also stale (§6 above). |
 | `test_the_binding_constraint_is_the_question_not_the_field` (`variance:163`) | asserts a pair of zeros as the baseline a future claim will be read against, with no clause that anything ran. **A fully mute arm passes it.** |
 | `test_a_lie_enters_by_being_asked_about_not_by_being_told` (`variance:100`) | `> 10` is a liveness check of a sort; the "of 474 uptakes" denominator is narrated, unasserted, and wrong |
 | `test_the_corroborating_bar_is_the_author_s_to_set` (`:1359`) | narrates a sweep figure ("0 corroborations of 144 doubts") the test itself does not run |
+
+**Named separately, because it has no explicit clause and does not need one.**
+`test_the_silence_window_at_three_five_and_eight` (`:2917`) carries no named liveness assertion,
+and its `mute[0] == mute[1] == mute[2]` control is a three-way equality that three dead arms
+would satisfy. But it goes on to pin about fourteen concrete non-zero figures — `internal ==
+[64, 36, 20]`, `rebutted == [0, 25, 44]`, `corroborated == [45, 45, 45]`, `net == [−41, −106,
+−185]` and their six-unit twins — and every one of those is produced by the channels under test
+(`ask`, `adopt`, `publish`, `challenge`, `dispose_challenges`), all of which this audit finds
+live and consequential. A dead channel fails those assertions. That is real de-facto protection,
+unlike the corroboration gate, whose pinned tally is computed by a *different* channel from the
+one its prose credits — which is exactly why that gate's zero went unnoticed and this one's
+figures could not. **Task 6 should give this gate a named clause for legibility, not a repair.**
 
 ## What is deferred to `src/`
 
@@ -464,8 +516,10 @@ method has no reachable state left**. Whether corroboration should be a distinct
 whether the phase order should let a call be answered before the same evidence goes out
 unprompted, is a question about what the C-series is modelling.
 
-*Taints:* nothing numerically. Every corroboration figure the C-series publishes is computed by
-`dispose_challenges` from challenge marks and is reproduced exactly. What it taints is the
+*Taints:* nothing numerically. Every published **elimination-by-corroboration** count is computed
+by `dispose_challenges` from challenge marks, and the audit reproduces each one (C3 0, C4 4,
+C5 45, C6 0, C7 24, C8 0). The published **call** counts are outside the audit's figure set and
+were neither re-derived nor disturbed. What it taints is the
 **reading** of those figures as a solicited inquiry — §1 above — and the claim that the external
 apparatus "is no longer dead code."
 
