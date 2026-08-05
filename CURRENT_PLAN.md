@@ -196,6 +196,22 @@ commitments would have to be given up. Distinguish *the instrument is unsound* f
 question is unanswerable with this instrument* from *the question is not worth answering* —
 they have different remedies and only the first is a bug.
 
+**WRITTEN 2026-08-05, AWAITING HIS RULING:**
+[the tenability assessment](docs/superpowers/specs/2026-08-05-the-tenability-assessment.md).
+Verdict: **not untenable — but stage 4 was skipped, and that is why the measurement outran
+the thing measured.** Stage 4 (`§11`, three parts, *authored by him 2026-07-30*) is
+unbuilt; its §11.5 said mortality belongs after it, the thermodynamics diagnosis the next
+day ruled the stake first, D-1 vindicated *both* — the stake bit (`P-D1`) and every channel
+prior came back not-reached (`P-D4`), exactly as §11.5 predicted. Five separate
+measurements across four arcs all land on one property of one method: **a question names
+its whole atom and is addressed to nobody** (`Unit.ask` `src/c_unit.py:1297`,
+`MarkBoard.answer_to` `src/c_marks.py:309`) — which is what §11.2(a)'s slot-question was
+designed to remove. Of the three untenability claims: *instrument unsound* NOT established
+(no figure falsified; residue named) · *unanswerable* ESTABLISHED for the West/magnitude arm
+only, and it is already closed · *not worth answering* REFUTED by the record. Four
+recommendations in its §8, three of them cheap prose disciplines that convert the audit
+from an arc into a write-time obligation.
+
 ▶ **THEN, if the path holds: THE `c_unit.py` CHANNEL SITTING — D-A1, D-A2 AND `whom_to_ask` ARE
 ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**
 
