@@ -47,7 +47,12 @@ _C3 = dict(channel=True, stagger=2, seed_laws=True, wrong_laws=True,
 
 ARMS = [
     Arm("P1", _play, SEEDS, ROUNDS, dict(channel=True, stagger=2)),
-    Arm("P2", _play, SEEDS, 40, dict(channel=True, stagger=1)),
+    # SEEDS[:8], not the full 14-seed SEEDS: the published call site for this
+    # arm (tests/test_c_channels.py:698,
+    # test_asking_and_answering_beats_being_mute_at_equal_run_length) uses
+    # SEEDS[:8]. The committed script had drifted to the full SEEDS list;
+    # fixed here so P2's ablation replays the arm that was actually published.
+    Arm("P2", _play, SEEDS[:8], 40, dict(channel=True, stagger=1)),
     Arm("C1", _play_challenge, C_SEEDS, C_ROUNDS, dict(channel=True)),
     Arm("C2", _play_challenge, C_SEEDS, C_ROUNDS,
         dict(channel=True, wrong_laws=True)),
@@ -116,11 +121,71 @@ def count_pass(arms, out=sys.stdout):
     return tallies
 
 
+def figures(arm, result) -> Dict[str, int]:
+    """The arm's OWN numbers, reduced to a comparable dict of ints.
+
+    Nothing here is computed by the audit: every value is one the harness
+    already returns, or a count of something it returns.
+    """
+    if arm.harness is _play:
+        units, _board, answers, uptakes = result
+        return dict(answers=answers, uptakes=uptakes,
+                    hits=sum(u.ledger.hits for u in units),
+                    misses=sum(u.ledger.misses for u in units),
+                    abstentions=sum(u.ledger.abstentions for u in units),
+                    laws=sum(len(u.laws) for u in units))
+    if arm.harness is _play_challenge:
+        _spec, units, board, raised, events, tally = result
+        out = {f"disp_{k}": v for k, v in tally.items()}
+        out.update(raised=raised, events=len(events),
+                   marks=len(board.all_marks()),
+                   laws=sum(len(u.laws) for u in units),
+                   suspended=sum(len(u.suspended) for u in units))
+        return out
+    # _play_ask_and_challenge: the tally dict, minus the non-scalar entries.
+    skip = {"consult", "prefs", "could", "voices", "voices_by_rel", "units"}
+    return {k: v for k, v in result.items() if k not in skip}
+
+
+def ablate_pass(arms, tallies, out=sys.stdout):
+    """For each channel that FIRED in an arm, replay the arm without it."""
+    for arm in arms:
+        tally = tallies[arm.name]
+        base = {}
+        for seed in arm.seeds:
+            for k, v in figures(arm, arm.play(seed)).items():
+                base[k] = base.get(k, 0) + v
+        firing = [c for c in CHANNELS if tally.effects[c]]
+        print(f"\n{arm.name}  fired: {firing}", file=out)
+        for channel in firing:
+            got = {}
+            with ablating(), muted(channel):
+                for seed in arm.seeds:
+                    for k, v in figures(arm, arm.play(seed)).items():
+                        got[k] = got.get(k, 0) + v
+            moved = {k: (base[k], got[k]) for k in base if base[k] != got.get(k)}
+            if not moved:
+                print(f"   -{channel:<18} INERT: not one figure moved",
+                      file=out)
+            else:
+                shown = sorted(moved.items(),
+                               key=lambda kv: -abs(kv[1][0] - kv[1][1]))[:8]
+                print(f"   -{channel:<18} moved {len(moved)}/{len(base)}: "
+                      + ", ".join(f"{k} {a}->{b}" for k, (a, b) in shown),
+                      file=out)
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--pass", dest="which", choices=["count", "ablate"],
                    default="count")
     p.add_argument("--arms", nargs="*", default=None)
+    p.add_argument("--append", action="store_true",
+                   help="append to ABLATION.txt instead of overwriting it "
+                        "(the full pass exceeds one run; groups append "
+                        "after the first). Never touches CALLS.txt, the "
+                        "committed Task 2 record: the tallies this pass "
+                        "needs are recomputed to a scratch file instead.")
     args = p.parse_args()
     arms = [BY_NAME[n] for n in args.arms] if args.arms else ARMS
     if args.which == "count":
@@ -128,6 +193,15 @@ def main():
         with path.open("w") as fh:
             count_pass(arms, out=fh)
         count_pass(arms)
+        print(f"\nwritten: {path}")
+    else:
+        scratch = OUT / "ABLATION_CALLS_scratch.txt"
+        with scratch.open("w") as fh:
+            tallies = count_pass(arms, out=fh)
+        path = OUT / "ABLATION.txt"
+        with path.open("a" if args.append else "w") as fh:
+            ablate_pass(arms, tallies, out=fh)
+        print(path.read_text())
         print(f"\nwritten: {path}")
 
 
