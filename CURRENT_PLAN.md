@@ -26,10 +26,16 @@ run `challenge` before `corroborate` in the same round and the two share the onc
 preempted the same way by `publish` through `(FACT, head)`. The published 45 is nevertheless
 **correct**, because it never came from that method — `dispose_challenges` computes it by
 counting distinct foreign authors of *challenge* marks, which is what its own docstring at
-`c_unit.py:1764` says it does. **The audit's baseline pass re-derived every published figure it
-touched** — C1's `(60, 6, 0, 46, 4)`, C5's 45, K1's −185/1258/1151, K2's −433/455 — **so no
-published C-series number is falsified by a channel defect. Three attributions are wrong**, and
-that distinction is the whole of what this arc buys.
+`c_unit.py:1764` says it does. **No published C-series number is falsified by a channel defect.
+Three attributions are wrong**, and that distinction is the whole of what this arc buys. The
+baseline pass re-derived every figure it *computes* — C1's `(60, 6, 0, 46, 4)`, C5's 45, K1's
+−185/1258/1151, K2's −433/455 — but **re-derivation is not what carries the universal**, since
+three figure families sit outside the audit's figure set (`corroboration_calls()`,
+`true_defeats`/`true_held`, `witnesses`). What carries it is that **a dead channel is a pure
+no-op**: `Unit.corroborate` writes no state of its own, `_mint_challenge` returns `None` before
+touching the board or `_published` whenever the key is spent, and `attended` is incremented per
+*observation*, never per channel act — so a method that mints nothing cannot have moved any
+figure, including the cost readings, computed by the audit or not.
 
 **The second finding is D-1's, reproduced at scale: `answer` is live and inert.** It mints 668
 marks in K1 and moves **not one of that arm's 43 figures**, and the same in **11 of the 13
@@ -79,12 +85,20 @@ genuinely load-bearing (uptakes 406→0 when muted).
 eliminated once two distinct foreign records have independently published a counterexample to
 it"* — what `dispose_challenges` implements — and does **not** survive read as *soliciting and
 receiving* corroboration: 66, 80 and 144 calls for corroboration were published across C3/C4/C5
-and **in no published C-series sweep was one ever answered**. One sentence is contradicted
-outright — `test_under_bounded_attention…`'s "**the apparatus is no longer dead code**" is false;
-it was dead at four units and stayed dead at six while corroboration "started firing". The liar
-findings keep their numbers and lose their causal sentence: what blocks a fabricated atom is at
-the **asker's** end (`answer_to` matching on content), not `Unit.answer`'s filtering, and there
-*is* a move by which a unit volunteers something — `publish`, 4523 marks a run in L1. The
+and **in no published C-series sweep was one ever answered**. One sentence is **half-right, and
+its attribution is wrong** — `test_under_bounded_attention…`'s "the apparatus is no longer dead
+code" is TRUE on the referent the gate names two sentences earlier ("the external apparatus ran
+zero times: 0 suspended, 0 calls published"), because the raising half genuinely runs and the
+audit reproduces 66 suspended and 66 calls; **its answering half is dead, which the gate's very
+next sentence already says** ("it is a channel with nothing coming down it"). What is wrong is
+where the gate lays the silence: on the cyclic scheme's two-disputant ceiling, when the method
+mints zero at **every** community size the C-series ever ran. The liar findings keep their
+numbers, and **their descriptions are right while the inference drawn from them is wrong**: that
+`Unit.answer` answers open questions from its own facts is an accurate account of the method, and
+that there is no move *in that channel* by which a unit volunteers something is true of that
+channel read alone — but neither is what blocks a fabricated atom, which is stopped at the
+**asker's** end (`answer_to` matching on content), and the **assert** channel beside it volunteers
+everything unprompted (`publish`, 4523 marks a run in L1). The
 ask-channel claim (31.7 questions out, 29.3 answered, 29.0 taken up) survives outright, numbers
 and attribution both.
 
@@ -104,8 +118,20 @@ cross-arm equality — **not one narrated count is checked**. All five re-measur
 spec**, whose `P-A4` quotes 640 → 349 / 321 → 20 against the gate's 640 → 220 / 321 → 21. That
 is recorded, not corrected: the priors are pre-registered and stand as written.
 
-**The discipline that closes the arc.** All three harnesses are now `@audited()`, so a channel
-that mints nothing fails the arm instead of printing a null. There are **exactly three
+**The discipline that closes the arc, and the two things it cannot see.** All three harnesses are
+now `@audited()`, so a channel that mints nothing fails the arm instead of printing a null. **The
+spec's §2 names three classes of deadness and this catches one**, which is worth writing down
+next to the claim rather than after it: it **cannot catch a channel that is never CALLED**
+(`silent()` requires `calls > 0`) — D-1's own defect (4), and `whom_to_ask` is the standing
+candidate — and it **cannot catch a LIVE-BUT-INERT channel**, which is D-A2, this arc's own
+second finding, still standing in the tree and passing the new guard forever on 668 mints that
+move nothing. Inertness needs the 45-minute ablation pass, which cannot live in a suite. The
+guard is a floor, not a ceiling. **One deviation from the spec, recorded not corrected:** §6 asks
+for the assertion at each measurement *gate*; the implementation puts it on the *harness*, which
+is broader (it covers gates written after this arc), puts the failure message where the channels
+run, and keeps the declared silences at three — one per harness — which is what makes the
+`corroborate` allowlist small enough for one tripwire to retire. The spec is pre-registered and
+was left as written. There are **exactly three
 declared silences**: `corroborate` on both challenge harnesses (each naming D-A1) and `adopt` at
 the one full-attention `_play` call site whose gate already asserted `uptakes == 0` and gave the
 reason. **The `corroborate` allowlist retires mechanically** —
@@ -119,13 +145,20 @@ method instead. *A guard nobody has watched fail is a guard nobody knows the sha
 now, in two arcs.
 
 **State at close:** branch `c-audit-2026-08-04`, the nine C-series files **217 passed** (94 in
-`test_c_channels.py` at 13m53s, 123 in the other eight). Full suite, run in five chunks under
-the ten-minute cap: **4553 passed, 217 skipped, 1 xfailed, 0 failed**, and **45 errors, every
-one a Playwright browser-launch at fixture setup** (`Executable doesn't exist … chrome-headless-shell`)
-in the ten `*_e2e.py` files — an absent browser in this environment, not a defect, and not
-touched by this arc. Log of record `runs/RUN_C_AUDIT_LOG.md`, artefacts
-`runs/c_audit/{CALLS,ABLATION}.txt`, instrument `tests/c_channel_probe.py` with its own 13 tests
-(it was tested before it was trusted with anything published).
+`test_c_channels.py` at 13m53s, 123 in the other eight). Full suite, run in chunks under
+the ten-minute cap: **4565 passed, 217 skipped, 1 xfailed, 0 failed**, and **45 environmental
+errors** (an earlier count of 4553 omitted `tests/unit/`, 12 tests, all passing). Every one of
+the 45 is a Playwright browser-launch at fixture setup
+(`BrowserType.launch: Executable doesn't exist`) in the ten `*_e2e.py` files, and their
+branch-independence is certain rather than inferred: **`~/Library/Caches/ms-playwright` does not
+exist**, so no browser was ever installed on this machine, and this branch touches no `*_e2e.py`
+file, no `conftest.py`, no config, and nothing under `src/`. Log of record `runs/RUN_C_AUDIT_LOG.md`, artefacts
+`runs/c_audit/{CALLS,ABLATION}.txt`, instrument `tests/c_channel_probe.py` with its own 14 tests
+(it was tested before it was trusted with anything published). The fourteenth is the meta-test
+that keeps the guard's coverage a rule rather than three hand-placed decorators —
+`test_every_measurement_harness_carries_the_guard` asserts that **every** module-level `_play*`
+function in `test_c_channels.py` is `@audited()`, and was watched to go red against a
+deliberately undecorated harness before it was trusted.
 
 ▶▶▶ **NEXT SESSION (ruled 2026-08-05): THE `c_unit.py` CHANNEL SITTING FIRST — D-A1, D-A2 AND
 `whom_to_ask` ARE ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**

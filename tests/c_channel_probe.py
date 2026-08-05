@@ -20,6 +20,14 @@ since `publish` and `corroborate` mint onto the board as a side effect.
 NAMED LIMIT. `dispose_challenges` reports the five outcome lists as its effect,
 which is D-1's definition; the questions an inquiry publishes are counted apart
 as `extra["dispose_asked"]` so a disposal that only asks does not read silent.
+
+TWO MORE, ABOUT `audited()` ITSELF. Its guard is a bare `assert`, so `python -O`
+strips it and every arm reports as it did before Task 6 — the discipline is only
+standing under an unoptimized interpreter. And `functools.wraps` leaves
+`__wrapped__` on every decorated harness, which is a DELIBERATE bypass rather
+than an oversight: `test_the_corroborate_declarations_still_have_something_to_
+declare` uses it to re-decorate a harness with its allowlist removed, which is
+the only way to watch a channel an allowlist is covering.
 """
 
 from __future__ import annotations

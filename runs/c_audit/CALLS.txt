@@ -1,3 +1,10 @@
+# THE COUNT PASS AS IT WAS TAKEN. Not regenerable from the committed driver:
+# P2's block below was run over the full 14-seed SEEDS, and `audit.py` now
+# declares that arm at SEEDS[:8] (the width its published call site actually
+# uses), so `--pass count` re-run today prints eight-seed P2 figures. The
+# figures here are left exactly as measured - this file is the record of a
+# run, not an output. RUN_C_AUDIT_LOG.md's "Seed caveat on P2" says the same.
+# `adopt`'s zero, which is the only P2 finding, holds at both widths.
 
 P1  _play  14 seeds x 60 rounds  {'channel': True, 'stagger': 2}
    ask                  calls=   1680  mints=    444  

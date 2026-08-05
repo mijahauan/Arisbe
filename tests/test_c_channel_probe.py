@@ -175,6 +175,36 @@ def test_the_corroborate_declarations_still_have_something_to_declare():
         bare(20260728, 20, channel=True, stagger=1, seed_laws=True)
 
 
+def test_every_measurement_harness_carries_the_guard():
+    """WHAT PROTECTS THE GUARD'S OWN COVERAGE, which is otherwise three
+    hand-placed decorators and nothing else.
+
+    `@audited()` sits on `_play`, `_play_challenge` and
+    `_play_ask_and_challenge` because somebody put it there. A fourth harness
+    written next month, or one of these three refactored under a new name,
+    silently gets no guard — and a discipline is worth exactly its coverage.
+    So the rule is stated AS A RULE rather than as three decorators: every
+    module-level `_play*` function in `test_c_channels.py` is audited.
+
+    `functools.wraps` leaves `__wrapped__` on a decorated function and on
+    nothing else, which is what makes the rule checkable from outside. A
+    harness that genuinely must be exempt should say so where it is defined,
+    not by being quietly missed here."""
+    import test_c_channels
+
+    harnesses = sorted(name for name in vars(test_c_channels)
+                       if name.startswith("_play")
+                       and callable(getattr(test_c_channels, name)))
+    assert harnesses, "no _play* harness found — has the file been renamed?"
+    unguarded = [n for n in harnesses
+                 if not hasattr(getattr(test_c_channels, n), "__wrapped__")]
+    assert not unguarded, (
+        f"measurement harness(es) {unguarded} carry no @audited() guard, so an "
+        f"arm they play could mint nothing and still report a full set of "
+        f"figures. Decorate them — or, if a silence is predicted there, "
+        f"decorate with expect_silent=(...) so the prediction is written down.")
+
+
 def test_the_audited_decorator_stands_down_while_ablating():
     """An ablation legitimately silences downstream channels, so the standing
     assertion is suspended for the duration rather than worked around."""

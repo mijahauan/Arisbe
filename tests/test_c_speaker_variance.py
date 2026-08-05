@@ -148,7 +148,9 @@ def test_typification_is_still_exactly_inert_with_speakers_to_sort():
 
     `occ_bite` — the count of uptake decisions where the preference named
     somebody OTHER than the peer already answering — is **0 in all three**.
-    Preferences are earned (0, 2 and 8 of them) and never once disagree.
+    Preferences are earned only where a liar gives the ledger something to
+    separate — none at all in the no-liar arm, then 2 and 8 — and not one of
+    them ever disagrees with the peer already answering.
 
     So Task 6's stated reason was incomplete rather than wrong. Speaker-variance
     does not rescue typification, because the blocker is not "nothing to sort"

@@ -215,9 +215,13 @@ def main():
     arms = [BY_NAME[n] for n in args.arms] if args.arms else ARMS
     if args.which == "count":
         path = OUT / "CALLS.txt"
+        # WRITTEN ONCE, THEN ECHOED. An earlier version called `count_pass`
+        # a second time to put the same report on stdout, which replayed all
+        # 23 arms and doubled a ~15-minute pass for a copy of a file that was
+        # already on disk.
         with path.open("w") as fh:
             count_pass(arms, out=fh)
-        count_pass(arms)
+        print(path.read_text())
         print(f"\nwritten: {path}")
     else:
         scratch = OUT / "ABLATION_CALLS_scratch.txt"
