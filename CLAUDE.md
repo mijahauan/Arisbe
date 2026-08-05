@@ -244,6 +244,28 @@ Before starting any implementation task, check whether a solution already exists
 python tools/context_awareness_system.py --check "task description"
 ```
 
+## Standing rules for the experimental arms (C/D/E series)
+
+Five, and they bind any run, any run log, and any sentence written about either. The
+canonical statement is [FROM_THERMODYNAMICS_TO_SEMIOSIS](docs/FROM_THERMODYNAMICS_TO_SEMIOSIS.md)
+§6 (world) and §6a (record); the reasoning for the last three is in the
+[tenability assessment](docs/superpowers/specs/2026-08-05-the-tenability-assessment.md) §8.
+
+1. **Install the problem, never the solution.** Posit the predicament; never posit the response.
+2. **Ablate the putative sign.** If performance holds without it, nothing stood for anything.
+3. **Attribution requires ablation.** No sentence credits a mechanism for a figure unless a
+   muted run moved that figure. *That the mechanism ran is not enough* — a live channel can
+   mint hundreds of marks and move nothing.
+4. **A narrated number is generated or asserted.** A figure that lives only in prose is a
+   figure nobody is keeping.
+5. **An arm declares the channels it plays** (`tests/c_channel_probe.py`'s `declares()`), so a
+   mechanism that is never *called* cannot read clean.
+
+**Label every pre-registered prior by question kind** — **existence** (answerable in a sealed
+world), **attribution** (answerable with an ablation), **magnitude** (not answerable here:
+every parameter is calibrated from the world itself). Six West-series runs asked a magnitude
+question of a sealed world before anyone said so.
+
 ## Documentation shorthand (keep it legible)
 
 Arisbe's docs use terse cross-references. **The decoder is

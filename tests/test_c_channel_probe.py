@@ -8,10 +8,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+import inspect  # noqa: E402
 import pytest  # noqa: E402
 
 from c_channel_probe import (_effect, ablating, audited, channel_calls,  # noqa: E402
-                             muted)
+                             declares, muted)
 from c_field import apertures_for, default_spec  # noqa: E402
 from c_marks import MarkBoard  # noqa: E402
 from c_unit import Disposition, Unit  # noqa: E402
@@ -107,6 +108,7 @@ def test_the_audited_decorator_refuses_a_silent_channel():
 
     @audited()
     def arm():
+        declares("publish")
         u0, _u1 = _two_units()
         return u0.publish(board, 0)
 
@@ -119,10 +121,60 @@ def test_the_audited_decorator_accepts_a_declared_silence():
 
     @audited()
     def arm():
+        declares("publish")
         u0, _u1 = _two_units()
         return u0.publish(board, 0)
 
     assert arm(expect_silent=("publish",)) == []
+
+
+def test_a_declared_channel_that_never_ran_fails_the_arm():
+    """R3's HALF OF THE GUARD, AND THE BLIND SPOT IT CLOSES.
+
+    `ChannelTally.silent()` requires `calls[n] > 0`, so before this a channel
+    nobody invoked read perfectly clean — which is D-1's own defect (4):
+    `settle_credit` was never called, `Unit.peers` stayed empty in every arm,
+    and `P-D4` had no instrument at all while the sweep printed a full table.
+    An arm that says it plays a channel and does not now fails."""
+    @audited()
+    def arm():
+        declares("publish", "settle_credit")
+        u0, _u1 = _two_units()
+        u0._record({("p1", A1)}, 0)          # so publish itself is not the finding
+        return u0.publish(MarkBoard(), 0)
+
+    with pytest.raises(AssertionError, match="settle_credit"):
+        arm()
+
+
+def test_an_undeclared_channel_that_ran_fails_the_arm():
+    """THE SAME CHECK FROM THE OTHER SIDE, which is what stops a declaration
+    being narrowed until it covers nothing. Declaring less than you play would
+    otherwise buy silence from both halves of the guard at once."""
+    board = MarkBoard()
+
+    @audited()
+    def arm():
+        declares()
+        u0, _u1 = _two_units()
+        u0._record({("p1", A1)}, 0)          # so publish itself is not the finding
+        return u0.publish(board, 0)
+
+    with pytest.raises(AssertionError, match="undeclared"):
+        arm()
+
+
+def test_an_arm_that_declares_nothing_at_all_fails():
+    """AND THE RULE THAT MAKES IT A RULE. An empty `declares()` is a real
+    declaration — a mute control plays nothing and says so. Saying nothing at
+    all is what fails, because otherwise the discipline is opt-in and the next
+    harness inherits no coverage by simply not mentioning it."""
+    @audited()
+    def arm():
+        return None
+
+    with pytest.raises(AssertionError, match="declared no channels"):
+        arm()
 
 
 def test_the_guard_bites_on_a_real_harness(monkeypatch):
@@ -203,6 +255,20 @@ def test_every_measurement_harness_carries_the_guard():
         f"arm they play could mint nothing and still report a full set of "
         f"figures. Decorate them — or, if a silence is predicted there, "
         f"decorate with expect_silent=(...) so the prediction is written down.")
+
+    # R3'S HALF OF THE SAME RULE, checked statically for the same reason. The
+    # runtime assertion only fires on a harness somebody actually runs; a
+    # harness added and not yet exercised would carry the decorator and no
+    # declaration, and nothing would say so until the day it mattered.
+    silent_about_channels = [
+        n for n in harnesses
+        if "declares(" not in inspect.getsource(
+            getattr(test_c_channels, n).__wrapped__)]
+    assert not silent_about_channels, (
+        f"measurement harness(es) {silent_about_channels} never call "
+        f"declares(), so a channel they are supposed to play could go "
+        f"uncalled and read clean — D-1's own defect (4). Declare what each "
+        f"configuration plays inside the body, `declares()` if it plays none.")
 
 
 def test_the_audited_decorator_stands_down_while_ablating():

@@ -55,20 +55,49 @@ individual*. So these experiments **model** a federation of kytē (a good-regula
 institution); they do not *constitute* the commens. E1's "coordinator" is a switchboard, not a
 society. That boundary is a permanent honesty flag on every result here.
 
-## 2 · The ladder
+## 2 · The ladder — **RUN OUT, AND THE ARM IS RETIRED (2026-08-05)**
+
+> **The whole ladder below was climbed, and the series closed at E3c on 2026-07-27.** It is
+> kept as written because what each rung predicted is part of the record; the dispositions are
+> in `runs/WEST_E1_LOG.md` … `runs/WEST_E3C_LOG.md`.
+>
+> **The arm is now retired from the live list**, on the
+> [tenability assessment](superpowers/specs/2026-08-05-the-tenability-assessment.md) §8(d),
+> ruled by the author 2026-08-05. **The frontier is not retired — the *experiments* are.**
+> Examination VIII (2026-08-01) priced the entry at nine conditions and found the instrument
+> fails condition (3) structurally: on a substrate where every unit reaches every other at
+> uniform cost, the borrowed derivation gives **β = 1 exactly**, mortality and selection
+> included. §8 records that ninth condition and what would lift it.
+>
+> **The last hope was met and did not save it.** The C-series stage-4 spec §11.5 held that
+> *"the C-series cannot answer the West question until units can die."* D-1 gave them death
+> (`runs/RUN_D1_LOG.md`, `P-D1` held at every seed). The mapping closed anyway, for the
+> independent reason above — which is the cleanest evidence that mortality was never the
+> binding constraint.
+>
+> **The standing rule this arm bought, at the cost of six runs:** a sealed world whose every
+> parameter is calibrated from itself can be asked *existence* questions and *attribution*
+> questions, and cannot be asked *magnitude* questions at all
+> ([FROM_THERMODYNAMICS_TO_SEMIOSIS](FROM_THERMODYNAMICS_TO_SEMIOSIS.md) §6a). Further West
+> work goes through the spine's queued conjectures, not through another rung here.
 
 - **E1 — paired comparison (DONE, this program's first datum).** MONO (one whole-vault kytos) vs a
   fixed per-folder FED (member kytē + a journal-member + a coordinator) on one generated corpus.
   Delivers the paired cost/quality/coherence comparison **and the reusable measurement harness.**
   Answers Q-B in its paired form. *Two points (N=1, N=F) cannot fit a power law — E1 is not the
   exponent.*
-- **E2 — the size sweep (NEXT).** Vary the partition granularity (N = 2, 4, 8, … member kytē) and/or
-  corpus size, and fit the scaling relation. The first point at which a West **exponent** is
-  estimable. Tests **Q-C**.
-- **E3 — endogenous partition (AFTER).** Make apportionment itself a licensed, recorded move —
-  split/merge of kytē as proposals in a meta-Agon over partitions, adjudicated by the measured
-  cost/K curves. Tests whether self-partitioning converges and whether its exponent beats the
-  monolith's at equal K1/K2 (**Q-B's second form**).
+- **E2 — the size sweep (DONE; E2b calibrated it).** Vary the partition granularity (N = 2, 4,
+  8, … member kytē) and/or corpus size, and fit the scaling relation. Was to be the first point
+  at which a West **exponent** is estimable. Tests **Q-C**. *What it measured instead:
+  β_mono 1.277 against β_fed 1.025, and a 25× spread attributable to the coordinator's scan
+  discipline rather than to the partition — E2's own finding, in its own words.*
+- **E3 — endogenous partition (DONE; E3b, E3c closed it).** Make apportionment itself a licensed,
+  recorded move — split/merge of kytē as proposals in a meta-Agon over partitions, adjudicated by
+  the measured cost/K curves. Tests whether self-partitioning converges and whether its exponent
+  beats the monolith's at equal K1/K2 (**Q-B's second form**). *It converged on N=3 granularity
+  across 36 starts and 19 local optima — and Examination VIII's VIII.26 records that a
+  multi-basin landscape is evidence **against** the mapping, not for it: West's minimization is
+  over smooth constraints with a closed-form unique optimum.*
 
 ## 3 · E1 — what was established
 

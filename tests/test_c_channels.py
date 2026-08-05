@@ -20,7 +20,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from c_channel_probe import audited  # noqa: E402
+from c_channel_probe import audited, declares  # noqa: E402
 from c_field import CYCLIC, PAIRS, Field, apertures_for, default_spec  # noqa: E402
 from c_marks import FACT, Mark, MarkBoard  # noqa: E402
 from c_unit import Unit  # noqa: E402
@@ -518,6 +518,7 @@ def _play(seed, rounds, *, channel, stagger):
     rate refuses the law. Seeding it is the same device
     `tests/test_c_stage_gates.py` uses to test a law's worth in isolation.
     """
+    declares(*(("adopt", "ask", "answer") if channel else ()))
     spec = default_spec(seed=seed)
     field = Field(spec)
     aps = apertures_for(spec, n_units=4)
@@ -1787,6 +1788,8 @@ def _play_challenge(seed, rounds, *, channel, stagger=1, seed_laws=False,
             u.corroborating_witnesses = witnesses
         units.append(u)
     _assert_uniform_rate(units)
+    declares("publish", *(("challenge", "corroborate", "dispose_challenges")
+                          if channel else ()))
     board = MarkBoard()
     raised = 0
     events = []                    # (unit_id, law, why), with repeats: the thrash
@@ -2576,6 +2579,12 @@ def _play_ask_and_challenge(seed, rounds, *, ask, stagger=2, n_units=4,
             u.replication_window = rep_window
         units.append(u)
     _assert_uniform_rate(units)
+    # `mute` short-circuits the round at (e), so it skips publish, challenge,
+    # corroborate, dispose AND settle_credit; it also forbids `ask`, so a mute
+    # arm plays nothing at all and says so.
+    declares(*(("adopt", "ask", "answer", "settle_credit") if ask else ()),
+             *(() if mute else ("publish", "challenge", "corroborate",
+                                "dispose_challenges")))
     board = MarkBoard()
     asked = {u.unit_id: [] for u in units}
     settled = {u.unit_id: set() for u in units}

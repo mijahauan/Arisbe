@@ -457,6 +457,59 @@ and a gate whose stated cause proved wrong while its counts stayed right. No
 claim that something stands for something else should stand here without an
 ablation showing the standing-for does work.
 
+## 6a · Three more rules, and these ones keep the *record* honest
+
+The two rules above govern how a world is built. Three more govern how what the
+world does gets written down, and they were added on 2026-08-05 after the
+[tenability assessment](superpowers/specs/2026-08-05-the-tenability-assessment.md)
+found that **every defect the C- and D-series audits turned up was a defect in a
+sentence, not in a number.** No published figure was falsified. Three
+attributions were wrong, five narrated figures had drifted, and two channels had
+been credited for work they never did.
+
+The reason that class of defect recurs is worth stating with the rules, because
+it is not carelessness alone. In a world where no act is conditioned on what is
+received, a channel's death cannot show up in any outcome — so liveness is
+unobservable from behaviour, and prose is free to assert it. The absence named
+in §5 at the level of the units reappears here at the level of the record.
+
+**Attribution requires ablation.** No sentence credits a mechanism for a figure
+unless a run with that mechanism muted moved that figure. The mechanism ran is
+not enough: `Unit.answer` mints 668 marks in one published arm and moves none of
+its 43 figures, and `settle_credit` decides 53 uptakes and changes nothing. Both
+would pass any liveness check and neither earns a sentence. This is *ablate the
+putative sign* applied to our own writing rather than to the world's.
+
+**A narrated number is generated or asserted.** Five published figures drifted
+past a ruling and survived because every clause the gates checked was an
+inequality, a zero, or a cross-arm equality — **not one narrated count was
+checked by anything.** A number that appears only in prose is a number nobody is
+keeping.
+
+**An arm declares the channels it plays.** A channel nobody invokes reads clean
+in every instrument that counts what channels mint, because it mints nothing and
+is called nothing. That is how D-1 measured a world where `settle_credit` was
+never called at all, `Unit.peers` was empty everywhere, and the prior that
+needed them had no instrument while the sweep printed a full table.
+`tests/c_channel_probe.py`'s `declares()` is the mechanical half; the
+declaration lives inside the harness because what an arm plays is a function of
+its arguments.
+
+**What none of the three catches, stated with them:** a channel that is live,
+declared, and inert. Only the ablation pass sees that, it costs about
+three-quarters of an hour, and it cannot stand in a test suite. The first rule
+is the discipline that covers what the instrument cannot.
+
+**And a labelling convention that comes with them.** Every pre-registered prior
+says which of three kinds of question it asks, because a sealed synthetic world
+can answer them only in that order of confidence: **existence** (*can this
+arise unless it is installed?* — answerable, and what these worlds are for),
+**attribution** (*which mechanism produced this figure?* — answerable only with
+an ablation), **magnitude** (*what is the exponent?* — not answerable here at
+all, because every parameter is calibrated from the world itself and the
+magnitudes are its own). Six runs of the West series asked a magnitude question
+of a sealed world before anyone said so out loud.
+
 ## 7 · What remains open
 
 The chapter records a lineage and settles nothing empirically. Four questions
