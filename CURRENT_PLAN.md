@@ -212,8 +212,34 @@ only, and it is already closed · *not worth answering* REFUTED by the record. F
 recommendations in its §8, three of them cheap prose disciplines that convert the audit
 from an arc into a write-time obligation.
 
-▶ **THEN, if the path holds: THE `c_unit.py` CHANNEL SITTING — D-A1, D-A2 AND `whom_to_ask` ARE
-ONE QUESTION, AND THE FILE SHOULD BE OPENED ONCE.**
+**RULED 2026-08-05: the author agreed to all four recommendations.** Three are **DONE**
+(`303d0b2`): rule 5 has mechanical teeth (`tests/c_channel_probe.py`'s `declares()`; `audited()`
+now catches *declared-and-never-called* and *called-and-never-declared* beside the original
+silence check — 213 C/D tests pass with every arm declaring), rules 3–4 and the question-kind
+convention are stated in
+[FROM_THERMODYNAMICS_TO_SEMIOSIS](docs/FROM_THERMODYNAMICS_TO_SEMIOSIS.md) §6a and carried in
+CLAUDE.md, and the **West arm is retired from the live list** (its ladder still read "E2 — the
+size sweep (NEXT)" after all five rungs had run and the series had closed).
+
+▶▶▶ **NEXT SESSION: BUILD THE SLOT-QUESTION.** Spec written and committed:
+[the slot-question](docs/superpowers/specs/2026-08-10-slot-questions-design.md) — stage 4 part
+(a) alone, with `P-S1`…`P-S4` pre-registered in its §4 and each labelled by question kind.
+**Nothing is built.** Three rulings from the sitting: **part (a) alone** (so §11.2's "each part
+alone reads null" claim is measured rather than inherited) · **uptake bounded at one, `typify`
+chooses** (the bound is capacity per Exam VII ruling 2; the choice is the variable already
+built — and task 3 already measured indiscriminate uptake as worse than silence) · **a
+slot-question stands open forever** (a fact's content never equals a pattern's, so
+`open_questions` never closes it — named as a change in what a question is, not left to arrive
+as a side effect). The pattern is `(body *x)`, not `(head *x)`: under `CONSEQUENT_LAG = 1` the
+opposite-parity peer holds exactly the bodies the asker missed. The falsifier is **already in
+the tree** — `test_c_speaker_variance.py` pins `occ_bite == 0`. Next step is the implementation
+plan (`writing-plans`), then the build.
+
+▶ **AFTER IT: THE REST OF THE `c_unit.py` CHANNEL SITTING — D-A1, D-A2 AND `whom_to_ask`.**
+*(Re-scoped 2026-08-05: the assessment found all three are symptoms of one property — a
+question names its whole atom and is addressed to nobody — so the slot-question comes first and
+these are read against what it does. D-A2 in particular is **untouched** by the slot build:
+`answer`'s output stays a subset of `publish`'s, because the slot changes uptake, not minting.)*
 
 The audit's result is that **the C-series' figures stand and may be built on** — no number is
 falsified, three attributions are corrected, and every arm now asserts its channels minted. So
