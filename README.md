@@ -286,6 +286,18 @@ uv sync --extra dev --extra web   # Python 3.12; the `web` extra carries FastAPI
 `uv sync` is exact — install **both** extras (`web` for the viewer/route tests, `dev` for the
 test/quality tooling) or they get pruned.
 
+**Node.js is required, not optional.** The default layout engine is
+[ELK](https://eclipse.dev/elk/), which Arisbe runs through a small Node worker
+(`src/elk_worker.js`). `node_modules/` is not tracked in git, so a fresh clone
+must fetch it:
+
+```bash
+npm install          # ~1s; fetches elkjs, the layout engine
+```
+
+Skip this and the server still starts, but **every graph fails to render** with
+`LOAD_ERROR: ELK layout failed: Cannot find module 'elkjs'`.
+
 ### Launch the web viewer (canonical UI)
 
 ```bash
@@ -362,7 +374,7 @@ print(r)   # Z3Result(YES: ...)
 
 ## 🧪 Testing
 
-**4,125 passed, 144 skipped, 0 failed** as of this writing (`uv run pytest tests/ -q`, ~23 min).
+**4,618 passed, 217 skipped, 1 xfailed, 0 failed** as of 2026-09-06 (`uv run pytest tests/ -q`, ~41 min).
 The mathematical core subset (`egi_core_dau`, `formal_transformation_rules`, `rule_interaction`,
 `subgraph_closure_validator`, `graph_isomorphism_engine`, the Beta/logical proof exercises) must
 always pass — a failing core test is a real correctness defect, never test noise.

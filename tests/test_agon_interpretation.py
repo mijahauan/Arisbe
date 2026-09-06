@@ -404,3 +404,32 @@ def test_contest_payload_carries_a_board_and_line_ids(client):
     # token → G vertex id for every line of identity (so fixed selectives can light up)
     wv = data["witness_vertex_ids"]
     assert wv and all(_vid_appears_in_svg(data["svg"], vid) for vid in wv.values())
+
+
+def test_model_picker_carries_provenance_kind_so_the_ontology_guard_can_fire(client):
+    """Every corpus row must carry its provenance ``kind``.
+
+    The picker's U3 guard (``agon.html``: ``c.kind === 'ontology'``) switches
+    materialization on for a T-box M, because a pure T-box peels *vacuously* —
+    TRUE/UNKNOWN for the wrong reason — when its rules are not materialized.
+    The guard is data-driven, so a ``kind`` of ``None`` disarms it silently
+    rather than failing. That is precisely what happened: ``_browse_facets``
+    was called with one argument instead of two, and a bare ``except``
+    swallowed the ``TypeError``, leaving all 52 rows ``None`` and every
+    ontology peeling vacuously.
+    """
+    data = client.get("/agon/models").json()["data"]
+    corpus = data["corpus"]
+    assert corpus, "the picker lists no corpus models at all"
+
+    unkinded = [row["uod_id"] for row in corpus if row.get("kind") is None]
+    assert not unkinded, (
+        f"{len(unkinded)} corpus rows carry kind=None, which disarms the U3 "
+        f"ontology guard: {unkinded[:5]}"
+    )
+
+    ontologies = {row["uod_id"] for row in corpus if row.get("kind") == "ontology"}
+    # The imported T-boxes are the rows the guard exists for.
+    assert {"sumo_upper", "foaf_core", "porphyry_tree"} <= ontologies, (
+        f"expected the imported T-boxes among kind=='ontology'; got {sorted(ontologies)}"
+    )

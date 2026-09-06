@@ -45,8 +45,13 @@ browser.
 
 ```bash
 uv sync --extra dev --extra web         # one-time setup (the web extra carries FastAPI/uvicorn)
+npm install                             # required: fetches elkjs, the layout engine
 uv run uvicorn --app-dir src web_api.main:app --reload --port 8000
 ```
+
+`npm install` is not optional. The default layout engine runs through a small
+Node worker, and `node_modules/` is not tracked in git — without it the server
+starts but no graph will draw.
 
 Then open <http://localhost:8000/> and click **"New here?"**. The in-app **primer**
 draws a handful of first graphs with the real engine (a scroll, an empty cut) and

@@ -1,0 +1,78 @@
+# The greenfield job: does a stranger following the documented instructions get
+# a working Arisbe?
+#
+# The canonical pipeline cannot answer that. It installs Node and runs
+# `npm install` as its own steps, so it stays green whether or not the docs
+# ever mention them — and for a long time they did not. A fresh clone followed
+# by the documented steps produced a server in which every graph failed with
+# `Cannot find module 'elkjs'`, and no test could see it.
+#
+# This job therefore runs ONLY what README.md / docs/install.qmd tell a human
+# to run, then renders a real graph through the HTTP API. If someone adds a
+# hidden prerequisite without documenting it, this job fails and the canonical
+# one does not. That is the whole point: it measures the path a visitor walks.
+name: Greenfield install
+
+on:
+  push:
+    branches: [ main, master, "release/**" ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  greenfield:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (a stranger's clone)
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: '.python-version'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      # --- from here down: only the documented steps, nothing else ---
+
+      - name: Documented step - uv sync
+        run: uv sync --extra dev --extra web
+
+      - name: Documented step - npm install
+        run: npm install
+
+      - name: Documented step - start the server
+        run: |
+          uv run uvicorn --app-dir src web_api.main:app --port 8000 &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:8000/ >/dev/null && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:8000/ >/dev/null
+
+      - name: A graph actually renders
+        run: |
+          set -euo pipefail
+          uid=$(curl -sf http://127.0.0.1:8000/organon/uods \
+                | python3 -c "import json,sys; d=json.load(sys.stdin)['data']; print((d['uods'] if isinstance(d,dict) else d)[0]['uod_id'])")
+          echo "rendering UoD: $uid"
+          body=$(curl -sf "http://127.0.0.1:8000/organon/uods/$uid")
+          echo "$body" | python3 - "$uid" <<'PY'
+          import json, sys
+          uid = sys.argv[1]
+          payload = json.load(sys.stdin)
+          if not payload.get("success"):
+              sys.exit(f"detail route refused for {uid}: {payload.get('error')}")
+          svg = (payload.get("data") or {}).get("svg") or ""
+          if "<svg" not in svg:
+              sys.exit(
+                  f"no SVG for {uid}. A greenfield clone reached the API but could not "
+                  f"draw — the usual cause is a missing documented prerequisite "
+                  f"(e.g. the ELK worker's node_modules)."
+              )
+          print(f"OK: {uid} rendered {len(svg)} bytes of SVG")
+          PY
+
+      - name: The mathematical core passes on a greenfield clone
+        run: uv run python tools/quality_gate_system.py

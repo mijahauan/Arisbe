@@ -5,8 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Arisbe — an environment for moving pictures of thought</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/design-system.css" />
   <style>
-    body { margin: 0; background: var(--canvas-bg, #1e1e2e); color: var(--sidebar-text, #cdd6f4);
+    /* The gateway is a document, not an app shell: it must scroll, and it uses
+       the page ground (--ctp-base), never --canvas-bg, which is the white
+       background of a drawn diagram. styles.css pins html,body to
+       height:100%;overflow:hidden for the three mode shells; undo that here or
+       every door below the fold becomes unreachable. */
+    html, body { height: auto; min-height: 100%; overflow-y: auto; }
+    body { margin: 0; background: var(--ctp-base, #1e1e2e); color: var(--ctp-text, #cdd6f4);
       font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
     .gateway { max-width: 980px; margin: 0 auto; padding: 48px 24px 64px; }
     header.hero { text-align: center; margin-bottom: 36px; }

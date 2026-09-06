@@ -453,15 +453,19 @@ async def list_models():
     corpus = []
     try:
         from web_api.routes.organon import _browse_facets
-        for entry in _get_tomos().list_uods():
+        tomos = _get_tomos()
+        for entry in tomos.list_uods():
             uid = entry.get("uod_id") or entry.get("id")
             if uid:
                 # Carry the provenance ``kind`` (cheap side-file read) so the picker
                 # can group ontologies and default materialize on for a T-box M
                 # (a pure T-box peels vacuously without its rules — the U3 trap).
+                # ``_browse_facets`` needs the corpus root; calling it with one
+                # argument raised a TypeError that a bare ``except`` swallowed,
+                # leaving every ``kind`` None and the U3 guard permanently disarmed.
                 try:
-                    kind = _browse_facets(entry).get("kind")
-                except Exception:
+                    kind = _browse_facets(entry, tomos.tomos_root).get("kind")
+                except (OSError, ValueError, KeyError):
                     kind = None
                 corpus.append({"uod_id": uid,
                                "title": entry.get("name") or entry.get("title") or uid,

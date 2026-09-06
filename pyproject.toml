@@ -17,7 +17,6 @@ classifiers = [
 dependencies = [
     "PyYAML>=6.0",
     "frozendict>=2.3.0",
-    "PySide6>=6.5.0",
     "Pillow>=10.0.0",
     "graphviz>=0.20.0",
     "shapely>=2.0.0",
@@ -40,8 +39,9 @@ dev = [
     "hypothesis>=6.100",
     # Headless-browser E2E for the Ergasterion freeform canvas
     # (tests/test_ergasterion_freeform_e2e.py). The browser binary is installed
-    # separately: `uv run playwright install chromium`. The test skips cleanly
-    # if Playwright/Chromium is absent.
+    # separately: `uv run playwright install chromium-headless-shell`. The
+    # suites skip cleanly when the browser cannot launch (tests/e2e_support.py
+    # probes by launching, not by importing the package).
     "pytest-playwright>=0.5.0",
     # FastAPI's TestClient (route tests) requires httpx; starlette leaves it optional.
     "httpx>=0.27",
@@ -53,6 +53,14 @@ dev = [
 web = [
     "fastapi>=0.100.0",
     "uvicorn[standard]>=0.30.0",
+]
+# The archived Qt GUI (archive/qt-gui-2025/) and the four orphaned Qt-era
+# scripts still in tools/ (agon.py, ergasterion.py, drawing_editor_dto_clean.py,
+# constraint_mode_system.py — superseded by the web modes, no live consumer).
+# Nothing under src/ or tests/ imports PySide6; it was a mandatory dependency
+# carrying 1.1 GB of a 1.5 GB install for code archived in May 2026.
+qt = [
+    "PySide6>=6.5.0",
 ]
 # Natural-language front-end for the NL->logic arc (src/nl_to_logic.py): the LLM
 # proposes a candidate FOL form, Arisbe parses + tests it. Optional at runtime
@@ -75,7 +83,9 @@ mcp = [
 package = false
 
 [tool.pytest.ini_options]
-pythonpath = [".", "src"]
+# "tests" carries e2e_support.py, the shared browser guard imported at module
+# scope by the end-to-end suites.
+pythonpath = [".", "src", "tests"]
 testpaths = ["tests"]
 # Never auto-collect from these directories. The "*" / "." / "_*" / "build"
 # patterns reproduce pytest's defaults (which `norecursedirs` *replaces*

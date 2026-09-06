@@ -26,6 +26,18 @@ route tests need them), and **`dev`** carries the test/quality tooling. If you o
 `uv sync` will *prune* it, so install both. You need no manual virtual-environment
 activation; prefix commands with `uv run`, or `source .venv/bin/activate` once if you prefer.
 
+**Node.js is required, not optional.** The default layout engine is
+[ELK](https://eclipse.dev/elk/), which Arisbe runs through a small Node worker
+(`src/elk_worker.js`). `node_modules/` is not tracked in git, so a fresh clone
+must fetch it:
+
+```bash
+npm install          # ~1s; fetches elkjs, the layout engine
+```
+
+Skip this and the server still starts, but **every graph fails to render** with
+`LOAD_ERROR: ELK layout failed: Cannot find module 'elkjs'`.
+
 ## Run the web viewer (the canonical UI)
 
 ```bash
@@ -49,7 +61,7 @@ background**.
 uv run pytest tests/ -q
 ```
 
-The suite has roughly a thousand passing tests. The mathematical core must always pass; if it
+The suite has about 4,600 passing tests (4,618 passed / 217 skipped as of 2026-09-06). The mathematical core must always pass; if it
 doesn't, something is genuinely wrong rather than flaky.
 
 ## Build the book/help

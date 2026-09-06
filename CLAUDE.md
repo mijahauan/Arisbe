@@ -312,7 +312,7 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (~3900 passing, 144 skipped)
+## Testing (4,618 passing, 217 skipped, 1 xfailed — 2026-09-06; ~41 min)
 
 Key test files:
 - `test_correspondence_invariant.py` — All six §7 test shapes from `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (totality/injectivity, containment, incidence + arg-order, identity 3-way, transformation invariance, regime-3 non-interference) against the tomos corpus

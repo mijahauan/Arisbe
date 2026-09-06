@@ -22,7 +22,9 @@ from pathlib import Path
 
 import pytest
 
-pytest.importorskip("playwright")
+from e2e_support import require_browser
+
+require_browser()
 from playwright.sync_api import sync_playwright  # noqa: E402
 
 REPO = Path(__file__).parent.parent

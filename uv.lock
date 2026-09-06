@@ -72,7 +72,6 @@ dependencies = [
     { name = "pdfminer-six" },
     { name = "pillow" },
     { name = "psutil" },
-    { name = "pyside6" },
     { name = "pyvisgraph" },
     { name = "pyyaml" },
     { name = "rdflib" },
@@ -96,6 +95,9 @@ mcp = [
 nl = [
     { name = "anthropic" },
 ]
+qt = [
+    { name = "pyside6" },
+]
 web = [
     { name = "fastapi" },
     { name = "uvicorn", extra = ["standard"] },
@@ -117,7 +119,7 @@ requires-dist = [
     { name = "pdfminer-six", specifier = ">=20231228" },
     { name = "pillow", specifier = ">=10.0.0" },
     { name = "psutil", specifier = ">=5.9.0" },
-    { name = "pyside6", specifier = ">=6.5.0" },
+    { name = "pyside6", marker = "extra == 'qt'", specifier = ">=6.5.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=4.0.0" },
     { name = "pytest-playwright", marker = "extra == 'dev'", specifier = ">=0.5.0" },
@@ -130,7 +132,7 @@ requires-dist = [
     { name = "uvicorn", extras = ["standard"], marker = "extra == 'web'", specifier = ">=0.30.0" },
     { name = "z3-solver", marker = "extra == 'dev'", specifier = ">=4.12" },
 ]
-provides-extras = ["dev", "web", "nl", "mcp"]
+provides-extras = ["dev", "web", "qt", "nl", "mcp"]
 
 [[package]]
 name = "attrs"
