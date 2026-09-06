@@ -149,6 +149,13 @@ arbitrary subgraphs. Each operation reduces or simplifies; none adds new
 propositional content. One person can play both roles, as when playing oneself
 in chess.
 
+Territory is computed, not conventional. `AreaPolarity` (`egi_core_dau.py`)
+defines NEGATIVE as odd nesting depth and POSITIVE as even; `area_polarity()`
+on the graph returns that polarity with the depth, and
+`EndoporeuticGame.legal_areas` (`endoporeutic_game.py`) reads it to hand the
+Proposer the negative areas and the Skeptic the positive ones. The table above
+and the enum are one rule stated twice.
+
 ### Turn Structure
 
 Players alternate. Each turn consists of exactly one rule application in a legal
@@ -169,6 +176,15 @@ first cut of the DN at level 0 (on the blank SoA) and creates an area at
 level 1. One makes the second cut at a place in level 1 (the area created
 by the first cut), and creates an area at level 2. In considering the elements
 juxtaposed in an area you can effectively ignore the details in nested areas.
+
+This reading is mechanized. `semantic_game.evaluate` (`semantic_game.py`)
+peels a graph against M outside-in, asking the oracle at each negation-free
+layer — step 1 below — and returns a three-valued `Verdict3`
+(TRUE / FALSE / UNKNOWN, the last of which keeps the reading sound under an
+open world). The mapping step 1 calls for is `DomainOracle.match_atoms`
+(`domain_oracle.py`), which enumerates the bindings of a negation-free part
+onto M. That is model-checking, not inference: it settles truth *in* M, never
+validity.
 
 The game proceeds by this outside-in reduction:
 
@@ -228,6 +244,10 @@ an irreducible remainder. Stalemate in the *logical* taxonomy
 independent of M — neither provable nor refutable — which appears formally as
 a failure to map, not as a failure to terminate.
 
+Where a game carries an explicit goal graph, the win test is structural for the
+same reason: `EndoporeuticGame` holds a `GraphIsomorphismEngine` and checks the
+goal with it, so the goal counts as reached when the graph is isomorphic to it.
+
 ---
 
 ## Two Layers of the Game
@@ -282,6 +302,11 @@ the proof-theoretic way of saying "this content is true in M."
 The Graphist wins when all positive content has been deiterated (mapped to M)
 or shown to be structurally tautological. The Grapheus wins when some positive
 content cannot map and cannot resolve.
+
+The match is structural, not textual. `DeiterationRule` validates through
+`IsomorphismValidator` (`graph_isomorphism_engine.py`), so "matches something
+in M at an ancestor level" means isomorphic in Dau's sense — the same graph up
+to renaming, not merely the same surface form.
 
 ### The Interpretive Layer (Agonothetes)
 
@@ -456,6 +481,11 @@ The **constructive rules** — INS, IT+, DC+ — add structure. The **eliminativ
 rules** — ERA, IT-, DC- — remove structure. Proof needs both directions to
 find a path from the premises to the conclusion.
 
+The "Permitted in" column is enforced by the rules themselves rather than by
+the caller: in `formal_transformation_rules.py`, `InsertionRule` refuses a
+context whose polarity is not NEGATIVE and `ErasureRule` refuses one that is
+not POSITIVE — both reading the same `AreaPolarity` the territory table uses.
+
 ### Player Roles in Proof
 
 In a proof-mode game, the polarity-based role assignment reflects the
@@ -481,6 +511,15 @@ A proof that G follows from M typically takes the form of a demonstration that
 `~[ M ~[ G ] ]` reduces to the blank sheet. This reads as ¬(M ∧ ¬G) = M → G.
 If the game from this starting position reaches the empty sheet, the proof
 stands complete, and G counts as a theorem of M.
+
+Searching for that reduction is one route to the question, not the only one.
+`theory_query.entails` (`theory_query.py`) decides the same question for a
+query of exactly this scroll shape — `~[ B ~[ H ] ]`, the frame above with M's
+body and G's head — by a terminating procedure instead of a search: freeze a
+fresh constant for each generic line in the body, materialize M over those
+arbitrary witnesses, then check the head. It reports `applicable=False` when
+the query is not a range-restricted Horn universal, and the caller falls back
+to the ordinary peel.
 
 A proof terminates when:
 
