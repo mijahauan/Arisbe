@@ -124,12 +124,18 @@ Every existing episode is single-voiced. Show an actual inning: alternating
 moves, both territories, a real outcome, then the Agonothetes choosing a
 disposition — the three strata of the readiness spec §6 end to end.
 
-*Depends on* the eliminative register (Q5 ruling). A genuine inning wants the
-*stuck* outcome to be reachable, and wants `erase-a-negative` to exist as one
-move rather than two.
+**Unblocked.** An earlier draft made E6 wait on building an eliminative
+register. That register exists: `grapheus.py` plays the EPG proper move by move
+— polarity ownership, Graphist↔Grapheus swap at each cut crossing, atoms
+adjudicated against M, no transformation rules — and its outcomes carry all
+three exits including `INDEPENDENT`, the honest stalemate. E6 is an *inning of
+that contest*, recorded and replayable, followed by the Agonothetes choosing
+among the nine dispositions.
 
-*Acceptance:* alternating recorded moves; an outcome that is not merely a
-concede; a disposition applied to M; the whole thing replayable.
+*Acceptance:* alternating recorded moves across at least one cut crossing (so
+the role swap is visible); an outcome that is not merely a concede — ideally one
+inning per exit, including `INDEPENDENT`; a disposition applied to M; the whole
+thing replayable.
 
 ### E7 — Curate the 14 literature titles *(all three)*
 
@@ -157,8 +163,8 @@ already present.
 
 E7 and E3 are curation and can land immediately. E1 is the highest-value single
 artifact and is independent. E4 is an interface change. E2 needs a Beta
-derivation designed. E5 needs an ontology chosen. **E6 is blocked** on the
-eliminative register.
+derivation designed. E5 needs an ontology chosen. E6 is unblocked — the contest
+it records already exists.
 
 ## 7. Open questions
 
@@ -166,8 +172,7 @@ eliminative register.
   step through and rich enough to need all six rules.
 - **X2.** Which ontology for E5, and which axiom gets relinquished? The
   narrative matters more than the size.
-- **X3.** Should E6 wait for the eliminative register, or ship first as a
-  concede-terminated inning and gain the *stuck* outcome later?
+- **X3.** *Withdrawn* — E6 is not blocked; the EPG contest is built.
 - **X4.** Is a Peirce manuscript figure worth transcribing for Pietarinen —
   MS 514 is claimed in his draft letter but absent from the corpus — or should
   the letter drop the claim instead?

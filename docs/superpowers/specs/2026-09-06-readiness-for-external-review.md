@@ -159,56 +159,84 @@ viewport.
   resolution; the EPG's effect on model evolution), plus a **functional URL**
   for direct interaction. A greenfield checkout path follows if interest lands.
 
-## 6. Q2 resolved: a register confusion, not a dead branch
+## 6. Q2/Q5 resolved: a misplaced module, not a missing register
 
-The Logical Classification table states all five outcomes as *who wins*; row 3
-is "Stalemate — neither can force a win." The pragmatic taxonomy stands on
-that. So the naive outcome is load-bearing, as the author said.
+**Superseded 2026-09-06 by the author's clarification.** An earlier draft of
+this section concluded that the eliminative EPG "has no move-level
+implementation at all" and recommended building one. That was wrong, and the
+correction matters because it removes work rather than adding it.
 
-The engine cannot produce it because it implements the **wrong register**:
+### The author's doctrine
 
-| | EPG register (guide, Part I) | Proof register | `endoporeutic_game.py` |
-|---|---|---|---|
-| Graphist | IT−, DC− (+ erase-a-negative) | INS, IT+, DC+ | `_PROPOSER_RULES = {INS, IT+, DC+}` |
-| Grapheus | IT−, DC− | ERA, IT−, DC− | `_SKEPTIC_RULES = {ERA, IT−, DC−}` |
+> The EPG proper does not involve proofs or constructions of theoremata — the
+> application of the full range of transformation rules. It takes an existing,
+> proposed graph and considers its meaning, its interpretation against an
+> agreed domain model, to check if it matches. That is the EPG proper that Agon
+> exists to play. The construction of proofs properly belongs in Ergasterion,
+> where speculation, experimentation, abduction and induction are exercised;
+> and when one looks like a candidate of interest to present for testing in
+> Agon, a Graphist moves it there to subject it to the EPG.
 
-The file implements the constructive **proof** game. There DC+ is always
-available (`_BOTH_RULES` short-circuits at `:407`), so `has_legal_moves` is
-permanently true — which is *correct for that register*. The **eliminative**
-EPG, where "the graph cannot be reduced further" is both reachable and
-meaningful, has no move-level implementation at all: `grapheus.py` reads its
-outcome off the peel's Kleene verdict (`:67`), not off move exhaustion.
+This is already the stated mode contract (CLAUDE.md: *Ergasterion — transformation
+practice*; *Agon — Endoporeutic Game engine*). The code, not the doctrine, is
+what drifted.
 
-**RULED (2026-09-06): build the eliminative register.** The author's ruling,
-in his words: the eliminative EPG outcome "is a legitimate outcome of the naive
-game, but that's not the end of the story, because what the outcome of the game
-means to the domain model remains to be decided, and it is not as simple as the
-binary win/lose result of an instance or inning of the game."
+### The EPG proper is built and correct
 
-So the design is three strata, and only the first has a hole:
+`grapheus.py` is a genuine move-by-move extensive-form contest, not a one-shot
+evaluation: ownership by polarity, Graphist↔Grapheus swapping on each cut
+crossing, an existential phase where the defender witnesses lines and a
+conjunction phase where the challenger picks, terminal atoms adjudicated
+against M. It applies **zero transformation rules**. Its outcome enum carries
+all three exits of the Logical Classification, the stalemate included:
 
-| Stratum | What it produces | State |
-|---|---|---|
-| 1. The naive outcome | Graphist wins / Grapheus wins / **stuck** | **the gap** — "stuck" is unreachable; only concede and goal end a game |
-| 2. What the outcome means for M | nine dispositions, non-binary, chosen by the Agonothetes | **built** — `available_dispositions` / `apply_disposition` |
-| 3. Applying the disposition to M | `model_revision`, world-scroll cells, `m_steps` | **built** |
+```python
+GRAPHIST_WINS  # G holds in M          (TRUE)
+GRAPHEUS_WINS  # G fails in M          (FALSE)
+INDEPENDENT    # M neither confirms nor denies (UNKNOWN)
+```
 
-`web_api/services/agonothetes.py:12` already states the doctrine unprompted:
-"the same boolean outcome can mean a theorem, a new fact…". Nothing
-auto-asserts.
+Its docstring names the third exit in the author's own terms: a frontier the
+Grapheus owns where M can only return UNKNOWN "is declined — the inning is
+independent, the Agonothetes' honest stalemate."
 
-The consequence for scope is favourable: building stratum 1 requires no new
-downstream work. It supplies the third exit that strata 2 and 3 already wait
-for. What it needs is an eliminative move register — Graphist and Grapheus both
-restricted to IT−, DC− and the erase-a-negative composite — in which "the graph
-cannot be reduced further" is reachable, and which reports *stuck* rather than
-only *conceded*.
+So stratum 1 of §5's table has no hole. Strata 2 and 3 were already built. The
+whole EPG column is done.
 
-Note the composite: `erase-a-negative` is named in the guide as one of three
-canonical EPG operations but bears no code symbol; the engine's `apply_move`
-takes a single rule name. In the eliminative register it is INS-then-DC−
-performed as one move, so it wants a real implementation rather than two
-user-visible steps.
+### What is actually wrong
+
+`endoporeutic_game.py` implements the **constructive proof game** —
+`_PROPOSER_RULES = {INS, IT+, DC+}` against `_SKEPTIC_RULES = {ERA, IT−, DC−}`,
+the guide's *proof* table — and is therefore Ergasterion's business by the
+doctrine above. Three consequences:
+
+1. **It is misnamed.** It is not the Endoporeutic Game.
+2. **Its docstring claims EPG win conditions it cannot reach.** "A player who
+   cannot make any legal move loses" is unreachable there because DC+ is always
+   available; in the EPG proper that outcome exists and is called
+   `INDEPENDENT`. Correct doctrine, wrong module.
+3. **Agon's UI exposes it.** `POST /agon/games` + `/move` + `/concede` offers a
+   hot-seat *transformation* game in the mode reserved for interpretation.
+
+### Ruling required (Q5, restated)
+
+Not "build or retire", but **where does the constructive game live**:
+
+- **(a) Relocate.** Move the transformation game to Ergasterion as a two-player
+  practice register — territories, alternating turns — and rename the module
+  (`proof_game.py` / `ProofGame`). Agon keeps interpretation only.
+- **(b) Retire.** Ergasterion already applies all six rules through
+  `RuleInteraction` across 28 routes. The constructive game's distinct content
+  is only the polarity/territory constraint and turn alternation. If that is
+  not wanted as a practice mode, drop it and let Ergasterion's existing rule
+  machinery stand.
+
+Either way the docstring's win conditions move to where they are true, and
+Agon's page loses a register that does not belong to it.
+
+**Consequence for the exemplar arc:** E6, the two-player EPG inning, is
+*unblocked*. It wants an inning of the contest, which exists — not a register
+that needed building. Open question X3 is withdrawn.
 
 ## 7. The defect class this review actually found
 
