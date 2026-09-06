@@ -179,12 +179,36 @@ EPG, where "the graph cannot be reduced further" is both reachable and
 meaningful, has no move-level implementation at all: `grapheus.py` reads its
 outcome off the peel's Kleene verdict (`:67`), not off move exhaustion.
 
-**Ruling still required.** Either (a) build the eliminative register as a real
-move game, giving row 3 a mechanical realization and making the file honest to
-its name; or (b) declare that outcomes are decided by the peel and rename the
-transformation game to what it is. (a) is honest to Peirce and costs real work;
-(b) is honest to the code and costs a rename plus a doctrine paragraph.
-Pietarinen will ask this question, so it should be answered deliberately.
+**RULED (2026-09-06): build the eliminative register.** The author's ruling,
+in his words: the eliminative EPG outcome "is a legitimate outcome of the naive
+game, but that's not the end of the story, because what the outcome of the game
+means to the domain model remains to be decided, and it is not as simple as the
+binary win/lose result of an instance or inning of the game."
+
+So the design is three strata, and only the first has a hole:
+
+| Stratum | What it produces | State |
+|---|---|---|
+| 1. The naive outcome | Graphist wins / Grapheus wins / **stuck** | **the gap** — "stuck" is unreachable; only concede and goal end a game |
+| 2. What the outcome means for M | nine dispositions, non-binary, chosen by the Agonothetes | **built** — `available_dispositions` / `apply_disposition` |
+| 3. Applying the disposition to M | `model_revision`, world-scroll cells, `m_steps` | **built** |
+
+`web_api/services/agonothetes.py:12` already states the doctrine unprompted:
+"the same boolean outcome can mean a theorem, a new fact…". Nothing
+auto-asserts.
+
+The consequence for scope is favourable: building stratum 1 requires no new
+downstream work. It supplies the third exit that strata 2 and 3 already wait
+for. What it needs is an eliminative move register — Graphist and Grapheus both
+restricted to IT−, DC− and the erase-a-negative composite — in which "the graph
+cannot be reduced further" is reachable, and which reports *stuck* rather than
+only *conceded*.
+
+Note the composite: `erase-a-negative` is named in the guide as one of three
+canonical EPG operations but bears no code symbol; the engine's `apply_move`
+takes a single rule name. In the eliminative register it is INS-then-DC−
+performed as one move, so it wants a real implementation rather than two
+user-visible steps.
 
 ## 7. The defect class this review actually found
 
@@ -316,11 +340,32 @@ they are exemplar authoring, not engineering. Tier 2 item 19 is small and must
 precede any exposure. The Tier 2 shape decision (item 20) should be made early,
 because a read-only demo and an interactive one are different projects.
 
-## 11. Open questions
+## 11. Rulings (2026-09-06)
 
-- **Q5.** The §6 ruling: build the eliminative EPG register, or rename the
-  transformation game and locate outcomes in the peel?
-- **Q6.** Tier 2 shape: read-only Organon URL, or interactive with the
-  single-worker constraint accepted?
-- **Q7.** Exemplar authoring is the long pole. Should it be scoped as its own
-  arc with its own spec, rather than as items inside this one?
+- **Q5 — build the eliminative register.** See §6. The naive outcome is real and
+  feeds the non-binary question of what it means for M; strata 2 and 3 are built.
+- **Q6 — the public URL is interactive.** A read-only Organon demo is declined:
+  if the URL is exposed at all it must let a visitor play. That accepts the
+  integration work in Tier 2 item 20 — a single uvicorn worker (four unlocked
+  process-global session dicts make more unsafe), per-visitor scratch
+  namespacing, removal of the global `GET /ergasterion/scratch` listing that
+  today lists and can delete anyone's drafts, a `tomos/` snapshot-and-restore
+  timer, CORS locked to the origin, and `/docs` closed. The path-traversal fix
+  (item 19) precedes all of it.
+- **Q7 — exemplar authoring becomes its own arc**, with its own specification,
+  rather than a block of items inside this document. Tier 1 items 8-13 move
+  there; this document keeps the correctness items (14-18).
+
+## 12. Status
+
+- **Tier 0: DONE** (`d118f9d`). Landing page reachable and legible with a
+  regression guard; Node.js and `npm install` documented with the symptom in
+  TROUBLESHOOTING; the `agon.py` arity bug fixed with a guard, so all seven
+  imported T-boxes are identified and materialize; e2e guards probe the browser
+  by launching (2 skipped in 0.62s and no leaked server, where a fresh clone
+  previously got 29 errors); a greenfield workflow that runs only the documented
+  steps and then renders a real graph; PySide6 moved to a `qt` extra
+  (1.5 GB → 374 MB); `.python-version` pinned to 3.12; three stale test-count
+  claims corrected. Full suite 4,618 passed / 217 skipped / 1 xfailed / 0 failed.
+- **Next:** the exemplar arc specification (Q7), then Tier 1 correctness items,
+  then Tier 2 interactive deployment (Q6).
