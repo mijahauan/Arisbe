@@ -6,7 +6,7 @@ engine's two arms, the ratified role vocabulary)
 
 This guide moves in four parts, from machinery to meaning to practice:
 
-- **Part I · The Game** — how it works: the two formal layers, the mechanics of
+- **Part I · The Game** — how it works: the method of interpretation, the mechanics of
   play, and the constructive (proof-mode) counterpart.
 - **Part II · Outcomes and Interpretation** — what the game produces: the outcome
   taxonomy, the [*Agonothetes*](GLOSSARY.md#agonothetes) (the interpretive function that makes meaning of a
@@ -94,7 +94,7 @@ not, and banners further down mark design-only material where it stands.
 
 # Part I · The Game
 
-*How the game works — its two formal layers, the mechanics of play, and the constructive counterpart.*
+*How the game works — the method of interpretation, the mechanics of play, and the constructive counterpart that belongs to Ergasterion.*
 
 ## Overview
 
@@ -186,7 +186,7 @@ juxtaposed in an area you can effectively ignore the details in nested areas.
 
 This reading is mechanized. `semantic_game.evaluate` (`semantic_game.py`)
 peels a graph against M outside-in, asking the oracle at each negation-free
-layer — step 1 below — and returns a three-valued `Verdict3`
+part — step 1 below — and returns a three-valued `Verdict3`
 (TRUE / FALSE / UNKNOWN, the last of which keeps the reading sound under an
 open world). The mapping step 1 calls for is `DomainOracle.match_atoms`
 (`domain_oracle.py`), which enumerates the bindings of a negation-free part
@@ -257,90 +257,78 @@ goal with it, so the goal counts as reached when the graph is isomorphic to it.
 
 ---
 
-## Two Layers of the Game
+## The Method
 
-> **Correction pending (2026-09-06).** The author has ruled that this section's
-> framing is mistaken where it presents the EPG as unifying *two formalisms*,
-> and where the "Strategic Layer" below assigns the EPG the full range of Dau's
-> six rules. The EPG's strategy is peeling, matching against the reference
-> model, **ERA** and **IT-**; the construction of proofs — the full six —
-> belongs to Ergasterion, and a Graphist moves a candidate to Agon only to
-> subject it to the EPG. The rule tables in Part I have been corrected
-> accordingly.
->
-> The deeper reading the author gives is that these are not two formalisms but
-> **one method iterated recursively with the roles switched, until the whole
-> tree of the graph is traversed** — and that erase-a-negative "is logically
-> equivalent to the Grapheus proposing the opposite of what the Graphist
-> proposed." On that reading the semantic description and the transformation
-> description are the same move named twice, which is why step 2 of "The
-> Outside-In Process" above already reports that peeling *reverses the roles*.
-> Rewriting this section on that basis is a doctrinal change the author has not
-> yet ruled on, so the text below stands unaltered pending it.
+The EPG, like every graph transformation in Arisbe, follows the calculus Dau
+formalized. It is not a second formalism and it does not suspend the rules. It
+is a *specific method of interpretation*, and describing it as layered — as
+though two different kinds of thing were happening — obscures what it does.
 
-Before the mechanics of play, one distinction clears up most confusion about the
-EPG — including why the Overview above speaks of "two eliminative rules" (IT-,
-DC-) while Arisbe ships all six. The EPG unifies **two formalisms** often
-treated separately, and they answer different questions. Their relationship
-unlocks the rest of this guide.
+The method is one movement. The Graphist presents a whole proposed graph to the
+Grapheus for testing. The graph is then decomposed, sub-graph by sub-graph, and
+each piece is put to the reference domain model with a single question: does
+this directly map, or could it potentially be implied by or be consistent with,
+what the model already holds?
 
-### The Semantic Evaluation Game (Inner Layer)
+Each piece either maps or it does not.
 
-Pietarinen (2006, Ch. 4–7) formalizes Peirce's endoporeutic interpretation as
-a **semantic game** with four rules:
+- Where a piece **maps**, `IT-` applies — the content is already accounted for
+  by the model, so deiteration removes it.
+- When `IT-` has applied to every considered sub-graph of the entire graph, the
+  **Graphist wins**: the proposed graph holds in this model.
+- If any individual sub-graph **fails to map**, the **Grapheus wins**: the
+  proposal does not hold in this model.
 
-1. **Juxtaposition** — At a positive node (conjunction), the Grapheus chooses
-   which conjunct to examine. At a negative node, the Graphist chooses.
-2. **Ligatures** — The polarity of a ligature's outermost extremity determines
-   who picks an individual from the domain: the Graphist on positive areas
-   (existential quantification), the Grapheus on negative areas (universal).
-3. **Atomic spot** — When an atomic predicate is reached, its truth-value in
-   the model determines the winner: true = Graphist wins, false = Grapheus wins.
-4. **Winning strategy** — The graph is true in the model if and only if the
-   Graphist has a winning strategy.
+The eliminative repertoire is `ERA` and `IT-`, together with the peeling of a
+negative. Nothing constructive appears: no arbitrary insertion, no iteration-in
+to strengthen premises, no double-cut introduction. Those are the instruments of
+construction, and construction belongs to Ergasterion — where an individual
+builds, proves, practises, speculates, imagines, replays with variations and
+adjusts the style. When something there looks like a candidate worth testing, a
+Graphist carries it to Agon and subjects it to this method.
 
-This game runs **recursive**, **boolean** (true/false), and **always terminates**
-— the graph stays finite, so the descent bottoms out at atomic spots. It
-evaluates and nothing more; no transformation rules appear. It answers one
-question: *is this graph true in this model?*
+Peeling a negative is the same movement applied one level in. Removing the cut
+around `H` is logically equivalent to the Grapheus proposing the opposite of
+what the Graphist proposed, so the two exchange roles and the method recurses on
+`H`. Territory therefore follows from depth rather than standing as a separate
+rule, and the recursion continues until the whole tree of the graph has been
+traversed.
 
-### The Transformation Game (Strategic Layer)
+Winning and losing are not the end of it. What a win or a loss *means* for the
+domain model — and for the purposes and intents of the players — is what the
+Agonothetes sorts out, and that is a genuinely different question from who won.
+It is treated next.
 
-Dau's six rules — INS, ERA, IT+, IT-, DC+, DC- — constitute a separate
-**proof-theoretic** system. Players use these rules to manipulate the graph
-structure. The Graphist strengthens and propagates; the Grapheus simplifies
-and erases.
+### The match is structural
 
-The transformation rules do not count as moves *in* the semantic game. They
-carry the **strategic reasoning** by which a player constructs or demonstrates
-a winning (or losing) position. They answer a different question: *can we show
-that the Graphist has (or lacks) a winning strategy?*
+"Maps to the model" means isomorphic in Dau's sense — the same graph up to
+renaming, not the same surface form. `DeiterationRule` validates through
+`IsomorphismValidator` (`graph_isomorphism_engine.py`), so a piece counts as
+accounted for only when the structure genuinely corresponds.
 
-### The Bridge: IT- as Semantic Mapping
+### Concordance: Pietarinen's semantic game
 
-**Deiteration (IT-)** connects the two layers. In the semantic game, reaching
-an atomic spot and checking its truth-value against the model ends the
-descent. In the transformation game, IT- does the corresponding work: if a
-subgraph at the current level matches something in M at an ancestor level,
-IT- deiterates it — removing it as "already accounted for." That amounts to
-the proof-theoretic way of saying "this content is true in M."
+Pietarinen (2006, Ch. 4-7) formalizes Peirce's endoporeutic interpretation as a
+semantic game with four rules: at a positive node the Grapheus chooses which
+conjunct to examine and at a negative node the Graphist does; the polarity of a
+ligature's outermost extremity settles who picks an individual from the domain;
+reaching an atomic spot decides the winner by its truth-value in the model; and
+the graph is true in the model exactly when the Graphist has a winning strategy.
 
-The Graphist wins when all positive content has been deiterated (mapped to M)
-or shown to be structurally tautological. The Grapheus wins when some positive
-content cannot map and cannot resolve.
+That is the same method described in the vocabulary of game-theoretic semantics
+rather than in the vocabulary of the calculus. Arisbe implements the movement
+twice over for different purposes — `semantic_game.py` evaluates it in one pass
+and returns a three-valued verdict, `grapheus.py` plays it out move by move as
+an interactive inning — but they are readings of one method, not two systems
+joined by a bridge.
 
-The match is structural, not textual. `DeiterationRule` validates through
-`IsomorphismValidator` (`graph_isomorphism_engine.py`), so "matches something
-in M at an ancestor level" means isomorphic in Dau's sense — the same graph up
-to renaming, not merely the same surface form.
+### What the outcome means (Agonothetes)
 
-### The Interpretive Layer (Agonothetes)
-
-The semantic game yields a boolean. The transformation game demonstrates
-*why* that boolean holds. But neither layer, alone, produces *understanding*.
-The Agonothetes — the interpretive function — takes the boolean result
-together with the traversal path and the game transcript and maps them to
-the outcome taxonomy (Part II):
+The method settles who won. It does not settle what the win or the loss *means*
+for the domain model, or for the purposes and intents of the players — and that
+is a different question, not a further layer of the same one. The Agonothetes —
+the interpretive function — takes the outcome together with the traversal path
+and the game transcript and maps them to the outcome taxonomy (Part II):
 
 ```
 Semantic game result (true/false)
