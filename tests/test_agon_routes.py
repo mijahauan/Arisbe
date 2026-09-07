@@ -96,14 +96,30 @@ def _sheet_id(data):
     return next(a for a, rec in areas.items() if rec["is_sheet"])
 
 
-def _play_one_dc_plus(client, data):
-    """Apply a DC+ (allowed for both players) on the sheet; return new data."""
+def _play_one_peel_ins(client, data, insert_egif='~[ ~[ (Mortal *m) ] ]'):
+    """Open with the EPG's own move, not a constructive filler.
+
+    This used to play DC+ on the sheet, described in the test as a "neutral
+    move". DC+ builds, and the EPG does not build: its repertoire is IT-, INS
+    of a negation around a negation, and DC-. The opening here is the first
+    half of a peel — a doubly-negated copy scribed beside an enclosure, which
+    is licensed because the whole game is scribed in a negative context.
+    """
     gid = data["game_id"]
-    body = client.post(
+    area = _graphist_area(data)
+    return client.post(
         f"/agon/games/{gid}/move",
-        json={"rule": "DC+", "parameters": {"selected_elements": [], "target_area": _sheet_id(data)}},
+        json={"rule": "INS", "parameters": {
+            "selected_elements": [], "target_area": area, "egif_content": insert_egif}},
     ).json()
-    return body
+
+
+def _graphist_area(data):
+    """The frame-level area the Graphist owns at the start of play."""
+    areas = data.get("legal_areas") or []
+    assert areas, "no legal areas for the current player"
+    first = areas[0]
+    return first["area_id"] if isinstance(first, dict) else first[0]
 
 
 # --------------------------------------------------------------------------- #
@@ -165,20 +181,20 @@ def test_start_from_corpus_uod_as_model(client, fresh_agon, isolated_tomos):
 def test_move_advances_episode_and_flips_player(client, fresh_agon):
     d = _start(client, initial_egif=FRAME, goal_egif=GOAL)["data"]
     assert d["current_role"] == "Graphist"
-    body = _play_one_dc_plus(client, d)
+    body = _play_one_peel_ins(client, d)
     assert body["success"] is True, body.get("error")
     nd = body["data"]
     assert len(nd["episode"]["moves"]) == 1
     move = nd["episode"]["moves"][0]
-    assert move["rule"] == "DC+"
+    assert move["rule"] == "INS"
     assert move["role"] == "Graphist"          # the player who moved
     assert nd["current_role"] == "Grapheus"    # turn flipped
 
 
 def test_move_out_of_territory_refused(client, fresh_agon):
-    """After Graphist's DC+, the Grapheus (Skeptic) cannot use INS."""
+    """After the Graphist's opening peel, the Grapheus cannot act at the Graphist's level."""
     d = _start(client, initial_egif=FRAME, goal_egif=GOAL)["data"]
-    after = _play_one_dc_plus(client, d)["data"]
+    after = _play_one_peel_ins(client, d)["data"]
     assert after["current_role"] == "Grapheus"
     body = client.post(
         f"/agon/games/{after['game_id']}/move",
@@ -250,7 +266,7 @@ def test_asserting_disposition_persists_contest_chain(client, fresh_agon, isolat
     d = _start(client, initial_egif=FRAME, goal_egif=GOAL)["data"]
     gid = d["game_id"]
     # Play one move so the episode → chain has a step.
-    moved = _play_one_dc_plus(client, d)
+    moved = _play_one_peel_ins(client, d)
     assert moved["success"] is True, moved.get("error")
     client.post(f"/agon/games/{gid}/concede")
 
@@ -286,7 +302,7 @@ def test_asserting_disposition_refuses_drifted_drawing_cleanly(
     """§3.3 failure at the asserting boundary aborts with nothing on disk."""
     d = _start(client, initial_egif=FRAME, goal_egif=GOAL)["data"]
     gid = d["game_id"]
-    _play_one_dc_plus(client, d)
+    _play_one_peel_ins(client, d)
     client.post(f"/agon/games/{gid}/concede")
 
     from elk_layout_engine import ELKLayoutEngine

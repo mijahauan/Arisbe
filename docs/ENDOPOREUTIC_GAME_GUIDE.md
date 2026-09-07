@@ -104,7 +104,7 @@ It does not serve as a proof procedure. Proof and interpretation, though
 related, serve different purposes and follow different procedures. The EPG
 supplies the interpretive method. Given a proposed graph G and a domain model M, the game
 determines whether G holds in M by systematically unwrapping G using only the
-eliminative rules ERA and IT-, until the graph either disappears entirely or
+eliminative rules IT- and DC-, until the graph either disappears entirely or
 resists further reduction.
 
 > "The interpretation of existential graphs is *endoporeutic*, that is, proceeds
@@ -132,25 +132,40 @@ a double negative provides the initial context.
 |-----------|-------------|
 | **Domain Model (M)** | An agreed Existential Graph Instance ([EGI](GLOSSARY.md#egi)) on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion the game will test |
-| **Rules** | **ERA** (erasure of a part matched against M) and **IT-** (de-iteration of a copy already accounted for), together with **peeling** a negative — the eliminative repertoire of the EPG. No arbitrary insertion, no iteration-in, no double-cut introduction: those are constructive and belong to Ergasterion. |
+| **Rules** | **IT-** (de-iteration of a piece the model already accounts for), **INS** of a negation around a negation, and **DC-** collapsing it — the eliminative repertoire of the EPG. ERA does not appear; neither do IT+ and DC+, which build, and building belongs to Ergasterion. |
 | **Agonothetes** | The interpretive function of the game — not a player, and not a referee: it frames the episode (the **risked choice** of M) and, after play, makes the **risked selection** of a fate from the outcome ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3) |
 
 ### Players and Territories
 
 | Player | Also known as | Role | Territory | Rules |
 |--------|---------------|------|-----------|-------|
-| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | ERA, IT-; hosts the peeling of a negative |
-| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | ERA, IT-; initiates the peeling of a negative |
+| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | the frame level, and every second level below it | IT-, INS of a negation, DC- |
+| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | the levels between | IT-, INS of a negation, DC- |
 
-Territory is a *consequence* of the recursion, not an extra rule. The EPG is one
-method iterated: at each area the defender witnesses the lines local to it and
-the challenger picks a conjunct; peeling a negative swaps the two and recurses
-on the interior, until the whole tree of the graph is traversed. Who owns an
-area therefore follows from its depth.
+Territory is **depth-relative**, and a consequence of the recursion rather than
+an extra rule. The game is scribed inside a context — see "The frame" below —
+and roles alternate from that level: the Graphist holds the frame, the Grapheus
+the level below it, and so on down. Absolute polarity does not decide ownership;
+were it to, the Grapheus could never move at all, since everything in play sits
+inside the frame's negation. Who owns a level follows from its depth counted
+from the frame, and the whole tree is traversed by alternating down it.
 
-The EPG uses three canonical operations — **ERA**, **IT-**, and a compound move
-called **erase-a-negative** (peeling) — all strictly in the service of unwinding
-structure.
+The EPG uses three canonical operations — **IT-**, **INS** of a negation around
+a negation, and **DC-** — all strictly in the service of unwinding structure.
+Together the last two are the peel.
+
+#### The frame
+
+The game always happens in a context, and nothing is ever scribed at sheet
+level. The Graphist claims, in effect, *if the domain model holds then the
+proposed graph is true*, and that implication is scribed in a **negative area**,
+where one may scribe anything. That is what makes INS available throughout, and
+what makes ERA — licensed only in positive areas — no part of this game.
+
+`EndoporeuticGame.new_game` refuses a graph with sheet-level content: without
+the context there is no claim under test and no level from which the roles could
+alternate. The frame is carried on the game state, not inferred from a graph
+that changes under play.
 No arbitrary insertion, no iteration-in to strengthen premises, no erasure of
 arbitrary subgraphs. Each operation reduces or simplifies; none adds new
 propositional content. One person can play both roles, as when playing oneself
@@ -274,15 +289,22 @@ Each piece either maps or it does not.
 
 - Where a piece **maps**, `IT-` applies — the content is already accounted for
   by the model, so deiteration removes it.
+- Where a piece is **enclosed**, it is peeled: a doubly-negated copy is scribed
+  beside the enclosure (`INS`, licensed because the game sits in a negative
+  context) and collapsed (`DC-`), exposing the interior. That is the player
+  proposing the opposite of what was scribed, and taking up the Graphist's part
+  for the sub-graph so exposed.
 - When `IT-` has applied to every considered sub-graph of the entire graph, the
   **Graphist wins**: the proposed graph holds in this model.
 - If any individual sub-graph **fails to map**, the **Grapheus wins**: the
   proposal does not hold in this model.
 
-The eliminative repertoire is `ERA` and `IT-`, together with the peeling of a
-negative. Nothing constructive appears: no arbitrary insertion, no iteration-in
-to strengthen premises, no double-cut introduction. Those are the instruments of
-construction, and construction belongs to Ergasterion — where an individual
+The eliminative repertoire is `IT-`, `INS` of a negation around a negation, and
+`DC-`. Nothing constructive appears: no iteration-in to strengthen premises, no
+double-cut introduction. `ERA` has no part in it either — erasure is licensed
+only in positive areas, and the whole game is scribed inside a negative one.
+The constructive rules are the instruments of building, and building belongs to
+Ergasterion — where an individual
 builds, proves, practises, speculates, imagines, replays with variations and
 adjusts the style. When something there looks like a candidate worth testing, a
 Graphist carries it to Agon and subjects it to this method.
@@ -557,10 +579,10 @@ The two methods address the same logical territory from opposite directions:
 |---|---|---|
 | **Question** | Does G hold in M? | Must G hold given M? |
 | **Direction** | Outside-in elimination | Constructive derivation |
-| **Rules** | ERA, IT-, and peeling | All six (ERA, INS, IT+, IT-, DC+, DC-) |
+| **Rules** | IT-, INS of a negation, DC- | All six (ERA, INS, IT+, IT-, DC+, DC-) |
 | **Termination** | Empty (yes) or stuck (no) | Target reached (yes) or unreachable (no) |
-| **Graphist moves** | ERA, IT- in negative areas | INS, IT+, DC+ in negative areas |
-| **Grapheus moves** | ERA, IT- in positive areas | ERA, IT-, DC- in positive areas |
+| **Graphist moves** | IT-, INS, DC- at the frame level and every second level below | INS, IT+, DC+ in negative areas |
+| **Grapheus moves** | IT-, INS, DC- at the levels between | ERA, IT-, DC- in positive areas |
 | **Result** | Semantic: G holds (or not) in *this* M | Logical: G holds in *every* M satisfying the premises |
 
 The EPG outcome informs whether a proof is worth attempting. If the EPG
@@ -2100,31 +2122,32 @@ Peirce's architectonic is sound.
 
 ### Graphist (Proposer) Strategies
 
-The Proposer defends G by operating in negative (odd-depth) areas:
+The Proposer defends G from the frame level, and every second level below it:
 
-- **INS** (Insertion): Add content to negative areas. This strengthens the
-  conditional structure — adding to the antecedent of an implication makes it
-  harder for the Skeptic to satisfy.
-- **IT+** (Iteration): Copy subgraphs to more deeply enclosed areas. This
-  propagates information inward, extending the reach of premises.
-- **DC+** (Double Cut Insertion): Introduce `~[ ~[ ... ] ]` around content.
-  Meaning-preserving but creates new negative areas for future INS moves.
-  A **preparatory** move that expands the Proposer's territory.
+- **IT-** (Deiteration): Put an exposed, unenclosed piece to the domain model.
+  Where it maps, the model already accounts for it and the piece deiterates
+  away. This is the Graphist's principal move, and the one that wins: when
+  IT- has applied to every considered sub-graph, nothing is left unaccounted
+  for.
+- **INS** of a negation around a negation, then **DC-**: the peel. Open a
+  remaining enclosure, exposing its interior one level out.
 
-**Key insight**: The Proposer's power lies in *strengthening conditions* and
-*extending information*. The Proposer cannot erase anything — they can only
-add structure and propagate existing content.
+**Key insight**: the Proposer's power lies in *showing that the model already
+holds what was proposed*. Nothing is built — IT+ and DC+ are not available, and
+neither is ERA. The game only unwinds, and the Graphist's task is to unwind it
+completely before the Grapheus finds a piece that will not map.
 
 ### Grapheus (Skeptic) Strategies
 
-The Skeptic attacks G by operating in positive (even-depth) areas:
+The Skeptic works the levels between the Graphist's, and plays the same three
+rules the Graphist does:
 
-- **ERA** (Erasure): Remove content from positive areas. This weakens the
-  graph — erasing a predicate from the sheet removes an assertion.
-- **IT-** (Deiteration): Remove content that iteration could have produced.
-  This "undoes" the Proposer's propagation moves.
-- **DC-** (Double Cut Erasure): Remove `~[ ~[ ... ] ]` pairs. Simplifies
-  structure and may expose content for further erasure.
+- **IT-** (Deiteration): Remove a piece the domain model already accounts for.
+- **INS** of a negation around a negation: scribe a doubly-negated copy beside
+  an enclosure — licensed because the game sits in a negative context — which
+  is proposing the opposite of what was scribed.
+- **DC-** (Double Cut Erasure): Collapse that pair, exposing the interior and
+  taking up the Graphist's part for the sub-graph so exposed.
 
 **Key insight**: The Skeptic's power lies in *weakening assertions* and
 *simplifying structure*. The Skeptic cannot add anything — they can only
@@ -2143,12 +2166,16 @@ Skeptic becomes the Proposer who must defend the contrary graph.
 
 The alternation creates a dialectical rhythm:
 
-1. **Opening**: Graphist may use DC+ to create negative territory for future
-   INS moves. Grapheus may use ERA to simplify obvious targets.
-2. **Middle game**: IT+ and IT- create a push-pull dynamic — the Proposer
-   copies information inward, the Skeptic removes copies.
-3. **Endgame**: One player runs out of productive moves and must either
-   concede or make neutral (DC+/DC-) moves that don't advance their position.
+1. **Opening**: the exposed, unenclosed pieces are put to the domain model;
+   those that map deiterate away by IT-.
+2. **Middle game**: the peel. A remaining enclosure is opened by INS of a
+   negation and DC-, exposing its interior one level out, and the roles switch
+   for that sub-graph. Repeat, alternating down the tree.
+3. **Endgame**: either the whole graph is traversed with nothing left
+   unaccounted for — the Graphist wins — or a piece fails to map, or a
+   counter-proposal maps, and the Grapheus wins. A player with nothing left to
+   deiterate or peel in their own territory has no legal move, which is the
+   third ending: the graph cannot be reduced further.
 
 ### When to Concede
 
@@ -2223,15 +2250,18 @@ state = game.new_game(
 ### Making Moves
 
 ```python
-# Skeptic erases from positive area (sheet)
-state, msg = game.apply_move(state, "ERA", frozenset([edge_id]), sheet_id)
+# The game is opened inside a context; sheet-level content is refused.
+state = game.new_game(initial_egif="~[ (Human *x) ~[ (Mortal x) ] ]")
 
-# Proposer inserts into negative area
-state, msg = game.apply_move(state, "INS", frozenset(), cut_area_id,
-                              insert_egif="(Mortal *x)")
+# A piece the domain model already accounts for deiterates away.
+state, msg = game.apply_move(state, "IT-", frozenset([edge_id]), area_id)
 
-# Either player: double cut
-state, msg = game.apply_move(state, "DC+", frozenset(), area_id)
+# The peel, first half: a doubly-negated copy scribed beside an enclosure.
+state, msg = game.apply_move(state, "INS", frozenset(), frame_area_id,
+                              insert_egif="~[ ~[ (Mortal *x) ] ]")
+
+# The peel, second half: collapse it and expose the interior.
+state, msg = game.apply_move(state, "DC-", frozenset([outer_cut_id]), frame_area_id)
 ```
 
 ### Interactive play (the Agon arena)

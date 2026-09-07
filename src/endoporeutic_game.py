@@ -1,17 +1,57 @@
 """
 Endoporeutic Game Engine  (Dau Chapter 21 / Peirce)
 
-Implements the two-player dialogical game on Existential Graphs.
+The EPG is a specific **method of interpretation**, not a proof procedure. The
+Graphist presents a whole proposed graph to the Grapheus for testing; the graph
+is decomposed sub-graph by sub-graph, and each piece is put to a reference
+domain model with one question — does this map, or could it be implied by or be
+consistent with, what the model already holds? Where a piece maps, IT- applies:
+the content is already accounted for. When IT- has applied to every considered
+sub-graph the Graphist wins; if any sub-graph fails to map the Grapheus wins.
+
+Like every graph transformation in Arisbe the method follows Dau's calculus,
+but it uses only the eliminative part of it.
 
 Players
 -------
-PROPOSER  Defends the graph.  Moves in NEGATIVE (odd-depth) areas.
-          Legal rules: INS, IT+, DC+
-SKEPTIC   Attacks the graph.  Moves in POSITIVE (even-depth) areas.
-          Legal rules: ERA, IT-, DC-
+PROPOSER (Graphist)  Defends the proposal.  Moves in NEGATIVE (odd-depth) areas.
+SKEPTIC  (Grapheus)  Challenges it.         Moves in POSITIVE (even-depth) areas.
 
-DC+/DC- are meaning-preserving in all contexts and are permitted for
-both players in any area (they do not affect what can be proven).
+Both play the same three rules: **IT-**, **INS** (only of a negation around a
+negation), and **DC-**.
+
+The game is scribed inside a **negative context**: the Graphist claims, in
+effect, that if the domain model holds then the proposed graph is true, and an
+implication is scribed in a negative area where one may scribe anything. That
+is why INS is available throughout, and why ERA — licensed only in positive
+areas — never appears in this game.
+
+Play runs as peeling an onion, or pulling branches, twigs and leaves back to
+the root. The exposed, unenclosed pieces are put to the domain model; those
+that map are already accounted for and deiterate away by IT-. A player then
+takes a remaining section that sits inside a cut and, since that cut already
+sits in a negative area, scribes a doubly-negated copy beside it (INS) and
+collapses it (DC-), exposing the interior. That is the player proposing the
+opposite of what was scribed, and taking up the Graphist's part for the
+sub-graph so exposed. At each crossing of a cut the roles switch.
+
+If a counter-proposal maps in the domain model, the original Graphist loses.
+If the entire graph is traversed without that happening, the Graphist wins.
+
+The constructive rules — IT+, DC+ — are deliberately absent. They build,
+and building belongs to Ergasterion, where an individual constructs, proves,
+practises, speculates, imagines, replays with variations and adjusts the style.
+When something there looks like a candidate worth testing, a Graphist carries
+it to Agon and subjects it to this method.
+
+Peeling a negative
+------------------
+Peeling is the **traversal**, not a move: descending into a cut is logically
+equivalent to the Grapheus proposing the opposite of what the Graphist
+proposed, so the players exchange roles and the method recurses on the
+interior. No ink changes on the descent. Territory therefore follows from
+depth rather than standing as a separate rule, and the recursion continues
+until the whole tree of the graph has been traversed.
 
 Turn structure
 --------------
@@ -25,6 +65,11 @@ Win conditions
 - A player has no legal moves          → that player loses
 - Goal EGI appears in current state    → Proposer wins
   (goal is optional; if absent the game continues until concede / no moves)
+
+The second of those was unreachable while DC+ was available in every area, and
+is reachable now: it is the ending in which the graph cannot be reduced
+further. What a win or a loss then *means* for the domain model is a separate
+question, and the Agonothetes sorts it (see web_api/services/agonothetes.py).
 """
 
 from dataclasses import dataclass, field
@@ -97,6 +142,11 @@ class GameState:
 
     # Optional goal graph.  When set, Proposer wins if the goal appears
     # as a subgraph of the positive (sheet-level) area of current_egi.
+    # The frame: the cut whose interior holds the Graphist's claim. The EPG
+    # always happens inside a context — nothing is ever scribed at sheet level
+    # — so this is established once at new_game and carried, never inferred
+    # from the graph as it changes under play.
+    frame_cut: Optional[ElementID] = None
     goal_egi: Optional[RelationalGraphWithCuts] = None
 
     # Human-readable log of completed moves
@@ -137,11 +187,34 @@ class EndoporeuticGame:
         print(game.status_text(state))
     """
 
-    # Rules available to each player
-    _PROPOSER_RULES = {"INS", "IT+", "DC+"}
-    _SKEPTIC_RULES  = {"ERA", "IT-", "DC-"}
-    # Either player may use DC+ / DC- (meaning-preserving in all contexts)
-    _BOTH_RULES     = {"DC+", "DC-"}
+    # The EPG's repertoire. The game is scribed inside a **negative context**:
+    # the Graphist claims, in effect, that if the domain model holds then the
+    # proposed graph is true, and an implication is scribed in a negative area
+    # where one may scribe anything. That is why INS is available throughout.
+    #
+    #   IT-  the exposed, unenclosed pieces that map to the domain model are
+    #        already accounted for, so they deiterate away.
+    #   INS  only of a negation around a negation: with the cut already sitting
+    #        in a negative area, a doubly-negated copy may be scribed beside it
+    #        (one may scribe anything in a negative area), which is the player
+    #        proposing the opposite of what was scribed.
+    #   DC-  collapses that double negation, exposing the interior — the onion
+    #        peeled one layer, the branch pulled to root level.
+    #
+    # ERA is **not** used. Neither are the constructive rules IT+ and DC+: they
+    # build, and building belongs to Ergasterion. A Graphist carries a
+    # candidate to Agon only to subject it to this method. Their earlier
+    # presence here made the game a proof workshop wearing the EPG's name, and
+    # made the "no legal moves" ending unreachable, since DC+ is always
+    # available in any area.
+    #
+    # Both players use the same three. At each crossing of a cut the roles
+    # switch: the player who exposes an interior takes up the Graphist's part
+    # for that sub-graph.
+    _PROPOSER_RULES = {"IT-", "INS", "DC-"}
+    _SKEPTIC_RULES  = {"IT-", "INS", "DC-"}
+    # Shared repertoire; the territory check still applies per area polarity.
+    _BOTH_RULES: set = set()
 
     def __init__(self):
         self._rules = {
@@ -176,6 +249,7 @@ class EndoporeuticGame:
 
         initial_egi = parse_egif(initial_egif)
         goal_egi = parse_egif(goal_egif) if goal_egif else None
+        frame_cut = self._establish_frame(initial_egi)
 
         history = EGITransformationHistory(initial_egi, "Game start")
 
@@ -187,8 +261,37 @@ class EndoporeuticGame:
             history=history,
             outcome=GameOutcome.ONGOING,
             outcome_reason="",
+            frame_cut=frame_cut,
             goal_egi=goal_egi,
         )
+
+    @staticmethod
+    def _establish_frame(egi: RelationalGraphWithCuts) -> ElementID:
+        """Identify the frame, and refuse a graph that has none.
+
+        The EPG always happens in a context: the Graphist claims, in effect,
+        that if the domain model holds then the proposed graph is true, and
+        that implication is scribed in a negative area. So the opening graph is
+        exactly one cut on the sheet, and nothing else. Sheet-level content is
+        not a weaker start — it is not a game, because there is no claim under
+        test and no level at which the roles could alternate.
+        """
+        sheet_contents = egi.area.get(egi.sheet, frozenset())
+        cuts = {c.id for c in egi.Cut}
+        stray = [e for e in sheet_contents if e not in cuts]
+        if stray:
+            raise ValueError(
+                f"the EPG is played inside a context: {len(stray)} element(s) "
+                f"sit at sheet level. Scribe the claim in a cut — "
+                f"~[ model ~[ proposal ] ] — and play inside it."
+            )
+        frame_cuts = [e for e in sheet_contents if e in cuts]
+        if len(frame_cuts) != 1:
+            raise ValueError(
+                f"the EPG needs exactly one frame cut on the sheet; found "
+                f"{len(frame_cuts)}."
+            )
+        return frame_cuts[0]
 
     # ------------------------------------------------------------------
     # Move application
@@ -311,22 +414,35 @@ class EndoporeuticGame:
 
         for area_id in egi.area:
             polarity, depth = self._area_polarity(egi, area_id)
-            if player is Player.PROPOSER and polarity is AreaPolarity.NEGATIVE:
-                result.append((area_id, polarity, depth))
-            elif player is Player.SKEPTIC and polarity is AreaPolarity.POSITIVE:
+            # Areas shallower than the frame lie outside the game: the claim
+            # under test is what was scribed in the negative context.
+            if depth < self.frame_depth(state):
+                continue
+            if self.owner_of_depth(state, depth) is player:
                 result.append((area_id, polarity, depth))
 
         return result
 
     def has_legal_moves(self, state: GameState) -> bool:
-        """
-        Return True if the current player has at least one legal move.
+        """Return True if the current player has at least one legal move.
 
-        DC+ is always available to both players in any area, so as long as
-        any area exists (and the sheet always exists) there is always a legal
-        move.  The game therefore only ends via concede or goal achievement.
+        Under the eliminative repertoire this is a real question, and its
+        answer is the game's third ending: a player with nothing left to erase
+        or deiterate in their own territory has run the graph as far down as it
+        will go. Previously DC+ was available to both players in every area, so
+        this could never be False and the "no legal moves" ending documented at
+        the top of this module was unreachable.
+
+        A player has a move when some area they own holds at least one element.
+        ERA can take any element from a positive area and IT- any element with
+        an accounted-for copy, so a non-empty owned area always admits a
+        candidate; an owner with only empty areas has none.
         """
-        return bool(state.current_egi.area)  # sheet is always present
+        egi = state.current_egi
+        for area_id, _polarity, _depth in self.legal_areas(state):
+            if egi.area.get(area_id):
+                return True
+        return False
 
     # ------------------------------------------------------------------
     # Status display
@@ -418,17 +534,50 @@ class EndoporeuticGame:
                 f"Skeptic cannot use {rule_name}. "
                 f"Skeptic rules: {', '.join(sorted(self._SKEPTIC_RULES))}"
             )
-        if player is Player.PROPOSER and polarity is not AreaPolarity.NEGATIVE:
+        # Territory is depth-relative, not absolute polarity. The game is
+        # scribed inside a negative context, so an absolute test — Proposer in
+        # negative areas, Skeptic in positive ones — leaves the Skeptic unable
+        # to move anywhere in the frame. Roles switch at each crossing of a
+        # cut, measured from the frame's own level: whoever holds the Graphist's
+        # part for the sub-graph now exposed is the one who may act on it.
+        if depth < self.frame_depth(state):
             return (
-                f"Proposer can only move in NEGATIVE (odd-depth) areas. "
-                f"Area {target_area!r} is positive (depth={depth})."
+                f"Area {target_area!r} (depth {depth}) lies outside the game "
+                f"frame, which begins at depth {self.frame_depth(state)}."
             )
-        if player is Player.SKEPTIC and polarity is not AreaPolarity.POSITIVE:
+        owner = self.owner_of_depth(state, depth)
+        if player is not owner:
             return (
-                f"Skeptic can only move in POSITIVE (even-depth) areas. "
-                f"Area {target_area!r} is negative (depth={depth})."
+                f"{player.value} cannot move at depth {depth}: that level "
+                f"belongs to {owner.value}. Roles switch at each crossing of a "
+                f"cut, counted from the frame."
             )
         return None
+
+    # ------------------------------------------------------------------
+    # Depth-relative roles
+    # ------------------------------------------------------------------
+
+    def frame_depth(self, state: GameState) -> int:
+        """The level at which play happens — the interior of the frame cut.
+
+        Carried on the state, established once at ``new_game``, never inferred
+        from the graph as it changes under play.
+        """
+        if state.frame_cut is None:
+            raise ValueError("game state carries no frame; build it with new_game")
+        return state.current_egi.area_polarity(state.frame_cut)[1]
+
+    def owner_of_depth(self, state: GameState, depth: int) -> Player:
+        """Who holds the Graphist's part at this level.
+
+        The frame level is the Graphist's; each crossing of a cut hands the
+        part to the other player, which is what "proposing the opposite of what
+        was scribed" amounts to.
+        """
+        if (depth - self.frame_depth(state)) % 2 == 0:
+            return Player.PROPOSER
+        return Player.SKEPTIC
 
     def _check_outcome(
         self, state: GameState
@@ -451,6 +600,7 @@ class EndoporeuticGame:
             history=state.history,
             outcome=GameOutcome.ONGOING,
             outcome_reason="",
+            frame_cut=state.frame_cut,
             goal_egi=state.goal_egi,
         )
         if not self.has_legal_moves(next_player_state):

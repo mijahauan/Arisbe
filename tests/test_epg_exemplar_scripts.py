@@ -183,7 +183,7 @@ class TestScriptA_Theorem(unittest.TestCase):
     def test_modus_ponens_game(self):
         game = EndoporeuticGame()
         state = game.new_game(
-            initial_egif="(P *a) ~[ (P *b) ~[ (Q *c) ] ]",
+            initial_egif="~[ (P *a) ~[ (P *b) ~[ (Q *c) ] ] ]",
             goal_egif="(Q *z)",
         )
 
@@ -315,9 +315,9 @@ class TestScriptB_Refutation(unittest.TestCase):
         game = EndoporeuticGame()
         state = game.new_game(
             initial_egif=(
-                "~[ (Cat *x) ~[ (Mammal x) ] ] "
+                "~[ ~[ (Cat *x) ~[ (Mammal x) ] ] "
                 "~[ (Mammal *y) (Fish *z) ] "
-                "(Cat *a) (Fish *b)"
+                "(Cat *a) (Fish *b) ]"
             ),
         )
 
@@ -717,42 +717,46 @@ class TestScriptL_PushPull(unittest.TestCase):
         self.assertGreaterEqual(len(p_in_cut), 2,
                                 "IT+ should add another P in the outer cut")
 
-        # === Skeptic move: IT- deiterates one P from the outer cut ===
-        # The Skeptic can IT- a P from the outer cut — but wait,
-        # the outer cut is depth 1 (negative = Proposer territory).
-        # Skeptic can only act in positive areas.
-        # Skeptic's counter: IT- on (P *b) in the outer cut won't work
-        # because it's negative.  But Skeptic CAN IT- from the sheet.
-        # Actually, let's use the game engine to demonstrate the territory
-        # constraint explicitly.
+        # === The EPG's own push-pull: the peel ===
+        # This section used to have the Proposer play DC+ as a "neutral
+        # preparatory move" and the Skeptic undo it with DC-. That is the
+        # proof register's dynamic — build then simplify — and the EPG has no
+        # version of it: the game only unwinds. Its push-pull is the peel. A
+        # doubly-negated copy is scribed beside an enclosure (INS, licensed
+        # because the game sits in a negative context), and collapsing it
+        # (DC-) exposes the interior — the player proposing the opposite of
+        # what was scribed, and taking up the Graphist's part for that
+        # sub-graph.
 
         game = EndoporeuticGame()
-        state = game.new_game(initial_egif="(P *a) ~[ (P *b) ~[ (Q *c) ] ]")
+        state = game.new_game(initial_egif='~[ (P *b) ~[ (Q *c) ] ]')
 
-        # Proposer: DC+ on sheet (neutral preparatory move)
-        state, msg1 = game.apply_move(state, "DC+", frozenset(), state.current_egi.sheet)
+        # The frame is the negative context; the Graphist owns its level.
+        self.assertEqual(game.frame_depth(state), 1)
+        self.assertEqual(state.current_player, Player.PROPOSER)
+        frame = [a for a, _pol, _d in game.legal_areas(state)]
+        self.assertTrue(frame, "the Graphist should own the frame level")
+
+        # Graphist scribes the doubly-negated copy beside the enclosure.
+        state, msg1 = game.apply_move(
+            state, "INS", frozenset(), frame[0], insert_egif="~[ ~[ (Q *d) ] ]")
+        self.assertNotIn("Illegal", msg1, msg1)
         self.assertFalse(state.is_over)
-        self.assertEqual(state.current_player, Player.SKEPTIC, "Should be Skeptic's turn")
+        self.assertEqual(state.current_player, Player.SKEPTIC,
+                         "Should be Skeptic's turn")
 
-        # Skeptic: IT- on (P *b) in the outer cut — but this is in a
-        # negative area, so Skeptic can't act there directly.
-        # Instead Skeptic uses DC- to remove the double cut just created.
-        # This demonstrates the push-pull: Proposer creates structure,
-        # Skeptic simplifies it back.
-        sheet = state.current_egi.sheet
-        sheet_cuts = _elements_in_area(state.current_egi, sheet)["cuts"]
-        # Find the double cut created by DC+
-        for cid in sheet_cuts:
-            inner_contents = _elements_in_area(state.current_egi, cid)
-            if inner_contents["cuts"] and not inner_contents["edges"]:
-                # This looks like the outer part of a double cut
-                state, msg2 = game.apply_move(
-                    state, "DC-", frozenset([cid]), sheet)
-                break
+        # Roles are depth-relative: crossing a cut hands the Graphist's part
+        # to the other player, so the Skeptic owns the level one deeper.
+        self.assertIs(game.owner_of_depth(state, 1), Player.PROPOSER)
+        self.assertIs(game.owner_of_depth(state, 2), Player.SKEPTIC)
 
-        _dump(state.current_egi, "After Skeptic DC-: undid Proposer's DC+")
-        self.assertEqual(state.current_player, Player.PROPOSER,
-                         "Should be Proposer's turn again after Skeptic moves")
+        # Nothing constructive is available to either player.
+        for rule in ("DC+", "IT+"):
+            _s, refused = game.apply_move(state, rule, frozenset(), frame[0])
+            self.assertIn("Illegal", refused,
+                          f"{rule} builds; the EPG should refuse it")
+
+        _dump(state.current_egi, "After the Graphist's INS: the peel begun")
 
 
 class TestScriptM_Concession(unittest.TestCase):
@@ -799,7 +803,7 @@ class TestScriptN_GameEngineIntegration(unittest.TestCase):
     def test_game_engine_basics(self):
         game = EndoporeuticGame()
         state = game.new_game(
-            initial_egif="(P *a) ~[ (P *b) ~[ (Q *c) ] ]",
+            initial_egif="~[ (P *a) ~[ (P *b) ~[ (Q *c) ] ] ]",
             goal_egif="(Q *z)",
         )
 
@@ -816,7 +820,7 @@ class TestScriptN_GameEngineIntegration(unittest.TestCase):
         """Proposer cannot use ERA (a Skeptic rule) in a positive area."""
         game = EndoporeuticGame()
         state = game.new_game(
-            initial_egif="(P *a) (Q *b)",
+            initial_egif="~[ (P *a) (Q *b) ]",
         )
         # Proposer tries ERA on the sheet (positive) — should be rejected
         p_edge = _find_edge_by_rel(state.current_egi, state.current_egi.sheet, "P")
@@ -827,24 +831,64 @@ class TestScriptN_GameEngineIntegration(unittest.TestCase):
         self.assertEqual(state.move_number, 0, "No move should have been applied")
 
     def test_turn_alternation(self):
-        """Players alternate after each successful move."""
+        """Players alternate after each successful move.
+
+        This used to open with DC+ "as a neutral move", which the EPG has no
+        use for: DC+ builds, and the game only unwinds. The opening here is the
+        first half of a peel — a doubly-negated copy scribed beside the
+        enclosure, licensed because the game is scribed in a negative context.
+        """
         game = EndoporeuticGame()
-        state = game.new_game(initial_egif="(P *a)")
+        state = game.new_game(initial_egif='~[ (P *a) ~[ (Q *b) ] ]')
 
         self.assertEqual(state.current_player, Player.PROPOSER)
+        frame = [a for a, _pol, _d in game.legal_areas(state)]
+        self.assertTrue(frame, "the Graphist should own the frame level")
 
-        # Proposer makes a DC+ move (always legal for either player)
         state, msg = game.apply_move(
-            state, "DC+", frozenset(), state.current_egi.sheet
+            state, "INS", frozenset(), frame[0], insert_egif="~[ ~[ (Q *c) ] ]"
         )
+        self.assertNotIn("Illegal", msg, msg)
         self.assertEqual(state.current_player, Player.SKEPTIC,
                          "Should be Skeptic's turn after Proposer moves")
+
+    def test_the_game_requires_a_frame(self):
+        """The EPG always happens in a context; sheet-level content is not a game.
+
+        The Graphist's claim — if the domain model holds then the proposal is
+        true — is scribed in a negative area. Without that context there is no
+        claim under test and no level from which the roles could alternate, so
+        the engine refuses rather than playing something that is not the EPG.
+        """
+        game = EndoporeuticGame()
+        with self.assertRaises(ValueError) as ctx:
+            game.new_game(initial_egif="(P *a) ~[ (Q *b) ]")
+        self.assertIn("inside a context", str(ctx.exception))
+
+        with self.assertRaises(ValueError) as ctx:
+            game.new_game(initial_egif="~[ (P *a) ] ~[ (Q *b) ]")
+        self.assertIn("exactly one frame cut", str(ctx.exception))
+
+        # A properly framed claim opens, and carries its frame explicitly.
+        state = game.new_game(initial_egif="~[ (P *a) ~[ (Q *b) ] ]")
+        self.assertIsNotNone(state.frame_cut)
+        self.assertEqual(game.frame_depth(state), 1)
+
+    def test_constructive_rules_are_refused(self):
+        """The EPG builds nothing: IT+ and DC+ are not in its repertoire."""
+        game = EndoporeuticGame()
+        state = game.new_game(initial_egif='~[ (P *a) ~[ (Q *b) ] ]')
+        frame = [a for a, _pol, _d in game.legal_areas(state)][0]
+        for rule in ("DC+", "IT+", "ERA"):
+            _s, msg = game.apply_move(state, rule, frozenset(), frame)
+            self.assertIn("Illegal", msg, f"{rule} should be refused in the EPG")
+        self.assertEqual(state.move_number, 0)
 
     def test_status_text(self):
         """The status display should include key game information."""
         game = EndoporeuticGame()
         state = game.new_game(
-            initial_egif="(P *a) ~[ (Q *b) ]",
+            initial_egif="~[ (P *a) ~[ (Q *b) ] ]",
             goal_egif="(R *z)",
         )
         text = game.status_text(state)

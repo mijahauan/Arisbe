@@ -61,7 +61,7 @@ background**.
 uv run pytest tests/ -q
 ```
 
-The suite has about 4,600 passing tests (4,618 passed / 217 skipped as of 2026-09-06). The mathematical core must always pass; if it
+The suite has about 4,600 passing tests (4,620 passed / 217 skipped as of 2026-09-06). The mathematical core must always pass; if it
 doesn't, something is genuinely wrong rather than flaky.
 
 ## Build the book/help

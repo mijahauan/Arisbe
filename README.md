@@ -374,7 +374,7 @@ print(r)   # Z3Result(YES: ...)
 
 ## 🧪 Testing
 
-**4,618 passed, 217 skipped, 1 xfailed, 0 failed** as of 2026-09-06 (`uv run pytest tests/ -q`, ~41 min).
+**4,620 passed, 217 skipped, 1 xfailed, 0 failed** as of 2026-09-06 (`uv run pytest tests/ -q`, ~41 min).
 The mathematical core subset (`egi_core_dau`, `formal_transformation_rules`, `rule_interaction`,
 `subgraph_closure_validator`, `graph_isomorphism_engine`, the Beta/logical proof exercises) must
 always pass — a failing core test is a real correctness defect, never test noise.
