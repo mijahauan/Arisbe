@@ -104,7 +104,7 @@ It does not serve as a proof procedure. Proof and interpretation, though
 related, serve different purposes and follow different procedures. The EPG
 supplies the interpretive method. Given a proposed graph G and a domain model M, the game
 determines whether G holds in M by systematically unwrapping G using only the
-eliminative rules IT- and DC-, until the graph either disappears entirely or
+eliminative rules ERA and IT-, until the graph either disappears entirely or
 resists further reduction.
 
 > "The interpretation of existential graphs is *endoporeutic*, that is, proceeds
@@ -132,18 +132,25 @@ a double negative provides the initial context.
 |-----------|-------------|
 | **Domain Model (M)** | An agreed Existential Graph Instance ([EGI](GLOSSARY.md#egi)) on the Sheet of Assertion — the shared knowledge base |
 | **Proposal (G)** | The Graphist's "seed" graph — an assertion the game will test |
-| **Rules** | IT- (de-iteration) and DC- (double cut elimination) — the two eliminative rules used by the EPG |
+| **Rules** | **ERA** (erasure of a part matched against M) and **IT-** (de-iteration of a copy already accounted for), together with **peeling** a negative — the eliminative repertoire of the EPG. No arbitrary insertion, no iteration-in, no double-cut introduction: those are constructive and belong to Ergasterion. |
 | **Agonothetes** | The interpretive function of the game — not a player, and not a referee: it frames the episode (the **risked choice** of M) and, after play, makes the **risked selection** of a fate from the outcome ([THE_COMMENS_AND_THE_COMMUNITY.md](THE_COMMENS_AND_THE_COMMUNITY.md) §3) |
 
 ### Players and Territories
 
 | Player | Also known as | Role | Territory | Rules |
 |--------|---------------|------|-----------|-------|
-| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | IT-, DC-; hosts erase-a-negative INS step |
-| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | IT-, DC-; initiates erase-a-negative |
+| **Graphist** | Proposer, Utterer, Encoder, Speaker | Defends the proposal | NEGATIVE areas (odd depth) | ERA, IT-; hosts the peeling of a negative |
+| **Grapheus** | Skeptic, Interpreter, Decoder, Listener | Challenges the proposal | POSITIVE areas (even depth) | ERA, IT-; initiates the peeling of a negative |
 
-The EPG uses three canonical operations — IT-, DC-, and a compound move called
-**erase-a-negative** — all strictly in the service of unwinding structure.
+Territory is a *consequence* of the recursion, not an extra rule. The EPG is one
+method iterated: at each area the defender witnesses the lines local to it and
+the challenger picks a conjunct; peeling a negative swaps the two and recurses
+on the interior, until the whole tree of the graph is traversed. Who owns an
+area therefore follows from its depth.
+
+The EPG uses three canonical operations — **ERA**, **IT-**, and a compound move
+called **erase-a-negative** (peeling) — all strictly in the service of unwinding
+structure.
 No arbitrary insertion, no iteration-in to strengthen premises, no erasure of
 arbitrary subgraphs. Each operation reduces or simplifies; none adds new
 propositional content. One person can play both roles, as when playing oneself
@@ -251,6 +258,25 @@ goal with it, so the goal counts as reached when the graph is isomorphic to it.
 ---
 
 ## Two Layers of the Game
+
+> **Correction pending (2026-09-06).** The author has ruled that this section's
+> framing is mistaken where it presents the EPG as unifying *two formalisms*,
+> and where the "Strategic Layer" below assigns the EPG the full range of Dau's
+> six rules. The EPG's strategy is peeling, matching against the reference
+> model, **ERA** and **IT-**; the construction of proofs — the full six —
+> belongs to Ergasterion, and a Graphist moves a candidate to Agon only to
+> subject it to the EPG. The rule tables in Part I have been corrected
+> accordingly.
+>
+> The deeper reading the author gives is that these are not two formalisms but
+> **one method iterated recursively with the roles switched, until the whole
+> tree of the graph is traversed** — and that erase-a-negative "is logically
+> equivalent to the Grapheus proposing the opposite of what the Graphist
+> proposed." On that reading the semantic description and the transformation
+> description are the same move named twice, which is why step 2 of "The
+> Outside-In Process" above already reports that peeling *reverses the roles*.
+> Rewriting this section on that basis is a doctrinal change the author has not
+> yet ruled on, so the text below stands unaltered pending it.
 
 Before the mechanics of play, one distinction clears up most confusion about the
 EPG — including why the Overview above speaks of "two eliminative rules" (IT-,
@@ -543,10 +569,10 @@ The two methods address the same logical territory from opposite directions:
 |---|---|---|
 | **Question** | Does G hold in M? | Must G hold given M? |
 | **Direction** | Outside-in elimination | Constructive derivation |
-| **Rules** | IT-, DC- only | All six (ERA, INS, IT+, IT-, DC+, DC-) |
+| **Rules** | ERA, IT-, and peeling | All six (ERA, INS, IT+, IT-, DC+, DC-) |
 | **Termination** | Empty (yes) or stuck (no) | Target reached (yes) or unreachable (no) |
-| **Graphist moves** | IT-, DC- in negative areas | INS, IT+, DC+ in negative areas |
-| **Grapheus moves** | IT-, DC- in positive areas | ERA, IT-, DC- in positive areas |
+| **Graphist moves** | ERA, IT- in negative areas | INS, IT+, DC+ in negative areas |
+| **Grapheus moves** | ERA, IT- in positive areas | ERA, IT-, DC- in positive areas |
 | **Result** | Semantic: G holds (or not) in *this* M | Logical: G holds in *every* M satisfying the premises |
 
 The EPG outcome informs whether a proof is worth attempting. If the EPG
