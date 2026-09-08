@@ -203,40 +203,37 @@ independent, the Agonothetes' honest stalemate."
 So stratum 1 of §5's table has no hole. Strata 2 and 3 were already built. The
 whole EPG column is done.
 
-### What is actually wrong
+### What was actually wrong, and what was built
 
-`endoporeutic_game.py` implements the **constructive proof game** —
-`_PROPOSER_RULES = {INS, IT+, DC+}` against `_SKEPTIC_RULES = {ERA, IT−, DC−}`,
-the guide's *proof* table — and is therefore Ergasterion's business by the
-doctrine above. Three consequences:
+`endoporeutic_game.py` was added as "the Endoporeutic Game engine" but built
+with the **proof register's** rule table — Proposer `{INS, IT+, DC+}` against
+Skeptic `{ERA, IT-, DC-}` — so it played construction under the EPG's name.
 
-1. **It is misnamed.** It is not the Endoporeutic Game.
-2. **Its docstring claims EPG win conditions it cannot reach.** "A player who
-   cannot make any legal move loses" is unreachable there because DC+ is always
-   available; in the EPG proper that outcome exists and is called
-   `INDEPENDENT`. Correct doctrine, wrong module.
-3. **Agon's UI exposes it.** `POST /agon/games` + `/move` + `/concede` offers a
-   hot-seat *transformation* game in the mode reserved for interpretation.
+**BUILT 2026-09-08 (`80e30fe`).** The engine now plays the method:
 
-### Ruling required (Q5, restated)
+- **Repertoire** — both players `{IT-, INS, DC-}`. ERA is gone: erasure is
+  licensed only in positive areas, and the whole game is scribed inside a
+  negative one. IT+ and DC+ are gone because they build.
+- **Territory is depth-relative.** The absolute polarity test left the Grapheus
+  unable to move anywhere in the frame, demonstrated before the change:
+  *"Skeptic can only move in POSITIVE areas. Area c_a5cdfbe9 is negative
+  (depth=1)."* Roles now alternate from the frame's level.
+- **The frame is explicit.** `GameState.frame_cut` is established once in
+  `new_game`; a graph with sheet-level content is refused, because without the
+  context there is no claim under test and no level from which roles could
+  alternate.
+- **`has_legal_moves` computes** instead of returning `bool(area)`, so the
+  third ending — the graph cannot be reduced further — is reachable. That was
+  the defect the author identified at the outset.
 
-Not "build or retire", but **where does the constructive game live**:
+Four doctrinal passes were needed to get here, each corrected by the author
+rather than by anything in the repository: ERA in then out; territory absolute
+then depth-relative; the peel as a derivation, then as traversal, then as INS
+of a negation followed by DC-. The guide has been brought into line across all
+three passes, including Part IV, which was still *teaching* the old register.
 
-- **(a) Relocate.** Move the transformation game to Ergasterion as a two-player
-  practice register — territories, alternating turns — and rename the module
-  (`proof_game.py` / `ProofGame`). Agon keeps interpretation only.
-- **(b) Retire.** Ergasterion already applies all six rules through
-  `RuleInteraction` across 28 routes. The constructive game's distinct content
-  is only the polarity/territory constraint and turn alternation. If that is
-  not wanted as a practice mode, drop it and let Ergasterion's existing rule
-  machinery stand.
-
-Either way the docstring's win conditions move to where they are true, and
-Agon's page loses a register that does not belong to it.
-
-**Consequence for the exemplar arc:** E6, the two-player EPG inning, is
-*unblocked*. It wants an inning of the contest, which exists — not a register
-that needed building. Open question X3 is withdrawn.
+**The remaining Q5 residue is nil.** Nothing was retired and nothing moved to
+Ergasterion; the file was always meant to be the EPG and now is.
 
 ## 7. The defect class this review actually found
 
@@ -370,8 +367,11 @@ because a read-only demo and an interactive one are different projects.
 
 ## 11. Rulings (2026-09-06)
 
-- **Q5 — build the eliminative register.** See §6. The naive outcome is real and
-  feeds the non-binary question of what it means for M; strata 2 and 3 are built.
+- **Q5 — build the eliminative register. DONE (`80e30fe`).** The naive outcome
+  is real and feeds the non-binary question of what it means for M; strata 2
+  and 3 were already built. The engine now plays IT-, INS of a negation and
+  DC- inside an explicit frame, with depth-relative roles, and the third
+  ending is reachable. See §6.
 - **Q6 — the public URL is interactive.** A read-only Organon demo is declined:
   if the URL is exposed at all it must let a visitor play. That accepts the
   integration work in Tier 2 item 20 — a single uvicorn worker (four unlocked
@@ -394,6 +394,11 @@ because a read-only demo and an interactive one are different projects.
   previously got 29 errors); a greenfield workflow that runs only the documented
   steps and then renders a real graph; PySide6 moved to a `qt` extra
   (1.5 GB → 374 MB); `.python-version` pinned to 3.12; three stale test-count
-  claims corrected. Full suite 4,618 passed / 217 skipped / 1 xfailed / 0 failed.
-- **Next:** the exemplar arc specification (Q7), then Tier 1 correctness items,
-  then Tier 2 interactive deployment (Q6).
+  claims corrected.
+- **The EPG doctrine and engine: DONE** (`18b18c3`, `6c331dd`, `80e30fe`).
+  "Two Layers" retired; the guide corrected across three passes including the
+  Part IV strategy sections; the engine plays the method.
+- **Full suite:** 4,620 passed, 217 skipped, 1 xfailed, 0 failed, 0 errors
+  (39m28s). Quality gate green, 152 core tests.
+- **Next:** the exemplar arc — E7 and E3 first, being curation — then the Tier 1
+  correctness items (14-18), then Tier 2 interactive deployment (Q6).
