@@ -104,11 +104,19 @@ def test_m_resides_in_a_standing_world_scroll(tomos, uod_id):
                         # case (a construction chain legitimately starts here)
         scroll = find_world_scroll(egi)
         assert scroll is not None, f"{uod_id}: no standing residence"
-        # The §9.3 inventory, asserted explicitly beside the recognition:
+        # The §9.3 inventory, asserted explicitly beside the recognition.
+        #
+        # W-level *lines* are admitted (author's ruling, 2026-09-08): a constant
+        # mentioned in two cells is one line of identity, and a line between two
+        # areas traverses their least common area — W itself. Refusing it there
+        # would make the residence and the line of identity contradict each
+        # other. What the inventory guards against is contingent **assertion**
+        # standing at level 1, which is the retired shape; a bare line asserts
+        # nothing, and is_ligature_closed still keeps it inside W.
         w = scroll.cut_id
-        assert not nav.child_edges(egi, w) and not nav.child_vertices(egi, w), (
-            f"{uod_id}: content stands at level 1 (the retired shape) — M's "
-            f"elements belong in cells at even depth")
+        assert not nav.child_edges(egi, w), (
+            f"{uod_id}: an assertion stands at level 1 (the retired shape) — "
+            f"M's elements belong in cells at even depth")
         assert scroll.hold_ids, (
             f"{uod_id}: no empty cut in W — the outer negation would bind")
         assert is_ligature_closed(egi, scroll), (

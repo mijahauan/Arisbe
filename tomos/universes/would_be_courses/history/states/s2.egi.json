@@ -1,85 +1,79 @@
 {
   "Cut": [
     {
-      "id": "c_405bff45"
+      "id": "c_64a21565"
     },
     {
-      "id": "c_6774afe8"
+      "id": "c_ecbe28ad"
     },
     {
-      "id": "cut_794cfa14"
+      "id": "cut_903ae3f8"
     },
     {
-      "id": "cut_dac4dd23"
+      "id": "cut_ea24f03c"
     }
   ],
   "E": [
     {
-      "id": "e_c100c1f3"
+      "id": "e_13ebdb18"
     },
     {
-      "id": "e_d30fc41d"
+      "id": "e_9d1ff437"
     },
     {
-      "id": "e_fea46b9a"
+      "id": "e_c9483be2"
     }
   ],
   "V": [
     {
-      "id": "v_1165a8d2",
-      "is_generic": false,
-      "label": "Otto"
-    },
-    {
-      "id": "v_41aac7ad",
+      "id": "v_3ac30278",
       "is_generic": false,
       "label": "Clara"
     },
     {
-      "id": "v_8e2effe0",
+      "id": "v_b7f5a3d6",
       "is_generic": false,
       "label": "Otto"
     }
   ],
   "alphabet": null,
   "area": {
-    "c_405bff45": [
-      "e_c100c1f3",
-      "e_d30fc41d",
-      "v_41aac7ad",
-      "v_8e2effe0"
+    "c_64a21565": [
+      "e_9d1ff437"
     ],
-    "c_6774afe8": [
-      "e_fea46b9a",
-      "v_1165a8d2"
+    "c_ecbe28ad": [
+      "e_13ebdb18",
+      "e_c9483be2",
+      "v_3ac30278"
     ],
-    "cut_794cfa14": [],
-    "cut_dac4dd23": [
-      "c_405bff45",
-      "c_6774afe8",
-      "cut_794cfa14"
+    "cut_903ae3f8": [
+      "c_64a21565",
+      "c_ecbe28ad",
+      "cut_ea24f03c",
+      "v_b7f5a3d6"
     ],
-    "sheet_013c6ba4": [
-      "cut_dac4dd23"
+    "cut_ea24f03c": [],
+    "sheet_d7e15fad": [
+      "cut_903ae3f8"
     ]
   },
   "nu": {
-    "e_c100c1f3": [
-      "v_41aac7ad"
+    "e_13ebdb18": [
+      "v_b7f5a3d6",
+      "v_3ac30278"
     ],
-    "e_d30fc41d": [
-      "v_8e2effe0",
-      "v_41aac7ad"
+    "e_9d1ff437": [
+      "v_b7f5a3d6"
     ],
-    "e_fea46b9a": [
-      "v_1165a8d2"
+    "e_c9483be2": [
+      "v_3ac30278"
     ]
   },
   "rel": {
-    "e_c100c1f3": "married_woman",
-    "e_d30fc41d": "husband",
-    "e_fea46b9a": "prospers"
+    "e_13ebdb18": "husband",
+    "e_9d1ff437": "prospers",
+    "e_c9483be2": "married_woman"
   },
   "rho": {},
-  "sheet": "sheet_013c6ba4"
+  "sheet": "sheet_d7e15fad"
 }

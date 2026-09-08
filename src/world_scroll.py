@@ -52,13 +52,14 @@ applied through ``proof_authoring.apply_rule``.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from frozendict import frozendict
 
 import eg_navigation as nav
 from contest_context import open_arena, posit, Arena
 from egi_core_dau import (
+    Edge,
     ElementID,
     RelationalGraphWithCuts,
     create_cut,
@@ -381,8 +382,59 @@ def enlarge_m(egi: RelationalGraphWithCuts, egif: str
         raise ValueError(
             "no standing world-scroll to enlarge — M is not resident "
             "(wrap it first: wrap_m / wrap_state)")
-    return apply_rule("INS", egi, egif=f"~[ {egif.strip()} ]",
-                      target=scroll.cut_id)
+    before = {v.id for v in egi.V}
+    grown = apply_rule("INS", egi, egif=f"~[ {egif.strip()} ]",
+                       target=scroll.cut_id)
+    return _join_admitted_individuals(grown, scroll.cut_id, before)
+
+
+def _join_admitted_individuals(
+    egi: RelationalGraphWithCuts,
+    w_id: ElementID,
+    pre_existing: set,
+) -> RelationalGraphWithCuts:
+    """Tie a newly admitted mention of an individual to the line already standing.
+
+    INS inserts the cell from text, so a constant already known to M arrives as
+    a *fresh* vertex: admitting ``(white "Rex")`` beside a standing
+    ``(bird "Rex")`` left two Rex lines, one per cell. That is not what the
+    ink means — a constant mentioned in several spots is one line of identity —
+    and the two-line form does not survive a text round trip, because reading it
+    back yields the one line it should have been.
+
+    The join is licensed rather than structural, exactly as
+    ``derived_rules.universal_instantiation`` does it: scribe an identity edge
+    between the two lines in W (a negative context, where insertion is
+    unconditionally sound), then merge by Dau's Def 16.6. The line then settles
+    at the least common area of its mentions — W itself when the mentions are in
+    different cells, which the residence admits (``find_world_scroll`` takes
+    W-level lines; only a W-level *assertion* is refused).
+    """
+    from vertex_splitting_merging_rules import VertexMergingRule
+    from vertex_scope import hoist_vertices_to_lca
+
+    standing: Dict[str, ElementID] = {}
+    fresh: List[Tuple[str, ElementID]] = []
+    for v in egi.V:
+        if v.is_generic or v.label is None:
+            continue
+        if v.id in pre_existing:
+            standing.setdefault(v.label, v.id)
+        else:
+            fresh.append((v.label, v.id))
+
+    joined = 0
+    for label, new_id in fresh:
+        anchor = standing.get(label)
+        if anchor is None or anchor == new_id:
+            continue
+        edge_id = f"e_admit_join_{joined}"
+        egi = egi.with_edge(Edge(id=edge_id), (anchor, new_id), "=", w_id)
+        egi = VertexMergingRule()._apply_vertex_merge(
+            egi, v1_id=anchor, v2_id=new_id, identity_edge_id=edge_id)
+        joined += 1
+
+    return hoist_vertices_to_lca(egi) if joined else egi
 
 
 def retract_from_m(

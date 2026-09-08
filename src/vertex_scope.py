@@ -82,6 +82,13 @@ def hoist_vertices_to_lca(
     Occurrences are read from incidence (``nu``), so this needs no bookkeeping
     from the parser that built the graph and can be applied to anything.
     """
+    # A quoting name is pinned to its quotation cut: the B-min device requires
+    # the two to sit in the same area, because that shared area *is* the drawn
+    # attachment between the name and the ink it quotes. Moving the name
+    # elsewhere would break the attachment even though the line's occurrences
+    # might argue for a different home, so these are left where they are.
+    pinned: Set[ElementID] = set(getattr(egi, "quotation", {}) .values())
+
     occurrences: Dict[ElementID, Set[ElementID]] = {}
     for edge_id, args in egi.nu.items():
         edge_area = _area_of(egi, edge_id)
@@ -91,6 +98,8 @@ def hoist_vertices_to_lca(
             occurrences.setdefault(vertex_id, set()).add(edge_area)
 
     for vertex_id, areas in occurrences.items():
+        if vertex_id in pinned:
+            continue
         current = _area_of(egi, vertex_id)
         if current is None:
             continue

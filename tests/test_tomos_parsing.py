@@ -15,7 +15,10 @@ because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
 The result is honest rather than flattering: most round-trips hold and a
-specific, named few do not. Those are listed in ``KNOWN_BROKEN`` with what goes
+specific, named few do not. As of 2026-09-08: **94 of 150 hold, 56 do not**
+(EGIF 3, CGIF 29, CLIF 24), down from 64 failures at the start of the arc.
+EGIF is nearly clean; what remains is concentrated in CGIF and CLIF and is
+format-specific rather than the shared placement cause. Those are listed in ``KNOWN_BROKEN`` with what goes
 wrong in each, and are expected failures — so the gaps stay visible and counted,
 and a fix announces itself by turning an xfail into an unexpected pass.
 """
@@ -63,7 +66,7 @@ SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
 # CLIF adds defects of its own: a constant re-read as a bound variable, an
 # existential returning as a universal, a spurious double negation.
 KNOWN_BROKEN = frozenset([
-    # CGIF: 30
+    # CGIF: 29
     ("agon_evolution_swan", "CGIF"),
     ("arithmetic_from_two_laws", "CGIF"),
     ("bfo_core", "CGIF"),
@@ -87,14 +90,13 @@ KNOWN_BROKEN = frozenset([
     ("peirce_order_1881", "CGIF"),
     ("porphyry_tree", "CGIF"),
     ("possible_and_necessary", "CGIF"),
-    ("roberts_1973_p57_disjunction", "CGIF"),
     ("skos_core", "CGIF"),
     ("swan_alternatives", "CGIF"),
     ("swan_episode_unpacked", "CGIF"),
     ("theorem_praeclarum", "CGIF"),
     ("would_be_courses", "CGIF"),
     ("zoo_world", "CGIF"),
-    # CLIF: 25
+    # CLIF: 24
     ("agon_evolution_swan", "CLIF"),
     ("arithmetic_from_two_laws", "CLIF"),
     ("barbara", "CLIF"),
@@ -113,23 +115,16 @@ KNOWN_BROKEN = frozenset([
     ("peirce_order_1881", "CLIF"),
     ("porphyry_tree", "CLIF"),
     ("roberts_1973_p57_disjunction", "CLIF"),
-    ("sibling_cuts_shared_variable", "CLIF"),
     ("skos_core", "CLIF"),
     ("swan_alternatives", "CLIF"),
     ("swan_episode_unpacked", "CLIF"),
     ("swan_third_tense", "CLIF"),
     ("would_be_courses", "CLIF"),
     ("zoo_world", "CLIF"),
-    # EGIF: 9
-    ("agon_evolution_swan", "EGIF"),
-    ("arithmetic_from_two_laws", "EGIF"),
+    # EGIF: 3
     ("bfo_core", "EGIF"),
     ("colore_field", "EGIF"),
-    ("dialogue_model_revision", "EGIF"),
-    ("dialogue_swan_revision", "EGIF"),
     ("episode_discharge", "EGIF"),
-    ("roberts_1973_p57_disjunction", "EGIF"),
-    ("would_be_courses", "EGIF"),
 ])
 
 
@@ -154,10 +149,7 @@ def test_linear_form_round_trips(service, uod_id, form):
     """generate -> parse -> the same graph."""
     if uod_id in SECOND_ORDER:
         pytest.skip("quotation-bearing; refusal asserted in its own test")
-    if (uod_id, form) in KNOWN_BROKEN:
-        pytest.xfail(
-            "known round-trip defect; see KNOWN_BROKEN — the dominant cause is a "
-            "shared vertex's area not being recorded in the linear form")
+    expected_broken = (uod_id, form) in KNOWN_BROKEN
 
     egi = service.load_uod(uod_id, attest=False).current_egi
     generate, parse = FORMS[form]
@@ -165,12 +157,23 @@ def test_linear_form_round_trips(service, uod_id, form):
     back = parse(text)
 
     if uod_id in BY_REEMISSION:
-        assert generate(back) == text, (
-            f"{uod_id} does not re-emit stably through {form}"
-        )
-        return
+        holds = generate(back) == text
+    else:
+        holds = nav.same_graph(egi, back)
 
-    assert nav.same_graph(egi, back), (
+    # The check is *run* either way, so a repaired round trip announces itself
+    # here rather than sitting silently in the list. An earlier version called
+    # pytest.xfail(), which aborts the test before it executes and therefore can
+    # never report an unexpected pass — the file claimed a property it did not
+    # have, and nine repairs went unreported because of it.
+    if expected_broken:
+        assert not holds, (
+            f"{uod_id}/{form} now round-trips — remove it from KNOWN_BROKEN "
+            f"and update the count in the docstring"
+        )
+        pytest.skip(f"{uod_id}/{form}: known round-trip defect, still failing")
+
+    assert holds, (
         f"{uod_id} does not survive the {form} round trip.\n"
         f"  emitted : {text[:200]}\n"
         f"  re-emit : {generate(back)[:200]}"
@@ -207,7 +210,7 @@ def test_the_round_trip_guarantee_is_stated_at_its_true_extent():
     second_order = len(SECOND_ORDER) * len(FORMS)
     broken = len(KNOWN_BROKEN)
     holding = total - second_order - broken
-    assert holding >= 80, (
+    assert holding >= 90, (
         f"only {holding} of {total} round-trips hold; the guarantee has "
         f"regressed below its measured extent"
     )

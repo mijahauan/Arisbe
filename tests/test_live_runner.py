@@ -430,10 +430,23 @@ def test_checkpoint_every_default_keeps_the_old_behavior():
 
 def _two_cell_M():
     """A resident M whose two admission cells each mention the constant "Opus".
-    Per-cell vertex privacy is what is at stake: EGIF has no way to say "two
-    distinct vertices, same label, different cells", so a *text* carry merges
-    them (world_scroll's documented round-trip accommodation) — which is what
-    defeated the licensed cell-scoped ERA and forced the F2¹³ fallback."""
+
+    This fixture used to exist to protect *per-cell vertex privacy*: two
+    distinct vertices, same label, one per cell, on the reading that EGIF's
+    inability to express that was a limitation of the format and a text carry
+    "merged" them wrongly.
+
+    That reading is retired (author's ruling, 2026-09-08). A constant mentioned
+    in several spots is **one line of identity**, drawn connecting them, and its
+    line traverses the least common area of those mentions — W, when the
+    mentions are in different cells. EGIF was saying the right thing; the
+    two-vertex form was the defect. ``enlarge_m`` now joins an admitted mention
+    to the standing line by a licensed identity-edge-and-merge, so this fixture
+    yields one Opus line at W.
+
+    The structural carry that F2¹³ introduced still earns its place — relation
+    names survive it and it costs no text round trip — but its stated rationale,
+    protecting a per-cell duplicate, no longer holds."""
     from egif_parser_dau import parse_egif
     from world_scroll import enlarge_m, wrap_m
     g, _scroll = wrap_m(parse_egif('(pen "Opus")'))
@@ -455,8 +468,8 @@ def test_carry_preserves_resident_M_structurally():
     r = LiveRunner(to_dict(m), ReplaySource(_fact_batches(1)), DiscourseFeed,
                    LiveRunConfig(ttl=None, checkpoint=False), clock=_zero_clock).run()
     carried = _carried(r)
-    # each cell keeps its own "Opus" vertex — under the EGIF carry this reads 1
-    assert len([v for v in carried.V if v.label == "Opus"]) == 2
+    # One individual, one line — mentioned from both cells, living at W.
+    assert len([v for v in carried.V if v.label == "Opus"]) == 1
     # and the carry is total: M is exactly the seed plus the admitted fact
     assert same_graph(carried, enlarge_m(m, '(topic0 "X")'))
 
@@ -475,8 +488,8 @@ def test_carry_preserves_resident_M_structurally_across_two_segments():
                    LiveRunConfig(ttl=None, checkpoint=False), clock=_zero_clock).run()
     assert [d.segment for d in r.segments] == [1, 2]
     carried = _carried(r)
-    # per-cell privacy survived TWO handoffs, not just the final serialization
-    assert len([v for v in carried.V if v.label == "Opus"]) == 2
+    # The single line survived TWO handoffs, not just the final serialization.
+    assert len([v for v in carried.V if v.label == "Opus"]) == 1
     assert same_graph(carried, enlarge_m(enlarge_m(m, '(topic0 "X")'),
                                          '(topic1 "X")'))
 
@@ -523,7 +536,7 @@ def test_state_file_carries_the_structural_model(tmp_path):
         state = _json.load(fh)
     assert "model_egif" not in state
     assert len([v for v in from_dict(state["model_json"]).V
-                if v.label == "Opus"]) == 2
+                if v.label == "Opus"]) == 1
 
 
 def test_resume_reads_a_legacy_egif_checkpoint(tmp_path):
