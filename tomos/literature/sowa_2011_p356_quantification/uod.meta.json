@@ -2,7 +2,7 @@
   "uod_id": "sowa_2011_p356_quantification",
   "uod_type": "standalone",
   "name": "Sowa's Quantification Example (2011, p.356)",
-  "description": "Sowa's quantification example (2011 tutorial, p.356): a shared line of identity threads Human(x) and Mortal(x).",
+  "description": "Sowa's quantification example (2011 tutorial, p.356): \u2200x (Human(x) \u2192 Mortal(x)) drawn as Peirce draws it \u2014 the scroll ~[ (Human *x) ~[ (Mortal x) ] ], one line of identity running from the antecedent into the consequent. The universal needs no quantifier symbol: it is the nesting that binds.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.098831",
   "last_modified": "2025-08-31T07:15:29.099445",

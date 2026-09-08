@@ -1,53 +1,53 @@
 {
-  "Cut": [],
-  "E": [
+  "Cut": [
     {
-      "id": "e_1154bae3"
+      "id": "c_6a2797f2"
     },
     {
-      "id": "e_8d3b75d9"
+      "id": "c_9a2975f6"
+    }
+  ],
+  "E": [
+    {
+      "id": "e_132d72f1"
+    },
+    {
+      "id": "e_674bc558"
     }
   ],
   "V": [
     {
-      "id": "v_7e182313",
+      "id": "v_f5a534eb",
       "is_generic": true,
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Human",
-      "Mortal"
-    ],
-    "ar": {
-      "Human": 1,
-      "Mortal": 1
-    }
-  },
+  "alphabet": null,
   "area": {
-    "sheet_10aeffaa": [
-      "e_1154bae3",
-      "e_8d3b75d9",
-      "v_7e182313"
+    "c_6a2797f2": [
+      "e_132d72f1"
+    ],
+    "c_9a2975f6": [
+      "c_6a2797f2",
+      "e_674bc558",
+      "v_f5a534eb"
+    ],
+    "sheet_ab665f42": [
+      "c_9a2975f6"
     ]
   },
   "nu": {
-    "e_1154bae3": [
-      "v_7e182313"
+    "e_132d72f1": [
+      "v_f5a534eb"
     ],
-    "e_8d3b75d9": [
-      "v_7e182313"
+    "e_674bc558": [
+      "v_f5a534eb"
     ]
   },
   "rel": {
-    "e_1154bae3": "Human",
-    "e_8d3b75d9": "Mortal"
+    "e_132d72f1": "Mortal",
+    "e_674bc558": "Human"
   },
-  "rho": {
-    "v_7e182313": null
-  },
-  "sheet": "sheet_10aeffaa"
+  "rho": {},
+  "sheet": "sheet_ab665f42"
 }
