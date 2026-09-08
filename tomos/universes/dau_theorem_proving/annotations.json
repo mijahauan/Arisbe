@@ -1,0 +1,45 @@
+{
+  "annotations": [
+    {
+      "id": "ann_1cf2e809",
+      "scope": "uod",
+      "text": "A deep nested-implication shell in the style of Dau's theorem-proving examples. Its point is that it looks deeper than it is: a vacuous double negation sits at the third level, and one DC- takes the shell from four cut levels to three without changing what it says.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "pedagogy",
+        "beta",
+        "cited"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_9d2ccfa5",
+      "scope": "chain",
+      "text": "One step, and the whole of it: erase a double cut. The graph is logically unchanged and structurally simpler, which is the distinction the exemplar exists to draw.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "derivation"
+      ],
+      "state_id": null,
+      "step_id": null,
+      "element_id": null
+    },
+    {
+      "id": "ann_947633a2",
+      "scope": "step",
+      "text": "DC- is meaning-preserving in any context, which is why this is a simplification and not an inference. Nothing is proved here; something is *seen*.",
+      "author": null,
+      "created": null,
+      "tags": [
+        "crux"
+      ],
+      "state_id": null,
+      "step_id": "step-1",
+      "element_id": null
+    }
+  ]
+}

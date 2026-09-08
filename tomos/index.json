@@ -64,7 +64,7 @@
     },
     {
       "uod_id": "beta_modus_ponens",
-      "name": "Beta Modus Ponens",
+      "name": "Modus Ponens on a Line of Identity",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -169,7 +169,7 @@
     },
     {
       "uod_id": "crowded_modus_ponens",
-      "name": "Crowded Modus Ponens",
+      "name": "Modus Ponens on a Crowded Sheet",
       "category": "theorem_proof",
       "uod_type": "historical",
       "is_static": false,
@@ -181,6 +181,21 @@
       "authors": [],
       "tags": [],
       "path": "universes/crowded_modus_ponens"
+    },
+    {
+      "uod_id": "dau_theorem_proving",
+      "name": "A Dau-Style Theorem-Proving Shell",
+      "category": "theorem_proof",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 2,
+      "total_transformations": 1,
+      "authors": [],
+      "tags": [],
+      "path": "universes/dau_theorem_proving"
     },
     {
       "uod_id": "de_morgan",
@@ -783,5 +798,5 @@
       "path": "literature/would_be_de_inesse"
     }
   ],
-  "last_updated": "2026-09-08T11:28:55.292261+00:00"
+  "last_updated": "2026-09-08T12:34:05.141744+00:00"
 }

@@ -375,6 +375,59 @@ class TomosService:
     
     # ===== Core Operations =====
     
+    def _freshen(self, entry: Dict) -> Dict:
+        """Overlay the browse fields that the per-UoD records own.
+
+        ``index.json`` caches ``name``, ``total_states`` and
+        ``total_transformations``, and the cache drifted: literature UoDs listed
+        under their slug long after ``uod.meta.json`` carried a real title, and
+        every row claimed one state and no transformations — including
+        ``theorem_praeclarum``, whose recorded chain is seven steps. Refreshing
+        the file did not hold either, because this service rewrites the index
+        from its own in-memory copy, putting the stale values straight back.
+
+        So the index is treated as a path cache and these three fields are read
+        from the records that own them: ``uod.meta.json`` for the name,
+        ``history/chain.jsonl`` for the counts. A UoD with no chain keeps one
+        state and no transformations, which is the truth about it.
+        """
+        path = entry.get("path")
+        if not path:
+            return entry
+        uod_dir = self.tomos_root / path
+        meta_path = uod_dir / "uod.meta.json"
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                meta = {}
+            if meta.get("name"):
+                entry["name"] = meta["name"]
+
+        chain = uod_dir / "history" / "chain.jsonl"
+        states, steps = set(), 0
+        if chain.exists():
+            try:
+                for line in chain.read_text(encoding="utf-8").splitlines():
+                    line = line.strip()
+                    if not line:
+                        continue
+                    rec = json.loads(line)
+                    if rec.get("type") == "initial" and rec.get("initial_state_id"):
+                        states.add(rec["initial_state_id"])
+                    elif rec.get("type") == "step":
+                        steps += 1
+                        for key in ("from_state_id", "to_state_id"):
+                            if rec.get(key):
+                                states.add(rec[key])
+            except (OSError, ValueError):
+                states, steps = set(), 0
+        entry["total_states"] = len(states) or 1
+        entry["total_transformations"] = steps
+        entry["is_static"] = steps == 0
+        entry["is_dynamic"] = steps > 0
+        return entry
+
     def _normalize_entry(self, entry: Dict) -> Dict:
         """Convert a legacy index entry to the current V2 index-entry schema.
 
@@ -438,7 +491,7 @@ class TomosService:
             List of lightweight UoD metadata dicts
         """
         # Normalize all entries to new format
-        results = [self._normalize_entry(u) for u in self._index.universes]
+        results = [self._freshen(self._normalize_entry(u)) for u in self._index.universes]
         
         if category is not None:
             results = [u for u in results if u.get("category") == category.value]

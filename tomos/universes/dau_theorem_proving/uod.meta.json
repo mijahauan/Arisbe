@@ -1,0 +1,19 @@
+{
+  "uod_id": "dau_theorem_proving",
+  "uod_type": "historical",
+  "name": "A Dau-Style Theorem-Proving Shell",
+  "description": "A deep nested-implication shell in the style of Dau's theorem-proving examples, and a lesson in reading depth: buried at the third level is a vacuous double negation. One DC- removes it and four cut levels become three, with the graph saying exactly what it said before. Drawn depth is not logical depth, and the calculus is what tells them apart. The shell is Arisbe's; the style, and the rules that settle it, are Dau's.",
+  "category": "theorem_proof",
+  "created": "2026-06-03T00:00:00+00:00",
+  "last_modified": "2026-06-03T00:00:00+00:00",
+  "current_state_id": null,
+  "total_states": 1,
+  "total_transformations": 0,
+  "authors": [],
+  "tags": [],
+  "source_citation": null,
+  "related_uods": [],
+  "domain_contexts": [],
+  "natural_language_summary": null,
+  "style_name": "dau-compliant@1.0"
+}
