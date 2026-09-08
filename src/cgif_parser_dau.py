@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from frozendict import frozendict
 
+from vertex_scope import hoist_vertices_to_lca
 from egi_core_dau import (
     AlphabetDAU,
     Cut,
@@ -284,6 +285,12 @@ class CGIFParser:
         # Convert parse tree to EGI (immutably)
         egi = create_empty_graph()
         egi = self._convert_to_egi(parse_tree, egi, egi.sheet)
+        # Place every line of identity at the least common area of its
+        # occurrences. A coreference label or a constant may be mentioned from
+        # several areas; interned where first seen, the line sits inside one of
+        # them and the graph reads with the wrong scope. Outward only — a line
+        # already enclosing all its uses stays where it is.
+        egi = hoist_vertices_to_lca(egi)
         # Populate AlphabetDAU and rho from parsed graph
         egi = self._finalize_alphabet_and_rho(egi)
         return egi

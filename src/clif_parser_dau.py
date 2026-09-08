@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 from frozendict import frozendict
 
+from vertex_scope import hoist_vertices_to_lca
 from egi_core_dau import (
     AlphabetDAU,
     Cut,
@@ -224,6 +225,22 @@ class CLIFParser:
         egi = create_empty_graph()
         for sentence in sentences:
             egi = self._convert_to_egi(sentence, egi, egi.sheet)
+
+        # Place every line of identity at the least common area of its
+        # occurrences. A CLIF variable is bound by a quantifier whose scope is
+        # wider than the line, and a constant has no binder at all, so both get
+        # interned wherever an atom first mentions them. That is the wrong area
+        # whenever the individual is mentioned in more than one place — and in
+        # CLIF it changes the *quantifier*, because a bound line's quantifier is
+        # read off its context polarity:
+        #
+        #   (exists (x) (and (not (P x)) (not (Q x))))
+        #
+        # interned x inside the first negation, at odd depth, and the graph
+        # re-emitted as (forall (x) ...). Hoisting is outward only, so a line
+        # already outside its uses keeps the position that fixes its
+        # quantification.
+        egi = hoist_vertices_to_lca(egi)
         # Populate AlphabetDAU and rho
         egi = self._finalize_alphabet_and_rho(egi)
         return egi
