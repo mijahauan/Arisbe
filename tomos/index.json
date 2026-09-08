@@ -543,21 +543,6 @@
       "path": "literature/dau_2006_p112_ligature"
     },
     {
-      "uod_id": "dau_theorem_proving",
-      "name": "A Dau-Style Theorem-Proving Shell",
-      "category": "literature_example",
-      "uod_type": "standalone",
-      "is_static": true,
-      "is_dynamic": false,
-      "created": "2025-08-31T07:15:29.032447",
-      "last_modified": "2025-08-31T07:15:29.033103",
-      "total_states": 1,
-      "total_transformations": 0,
-      "authors": [],
-      "tags": [],
-      "path": "literature/dau_theorem_proving"
-    },
-    {
       "uod_id": "forcing_forces",
       "name": "Forces (state s forces the quoted graph \u03c6)",
       "category": "canonical_pattern",
@@ -798,5 +783,5 @@
       "path": "literature/would_be_de_inesse"
     }
   ],
-  "last_updated": "2026-09-08T12:34:05.141744+00:00"
+  "last_updated": "2026-09-08T12:35:59.899997+00:00"
 }
