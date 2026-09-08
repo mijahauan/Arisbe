@@ -1,8 +1,8 @@
 {
   "uod_id": "shared_constant_disjunction",
   "uod_type": "standalone",
-  "name": "shared_constant_disjunction",
-  "description": "Shared Constant Disjunction",
+  "name": "A Constant Shared Across Polarity",
+  "description": "Structural exemplar: a constant (Socrates) shared between a sheet assertion and a double-cut \u2014 constant interning across polarity. Authored as a test case.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.095791",
   "last_modified": "2025-08-31T07:15:29.096298",

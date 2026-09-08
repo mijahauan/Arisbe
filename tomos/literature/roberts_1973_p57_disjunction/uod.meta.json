@@ -1,8 +1,8 @@
 {
   "uod_id": "roberts_1973_p57_disjunction",
   "uod_type": "standalone",
-  "name": "roberts_1973_p57_disjunction",
-  "description": "Roberts 1973 P57 Disjunction",
+  "name": "Disjunction the Peircean Way (Roberts 1973, p.57)",
+  "description": "Disjunction drawn the Peircean way (Roberts 1973, p.57): P \u2228 Q = ~[ ~[P] ~[Q] ] \u2014 two negated cuts inside a cut.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.092336",
   "last_modified": "2025-08-31T07:15:29.092939",

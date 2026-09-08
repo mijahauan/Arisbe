@@ -1,8 +1,8 @@
 {
   "uod_id": "dau_theorem_proving",
   "uod_type": "standalone",
-  "name": "dau_theorem_proving",
-  "description": "Dau Theorem Proving",
+  "name": "A Dau-Style Theorem-Proving Shell",
+  "description": "A deep nested-implication shell in the style of Dau's theorem-proving examples \u2014 authored here as a structural exemplar (not transcribed from a fixed page).",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.032447",
   "last_modified": "2025-08-31T07:15:29.033103",

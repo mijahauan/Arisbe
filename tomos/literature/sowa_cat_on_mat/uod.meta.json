@@ -1,8 +1,8 @@
 {
   "uod_id": "sowa_cat_on_mat",
   "uod_type": "standalone",
-  "name": "sowa_cat_on_mat",
-  "description": "Sowa Cat On Mat",
+  "name": "Sowa's Cat on a Mat",
+  "description": "Sowa's canonical 'cat on a mat': a 3-relation Beta graph with two lines of identity \u2014 the minimal n-ary relation drawn as one spot.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.100251",
   "last_modified": "2025-10-21T18:56:17.932364",

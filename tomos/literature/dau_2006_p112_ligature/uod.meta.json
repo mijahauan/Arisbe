@@ -1,8 +1,8 @@
 {
   "uod_id": "dau_2006_p112_ligature",
   "uod_type": "standalone",
-  "name": "dau_2006_p112_ligature",
-  "description": "Dau 2006 P112 Ligature",
+  "name": "Dau's Ligature Example",
+  "description": "Dau's ligature example (Mathematical Logic with Diagrams, \u2248p.112): one line of identity feeding P(x) on the sheet and both Q(x), R(x) inside a cut. Source page to be verified.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.030775",
   "last_modified": "2025-10-21T08:58:04.621911",

@@ -1,8 +1,8 @@
 {
   "uod_id": "mixed_quantifier_complex",
   "uod_type": "standalone",
-  "name": "mixed_quantifier_complex",
-  "description": "Mixed Quantifier Complex",
+  "name": "Mixed Quantifier Scope Across Cuts",
+  "description": "Structural exemplar: mixed quantifier scope across cuts (\u2200 outside, \u2203 inside). Authored as a test case.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.089160",
   "last_modified": "2025-10-21T19:07:25.571204",

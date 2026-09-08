@@ -1,8 +1,8 @@
 {
   "uod_id": "ternary_relation_challenge",
   "uod_type": "standalone",
-  "name": "ternary_relation_challenge",
-  "description": "Ternary Relation Challenge",
+  "name": "A Triadic Relation: Between(x, y, z)",
+  "description": "Structural exemplar: a single 3-adic relation Between(x,y,z) with three lines \u2014 exercises argument-order rendering. Authored as a test.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.103390",
   "last_modified": "2025-08-31T07:15:29.104007",

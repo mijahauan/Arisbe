@@ -1,8 +1,8 @@
 {
   "uod_id": "stanford_nested_quantifiers",
   "uod_type": "standalone",
-  "name": "stanford_nested_quantifiers",
-  "description": "Stanford Nested Quantifiers",
+  "name": "Nested Quantifiers: Nobody Loves Anybody",
+  "description": "Pedagogical exemplar: nested quantifiers, ~[ \u2203x \u2203y Loves(x,y) ] (nobody loves anybody). Authored as a teaching case in the nested-quantifier idiom.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.101854",
   "last_modified": "2025-08-31T07:15:29.102532",

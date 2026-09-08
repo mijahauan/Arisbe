@@ -1,8 +1,8 @@
 {
   "uod_id": "roberts_domain_modeling",
   "uod_type": "standalone",
-  "name": "roberts_domain_modeling",
-  "description": "Roberts Domain Modeling",
+  "name": "A Modelled Universe: Professors, Courses, Students",
+  "description": "A small modelled universe of discourse (professor / course / student / teaches / has): an authored domain model \u2014 the kind of board the Endoporeutic Game is played within.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.094072",
   "last_modified": "2025-08-31T07:15:29.094676",

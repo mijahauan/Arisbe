@@ -1,8 +1,8 @@
 {
   "uod_id": "peirce_modus_ponens",
   "uod_type": "standalone",
-  "name": "peirce_modus_ponens",
-  "description": "Peirce Modus Ponens",
+  "name": "Modus Ponens in Existential Graphs",
+  "description": "The modus-ponens argument form in EG: P(x) asserted alongside the scroll P(x) \u2283 Q(x). An authored pattern (not a transcription) \u2014 a move available to Agon.",
   "category": "literature_example",
   "created": "2025-08-31T07:15:29.029394",
   "last_modified": "2025-08-31T07:15:29.029747",
