@@ -74,6 +74,7 @@ class GraphIsomorphismEngine:
         self,
         egi: RelationalGraphWithCuts,
         subgraph_ids: FrozenSet[ElementID],
+        colour: bool = False,
     ) -> nx.MultiDiGraph:
         """
         Encode an EGI subgraph as a NetworkX MultiDiGraph.
@@ -86,6 +87,48 @@ class GraphIsomorphismEngine:
         e_ids = {e.id for e in egi.E}
         c_ids = {c.id for c in egi.Cut}
 
+        # Weisfeiler-Leman colours, as a VF2 pruning invariant.
+        #
+        # Without them ``_node_match`` distinguishes cuts only by ``quoted``
+        # and generic vertices only by label/sort, so on a graph of ontology
+        # size every cut is interchangeable with every other cut and every
+        # generic vertex with every other. VF2 then searches a factorial space
+        # pruned only by edge structure as it descends, and does not
+        # terminate usefully: ``bfo_core`` (24 vertices, 52 edges, 50 cuts)
+        # compared *against itself* did not return in 600 seconds, and
+        # ``sumo_upper`` never finished at all. Both now answer in under a
+        # tenth of a second.
+        #
+        # ``compute_canonical_signatures`` is the same UUID-independent
+        # refinement the generators use for canonical ordering. Equality of
+        # colours is an isomorphism *invariant*: corresponding elements of
+        # isomorphic graphs always carry equal colours, so requiring it can
+        # only reject candidates that could never have matched. VF2 still
+        # performs the real test; this just stops it exploring the impossible.
+        # **Only for whole-graph comparisons.** A colour summarises an element's
+        # position in the *entire* graph — its depth, its neighbourhood, the
+        # structure of the cuts around it. When a small pattern is embedded into
+        # a larger host (``find_isomorphic_subgraphs``, which is how IT- finds
+        # the copy it may deiterate), the pattern's elements sit in a different
+        # context than the matching elements of the host, so their colours
+        # legitimately differ and requiring equality would reject true
+        # embeddings. Colouring is therefore gated on the request covering every
+        # element of the graph, which is checked here rather than inferred from
+        # the call site.
+        wl = {}
+        if colour:
+            from canonical_signature import compute_canonical_signatures
+
+            try:
+                v_sig, e_sig, c_sig = compute_canonical_signatures(egi)
+                for sigs, tag in ((v_sig, "v"), (e_sig, "e"), (c_sig, "c")):
+                    wl.update({k: (tag, str(val)) for k, val in sigs.items()})
+            except Exception:
+                # A colour is an optimisation, never a correctness requirement:
+                # if the refinement cannot be computed, fall back to unpruned
+                # VF2 rather than refusing to answer.
+                wl = {}
+
         # Second-order maps (B-min): default empty via getattr so pre-B-min
         # pickles/mocks lacking the fields still build.
         sort_map = getattr(egi, "sort", {}) or {}
@@ -96,6 +139,7 @@ class GraphIsomorphismEngine:
                 v = next(v for v in egi.V if v.id == elem_id)
                 G.add_node(
                     elem_id,
+                    wl=wl.get(elem_id, ()),
                     ntype="v",
                     label=v.label,
                     is_generic=v.is_generic,
@@ -104,6 +148,7 @@ class GraphIsomorphismEngine:
             elif elem_id in e_ids:
                 G.add_node(
                     elem_id,
+                    wl=wl.get(elem_id, ()),
                     ntype="e",
                     rel=egi.rel.get(elem_id, ""),
                     arity=len(egi.nu.get(elem_id, ())),
@@ -111,6 +156,7 @@ class GraphIsomorphismEngine:
             elif elem_id in c_ids:
                 G.add_node(
                     elem_id,
+                    wl=wl.get(elem_id, ()),
                     ntype="c",
                     label=None,
                     is_generic=False,
@@ -137,7 +183,17 @@ class GraphIsomorphismEngine:
 
     @staticmethod
     def _node_match(n1: dict, n2: dict) -> bool:
-        """VF2 node compatibility: same element type and attributes."""
+        """VF2 node compatibility: same element type and attributes.
+
+        The Weisfeiler-Leman colour is checked first because it is the cheap
+        discriminator: without it every cut in a graph looks like every other
+        cut and VF2 cannot prune. Colour equality is an isomorphism invariant,
+        so this rejects only candidates that could never have matched. When a
+        colour is absent (the refinement failed, or a hand-built node) both
+        sides carry ``()`` and the check is vacuous.
+        """
+        if n1.get("wl", ()) != n2.get("wl", ()):
+            return False
         if n1["ntype"] != n2["ntype"]:
             return False
         if n1["ntype"] == "v":
@@ -234,8 +290,17 @@ class GraphIsomorphismEngine:
         if len(subgraph1) == 0:
             return IsomorphismResult(True, IsomorphismMapping({}, {}, {}), None)
 
-        G1 = self._build_nx_graph(egi1, subgraph1)
-        G2 = self._build_nx_graph(egi2, subgraph2)
+        # Colour both sides, or neither. A colour describes an element's place
+        # in its whole graph, so it is comparable only when both requests cover
+        # their whole graph; colouring one side of an embedding would reject
+        # true matches.
+        def _whole(egi, ids):
+            return ids >= ({v.id for v in egi.V} | {e.id for e in egi.E}
+                           | {c.id for c in egi.Cut})
+
+        colour = _whole(egi1, subgraph1) and _whole(egi2, subgraph2)
+        G1 = self._build_nx_graph(egi1, subgraph1, colour=colour)
+        G2 = self._build_nx_graph(egi2, subgraph2, colour=colour)
         gm = MultiDiGraphMatcher(G1, G2, self._node_match, self._edge_match)
 
         if not gm.is_isomorphic():

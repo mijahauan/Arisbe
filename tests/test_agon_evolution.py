@@ -264,59 +264,66 @@ def test_denial_cell_interior_survives_licensed_decay(tmp_path):
     assert sum(1 for e in final.E if final.rel.get(e.id) == "nests") == 1
 
 
-def test_decay_skip_is_counted_never_structural():
-    """Docket ④/⑥: what the licensed rule refuses is **skipped and counted**,
-    never erased by unlicensed structural surgery.
+def test_a_line_shared_between_cells_does_not_block_decay():
+    """A shared individual lives at W, so decaying one cell orphans nothing.
 
-    The refusal is reachable only on a legacy EGIF carry: a text round-trip
-    shares an identical constant across sibling cells into ONE vertex — here
-    "Rex", argument of both ``(bird "Rex")`` (its own cell) and
-    ``(white "Rex")`` (a sibling cell). Decaying ``bird`` first leaves that
-    vertex orphaned in a cell it has no edge left in; the licensed per-cell ERA
-    then rightly refuses to decay ``white``, because erasing it would reach
-    into a different area."""
+    This test previously asserted the opposite, and documented the mechanism in
+    its own docstring: a text round-trip merged an identical constant across
+    sibling cells into one vertex placed *inside one cell*, so decaying that
+    cell's atom left the vertex orphaned in a cell with no edge left, and the
+    per-cell ERA then refused to decay the sibling. The refusal was real and
+    correctly counted — but its cause was a defect, not a design.
+
+    ``egif_parser_dau._hoist_vertices_to_lca`` was written to prevent exactly
+    this and was never called. With it wired, a line of identity between two
+    cells traverses their least common area, which is W itself; nothing is
+    orphaned and both atoms decay. ``find_world_scroll`` admits the W-level
+    line (an assertion there is still refused) and ``m_view`` carries it.
+
+    The safety property this test used to carry — a refusal is skipped and
+    counted, never unlicensed structural surgery — is exercised by
+    ``test_world_scroll.py`` (widening erasures raise) and
+    ``test_live_runner.py::test_checkpoint_refusal_skip_counts_and_quarantines``.
+    What is gone is only this trigger for it.
+    """
     from world_scroll import wrap_m, enlarge_m, find_world_scroll
-    from agon_evolution import sheet_atom_keys
 
     seed, _ = wrap_m(parse_egif('(bird "Rex")'))
     seed = enlarge_m(seed, '(white "Rex")')
     seed_egif = generate_egif(seed)
     round_tripped = parse_egif(seed_egif)
 
-    # Confirm the shared-constant condition the round-trip induces: the two
-    # atoms' argument vertex is literally the same vertex, but the atoms sit
-    # in two different (sibling) cells.
     scroll = find_world_scroll(round_tripped)
+    assert scroll is not None, "the residence must survive a text round trip"
     assert len(scroll.cell_ids) == 2
+
     bird_edge = next(e for e in round_tripped.E
-                      if round_tripped.rel.get(e.id) == "bird")
+                     if round_tripped.rel.get(e.id) == "bird")
     white_edge = next(e for e in round_tripped.E
-                       if round_tripped.rel.get(e.id) == "white")
+                      if round_tripped.rel.get(e.id) == "white")
+
+    # One individual, one line — mentioned from two different cells.
     assert round_tripped.nu[bird_edge.id] == round_tripped.nu[white_edge.id]
     assert area_of(round_tripped, bird_edge.id) != area_of(round_tripped, white_edge.id)
 
-    # ttl=1 with a single unrelated proposal makes both seeded atoms stale in
-    # round 1 — sorted decay order retracts "bird" before "white" (lexical),
-    # reproducing the exact failing sequence.
+    # And that line sits at W, the least common area of the two cells — not
+    # inside either of them, which is what used to orphan it.
+    shared = round_tripped.nu[bird_edge.id][0]
+    assert area_of(round_tripped, shared) == scroll.cut_id, (
+        "the shared line belongs at W; inside a cell it is orphaned by the "
+        "first decay and blocks the second"
+    )
+
     res = run(seed_egif, CorpusProposer(['(rumor "Q")']), rounds=1, ttl=1,
               uod_id="skip", name="skip")
 
     decayed = {k for o in res.outcomes for k in o.decayed}
     assert atom_key("bird", ["Rex"]) in decayed
-    assert atom_key("white", ["Rex"]) not in decayed          # refused, so not erased
-
-    # the refusal is recorded, never silent
+    assert atom_key("white", ["Rex"]) in decayed, (
+        "the sibling's decay is no longer blocked"
+    )
     skipped = {k for o in res.outcomes for k, _reason in o.decay_skipped}
-    assert skipped == {atom_key("white", ["Rex"])}
-
-    # the atom STANDS — no unlicensed surgery took it
-    assert atom_key("white", ["Rex"]) in sheet_atom_keys(res.uod.current_egi)
-
-    # and every recorded decay step is a real licensed ERA (no empty derivation)
-    decay_steps = [s for s in res.chain.steps if s.rule_name == "DECAY"]
-    assert [s.parameters.get("derivation") for s in decay_steps] == [["ERA"]]
-    assert all(s.parameters.get("act") == "m_retraction" for s in decay_steps)
-
+    assert not skipped, f"nothing should be refused now, got {skipped}"
 
 def test_the_unlicensed_structural_fallback_is_gone():
     """Docket ⑥: the F2¹³ accommodation is deleted, not merely unused — nothing

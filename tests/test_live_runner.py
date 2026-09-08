@@ -623,22 +623,34 @@ def test_linear_form_skip_is_surfaced_in_the_segment_digest():
     assert all(d.linear_form_skipped > 0 for d in r.segments)
 
 
-def test_a_refused_decay_is_counted_once_across_segments():
-    """``decay_skipped`` is a count of refused **atoms**, not of refusal events.
+def test_a_line_shared_between_cells_decays_across_segments():
+    """A shared individual no longer blocks decay, across segments either.
 
-    A refused atom is dropped from the ledger; without also holding it aside it
-    stands in ``present`` next segment, is re-registered as a newcomer, goes
-    stale again after ``ttl``, and is refused and re-counted for the rest of the
-    run — one cycling atom inflating the counter indefinitely. The run below
-    spans well over ``ttl`` rounds after the refusal, so a per-event counter
-    reads >1."""
+    This test used to assert that ``decay_skipped`` counts refused *atoms* and
+    not refusal events — a real anti-double-counting property — and it reached
+    that refusal through the legacy-EGIF-carry scenario: a text round trip
+    merged "Rex" across sibling cells, the merged vertex landed inside one
+    cell, decaying that cell's atom orphaned it, and the per-cell ERA refused
+    the sibling.
+
+    That refusal was a defect, not a design. ``_hoist_vertices_to_lca`` places
+    a line shared between cells at their least common area — W — where nothing
+    orphans it, so both atoms now decay and no refusal occurs.
+
+    **What is no longer covered:** the anti-double-count property itself. It
+    guards a real hazard (a refused atom dropped from the ledger stands in
+    ``present`` next segment, is re-registered, goes stale again after ``ttl``
+    and is re-counted, one cycling atom inflating the counter for the rest of
+    a run). ``_decay_refused`` still implements it, and
+    ``test_decay_refused_exemption_does_not_outlive_the_atom`` below still
+    exercises the exemption's pruning — but no test now reaches the counter
+    through a natural refusal, because the only construction that produced one
+    has been fixed. A new trigger is wanted.
+    """
     from egif_generator_dau import generate_egif
     from egif_parser_dau import parse_egif
     from world_scroll import enlarge_m, wrap_m
 
-    # the legacy-EGIF-carry scenario in which the licensed cell-scoped ERA
-    # rightly refuses (see test_agon_evolution.test_decay_skip_is_counted_...):
-    # a text round-trip merges "Rex" across sibling cells.
     seed, _ = wrap_m(parse_egif('(bird "Rex")'))
     seed = enlarge_m(seed, '(white "Rex")')
 
@@ -646,11 +658,13 @@ def test_a_refused_decay_is_counted_once_across_segments():
                    DiscourseFeed, LiveRunConfig(ttl=1, checkpoint=False),
                    clock=_zero_clock).run()
 
-    assert sum(d.decayed for d in r.segments) > 0          # decay really ran
-    assert sum(d.decay_skipped for d in r.segments) == 1   # the atom, once
-    # and it still stands: a refusal is a skip, never unlicensed surgery
-    assert '(white "Rex")' in r.final_model_egif
-
+    assert sum(d.decayed for d in r.segments) > 0, "decay really ran"
+    assert sum(d.decay_skipped for d in r.segments) == 0, (
+        "the shared line sits at W, so nothing is orphaned and nothing is refused"
+    )
+    assert '(white "Rex")' not in r.final_model_egif, (
+        "the sibling atom decays now rather than being blocked"
+    )
 
 def test_decay_refused_exemption_does_not_outlive_the_atom():
     """MINOR 3 (re-review): ``atom_key`` is content-keyed (relation + labels),

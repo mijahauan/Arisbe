@@ -96,11 +96,26 @@ def find_world_scroll(egi: RelationalGraphWithCuts) -> Optional[WorldScroll]:
 
     Matches iff the sheet's area holds **exactly one cut W and no edges**
     (isolated sheet vertices are tolerated — bare "something exists" is
-    depth-0-legal per the inventory theorem), and W's area holds **only cuts,
-    at least one of them empty**: the empty ones are holds/scars (vacuity), the
-    non-empty ones are M's cells. A W-level edge or vertex is *not* the shape —
-    that ink is the retired level-1 residence, left visible rather than
-    misread — and the reader falls back to the sheet.
+    depth-0-legal per the inventory theorem), and W's area holds **only cuts
+    and lines of identity, at least one cut empty**: the empty ones are
+    holds/scars (vacuity), the non-empty ones are M's cells. A W-level *edge*
+    is still not the shape — an assertion standing at level 1 is the retired
+    residence, left visible rather than misread — and the reader falls back to
+    the sheet.
+
+    **W-level vertices are admitted (2026-09-08, author's ruling.)** When one
+    individual is mentioned in two cells, those mentions are one line of
+    identity, and a line between two areas traverses their least common area —
+    which for two cells is W itself. So a shared individual *must* put a vertex
+    at W-level; refusing the shape there would make the residence and the line
+    of identity contradict each other. What the inventory was guarding against
+    is contingent **assertion** at level 1, and a bare line asserts nothing:
+    ``is_ligature_closed`` still requires every such line to stay inside W, and
+    the sheet-level rule is unchanged.
+
+    Found when the EGIF parser began placing constants at their least common
+    area: ``~[ ~[ ] ~[ (swan "Ciel") ] ~[ (white "Ciel") ] ]`` puts Ciel's line
+    at W, and recognition failed on a graph that is plainly the residence.
     """
     sheet_cuts = nav.child_cuts(egi, egi.sheet)
     if len(sheet_cuts) != 1:
@@ -108,8 +123,8 @@ def find_world_scroll(egi: RelationalGraphWithCuts) -> Optional[WorldScroll]:
     if nav.child_edges(egi, egi.sheet):
         return None
     w = sheet_cuts[0]
-    if nav.child_edges(egi, w) or nav.child_vertices(egi, w):
-        return None                       # content at level 1 — not the shape
+    if nav.child_edges(egi, w):
+        return None                       # an assertion at level 1 — not the shape
     children = nav.child_cuts(egi, w)
     holds = tuple(c for c in children if not egi.get_area(c))
     cells = tuple(c for c in children if egi.get_area(c))
@@ -168,10 +183,19 @@ def m_view(egi: RelationalGraphWithCuts) -> RelationalGraphWithCuts:
     if scroll is None:
         return egi
     view = create_empty_graph()
-    # Two passes ACROSS the cells (shells of every cell before any edge): an
-    # EGIF round-trip unifies a constant shared between cells into one vertex
-    # scoped in the first cell that mentions it, so a later cell's edge may
-    # reference a sibling-cell vertex — the copy must be total over those.
+    # A line of identity shared between cells lives at W itself — that is the
+    # least common area of its mentions, and the residence admits it there
+    # (see find_world_scroll). It belongs to M's content as much as the cells
+    # do, so copy those lines first: without them a cell's edge would reference
+    # a vertex the view never received.
+    for vertex in nav.child_vertices(egi, scroll.cut_id):
+        v = next((x for x in egi.V if x.id == vertex), None)
+        if v is not None:
+            view = view.with_vertex_in_context(v, view.sheet)
+    # Two passes ACROSS the cells (shells of every cell before any edge): a
+    # constant shared between cells is one vertex, so a cell's edge may
+    # reference a vertex introduced by a sibling cell or held at W — the copy
+    # must be total over those.
     for cell in scroll.cell_ids:
         view = _copy_shell(egi, view, cell, view.sheet)
     for cell in scroll.cell_ids:

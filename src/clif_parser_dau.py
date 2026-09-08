@@ -595,6 +595,7 @@ class CLIFParser:
             # Existential quantification: (exists (x) body)
             # In EG, existentials are the default — a generic vertex
             # on the sheet (or in the current area) IS the existential.
+            #
             for child in node.children:
                 if child.type != "variables":
                     egi = self._convert_to_egi(child, egi, area_id)

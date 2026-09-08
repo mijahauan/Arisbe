@@ -457,6 +457,23 @@ class EGIFParser:
         # Parse the expression
         self._parse_eg()
 
+        # Place each constant at the least common area of its occurrences.
+        #
+        # A constant has no defining occurrence the way a generic vertex has
+        # ``*x``, so during parsing it is interned where it is first seen. That
+        # is the wrong home whenever the same individual is mentioned in more
+        # than one area: a line of identity between two cuts traverses their
+        # least common area, so the vertex belongs there and not in whichever
+        # area happened to mention it first.
+        #
+        # This pass, its LCA computation and the core's
+        # ``with_vertex_moved_to_context`` all already existed; nothing called
+        # them. The effect was a silent scope error on re-parse —
+        # ``roberts_1973_p57_disjunction`` stores its constant at depth 1,
+        # spanning both disjuncts, and read it back at depth 2 inside one of
+        # them. Same vertex count, same canonical text, different graph.
+        self._hoist_vertices_to_lca()
+
         # Add variable name mapping to preserve semantic names
         final_graph = replace(self.graph, variable_names=frozendict(self.all_variable_names))
         return final_graph

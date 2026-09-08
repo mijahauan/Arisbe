@@ -38,7 +38,22 @@
 
 ---
 
-## B. Linear formats — *all production, round-trip tested*
+## B. Linear formats — *all production; round-trip measured, not total*
+
+> **Round-trip, measured (2026-09-08).** `tests/test_tomos_parsing.py` had
+> pointed at a path that stopped existing when the corpus was renamed to
+> `tomos`, so its three tests skipped silently and this guarantee went unmeasured
+> for as long as it has been claimed. Measured across the corpus by `same_graph`:
+> **83 of 147 round-trips hold; 64 do not** (EGIF 9 failures, CGIF 30, CLIF 25),
+> with 6 more correctly refused as the second-order limit. The dominant defect
+> is **scope** — a linear form does not record which area a shared vertex's line
+> of identity occupies, so a constant spanning two sibling cuts is re-interned
+> inside one of them. CLIF adds a constant re-read as a bound variable, an
+> existential returning as a universal, and a spurious double negation. Each
+> failure is listed in that file's `KNOWN_BROKEN`; a fix shows up as an
+> unexpected pass. Parse and generate are production; **the round trip is not
+> yet total**, and no claim should say otherwise.
+
 
 | Capability | Status | Home (src → test) | Corpus |
 |---|---|---|---|

@@ -195,7 +195,22 @@ plan is to surface them as routes within the web app (`src/web_api/`,
 - `graph_isomorphism_engine.py` — NetworkX VF2 matching for goal detection
 - `web_api/` (FastAPI) + `web_viewer/` (static HTML/JS) — the canonical user interface. All three mode routes are live: `/organon` (read-only archive, both load+render boundaries §3.3-attested), `/ergasterion` (workshop / composition — regime-1 drafts; a session holds a forest of branches with move-by-move navigation; output goes to a regime-1 **scratch** store or is **sent to Agon**, never straight to the corpus — there is no direct workshop→corpus route. Composition is **freeform draw-then-read** (`web_viewer/js/freeform-canvas.js`): typed marks placed/dragged/erased on a free canvas with no live EGI, read into a sign only at gate ① via `read-drawing` (preview) / `fix-drawing` (commit) — backed by `drawing_validity` + `drawing_to_egi`. A **Graph↔Argument** two-mode switch makes fixed/unfixed unmistakable and enforces "no rules on an unfixed graph; no meaning-change on a fixed one"; "Edit base graph" re-opens a fixed/corpus graph as an independent copy via `state-drawing` seeding; **challenge mode** — pick a target linear form, draw it freehand, get graded with `same_graph` + the legible diff), `/agon` (Endoporeutic Game arena — the **contest** register is the hot-seat transformation game; the **interpretation register** is the episode *given M, then G*: choose a reference model M (the picker lists curated scenarios + corpus UoDs, optionally **materialized**), `/agon/interpret` peels G against it → verdict + transcript + witness/counterexample, `/agon/where-it-holds` runs the inverse pivot, and the Agonothetes' disposition taxonomy is annotated by the verdict). The mode contract: a graph reaches the attested corpus only by being tested through Agon or as a style-only reprojection of an attested graph (§3.3 attests *correspondence, not truth*). A shared left-column nav (`web_viewer/js/mode-nav.js`) links the three modes + home. Rendering is one engine end to end: server-side EGI→SVG (`layout_service` + `simple_svg_renderer`, §3.3-attested) and client-side **`web_viewer/js/diagram-viewer.js`** (`DiagramViewer.render(svg, {camera:'fit'|'hold', dolly, transition})`) — the single pan/zoom/camera component all three modes use.
 
-### Linear Format Support (all production, round-trip tested)
+### Linear Format Support (all production; round-trip measured, not total)
+
+> **Round-trip, measured (2026-09-08).** `tests/test_tomos_parsing.py` had
+> pointed at a path that stopped existing when the corpus was renamed to
+> `tomos`, so its three tests skipped silently and this guarantee went unmeasured
+> for as long as it has been claimed. Measured across the corpus by `same_graph`:
+> **83 of 147 round-trips hold; 64 do not** (EGIF 9 failures, CGIF 30, CLIF 25),
+> with 6 more correctly refused as the second-order limit. The dominant defect
+> is **scope** — a linear form does not record which area a shared vertex's line
+> of identity occupies, so a constant spanning two sibling cuts is re-interned
+> inside one of them. CLIF adds a constant re-read as a bound variable, an
+> existential returning as a universal, and a spurious double negation. Each
+> failure is listed in that file's `KNOWN_BROKEN`; a fix shows up as an
+> unexpected pass. Parse and generate are production; **the round trip is not
+> yet total**, and no claim should say otherwise.
+
 
 | Format | Module | Corpus tested |
 |--------|--------|--------------|

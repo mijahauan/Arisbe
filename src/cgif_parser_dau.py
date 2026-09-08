@@ -364,12 +364,23 @@ class CGIFParser:
                 self._advance()
                 return CGIFParseNode("context")
             else:
-                # Coreference concept [: name]
-                name_token = self._expect(CGIFTokenType.IDENTIFIER)
+                # Coreference concept [: name] — the referent may be an
+                # identifier or a quoted string. The typed branch below already
+                # accepted both; this one did not, so a constant with no type
+                # round-tripped one way only: the generator emits an untyped
+                # constant quoted ([: "0"]) and a typed one bare
+                # ([Human: Socrates]), and only the second parsed back.
+                # ISO/IEC 24707 allows a quoted string as a referent.
+                if self.current_token.type == CGIFTokenType.STRING:
+                    name_token = self._expect(CGIFTokenType.STRING)
+                    value = name_token.value[1:-1]
+                else:
+                    name_token = self._expect(CGIFTokenType.IDENTIFIER)
+                    value = name_token.value
                 self._expect(CGIFTokenType.RBRACKET)
 
                 node = CGIFParseNode("coreference_concept")
-                node.value = name_token.value
+                node.value = value
                 return node
 
         else:

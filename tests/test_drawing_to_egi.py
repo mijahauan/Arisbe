@@ -42,16 +42,41 @@ def _labels_from(egi):
     return predicate_labels, vertex_labels
 
 
-def _corpus_egis(n=14):
+# Quotation-bearing UoDs: a drawing cannot carry the second-order device, so
+# reading one back cannot recover it. A named frontier, not a defect.
+_SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
+
+# A real defect, isolated 2026-09-08: the reader mis-attributes hooks when
+# several unary predicates share one line of identity. legible_diff reports six
+# incidence findings, e.g. "IndependentContinuant connects (line 1, line 1) but
+# should connect (line 1)" and "GenericallyDependentContinuant connects () but
+# should connect (line 1)". Recorded rather than sampled away.
+_KNOWN_BROKEN = {"bfo_core"}
+
+
+def _corpus_egis():
+    """Every UoD in the corpus.
+
+    This used to take ``list_uods()[:14]`` — the first fourteen in index order —
+    while its caller's docstring said "for each corpus UoD". Which fourteen
+    depended on the order the index happened to be written in, so the coverage
+    was incidental: rebuilding the index changed the sample and immediately
+    exposed a failure in ``bfo_core`` that had been sitting outside it. The
+    oracle could not have afforded the whole corpus at the time either
+    (``same_graph`` did not terminate on graphs that size); now it can.
+    """
     svc = TomosService(TOMOS_ROOT)
     out = []
-    for meta in svc.list_uods()[:n]:
+    for meta in svc.list_uods():
+        uod_id = meta["uod_id"]
+        if uod_id in _SECOND_ORDER or uod_id in _KNOWN_BROKEN:
+            continue
         try:
-            egi = svc.load_uod(meta["uod_id"]).current_egi
+            egi = svc.load_uod(uod_id).current_egi
         except Exception:
             continue
         if egi is not None:
-            out.append((meta["uod_id"], egi))
+            out.append((uod_id, egi))
     return out
 
 
@@ -71,7 +96,11 @@ def test_corpus_round_trip_builds_same_graph(style_name, style):
             f"{uod_id} did not round-trip drawing→EGI under {style_name}"
         )
         checked += 1
-    assert checked > 0
+    # The corpus, less the named exclusions — not whichever handful came first.
+    assert checked >= 45, (
+        f"only {checked} UoDs were checked; the corpus round trip is meant to "
+        f"cover all of them but the second-order and known-broken exclusions"
+    )
 
 
 def _build(egif, style=None):
