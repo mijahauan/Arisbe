@@ -353,6 +353,23 @@ class CGIFGenerator:
             if concept:
                 cgif_parts.append(concept)
 
+        # Generate relations with no arguments at all.
+        #
+        # These used to fall between the two buckets: monadic collected arity 1
+        # and poly collected arity >= 2, so an edge of arity 0 was emitted by
+        # neither and vanished. A graph made only of them — which is every
+        # propositional exemplar in the corpus, de_morgan and peirce_law and
+        # theorem_praeclarum among them — generated the empty string and read
+        # back as the blank sheet.
+        nullary_edges = [
+            eid for eid in elements["edges"] if len(self.graph.nu.get(eid, [])) == 0
+        ]
+
+        for edge_id in sorted(nullary_edges, key=lambda e: self._edge_sig[e]):
+            rel = self._generate_relation(edge_id)
+            if rel:
+                cgif_parts.append(rel)
+
         # Generate multi-argument relations (arity >= 2)
         poly_edges = [
             eid for eid in elements["edges"] if len(self.graph.nu.get(eid, [])) >= 2
@@ -447,11 +464,16 @@ class CGIFGenerator:
             return f"({predicate})"
 
     def _generate_cut_expression(self, cut_id: str) -> str:
-        """Generate negation expression ~[CG]."""
-        cut_content = self._generate_area_expression(cut_id)
+        """Generate negation expression ~[CG].
 
-        if not cut_content:
-            return ""
+        An empty cut is written ``~[]`` rather than dropped. It is a cut like
+        any other — the *hold* of the world-scroll is exactly this, an empty
+        sibling that keeps the enclosing negation vacuously true — and it
+        carries the same meaning whether or not anything is scribed inside it.
+        Returning "" here removed one cut from every M-bearing graph in the
+        corpus on the way out.
+        """
+        cut_content = self._generate_area_expression(cut_id)
 
         return f"~[{cut_content}]"
 

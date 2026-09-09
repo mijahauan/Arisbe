@@ -312,3 +312,142 @@ def test_clif_round_trips_known_examples(egif):
     assert len(egi1.V) == len(egi2.V)
     assert len(egi1.E) == len(egi2.E)
     assert len(egi1.Cut) == len(egi2.Cut)
+
+
+# --------------------------------------------------------------------------- #
+# What the strategy above cannot reach                                        #
+# --------------------------------------------------------------------------- #
+#
+# ``RELATIONS_BY_ARITY`` offers arities 1 and 2 only, and ``egif_sheet`` never
+# draws a cut with nothing in it. So the two shapes below — a cut holding
+# nothing, and a relation taking nothing — were outside every generated example
+# in this file, and both were silently lost on the way out. The empty cut is
+# not an exotic case: it is the *hold* of the world-scroll, the standing empty
+# sibling that keeps M's residence asserting nothing, so it appears in most of
+# the corpus's M-bearing graphs. The zero-arity relation is how the whole
+# propositional half of the corpus is written.
+#
+# Both parsers already read ``~[]``, ``(P)`` and ``(not (and))`` correctly.
+# These are generator defects, and they are named here rather than in the
+# strategy because a shrunk counterexample tells you less than a case whose
+# meaning you can state.
+
+EMPTY_CUT_SHAPES = [
+    '(P "a") ~[ ]',            # the hold, beside an assertion
+    "~[ ]",                    # the hold alone: a graph that denies nothing
+    '~[ (P "a") ~[ ] ]',       # a hold enclosed
+    '~[ ~[ (P "a") ] ~[ ] ]',  # the world-scroll: one cell and one hold
+]
+
+
+@pytest.mark.parametrize("egif", EMPTY_CUT_SHAPES)
+def test_cgif_keeps_an_empty_cut(egif):
+    """An empty cut is a cut. CGIF writes it ``~[]``."""
+    egi1 = parse_egif(egif)
+    egi2 = parse_cgif(generate_cgif(egi1))
+    assert len(egi2.Cut) == len(egi1.Cut)
+    assert len(egi2.E) == len(egi1.E)
+
+
+@pytest.mark.parametrize("egif", EMPTY_CUT_SHAPES)
+def test_clif_keeps_an_empty_cut(egif):
+    """An empty cut is a cut. CLIF writes it ``(not (and))`` — the negation
+    of the empty conjunction, which ISO/IEC 24707 gives as true."""
+    egi1 = parse_egif(egif)
+    egi2 = parse_clif(generate_clif(egi1))
+    assert len(egi2.Cut) == len(egi1.Cut)
+    assert len(egi2.E) == len(egi1.E)
+
+
+ZERO_ARITY_SHAPES = [
+    "(R)",                     # a bare proposition
+    "(P) (Q)",                 # two of them
+    "~[ ~[ (P) ] ]",           # the propositional double cut
+    "~[ (P) ~[ (Q) ] ]",       # the propositional scroll
+]
+
+
+@pytest.mark.parametrize("egif", ZERO_ARITY_SHAPES)
+def test_cgif_keeps_a_zero_arity_relation(egif):
+    """A relation with no arguments still says something.
+
+    ``generate_cgif`` returned the empty string for every graph on this list,
+    so the whole propositional half of the corpus — ``de_morgan``,
+    ``peirce_law``, ``theorem_praeclarum`` and the rest — was emitted as
+    nothing at all and read back as the blank sheet.
+    """
+    egi1 = parse_egif(egif)
+    text = generate_cgif(egi1)
+    assert text.strip(), f"{egif} generated no CGIF at all"
+    egi2 = parse_cgif(text)
+    assert len(egi2.E) == len(egi1.E)
+    assert len(egi2.Cut) == len(egi1.Cut)
+
+
+# --------------------------------------------------------------------------- #
+# Where a line of identity lives                                              #
+# --------------------------------------------------------------------------- #
+#
+# A line's area is not decoration: its polarity is what makes the line read
+# existentially or universally. Both generators decided where to write a line
+# from where it is *used* — CGIF placed its defining concept at the least
+# common area of the occurrences, CLIF hoisted every line into one prenex
+# quantifier at the top — and neither consulted the area the graph actually
+# puts the line in. So a line sitting outside all of its uses was moved inward
+# on the way out, from an odd context to an even one, and came back
+# existential where it had been universal. That is a change of meaning.
+#
+# The author's rule for the other direction of this arc applies here too:
+# hoisting is **outward only**. A line is written where the graph puts it.
+
+LINE_PLACEMENT_SHAPES = [
+    "~[ *z ~[ (P z) ] ]",            # the line is one cut outside its only use
+    "~[ *z ~[ *w (lt z w) ] ]",      # two lines, at two different depths
+    "~[ *x (M x) ~[ (P x) ] ]",      # the subsumption scroll
+    "~[ ~[ *z ~[ *w (lt z w) ] ] ]", # peirce_order_1881's shape, in miniature
+]
+
+
+@pytest.mark.parametrize("egif", LINE_PLACEMENT_SHAPES)
+def test_cgif_writes_a_line_where_the_graph_puts_it(egif):
+    egi1 = parse_egif(egif)
+    egi2 = parse_cgif(generate_cgif(egi1))
+    assert _depths_of_lines(egi1) == _depths_of_lines(egi2)
+
+
+@pytest.mark.parametrize("egif", LINE_PLACEMENT_SHAPES)
+def test_clif_writes_a_line_where_the_graph_puts_it(egif):
+    egi1 = parse_egif(egif)
+    egi2 = parse_clif(generate_clif(egi1))
+    assert _depths_of_lines(egi1) == _depths_of_lines(egi2)
+
+
+def _depths_of_lines(egi) -> list[int]:
+    """The multiset of cut-depths at which this graph's lines sit, sorted.
+
+    Compared instead of the graphs themselves so a failure says *how* they
+    differ — a line one cut too deep — rather than only that they do.
+    """
+    def depth(element_id: str) -> int:
+        d, ctx = 0, egi.get_context(element_id)
+        while ctx != egi.sheet:
+            d += 1
+            ctx = egi.get_context(ctx)
+        return d
+
+    return sorted(depth(v.id) for v in egi.V)
+
+
+def test_cgif_keeps_a_line_that_nothing_attaches_to():
+    """An isolated line asserts that something exists. It is not nothing.
+
+    ``_compute_vertex_def_contexts`` collected its areas from ν, so a vertex on
+    no edge was absent from the map, got no defining context, and was written
+    nowhere. No corpus UoD carries one today, which is why this went unseen.
+    CLIF has no corresponding case: it offers no way to introduce an individual
+    without a predicate, so there the loss is a limit of the format rather than
+    a defect in the generator.
+    """
+    egi1 = parse_egif("(P *x) *y")
+    egi2 = parse_cgif(generate_cgif(egi1))
+    assert len(egi2.V) == len(egi1.V)

@@ -272,11 +272,17 @@ class CLIFGenerator:
             return f"({predicate})"
 
     def _generate_cut_expression(self, cut_id: str) -> str:
-        """Generate negation expression from cut."""
+        """Generate negation expression from cut.
+
+        An empty cut is written ``(not (and))``. ISO/IEC 24707 gives the empty
+        conjunction as true, so its negation is false — which is what an empty
+        cut asserts. Returning "" here dropped the cut entirely, and with it
+        the *hold* that stands beside M's cells in every world-scroll graph.
+        """
         cut_content = self._generate_area_expression(cut_id)
 
         if not cut_content:
-            return ""
+            return "(not (and))"
 
         return f"(not {cut_content})"
 

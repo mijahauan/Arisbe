@@ -52,3 +52,32 @@ def test_clif_generator_arity_validation_raises():
             alphabet=forced,
             rho=g.rho,
         )
+
+
+def test_clif_quoted_lowercase_constant_stays_a_constant():
+    """A quoted CLIF name is a constant whatever its case.
+
+    ``test_clif_quoted_constants_roundtrip`` above passes on ``"Socrates"``,
+    but it is the capital S that carries it: the lexer discarded the quotes
+    and the builder fell back to an ``isupper()`` guess. A lowercase quoted
+    name — which the generator emits for any constant labelled in lower case —
+    came back as an existentially bound variable, so ``(P "x")`` round-tripped
+    to ``(exists (x) (P x))``. That is a change of meaning, not of surface
+    form.
+    """
+    g = parse_clif('(P "x")')
+
+    (vertex,) = g.V
+    assert vertex.label == "x"
+    assert not vertex.is_generic
+    assert g.alphabet is not None and "x" in g.alphabet.C
+    assert generate_clif(g) == '(P "x")'
+
+
+def test_clif_unquoted_lowercase_identifier_is_still_a_variable():
+    """The companion half: nothing quoted, nothing constant."""
+    g = parse_clif("(P x)")
+
+    (vertex,) = g.V
+    assert vertex.is_generic
+    assert vertex.label is None

@@ -15,12 +15,13 @@ because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
 The result is honest rather than flattering: most round-trips hold and a
-specific, named few do not. As of 2026-09-08: **94 of 150 hold, 56 do not**
-(EGIF 3, CGIF 29, CLIF 24), down from 64 failures at the start of the arc.
-EGIF is nearly clean; what remains is concentrated in CGIF and CLIF and is
-format-specific rather than the shared placement cause. Those are listed in ``KNOWN_BROKEN`` with what goes
-wrong in each, and are expected failures — so the gaps stay visible and counted,
-and a fix announces itself by turning an xfail into an unexpected pass.
+specific, named few do not. As of 2026-09-09: **135 of 147 hold, 12 do not**
+(EGIF 3, CGIF 4, CLIF 5), down from 64 failures at the start of the arc. What
+remains is four graphs, and three of the four fail in *all three* formats —
+so the residue is no longer a defect of any linear form but something upstream
+of all of them. They are listed in ``KNOWN_BROKEN`` with what goes wrong in
+each, and the check is run for them too, so a repair announces itself as an
+unexpected pass rather than sitting silently in the list.
 """
 
 import pytest
@@ -51,76 +52,39 @@ FORMS = {
 # that started emitting an oval as an ordinary negation.
 SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
 
-# Genuine defects, each verified by hand. Recorded so the guarantee is stated
-# at its true extent.
 # Round-trips that do not hold, measured rather than assumed. Listed so the
 # guarantee is stated at its true extent and a fix announces itself as an
 # unexpected pass.
 #
-# The dominant defect is SCOPE: a linear form does not record which area a
-# shared vertex's line of identity occupies. roberts_1973_p57_disjunction is
-# the clearest case — the corpus graph holds its constant at depth 1, spanning
-# both disjuncts, and every form re-interns it at depth 2, inside one of them.
-# Same vertex count, same edge count, same canonical text; different graph.
+# Four defects remain, and each shows in every format that reaches it, which is
+# what says they sit upstream of the linear forms rather than in one of them:
 #
-# CLIF adds defects of its own: a constant re-read as a bound variable, an
-# existential returning as a universal, a spurious double negation.
+#   bfo_core          — same_graph says no while the legible diff finds nothing
+#                       to say, so the difference is structural rather than in
+#                       content. Related to the drawing->EGI incidence defect
+#                       already recorded against this UoD.
+#   colore_field      — the equality relation comes back joined to a different
+#                       pair of lines (incidence, ~40 findings).
+#   episode_discharge — the individual "Rex" is lost.
+#   peirce_order_1881 — a relation returns at the wrong depth and polarity
+#                       (scope), CGIF and CLIF only.
+#
+# And one that is CLIF's alone:
+#
+#   barbara           — a spurious double negation: six cuts come back where
+#                       the graph has four.
 KNOWN_BROKEN = frozenset([
-    # CGIF: 29
-    ("agon_evolution_swan", "CGIF"),
-    ("arithmetic_from_two_laws", "CGIF"),
+    # CGIF: 4
     ("bfo_core", "CGIF"),
-    ("branching_confluence", "CGIF"),
-    ("broken_cut_square", "CGIF"),
-    ("colore_between", "CGIF"),
     ("colore_field", "CGIF"),
-    ("contraposition", "CGIF"),
-    ("crowded_modus_ponens", "CGIF"),
-    ("de_morgan", "CGIF"),
-    ("dialogue_model_revision", "CGIF"),
-    ("dialogue_swan_revision", "CGIF"),
     ("episode_discharge", "CGIF"),
-    ("ex_falso_quodlibet", "CGIF"),
-    ("foaf_core", "CGIF"),
-    ("forcing_conditions", "CGIF"),
-    ("harbor_town", "CGIF"),
-    ("hypothetical_syllogism", "CGIF"),
-    ("numeral_three_unfolds", "CGIF"),
-    ("peirce_law", "CGIF"),
     ("peirce_order_1881", "CGIF"),
-    ("porphyry_tree", "CGIF"),
-    ("possible_and_necessary", "CGIF"),
-    ("skos_core", "CGIF"),
-    ("swan_alternatives", "CGIF"),
-    ("swan_episode_unpacked", "CGIF"),
-    ("theorem_praeclarum", "CGIF"),
-    ("would_be_courses", "CGIF"),
-    ("zoo_world", "CGIF"),
-    # CLIF: 24
-    ("agon_evolution_swan", "CLIF"),
-    ("arithmetic_from_two_laws", "CLIF"),
+    # CLIF: 5
     ("barbara", "CLIF"),
     ("bfo_core", "CLIF"),
-    ("colore_between", "CLIF"),
     ("colore_field", "CLIF"),
-    ("dialogue_model_revision", "CLIF"),
-    ("dialogue_swan_revision", "CLIF"),
     ("episode_discharge", "CLIF"),
-    ("foaf_core", "CLIF"),
-    ("forcing_conditions", "CLIF"),
-    ("forcing_forces", "CLIF"),
-    ("harbor_town", "CLIF"),
-    ("numeral_three_unfolds", "CLIF"),
-    ("peirce_law_commentary", "CLIF"),
     ("peirce_order_1881", "CLIF"),
-    ("porphyry_tree", "CLIF"),
-    ("roberts_1973_p57_disjunction", "CLIF"),
-    ("skos_core", "CLIF"),
-    ("swan_alternatives", "CLIF"),
-    ("swan_episode_unpacked", "CLIF"),
-    ("swan_third_tense", "CLIF"),
-    ("would_be_courses", "CLIF"),
-    ("zoo_world", "CLIF"),
     # EGIF: 3
     ("bfo_core", "EGIF"),
     ("colore_field", "EGIF"),

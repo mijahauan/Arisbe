@@ -69,6 +69,13 @@ class CLIFToken:
     type: CLIFTokenType
     value: str
     position: int
+    # Whether the source wrote this identifier inside double quotes. In Common
+    # Logic a quoted identifier is a *name*, never a bound variable, and the
+    # generator quotes every constant it emits — so this flag is the whole of
+    # what tells a constant from a variable on the way back in. It used to be
+    # discarded here and guessed at downstream by ``value[0].isupper()``, which
+    # read a lowercase constant as an existentially bound line.
+    quoted: bool = False
 
 
 class CLIFLexer:
@@ -177,7 +184,9 @@ class CLIFLexer:
             buf.append(ch)
             self.position += 1
         identifier = "".join(buf)
-        self.tokens.append(CLIFToken(CLIFTokenType.IDENTIFIER, identifier, start))
+        self.tokens.append(
+            CLIFToken(CLIFTokenType.IDENTIFIER, identifier, start, quoted=True)
+        )
 
 
 @dataclass
@@ -187,6 +196,8 @@ class CLIFParseNode:
     type: str
     value: Optional[str] = None
     children: List["CLIFParseNode"] = None
+    # Set on ``argument`` nodes: the identifier was quoted in the source.
+    quoted: bool = False
 
     def __post_init__(self):
         if self.children is None:
@@ -444,14 +455,16 @@ class CLIFParser:
 
         arguments = []
         while self.current_token.type == CLIFTokenType.IDENTIFIER:
-            arguments.append(self.current_token.value)
+            arguments.append((self.current_token.value, self.current_token.quoted))
             self._advance()
 
         self._expect(CLIFTokenType.RPAREN)
 
         node = CLIFParseNode("atomic")
         node.value = predicate
-        node.children = [CLIFParseNode("argument", arg) for arg in arguments]
+        node.children = [
+            CLIFParseNode("argument", arg, quoted=quoted) for arg, quoted in arguments
+        ]
         return node
 
     def _convert_to_egi(
@@ -464,12 +477,12 @@ class CLIFParser:
             for arg_node in node.children:
                 vertex_id = f"v_{arg_node.value}"
                 if not any(v.id == vertex_id for v in egi.V):
-                    # Determine if this is a constant or variable
-                    # In CLIF, quoted strings and capitalized identifiers are typically constants
-                    # Lowercase identifiers are typically variables
-                    is_constant = (
-                        arg_node.value and 
-                        (arg_node.value[0].isupper() or arg_node.value.startswith('"'))
+                    # A quoted identifier is a name in Common Logic, so it is
+                    # a constant whatever its case. Unquoted, the reading falls
+                    # back to the convention hand-written CLIF follows, that a
+                    # capitalised identifier names an individual.
+                    is_constant = bool(arg_node.value) and (
+                        arg_node.quoted or arg_node.value[0].isupper()
                     )
                     
                     if is_constant:
