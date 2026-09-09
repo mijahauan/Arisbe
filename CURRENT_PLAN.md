@@ -1,5 +1,79 @@
 # Current Plan
 
+**Last Updated**: 2026-09-08 (fifteenth arc) — **READINESS FOR EXTERNAL REVIEW, AND FOUR DEFECTS
+THAT WERE EACH HIDING ONE OF THE OTHERS.** Branch `tier0-readiness` (14 commits, pushed to
+`origin`, **not merged**). Specs:
+[readiness for external review](docs/superpowers/specs/2026-09-06-readiness-for-external-review.md) ·
+[the exemplar arc](docs/superpowers/specs/2026-09-06-the-exemplar-arc.md) ·
+[the linear-form round trip](docs/superpowers/specs/2026-09-08-linear-form-round-trip.md).
+
+**▶▶▶ NEXT SESSION — read this first.**
+
+**State:** full suite **4,733 passed, 220 skipped, 65 xfailed, 0 failed** (~40 min); quality gate
+green, 152 core tests. Working tree clean apart from a pre-existing `.vscode/settings.json`.
+`.core_modification_authorized` exists (gitignored) — `graph_isomorphism_engine.py` was modified
+with the author's authorisation.
+
+**Where the arc stopped.** The linear-form round trip, step 3 of 5 in its spec. Measured across
+the corpus by `same_graph`:
+
+| | EGIF | CGIF | CLIF | held |
+|---|---|---|---|---|
+| session start | 9 | 30 | 25 | 83/147 |
+| after the three-parser hoist | 8 | 30 | 25 | 87/150 |
+| after admission joins the line | **3** | 29 | 24 | **94/150** |
+
+EGIF is nearly clean (`bfo_core`, `colore_field`, `episode_discharge`). **56 failures remain, 53
+of them in CGIF and CLIF**, and they are *not* the shared placement cause: the corpus correction
+repaired the six world-scroll UoDs for EGIF only. Those two formats carry independent defects.
+
+**Step 4 is the next task, and it is three separate threads.** Each wants a minimal failing case
+before either parser is touched:
+
+1. A constant shared across sibling cuts fails in CLIF while the identical shape passes in CGIF
+   and EGIF — points at the constant-read-as-variable defect
+   (`(P "x")` returns as `(exists (x) (P x))`).
+2. `barbara` gains a spurious double negation in CLIF.
+3. `bfo_core` and `colore_field` fail in all three formats; cause not isolated.
+
+`tests/test_tomos_parsing.py::KNOWN_BROKEN` lists all 56 by name, and the guard now *runs* each
+check, so a repair fails the suite with "now round-trips — remove it from KNOWN_BROKEN".
+
+**Author rulings this arc, all recorded in the specs:**
+- The EPG is **one method of interpretation**, not two layers. Its repertoire is `IT-`, `INS` of a
+  negation around a negation, and `DC-`; **ERA is no part of it**; construction belongs to
+  Ergasterion. Territory is depth-relative, from an explicit frame. `endoporeutic_game.py` was
+  rewritten to play it (`80e30fe`) and the guide corrected across three passes.
+- A line of identity between two areas **traverses their least common area only**, and the
+  outermost specification establishes quantification — so hoisting is outward only.
+- A constant appearing in several spots is **one line of identity**, connected in the drawn form.
+- W-level **lines** are admitted in the residence; only W-level *assertions* are refused.
+
+**Queued behind step 4**, in the order the author set: the drawing→EGI incidence defect
+(`bfo_core`: unary relations sharing a line read back with the wrong hooks — own arc, isolated) ·
+Tier 1's **F5** (vacuous satisfaction ranked as "holds") · `linear_forms/` on disk (this arc
+unblocks it) · the **exemplar arc** E1, E2, E4, E5, E6 · **Tier 2** interactive URL, path-traversal
+sanitisation first · the letters, which the author has gated on Tier 0 + Tier 1 complete.
+
+**Loose ends worth someone's attention:**
+- `egif_parser_dau._finalize_alphabet_and_rho` is defined and never called; CLIF and CGIF both
+  call theirs. EGIF-parsed graphs may lack a populated alphabet/ρ.
+- `tests/test_it_minus_dau_compliance.py` is **zero bytes** and collects nothing. The coverage
+  exists in `test_it_minus_with_isomorphism.py`; delete the empty file.
+- `test_live_runner`'s anti-double-count property for `decay_skipped` no longer has a natural
+  trigger, since the only construction that produced a refusal was the defect now fixed.
+  `_decay_refused` still implements it. A new trigger is wanted.
+- `sowa_2011_p356_quantification`'s graph was corrected to the scroll; three other literature
+  UoDs still carry unverified citations (`dau_2006_p112_ligature`: "page/edition to verify").
+
+**The pattern worth carrying forward.** Three tests were found silently under-covering — a glob
+that matched nothing (11 months), a zero-byte file, and a sample of 14 claiming to be a sample of
+all — and three more had pinned a defect *as design*, documenting the bug's mechanism in their own
+docstrings. The shared shape is **coverage derived from incidental state, with no assertion about
+how much was covered**. Each now asserts its own extent.
+
+---
+
 **Last Updated**: 2026-08-05 (fourteenth arc) — **THE C-SERIES' CHANNELS AUDITED: ONE IS DEAD IN
 EVERY ONE OF THE TWENTY ARMS THAT PLAY IT, ONE MINTS 668 MARKS AND MOVES NOT ONE FIGURE — AND NO
 PUBLISHED C-SERIES NUMBER IS FALSIFIED. THREE ATTRIBUTIONS ARE.**
