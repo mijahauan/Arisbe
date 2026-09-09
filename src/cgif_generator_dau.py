@@ -240,9 +240,21 @@ class CGIFGenerator:
 
     # --- LCA-based definition planning (mirrors EGIF) ---
     def _compute_vertex_def_contexts(self) -> None:
-        """For each generic vertex, compute the minimal common ancestor area that contains all
-        its predicate occurrences and assign that as the defining context. We'll emit an
-        untyped defining concept [*x] in that context.
+        """Decide the area in which each generic vertex's defining concept is written.
+
+        The area is the least common ancestor of the vertex's occurrences **and
+        of the area the graph itself puts the vertex in**. Including the
+        vertex's own area is what keeps the placement honest: a line that sits
+        outside all of its uses used to be written at the least common area of
+        the uses alone, which moved it *inward*, and a line moved inward
+        crosses a cut boundary into a context of the opposite polarity. So
+        ``~[ *z ~[ (P z) ] ]`` — z at odd depth, read universally — was emitted
+        with z one cut deeper and came back existential. Hoisting is outward
+        only, in this direction as in the parser's.
+
+        A vertex on no edge at all has no occurrences to gather, and used to be
+        absent from the map and therefore written nowhere. It is written in its
+        own area, like every other.
         """
         # Build parent map for contexts (cuts); sheet has parent None
         parent: Dict[str, Optional[str]] = {}
@@ -282,14 +294,19 @@ class CGIFGenerator:
                     return cand
             return self.graph.sheet
 
-        # Collect contexts of usage for each generic vertex (via ν on edges)
-        uses_by_vertex: Dict[str, List[str]] = {}
+        # Seed each generic vertex with the area the graph puts it in, so that a
+        # vertex with no occurrences is still placed and a vertex outside its
+        # occurrences is never drawn inside them.
+        uses_by_vertex: Dict[str, List[str]] = {
+            v.id: [self.graph.get_context(v.id)]
+            for v in self.graph.V
+            if v.is_generic
+        }
         for edge_id, vseq in self.graph.nu.items():
             edge_ctx = self.graph.get_context(edge_id)
             for vid in vseq:
-                vobj = next((v for v in self.graph.V if v.id == vid), None)
-                if vobj is not None and vobj.is_generic:
-                    uses_by_vertex.setdefault(vid, []).append(edge_ctx)
+                if vid in uses_by_vertex:
+                    uses_by_vertex[vid].append(edge_ctx)
 
         # Assign definition context
         self.vertex_def_context.clear()

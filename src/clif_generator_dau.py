@@ -228,12 +228,54 @@ class CLIFGenerator:
         all_formulas = atomic_formulas + negations
 
         if len(all_formulas) == 0:
-            return ""
+            body = ""
         elif len(all_formulas) == 1:
-            return all_formulas[0]
+            body = all_formulas[0]
         else:
             # Multiple formulas - use conjunction
-            return f"(and {' '.join(all_formulas)})"
+            body = f"(and {' '.join(all_formulas)})"
+
+        return self._bind_lines_of_this_area(area_id, body)
+
+    def _bind_lines_of_this_area(self, area_id: str, body: str) -> str:
+        """Quantify the lines whose defining vertex sits in this area.
+
+        A line is bound where it lives, not at the top. The generator used to
+        gather every free variable in the graph into one prenex quantifier over
+        the whole sheet, and its own comment conceded the loss: a graph mixing
+        existential and universal lines "cannot be rendered prenex without
+        loss". The loss was real. ``barbara`` is two sheet-level scrolls, each
+        binding its own line inside its own cut; written as
+        ``(forall (x y) (and ...))`` the reader has nowhere to put those lines
+        but the top, and must wrap the body in a further negation to recover
+        their polarity — so the graph came back with six cuts where it has
+        four.
+
+        Bound here instead, each line keeps the area whose polarity gives it
+        its quantifier: ``exists`` inside a cut at odd depth reads universally,
+        which is exactly what the cut structure already says. That also closes
+        a second defect in passing, since the prenex form left every line
+        inside a cut free in the emitted text, which is not a closed formula.
+
+        A line in an area with nothing scribed in it cannot be written at all:
+        CLIF offers no way to introduce an individual without a predicate. That
+        is a limit of the format, not a defect here, and no corpus graph has
+        one.
+        """
+        if not body:
+            return body
+
+        bound = sorted(
+            self.vertex_labels[v.id]
+            for v in self.graph.V
+            if v.is_generic
+            and v.id in self.vertex_labels
+            and self.graph.get_context(v.id) == area_id
+        )
+        if not bound:
+            return body
+
+        return f"(exists ({' '.join(bound)}) {body})"
 
     def _generate_atomic_formula(self, edge_id: str) -> str:
         """Generate atomic formula from edge."""
@@ -369,45 +411,11 @@ class CLIFGenerator:
             raise TypeError(
                 "CLIFGenerator.generate_with_quantification() requires a graph."
             )
-        # Assign variable names to vertices
-        self._assign_vertex_labels()
-        
-        # Get all free variables in sheet
-        free_vars = self._get_free_variables(self.graph.sheet)
-
-        # Generate main expression
-        main_expr = self._generate_area_expression(self.graph.sheet)
-
-        if not main_expr:
-            return ""
-
-        if not free_vars:
-            return main_expr
-
-        # Quantify by polarity, not blanket `forall`.  A generic line whose
-        # defining vertex sits in a positive (evenly-enclosed) context is
-        # **existential**; in a negative (oddly-enclosed) context it is
-        # **universal**.  The old code wrapped *every* free variable in one
-        # `forall`, which mislabelled every sheet-level existential — it only
-        # round-tripped because the parser used to read `forall` back as `exists`
-        # (the two were mutually-compensating bugs; both are now fixed).
-        label_to_vid = {lbl: vid for vid, lbl in self.vertex_labels.items()}
-        has_existential = any(
-            label_to_vid.get(var) is not None
-            and not self.graph.is_oddly_enclosed(label_to_vid[var])
-            for var in free_vars
-        )
-
-        # main_expr already encodes each universal line's negative placement in its
-        # cut structure, so the parser derives ∀ from the *structure*, not the
-        # keyword — which is why a single `exists` prefix round-trips every shape
-        # faithfully and is the honest label for the common all-existential graph.
-        # An all-universal graph gets an honest `forall`.  (A graph mixing the two
-        # cannot be rendered prenex without loss; `exists` keeps the round-trip
-        # exact, which is what the structure-driven parser relies on.)
-        var_list = " ".join(sorted(free_vars))
-        quantifier = "exists" if has_existential else "forall"
-        return f"({quantifier} ({var_list}) {main_expr})"
+        # Every line is quantified in the area it lives in, by
+        # ``_generate_area_expression``, so there is nothing left to prefix
+        # here. This method is kept as the public entry point it has always
+        # been; it now differs from ``generate()`` only in name.
+        return self.generate()
 
 
 # Factory function

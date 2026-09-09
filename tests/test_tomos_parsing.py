@@ -15,10 +15,10 @@ because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
 The result is honest rather than flattering: most round-trips hold and a
-specific, named few do not. As of 2026-09-09: **135 of 147 hold, 12 do not**
-(EGIF 3, CGIF 4, CLIF 5), down from 64 failures at the start of the arc. What
-remains is four graphs, and three of the four fail in *all three* formats —
-so the residue is no longer a defect of any linear form but something upstream
+specific, named few do not. As of 2026-09-09: **138 of 147 hold, 9 do not**,
+down from 64 failures at the start of the arc. The nine are three graphs, each
+failing in all three formats — a symmetry worth reading, since it says no
+linear form is known to carry a defect any more and the residue lies upstream
 of all of them. They are listed in ``KNOWN_BROKEN`` with what goes wrong in
 each, and the check is run for them too, so a repair announces itself as an
 unexpected pass rather than sitting silently in the list.
@@ -56,38 +56,30 @@ SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
 # guarantee is stated at its true extent and a fix announces itself as an
 # unexpected pass.
 #
-# Four defects remain, and each shows in every format that reaches it, which is
-# what says they sit upstream of the linear forms rather than in one of them:
+# Three graphs remain, and each fails in *all three* formats. That symmetry is
+# itself the finding: no linear form is known to have a defect left, and what
+# is left sits upstream of all of them, in the graphs or in what built them.
 #
+#   episode_discharge — the graph carries two distinct vertices both labelled
+#                       "Rex", in the same area. Under the ruling that a
+#                       constant appearing in several spots is one line of
+#                       identity, the parsers' merge is correct and the corpus
+#                       graph is malformed. How it came to be written that way
+#                       is being traced before it is corrected.
 #   bfo_core          — same_graph says no while the legible diff finds nothing
-#                       to say, so the difference is structural rather than in
-#                       content. Related to the drawing->EGI incidence defect
-#                       already recorded against this UoD.
-#   colore_field      — the equality relation comes back joined to a different
-#                       pair of lines (incidence, ~40 findings).
-#   episode_discharge — the individual "Rex" is lost.
-#   peirce_order_1881 — a relation returns at the wrong depth and polarity
-#                       (scope), CGIF and CLIF only.
-#
-# And one that is CLIF's alone:
-#
-#   barbara           — a spurious double negation: six cuts come back where
-#                       the graph has four.
+#                       to report, so the difference is structural rather than
+#                       in content.
+#   colore_field      — the equality relation returns joined to a different
+#                       pair of lines (~40 incidence findings).
 KNOWN_BROKEN = frozenset([
-    # CGIF: 4
     ("bfo_core", "CGIF"),
-    ("colore_field", "CGIF"),
-    ("episode_discharge", "CGIF"),
-    ("peirce_order_1881", "CGIF"),
-    # CLIF: 5
-    ("barbara", "CLIF"),
     ("bfo_core", "CLIF"),
-    ("colore_field", "CLIF"),
-    ("episode_discharge", "CLIF"),
-    ("peirce_order_1881", "CLIF"),
-    # EGIF: 3
     ("bfo_core", "EGIF"),
+    ("colore_field", "CGIF"),
+    ("colore_field", "CLIF"),
     ("colore_field", "EGIF"),
+    ("episode_discharge", "CGIF"),
+    ("episode_discharge", "CLIF"),
     ("episode_discharge", "EGIF"),
 ])
 

@@ -213,6 +213,11 @@ class CLIFParser:
         self.tokens = []
         self.position = 0
         self.current_token = None
+        # Where each variable's quantifier stands. A binder's area is explicit
+        # information the source wrote down, and it decides the line's
+        # polarity, so it is used in preference to guessing the line's home
+        # from where its atoms happen to sit.
+        self._binder_area: Dict[str, str] = {}
 
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CLIF text into EGI structure.
@@ -477,6 +482,14 @@ class CLIFParser:
             for arg_node in node.children:
                 vertex_id = f"v_{arg_node.value}"
                 if not any(v.id == vertex_id for v in egi.V):
+                    # A bound line belongs in its binder's area, not in the
+                    # area of whichever atom mentions it first. Interning it at
+                    # the atom moved it inward past any cut between the two,
+                    # and a line moved across a cut changes polarity: the
+                    # universal ~[ *z ~[ (P z) ] ], written
+                    # (not (exists (z) (not (P z)))), came back with z one cut
+                    # deeper and read existentially.
+                    home = self._binder_area.get(arg_node.value, area_id)
                     # A quoted identifier is a name in Common Logic, so it is
                     # a constant whatever its case. Unquoted, the reading falls
                     # back to the convention hand-written CLIF follows, that a
@@ -495,7 +508,7 @@ class CLIFParser:
                         vertex = Vertex(
                             id=vertex_id, label=None, is_generic=True
                         )
-                    egi = egi.with_vertex_in_context(vertex, area_id)
+                    egi = egi.with_vertex_in_context(vertex, home)
                 vertex_ids.append(vertex_id)
             # Create edge for predicate in same area
             edge_id = f"e_{node.value}_{len(egi.E)}"
@@ -626,9 +639,30 @@ class CLIFParser:
             # In EG, existentials are the default — a generic vertex
             # on the sheet (or in the current area) IS the existential.
             #
-            for child in node.children:
-                if child.type != "variables":
-                    egi = self._convert_to_egi(child, egi, area_id)
+            # The quantifier contributes no cut, but it does say *where* each
+            # line it binds belongs: here, in the area the quantifier itself
+            # stands in. That is remembered for the body's atoms and restored
+            # afterwards, so a name bound again elsewhere is unaffected.
+            bound: List[str] = [
+                var.value
+                for child in node.children
+                if child.type == "variables"
+                for var in child.children
+                if var.value
+            ]
+            shadowed = {v: self._binder_area.get(v) for v in bound}
+            for var in bound:
+                self._binder_area[var] = area_id
+            try:
+                for child in node.children:
+                    if child.type != "variables":
+                        egi = self._convert_to_egi(child, egi, area_id)
+            finally:
+                for var, previous in shadowed.items():
+                    if previous is None:
+                        self._binder_area.pop(var, None)
+                    else:
+                        self._binder_area[var] = previous
             return egi
 
         if node.type == "noop":
