@@ -1,5 +1,88 @@
 # Current Plan
 
+**Last Updated**: 2026-09-10 (sixteenth arc) — **THE ROUND TRIP CLOSES TO TWO GRAPHS, AND THE
+DOUBT ABOUT THE BEDROCK IS ANSWERED PRECISELY ENOUGH TO BE WORTH ACTING ON.** Branch
+`tier0-readiness` (17 commits, **not merged**). Specs:
+[the linear-form round trip](docs/superpowers/specs/2026-09-08-linear-form-round-trip.md) ·
+[readiness for external review](docs/superpowers/specs/2026-09-06-readiness-for-external-review.md).
+
+**▶▶▶ NEXT SESSION — read this first.**
+
+**The goal has been re-framed, and this is the load-bearing sentence.** Shipping the letters
+assumed a firm basis for sending them. This arc put that assumption in doubt — not by finding the
+calculus wrong, but by finding that *the evidence it was right had gone missing for eleven months*.
+So **resolving that doubt is now the goal**, and the letters follow from it rather than the other
+way round. Tier 1 of the readiness spec still stands, but it is downstream of this.
+
+**State:** full suite **4,836 passed, 226 skipped, 1 xfailed, 0 failed** (39m11s); quality gate
+green, 152 core tests. Tree clean apart from a pre-existing `.vscode/settings.json`.
+`.core_modification_authorized` exists (gitignored).
+
+**Corpus round trips: 141 of 147**, from 94 of 150 at the start of the session.
+
+| | EGIF | CGIF | CLIF | held |
+|---|---|---|---|---|
+| session start | 3 | 29 | 24 | 94/150 |
+| after the three generator fixes | 3 | 4 | 5 | 135/147 |
+| after line placement | 3 | 3 | 3 | 138/147 |
+| after constant normal form | **2** | **2** | **2** | **141/147** |
+
+**The residue is two graphs — `bfo_core` and `colore_field` — each failing in all three formats.**
+That symmetry is the finding: no linear form is known to carry a defect any more.
+
+**What was actually wrong, since the fifteenth arc's framing was mistaken.** It expected three
+threads and independent CGIF/CLIF defects. Running `legible_diff` over *every* failure first said
+otherwise: the 53 failures were four **generator** defects, three having nothing to do with either
+format's syntax, and both parsers already read back what was never written. An empty cut emitted
+nothing (it is the world-scroll **hold**, so every M-bearing graph lost a cut); a zero-arity
+relation emitted nothing (the whole propositional corpus generated `""`); a quoted CLIF name lost
+its constant-hood; and both generators wrote a line at the least common area of its *uses* rather
+than its own area, moving lines inward across cut boundaries and flipping polarity. **Run the diff
+over the whole failure set before touching a parser.**
+
+**The author's rulings this arc:**
+- **One constant, one line — normalized at the construction boundary, the calculus untouched.**
+  `vertex_scope.normalize_constants`; `world_scroll.discharge_episode` normalizes where M's content
+  is built; `save_uod` **refuses** an unnormalized graph rather than repairing it. `apply_rule` and
+  the six rules are exactly as Dau states them.
+- It is a **normal form, not a well-formedness law**, and it is **constant-specific**. Measured:
+  multiplicity and placement are semantically inert for constants (8/8 model×closure pairs) while
+  the *generic* control differs on 3/8. It rests on **names always denoting** — under a free logic
+  it would need revisiting.
+
+**The next task: a property suite that tests the calculus directly** (design started, not written).
+Layered — structural integrity over every legal rule application, plus model-theoretic soundness
+via `semantic_game.evaluate` where a graph has a model. **Exhaustive with a counted budget**, and a
+`KNOWN_BROKEN`-style ledger that shrinks. Every layer asserts its own extent. Agreed scope also
+includes: the `drawing_validity` warning for two spots naming one individual (do **not** merge in
+`drawing_to_egi` — §3.3 checks injectivity against the DTO, so merging would fail attestation
+against the very picture the EGI was read from); deleting the zero-byte
+`tests/test_it_minus_dau_compliance.py`; and the never-called
+`egif_parser_dau._finalize_alphabet_and_rho`.
+
+**Two leads for the suite, one of them a gift.** `colore_field` holds **24 generic lines sitting
+above their uses** — the exact analogue of the constant defect fixed this arc, so it is very
+likely the cause and it makes an ideal *validated falsifier*: build the suite, watch it catch a
+defect whose shape is already known, and only then trust it elsewhere. `bfo_core` has **zero**
+such lines and remains undiagnosed. Also open: 12 of 24 remaining ERA-output round-trip failures
+are the same generic-line shape.
+
+**The bedrock question, answered.** `egi_core_dau`, `formal_transformation_rules`,
+`subgraph_closure_validator` and `graph_isomorphism_engine` contain **zero** references to any
+linear form; the workshop and game modules reference **EGIF only**, never CGIF/CLIF. So the 53
+CGIF/CLIF defects could not reach the calculus. EGIF *is* load-bearing and did carry a real defect
+(LCA placement, `bbbdd33`). `same_graph` is trustworthy — it looked like a false negative twice
+this arc and was right both times; verify before doubting the oracle. **Z3 is not usable as an
+oracle**: `z3_semantic_validator`'s FOPL parser fails on ordinary negated content.
+
+**The pattern, now met in six places.** Coverage derived from incidental state with no assertion
+about extent — an eleven-month empty glob, a zero-byte file, a sample of fourteen claiming to be
+all, a property strategy offering only arities 1–2 and never an empty cut, and two docstrings
+claiming behaviour the code did not have (`_parse_isolated_vertex` said constants were interned;
+they were not). **Make every guard assert its own extent.**
+
+---
+
 **Last Updated**: 2026-09-08 (fifteenth arc) — **READINESS FOR EXTERNAL REVIEW, AND FOUR DEFECTS
 THAT WERE EACH HIDING ONE OF THE OTHERS.** Branch `tier0-readiness` (14 commits, pushed to
 `origin`, **not merged**). Specs:
@@ -7,7 +90,7 @@ THAT WERE EACH HIDING ONE OF THE OTHERS.** Branch `tier0-readiness` (14 commits,
 [the exemplar arc](docs/superpowers/specs/2026-09-06-the-exemplar-arc.md) ·
 [the linear-form round trip](docs/superpowers/specs/2026-09-08-linear-form-round-trip.md).
 
-**▶▶▶ NEXT SESSION — read this first.**
+**Where the fifteenth arc stopped** (superseded by the sixteenth, above).
 
 **State:** full suite **4,733 passed, 220 skipped, 65 xfailed, 0 failed** (~40 min); quality gate
 green, 152 core tests. Working tree clean apart from a pre-existing `.vscode/settings.json`.
