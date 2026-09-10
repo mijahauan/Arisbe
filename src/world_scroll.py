@@ -68,6 +68,7 @@ from egi_core_dau import (
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from proof_authoring import apply_rule
+from vertex_scope import normalize_constants
 
 
 @dataclass(frozen=True)
@@ -667,6 +668,14 @@ def discharge_episode(
     derivation.append("IT-")
     g = apply_rule("DC-", g, selection=[outer])
     derivation.append("DC-")
+    # P was scribed as fresh ink by INS, so it arrives carrying its own line
+    # for every individual it names. Landing in the cell beside M's standing
+    # ink, that leaves two lines of identity for one constant — which says
+    # exactly what one line says, and which no linear form can write down. M's
+    # content is *constructed* here, so the representative is chosen here. The
+    # rules themselves are untouched, and the derivation records the four moves
+    # actually applied: normalizing applies none.
+    g = normalize_constants(g)
     assert find_world_scroll(g) is not None
     return g, derivation
 

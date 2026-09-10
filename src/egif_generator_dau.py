@@ -47,6 +47,8 @@ class EGIFGenerator:
         self._assign_vertex_labels()
         # Compute hoisted defining context for each generic vertex
         self._compute_vertex_def_contexts()
+        # Work out which constants need their position written down
+        self._compute_pinned_constants()
 
         # Generate content for sheet of assertion
         content = self._generate_context_content(self.graph.sheet)
@@ -151,6 +153,43 @@ class EGIFGenerator:
             if v_area is not None:
                 all_ctxs.append(v_area)
             self.vertex_def_context[vid] = lca(all_ctxs)
+
+    def _compute_pinned_constants(self) -> None:
+        """Which constants must be mentioned bare, and where.
+
+        A constant whose line sits at the least common area of the relations
+        naming it needs no mention: the reader arrives at that area by the same
+        computation. A constant sitting *above* that area does need one, since
+        hoisting is outward only and the reader would otherwise intern the line
+        at the least common area — one or more cuts too deep, in a context of
+        possibly the opposite polarity.
+
+        Keyed by the area the mention is written in, which is the constant's
+        own area.
+        """
+        from vertex_scope import _ancestors, _least_common_area
+
+        self._pinned_constants: Dict[ElementID, Set[str]] = {}
+
+        occurrences: Dict[ElementID, Set[ElementID]] = {}
+        for edge_id, arguments in self.graph.nu.items():
+            area = self.graph.get_context(edge_id)
+            for vertex_id in arguments:
+                occurrences.setdefault(vertex_id, set()).add(area)
+
+        for vertex in self.graph.V:
+            if vertex.is_generic or vertex.label is None:
+                continue
+            areas = occurrences.get(vertex.id)
+            if not areas:
+                continue  # isolated: already emitted as a bare mention
+            home = self.graph.get_context(vertex.id)
+            least_common = _least_common_area(self.graph, areas)
+            if least_common is None or home == least_common:
+                continue
+            if home not in _ancestors(self.graph, least_common):
+                continue  # not above its uses; nothing a mention could fix
+            self._pinned_constants.setdefault(home, set()).add(vertex.label)
 
     def _assign_labels_preserving_nu_order(
         self, context_id: ElementID, processed_vertices: Set[ElementID]
@@ -350,6 +389,17 @@ class EGIFGenerator:
             else:
                 # Constant isolated vertex
                 content_parts.append(f'"{vertex.label}"')
+
+        # A constant that sits *above* the least common area of its own uses
+        # needs its position written down, or the reader cannot recover it: a
+        # generic line marks its home with ``*x``, and a bare mention is the
+        # constant's counterpart. Without it the parser interns the line at the
+        # least common area of the relations that name it, one or more cuts too
+        # deep, and the graph does not survive its own EGIF. Erasure is what
+        # produces the case — erase the relation holding a constant deep and the
+        # line is left above what remains.
+        for label in sorted(self._pinned_constants.get(context_id, ())):
+            content_parts.append(f'"{label}"')
 
         # Generate relations
         edge_ids: List[ElementID] = []

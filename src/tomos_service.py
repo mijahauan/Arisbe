@@ -35,6 +35,7 @@ from universe_of_discourse import (
     UoDCategory,
 )
 from correspondence_attestation import attest_correspondence
+from vertex_scope import _constant_twins, constants_normalized
 from egi_core_dau import RelationalGraphWithCuts
 from egi_io import load_egi_json, save_egi_json
 from elk_layout_engine import ELKLayoutEngine
@@ -167,6 +168,43 @@ def _attest_uod_in_correspondence(
     from eg_reader import assign_second_order_marks
     dto = assign_second_order_marks(uod.current_egi, dto)
     attest_correspondence(uod.current_egi, dto, context=context)
+
+
+class ConstantNormalFormViolation(Exception):
+    """A graph offered to the corpus carries more than one line of identity
+    for a single constant."""
+
+
+def _attest_constant_normal_form(uod, *, context: str) -> None:
+    """Refuse a graph that is not in constant normal form.
+
+    A constant appearing in several spots is one line of identity. Two lines
+    say exactly what one says — a name denotes a single individual under any
+    interpretation — but no linear form distinguishes them, so such a graph
+    cannot survive its own EGIF, CGIF or CLIF. The corpus is the record, and a
+    record that cannot be written down is not one.
+
+    This refuses rather than normalising in place. A UoD's transformation chain
+    carries its own per-state EGIs beside ``current.egi``; rewriting one and
+    not the others would let them drift. And the refusal names the producer,
+    which a silent repair would hide. Normalising is the caller's job, at the
+    boundary where the graph is constructed — ``vertex_scope.normalize_constants``.
+    """
+    twins = _constant_twins(uod.current_egi)
+    if not twins:
+        return
+    labels = sorted({
+        vertex.label
+        for vertex in uod.current_egi.V
+        if vertex.id in twins and vertex.label is not None
+    })
+    raise ConstantNormalFormViolation(
+        f"{context}: a constant may hold only one line of identity, but "
+        f"{', '.join(repr(l) for l in labels)} "
+        f"{'holds' if len(labels) == 1 else 'hold'} more than one "
+        f"({len(twins)} redundant line(s)). Normalise at the boundary where "
+        f"the graph is constructed — vertex_scope.normalize_constants."
+    )
 
 
 class TomosVersion(Enum):
@@ -761,6 +799,9 @@ class TomosService:
         # before any disk writes so the corpus never reaches a
         # half-saved drifted state.
         _attest_uod_in_correspondence(
+            uod, context=f"tomos_service.save_uod({uod.uod_id})"
+        )
+        _attest_constant_normal_form(
             uod, context=f"tomos_service.save_uod({uod.uod_id})"
         )
 

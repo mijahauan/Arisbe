@@ -431,3 +431,59 @@ class TestEpisode:
         g = apply_rule("INS", g, egif='~[ (unicorn "Q") ]', target=outer)
         with pytest.raises(AssertionError):
             apply_rule("IT-", g, selection=[rider])           # nothing licenses it
+
+
+class TestDischargeNormalizesConstants:
+    """A fact landing in M joins the line already standing for that individual.
+
+    ``discharge_episode`` brings P out of the arena and into M's cell. P was
+    scribed as fresh ink by INS, so it arrives carrying its own line for any
+    individual it names — and if M already stands on that individual, the cell
+    ends up holding two lines for one constant. That says exactly what one line
+    says, but no linear form can write it down, so the discharged M could not
+    survive its own EGIF.
+
+    The merge happens here, where M's content is constructed, and not in the
+    rules: ``apply_rule`` and the six transformations are exactly as Dau states
+    them. Entertaining is left alone too — the arena's exhibit is the calculus's
+    own working, not part of the record.
+    """
+
+    def _episode(self):
+        from egif_parser_dau import parse_egif
+        from world_scroll import wrap_m, entertain_episode, discharge_episode
+
+        proposal = '(mammal "Rex")'
+        resident, _ = wrap_m(parse_egif('(dog "Rex") ~[ (dog *x) ~[ (mammal x) ] ]'))
+        entertained, _ = entertain_episode(resident, proposal)
+        discharged, derivation = discharge_episode(entertained, proposal)
+        return entertained, discharged, derivation
+
+    def test_the_discharged_graph_holds_one_line_per_constant(self):
+        from vertex_scope import constants_normalized
+
+        _, discharged, _ = self._episode()
+        assert constants_normalized(discharged)
+        assert len([v for v in discharged.V if v.label == "Rex"]) == 1
+
+    def test_the_discharged_graph_survives_its_own_egif(self):
+        import eg_navigation as nav
+        from egif_generator_dau import generate_egif
+        from egif_parser_dau import parse_egif
+
+        _, discharged, _ = self._episode()
+        assert nav.same_graph(discharged, parse_egif(generate_egif(discharged)))
+
+    def test_the_derivation_is_still_the_drawn_modus_ponens(self):
+        """Normalizing chooses a representative; it applies no rule and must
+        not appear in the record of what was done."""
+        _, _, derivation = self._episode()
+        assert derivation[-1] == "DC-"
+        assert set(derivation) <= {"IT-", "DC-"}
+
+    def test_the_fact_actually_landed_in_m(self):
+        from world_scroll import m_view
+        from egif_generator_dau import generate_egif
+
+        _, discharged, _ = self._episode()
+        assert '(mammal "Rex")' in generate_egif(m_view(discharged))

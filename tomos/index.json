@@ -243,21 +243,6 @@
       "path": "universes/dialogue_swan_revision"
     },
     {
-      "uod_id": "episode_discharge",
-      "name": "An EPG episode, entertained and discharged in ink",
-      "category": "theorem_proof",
-      "uod_type": "historical",
-      "is_static": false,
-      "is_dynamic": true,
-      "created": "2026-06-03T00:00:00+00:00",
-      "last_modified": "2026-06-03T00:00:00+00:00",
-      "total_states": 6,
-      "total_transformations": 5,
-      "authors": [],
-      "tags": [],
-      "path": "universes/episode_discharge"
-    },
-    {
       "uod_id": "ex_falso_quodlibet",
       "name": "Ex falso quodlibet (\u00acP \u22a2 P\u2192Q)",
       "category": "theorem_proof",
@@ -781,7 +766,22 @@
       "authors": [],
       "tags": [],
       "path": "literature/would_be_de_inesse"
+    },
+    {
+      "uod_id": "episode_discharge",
+      "name": "An EPG episode, entertained and discharged in ink",
+      "category": "theorem_proof",
+      "uod_type": "historical",
+      "is_static": false,
+      "is_dynamic": true,
+      "created": "2026-06-03T00:00:00+00:00",
+      "last_modified": "2026-06-03T00:00:00+00:00",
+      "total_states": 1,
+      "total_transformations": 0,
+      "authors": [],
+      "tags": [],
+      "path": "universes/episode_discharge"
     }
   ],
-  "last_updated": "2026-09-08T19:42:50.765958+00:00"
+  "last_updated": "2026-09-09T20:26:34.324841"
 }

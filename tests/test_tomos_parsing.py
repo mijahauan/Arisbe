@@ -15,8 +15,8 @@ because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
 The result is honest rather than flattering: most round-trips hold and a
-specific, named few do not. As of 2026-09-09: **138 of 147 hold, 9 do not**,
-down from 64 failures at the start of the arc. The nine are three graphs, each
+specific, named few do not. As of 2026-09-09: **141 of 147 hold, 6 do not**,
+down from 64 failures at the start of the arc. The six are two graphs, each
 failing in all three formats — a symmetry worth reading, since it says no
 linear form is known to carry a defect any more and the residue lies upstream
 of all of them. They are listed in ``KNOWN_BROKEN`` with what goes wrong in
@@ -56,16 +56,18 @@ SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
 # guarantee is stated at its true extent and a fix announces itself as an
 # unexpected pass.
 #
-# Three graphs remain, and each fails in *all three* formats. That symmetry is
+# Two graphs remain, and each fails in *all three* formats. That symmetry is
 # itself the finding: no linear form is known to have a defect left, and what
-# is left sits upstream of all of them, in the graphs or in what built them.
+# is left sits upstream of all of them.
 #
-#   episode_discharge — the graph carries two distinct vertices both labelled
-#                       "Rex", in the same area. Under the ruling that a
-#                       constant appearing in several spots is one line of
-#                       identity, the parsers' merge is correct and the corpus
-#                       graph is malformed. How it came to be written that way
-#                       is being traced before it is corrected.
+# episode_discharge used to sit here too. Its graph carried two lines of
+# identity for "Rex" — INS scribes fresh ink, so a fact discharged into M
+# arrives with its own line for an individual M already stands on. Two lines
+# say exactly what one says, but no linear form can write the difference down.
+# The representative is now chosen where M's content is constructed
+# (world_scroll.discharge_episode), the corpus boundary refuses anything else,
+# and the exemplar was rebuilt.
+#
 #   bfo_core          — same_graph says no while the legible diff finds nothing
 #                       to report, so the difference is structural rather than
 #                       in content.
@@ -78,9 +80,6 @@ KNOWN_BROKEN = frozenset([
     ("colore_field", "CGIF"),
     ("colore_field", "CLIF"),
     ("colore_field", "EGIF"),
-    ("episode_discharge", "CGIF"),
-    ("episode_discharge", "CLIF"),
-    ("episode_discharge", "EGIF"),
 ])
 
 

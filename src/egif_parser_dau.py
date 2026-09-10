@@ -821,17 +821,34 @@ class EGIFParser:
             return vertex_id
 
         elif token.type == TokenType.CONSTANT:
-            # Isolated constant "Socrates"
+            # Isolated constant "Socrates" — interned exactly as it is when it
+            # appears as an argument. This branch used to mint a fresh vertex
+            # every time and never record it in ``constant_vertices``, so a bare
+            # mention and the relations naming the same individual ended up on
+            # two separate lines of identity — contradicting both the docstring
+            # above and the rule that a constant appearing in several spots is
+            # one line.
+            #
+            # The mention earns its keep by placing the line: written outside
+            # the relations that use it, it is a constant's counterpart to the
+            # defining occurrence ``*x``, and since hoisting is outward only,
+            # the line stays where the mention put it.
             constant_value = token.value[1:-1]  # Remove quotes
-            vertex = self._fresh_vertex(label=constant_value, is_generic=False)
-            self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+
+            if constant_value in self.constant_vertices:
+                vertex_id = self.constant_vertices[constant_value]
+            else:
+                vertex = self._fresh_vertex(label=constant_value, is_generic=False)
+                self.graph = self.graph.with_vertex_in_context(vertex, context_id)
+                self.constant_vertices[constant_value] = vertex.id
+                vertex_id = vertex.id
 
             # Track constant occurrences for validation
             if constant_value not in self.const_occ_contexts:
                 self.const_occ_contexts[constant_value] = set()
             self.const_occ_contexts[constant_value].add(context_id)
             self._advance()
-            return vertex.id
+            return vertex_id
 
         else:
             raise ValueError(f"Invalid isolated vertex token: {token.type}")

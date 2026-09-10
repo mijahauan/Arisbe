@@ -18,6 +18,26 @@ same error changes the *quantifier*, because a bound line's quantifier is read
 off its context polarity: an existential interned inside a negation re-emits as
 a universal.
 
+**One line per constant.** A constant appearing in several spots is one line
+of identity. This is a *normal form*, not a well-formedness law: two vertices
+both naming Rex are not malformed, and say exactly what one vertex naming Rex
+says, because a name denotes a single individual under any interpretation —
+FOPL, Common Logic and the conceptual-graph reading all force that, and in
+Peirce's own notation the repeated name is a *selective*, defined as an
+abbreviation for the line. What the second vertex costs is writability: no
+linear syntax distinguishes one line for a constant from two, so an
+unnormalized graph cannot survive its own EGIF. ``normalize_constants`` picks
+the one representative every linear form can carry.
+
+The freedom is genuinely empty for constants and genuinely not for generic
+lines. A constant vertex contributes "Rex exists", which is true under any
+interpretation that gives every name a denotation, and a true conjunct is inert
+at any depth; a generic line's area sets its quantifier's scope and polarity.
+So multiplicity and placement are meaning for a generic line and normalization
+leaves those alone. (This rests on names always denoting. Under a free logic,
+where ``~[ "Rex" ]`` would deny that Rex exists, placement would become
+load-bearing and this normal form would need revisiting.)
+
 **Outward only.** A vertex is moved when its current area does not already
 dominate every occurrence, and then only as far as the least common area. It is
 never moved inward: the outermost specification of an individual establishes
@@ -32,7 +52,7 @@ from typing import Dict, List, Optional, Set
 
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 
-__all__ = ["hoist_vertices_to_lca"]
+__all__ = ["hoist_vertices_to_lca", "normalize_constants", "constants_normalized"]
 
 
 def _area_of(egi: RelationalGraphWithCuts, element: ElementID) -> Optional[ElementID]:
@@ -113,3 +133,79 @@ def hoist_vertices_to_lca(
             continue
         egi = egi.with_vertex_moved_to_context(vertex_id, target)
     return egi
+
+
+def _constant_twins(egi: RelationalGraphWithCuts) -> Dict[ElementID, ElementID]:
+    """Map each redundant constant vertex to the one line that survives it.
+
+    Vertices are grouped by label, never by identity, because that is what the
+    ruling turns on: the *name* is what makes two lines one. Generic vertices
+    carry no name and are never grouped.
+    """
+    by_label: Dict[str, List[ElementID]] = {}
+    for vertex in egi.V:
+        if vertex.is_generic or vertex.label is None:
+            continue
+        by_label.setdefault(vertex.label, []).append(vertex.id)
+
+    twins: Dict[ElementID, ElementID] = {}
+    for ids in by_label.values():
+        if len(ids) < 2:
+            continue
+        survivor, *rest = sorted(ids)
+        for twin in rest:
+            twins[twin] = survivor
+    return twins
+
+
+def constants_normalized(egi: RelationalGraphWithCuts) -> bool:
+    """Does this graph hold at most one line of identity per constant?"""
+    return not _constant_twins(egi)
+
+
+def normalize_constants(
+    egi: RelationalGraphWithCuts,
+) -> RelationalGraphWithCuts:
+    """Give each constant a single line of identity.
+
+    Returns ``egi`` itself when it is already in normal form, so a caller can
+    apply this at a boundary without churning graphs that do not need it.
+
+    The merge is meaning-preserving (see the module docstring), so this is a
+    choice of representative rather than a repair. It is applied where graphs
+    are *constructed* — the drawing reader, the episode primitives that splice
+    freshly parsed ink beside standing ink — and never inside the transformation
+    rules, which are left exactly as Dau states them.
+    """
+    twins = _constant_twins(egi)
+    if not twins:
+        return egi
+
+    # An edge reaching a twin has to be re-hung on the survivor, and the model
+    # is immutable with no way to rewrite nu in place: drop those edges, drop
+    # the twins, then restore the edges with their arguments redirected. Edge
+    # objects and their areas are carried across unchanged, so only the
+    # incidence moves.
+    affected = [
+        edge.id for edge in egi.E
+        if any(v in twins for v in egi.nu.get(edge.id, ()))
+    ]
+    edges_by_id = {edge.id: edge for edge in egi.E}
+    carried = [
+        (
+            edges_by_id[edge_id],
+            tuple(twins.get(v, v) for v in egi.nu[edge_id]),
+            egi.rel[edge_id],
+            egi.get_context(edge_id),
+        )
+        for edge_id in affected
+    ]
+
+    result = egi
+    for edge_id in affected:
+        result = result.without_element(edge_id)
+    for twin in sorted(twins):
+        result = result.without_element(twin)
+    for edge, arguments, relation, area in carried:
+        result = result.with_edge(edge, arguments, relation, context_id=area)
+    return result
