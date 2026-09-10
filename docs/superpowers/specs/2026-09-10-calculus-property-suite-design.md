@@ -24,6 +24,56 @@ The pattern this suite must not repeat, met six times in two arcs: **coverage de
 incidental state, with no assertion about its extent.** Every layer here counts what it covered
 and pins the count.
 
+## 1a. What reading Dau changed (added during planning, 2026-09-10)
+
+Dau's book is in the repo (`docs/references/mathematical_logic_with_diagrams.pdf`); the plan
+was written against Chapters 12, 13, 15, 16.1 and 24, transcribed page by page. Six things in
+this spec were wrong or incomplete, and the plan follows the corrections, not the text above.
+
+1. **"Dau's constraints are enforced at construction" is false.** Dominating nodes — ctx(e) ≤
+   ctx(v) for every edge and incident vertex (Def 12.5, p.125) — is part of the *definition* of an
+   EGI (Def 12.7, p.126; Def 24.1, p.260). The core does not enforce it: a vertex inside a cut
+   with its edge on the sheet constructs without complaint. Worse, the core's own check is
+   **inverted**: `has_dominating_nodes()` returns False on the ordinary `(P *x) ~[ (Q x) ]` and True
+   on the ill-formed graph (probed). The inverted helper `_context_dominates` also guards
+   `replace_vertex_on_hook` and the add-vertex-to-ligature path, and `derived_rules.py` carries a
+   comment calling one of its wrong refusals right. The suite carries its own check; the core
+   defect goes to the ledger. Fixing it is a protected-core change and is **not** in this plan.
+2. **The rule table follows Dau, not the engine.** Def 15.2 (p.164–166): erasure and insertion are
+   one-way; iteration, deiteration, double cuts, and the **isolated-vertex rules** are mutually
+   inverse pairs — and an isolated vertex may be inserted or erased **in any context**. Def 12.14
+   (p.138) adds the ligature transformation rules; Lemmas 16.1–16.7 (p.169–178) the derived
+   ligature rules, all equivalences; Def 24.10 (p.270–271) the rules for constants. Each Dau rule
+   maps to an engine entry point or to none. The engine's HEAVY_DOT covers vertex insertion in
+   *negative* contexts only, and mints the fixed id `heavy_dot_vertex`, so a second application
+   silently does nothing and reports success (probed). Vertex erasure outside positive contexts,
+   orientation of an identity edge, adding/removing a ligature vertex, and the three constant
+   rules have **no** entry point: they are counted as unimplemented and pinned, not enumerated.
+3. **The vertex split/merge rules are live** (`derived_rules`, `world_scroll` call
+   `_apply_vertex_split` / `_apply_vertex_merge`) and join the table as Def 16.6 / Lemma 16.7.
+4. **Arisbe does not write lines the way Dau does.** Dau joins areas with identity edges (`=`);
+   Arisbe writes a line crossing cuts as one vertex in the outer context, with edges nested below
+   it — lawful under dominating nodes. So `legal()` reads each rule *in that representation*: a
+   Dau application composed with the ligature transformations that re-express an outer line
+   (Def 12.14; Lemmas 16.1–16.3; Dau's own worked remark, p.166–167). Each rule's docstring states
+   the reading and its derivation. Refusal agreement is **not** judged for the four
+   ligature-engine rules and split/merge, whose parameters underdetermine the move; they get the
+   structural and strict-soundness layers only, and the extent says so.
+5. **Semantics.** The domain is non-empty (Def 13.1, p.141) and two names may co-denote (nothing in
+   Ch. 24 forbids it). `=` is equality (Def 13.1), so tier A's alphabet includes `=` and `tarski`
+   fixes its extension; `semantic_game` does **not** special-case `=`, so the differential layer
+   encodes the diagonal `(= u u)` into each facts graph. The syntax admits 0-ary relations (Defs
+   12.1, 12.6) but the semantics as printed does not (Def 13.1 uses ℕ): `tarski` reads a 0-ary
+   relation as a truth value — a declared extension, flagged as such.
+6. **INS content** is standalone EGIF, which cannot write `(p)` or an isolated constant; the content
+   catalogue excludes them and the extent says so. The 8/8 and 3/8 validation pairs of the
+   constant-normal-form ruling were measured ad hoc and never kept; `tarski` is validated on
+   freshly built pairs of the same two kinds instead.
+
+Dau's own text carries errata the transcription flagged (Def 12.4 counts a cut as enclosing
+itself; p.166 prints κ(v) = ⊤; Def 16.6 names its direction backwards). The suite follows the
+reading the calculus requires and cites the page.
+
 ## 2. The shape
 
 Four units in `tests/`, each testable without the others:
