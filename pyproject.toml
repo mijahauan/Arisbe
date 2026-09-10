@@ -96,3 +96,7 @@ norecursedirs = [
     "*.egg", ".*", "_darcs", "build", "CVS", "dist", "node_modules", "venv", "{arch}",
     "archive", "graphify-out", ".venv",
 ]
+markers = [
+    "exhaustive: the calculus property suite at full extent (run with -m exhaustive)",
+]
+addopts = "-m 'not exhaustive'"
