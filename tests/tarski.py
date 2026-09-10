@@ -197,8 +197,27 @@ def sheet_components(g: G) -> List[FrozenSet[str]]:
 
 
 def restrict(g: G, ids: FrozenSet[str]) -> G:
-    """The sub-EGI on ``ids`` (a union of sheet components), built directly."""
+    """The sub-EGI on ``ids``: a union of whole sheet components (each kept
+    cut's entire subtree present, each kept edge's whole vertex sequence
+    present) — exactly what ``sheet_components`` hands back. Raises
+    ``ValueError`` rather than silently building a broken graph if ``ids``
+    violates that contract: a kept cut missing some of its own contents, or a
+    kept edge missing one of its vertices."""
     keep = set(ids)
+    for c in g.Cut:
+        if c.id in keep:
+            missing = set(g.area.get(c.id, frozenset())) - keep
+            if missing:
+                raise ValueError(
+                    f"cut '{c.id}' kept without its contents {sorted(missing)}"
+                )
+    for e in g.E:
+        if e.id in keep:
+            missing = set(g.nu.get(e.id, ())) - keep
+            if missing:
+                raise ValueError(
+                    f"edge '{e.id}' kept without its vertices {sorted(missing)}"
+                )
     area = {g.sheet: frozenset(x for x in g.area.get(g.sheet, ()) if x in keep)}
     for c in g.Cut:
         if c.id in keep:

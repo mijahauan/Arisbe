@@ -8,11 +8,12 @@ placement is not. These pairs are built fresh; the 8/8 and 3/8 pairs of the
 import pytest
 from frozendict import frozendict
 
+from eg_navigation import same_graph
 from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
 from tarski import (
-    NotAnEGI, Structure, dominating_nodes, model_set, satisfies,
-    sheet_components, universe, vocabulary,
+    NotAnEGI, Structure, dominating_nodes, model_set, restrict, satisfies,
+    sheet_components, tuple_bits, universe, vocabulary,
 )
 
 G = RelationalGraphWithCuts
@@ -131,3 +132,41 @@ def test_una_universe_assigns_names_injectively():
 def test_sheet_components_split_on_shared_lines_only():
     g = parse_egif("(P *x) ~[ (Q x) ] (R *y *z) ~[ (P *w) ]")
     assert len(sheet_components(g)) == 3
+
+
+def _shape(g, comp):
+    """The (rel, arity) multiset of a component's edges — stable across the
+    random ids sheet_components hands back, so components can be picked by
+    what they mean rather than by list position."""
+    return frozenset((g.rel[x], len(g.nu[x])) for x in comp if x in g.nu)
+
+
+def test_restrict_on_two_of_three_components_matches_the_egif():
+    g = parse_egif("(P *x) ~[ (Q x) ] (R *y *z) ~[ (P *w) ]")
+    comps = sheet_components(g)
+    assert len(comps) == 3
+    by_shape = {_shape(g, c): c for c in comps}
+    comp_pq = by_shape[frozenset({("P", 1), ("Q", 1)})]
+    comp_r = by_shape[frozenset({("R", 2)})]
+    kept = restrict(g, comp_pq | comp_r)
+    expected = parse_egif("(P *x) ~[ (Q x) ] (R *y *z)")
+    assert same_graph(kept, expected)
+
+
+def test_restrict_refuses_a_cut_kept_without_its_contents():
+    g = parse_egif("(P *x) ~[ (Q x) ]")
+    cut_id = next(c.id for c in g.Cut)
+    with pytest.raises(ValueError):
+        restrict(g, frozenset({cut_id}))
+
+
+def test_restrict_refuses_an_edge_kept_without_its_vertex():
+    g = parse_egif("(P *x) ~[ (Q x) ]")
+    edge_id = next(e.id for e in g.E)
+    with pytest.raises(ValueError):
+        restrict(g, frozenset({edge_id}))
+
+
+def test_tuple_bits_counts_argument_tuples():
+    assert tuple_bits((("P", 1), ("R", 2)), 3) == 3 + 9
+    assert tuple_bits((), 2) == 0
