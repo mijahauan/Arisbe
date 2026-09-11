@@ -104,7 +104,8 @@ REASONS = {
         "sources declares an alphabet (no_declared_alphabet), legal() rejects every move, and "
         "G ⊨ G′ at domain sizes 1–2 (sound) — but only because tarski reads the two arities "
         "of one name as two relations; Dau's semantics has no reading for such a graph. Tier A "
-        "cannot reach it (its bounds give each name one arity, the INS catalogue's)."),
+        "cannot reach it (its bounds give each name one arity, the INS catalogue's). "
+        "In the exhaustive mode: 244 moves in 244 keys, none on a source with a declared alphabet, all sound under tarski's reading."),
     "era-closure-drags-a-quoting-name": ("ERA", INCOMPLETE,
         "Dau Def 15.2 (p.165): erasing an edge removes the edge only (V^(e) := V) — its vertex "
         "stays, even when the edge was its last. Offered an edge whose argument is a QUOTING NAME "
@@ -116,7 +117,8 @@ REASONS = {
         "and its oval — touches no quotation apparatus. Measured by calculus_adjudication in the "
         "default mode on every move in this entry: the refused name is a vertex the erasure "
         "isolates (name_is_isolated) and legal() judges the named move legal. Incompleteness, "
-        "not unsoundness."),
+        "not unsoundness. "
+        "In the exhaustive mode: 18 moves in 18 keys, the refused name the isolated vertex on all 18."),
     "it-plus-refuses-a-cut-named-with-its-contents": ("IT+", INCOMPLETE,
         "Dau Def 12.10 (p.134) with Def 15.2 iteration (p.164, 166): naming a cut together with "
         "some of its contents names the same subgraph as the cut alone, which may be iterated "
@@ -135,10 +137,12 @@ REASONS = {
         "Dau Def 12.10 (p.134) with Def 15.2 deiteration (p.164, 166): naming a cut together "
         "with some of its contents names the same subgraph as the cut alone. The engine requires "
         "every NAMED element to lie in one area ('All candidate elements must be in the same "
-        "area'). Unlike the ERA/IT+/DC+ entries of this shape, the same move named by its top "
-        "elements alone is ALSO refused (tops_only_applied=0 of 8 moves at exhaustive bounds), so "
-        "this is not shown to be an input-form restriction alone. (Exhaustive bounds only; not "
-        "ledgered.)"),
+        "area'). Measured by calculus_adjudication --exhaustive (the default mode reaches none): "
+        "22 moves in 18 keys — 8 tier A, 14 tier B. At tier A, unlike the ERA/IT+/DC+ entries of "
+        "this shape, the same move named by its top elements alone is ALSO refused (0 of the 8), "
+        "so there it is not shown to be an input-form restriction alone; at tier B the top-"
+        "elements move is applied on all 14 (tops_only_applied 14 of 22). Ledgered by count in "
+        "the exhaustive mode."),
     "it-plus-into-its-own-selection": ("IT+", SEVERE,
         P + "Dau Def 15.2 iteration (p.164, and formally p.166): the target context must satisfy "
         "c ∉ Cut_0 — a subgraph may not be copied into one of its own cuts. The engine's "
@@ -147,7 +151,8 @@ REASONS = {
         "it contains. Measured by calculus_adjudication in the default mode: 70 of the entry's 483 "
         "moves are UNSOUND (unsound) — a structure satisfies G but not G′ (e.g. ~[ ~[ ] ] (true) becomes "
         "~[ ~[ ~[ ] ] ] (false) by iterating the empty inner cut into itself); on others the "
-        "result is merely not the equivalence IT+ must be."),
+        "result is merely not the equivalence IT+ must be. "
+        "In the exhaustive mode: 6,619 moves in 6,322 keys (4,430 tier A, 2,189 tier B), 704 of them UNSOUND at sizes 1–2."),
     "it-minus-erases-a-copy-of-another-line": ("IT-", SEVERE,
         P + "Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration "
         "could have inserted it, and iteration copies every vertex of the source fresh "
@@ -167,7 +172,8 @@ REASONS = {
         "*x *y (P x) ~[ ] (unsatisfiable), UNSOUND; and *y (P \"a\") ~[ (P y) ] likewise. The "
         "engine does not ignore names everywhere: (P \"a\") ~[ (P \"b\") ] is refused. Tier A "
         "cannot build these shapes (the exhaustive bound is four elements), which is why tier B "
-        "found it."),
+        "found it. "
+        "In the exhaustive mode (calculus_adjudication --exhaustive): 64 moves in 64 keys, all tier B; a source exists for all 64 once any vertex may match, for 24 with a vertex of the same kind; 59 are equivalences at sizes 1–2, and the other 5 — on group_identity's chain states — change meaning, some UNSOUND (soundness entry it-minus-erases-a-copy-of-another-line-changes-meaning)."),
     "it-minus-strictly-enclosing-only": ("IT-", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): iteration copies into any c ≤ ctx(G0), c = ctx(G0) included, "
         "and deiteration erases whatever iteration could have inserted — so a copy whose source "

@@ -69,7 +69,7 @@ from tarski import model_set, universe, vocabulary  # noqa: E402
 LAYER = "soundness"
 
 # id -> (rule, refusal entry it is the soundness half of, or None, reason).
-# Figures quoted are this script's: default ones at DEFAULT_BOUNDS with MODES["default"].sem,
+# Figures quoted are this script's: default ones in the default mode with MODES["default"].sem,
 # exhaustive ones (--exhaustive) at EXHAUSTIVE_BOUNDS with MODES["exhaustive"].sem.
 REASONS = {
     "ligature-rules-take-a-join-deeper-than-its-vertices": ("RETRACT_LIGATURE", None,
@@ -81,8 +81,10 @@ REASONS = {
         "joined by identity edges (_vertices_form_ligature ignores the edges' contexts), so they "
         "retract such a pair — *x *y ~[ (= x y) ] becomes *x ~[ ] (false) — or rewire it. "
         "Includes both rules (the entry's rule field names the first); not judged by legal(). "
-        "Measured by calculus_adjudication_soundness --exhaustive (the figures below, "
-        "join_deeper on every move); the default mode reaches none (a pair plus a cut plus an "
+        "Measured by calculus_adjudication_soundness --exhaustive: 52 moves in 52 keys (40 tier A, "
+        "12 tier B; REARRANGE_LIGATURE 34, RETRACT_LIGATURE 18), 40 UNSOUND — *x *y ~[ (= x y) ] "
+        "becomes *x ~[ ], separating structure Structure(2, (), ()) — and 12 not an equivalence; "
+        "join_deeper on every move. The default mode reaches none (a pair plus a cut plus an "
         "identity edge exceeds its three-element bound). Separate from "
         "retract-ligature-erases-a-constant-vertex, which erases a name."),
     "it-plus-into-its-own-selection-changes-meaning": ("IT+", "it-plus-into-its-own-selection",
@@ -99,7 +101,22 @@ REASONS = {
         "structure), separating structure Structure(1, (), ()) — and the other 191 gain models "
         "(~[ ] becomes ~[ ~[ ] ]: false to true). Of the refusal entry's 462 keys, 204 are "
         "evaluated here and pass, every one with G ≡ G′ over the budget (refusal_entry_passing, "
-        "passing_equivalent). No failure on a move legal() judges legal."),
+        "passing_equivalent). No failure on a move legal() judges legal. "
+        "In the exhaustive mode (sizes 1–3, tier-B universes capped): 3,824 moves in 3,756 keys (3,228 tier A, 596 tier B), 711 UNSOUND (705 illegal, 6 on quotation-bearing graphs legal() does not judge) and 3,113 not an equivalence — none on a move legal() judges legal."),
+    "it-minus-erases-a-copy-of-another-line-changes-meaning": ("IT-", "it-minus-erases-a-copy-of-another-line",
+        P + "The soundness half of refusal entry it-minus-erases-a-copy-of-another-line, the same "
+        "mechanism: Dau Def 15.2 deiteration (p.164, 166) erases only what iteration could have "
+        "inserted — a copy hooking the source's own lines — and it is an equivalence. The engine "
+        "erases an edge whose supposed original hooks a different vertex (a move legal() "
+        "rejects), and on corpus graphs the result can change meaning. Measured by "
+        "calculus_adjudication_soundness --exhaustive (the default mode reaches none): on "
+        "group_identity's chain states, deiterating (M x1 x2 x4) beside (M x1 x2 x3) in "
+        "~[ *x1 *x2 *x3 *x4 (M x1 x2 x3) (M x1 x2 x4) ~[ (= x3 x4) ] ] is UNSOUND (5 moves in 5 "
+        "keys, all tier B: 4 UNSOUND, 1 not an equivalence) — "
+        "separating structure Structure(2, (), (('M', ((0, 0, 0), (1, 0, 1))),)) models G "
+        "but not G′ — and erasing (M z y z) from *x *y (M x y y) ~[ *z ~[ (M z y z) ] ] … loses "
+        "the equivalence. Every key is an instance of that refusal entry (in_refusal_entry); "
+        "figures by kind are the pinned exhaustive counts."),
     "vertex-era-erases-a-line-not-an-equivalence": ("VERTEX_ERA", "vertex-era-erases-a-line-with-its-edges",
         P + "The soundness half of refusal entry vertex-era-erases-a-line-with-its-edges, the "
         "same mechanism: Dau Def 15.2 (p.164, 166) erases a vertex with E_v = ∅ only, and that "
@@ -110,7 +127,8 @@ REASONS = {
         "every one illegal and every key an instance of that refusal entry; G ⊨ G′ on all 111 "
         "(sound) and G′ ⊭ G — e.g. *x (P x) becomes the blank sheet, separating structure "
         "Structure(1, (), (('P', ()),)). Of the refusal entry's 198 keys, 69 are evaluated here "
-        "and pass, every one with G ≡ G′ over the budget."),
+        "and pass, every one with G ≡ G′ over the budget. "
+        "In the exhaustive mode: 1,910 moves in 1,898 keys (1,888 tier A, 22 tier B), all sound, none an equivalence."),
     "merge-vertices-erases-a-constant-vertex": ("MERGE_VERTICES", None,
         P + "Dau Def 16.6 merging (p.175–176) erases v2 and the identity edge e = (v1, v2) and "
         "puts v1 on v2's hooks — derived (Lemma 16.7, p.176–178) for EGIs without constants. "
@@ -124,7 +142,7 @@ REASONS = {
         "(= \"a\" \"b\") becomes a lone constant vertex, the assertion a = b lost; G ⊨ G′ on all "
         "4 and G′ ⊭ G, separating structure Structure(2, (('a', 0), ('b', 1)), ()). legal() does "
         "not judge MERGE_VERTICES (its parameters underdetermine the move). At exhaustive bounds and semantics, sizes 1–3 "
-        "(figures only; ledgered in Task 10): 156 moves in 108 keys, 12 of them UNSOUND — in a "
+        "(both selection orders, tier A and B): 156 moves in 108 keys, 12 of them UNSOUND — in a "
         "negative context the lost name flips the direction: *x ~[ (= \"a\" x) ] (something is "
         "not a) becomes *x ~[ ] (false), separating structure Structure(2, (('a', 0),), ()). "
         "Controls: on the hand-built generic line (= *x *y) (P x) (Q y) every applied merge is an "
@@ -143,12 +161,11 @@ REASONS = {
         "different names (distinct_constants_joined 4): (= \"a\" \"b\") becomes a lone constant "
         "vertex — which one depends on the unordered selection — the assertion a = b lost; "
         "G ⊨ G′ on both and G′ ⊭ G, separating structure Structure(2, (('a', 0), ('b', 1)), ()). "
-        "Not judged by legal(). At exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task 10): 49 "
-        "moves in 49 keys, 8 UNSOUND — ~[ (= \"a\" \"b\") ] (a ≠ b) becomes a cut around a lone "
-        "constant vertex (false), separating structure Structure(2, (('a', 0), ('b', 1)), ()). "
-        "10 further UNSOUND retractions there erase no constant and are not this entry: the join "
-        "sits in a cut deeper than its vertices (*x *y ~[ (= x y) ] becomes *x ~[ ]) — left "
-        "unclassified for Task 10. "
+        "Not judged by legal(). In the exhaustive mode (calculus_adjudication_soundness --exhaustive, both selection "
+        "orders, tier A and B): 162 moves in 162 keys, 24 UNSOUND — *x \"a\" ~[ (= \"a\" x) ] "
+        "becomes *x ~[ ] (false), separating structure Structure(2, (('a', 0),), ()). The "
+        "retractions that erase no constant but take a join deeper than its vertices are entry "
+        "ligature-rules-take-a-join-deeper-than-its-vertices. "
         "Controls: on the hand-built generic line (= *x *y) (P x) (Q y) the retraction is an "
         "equivalence (1 of 1); on (= \"a\" *y) (P y) it is an equivalence exactly when the "
         "constant vertex survives (equivalent_iff_constant_kept 1; which vertex survives depends "
@@ -165,10 +182,10 @@ REASONS = {
         "selection), the moved edge is the join in all 4; G ⊨ G′ and G′ ⊭ G, separating structure Structure(2, (('a', 0), "
         "('b', 1)), ()). Not a constants effect: on the hand-built generic control (= *x *y) "
         "(P x) (Q y) the same move yields *x *y (= x x) (P x) (Q y), again not an equivalence "
-        "(0 of 1 applied moves equivalent). At exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task "
-        "10): 106 moves in 106 keys, the join moved in all, 10 on generic lines, 18 UNSOUND — "
+        "(0 of 1 applied moves equivalent). In the exhaustive mode (both selection orders, tier A and B): 234 moves in 234 keys, "
+        "the join moved in all, 48 on generic lines, 36 UNSOUND — "
         "*x *y ~[ (= x y) ] (two things differ) becomes *x *y ~[ (= y y) ] (false), separating "
-        "structure Structure(2, (), ()); in 14 the join sits deeper than a vertex it joins, so "
+        "structure Structure(2, (), ()); in 52 the join sits deeper than a vertex it joins, so "
         "the two are not Θ-related at all (Def 24.9, p.269: ctx(e_i) = ctx(v_{i+1})) — the "
         "engine's check (_vertices_on_same_ligature) ignores contexts. "
         "For the author, a question about the text as well as the engine: Lemma 16.1 as printed "
@@ -227,7 +244,7 @@ def measure(rec, detail, c: Counter, refusal_keys, eid, sem):
     c[{True: "legal", False: "illegal", None: "not_judged"}[rec.verdict]] += 1
     c["sound"] += _directions(g, h, sem, rec.tier)[0]
     ref = REASONS[eid][1]
-    if ref:
+    if ref and refusal_keys:
         c["in_refusal_entry"] += rec.key in refusal_keys[ref]
     if rec.move.rule in ("MERGE_VERTICES", "RETRACT_LIGATURE"):
         c["distinct_constants_joined"] += _dissolved_joins(g, h) > 0
@@ -259,10 +276,12 @@ def adjudicate(mode_name):
     A group is (rule, legal() verdict, failure kind); the last two tallies
     cover ALL moves, classified or not, so the legal-move count cannot miss one."""
     sem = MODES[mode_name].sem
+    # The refusal-entry figures compare with DEFAULT instance lists: default mode only.
     refusal_keys = defaultdict(set)
-    for e in json.loads(LEDGER.read_text())["entries"]:
-        refusal_keys[e["id"]] = {k for ks in e["instances"].values() for k in ks}
-    watched = {r[1] for r in REASONS.values() if r[1]}
+    if mode_name == "default":
+        for e in json.loads(LEDGER.read_text())["entries"]:
+            refusal_keys[e["id"]] = {k for ks in e["instances"].values() for k in ks}
+    watched = {r[1] for r in REASONS.values() if r[1]} if mode_name == "default" else set()
     found, figs, samples = defaultdict(lambda: defaultdict(set)), defaultdict(Counter), {}
     unclassified = {}                # group -> [moves, smallest sample line]
     every, passes = Counter(), Counter()
@@ -302,7 +321,7 @@ def adjudicate(mode_name):
     for eid in figs:
         figs[eid]["keys"] = len(set().union(*found[eid].values()))
         ref = REASONS[eid][1]
-        if ref:
+        if ref and ref in watched:
             figs[eid]["refusal_entry_keys"] = len(refusal_keys[ref])
             figs[eid]["refusal_entry_passing"] = len(passing[ref] - failing)
             figs[eid]["passing_equivalent"] = len(passing_equiv[ref] - failing)

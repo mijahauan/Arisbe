@@ -71,6 +71,40 @@ def test_key_separates_a_target_that_encloses_the_selection():
     assert instance_key("A", "g", g, a, sigs) != instance_key("A", "g", g, b, sigs)
 
 
+def test_key_separates_a_selection_by_its_common_context():
+    """Task 10 (exhaustive tier B): two edges have no incidence between them, so
+    {R, Q} in one cut and {Q, R'} across sibling cuts (R and R' alike) shared a
+    key; the pair's lowest common context now separates them."""
+    from calculus_enum import build
+    from calculus_ledger import instance_key
+    from calculus_rules import Move
+    from canonical_signature import compute_canonical_signatures
+
+    g = build({"c1": "S", "c2": "S"}, [], [("r", (), "c1"), ("q", (), "c1"), ("r", (), "c2")])
+    sigs = compute_canonical_signatures(g)
+    key = lambda sel: instance_key("A", "g", g, Move("DC+", sel, "S"), sigs)  # noqa: E731
+    assert key(("e1", "e2")) != key(("e2", "e3"))
+
+
+def test_key_separates_a_target_within_the_source_context():
+    """Task 10 (exhaustive tier B, episode_discharge:s2): IT+ of one selection
+    into two alike empty cuts — one within the selection's context, one in a
+    sibling branch — shared a key; the target now records where its chain
+    meets each selected element's context."""
+    from calculus_enum import build
+    from calculus_ledger import instance_key
+    from calculus_rules import Move, legal
+    from canonical_signature import compute_canonical_signatures
+
+    g = build({"c1": "S", "c2": "S", "c3": "c1", "c4": "c1", "c5": "c2"}, [], [])
+    sigs = compute_canonical_signatures(g)
+    vs, es, cs = sigs
+    assert cs["c4"] == cs["c5"]       # alike empty cuts, one under c1 and one under c2
+    a, b = Move("IT+", ("c3",), "c4"), Move("IT+", ("c3",), "c5")
+    assert legal(g, a)[0] is True and legal(g, b)[0] is False
+    assert instance_key("A", "g", g, a, sigs) != instance_key("A", "g", g, b, sigs)
+
+
 def test_refusal_agreement():
     _agree("default")
 

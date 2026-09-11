@@ -273,6 +273,18 @@ All are **existence** questions — answerable in the calculus as it stands.
   engine performs a larger or differently placed Dau-legal move than the one named (auto-closing a
   selection; ignoring DC+'s spot when a subject is given) — sound on every instance measured, but
   the named move is not refused.
+  *Note (added in Task 10; the prior and its outcome above stand unedited):* tier B, the corpus
+  as used, adds two SEVERE mechanisms that tier A cannot build (they need five elements, or a
+  name at two arities).
+  - `it-minus-erases-a-copy-of-another-line`: IT- erases an edge whose supposed original hooks a
+    different vertex. 33 moves in the default mode, 64 at exhaustive. UNSOUND on the hand-built
+    control `*x *y (P x) ~[ (P y) ]` → `*x *y (P x) ~[ ]`, and at exhaustive on group_identity's
+    chain states.
+  - `ins-mixes-arities-without-an-alphabet`: with no declared alphabet, INS accepts a name at a
+    second arity, against Def 12.6–12.7 (p.126). 52 moves in the default mode, 244 at exhaustive.
+
+  Both are ledgered PROVISIONAL. At exhaustive bounds the refusal ledger holds 77,636 keys in 15
+  entries, pinned by count per kind, with 0 failing keys spanning two cells.
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
   *Fails if* any structure models G but not G′.
   *Note (added at the Task 8 review):* this prior was written under §5.3's superseded reading
@@ -302,6 +314,20 @@ All are **existence** questions — answerable in the calculus as it stands.
   REARRANGE_LIGATURE 14) are not yet classified: e.g. `*x *y ~[ (= x y) ]` retracts to `*x ~[ ]`. Of the moves that pass, 4,093 were checked over every structure of
   sizes 1–2 and 1,736 over a seeded sample of 64 per size (tuple bits over 6) — pinned in
   `calculus_extent.json` as `default:soundness`; 297 non-EGI DC+ results cannot be evaluated.
+  *Note (added in Task 10; the prior and its outcome above stand unedited):* extended to tier B,
+  the corpus as used. The default mode takes the 52 current graphs; the exhaustive mode takes 133
+  corpus graphs (current graphs and chain states, de-duplicated), with universes sampled above
+  36,864 structures. Still **no soundness failure on any move `legal` judges legal**: 0 in the
+  default mode, and 0 of 6,343 failures in the exhaustive mode, tier A and tier B. Tier B and the
+  exhaustive run add UNSOUND steps, every one on a move `legal` rejects or does not judge:
+  - IT+ into its own selection: 711;
+  - the ligature rules taking a join deeper than its vertices (`*x *y ~[ (= x y) ]` → `*x ~[ ]`):
+    40;
+  - MOVE_BRANCHES: 36;
+  - RETRACT_LIGATURE erasing a constant: 24;
+  - MERGE_VERTICES: 12;
+  - IT- erasing an edge whose supposed original hooks another vertex, on group_identity's chain
+    states: 4. Separating structure `Structure(2, (), (('M', ((0, 0, 0),)),))`.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.
   **Outcome (2026-09-10 run, default bounds, 208 graphs, domain sizes 1–2, unique names, closed
   world):** HELD — 4,392 comparisons, **0 disagreements, 0 UNKNOWN**; 808 over every structure

@@ -103,18 +103,19 @@ def _tiers(mode: Mode):
 
 
 # Engine entry points that do not finish on large patterns, measured in Task 10
-# (a per-move alarm over every tier-B move, under six hash seeds): IT-'s search
+# (a per-move alarm over every tier-B move, under nine hash seeds): IT-'s search
 # for the original (rule_interaction.validate_step ->
 # graph_isomorphism_engine.find_isomorphic_subgraphs, a VF2 subgraph search)
 # ran past 5 s under every seed — and past 45 s when left alone — on each move
 # whose selection expands to 124 elements or more (bfo_core, colore_field,
-# sumo_upper), while every pattern of 72 or fewer finished within 5 s (its time
-# varies with the hash seed: 1-5 s on skos_core and peirce_order_1881's states
-# under some seeds, well under 1 s under others). A wall-clock timeout would
-# make the extent machine-dependent, so a move whose expanded selection
-# exceeds the ceiling is not applied, and is counted under
+# sumo_upper). Below that its time depends on the hash seed with a heavy tail:
+# skos_core's two whole-scroll deiterations (patterns 70-71) took 0.5 s, 2.7 s
+# and 28 s under three seeds and stalled a default run past 16 minutes under a
+# fourth, while no pattern of 64 or fewer took more than ~4.3 s under any seed.
+# A wall-clock timeout would make the extent machine-dependent, so a move whose
+# expanded selection exceeds the ceiling is not applied, and is counted under
 # ``skipped["<tier>:<rule>:engine-does-not-finish"]``.
-ENGINE_PATTERN_CEILING = {"IT-": 100}
+ENGINE_PATTERN_CEILING = {"IT-": 64}
 
 
 def records(mode_name: str, tally: Optional["Run"] = None) -> Iterator[Tuple[Record, dict]]:

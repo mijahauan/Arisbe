@@ -11,10 +11,13 @@ diff is then read and committed deliberately.
 """
 from __future__ import annotations
 
+import contextlib
+import fcntl
 import hashlib
 import json
 import os
 import sys
+import tempfile
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -67,7 +70,17 @@ def _target(g, m, sigs):
     holds = sorted(("holds", chain.index(m.target), _sig(g, x, sigs))
                    for x in m.selection
                    for chain in [_enclosing(g, x) + [g.sheet]] if m.target in chain)
-    return (_sig(g, m.target, sigs), rel, holds)
+    # and where the target's chain meets each selected element's context chain
+    # (steps up from the target, steps up from the element's context) — else IT+
+    # of one selection into two alike empty cuts, one within the selection's
+    # context and one in a sibling branch, share a key (episode_discharge:s2)
+    tchain = [m.target] + (_contexts(g, m.target) if m.target != g.sheet else [])
+    meets = []
+    for x in m.selection:
+        xc = _contexts(g, x)
+        a = next(c for c in tchain if c in xc)
+        meets.append(("meets", tchain.index(a), xc.index(a), _sig(g, x, sigs)))
+    return (_sig(g, m.target, sigs), rel, holds, sorted(meets))
 
 
 def _selection(g, sel, sigs, ordered=False):
@@ -78,11 +91,16 @@ def _selection(g, sel, sigs, ordered=False):
     with its own vertex) apart from ERA{e1,v2} (an edge and a stranger)."""
     S = set(sel)
     chains = {x: _enclosing(g, x) for x in S}
+    ctxs = {x: _contexts(g, x) for x in S}
     out = []
     for x in (dict.fromkeys(sel) if ordered else S):
         rel = []
         for y in S - {x}:
             sy = _sig(g, y, sigs)
+            # how far up from x's context the pair's lowest common context lies
+            # (0 = the same context): two edges have no incidence, so without it
+            # {R, Q} in one cut and {Q, R'} across sibling cuts share a key
+            rel.append(("lca", next(i for i, a in enumerate(ctxs[x]) if a in ctxs[y]), sy))
             rel += [("hook", i, sy) for i, w in enumerate(g.nu.get(x, ())) if w == y]
             rel += [("on", i, sy) for i, w in enumerate(g.nu.get(y, ())) if w == x]
             if y in chains[x]:
@@ -100,6 +118,15 @@ def _enclosing(g, x) -> list:
         a = g.get_context(a)
         if a != g.sheet:
             out.append(a)
+    return out
+
+
+def _contexts(g, x) -> list:
+    """ctx(x) and every context enclosing it, innermost first, ending at the sheet."""
+    out, a = [], x
+    while a != g.sheet:
+        a = g.get_context(a)
+        out.append(a)
     return out
 
 
@@ -229,7 +256,34 @@ def _check_counts(layer, entries, failures, mode):
     return new, problems
 
 
+def _write(data) -> None:
+    """Atomically: a test reading the ledger never sees a half-written file."""
+    tmp = LEDGER.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+    os.replace(tmp, LEDGER)
+
+
+@contextlib.contextmanager
+def _locked():
+    """Serialize every read-modify-write of the ledger, so adjudication scripts
+    for different layers or modes can run at once without losing a write."""
+    # the lock lives in the temp directory, not beside the ledger, so it never
+    # shows up as an untracked file in the repository
+    lock = Path(tempfile.gettempdir()) / f"calculus_ledger.{hashlib.sha256(str(LEDGER).encode()).hexdigest()[:8]}.lock"
+    with open(lock, "w") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
 def refresh_reasons(owned_layers, specs: Dict[str, Tuple[str, str, str]]) -> int:
+    with _locked():
+        return _refresh_reasons(owned_layers, specs)
+
+
+def _refresh_reasons(owned_layers, specs) -> int:
     """Rewrite only the reason field of this script's existing entries from
     ``specs`` — a text change needs no re-adjudication. Every owned entry must
     have a spec (else its reason would silently go stale)."""
@@ -241,12 +295,17 @@ def refresh_reasons(owned_layers, specs: Dict[str, Tuple[str, str, str]]) -> int
     for e in data["entries"]:
         if e["layer"] in owned_layers and e["reason"] != specs[e["id"]][2]:
             e["reason"], n = specs[e["id"]][2], n + 1
-    LEDGER.write_text(json.dumps(data, indent=1, ensure_ascii=False) + "\n")
+    _write(data)
     return n
 
 
 def update_ledger(owned_layers, specs: Dict[str, Tuple[str, str, str]], mode: str,
                   found: Dict[str, Dict[str, Set[str]]]) -> None:
+    with _locked():
+        _update_ledger(owned_layers, specs, mode, found)
+
+
+def _update_ledger(owned_layers, specs, mode, found) -> None:
     """Rewrite the entries of ``owned_layers`` for one mode, keeping the other
     mode's data. ``specs`` is authoritative: eid -> (layer, rule, reason);
     ``found`` is eid -> kind -> the failing keys the adjudication classified.
@@ -282,7 +341,7 @@ def update_ledger(owned_layers, specs: Dict[str, Tuple[str, str, str]], mode: st
                          "reason": reason, "instances": instances,
                          "counts": dict(sorted(counts.items()))})
     entries = sorted(kept + mine, key=lambda e: (e["layer"], e["id"]))
-    LEDGER.write_text(json.dumps({"entries": entries}, indent=1, ensure_ascii=False) + "\n")
+    _write({"entries": entries})
 
 
 def assert_extent(name: str, extent: dict) -> None:

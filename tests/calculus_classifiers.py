@@ -196,6 +196,9 @@ SOUNDNESS: Dict[str, Pred] = {
     "it-plus-into-its-own-selection-changes-meaning":
         lambda r, d: _rule(r, "IT+") and r.verdict is not True and bool(r.move.selection)
         and r.move.target in expand(r.g, r.move.selection),
+    "it-minus-erases-a-copy-of-another-line-changes-meaning":
+        lambda r, d: _rule(r, "IT-") and r.verdict is False
+        and "no source of which this is a copy" in r.why,
     "vertex-era-erases-a-line-not-an-equivalence":
         lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
     "merge-vertices-erases-a-constant-vertex":

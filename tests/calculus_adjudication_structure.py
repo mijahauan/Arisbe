@@ -94,7 +94,7 @@ REASONS = {
         "illegal by legal(), every result non-EGI, and the 288 keys are exactly that refusal "
         "entry's instances (in_refusal_entry). Coupled: the two entries must shrink together "
         "when the engine is fixed. "
-        "In the exhaustive mode (calculus_adjudication_structure --exhaustive): 15,652 moves in 15,018 keys, every result non-EGI."),
+        "In the exhaustive mode (calculus_adjudication_structure --exhaustive): 15,652 moves in 15,022 keys, every result non-EGI."),
     "era-also-erases-the-vertex-it-isolates": ("structure", "ERA",
         P + "Dau Def 15.2 (p.165): erasing an edge e removes e only — V^(e) := V — so its vertex "
         "stays, isolated if e was its last edge. The engine's closure (ErasureRule / ERAInteraction: "
@@ -160,7 +160,8 @@ def measure(rec, eid, c: Counter, refusal_keys):
     if eid == "dc-plus-result-not-an-egi":
         c["illegal"] += rec.verdict is False
         c["non_egi"] += not dominating_nodes(h)
-        c["in_refusal_entry"] += rec.key in refusal_keys["dc-plus-strands-a-vertex"]
+        if refusal_keys is not None:
+            c["in_refusal_entry"] += rec.key in refusal_keys["dc-plus-strands-a-vertex"]
         return
     X = expand(g, m.selection)
     if eid == "era-also-erases-the-vertex-it-isolates":
@@ -191,8 +192,10 @@ def _refusal_keys():
 
 
 def adjudicate(mode_name):
-    """Returns (entry id -> kind -> keys, entry id -> figures, unclassified)."""
-    refusal_keys = _refusal_keys()
+    """Returns (entry id -> kind -> keys, entry id -> figures, unclassified).
+    in_refusal_entry compares with the refusal entries' DEFAULT instance lists,
+    so it is measured in the default mode only."""
+    refusal_keys = _refusal_keys() if mode_name == "default" else None
     found, figs, unclassified = defaultdict(lambda: defaultdict(set)), defaultdict(Counter), []
     for rec, _ in records(mode_name):
         detail = structure(rec, {})[1]
