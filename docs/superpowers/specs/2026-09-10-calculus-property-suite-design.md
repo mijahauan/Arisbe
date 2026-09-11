@@ -312,7 +312,10 @@ All are **existence** questions — answerable in the calculus as it stands.
   left out of the facts graph, the same pass counts 214 disagreements — `semantic_game` reads `=`
   as an ordinary relation (§1a.5), so against a model that does not list its identities, a graph
   using `=` is misjudged. Declared open, the same oracle returns UNKNOWN on 1,828 of 4,392.
-  Figures regenerate from `calculus_adjudication_differential`. Outside the layer's assumptions
+  Figures regenerate from `calculus_adjudication_differential`. At exhaustive bounds with the
+  exhaustive semantics (sizes 1–3; figures only, pinned in Task 10; 159 s): 3,941,334
+  comparisons (3,401,174 exhaustive, 540,160 sampled), again 0 disagreements, 0 UNKNOWN.
+  Outside the layer's assumptions
   nothing is claimed: co-denoting names (Def 24.2 allows them; `semantic_game` matches constants
   by label) and open worlds are not compared here.
 
