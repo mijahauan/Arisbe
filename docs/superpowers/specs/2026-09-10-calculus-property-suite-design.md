@@ -48,6 +48,12 @@ this spec were wrong or incomplete, and the plan follows the corrections, not th
    silently does nothing and reports success (probed). Vertex erasure outside positive contexts,
    orientation of an identity edge, adding/removing a ligature vertex, and the three constant
    rules have **no** entry point: they are counted as unimplemented and pinned, not enumerated.
+   *Added at the final review (2026-09-11):* so has **inserting an edge onto vertices already
+   present** (Def 15.2, p.165: erasing an edge keeps its vertices, V^(e) := V, and inserting it is
+   the inverse, so in a negative context `*x ~[ ]` → `*x ~[ (P x) ]` is licensed). The protocol's
+   INS takes standalone EGIF only and refuses it ("Undefined variable x"). The table records it as
+   INS_EDGE, the sixth rule with no entry point, and keeps INS as the insertion of a closed
+   subgraph. Its moves are not enumerated yet; that is queued for the fix arc.
 3. **The vertex split/merge rules are live** (`derived_rules`, `world_scroll` call
    `_apply_vertex_split` / `_apply_vertex_merge`) and join the table as Def 16.6 / Lemma 16.7.
 4. **Arisbe does not write lines the way Dau does.** Dau joins areas with identity edges (`=`);
@@ -106,6 +112,20 @@ a linear form's blind spots. Default bounds, each a parameter, fixed after task 
 - every vertex placed in *every* area enclosing its uses, not only the lowest — the line above its
   uses is the `colore_field` shape.
 
+**The bounds as measured and built** (`tests/calculus_enum.py`, `DEFAULT_BOUNDS` and
+`EXHAUSTIVE_BOUNDS`; the list above is the pre-measurement draft). The binding bound is the
+element count — vertices, edges and cuts together:
+
+- default: at most **3 elements**, 2 cuts, 2 edges, 1 generic vertex, constants `a` and `b` with
+  at most 2 constant spots, relations `p`/0, `P`/1, `=`/2, `T`/3;
+- exhaustive: at most **4 elements**, 2 cuts, 3 edges, 2 generic vertices, constants `a` and `b`
+  with at most 2 constant spots, relations `p`/0, `P`/1, `=`/2, `R`/2, `T`/3.
+
+So no tier-A graph is deeper than two cuts, and a scroll carrying a line — `*x ~[ (P x) ~[ (Q x) ] ]`,
+five elements — lies outside tier A in both modes. Shapes past these bounds reach the suite only
+through tier B's corpus graphs or hand-built controls; a named stress tier of them is queued for
+the fix arc.
+
 Graphs are de-duplicated up to isomorphism by `canonical_signature`. A graph `__post_init__`
 refuses is discarded **and counted**. Unnormalized constants — two spots for one constant — are
 included: Dau's calculus is defined on them, and the constant-normal-form ruling found them
@@ -125,7 +145,10 @@ needs the illegal ones.
   target where the rule takes one.
 - **Tier B:** every structural unit — each edge, each cut with its contents, each vertex with its
   closure, each whole area — plus every selection of at most two elements. The budget is a move
-  count per graph; every skipped move is recorded with its reason.
+  count per graph; every skipped move is recorded with its reason. *As built:* only the
+  exhaustive mode offers the selections of at most two elements. The **default mode's tier B is
+  units only** (`calculus_run.MODES["default"]`, `tier_b="current-units"`), over the corpus's
+  current graphs.
 - **INS content** comes from a fixed catalogue: the tier-A graphs of at most two elements.
 
 Measured cost of one application: 0.1–0.4 ms, `bfo_core` and `colore_field` included. The budget
@@ -185,6 +208,20 @@ engine's G′ by `same_graph`:
 **IT+, IT− and the ligature rules** are checked by postcondition, because building their expected
 result independently would be a second rule engine: the added or removed part is isomorphic to
 its source and sits in the target, and the complement is unchanged. The semantic layer backs them.
+
+**As built (recorded at the final review, 2026-09-11).** IT+ and IT− turned out buildable and are
+checked exactly: IT− as the erasure of the selection, IT+ against every licensed form, since Def
+15.2 (p.166) chooses reuse or a fresh copy per vertex (`calculus_expected.acceptable`). The
+per-rule postconditions promised above were **not built** for the four ligature rules
+(MOVE_BRANCHES, EXTEND_LIGATURE, RETRACT_LIGATURE, REARRANGE_LIGATURE), SPLIT_VERTEX,
+MERGE_VERTICES, and any move `legal()` does not judge (an abstention: the quotation apparatus,
+IT± on a quotation-bearing graph, IT−'s search budget, or its unmodelled Θ clause). For those
+the layer checks only that the result is an EGI (Def 12.5) and that the B-min maps carry forward, and labels the record `egi-only` (it read `postcondition`
+until then, which overstated it). A no-op passes that check: a RETRACT_LIGATURE that changes
+nothing passes structure, and soundness too. The real postconditions — result ≠ source, and each
+rule's expected change in element count — are queued for the fix arc, ahead of the engine fixes.
+"No existing line moves" is likewise enforced only through the exact comparison, so it holds for
+the `exact` records and is unchecked for the `egi-only` ones.
 
 On every output: the B-min maps (`alphabet`, `rho`, `sort`, `quotation`) carry forward, and no
 existing line moves — the placement defect's family. Constant normal form is **not** required;
@@ -258,7 +295,10 @@ finish on such patterns. Those moves are counted as `engine-does-not-finish`: 9 
 mode and 239 at exhaustive bounds. Of these, 3 and 144 exceed 100 elements, which was the
 ceiling before Task 10 lowered it; the other 6 and 95 are the ones the lowering added. Separately,
 2,289 default and 3,000 exhaustive tier-B soundness moves are counted `too-large` and not
-evaluated.
+evaluated. Finally, the structure layer's counts name how much each record was checked: `exact`,
+`illegal` (EGI-hood and maps only) and `egi-only` (EGI-hood and maps only, for the rules and
+moves `legal()` does not judge; §5.2's "As built"). The label was renamed from `postcondition` at
+the final review; the pinned counts did not move.
 
 ## 7. Pre-registered priors
 

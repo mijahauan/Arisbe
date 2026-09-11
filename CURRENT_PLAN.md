@@ -24,18 +24,27 @@ changed in this arc.
 
 **What the suite found.** The suite reads Dau's preconditions fresh from the book, in
 `legal()`, without importing the engine. No move that `legal()` judges legal fails soundness. That
-holds in both modes and on both tiers, the small graphs and the corpus, and a test enforces it.
-The soundness classifiers match only moves `legal()` rejects or declines to judge (it judges none
-of the ligature rules), so a failure on a legal move would arrive as new rather than hide under a
-ledgered entry. The engine, though, also makes moves Dau forbids, and a few of
+holds in both modes and on both tiers, the small graphs and the corpus, and a test of its own
+enforces it: `test_no_soundness_failure_on_a_legal_move` reads each soundness failure's recorded
+verdict, so it does not rest on the soundness classifiers happening to match only moves `legal()`
+rejects or declines to judge (it judges none of the ligature rules). The engine, though, also makes moves Dau forbids, and a few of
 those change a graph's meaning. The plainest case: IT+ copies a cut into itself, and `~[ ~[ ] ]`,
 true in every structure, becomes `~[ ~[ ~[ ] ] ]`, false in every structure. So the six rules as
 Dau states them hold up, and our implementation of them does not always stay inside what he
 states.
 
-**How far that reaches, stated beside it.** Every figure comes from `tests/calculus_extent.json`.
+**How far that reaches, stated beside it.** Every figure comes from `tests/calculus_extent.json`
+(the bounds from `tests/calculus_enum.py`).
 - Tier A covers every small graph, built directly from the data model: 208 graphs in the default
-  mode and 2,382 at exhaustive bounds. Tier B covers the corpus as used, de-duplicated from 230
+  mode and 2,382 at exhaustive bounds. "Small" is exact: at most 3 elements (vertices, edges and
+  cuts together) in the default mode and 4 at exhaustive bounds, with at most 2 cuts in both. A
+  scroll carrying a line, `*x ~[ (P x) ~[ (Q x) ] ]`, has 5 elements and is outside tier A.
+- The headline rests on this many legal moves the engine applied, per judged rule, tier A /
+  tier B (`applied/legal` in the refusal extent). Default: ERA 765 / 450, INS 700 / 670,
+  IT+ 1,252 / 598, IT- 3 / 2, DC+ 1,184 / 726, DC- 9 / 13, VERTEX_INS 100 / 149,
+  VERTEX_ERA 98 / 0. Exhaustive: ERA 14,106 / 2,096, INS 8,211 / 1,878, IT+ 29,550 / 5,095,
+  IT- 76 / 19, DC+ 19,871 / 2,831, DC- 81 / 45, VERTEX_INS 1,173 / 312, VERTEX_ERA 781 / 0.
+  IT- and DC- are thin, and VERTEX_ERA has no legal applied move on the corpus at all. Tier B covers the corpus as used, de-duplicated from 230
   sources: 52 current graphs in the default mode, and 133 current graphs and chain states at
   exhaustive bounds. Moves applied: 52,429 in the default mode, 799,211 at exhaustive bounds.
 - Exhaustive tier B takes the first 500 moves per rule per graph in enumeration order. That is a
@@ -61,14 +70,18 @@ states.
   rule table, every candidate move, and `legal()`. `tests/tarski.py` is a fresh evaluator written
   from Dau's semantics, validated on pairs whose answer is known before anything trusts it.
 - The four layers: refusal agreement (the engine refuses exactly what `legal()` forbids);
-  structure (a rule changes what it licenses and nothing else, and the result is an EGI);
+  structure (on a legal move of a judged rule, the result is exactly what Dau licenses; on every
+  applied move, the result is an EGI and keeps the B-min maps — for the four ligature rules,
+  split, merge and unjudged moves that is all it checks, labelled `egi-only`, so a no-op passes);
   soundness, strict (ERA and INS one-way, every other rule an equivalence); and a differential
   that tests `semantic_game` against `tarski`.
 - `tests/calculus_ledger.json` holds 28 entries, each with a reason. A new failure fails the suite
   and says so. A repaired one fails it with "shrink this entry", so a fix proves itself.
   `tests/calculus_extent.json` pins every count exactly, never as a floor.
-- 99 tests run by default (70 s for the calculus files alone). Nine more run under `-m exhaustive`; the
-  full extent took 2 h 41 min (commit `b54ad2f`).
+- 95 tests in `tests/test_calculus_*.py` run by default (92 pass and 3 are strict xfails; 74 s).
+  Ten more run under `-m exhaustive`; the full extent took 2 h 41 min (commit `b54ad2f`). This line
+  said 99 before the final-review fix pass, but head `169b94c` collects 83 by default and 9 under
+  `-m exhaustive`; the pass added 12 and 1.
 
 **The four priors (spec §7), as recorded:**
 - **P-K1**: "REFUTED: premise — colore_field's stored graph is not an EGI: it violates dominating
@@ -117,8 +130,11 @@ line. Eighteen of the 28 reasons open "PROVISIONAL — for the author"; those wa
   not shown to be input form alone.
 
 *Structure (4 entries): the engine's result differs from the one Dau licenses.*
-- `dc-plus-result-not-an-egi` (288 / 15,022): the structural twin of `dc-plus-strands-a-vertex`,
-  holding the same keys; the two must shrink together.
+- `dc-plus-result-not-an-egi` (288 / 15,022): the structural twin of `dc-plus-strands-a-vertex`.
+  In the default mode the two hold the same keys. At exhaustive bounds this entry holds all of
+  the refusal entry's 14,954 and 68 more, every one a DC+ on a quotation-bearing corpus graph that
+  touches the apparatus, which `legal()` does not judge, so the refusal layer never scores it. The
+  two must shrink together.
 - `era-also-erases-the-vertex-it-isolates` (250 / 5,825): erasing an edge also erases the vertex
   it leaves isolated in that context. Equivalent to Dau's result, but a larger move.
 - `it-plus-auto-closes-a-vertex-selection` (252 / 10,673): IT+ closes a vertex selection before
@@ -161,7 +177,10 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   outside the copy, whether a name or a line. The name-against-name case, reproduced this session:
   `(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]` deiterates to
   `(Q "a") (Q "b") ~[ ] ~[ (P "b") ]`, which is unsatisfiable, while `legal()` says "no source of
-  which this is a copy". It is unsound on the corpus too, on group_identity's chain states.
+  which this is a copy". It is unsound on the corpus too, on group_identity's chain states. The
+  hand-built cases are now collected: `tests/test_calculus_it_minus_controls.py` holds the three
+  unsound deiterations as strict xfails, so a partial IT- fix that shrinks the ledger cannot pass
+  while they survive.
 - The ligature rules (`ligature_manipulation_rules.py`, protected; MERGE_VERTICES lives in
   `vertex_splitting_merging_rules.py`, unprotected) have four problems:
   - they collapse along an identity edge deeper than both its vertices, which is unsound;
@@ -182,8 +201,12 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   with its contents.
 - ERA and the vertex rule auto-close a vertex selection, and erase a line together with its edges.
 - INS mixes arities when the graph declares no alphabet (Def 12.6–12.7, p.126).
-- Five Dau rules have no entry point at all: ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY,
-  CONSTANT_EXISTENCE and SEPARATE_CONSTANT (`tests/calculus_rules.py`).
+- Six Dau rules have no entry point at all: INS_EDGE, ORIENT_IDENTITY, LIGATURE_VERTEX,
+  CONSTANT_IDENTITY, CONSTANT_EXISTENCE and SEPARATE_CONSTANT (`tests/calculus_rules.py`).
+  INS_EDGE is inserting an edge onto vertices already present (Def 15.2, p.165: erasing an edge
+  keeps its vertices, and insertion is its inverse), so in a negative context `*x ~[ ]` →
+  `*x ~[ (P x) ]` is licensed. The protocol's INS refuses it ("Undefined variable x"): it takes
+  standalone EGIF only. The final review found it; the table had counted INS as implemented.
 
 **Findings outside the engine.**
 - Two corpus graphs are not EGIs. `bfo_core:current` fails on the generic vertex `v_x26`, and
@@ -208,7 +231,25 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   do not grow the alphabet the way the six rules do. Nothing was loosened. EGIF-parsed graphs
   still carry no alphabet.
 
-**The next task: the fix arc**, in this order:
+**The next task: the fix arc.** It opens with the instrument, ruled at the final review, so that
+each engine fix is judged by a suite that can tell a real repair from a partial one. None of
+these touches `src/`:
+- **Real postconditions for the six unchecked rules** (the four ligature rules, split, merge):
+  the result differs from the source, and each rule's expected change in element count. Today
+  the structure layer checks them for EGI-hood and maps only (`egi-only`), and a no-op passes.
+- **A named stress tier of hand-chosen graphs beyond tier A's bounds**, run through all four
+  layers: `*x ~[ (P x) ~[ (Q x) ] ]`; `*x (P x) ~[ ~[ (P x) ] ]`; `*x *y (R x y) ~[ (R y x) ]`;
+  `*x *y (P x) ~[ (= x y) (P y) ]`; parity at depth 3–4; a directly built graph carrying an
+  alphabet and a quotation oval; the name-against-name IT- case; and `*x ~[ ]` with an edge
+  insertion.
+- **Enumerating INS_EDGE's candidate moves**, so they land as counted INCOMPLETE.
+- **Splitting the refusal layer's `not:{rule}` label by abstention reason.**
+- **Narrowing the four broad refusal classifiers** before exhaustive counts are relied on to
+  certify a fix.
+- **Measuring `test_memory_stability` with tracemalloc**, or taking its baseline after
+  `gc.collect()`, instead of RSS.
+
+Then the engine, in this order:
 1. The IT+ target-in-selection fix.
 2. The IT- copy check.
 3. The ligature rules: one context only, a deterministic choice, generic vertices only, and
@@ -223,7 +264,7 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
    is derived rather than stored. Then wire `_finalize_alphabet_and_rho`.
 
 After those, at lower priority: the INCOMPLETE entries (HEAVY_DOT), the DC+ and ERA departures,
-and the five missing entry points.
+and the six missing entry points.
 
 **Steps 1–4 edit protected modules** (`rule_interaction`, `graph_isomorphism_engine`,
 `ligature_manipulation_rules`, `egi_core_dau`), and step 7 may. Confirm each protected-core edit
