@@ -165,9 +165,10 @@ def test_the_round_trip_guarantee_is_stated_at_its_true_extent():
     second_order = len(SECOND_ORDER) * len(FORMS)
     broken = len(KNOWN_BROKEN)
     holding = total - second_order - broken
-    assert holding >= 90, (
-        f"only {holding} of {total} round-trips hold; the guarantee has "
-        f"regressed below its measured extent"
+    # Pinned exactly, never floored: a floor of 90 against a measured 141 let
+    # 51 regressions land unseen. A moved count is read, then re-pinned.
+    assert (total, second_order, broken, holding) == (156, 9, 6, 141), (
+        f"the round-trip extent moved: {total} checks, {second_order} refused as "
+        f"second-order, {broken} known broken, {holding} holding — update this pin "
+        f"and the module docstring deliberately"
     )
-    # If someone fixes a defect without updating KNOWN_BROKEN, the xfail turns
-    # into an unexpected pass and pytest reports it.
