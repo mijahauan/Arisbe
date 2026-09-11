@@ -271,6 +271,25 @@ All are **existence** questions — answerable in the calculus as it stands.
   the named move is not refused.
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
   *Fails if* any structure models G but not G′.
+  **Outcome (2026-09-10 run, default bounds, 208 graphs, domain sizes 1–2):** REFUTED —
+  `it-plus-into-its-own-selection-changes-meaning`. 17 tier-A IT+ moves are UNSOUND —
+  `~[ ~[ ] ]` (true in every structure) becomes `~[ ~[ ~[ ] ] ]` (false in every structure) — and
+  154 more are not the equivalence IT+ must be. Every one is a move `legal` rejects: the engine
+  iterates a selected cut into itself (Def 15.2 p.164 forbids c ∈ Cut₀), the soundness half of
+  refusal entry `it-plus-into-its-own-selection`. **No soundness failure on any move `legal`
+  judges legal**, in any rule: ERA 1008 and INS 700 applied moves evaluated, all one-way sound;
+  IT+ 1335 evaluated moves pass. (The check holds IT+ to equivalence, per the rule table — stricter
+  than §5.3's list, which files IT+ with the one-way rules.) Four more soundness entries, none on a
+  legal move: `vertex-era-erases-a-line-not-an-equivalence` (sound, but an erasure where the vertex
+  rule is an equivalence) and three ligature entries on moves `legal` does not judge —
+  `merge-vertices-erases-a-constant-vertex`, `retract-ligature-erases-a-constant-vertex`,
+  `move-branches-moves-the-identity-edge-it-moves-along` (each turns `(= "a" "b")` into a graph
+  that no longer says a = b; the last also fails on a generic line, and raises a question about
+  Lemma 16.1's statement). At exhaustive bounds (figures only, ledgered in Task 10) all three
+  ligature rules are UNSOUND in negative contexts (12, 8 and 18 moves), and still no failure falls
+  on a legal move. Of the moves that pass, 4,093 were checked over every structure of
+  sizes 1–2 and 1,736 over a seeded sample of 64 per size (tuple bits over 6) — pinned in
+  `calculus_extent.json` as `default:soundness`; 297 non-EGI DC+ results cannot be evaluated.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.
 
 `bfo_core` carries no prior: it has none of the line-above-use shape and remains undiagnosed.

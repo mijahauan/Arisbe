@@ -96,7 +96,7 @@ def run(mode_name: str) -> Run:
         for gname, g in graphs_for(mode, tier):
             result.graphs[tier] += 1
             sigs = compute_canonical_signatures(g)
-            cache: dict = {}
+            cache: dict = {"_sem": mode.sem}
             for rule in IMPLEMENTED:
                 gen = moves(rule.name, g, tier, units_only=units_only)
                 taken = list(gen) if budget is None else list(itertools.islice(gen, budget))

@@ -53,3 +53,43 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
 
 LAYERS: Dict[str, Check] = {"refusal": refusal}
 LAYERS["structure"] = structure
+
+from calculus_rules import RULES
+from tarski import model_set, universe, vocabulary
+
+
+def _first(bits: int) -> int:
+    return (bits & -bits).bit_length() - 1
+
+
+def soundness(rec, cache) -> Tuple[str, Optional[str]]:
+    """§5.3: Dau's direction for the rule, checked over finite structures.
+    The source's model sets are cached per graph (the cache is reset per
+    source graph by the run)."""
+    out, m, g = rec.outcome, rec.move, rec.g
+    if not out.applied:
+        return f"not:{m.rule}:refused", None
+    sem = cache["_sem"]
+    h = out.result
+    if len(g.V) + len(g.E) + len(g.Cut) > sem.max_elements:
+        return f"not:{m.rule}:too-large", None
+    if not (dominating_nodes(g) and dominating_nodes(h)):
+        return f"not:{m.rule}:not-an-EGI", None
+    direction = RULES[m.rule].direction
+    rels, consts = vocabulary(g, h)
+    exhaustive = True
+    for n in sem.sizes:
+        us, exh = universe(rels, consts, n, cap=sem.tuple_cap, sample_n=sem.sample_n, seed=sem.seed)
+        exhaustive &= exh
+        k = ("models", rels, consts, n)
+        if k not in cache:
+            cache[k] = model_set(g, us)
+        mg, mh = cache[k], model_set(h, us)
+        if mg & ~mh:
+            return f"{m.rule}:failed", f"UNSOUND at size {n}: a model of G is not a model of G' — {us[_first(mg & ~mh)]}"
+        if direction == "equivalence" and mh & ~mg:
+            return f"{m.rule}:failed", f"NOT AN EQUIVALENCE at size {n}: a model of G' is not a model of G — {us[_first(mh & ~mg)]}"
+    return f"{m.rule}:{'exhaustive' if exhaustive else 'sampled'}", None
+
+
+LAYERS["soundness"] = soundness
