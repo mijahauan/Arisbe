@@ -132,9 +132,14 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for x in sorted(v.id for v in g.V):
             yield Move(rule, (x,))
     elif rule in LIGATURE_RULES:
+        # The ligature engine reads its unordered selection in iteration order
+        # (the first vertex is the one kept, or moved from), so the order is part
+        # of the move: calculus_apply hands the selection over in the tuple's
+        # order, and each order of a two-element selection is its own candidate.
         for s in _subsets(elements(g), 1, 2):
-            for a in areas:
-                yield Move(rule, s, a)
+            for p in dict.fromkeys((s, s[::-1])):
+                for a in areas:
+                    yield Move(rule, p, a)
     elif rule == "SPLIT_VERTEX":
         # Only Def 16.6's domain: ctx(v) >= c >= ctx(e_k) for every moved hook.
         for v in sorted(x.id for x in g.V):
@@ -256,13 +261,26 @@ def _era(g: G, m: Move) -> Verdict:
 def _ins(g: G, m: Move) -> Verdict:
     """Def 15.2 insertion (p.164-165): in a negative context, any edge,
     isolated vertex, or closed subgraph may be inserted. The content is a
-    standalone graph, so it is closed and has dominating nodes."""
+    standalone graph, so it is closed and has dominating nodes.
+
+    The result must still be an EGI over one alphabet: a relation name has ONE
+    arity ar(R) (Def 12.6, p.126) and every edge carries it, |e| = ar(κ(e))
+    (Def 12.7, p.126). So the content may not use a name at an arity the
+    graph's declared alphabet — or, lacking one, its own edges — give it
+    otherwise (Task 10: tier B's dau_2006_p112_ligature declares R unary)."""
     try:
-        parse_egif(m.content or "")
+        h = parse_egif(m.content or "")
     except Exception:
         return False, "the content does not parse"
     if m.target is None or positive(g, m.target):
         return False, "the target is not a negative context"
+    arity = {}
+    if g.alphabet is not None:
+        arity.update({r: n for r, n in g.alphabet.ar.items() if r in g.alphabet.R})
+    for e, seq in g.nu.items():
+        arity.setdefault(g.rel[e], len(seq))
+    if any(arity.get(h.rel[e], len(seq)) != len(seq) for e, seq in h.nu.items()):
+        return False, "the content uses a relation name at another arity (Def 12.6-12.7, p.126)"
     return True, "negative context"
 
 

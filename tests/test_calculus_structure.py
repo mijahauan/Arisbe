@@ -55,6 +55,35 @@ def test_iteration_within_its_context_accepts_both_licensed_forms():
     assert structure(_rec(g, m, parse_egif("*x *y (P x) (P y) (P y)")), {})[1]
 
 
+def test_iteration_chooses_reuse_or_fresh_per_vertex():
+    """Task 10 (foaf_core): Def 15.2 chooses W_v PER VERTEX (p.166), so
+    iterating (R x y) may reuse x's line and copy y fresh, or the reverse.
+    Task 7 accepted only all-reused or all-fresh."""
+    g = parse_egif("*x *y (R x y)")
+    m = Move("IT+", (next(iter(g.nu)),), g.sheet)
+    for text in ("*x *y (R x y) (R x y)", "*x *y *z (R x y) (R z y)",
+                 "*x *y *z (R x y) (R x z)", "*x *y *z *w (R x y) (R z w)"):
+        assert structure(_rec(g, m, parse_egif(text)), {})[1] is None, text
+    assert structure(_rec(g, m, parse_egif("*x *y (R x y) (R y x)")), {})[1]
+
+
+def test_expected_results_carry_the_maps():
+    """Task 10: the expected-result builders kept no B-min maps, so on a
+    maps-bearing corpus graph every licensed INS/DC+/VERTEX_INS result
+    'differed' from the engine's — the suite's defect, not the engine's."""
+    from calculus_expected import double_cut
+    from egi_core_dau import AlphabetDAU
+    from frozendict import frozendict
+    from dataclasses import replace
+    g = parse_egif('(P "a")')
+    v = next(iter(g.V)).id
+    g = replace(g, alphabet=AlphabetDAU(C=frozenset({"a"}), R=frozenset({"P"}),
+                                        ar=frozendict({"P": 1, "a": 1})),
+                rho=frozendict({v: "a"}))
+    h = double_cut(g, tuple(g.nu), g.sheet)
+    assert h.alphabet == g.alphabet and dict(h.rho) == {v: "a"}
+
+
 def test_double_cut_of_a_cut_named_with_its_contents():
     """Task 7 review: naming a cut with some of its contents names the cut
     alone (Def 12.10, p.134); the raw selection built an invalid graph."""
@@ -81,7 +110,7 @@ def test_maps_carried_names_what_was_dropped():
 
 def _layer(mode):
     lr = run(mode).layers["structure"]
-    problems = check_ledger("structure", lr.evaluated_ledgered, lr.failures)
+    problems = check_ledger("structure", lr.evaluated_ledgered, lr.failures, mode)
     assert not problems, "\n\n".join(problems)
 
 
@@ -91,12 +120,15 @@ def test_structure():
 
 def _extent(mode):
     """The structure counts, plus how many checked records had a source
-    carrying a B-min map (label suffix ``:maps``). Tier A carries none, so
-    the default pin shows 0 and the maps clause is vacuous there; tier B
-    (Task 10) must pin a positive number or the clause is still untested."""
+    carrying a B-min map (label suffix ``:maps``). Tier A carries none; tier B
+    does (14 corpus UoDs' current graphs carry a map: alphabet/rho, and three
+    of them a sort, two of those a quotation), and the pin must stay positive
+    or the maps clause is untested again (Task 10 ruling)."""
     counts = dict(sorted(run(mode).layers["structure"].counts.items()))
     counts["maps-bearing records"] = sum(v for k, v in counts.items() if k.endswith(":maps"))
+    assert counts["maps-bearing records"] > 0, "the maps clause was never exercised"
     return counts
+
 
 
 def test_structure_extent():

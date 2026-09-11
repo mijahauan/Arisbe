@@ -34,7 +34,7 @@ def test_the_instrument_passes_a_true_equivalence():
 
 def _layer(mode):
     lr = run(mode).layers["soundness"]
-    problems = check_ledger("soundness", lr.evaluated_ledgered, lr.failures)
+    problems = check_ledger("soundness", lr.evaluated_ledgered, lr.failures, mode)
     assert not problems, "\n\n".join(problems)
 
 
@@ -55,3 +55,18 @@ def test_soundness_exhaustive():
 def test_soundness_extent_exhaustive():
     assert_extent("exhaustive:soundness",
                   dict(sorted(run("exhaustive").layers["soundness"].counts.items())))
+
+
+def test_tier_b_universe_is_capped_and_tier_a_is_not():
+    """Task 10: universe() enumerates every constant assignment under the tuple
+    cap, so a corpus vocabulary explodes at size 3; tier B samples above the
+    exhaustive mode's tier_b_max_structures, tier A never does."""
+    from calculus_layers import layer_universe
+    sem = MODES["exhaustive"].sem
+    rels, consts = (("P", 1),), tuple(f"c{i}" for i in range(8))    # 2^3 x 3^8 = 52,488
+    a, exh_a = layer_universe(rels, consts, 3, sem, "A")
+    b, exh_b = layer_universe(rels, consts, 3, sem, "B")
+    assert exh_a and len(a) == 2 ** 3 * 3 ** 8 > sem.tier_b_max_structures
+    assert not exh_b and len(b) == sem.sample_n
+    small = layer_universe((("P", 1),), ("a",), 3, sem, "B")
+    assert small[1] and len(small[0]) == 2 ** 3 * 3

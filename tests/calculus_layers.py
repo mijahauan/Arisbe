@@ -58,6 +58,19 @@ from calculus_rules import RULES
 from tarski import model_set, universe, vocabulary
 
 
+def layer_universe(rels, consts, n, sem, tier):
+    """The structures the soundness layer evaluates: tarski.universe under the
+    mode's budget, except that at tier B an exhaustive universe larger than
+    ``sem.tier_b_max_structures`` is replaced by the seeded sample."""
+    cap = sem.tuple_cap
+    limit = getattr(sem, "tier_b_max_structures", None)
+    if tier == "B" and limit is not None:
+        bits = sum(n ** ar for _, ar in rels)
+        if bits <= cap and 2 ** bits * n ** len(consts) > limit:
+            cap = -1
+    return universe(rels, consts, n, cap=cap, sample_n=sem.sample_n, seed=sem.seed)
+
+
 def _first(bits: int) -> int:
     return (bits & -bits).bit_length() - 1
 
@@ -79,7 +92,7 @@ def soundness(rec, cache) -> Tuple[str, Optional[str]]:
     rels, consts = vocabulary(g, h)
     exhaustive = True
     for n in sem.sizes:
-        us, exh = universe(rels, consts, n, cap=sem.tuple_cap, sample_n=sem.sample_n, seed=sem.seed)
+        us, exh = layer_universe(rels, consts, n, sem, rec.tier)
         exhaustive &= exh
         k = ("models", rels, consts, n)
         if k not in cache:

@@ -71,3 +71,17 @@ def test_apply_move_applies_a_lawful_erasure():
     q = next(e.id for e in g.E if g.rel[e.id] == "Q")
     out = apply_move(g, Move("ERA", (q,)))
     assert out.applied and len(out.result.E) == 1
+
+
+def test_ligature_moves_offer_both_orders_and_apply_in_order():
+    """Task 10: the ligature engine keeps (or moves from) the FIRST element of
+    its selection, and a plain frozenset's order follows the hash seed. The
+    suite hands the order over (calculus_apply.InOrder) and offers both."""
+    from calculus_apply import InOrder
+    g = parse_egif("(= *x *y)")
+    a, b = sorted(v.id for v in g.V)
+    sels = {m.selection for m in moves("RETRACT_LIGATURE", g, "A") if m.target == g.sheet}
+    assert (a, b) in sels and (b, a) in sels
+    assert list(InOrder((b, a))) == [b, a] and next(iter(InOrder((a, b)))) == a
+    kept = lambda sel: {v.id for v in apply_move(g, Move("RETRACT_LIGATURE", sel, g.sheet)).result.V}  # noqa: E731
+    assert kept((a, b)) == {a} and kept((b, a)) == {b}

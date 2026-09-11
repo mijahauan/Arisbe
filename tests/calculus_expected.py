@@ -2,6 +2,7 @@
 (spec 2026-09-10 §5.2). No rule module is imported."""
 from __future__ import annotations
 
+import itertools
 from typing import List, Optional
 
 from frozendict import frozendict
@@ -14,10 +15,36 @@ from egif_parser_dau import parse_egif
 G = RelationalGraphWithCuts
 
 
-def _g(g, *, V, E, nu, Cut, area, rel) -> G:
+def _alphabet(a, rel, nu, rho):
+    """The source's alphabet grown to cover the result's names — a step may
+    introduce a relation name or constant (INS); the alphabet names the
+    language, it does not close it."""
+    if a is None:
+        return None
+    consts = {c for c in rho.values() if c is not None}
+    new_rels = set(rel.values()) - (a.C | a.F | a.R)
+    if not new_rels and consts <= a.C:
+        return a
+    ar = dict(a.ar)
+    for e, name in rel.items():
+        if name in new_rels:
+            ar.setdefault(name, len(nu.get(e, ())))
+    for c in consts - a.C:
+        ar.setdefault(c, 1)
+    return type(a)(C=a.C | frozenset(consts), F=a.F, R=a.R | frozenset(new_rels), ar=frozendict(ar))
+
+
+def _g(g, *, V, E, nu, Cut, area, rel, rho=None) -> G:
+    """Build a result graph. The B-min maps (spec §5.2) travel with every
+    element that survives: rho, sort and quotation are kept for surviving
+    vertices and cuts, and the alphabet grows to cover the result."""
+    vids, cids = {v.id for v in V}, {c.id for c in Cut}
+    rho = frozendict({k: c for k, c in (g.rho if rho is None else rho).items() if k in vids})
     return G(V=frozenset(V), E=frozenset(E), nu=frozendict(nu), sheet=g.sheet,
              Cut=frozenset(Cut), area=frozendict({k: frozenset(v) for k, v in area.items()}),
-             rel=frozendict(rel))
+             rel=frozendict(rel), alphabet=_alphabet(g.alphabet, rel, nu, rho), rho=rho,
+             sort=frozendict({k: s for k, s in g.sort.items() if k in vids}),
+             quotation=frozendict({k: q for k, q in g.quotation.items() if k in cids and q in vids}))
 
 
 def remove(g: G, X) -> G:
@@ -40,7 +67,8 @@ def insert(g: G, target: str, text: str) -> G:
               E=[*g.E, *(Edge(p(e.id)) for e in h.E)],
               nu={**g.nu, **{p(e): tuple(p(v) for v in s) for e, s in h.nu.items()}},
               Cut=[*g.Cut, *(CutEl(p(c.id)) for c in h.Cut)], area=area,
-              rel={**g.rel, **{p(e): r for e, r in h.rel.items()}})
+              rel={**g.rel, **{p(e): r for e, r in h.rel.items()}},
+              rho={**g.rho, **{p(v): c for v, c in h.rho.items()}})
 
 
 def double_cut(g: G, S, target: str) -> G:
@@ -116,16 +144,28 @@ def completed(g: G, S) -> set:
     return set(S) | {v for e in X if e in g.nu for v in g.nu[e] if g.get_context(v) == c0}
 
 
+# More completion vertices than this and the per-vertex forms are not enumerated.
+MAX_REUSE_CHOICES = 12
+
+
 def acceptable(g: G, m: Move) -> Optional[List[G]]:
     """Every licensed result, or None where only postconditions are checked.
-    IT+ has two: the copy attached to the reused outer lines (iteration with
-    W_v = {v} then a merge, Def 16.6 p.175), and Dau's literal iteration of
-    the Def 12.10 completion with W_v = ∅ (Def 15.2, p.166)."""
+    IT+ chooses W_v PER VERTEX (Def 15.2, p.166: "for each vertex v ∈ W_0 let
+    W_v ⊆ V be a (possibly empty) set"): each vertex of the Def 12.10
+    completion that the selection itself leaves out is either copied fresh
+    (W_v = ∅) or reused — iterated with W_v = {v} and the copy merged into v
+    (Def 16.6 merging, p.175; Lemma 16.7). Task 10 found the engine reusing
+    one line and copying the other (foaf_core); the two all-or-nothing forms
+    Task 7 accepted are the extremes of this set."""
     exp = expected(g, m)
     if exp is None:
         return None
     if m.rule == "IT+":
-        return [exp, iterate(g, tuple(completed(g, m.selection)), m.target)]
+        extra = sorted(completed(g, m.selection) - set(expand(g, m.selection)))
+        if len(extra) > MAX_REUSE_CHOICES:
+            raise ValueError(f"{len(extra)} completion vertices: too many per-vertex forms")
+        return [iterate(g, tuple(m.selection) + fresh, m.target)
+                for k in range(len(extra) + 1) for fresh in itertools.combinations(extra, k)]
     return [exp]
 
 

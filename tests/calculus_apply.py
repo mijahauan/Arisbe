@@ -22,6 +22,25 @@ from vertex_splitting_merging_rules import (
 G = RelationalGraphWithCuts
 
 
+class InOrder(frozenset):
+    """A frozenset that iterates in the order it was built from. The ligature
+    engine takes its selection as a FrozenSet and uses its first element
+    (``list(context.selected_subgraph)[0]``, ligature_manipulation_rules.py
+    lines 53, 87, 385, 420, 590, 633), so with a plain frozenset the choice
+    follows the per-process string hash seed — Task 10 measured 74 exhaustive
+    tier-A keys whose outcome changes with PYTHONHASHSEED. Handing the order
+    over explicitly makes the run deterministic; the enumerator offers both
+    orders, so neither of the engine's arbitrary choices goes untested."""
+
+    def __new__(cls, items):
+        obj = super().__new__(cls, items)
+        obj._order = tuple(dict.fromkeys(items))
+        return obj
+
+    def __iter__(self):
+        return iter(self._order)
+
+
 @dataclass(frozen=True)
 class Outcome:
     applied: bool
@@ -51,7 +70,7 @@ def apply_move(g: G, m: Move) -> Outcome:
             return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
         if engine.startswith("ligature:"):
             r = LigatureManipulationEngine().apply_rule(
-                engine.split(":", 1)[1], g, m.target, frozenset(m.selection))
+                engine.split(":", 1)[1], g, m.target, InOrder(m.selection))
             return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
         if engine == "split":
             spec = VertexSplitSpec(source_vertex=m.selection[0], target_context=m.target,

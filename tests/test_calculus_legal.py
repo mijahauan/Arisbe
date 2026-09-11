@@ -186,3 +186,22 @@ def test_legal_never_consults_the_engine():
     for forbidden in ("formal_transformation_rules", "subgraph_closure_validator",
                       "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring"):
         assert forbidden not in src, forbidden
+
+
+def test_ins_refuses_a_name_at_another_arity():
+    """Def 12.6 (p.126): a relation name has one arity; Def 12.7 (p.126):
+    |e| = ar(κ(e)) for every edge. Inserting (R x y) where R is unary — by
+    the declared alphabet, or by the graph's own edges — yields no EGI over
+    one alphabet (Task 10, tier B: dau_2006_p112_ligature)."""
+    from dataclasses import replace
+    from frozendict import frozendict
+    from egi_core_dau import AlphabetDAU
+    g = parse_egif("~[ (R *x) ]")
+    c = next(iter(g.Cut)).id
+    assert legal(g, Move("INS", (), c, "(R *x *y)")) == (
+        False, "the content uses a relation name at another arity (Def 12.6-12.7, p.126)")
+    assert legal(g, Move("INS", (), c, "(R *y)"))[0] is True
+    h = replace(parse_egif("~[ ]"), alphabet=AlphabetDAU(R=frozenset({"R", "="}),
+                                                        ar=frozendict({"R": 1, "=": 2})))
+    assert legal(h, Move("INS", (), next(iter(h.Cut)).id, "(R *x *y)"))[0] is False
+    assert legal(h, Move("INS", (), next(iter(h.Cut)).id, "(P *x *y)"))[0] is True

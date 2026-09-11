@@ -62,3 +62,45 @@ def test_lca_of_one_area_is_itself():
     g = parse_egif("~[ (P *x) ]")
     c = next(iter(g.Cut)).id
     assert lca(g, [c]) == c
+
+
+def test_tier_b_covers_every_uod_and_every_chain_state():
+    from calculus_enum import TOMOS, tier_b
+    from calculus_ledger import assert_extent
+    from tomos_service import TomosService
+    svc = TomosService(TOMOS)
+    uods = [u["uod_id"] for u in svc.list_uods()]
+    states = sum(len(c.states) for c in map(svc.load_chain, uods) if c)
+    r = tier_b(include_chains=True)
+    assert r.sources == len(uods) + states
+    assert r.sources == r.duplicates + len(r.graphs)
+    assert tier_b(include_chains=False).sources == len(uods)
+    assert_extent("tier_b", r.extent())
+
+
+def test_every_corpus_graph_is_an_egi():
+    """Task 10 ruling: a standing guard. Dau Def 12.7 (p.126) makes dominating
+    nodes (Def 12.5, p.125) part of what an EGI is; the core does not enforce
+    it and its own check is inverted, so nothing else in the repository would
+    catch a stored non-EGI. Every tier-B source — each UoD's current graph and
+    every chain state — is held to it; the known violators are ledgered."""
+    from calculus_enum import dominating_violations, tier_b_sources
+    from calculus_ledger import Failure, assert_extent, check_ledger, ledgered
+    from tarski import dominating_nodes
+    known = ledgered("corpus-egi")
+    failures, evaluated, bad_states = [], set(), 0
+    sources = tier_b_sources(include_chains=True)
+    for name, g in sources:
+        key = f"B|{name}|graph"
+        if key in known:
+            evaluated.add(key)
+        bad = dominating_violations(g)
+        assert bool(bad) == (not dominating_nodes(g))
+        if bad:
+            bad_states += not name.endswith(":current")
+            failures.append(Failure("corpus-egi", key, f"not an EGI (Def 12.5): {len(bad)} "
+                                    f"edge-vertex pair(s) on {len({v for _, v in bad})} vertex(es)"))
+    problems = check_ledger("corpus-egi", evaluated, failures)
+    assert not problems, "\n\n".join(problems)
+    assert_extent("corpus-egi", {"sources": len(sources), "not_an_egi": len(failures),
+                                 "not_an_egi_chain_states": bad_states})

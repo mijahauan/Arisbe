@@ -80,7 +80,7 @@ def _compare(mode_name: str):
 
 def _layer(mode):
     counts, failures, evaluated = _compare(mode)
-    problems = check_ledger("differential", evaluated, failures)
+    problems = check_ledger("differential", evaluated, failures, mode)
     assert not problems, "\n\n".join(problems)
 
 

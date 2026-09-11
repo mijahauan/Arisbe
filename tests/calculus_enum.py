@@ -85,6 +85,13 @@ def line_above_uses(g: G, vid: str) -> bool:
     return g.get_context(vid) != lca(g, [g.get_context(e) for e in uses])
 
 
+def dominating_violations(g: G) -> List[Tuple[str, str]]:
+    """The (edge, vertex) pairs breaking Dau Def 12.5 (p.125): ctx(e) <= ctx(v)
+    fails — the edge sits outside the context of a vertex it hooks."""
+    return sorted((e, v) for e, seq in g.nu.items() for v in set(seq)
+                  if g.get_context(v) not in ancestors(g, g.get_context(e)))
+
+
 def shapes(g: G) -> FrozenSet[str]:
     out = set()
     if any(not g.area.get(c.id) for c in g.Cut):
@@ -253,4 +260,44 @@ def tier_a(bounds: Bounds = DEFAULT_BOUNDS) -> TierAReport:
         except ValueError:
             report.refused_by_core += 1
     report.graphs, report.duplicates, _ = dedupe(built)
+    return report
+
+
+# -- tier B -------------------------------------------------------------------
+
+@dataclass
+class TierBReport:
+    sources: int = 0
+    duplicates: int = 0
+    key_only: int = 0
+    graphs: List[Tuple[str, G]] = field(default_factory=list)
+
+    def extent(self) -> Dict[str, int]:
+        return {"sources": self.sources, "duplicates": self.duplicates,
+                "duplicates_by_key_only": self.key_only, "kept": len(self.graphs)}
+
+
+@functools.lru_cache(maxsize=None)
+def tier_b_sources(include_chains: bool = True) -> Tuple[Tuple[str, G], ...]:
+    """Every corpus UoD's current graph and, if asked, every state of every
+    saved chain, named ``<uod>:current`` / ``<uod>:<state id>`` — before
+    de-duplication, so a guard can hold every one of them to account."""
+    from tomos_service import TomosService
+    svc = TomosService(TOMOS)
+    named: List[Tuple[str, G]] = []
+    for entry in svc.list_uods():
+        uid = entry["uod_id"]
+        named.append((f"{uid}:current", svc.load_uod(uid, attest=False).current_egi))
+        chain = svc.load_chain(uid) if include_chains else None
+        if chain:
+            named += [(f"{uid}:{sid}", g) for sid, g in sorted(chain.states.items())]
+    return tuple(named)
+
+
+@functools.lru_cache(maxsize=None)
+def tier_b(include_chains: bool = True) -> TierBReport:
+    """Every corpus UoD's current graph, and every state of every saved chain."""
+    named = tier_b_sources(include_chains)
+    report = TierBReport(sources=len(named))
+    report.graphs, report.duplicates, report.key_only = dedupe(named)
     return report
