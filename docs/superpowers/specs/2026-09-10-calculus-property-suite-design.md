@@ -196,8 +196,12 @@ second spot.
 
 For each legal move G→G′:
 
-- **ERA, INS, IT+ are one-way** — every model of G is a model of G′;
-- **DC+, DC−, IT−, HEAVY_DOT and the ligature rules are equivalences** — both directions.
+- **ERA and INS are one-way** — every model of G is a model of G′ (Def 15.2, p.164–165);
+- **every other rule is an equivalence** — both directions: IT+ and IT− (each the other's
+  inverse, Def 15.2 p.164, 166), DC+, DC−, the vertex rules (VERTEX_INS via HEAVY_DOT,
+  VERTEX_ERA) and the ligature rules. This is the rule table's direction column
+  (`calculus_rules.RULES`, §1a.2); an earlier draft of this section filed IT+ with the one-way
+  rules, which the table and Dau p.166 contradict.
 
 The equivalence check is stricter than soundness: it catches a rule that is sound but loses
 information. The author asked for that strictness. The split is a **declared table** taken from
@@ -271,23 +275,31 @@ All are **existence** questions — answerable in the calculus as it stands.
   the named move is not refused.
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
   *Fails if* any structure models G but not G′.
+  *Note (added at the Task 8 review):* this prior was written under §5.3's superseded reading
+  that filed IT+ with the one-way rules; the suite checks IT+ as an equivalence (Dau p.166).
   **Outcome (2026-09-10 run, default bounds, 208 graphs, domain sizes 1–2):** REFUTED —
   `it-plus-into-its-own-selection-changes-meaning`. 17 tier-A IT+ moves are UNSOUND —
   `~[ ~[ ] ]` (true in every structure) becomes `~[ ~[ ~[ ] ] ]` (false in every structure) — and
   154 more are not the equivalence IT+ must be. Every one is a move `legal` rejects: the engine
   iterates a selected cut into itself (Def 15.2 p.164 forbids c ∈ Cut₀), the soundness half of
   refusal entry `it-plus-into-its-own-selection`. **No soundness failure on any move `legal`
-  judges legal**, in any rule: ERA 1008 and INS 700 applied moves evaluated, all one-way sound;
-  IT+ 1335 evaluated moves pass. (The check holds IT+ to equivalence, per the rule table — stricter
+  judges legal**, in any rule. Legal moves evaluated, every one passing: ERA 765 and INS 700
+  (one-way), IT+ 1,252 (equivalence); separately, illegal moves the engine applies that also
+  pass: ERA 243, IT+ 83 (printed by `calculus_adjudication_soundness` as the evaluated passes
+  by rule and legal verdict). (The check holds IT+ to equivalence, per the rule table — stricter
   than §5.3's list, which files IT+ with the one-way rules.) Four more soundness entries, none on a
   legal move: `vertex-era-erases-a-line-not-an-equivalence` (sound, but an erasure where the vertex
   rule is an equivalence) and three ligature entries on moves `legal` does not judge —
   `merge-vertices-erases-a-constant-vertex`, `retract-ligature-erases-a-constant-vertex`,
   `move-branches-moves-the-identity-edge-it-moves-along` (each turns `(= "a" "b")` into a graph
   that no longer says a = b; the last also fails on a generic line, and raises a question about
-  Lemma 16.1's statement). At exhaustive bounds (figures only, ledgered in Task 10) all three
-  ligature rules are UNSOUND in negative contexts (12, 8 and 18 moves), and still no failure falls
-  on a legal move. Of the moves that pass, 4,093 were checked over every structure of
+  Lemma 16.1's statement). At exhaustive bounds with the exhaustive semantics (sizes 1–3; figures
+  only, ledgered in Task 10; 3,729 s), `calculus_adjudication_soundness --exhaustive` counts **no
+  failure on a legal move over all 5,451 failures**, classified or not. The UNSOUND ones: IT+ 289
+  (illegal), and on moves `legal` does not judge MERGE_VERTICES 12, MOVE_BRANCHES 18,
+  RETRACT_LIGATURE 18 and REARRANGE_LIGATURE 14 — in negative contexts, or where an identity
+  edge sits in a cut deeper than the vertices it joins. 24 of them (RETRACT_LIGATURE 10,
+  REARRANGE_LIGATURE 14) are not yet classified: e.g. `*x *y ~[ (= x y) ]` retracts to `*x ~[ ]`. Of the moves that pass, 4,093 were checked over every structure of
   sizes 1–2 and 1,736 over a seeded sample of 64 per size (tuple bits over 6) — pinned in
   `calculus_extent.json` as `default:soundness`; 297 non-EGI DC+ results cannot be evaluated.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.

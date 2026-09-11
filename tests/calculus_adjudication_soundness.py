@@ -30,8 +30,13 @@ Figures, per entry ("moves" = candidate moves, "keys" = distinct instance keys):
   join_deeper_than_its_vertices  that edge sits in a deeper context than a vertex it joins,
                              so the two are not Θ-related at all (Def 24.9, p.269)
   generic_line               that edge joins two generic vertices
-Controls (hand-built, generic lines, not tier A): each ligature rule on
-(= *x *y) (P x) (Q y) and (= "a" *y), applied / equivalent.
+Controls (hand-built, not tier A, default semantics): each ligature rule on the
+generic line (= *x *y) (P x) (Q y) and on (= "a" *y) (P y) — a constant joined to a
+generic vertex that carries a relation, where erasing the constant vertex loses P(a) —
+applied / equivalent / equivalent_iff_constant_kept.
+Also printed: every failure by (rule, legal verdict, kind) and the legal-move count
+over ALL of them; every unclassified group in full with its count and a sample; the
+evaluated passes by (rule, legal verdict).
 """
 from __future__ import annotations
 
@@ -59,7 +64,8 @@ from tarski import model_set, universe, vocabulary  # noqa: E402
 LAYER = "soundness"
 
 # id -> (rule, refusal entry it is the soundness half of, or None, reason).
-# Figures quoted are this script's, at DEFAULT_BOUNDS with MODES["default"].sem.
+# Figures quoted are this script's: default ones at DEFAULT_BOUNDS with MODES["default"].sem,
+# exhaustive ones (--exhaustive) at EXHAUSTIVE_BOUNDS with MODES["exhaustive"].sem.
 REASONS = {
     "it-plus-into-its-own-selection-changes-meaning": ("IT+", "it-plus-into-its-own-selection",
         P + "The soundness half of refusal entry it-plus-into-its-own-selection, the same "
@@ -73,7 +79,7 @@ REASONS = {
         "in every structure), separating structure Structure(1, (), ()) — and the other 154 gain "
         "models (~[ ] becomes ~[ ~[ ] ]: false to true). The refusal entry's other 65 keys pass "
         "here (their G ≡ G′ over the budget). No failure on a move legal() judges legal. At "
-        "exhaustive bounds (figures only; ledgered in Task 10): 3,228 moves in 3,161 keys, 289 "
+        "exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task 10): 3,228 moves in 3,161 keys, 289 "
         "UNSOUND, every one illegal."),
     "vertex-era-erases-a-line-not-an-equivalence": ("VERTEX_ERA", "vertex-era-erases-a-line-with-its-edges",
         P + "The soundness half of refusal entry vertex-era-erases-a-line-with-its-edges, the "
@@ -85,7 +91,7 @@ REASONS = {
         "every one illegal and every key an instance of that refusal entry; G ⊨ G′ on all 95 "
         "(sound) and G′ ⊭ G — e.g. *x (P x) becomes the blank sheet, separating structure "
         "Structure(1, (), (('P', ()),)). The refusal entry's other 38 keys pass here (their "
-        "G ≡ G′ over the budget). At exhaustive bounds (figures only; ledgered in Task 10): "
+        "G ≡ G′ over the budget). At exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task 10): "
         "1,888 moves in 1,876 keys, all illegal, all sound, none UNSOUND."),
     "merge-vertices-erases-a-constant-vertex": ("MERGE_VERTICES", None,
         P + "Dau Def 16.6 merging (p.175–176) erases v2 and the identity edge e = (v1, v2) and "
@@ -99,12 +105,14 @@ REASONS = {
         "dissolving the identity edge between two different names (distinct_constants_joined 4): "
         "(= \"a\" \"b\") becomes a lone constant vertex, the assertion a = b lost; G ⊨ G′ on all "
         "4 and G′ ⊭ G, separating structure Structure(2, (('a', 0), ('b', 1)), ()). legal() does "
-        "not judge MERGE_VERTICES (its parameters underdetermine the move). At exhaustive bounds "
+        "not judge MERGE_VERTICES (its parameters underdetermine the move). At exhaustive bounds and semantics, sizes 1–3 "
         "(figures only; ledgered in Task 10): 156 moves in 108 keys, 12 of them UNSOUND — in a "
         "negative context the lost name flips the direction: *x ~[ (= \"a\" x) ] (something is "
         "not a) becomes *x ~[ ] (false), separating structure Structure(2, (('a', 0),), ()). "
-        "Controls: on the hand-built (= *x *y) (P x) (Q y) and (= \"a\" *y) every applied merge "
-        "is an equivalence (2 of 2 on each)."),
+        "Controls: on the hand-built generic line (= *x *y) (P x) (Q y) every applied merge is an "
+        "equivalence (2 of 2); on (= \"a\" *y) (P y) the merge that erases the constant vertex "
+        "loses P(a) and the one that keeps it is an equivalence (1 of 2; "
+        "equivalent_iff_constant_kept 1)."),
     "retract-ligature-erases-a-constant-vertex": ("RETRACT_LIGATURE", None,
         P + "Dau Lemma 16.3 (p.173) retracts a ligature to one of its vertices w0, erasing the "
         "rest — derived for EGIs without constants; with constants the ligature rules consider "
@@ -116,11 +124,16 @@ REASONS = {
         "different names (distinct_constants_joined 2): (= \"a\" \"b\") becomes a lone constant "
         "vertex — which one depends on the unordered selection — the assertion a = b lost; "
         "G ⊨ G′ on both and G′ ⊭ G, separating structure Structure(2, (('a', 0), ('b', 1)), ()). "
-        "Not judged by legal(). At exhaustive bounds (figures only; ledgered in Task 10): 49 "
+        "Not judged by legal(). At exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task 10): 49 "
         "moves in 49 keys, 8 UNSOUND — ~[ (= \"a\" \"b\") ] (a ≠ b) becomes a cut around a lone "
         "constant vertex (false), separating structure Structure(2, (('a', 0), ('b', 1)), ()). "
-        "Controls: on the hand-built (= *x *y) (P x) (Q y) and (= \"a\" *y) every applied "
-        "retraction is an equivalence (1 of 1 on each)."),
+        "10 further UNSOUND retractions there erase no constant and are not this entry: the join "
+        "sits in a cut deeper than its vertices (*x *y ~[ (= x y) ] becomes *x ~[ ]) — left "
+        "unclassified for Task 10. "
+        "Controls: on the hand-built generic line (= *x *y) (P x) (Q y) the retraction is an "
+        "equivalence (1 of 1); on (= \"a\" *y) (P y) it is an equivalence exactly when the "
+        "constant vertex survives (equivalent_iff_constant_kept 1; which vertex survives depends "
+        "on the unordered selection)."),
     "move-branches-moves-the-identity-edge-it-moves-along": ("MOVE_BRANCHES", None,
         P + "Dau Lemma 16.1 (p.169): given v_aΘv_b in one context and a hook (e,i) on v_a, "
         "putting v_b on that hook yields an equivalent graph. The engine "
@@ -133,7 +146,7 @@ REASONS = {
         "is the join in both; G ⊨ G′ and G′ ⊭ G, separating structure Structure(2, (('a', 0), "
         "('b', 1)), ()). Not a constants effect: on the hand-built generic control (= *x *y) "
         "(P x) (Q y) the same move yields *x *y (= x x) (P x) (Q y), again not an equivalence "
-        "(0 of 1 applied moves equivalent). At exhaustive bounds (figures only; ledgered in Task "
+        "(0 of 1 applied moves equivalent). At exhaustive bounds and semantics, sizes 1–3 (figures only; ledgered in Task "
         "10): 106 moves in 106 keys, the join moved in all, 10 on generic lines, 18 UNSOUND — "
         "*x *y ~[ (= x y) ] (two things differ) becomes *x *y ~[ (= y y) ] (false), separating "
         "structure Structure(2, (), ()); in 14 the join sits deeper than a vertex it joins, so "
@@ -147,8 +160,9 @@ REASONS = {
 }
 
 
-def _sem():
-    return MODES["default"].sem
+def _sem(exhaustive: bool = False):
+    """The layer's own budget for the bounds in use — never one mode's budget on the other's bounds."""
+    return MODES["exhaustive" if exhaustive else "default"].sem
 
 
 def _directions(g, h, sem):
@@ -228,7 +242,6 @@ def measure(rec, detail, c: Counter, refusal_keys, eid, sem):
         e = next(e for e in g.nu if h.nu.get(e) != g.nu[e])
         c["join_deeper_than_its_vertices"] += any(g.get_context(e) != g.get_context(v) for v in g.nu[e])
         c["generic_line"] += not any(_label(g, v) for v in g.nu[e])
-    if rec.move.rule == "MOVE_BRANCHES":
         c["moved_edge_is_the_join"] += _moved_join(rec)
 
 
@@ -239,14 +252,21 @@ def _egif(x):
         return f"<{type(exc).__name__}>"
 
 
-def adjudicate(bounds):
-    """Returns (entry id -> keys, entry id -> figures, entry id -> sample, unclassified)."""
-    sem = _sem()
+VERDICT = {True: "legal", False: "illegal", None: "not-judged"}
+
+
+def adjudicate(bounds, sem):
+    """Returns (entry id -> keys, entry id -> figures, entry id -> sample,
+    unclassified groups, every failure by group, evaluated passes by group).
+    A group is (rule, legal() verdict, failure kind); the last two tallies
+    cover ALL moves, classified or not, so the legal-move count cannot miss one."""
     refusal_keys = defaultdict(set)
     for e in json.loads(LEDGER.read_text())["entries"]:
         refusal_keys[e["id"]] = set(e["instances"])
     watched = {r[1] for r in REASONS.values() if r[1]}
-    keys, figs, samples, unclassified = defaultdict(set), defaultdict(Counter), {}, []
+    keys, figs, samples = defaultdict(set), defaultdict(Counter), {}
+    unclassified = {}                # group -> [moves, smallest sample line]
+    every, passes = Counter(), Counter()
     passing = defaultdict(set)       # refusal entry -> keys evaluated and passing
     passing_equiv = defaultdict(set)
     failing = set()
@@ -261,6 +281,7 @@ def adjudicate(bounds):
                 label, detail = soundness(rec, cache)
                 if detail is None:
                     if not label.startswith("not:"):
+                        passes[(m.rule, VERDICT[verdict])] += 1
                         for ref in watched:
                             if rec.key in refusal_keys[ref]:
                                 passing[ref].add(rec.key)
@@ -268,14 +289,19 @@ def adjudicate(bounds):
                                     passing_equiv[ref].add(rec.key)
                     continue
                 failing.add(rec.key)
+                group = (m.rule, VERDICT[verdict], detail.split(" at ")[0])
+                every[group] += 1
+                line = f"{_egif(g)}  --{m.rule}->  {_egif(rec.outcome.result)}  |  {detail}"
                 eid = classify(rec)
                 if eid is None:
-                    unclassified.append((rec.key, detail))
+                    u = unclassified.setdefault(group, [0, line])
+                    u[0] += 1
+                    if (len(line), line) < (len(u[1]), u[1]):
+                        u[1] = line
                     continue
                 keys[eid].add(rec.key)
                 figs[eid]["moves"] += 1
                 measure(rec, detail, figs[eid], refusal_keys, eid, sem)
-                line = f"{_egif(g)}  --{m.rule}->  {_egif(rec.outcome.result)}  |  {detail}"
                 if eid not in samples or (len(line), line) < (len(samples[eid]), samples[eid]):
                     samples[eid] = line
     for eid in figs:
@@ -285,23 +311,33 @@ def adjudicate(bounds):
             figs[eid]["refusal_entry_keys"] = len(refusal_keys[ref])
             figs[eid]["refusal_entry_passing"] = len(passing[ref] - failing)
             figs[eid]["passing_equivalent"] = len(passing_equiv[ref] - failing)
-    return keys, figs, samples, unclassified
+    return keys, figs, samples, unclassified, every, passes
 
 
-CONTROLS = ("(= *x *y) (P x) (Q y)", '(= "a" *y)')
+# A generic line, and a line joining a constant to a generic vertex that carries a
+# relation — the second can fail (erasing the constant vertex loses P(a)).
+CONTROLS = ("(= *x *y) (P x) (Q y)", '(= "a" *y) (P y)')
 
 
 def controls() -> Counter:
-    """Each ligature rule on hand-built generic-line graphs: applied / equivalent."""
+    """Each ligature rule on the hand-built controls, per applied move: whether
+    it erased a constant vertex, and whether it is an equivalence. RETRACT_LIGATURE
+    picks its survivor from an unordered selection, so which vertex it erases may
+    vary by process; ``equivalent_iff_constant_kept`` is the invariant figure."""
     sem, c = _sem(), Counter()
     for text in CONTROLS:
         g = parse_egif(text)
         for rule in ("MERGE_VERTICES", "RETRACT_LIGATURE", "MOVE_BRANCHES"):
+            iff = True
             for m in moves(rule, g, "A"):
                 out = apply_move(g, m)
                 if out.applied:
+                    equiv = all(_directions(g, out.result, sem))
+                    erased = bool(_erased_constants(g, out.result))
                     c[f"{text} {rule}:applied"] += 1
-                    c[f"{text} {rule}:equivalent"] += all(_directions(g, out.result, sem))
+                    c[f"{text} {rule}:equivalent"] += equiv
+                    iff &= equiv == (not erased)
+            c[f"{text} {rule}:equivalent_iff_constant_kept"] = int(iff)
     return c
 
 
@@ -325,17 +361,24 @@ def main(argv):
     exhaustive = "--exhaustive" in argv
     if exhaustive and "--write" in argv:
         raise SystemExit("exhaustive bounds are not ledgered")
-    keys, figs, samples, unclassified = adjudicate(EXHAUSTIVE_BOUNDS if exhaustive else DEFAULT_BOUNDS)
+    sem = _sem(exhaustive)
+    print(f"bounds={'exhaustive' if exhaustive else 'default'} semantics={sem}")
+    keys, figs, samples, unclassified, every, passes = adjudicate(
+        EXHAUSTIVE_BOUNDS if exhaustive else DEFAULT_BOUNDS, sem)
     for eid in sorted(figs):
         print(f"{eid:54s} " + " ".join(f"{k}={v}" for k, v in sorted(figs[eid].items())))
         print(f"    sample: {samples[eid]}")
-    print("controls  " + " ".join(f"{k}={v}" for k, v in sorted(controls().items())))
-    legal_failures = sum(f["legal"] for f in figs.values())
-    print(f"failures on moves legal() judges LEGAL: {legal_failures}")
-    for k, d in unclassified[:20]:
-        print("UNCLASSIFIED", k, d)
+    print("controls (default semantics)  " + " ".join(f"{k}={v}" for k, v in sorted(controls().items())))
+    print("evaluated moves that pass, by (rule, legal verdict): " + " ".join(
+        f"{r}/{v}={n}" for (r, v), n in sorted(passes.items())))
+    print("every failure, by (rule, legal verdict, kind): " + " ".join(
+        f"{r}/{v}/{k}={n}" for (r, v, k), n in sorted(every.items())))
+    legal_failures = sum(n for (_, v, _), n in every.items() if v == "legal")
+    print(f"failures on moves legal() judges LEGAL (over ALL failures, classified or not): {legal_failures}")
+    for (r, v, k), (n, line) in sorted(unclassified.items()):
+        print(f"UNCLASSIFIED {r}/{v}/{k}: {n} move(s); sample: {line}")
     if unclassified:
-        raise SystemExit(f"{len(unclassified)} unclassified failure(s)")
+        raise SystemExit(f"{sum(n for n, _ in unclassified.values())} unclassified failure(s)")
     if "--write" in argv:
         write_ledger(keys)
         print(f"wrote {LEDGER.name}: {sum(map(len, keys.values()))} keys in {len(keys)} entries")
