@@ -251,6 +251,21 @@ All are **existence** questions — answerable in the calculus as it stands.
   round trip, and the separating structure turns on one of its 24 lines placed above their uses.
   *Fails if* no separating structure exists (the round trip preserves meaning, and the plan's
   diagnosis of that residue is wrong) or one exists but turns on something else.
+  **Outcome (2026-09-10 run):** BLOCKED (neither HELD nor REFUTED) — `satisfies(GA, ·)` raises
+  `NotAnEGI` ("dominating nodes violated", Dau Def 12.5) on the first structure tried, before any
+  search runs, because `colore_field`'s *own stored* EGI already violates Def 12.5
+  independent of the round trip (`dominating_nodes(g)` is `False`): the shared generic vertices
+  `v_zero`/`v_one` each sit in one sibling cut (`c_all_inner_5` / `c_all_inner_1`) while other
+  edges using them sit in disjoint sibling cuts that vertex does not dominate. The EGIF round
+  trip incidentally repairs this (`dominating_nodes(back)` is `True`) — consistent with
+  `test_tomos_parsing.KNOWN_BROKEN`'s note that `colore_field`'s `=` edges "return joined to a
+  different pair of lines". Because `satisfies` refuses an ill-formed graph by construction,
+  `pk1()` never returns a dict; the printed counts below are the state computed up to the crash
+  (reconstructed separately, since nothing is printed on an uncaught exception):
+  `components_g=1, components_back=1, unmatched_g=1, unmatched_back=1, lines_above_uses=26,
+  lines_in_unmatched=26, structures_tried=0, separating=0, attributed=0, attributed_lines=[],
+  whole_graph_confirmed=0`. The prior is neither confirmed nor refuted by this run — the
+  well-formedness defect is antecedent to the question the falsifier asks.
 - **`P-K2`.** The severe cell is empty on tier A: the engine applies no move `legal` rejects.
   *Fails if* any tier-A instance lands there.
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
