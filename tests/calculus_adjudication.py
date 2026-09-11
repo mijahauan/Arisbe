@@ -265,9 +265,11 @@ def write_ledger(keys) -> None:
     split = {k: e for k, e in owner.items() if len(e) > 1}
     if split:
         raise SystemExit(f"{len(split)} key(s) classified into two entries: {list(split.items())[:5]}")
-    entries = [{"id": eid, "layer": "refusal", "rule": REASONS[eid][0],
-                "reason": REASONS[eid][2], "instances": sorted(ks)}
-               for eid, ks in sorted(keys.items())]
+    kept = [e for e in json.loads(LEDGER.read_text())["entries"] if e["layer"] != "refusal"]
+    mine = [{"id": eid, "layer": "refusal", "rule": REASONS[eid][0],
+             "reason": REASONS[eid][2], "instances": sorted(ks)}
+            for eid, ks in keys.items()]
+    entries = sorted(kept + mine, key=lambda e: (e["layer"], e["id"]))
     LEDGER.write_text(json.dumps({"entries": entries}, indent=1, ensure_ascii=False) + "\n")
 
 

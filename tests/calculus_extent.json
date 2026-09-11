@@ -54,5 +54,37 @@
    "A:VERTEX_INS": 321
   },
   "skipped": {}
+ },
+ "default:structure": {
+  "A:DC+:exact": 1184,
+  "A:DC+:illegal": 762,
+  "A:DC-:exact": 9,
+  "A:ERA:exact": 765,
+  "A:ERA:illegal": 243,
+  "A:EXTEND_LIGATURE:postcondition": 57,
+  "A:INS:exact": 700,
+  "A:IT+:exact": 1252,
+  "A:IT+:illegal": 254,
+  "A:IT-:exact": 3,
+  "A:MERGE_VERTICES:postcondition": 16,
+  "A:MOVE_BRANCHES:postcondition": 8,
+  "A:REARRANGE_LIGATURE:postcondition": 8,
+  "A:RETRACT_LIGATURE:postcondition": 8,
+  "A:SPLIT_VERTEX:postcondition": 800,
+  "A:VERTEX_ERA:exact": 98,
+  "A:VERTEX_ERA:illegal": 133,
+  "A:VERTEX_INS:exact": 100,
+  "A:not:DC+:refused": 419,
+  "A:not:DC-:refused": 1298,
+  "A:not:ERA:refused": 299,
+  "A:not:EXTEND_LIGATURE:refused": 1713,
+  "A:not:INS:refused": 1547,
+  "A:not:IT+:refused": 538,
+  "A:not:IT-:refused": 1304,
+  "A:not:MOVE_BRANCHES:refused": 1762,
+  "A:not:REARRANGE_LIGATURE:refused": 1762,
+  "A:not:RETRACT_LIGATURE:refused": 1762,
+  "A:not:VERTEX_ERA:refused": 51,
+  "A:not:VERTEX_INS:refused": 221
  }
 }
