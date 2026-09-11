@@ -20,8 +20,24 @@ def test_every_engine_entry_point_is_a_dau_rule_and_vice_versa():
 
 
 def test_the_unimplemented_dau_rules_are_exactly_these():
-    assert UNIMPLEMENTED == {"ORIENT_IDENTITY", "LIGATURE_VERTEX", "CONSTANT_IDENTITY",
+    assert UNIMPLEMENTED == {"INS_EDGE", "ORIENT_IDENTITY", "LIGATURE_VERTEX", "CONSTANT_IDENTITY",
                              "CONSTANT_EXISTENCE", "SEPARATE_CONSTANT"}
+
+
+def test_edge_insertion_onto_an_existing_vertex_has_no_entry_point():
+    """A recorded fact, not a pass: Dau p.165 defines erasing an edge e from
+    ctx(e) with V^(e) := V — the edge goes, its vertices stay — and inserting
+    e into c as its inverse, so in a negative context an edge may be inserted
+    onto vertices already there: *x ~[ ] -> *x ~[ (P x) ]. The protocol's INS
+    takes standalone EGIF only, and ``(P x)`` names a line it cannot see
+    ('Undefined variable x'), so the move is refused. INS_EDGE is therefore
+    unimplemented (the rule table above). Its candidate moves are not yet
+    enumerated; that is ruled to the fix arc, where they land as INCOMPLETE."""
+    g = parse_egif("*x ~[ ]")
+    cut = next(iter(g.Cut)).id
+    out = apply_move(g, Move("INS", (), cut, "(P x)"))
+    assert not out.applied and not out.crashed
+    assert "Undefined variable x" in out.message
 
 
 def test_split_merge_module_holds_exactly_two_rules():
@@ -36,7 +52,7 @@ def test_split_merge_module_holds_exactly_two_rules():
 def test_every_rule_has_a_direction_and_a_citation():
     for r in DAU_RULES:
         assert r.direction in ("one-way", "equivalence") and r.cite.startswith(("Def", "Lemma"))
-    assert {r.name for r in DAU_RULES if r.direction == "one-way"} == {"ERA", "INS"}
+    assert {r.name for r in DAU_RULES if r.direction == "one-way"} == {"ERA", "INS", "INS_EDGE"}
 
 
 @pytest.mark.parametrize("text", INS_CATALOGUE)

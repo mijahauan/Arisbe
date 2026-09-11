@@ -120,7 +120,8 @@ def iterate(g: G, S, target: str) -> G:
 
 
 def expected(g: G, m: Move) -> Optional[G]:
-    """The licensed result, or None where only postconditions are checked."""
+    """The licensed result, or None where it is not built (the ligature rules,
+    split, merge): there the structure layer checks EGI-hood and maps only."""
     if m.rule in ("ERA", "VERTEX_ERA", "IT-"):
         return remove(g, expand(g, m.selection))
     if m.rule == "INS":
@@ -149,8 +150,8 @@ MAX_REUSE_CHOICES = 12
 
 
 def acceptable(g: G, m: Move) -> Optional[List[G]]:
-    """Every licensed result, or None where only postconditions are checked.
-    IT+ chooses W_v PER VERTEX (Def 15.2, p.166: "for each vertex v ∈ W_0 let
+    """Every licensed result, or None where it is not built (then the structure
+    layer checks EGI-hood and maps only). IT+ chooses W_v PER VERTEX (Def 15.2, p.166: "for each vertex v ∈ W_0 let
     W_v ⊆ V be a (possibly empty) set"): each vertex of the Def 12.10
     completion that the selection itself leaves out is either copied fresh
     (W_v = ∅) or reused — iterated with W_v = {v} and the copy merged into v
@@ -163,6 +164,8 @@ def acceptable(g: G, m: Move) -> Optional[List[G]]:
     if m.rule == "IT+":
         extra = sorted(completed(g, m.selection) - set(expand(g, m.selection)))
         if len(extra) > MAX_REUSE_CHOICES:
+            # Intended: a loud abort (a crash of the run), never a silent skip —
+            # no graph in either mode reaches it, and one that does must be seen.
             raise ValueError(f"{len(extra)} completion vertices: too many per-vertex forms")
         return [iterate(g, tuple(m.selection) + fresh, m.target)
                 for k in range(len(extra) + 1) for fresh in itertools.combinations(extra, k)]

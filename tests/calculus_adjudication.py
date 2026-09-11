@@ -157,10 +157,16 @@ REASONS = {
         P + "Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration "
         "could have inserted it, and iteration copies every vertex of the source fresh "
         "(V′ := V×{1} ∪ V₀×{2}), linking a copy to an outside vertex w only by an identity edge, "
-        "and only where wΘv (the same line). So an edge that hooks a DIFFERENT vertex from the "
-        "source edge — another line, or a name where the source has a line — is not a copy. "
-        "The engine's search for the original (ITMinusInteraction via graph_isomorphism_engine) "
-        "matches such an edge anyway and erases it. Measured by calculus_adjudication in the "
+        "and only where wΘv (the same line). So a candidate that hooks, outside itself, a "
+        "DIFFERENT vertex from the one its supposed source hooks — another line, or another "
+        "name — is not a copy. The engine's search for the original (ITMinusInteraction via "
+        "graph_isomorphism_engine) ignores the identity of every vertex outside the copy, names "
+        "included, and erases such a candidate anyway. What it does compare lies inside the "
+        "copy: (P \"a\") ~[ (P \"b\") ] is refused, the vertex of \"b\" sitting in the cut with the "
+        "candidate edge; with both names on the sheet, outside the copy, the name-against-name "
+        "control (Q \"a\") (Q \"b\") ~[ (P \"b\") ] ~[ ~[ (P \"a\") ] ] has its cut ~[ (P \"a\") ] "
+        "deiterated against ~[ (P \"b\") ]: the satisfiable graph becomes (Q \"a\") (Q \"b\") "
+        "~[ (P \"b\") ] ~[ ], unsatisfiable — UNSOUND. Measured by calculus_adjudication in the "
         "default mode: every move in this entry is a tier-B move legal() rejects ('no source of "
         "which this is a copy'), and on every one a source exists once each outside vertex may "
         "match ANY vertex (source_on_any_vertex); on only some does one exist when it must match "
@@ -168,11 +174,11 @@ REASONS = {
         "because Person(\"Bob\") stands in an enclosing context. None of those corpus results "
         "separates from G at domain sizes 1–2 (the difference is inert where they sit). It is "
         "not inert in general: the hand-built controls (IT_MINUS_CONTROLS, printed with their "
-        "separating structures) — *x *y (P x) ~[ (P y) ] (satisfiable) is deiterated to "
-        "*x *y (P x) ~[ ] (unsatisfiable), UNSOUND; and *y (P \"a\") ~[ (P y) ] likewise. The "
-        "engine does not ignore names everywhere: (P \"a\") ~[ (P \"b\") ] is refused. Tier A "
-        "cannot build these shapes (the exhaustive bound is four elements), which is why tier B "
-        "found it. "
+        "separating structures, and held as strict xfails by test_calculus_it_minus_controls) — "
+        "*x *y (P x) ~[ (P y) ] (satisfiable) is deiterated to *x *y (P x) ~[ ] "
+        "(unsatisfiable), UNSOUND; *y (P \"a\") ~[ (P y) ] likewise; and the name-against-name "
+        "control above. Tier A cannot build these shapes (the exhaustive bound is four elements), "
+        "which is why tier B found it. "
         "In the exhaustive mode (calculus_adjudication --exhaustive): 64 moves in 64 keys, all tier B; a source exists for all 64 once any vertex may match, for 24 with a vertex of the same kind; 59 are equivalences at sizes 1–2, and the other 5 — on group_identity's chain states — change meaning, some UNSOUND (soundness entry it-minus-erases-a-copy-of-another-line-changes-meaning)."),
     "it-minus-strictly-enclosing-only": ("IT-", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): iteration copies into any c ≤ ctx(G0), c = ctx(G0) included, "
@@ -189,8 +195,13 @@ REASONS = {
         "measured by calculus_adjudication, every result in this entry violates Def 12.5, so it "
         "is not an EGI and has no Dau semantics (Def 13.4 cannot evaluate it). Includes moves "
         "whose target was also ignored (see dc-plus-ignores-target). Coupled: structure entry "
-        "dc-plus-result-not-an-egi holds exactly these keys (its in_refusal_entry figure), so "
-        "the two must shrink together when the engine is fixed."),
+        "dc-plus-result-not-an-egi is its structure half. In the default mode it holds exactly "
+        "these keys (its in_refusal_entry figure). At exhaustive bounds it holds every key of "
+        "this entry and more — 15,022 to this entry's 14,954 — because the structure layer sees a "
+        "non-EGI result whatever legal() says, while this layer scores only judged moves: the "
+        "extra keys are DC+ moves on quotation-bearing tier-B graphs that touch the apparatus, "
+        "which legal() does not judge (that entry's not_judged figure). The two must shrink "
+        "together when the engine is fixed."),
     "dc-plus-ignores-target": ("DC+", SEVERE,
         P + "Dau Def 15.2 double cuts (p.164): the double cut is inserted in the context c0 whose "
         "contents it encloses. Given a non-empty selection and a target area that is not the "
@@ -304,20 +315,32 @@ def _relaxed_source(g, X, any_vertex=False) -> bool:
         cr._same_kind = strict
 
 
-IT_MINUS_CONTROLS = ("*x *y (P x) ~[ (P y) ]", '*y (P "a") ~[ (P y) ]', '(P "a") ~[ (P "b") ]')
+# Also held, as strict xfails, by tests/test_calculus_it_minus_controls.py.
+IT_MINUS_CONTROLS = ("*x *y (P x) ~[ (P y) ]", '*y (P "a") ~[ (P y) ]', '(P "a") ~[ (P "b") ]',
+                     '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]')
+
+
+def control_selection(g):
+    """The candidate a control deiterates: the cut nested in a cut where there
+    is one (the name-against-name control, whose candidate is ~[ (P "a") ]),
+    else the one edge inside a cut."""
+    cuts = {k.id for k in g.Cut}
+    nested = sorted(k for k in cuts if g.get_context(k) in cuts)
+    if nested:
+        return (nested[0],)
+    return (next(e for e in sorted(g.nu) if g.get_context(e) != g.sheet),)
 
 
 def it_minus_control() -> Counter:
-    """The hand-built shapes tier A cannot reach (five and four elements with a
-    second name): does the engine deiterate an edge whose supposed original
-    hooks another line, or another name, and is the result unsound?"""
+    """The hand-built shapes tier A cannot reach (a second line or a second
+    name): does the engine deiterate a candidate whose supposed original hooks
+    another line, or another name, and is the result unsound?"""
     from egif_parser_dau import parse_egif
     from tarski import model_set
     c = Counter()
     for text in IT_MINUS_CONTROLS:
         g = parse_egif(text)
-        inner = next(e for e in g.nu if g.get_context(e) != g.sheet)
-        m = Move("IT-", (inner,))
+        m = Move("IT-", control_selection(g))
         out = apply_move(g, m)
         c[f"{text} legal"] = int(bool(legal(g, m)[0]))
         c[f"{text} applied"] = int(out.applied)

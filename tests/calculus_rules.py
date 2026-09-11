@@ -30,7 +30,12 @@ class DauRule:
 
 DAU_RULES: Tuple[DauRule, ...] = (
     DauRule("ERA", "Def 15.2 erasure, p.164-165: positive contexts", "one-way", "protocol:ERA", True),
-    DauRule("INS", "Def 15.2 insertion, p.164-165: negative contexts", "one-way", "protocol:INS", True),
+    # INS is the insertion of standalone content — a closed subgraph (an isolated
+    # vertex included) — which is what the protocol's INS performs. Inserting an
+    # edge onto vertices already present (p.165: erasing an edge keeps its
+    # vertices, V^(e) := V, and insertion is its inverse) is INS_EDGE, below.
+    DauRule("INS", "Def 15.2 insertion of a closed subgraph, p.164-165: negative contexts", "one-way", "protocol:INS", True),
+    DauRule("INS_EDGE", "Def 15.2 insertion of an edge onto existing vertices, p.165: negative contexts", "one-way", None, False),
     DauRule("IT+", "Def 15.2 iteration, p.164, 166: no polarity condition", "equivalence", "protocol:IT+", True),
     DauRule("IT-", "Def 15.2 deiteration, p.164, 166", "equivalence", "protocol:IT-", True),
     DauRule("DC+", "Def 15.2 double cuts, p.164: any context", "equivalence", "protocol:DC+", True),

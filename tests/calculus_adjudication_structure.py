@@ -17,6 +17,7 @@ corpus guard on every tier-B source, which no mode changes).
 
 Figures, per entry ("moves" = candidate moves, "keys" = distinct instance keys):
   illegal              moves legal() judges illegal (structure then checks EGI-hood and maps only)
+  not_judged           moves legal() does not judge (label egi-only: EGI-hood and maps only)
   in_refusal_entry     keys that are also instances of the named refusal entry
   non_egi              the engine's result violates dominating nodes (Def 12.5)
   orphans_erased       the engine's result = Dau's erasure, then each vertex it left isolated erased
@@ -94,7 +95,10 @@ REASONS = {
         "illegal by legal(), every result non-EGI, and the 288 keys are exactly that refusal "
         "entry's instances (in_refusal_entry). Coupled: the two entries must shrink together "
         "when the engine is fixed. "
-        "In the exhaustive mode (calculus_adjudication_structure --exhaustive): 15,652 moves in 15,022 keys, every result non-EGI."),
+        "In the exhaustive mode (calculus_adjudication_structure --exhaustive): 15,652 moves in "
+        "15,022 keys, every result non-EGI — the refusal entry's 14,954 keys and 68 more, all "
+        "tier B: DC+ moves on quotation-bearing graphs that touch the apparatus, which legal() "
+        "does not judge (not_judged), so the refusal layer counts them without scoring them."),
     "era-also-erases-the-vertex-it-isolates": ("structure", "ERA",
         P + "Dau Def 15.2 (p.165): erasing an edge e removes e only — V^(e) := V — so its vertex "
         "stays, isolated if e was its last edge. The engine's closure (ErasureRule / ERAInteraction: "
@@ -159,6 +163,7 @@ def measure(rec, eid, c: Counter, refusal_keys):
     g, m, h = rec.g, rec.move, rec.outcome.result
     if eid == "dc-plus-result-not-an-egi":
         c["illegal"] += rec.verdict is False
+        c["not_judged"] += rec.verdict is None
         c["non_egi"] += not dominating_nodes(h)
         if refusal_keys is not None:
             c["in_refusal_entry"] += rec.key in refusal_keys["dc-plus-strands-a-vertex"]

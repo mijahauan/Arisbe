@@ -150,6 +150,19 @@ def records(mode_name: str, tally: Optional["Run"] = None) -> Iterator[Tuple[Rec
                                  apply_move(g, m), verdict, why), cache
 
 
+def failure_of(layer: str, rec: Record, detail: str) -> Failure:
+    """A layer's failure as the run records it, carrying legal()'s verdict."""
+    return Failure(layer, rec.key, detail, claims(layer, rec, detail), rec.verdict)
+
+
+def on_legal_moves(failures: List[Failure]) -> List[Failure]:
+    """The failures on moves legal() judges LEGAL. For the soundness layer
+    this is the headline's own guard — no move Dau licenses fails soundness —
+    read from the verdict itself, so it does not rest on every soundness
+    classifier happening to exclude legal moves."""
+    return [f for f in failures if f.verdict is True]
+
+
 @functools.lru_cache(maxsize=None)
 def run(mode_name: str) -> Run:
     mode = MODES[mode_name]
@@ -163,5 +176,5 @@ def run(mode_name: str) -> Run:
             if not label.startswith("not:") and rec.key in known[name]:
                 lr.evaluated_ledgered.add(rec.key)
             if detail is not None:
-                lr.failures.append(Failure(name, rec.key, detail, claims(name, rec, detail)))
+                lr.failures.append(failure_of(name, rec, detail))
     return result

@@ -6,7 +6,8 @@ from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
 from calculus_expected import acceptable, maps_carried
-from tarski import dominating_nodes
+from calculus_rules import RULES
+from tarski import dominating_nodes, model_set, universe, vocabulary
 
 Check = Callable[[object, dict], Tuple[str, Optional[str]]]
 
@@ -31,10 +32,15 @@ def refusal(rec, cache) -> Tuple[str, Optional[str]]:
 def structure(rec, cache) -> Tuple[str, Optional[str]]:
     """§5.2: the result is an EGI, keeps the B-min maps, and — where the
     licensed result can be built — equals one of the licensed forms. Only
-    applied moves are checked; an applied-but-illegal move is checked for
-    EGI-hood and maps only. A record whose source carries a B-min map is
-    labelled with a ``:maps`` suffix, so the pinned extent shows whether the
-    maps clause was ever exercised."""
+    applied moves are checked. The label says how much was checked:
+    ``exact`` — a legal move of a judged rule, compared with its licensed
+    forms; ``illegal`` — an applied move legal() rejects, EGI-hood and maps
+    only; ``egi-only`` — a move legal() does not judge (the four ligature
+    rules, split, merge, and any abstention), EGI-hood and maps only. No
+    per-rule postcondition is checked for ``egi-only`` moves: a no-op passes
+    (spec §5.2; the real postconditions are queued for the fix arc). A record
+    whose source carries a B-min map is labelled with a ``:maps`` suffix, so
+    the pinned extent shows whether the maps clause was ever exercised."""
     out = rec.outcome
     if not out.applied:
         return f"not:{rec.move.rule}:refused", None
@@ -46,7 +52,7 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     forms = acceptable(g, m) if rec.verdict else None
     if forms is not None and not any(nav.same_graph(f, h) for f in forms):
         problems.append("the result differs from the licensed change")
-    kind = "exact" if forms is not None else ("postcondition" if rec.verdict is None else "illegal")
+    kind = "exact" if forms is not None else ("egi-only" if rec.verdict is None else "illegal")
     maps = g.alphabet is not None or bool(g.rho or g.sort or g.quotation)
     return f"{m.rule}:{kind}" + (":maps" if maps else ""), "; ".join(problems) or None
 
@@ -54,16 +60,13 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
 LAYERS: Dict[str, Check] = {"refusal": refusal}
 LAYERS["structure"] = structure
 
-from calculus_rules import RULES
-from tarski import model_set, universe, vocabulary
-
 
 def layer_universe(rels, consts, n, sem, tier):
     """The structures the soundness layer evaluates: tarski.universe under the
     mode's budget, except that at tier B an exhaustive universe larger than
     ``sem.tier_b_max_structures`` is replaced by the seeded sample."""
     cap = sem.tuple_cap
-    limit = getattr(sem, "tier_b_max_structures", None)
+    limit = sem.tier_b_max_structures
     if tier == "B" and limit is not None:
         bits = sum(n ** ar for _, ar in rels)
         if bits <= cap and 2 ** bits * n ** len(consts) > limit:

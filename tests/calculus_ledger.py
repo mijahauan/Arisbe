@@ -21,7 +21,7 @@ import tempfile
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from calculus_rules import LIGATURE_RULES, expand
 
@@ -36,6 +36,7 @@ class Failure:
     key: str
     detail: str
     claims: Tuple[str, ...] = ()      # the ledger entries whose classifier claims it
+    verdict: Optional[bool] = None    # legal()'s verdict on the failing move (layer runs only)
 
     @property
     def kind(self) -> str:
@@ -134,7 +135,10 @@ def instance_key(tier: str, gname: str, g, m, sigs) -> str:
     """UUID-independent: the rule, the selection signed jointly (each element's
     signature with its incidences to the other selected elements), the target
     as (signature, relation to the selection: selected / inside-selection /
-    outside), the content, and the hooks by signature. For the ligature rules
+    outside, ``holds`` — each selected element whose enclosing chain contains
+    the target, at what depth — and ``meets`` — where the target's context
+    chain meets each selected element's, in steps up from each; see _target),
+    the content, and the hooks by signature. For the ligature rules
     the selection is signed IN ORDER, since the engine keeps (or moves from)
     its first element (calculus_apply.InOrder).
 

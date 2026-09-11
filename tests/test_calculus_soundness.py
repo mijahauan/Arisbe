@@ -6,7 +6,7 @@ from calculus_apply import Outcome
 from calculus_layers import soundness
 from calculus_ledger import assert_extent, check_ledger
 from calculus_rules import Move
-from calculus_run import MODES, Record, run
+from calculus_run import MODES, Record, failure_of, on_legal_moves, run
 from egif_parser_dau import parse_egif
 
 
@@ -44,6 +44,36 @@ def test_soundness():
 
 def test_soundness_extent():
     assert_extent("default:soundness", dict(sorted(run("default").layers["soundness"].counts.items())))
+
+
+def _no_failure_on_a_legal_move(mode):
+    """The headline, guarded on its own: no move legal() judges legal fails
+    soundness. The ledger check alone would not hold it — a soundness
+    classifier written broadly enough could claim such a failure as ledgered."""
+    bad = on_legal_moves(run(mode).layers["soundness"].failures)
+    assert not bad, f"{len(bad)} soundness failure(s) on legal moves: " + \
+        "; ".join(f"{f.key} {f.detail}" for f in bad[:5])
+
+
+def test_no_soundness_failure_on_a_legal_move():
+    _no_failure_on_a_legal_move("default")
+
+
+@pytest.mark.exhaustive
+def test_no_soundness_failure_on_a_legal_move_exhaustive():
+    _no_failure_on_a_legal_move("exhaustive")
+
+
+def test_the_legal_move_guard_bites():
+    """A hand-built record legal() calls legal, with an UNSOUND result, is
+    reported by the guard; its illegal twin is not."""
+    g, h = parse_egif("~[ (P *x) ]"), parse_egif("~[ ]")
+    for verdict, reported in ((True, True), (False, False)):
+        rec = Record("A", "hand", g, Move("ERA", ()), "hand|key", Outcome(True, h, ""), verdict, "")
+        detail = soundness(rec, {"_sem": MODES["default"].sem})[1]
+        assert detail and detail.startswith("UNSOUND")
+        f = failure_of("soundness", rec, detail)
+        assert on_legal_moves([f]) == ([f] if reported else [])
 
 
 @pytest.mark.exhaustive
