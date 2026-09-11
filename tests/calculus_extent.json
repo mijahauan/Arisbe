@@ -1,0 +1,57 @@
+{
+ "default:refusal": {
+  "A:DC+:applied/illegal": 762,
+  "A:DC+:applied/legal": 1184,
+  "A:DC+:refused/illegal": 419,
+  "A:DC-:applied/legal": 9,
+  "A:DC-:refused/illegal": 1298,
+  "A:ERA:applied/illegal": 243,
+  "A:ERA:applied/legal": 765,
+  "A:ERA:refused/illegal": 152,
+  "A:ERA:refused/legal": 147,
+  "A:INS:applied/legal": 700,
+  "A:INS:refused/illegal": 1547,
+  "A:IT+:applied/illegal": 254,
+  "A:IT+:applied/legal": 1252,
+  "A:IT+:refused/illegal": 383,
+  "A:IT+:refused/legal": 155,
+  "A:IT-:applied/legal": 3,
+  "A:IT-:refused/illegal": 1156,
+  "A:IT-:refused/legal": 60,
+  "A:VERTEX_ERA:applied/illegal": 133,
+  "A:VERTEX_ERA:applied/legal": 98,
+  "A:VERTEX_ERA:refused/illegal": 18,
+  "A:VERTEX_ERA:refused/legal": 33,
+  "A:VERTEX_INS:applied/legal": 100,
+  "A:VERTEX_INS:refused/legal": 221,
+  "A:not:EXTEND_LIGATURE": 1770,
+  "A:not:IT-": 88,
+  "A:not:MERGE_VERTICES": 16,
+  "A:not:MOVE_BRANCHES": 1770,
+  "A:not:REARRANGE_LIGATURE": 1770,
+  "A:not:RETRACT_LIGATURE": 1770,
+  "A:not:SPLIT_VERTEX": 800
+ },
+ "default:run": {
+  "graphs": {
+   "A": 208
+  },
+  "moves": {
+   "A:DC+": 2365,
+   "A:DC-": 1307,
+   "A:ERA": 1307,
+   "A:EXTEND_LIGATURE": 1770,
+   "A:INS": 2247,
+   "A:IT+": 2044,
+   "A:IT-": 1307,
+   "A:MERGE_VERTICES": 16,
+   "A:MOVE_BRANCHES": 1770,
+   "A:REARRANGE_LIGATURE": 1770,
+   "A:RETRACT_LIGATURE": 1770,
+   "A:SPLIT_VERTEX": 800,
+   "A:VERTEX_ERA": 282,
+   "A:VERTEX_INS": 321
+  },
+  "skipped": {}
+ }
+}

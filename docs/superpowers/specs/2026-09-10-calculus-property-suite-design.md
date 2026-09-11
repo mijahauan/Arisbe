@@ -259,6 +259,16 @@ All are **existence** questions — answerable in the calculus as it stands.
   uses" diagnosis was wrong.
 - **`P-K2`.** The severe cell is empty on tier A: the engine applies no move `legal` rejects.
   *Fails if* any tier-A instance lands there.
+  **Outcome (2026-09-10 run, default bounds, 208 graphs):** REFUTED — `dc-plus-strands-a-vertex`,
+  `dc-plus-ignores-target`, `era-auto-closes-a-vertex-selection`,
+  `vertex-era-erases-a-line-with-its-edges`, `it-plus-into-its-own-selection` (all ledgered
+  PROVISIONAL, for the author). Two are defects of substance: IT+ copies a selected cut into itself
+  (Def 15.2 p.164 forbids c ∈ Cut₀), and on 17 instances the step is unsound — `~[ ~[ ] ]` (true)
+  becomes `~[ ~[ ~[ ] ] ]` (false); and DC+ wraps a vertex while leaving its edges outside, yielding
+  a non-EGI (Def 12.5 p.125) on 297 moves (288 distinct instance keys). The other three are protocol conventions — the
+  engine performs a larger or differently placed Dau-legal move than the one named (auto-closing a
+  selection; ignoring DC+'s spot when a subject is given) — sound on every instance measured, but
+  the named move is not refused.
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
   *Fails if* any structure models G but not G′.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.
