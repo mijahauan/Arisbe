@@ -303,6 +303,18 @@ All are **existence** questions — answerable in the calculus as it stands.
   sizes 1–2 and 1,736 over a seeded sample of 64 per size (tuple bits over 6) — pinned in
   `calculus_extent.json` as `default:soundness`; 297 non-EGI DC+ results cannot be evaluated.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.
+  **Outcome (2026-09-10 run, default bounds, 208 graphs, domain sizes 1–2, unique names, closed
+  world):** HELD — 4,392 comparisons, **0 disagreements, 0 UNKNOWN**; 808 over every structure
+  of the size, 3,584 over a seeded sample of 64 per size (tuple bits over 6); pinned in
+  `calculus_extent.json` as `default:differential`. The verdicts are not one-sided (tarski TRUE
+  2,290 / FALSE 2,102), and the graphs carry an identity edge (40), a constant (157), a cut (91),
+  a generic vertex (78), a 0-ary relation (44). The instrument bites: with the diagonal `(= u u)`
+  left out of the facts graph, the same pass counts 214 disagreements — `semantic_game` reads `=`
+  as an ordinary relation (§1a.5), so against a model that does not list its identities, a graph
+  using `=` is misjudged. Declared open, the same oracle returns UNKNOWN on 1,828 of 4,392.
+  Figures regenerate from `calculus_adjudication_differential`. Outside the layer's assumptions
+  nothing is claimed: co-denoting names (Def 24.2 allows them; `semantic_game` matches constants
+  by label) and open worlds are not compared here.
 
 `bfo_core` carries no prior: it has none of the line-above-use shape and remains undiagnosed.
 

@@ -1,4 +1,8 @@
 {
+ "default:differential": {
+  "agree:exhaustive": 808,
+  "agree:sampled": 3584
+ },
  "default:refusal": {
   "A:DC+:applied/illegal": 762,
   "A:DC+:applied/legal": 1184,
