@@ -194,11 +194,17 @@ def _nothing_dangles(g: G, X: set) -> bool:
 
 
 def _touches_quotation(g: G, ids, target) -> bool:
+    """Whether the *whole* selection — not just the ids named — reaches the
+    quotation apparatus or an oval's interior. A cut in ``ids`` carries
+    everything under it into the check (Def 15.2's rules act on a selection
+    plus its contents, e.g. ERA of a closed subgraph), so a plain cut that
+    merely CONTAINS an oval must be caught too, not only the oval cut itself."""
     if not g.quotation and not g.sort:
         return False
     apparatus = set(g.quotation) | set(g.quotation.values()) | set(g.sort)
     inside = set().union(*(expand(g, [c]) for c in g.quotation)) if g.quotation else set()
-    return any(x in apparatus or x in inside for x in ids) or target in inside
+    X = expand(g, ids)
+    return bool(X & (apparatus | inside)) or target in inside
 
 
 def legal(g: G, m: Move) -> Verdict:
@@ -212,6 +218,13 @@ def legal(g: G, m: Move) -> Verdict:
         return False, "the selection names an unknown element"
     if m.target is not None and m.target not in all_areas(g):
         return False, "the target is not a context"
+    if m.rule in ("IT+", "IT-") and (g.quotation or g.sort):
+        # Iteration/deiteration compare structure across two contexts (Def
+        # 15.2, p.164, 166); a quotation-bearing graph makes that comparison
+        # cross the B-min opacity boundary (Arisbe's, not Dau's) no matter
+        # which elements are selected, so the whole rule is left unjudged
+        # rather than checked selection-by-selection.
+        return None, "not judged: IT± on a quotation-bearing graph (B-min opacity)"
     if _touches_quotation(g, m.selection, m.target):
         return None, "not judged: the quotation apparatus (B-min is Arisbe's, not Dau's)"
     return _LEGAL[m.rule](g, m)
@@ -285,7 +298,10 @@ def _it_plus(g: G, m: Move) -> Verdict:
 
     Shared-vertex reading: an unselected vertex of a selected edge is the
     Θ-linked vertex of Def 15.2's second clause, reused by pointing at it
-    rather than joined by an identity edge (equivalent by Lemma 16.3)."""
+    rather than joined by an identity edge — for c = c0, equivalent by
+    Lemma 16.3 (p.173) (retracting the identity edge back to a single line);
+    for c < c0, equivalent by merging the copy vertex into the source vertex
+    along its identity edge, Def 16.6 / Lemma 16.7 (p.175-178)."""
     if not m.selection:
         return False, "empty selection"
     X = expand(g, m.selection)
@@ -305,10 +321,20 @@ def _it_minus(g: G, m: Move) -> Verdict:
     a context enclosing (or equal to) its own, of which it is a copy: same
     kinds, relation names and constant labels, same nesting, and each edge
     reaching either the copy of its source's vertex or the very same vertex
-    (a reused line — the shared-vertex form of the Θ clause)."""
+    (a reused line — the shared-vertex form of the Θ clause).
+
+    Not modelled: Def 15.2's Θ clause in its literal form (p.166), where
+    iteration may add identity edges F = {e_{v,w}} from a copy's vertices to
+    a Θ-linked vertex w OUTSIDE the copy, and deiteration erases the copy
+    together with F. A selection containing such an identity edge is left
+    unjudged rather than wrongly refused."""
     if not m.selection:
         return False, "empty selection"
     X = expand(g, m.selection)
+    if any(g.rel.get(e) == "=" and any(v not in X for v in g.nu[e])
+           for e in X if e in g.nu):
+        return None, ("not judged: an identity edge links the copy outside it "
+                       "— Def 15.2's Θ clause (p.166) is not modelled")
     c = _one_context(g, X)
     if c is None:
         return False, "the selection spans several contexts"
@@ -377,7 +403,10 @@ def _vertex_ins(g: G, m: Move) -> Verdict:
 
 
 def _vertex_era(g: G, m: Move) -> Verdict:
-    """Def 15.2 erasing a vertex (p.164, 166): an isolated vertex may be erased from ANY context."""
+    """Def 15.2 erasing a vertex (p.164, 166): an isolated vertex may be
+    erased from ANY context. Note: this covers a GENERIC isolated vertex;
+    an isolated CONSTANT vertex's erasure is properly Def 24.10's Existence
+    of Constants rule (p.271), which this judge does not separately model."""
     if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
         return False, "not a single vertex"
     if edges_on(g, m.selection[0]):

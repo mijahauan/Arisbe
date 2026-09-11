@@ -135,6 +135,42 @@ def test_unknown_ids_are_illegal():
     assert ok(g, Move("VERTEX_INS", (), "nope")) is False
 
 
+# Quotation opacity (B-min is Arisbe's, not Dau's) — fix round 1, Finding 1
+def test_it_rules_not_judged_on_a_quotation_bearing_graph():
+    from egi_core_dau import SORT_PROPOSITION
+
+    g = parse_egif("~[ (P *y) ] ~[ (P *w) ] [*z]")
+    cuts = _cuts_by_depth(g)
+    z = next(v.id for v in g.V if all(v.id not in seq for seq in g.nu.values()))
+    g = g.with_quotation_binding(z, cuts[1], sort_name=SORT_PROPOSITION)
+    plain_cut = cuts[0]
+    for verdict, why in (legal(g, Move("IT-", (plain_cut,))),
+                         legal(g, Move("IT+", (plain_cut,), g.sheet))):
+        assert verdict is None and why.startswith("not judged: IT")
+
+
+def test_era_of_a_plain_cut_containing_an_oval_is_not_judged():
+    from egi_core_dau import SORT_PROPOSITION
+
+    g = parse_egif("~[ [*z] ~[ (P *w) ] ]")
+    outer = next(c.id for c in g.Cut if g.get_context(c.id) == g.sheet)
+    inner = next(c.id for c in g.Cut if g.get_context(c.id) == outer)
+    z = next(v.id for v in g.V if all(v.id not in seq for seq in g.nu.values()))
+    g = g.with_quotation_binding(z, inner, sort_name=SORT_PROPOSITION)
+    verdict, why = legal(g, Move("ERA", (outer,)))
+    assert verdict is None and "quotation" in why
+
+
+# The Θ clause (p.166) is not modelled — fix round 1, Finding 2
+def test_it_minus_identity_edge_reaching_outside_the_copy_is_not_judged():
+    g = parse_egif("(P *x) (P *y) (= x y)")
+    eq = next(e for e in g.nu if g.rel[e] == "=")
+    xv, yv = g.nu[eq]
+    p_of_y = next(e for e in g.nu if g.rel[e] == "P" and g.nu[e] == (yv,))
+    verdict, why = legal(g, Move("IT-", (yv, p_of_y, eq)))
+    assert verdict is None and why.startswith("not judged: an identity edge")
+
+
 def test_legal_never_consults_the_engine():
     import calculus_rules
     src = open(calculus_rules.__file__).read()
