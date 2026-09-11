@@ -327,7 +327,9 @@ Code chapters correspond to Dau's formal textbook:
 - Ch. 18 → `chapter18_fopl_translation.py` (linear format Φ/Ψ translations)
 - Ch. 20 → `syntactic_equivalence_checker.py`, `chapter20_syntactic_equivalence_fixes.py`
 
-## Testing (4,620 passing, 217 skipped, 1 xfailed — 2026-09-06; ~40 min)
+## Testing (4,936 passing, 226 skipped, 1 xfailed — 2026-09-11; ~41 min; `-m exhaustive` adds the calculus suite's full extent, 2 h 41 min)
+
+The 2026-09-11 run also had 1 failure, `test_performance_working.py::test_memory_stability`: 122.59 MB against its 120 MB warm-process threshold. It passes alone (0.09 MB), and it passed on a rerun of every file up to it (103.11 MB).
 
 Key test files:
 - `test_correspondence_invariant.py` — All six §7 test shapes from `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` (totality/injectivity, containment, incidence + arg-order, identity 3-way, transformation invariance, regime-3 non-interference) against the tomos corpus
@@ -382,6 +384,17 @@ Key test files:
 - `test_subgraph_closure_validation.py` — Closure validator including Beta-aware checks
 - `test_graph_isomorphism_engine.py` — VF2 isomorphism for IT- validation
 - `test_tomos_parsing.py` — EGIF/CGIF/CLIF round-trip across 87+ tomos examples
+- **The calculus property suite** (spec `docs/superpowers/specs/2026-09-10-calculus-property-suite-design.md`): tests the calculus directly against Dau, not through a linear form. Shared modules: `tests/calculus_enum.py` (tier A = every small graph built from the data model; tier B = the corpus as used), `tests/calculus_rules.py` (Dau's rule table, every candidate move, and `legal()`, Dau's preconditions written without importing the engine), `tests/calculus_apply.py`, `tests/calculus_run.py` (the modes and budgets), `tests/calculus_layers.py`, `tests/calculus_classifiers.py`, `tests/tarski.py` (a fresh evaluator written from Dau's semantics). `tests/calculus_ledger.json` holds each known failure with its reason (a new failure fails as **new**; a repaired one fails with **"shrink this entry"**), and `tests/calculus_extent.json` pins every count exactly. The default run covers a reduced slice (tier A at max 3 elements + tier B's 52 current graphs); **`-m exhaustive` runs the full extent (2,382 tier-A + 133 tier-B graphs, 799,211 moves; 2 h 41 min)**. The `tests/calculus_adjudication*.py` scripts (not collected) regenerate every figure quoted in the ledger's reasons.
+- `test_calculus_enum.py` — tier-A enumeration: every required shape occurs (empty cut, 0-ary and ternary relations, co-denotable and unnormalized constants, a line above its uses); no two kept graphs are isomorphic; the counts add up (kept + discarded); every kept graph has dominating nodes; tier B covers every UoD and every chain state; **every corpus graph is an EGI** (the standing guard — `bfo_core` and `colore_field` ledgered as `corpus-graph-not-an-egi`)
+- `test_tarski.py` — the evaluator is validated before it is trusted: constant multiplicity/placement is inert, generic placement is not; a generic line is quantified where it is placed; `=` is equality; constants may co-denote; a non-EGI is refused, not evaluated; `restrict`, `sheet_components`, `universe` (exhaustive under its cap and says so, else sampled)
+- `test_calculus_pk1.py` — prior P-K1 (exhaustive only), pinned at its recorded outcome: REFUTED on its premise, because colore_field's stored graph is not an EGI
+- `test_calculus_rules.py` — the rule table follows Dau, not the engine: every engine entry point maps to a Dau rule and back, and the five Dau rules with no entry point are named exactly (ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY, CONSTANT_EXISTENCE, SEPARATE_CONSTANT)
+- `test_calculus_legal.py` — `legal()` against hand-built legal and illegal cases for each rule, each cited to a Dau page, plus a guard that it imports nothing from the engine
+- `test_calculus_ledger.py` — the ledger check bites on hand-built failures before its silence means anything: a new or re-kinded key fails as new, a repaired one as "shrink this entry", an exhaustive per-kind count that rises or falls fails, a classifier that drifts is caught; an IT- move above `ENGINE_PATTERN_CEILING` (64 elements) is counted, not applied
+- `test_calculus_refusal.py` — refusal agreement: engine (applied/refused) × `legal()` (true/false), the severe and incomplete cells held to the ledger, the instance key separating moves that differ only in the target's (or a selected pair's) relation to the selection; extent pinned per mode
+- `test_calculus_structure.py` — structure: a rule changes what it licenses and nothing else, the result is an EGI, the B-min maps travel; the instrument is shown to catch a rule that does nothing and a line moved inward; IT+ accepts both forms Dau licenses (reuse, or the completion copied fresh); the core's `has_dominating_nodes` held to Dau's Def 12.5 (inverted — ledgered `core-has-dominating-nodes-inverted`)
+- `test_calculus_soundness.py` — soundness, strict: ERA/INS one-way, every other rule an equivalence, checked over every structure of domain sizes 1–2 (1–3 under `-m exhaustive`; sampled above a cap, and the extent says so); the instrument is shown to catch an unsound erasure and a lost equivalence; tier B's universe is capped (36,864 structures) and tier A's is not
+- `test_calculus_differential.py` — `semantic_game` against `tarski` on every tier-A graph (unique names, closed world): agree / disagree / UNKNOWN counted, any disagreement failing as new (prior P-K4 HELD); the facts-graph encoding round-trips through `semantic_game`
 
 ## graphify
 

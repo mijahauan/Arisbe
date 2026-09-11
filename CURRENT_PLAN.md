@@ -1,12 +1,247 @@
 # Current Plan
 
+**Last Updated**: 2026-09-11 (seventeenth arc) — **THE CALCULUS, TESTED DIRECTLY: NO MOVE DAU
+LICENSES FAILS, BUT THE ENGINE MAKES MOVES HE DOES NOT LICENSE, AND SOME OF THEM TURN A TRUE GRAPH
+FALSE.** Branch `tier0-readiness` (43 commits ahead of `main`, **not merged**). Spec:
+[the calculus property suite](docs/superpowers/specs/2026-09-10-calculus-property-suite-design.md) ·
+plan: [twelve tasks](docs/superpowers/plans/2026-09-10-calculus-property-suite.md).
+
+**▶▶▶ NEXT SESSION — read this first.**
+
+**The author's standing principle (2026-09-11):** "we MUST remain Dau-compliant, testing in a
+manner that ensures this, and vigilant for examples that stress our implementation." It governs
+the fix arc below and everything after it.
+
+**State:** full suite **4,936 passed, 226 skipped, 1 xfailed, 1 failed** (40m59s). The one failure is
+`test_performance_working.py::test_memory_stability`: it measured 122.59 MB of memory growth
+against a 120 MB threshold that its own comment sizes for a warm process. It does not reproduce.
+Alone the test grows 0.09 MB, after the calculus files 0.00 MB, and a rerun of every file up to
+it in one process gave 103.11 MB and passed. It is a threshold near the edge of warm-process
+noise, not a leak, and nothing in this arc touches the code it exercises. Left as it is, for you.
+Quality gate green, 152 core tests. Tree clean apart from a pre-existing
+`.vscode/settings.json`. `.core_modification_authorized` exists (gitignored); nothing under `src/`
+changed in this arc.
+
+**What the suite found.** The suite reads Dau's preconditions fresh from the book, in
+`legal()`, without importing the engine. No move that `legal()` judges legal fails soundness. That
+holds in both modes and on both tiers, the small graphs and the corpus, and a test enforces it.
+The soundness classifiers match only moves `legal()` rejects or declines to judge (it judges none
+of the ligature rules), so a failure on a legal move would arrive as new rather than hide under a
+ledgered entry. The engine, though, also makes moves Dau forbids, and a few of
+those change a graph's meaning. The plainest case: IT+ copies a cut into itself, and `~[ ~[ ] ]`,
+true in every structure, becomes `~[ ~[ ~[ ] ] ]`, false in every structure. So the six rules as
+Dau states them hold up, and our implementation of them does not always stay inside what he
+states.
+
+**How far that reaches, stated beside it.** Every figure comes from `tests/calculus_extent.json`.
+- Tier A covers every small graph, built directly from the data model: 208 graphs in the default
+  mode and 2,382 at exhaustive bounds. Tier B covers the corpus as used, de-duplicated from 230
+  sources: 52 current graphs in the default mode, and 133 current graphs and chain states at
+  exhaustive bounds. Moves applied: 52,429 in the default mode, 799,211 at exhaustive bounds.
+- Exhaustive tier B takes the first 500 moves per rule per graph in enumeration order. That is a
+  prefix, not a random sample, and it leaves most tier-B moves untried. For DC+, 36,977 were
+  taken and 3,215,111 skipped. For IT+, 36,701 taken and 3,214,441 skipped. For each ligature
+  rule, 42,055 taken and 6,376,264 skipped.
+- A tier-B universe larger than 36,864 structures is sampled, not enumerated, and 2,289 default
+  and 3,000 exhaustive tier-B soundness moves are counted too large to evaluate.
+- The IT- engine-pattern ceiling departs from the plan. The engine's search for an original does
+  not finish on large patterns, so an IT- move whose expanded selection exceeds 64 elements is
+  skipped and counted: 9 in the default mode, 239 at exhaustive bounds. Commit `b54ad2f` reported
+  "6 default and 95 exhaustive", and the Task 10 reviewer counted 9 and 239. Both are right. 9 and
+  239 are the totals the extent pins. 6 and 95 are the moves that lowering the ceiling from 100 to
+  64 added; the other 3 and 144 exceed 100 elements and were skipped before (counted this session
+  by enumerating the tier-B IT- moves).
+- At exhaustive bounds, 6,343 soundness failures were counted, on tier A and tier B, and none is
+  on a move `legal()` judges legal. Semantics run over domains of size 1–2 in the default mode and
+  1–3 at exhaustive bounds. A finite search can refute soundness but cannot prove it.
+
+**What was built.** Four layers over two tiers, with Dau's book
+(`docs/references/mathematical_logic_with_diagrams.pdf`) read page by page for the rule table:
+- `tests/calculus_enum.py` builds tier A and gathers tier B. `tests/calculus_rules.py` holds Dau's
+  rule table, every candidate move, and `legal()`. `tests/tarski.py` is a fresh evaluator written
+  from Dau's semantics, validated on pairs whose answer is known before anything trusts it.
+- The four layers: refusal agreement (the engine refuses exactly what `legal()` forbids);
+  structure (a rule changes what it licenses and nothing else, and the result is an EGI);
+  soundness, strict (ERA and INS one-way, every other rule an equivalence); and a differential
+  that tests `semantic_game` against `tarski`.
+- `tests/calculus_ledger.json` holds 28 entries, each with a reason. A new failure fails the suite
+  and says so. A repaired one fails it with "shrink this entry", so a fix proves itself.
+  `tests/calculus_extent.json` pins every count exactly, never as a floor.
+- 99 tests run by default (70 s for the calculus files alone). Nine more run under `-m exhaustive`; the
+  full extent took 2 h 41 min (commit `b54ad2f`).
+
+**The four priors (spec §7), as recorded:**
+- **P-K1**: "REFUTED: premise — colore_field's stored graph is not an EGI: it violates dominating
+  nodes (Def 12.5, p.125) at 8 edge–vertex pairs on 2 vertices, and its EGIF round trip is
+  Def-12.5-clean, so the round trip repairs it rather than changing a meaning." The "lines above
+  their uses" diagnosis in the sixteenth arc was wrong.
+- **P-K2**: "REFUTED". The engine applies moves `legal()` rejects, some of them unsound.
+- **P-K3**: "REFUTED — `it-plus-into-its-own-selection-changes-meaning`." Every failure is on a
+  move `legal()` rejects or does not judge.
+- **P-K4**: "HELD — 4,392 comparisons, 0 disagreements, 0 UNKNOWN". At exhaustive bounds,
+  3,941,334 comparisons, again 0 and 0. Tier A only, with unique names and a closed world.
+
+**The ledger, every entry.** Entry id, then default keys / exhaustive keys, then the reason in one
+line. Eighteen of the 28 reasons open "PROVISIONAL — for the author"; those wait on your reading.
+
+*Refusal (15 entries): the engine and `legal()` disagree on whether a move is allowed.*
+- `it-plus-into-its-own-selection` (SEVERE, 462 / 6,322): IT+ copies a selected cut into itself
+  or a cut inside it; Def 15.2 (p.164) requires c ∉ Cut₀. Some of these moves are unsound.
+- `it-minus-erases-a-copy-of-another-line` (SEVERE, 33 / 64): IT- erases an edge whose supposed
+  original hooks a different vertex, so it was never a copy (Def 15.2, p.166).
+- `ins-mixes-arities-without-an-alphabet` (SEVERE, 52 / 244): with no declared alphabet, INS
+  accepts a name at a second arity; Def 12.6 (p.126) gives each name one arity.
+- `dc-plus-strands-a-vertex` (SEVERE, 288 / 14,954): DC+ wraps a vertex and leaves its edges
+  outside, so the result is not an EGI.
+- `dc-plus-ignores-target` (SEVERE, 2,194 / 21,302): given a subject, DC+ ignores the target area
+  and inserts where the subject sits. Sound, but not the move named.
+- `era-auto-closes-a-vertex-selection` (SEVERE, 234 / 9,808): named a vertex without its edges,
+  ERA erases the closed subgraph it generates instead of refusing. Sound.
+- `vertex-era-erases-a-line-with-its-edges` (SEVERE, 198 / 2,571): offered a vertex that has
+  edges, the vertex rule erases the vertex and its edges. Sound, but a larger move.
+- `heavy-dot-negative-only` (INCOMPLETE, 454 / 3,083): HEAVY_DOT refuses every positive context;
+  Dau lets an isolated vertex be inserted anywhere.
+- `vertex-era-positive-only` (INCOMPLETE, 31 / 298): no vertex-erasure entry point exists, and ERA
+  refuses negative contexts.
+- `it-minus-strictly-enclosing-only` (INCOMPLETE, 35 / 512): IT- looks for the original only in
+  strictly enclosing areas, so it refuses every same-context deiteration.
+- `era-closure-drags-a-quoting-name` (INCOMPLETE, 6 / 18): erasing an edge on a quoting name pulls
+  the name into the closure, and the quotation guard then refuses the whole move.
+- `era-refuses-a-cut-named-with-its-contents` (INCOMPLETE, 144 / 5,990),
+  `it-plus-refuses-a-cut-named-with-its-contents` (INCOMPLETE, 152 / 6,799) and
+  `dc-plus-refuses-a-cut-named-with-its-contents` (INCOMPLETE, 148 / 5,653): naming a cut with some
+  of its contents names the same subgraph as the cut alone (Def 12.10, p.134); the engine refuses
+  the first form and applies the second. Input form only.
+- `it-minus-refuses-a-cut-named-with-its-contents` (INCOMPLETE, 0 / 18): the same shape for IT-,
+  reached only at exhaustive bounds. On tier A the cut-alone form is refused too, so there it is
+  not shown to be input form alone.
+
+*Structure (4 entries): the engine's result differs from the one Dau licenses.*
+- `dc-plus-result-not-an-egi` (288 / 15,022): the structural twin of `dc-plus-strands-a-vertex`,
+  holding the same keys; the two must shrink together.
+- `era-also-erases-the-vertex-it-isolates` (250 / 5,825): erasing an edge also erases the vertex
+  it leaves isolated in that context. Equivalent to Dau's result, but a larger move.
+- `it-plus-auto-closes-a-vertex-selection` (252 / 10,673): IT+ closes a vertex selection before
+  copying. Equivalent, but a larger move.
+- `it-plus-reuses-a-selected-vertex-in-a-deeper-context` (70 / 1,857): iterating deeper, IT+
+  extends the line instead of copying the vertex; on an isolated vertex it reports success and
+  inserts nothing. Equivalent.
+
+*Soundness (7 entries): the result does not keep the source's models as the rule requires.*
+- `it-plus-into-its-own-selection-changes-meaning` (262 / 3,756): the soundness half of IT+ into
+  its own selection. 74 default keys and 706 exhaustive keys are UNSOUND; the rest are not the
+  equivalence IT+ must be.
+- `it-minus-erases-a-copy-of-another-line-changes-meaning` (0 / 5): on group_identity's chain
+  states, 4 UNSOUND and 1 not an equivalence.
+- `ligature-rules-take-a-join-deeper-than-its-vertices` (0 / 52): RETRACT and REARRANGE collapse
+  along an identity edge that lies deeper than both its vertices. `*x *y ~[ (= x y) ]` becomes
+  `*x ~[ ]`; 40 UNSOUND. Lemma 16.3 (p.173) requires one context.
+- `retract-ligature-erases-a-constant-vertex` (4 / 162) and `merge-vertices-erases-a-constant-vertex`
+  (2 / 108): both erase a constant's name, which Dau's ligature rules never do (Def 24.10,
+  p.270–272). 24 and 10 UNSOUND at exhaustive bounds.
+- `move-branches-moves-the-identity-edge-it-moves-along` (4 / 234): MOVE_BRANCHES re-hooks the very
+  identity edge that joins the two vertices; 36 UNSOUND at exhaustive bounds. It also raises a
+  question about the text: Lemma 16.1 (p.169–171) seems to need a side condition it does not
+  print.
+- `vertex-era-erases-a-line-not-an-equivalence` (111 / 1,898): the soundness half of
+  `vertex-era-erases-a-line-with-its-edges`. Sound, but an erasure where the vertex rule is an
+  equivalence.
+
+*Guards (2 entries).*
+- `core-has-dominating-nodes-inverted` (9 of 208 tier-A graphs): `has_dominating_nodes` answers
+  False on every tier-A graph with a line reaching into a cut, and True on a hand-built non-EGI.
+- `corpus-graph-not-an-egi` (2 of 230 sources): `bfo_core:current` and `colore_field:current`.
+
+**Engine defects, for the author.** You have said these require fixing. Each is ledgered, so a
+fix shows itself when its entry fails with "shrink this entry". Protected modules are marked.
+- IT+ copies into its own selection, which is unsound (`rule_interaction.py`,
+  `ITPlusInteraction._validate_dest`; protected).
+- IT- erases a non-copy (`rule_interaction.py` `ITMinusInteraction` and
+  `graph_isomorphism_engine.py`; both protected). The engine ignores the identity of every vertex
+  outside the copy, whether a name or a line. The name-against-name case, reproduced this session:
+  `(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]` deiterates to
+  `(Q "a") (Q "b") ~[ ] ~[ (P "b") ]`, which is unsatisfiable, while `legal()` says "no source of
+  which this is a copy". It is unsound on the corpus too, on group_identity's chain states.
+- The ligature rules (`ligature_manipulation_rules.py`, protected; MERGE_VERTICES lives in
+  `vertex_splitting_merging_rules.py`, unprotected) have four problems:
+  - they collapse along an identity edge deeper than both its vertices, which is unsound;
+  - they erase or merge constant names, which is not a Dau move;
+  - they are nondeterministic in production. They keep `list(context.selected_subgraph)[0]` of a
+    frozenset (lines 53, 87, 385, 420, 590, 633), so the vertex kept follows the hash seed. The
+    suite measured 74 exhaustive tier-A keys whose outcome changes with `PYTHONHASHSEED`, and it
+    now hands the order over explicitly (`calculus_apply.InOrder`) so that its own run stays
+    deterministic;
+  - MOVE_BRANCHES can move the very identity edge it moves along.
+- `has_dominating_nodes` / `_context_dominates` is inverted (`egi_core_dau.py`, protected; Def
+  12.5, p.125). The core never enforces the check at construction, and `replace_vertex_on_hook`
+  refuses lawful hook moves through the same helper.
+- HEAVY_DOT inserts in negative contexts only, and mints the fixed id `heavy_dot_vertex`
+  (`formal_transformation_rules.py`, protected). Vertex erasure outside positive contexts has no
+  entry point.
+- DC+ ignores its target, strands a vertex (a non-EGI result), and refuses a cut named together
+  with its contents.
+- ERA and the vertex rule auto-close a vertex selection, and erase a line together with its edges.
+- INS mixes arities when the graph declares no alphabet (Def 12.6–12.7, p.126).
+- Five Dau rules have no entry point at all: ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY,
+  CONSTANT_EXISTENCE and SEPARATE_CONSTANT (`tests/calculus_rules.py`).
+
+**Findings outside the engine.**
+- Two corpus graphs are not EGIs. `bfo_core:current` fails on the generic vertex `v_x26`, and
+  `colore_field:current` on the generic vertices `v_zero` and `v_one`. No chain state fails. These
+  two are exactly the round-trip residue in `test_tomos_parsing.KNOWN_BROKEN`.
+- `vertex_scope.normalize_constants` puts its survivor in the wrong place. The ruling behind it
+  stands: Dau's Constant Identity rule (Def 24.10, p.271) licenses the merge. But the code keeps
+  whichever twin's id sorts first, where it already sits, and never hoists it to the least common
+  area. Reproduced this session: two same-name spots in sibling cuts normalize to a non-EGI, in
+  either id order. The only caller is `world_scroll.discharge_episode`. The corpus shows no damage
+  yet. The module is unprotected.
+- `semantic_game` has two gaps outside the differential layer's scope. It ignores co-denoting names
+  (Def 24.2), and it treats `=` as an ordinary relation, so a model that omits its identities
+  misjudges any graph using `=`: leaving the diagonal out of the facts graph produces 214
+  disagreements (spec §7, P-K4).
+- `derived_rules.py:192` still says `_apply_vertex_split` loses rho. It no longer does; the
+  comment has gone stale.
+- Task 11c was blocked and reverted. Wiring `egif_parser_dau._finalize_alphabet_and_rho` broke 15
+  existing tests (2 in `test_properties_round_trip.py`, 13 in `test_rules_second_order.py`). Both
+  causes are themselves findings about Dau compliance. The EGIF tests use one relation name at
+  two arities, which Def 12.6 (p.126) forbids. And the core's builders (`with_edge` and others)
+  do not grow the alphabet the way the six rules do. Nothing was loosened. EGIF-parsed graphs
+  still carry no alphabet.
+
+**The next task: the fix arc**, in this order:
+1. The IT+ target-in-selection fix.
+2. The IT- copy check.
+3. The ligature rules: one context only, a deterministic choice, generic vertices only, and
+   MOVE_BRANCHES's side condition.
+4. The dominating-nodes inversion. Enforcing Def 12.5 at construction waits until step 6 has
+   repaired the corpus.
+5. The `normalize_constants` placement.
+6. Repair `bfo_core` and `colore_field`.
+7. The alphabet question left by Task 11c. First decide whether the EGIF parser refuses a relation
+   name used at two arities; some tests assert the non-Dau behaviour. Then decide whether the
+   core's builders extend the alphabet (which touches protected `egi_core_dau`), or the alphabet
+   is derived rather than stored. Then wire `_finalize_alphabet_and_rho`.
+
+After those, at lower priority: the INCOMPLETE entries (HEAVY_DOT), the DC+ and ERA departures,
+and the five missing entry points.
+
+**Steps 1–4 edit protected modules** (`rule_interaction`, `graph_isomorphism_engine`,
+`ligature_manipulation_rules`, `egi_core_dau`), and step 7 may. Confirm each protected-core edit
+with the author at the start of that arc. Steps 5 and 6 touch nothing protected.
+
+**Deferred minors.** The SDD ledger lists them under "minor (deferred)", for the final
+whole-branch review to triage:
+`.superpowers/sdd/2026-09-10-calculus-property-suite/progress.md`.
+
+---
+
 **Last Updated**: 2026-09-10 (sixteenth arc) — **THE ROUND TRIP CLOSES TO TWO GRAPHS, AND THE
 DOUBT ABOUT THE BEDROCK IS ANSWERED PRECISELY ENOUGH TO BE WORTH ACTING ON.** Branch
 `tier0-readiness` (17 commits, **not merged**). Specs:
 [the linear-form round trip](docs/superpowers/specs/2026-09-08-linear-form-round-trip.md) ·
 [readiness for external review](docs/superpowers/specs/2026-09-06-readiness-for-external-review.md).
 
-**▶▶▶ NEXT SESSION — read this first.**
+**Where the sixteenth arc stopped** (superseded by the seventeenth, above).
 
 **The goal has been re-framed, and this is the load-bearing sentence.** Shipping the letters
 assumed a firm basis for sending them. This arc put that assumption in doubt — not by finding the
@@ -57,7 +292,7 @@ via `semantic_game.evaluate` where a graph has a model. **Exhaustive with a coun
 includes: the `drawing_validity` warning for two spots naming one individual (do **not** merge in
 `drawing_to_egi` — §3.3 checks injectivity against the DTO, so merging would fail attestation
 against the very picture the EGI was read from); deleting the zero-byte
-`tests/test_it_minus_dau_compliance.py`; and the never-called
+`tests/test_it_minus_dau_compliance.py` (done in the seventeenth arc, `99319d0`); and the never-called
 `egif_parser_dau._finalize_alphabet_and_rho`.
 
 **Two leads for the suite, one of them a gift.** `colore_field` holds **24 generic lines sitting
@@ -141,8 +376,9 @@ sanitisation first · the letters, which the author has gated on Tier 0 + Tier 1
 **Loose ends worth someone's attention:**
 - `egif_parser_dau._finalize_alphabet_and_rho` is defined and never called; CLIF and CGIF both
   call theirs. EGIF-parsed graphs may lack a populated alphabet/ρ.
-- `tests/test_it_minus_dau_compliance.py` is **zero bytes** and collects nothing. The coverage
-  exists in `test_it_minus_with_isomorphism.py`; delete the empty file.
+- [x] `tests/test_it_minus_dau_compliance.py` is **zero bytes** and collects nothing. The coverage
+  exists in `test_it_minus_with_isomorphism.py`; delete the empty file. *(Done in the seventeenth
+  arc, `99319d0`.)*
 - `test_live_runner`'s anti-double-count property for `decay_skipped` no longer has a natural
   trigger, since the only construction that produced a refusal was the defect now fixed.
   `_decay_refused` still implements it. A new trigger is wanted.

@@ -1,7 +1,6 @@
 # Testing the calculus directly — a property suite with a counted extent
 
-**Date:** 2026-09-10 · **Branch:** `tier0-readiness` · **Status:** design, approved section by
-section in session; not built.
+**Date:** 2026-09-10 · **Branch:** `tier0-readiness` · **Status:** built 2026-09-11; priors recorded in §7.
 
 ## 1. Why this, and why now
 
@@ -246,6 +245,20 @@ by reason. `test_tomos_parsing.py`'s `holding >= 90` against a measured 141 is t
 **Two modes.** The default suite runs tier A at a reduced bound plus tier B's current graphs,
 units only; `-m exhaustive` runs everything. Each mode pins its own extent. Target: the default
 slice in two minutes or less; the exhaustive run in whatever it costs, reported.
+
+**Where the build departed from this section (recorded 2026-09-11).** Three budgets were set in
+Task 10 to keep the two modes inside their time limits, and each shows in the extent rather than
+being hidden. First, tier B takes at most 100 moves per rule per graph in the default mode and
+500 in the exhaustive mode, the first ones in enumeration order. That is a prefix, not a random
+sample, and every move past it is counted under `skipped` (for DC+ at exhaustive bounds, 36,977
+taken and 3,215,111 skipped). Second, a tier-B universe larger than 36,864 structures is
+sampled. Third, `ENGINE_PATTERN_CEILING` in `calculus_run.py` does not apply an IT- move whose
+expanded selection exceeds 64 elements, because the engine's search for the original does not
+finish on such patterns. Those moves are counted as `engine-does-not-finish`: 9 in the default
+mode and 239 at exhaustive bounds. Of these, 3 and 144 exceed 100 elements, which was the
+ceiling before Task 10 lowered it; the other 6 and 95 are the ones the lowering added. Separately,
+2,289 default and 3,000 exhaustive tier-B soundness moves are counted `too-large` and not
+evaluated.
 
 ## 7. Pre-registered priors
 
