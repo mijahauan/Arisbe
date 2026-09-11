@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from frozendict import frozendict
 
-from calculus_rules import Move, expand
+from calculus_rules import Move, expand, tops
 from egi_core_dau import Cut as CutEl
 from egi_core_dau import Edge, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
@@ -44,7 +44,9 @@ def insert(g: G, target: str, text: str) -> G:
 
 
 def double_cut(g: G, S, target: str) -> G:
-    S = set(S)
+    # A cut named with some of its contents is the subgraph of the cut alone
+    # (Def 12.10, p.134): only the selection's top elements move inward.
+    S = set(tops(g, expand(g, S)))
     area = {k: set(v) for k, v in g.area.items()}
     area[target] = (area.get(target, set()) - S) | {"dc:outer"}
     area["dc:outer"], area["dc:inner"] = {"dc:inner"}, S
@@ -104,6 +106,27 @@ def expected(g: G, m: Move) -> Optional[G]:
     if m.rule == "IT+":
         return iterate(g, m.selection, m.target)
     return None
+
+
+def completed(g: G, S) -> set:
+    """S with every vertex in ctx(S) that an edge of expand(S) reaches — the
+    Def 12.10 (p.134) subgraph S generates (V_e ⊆ V′)."""
+    X = expand(g, S)
+    c0 = g.get_context(tops(g, X)[0])
+    return set(S) | {v for e in X if e in g.nu for v in g.nu[e] if g.get_context(v) == c0}
+
+
+def acceptable(g: G, m: Move) -> Optional[List[G]]:
+    """Every licensed result, or None where only postconditions are checked.
+    IT+ has two: the copy attached to the reused outer lines (iteration with
+    W_v = {v} then a merge, Def 16.6 p.175), and Dau's literal iteration of
+    the Def 12.10 completion with W_v = ∅ (Def 15.2, p.166)."""
+    exp = expected(g, m)
+    if exp is None:
+        return None
+    if m.rule == "IT+":
+        return [exp, iterate(g, tuple(completed(g, m.selection)), m.target)]
+    return [exp]
 
 
 def maps_carried(g: G, h: G) -> List[str]:

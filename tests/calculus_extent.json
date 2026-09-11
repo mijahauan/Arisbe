@@ -85,6 +85,7 @@
   "A:not:REARRANGE_LIGATURE:refused": 1762,
   "A:not:RETRACT_LIGATURE:refused": 1762,
   "A:not:VERTEX_ERA:refused": 51,
-  "A:not:VERTEX_INS:refused": 221
+  "A:not:VERTEX_INS:refused": 221,
+  "maps-bearing records": 0
  }
 }

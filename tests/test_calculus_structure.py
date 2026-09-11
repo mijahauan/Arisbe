@@ -43,6 +43,31 @@ def test_iterate_reuses_outer_lines():
     assert nav.same_graph(h, parse_egif("(P *x) ~[ (P x) ]"))
 
 
+def test_iteration_within_its_context_accepts_both_licensed_forms():
+    """Task 7 review: {e1} is not a Def 12.10 subgraph (p.134: V_e ⊆ V′); its
+    completion {e1, v1} iterated with W_v = ∅ (Def 15.2, p.166) is the fresh
+    copy, and the reuse form is W_v = {v1} followed by a merge (Def 16.6,
+    p.175). Both are licensed; anything else is not."""
+    g = parse_egif("*x (P x)")
+    m = Move("IT+", (next(iter(g.nu)),), g.sheet)
+    assert structure(_rec(g, m, parse_egif("*x *y (P x) (P y)")), {})[1] is None
+    assert structure(_rec(g, m, parse_egif("*x (P x) (P x)")), {})[1] is None
+    assert structure(_rec(g, m, parse_egif("*x *y (P x) (P y) (P y)")), {})[1]
+
+
+def test_double_cut_of_a_cut_named_with_its_contents():
+    """Task 7 review: naming a cut with some of its contents names the cut
+    alone (Def 12.10, p.134); the raw selection built an invalid graph."""
+    from calculus_expected import double_cut
+    g = parse_egif("~[ (P *x) ]")
+    c = next(iter(g.Cut)).id
+    e, v = next(iter(g.nu)), next(iter(g.V)).id
+    alone = double_cut(g, (c,), g.sheet)
+    assert nav.same_graph(alone, parse_egif("~[ ~[ ~[ (P *x) ] ] ]"))
+    for sel in ((c, e, v), (c, e), (c, v)):
+        assert nav.same_graph(double_cut(g, sel, g.sheet), alone)
+
+
 def test_maps_carried_names_what_was_dropped():
     # Stubs, not graphs: the core validates rho against an alphabet, and the
     # point here is only which attribute comparison names which loss.
@@ -64,8 +89,18 @@ def test_structure():
     _layer("default")
 
 
+def _extent(mode):
+    """The structure counts, plus how many checked records had a source
+    carrying a B-min map (label suffix ``:maps``). Tier A carries none, so
+    the default pin shows 0 and the maps clause is vacuous there; tier B
+    (Task 10) must pin a positive number or the clause is still untested."""
+    counts = dict(sorted(run(mode).layers["structure"].counts.items()))
+    counts["maps-bearing records"] = sum(v for k, v in counts.items() if k.endswith(":maps"))
+    return counts
+
+
 def test_structure_extent():
-    assert_extent("default:structure", dict(sorted(run("default").layers["structure"].counts.items())))
+    assert_extent("default:structure", _extent("default"))
 
 
 @pytest.mark.exhaustive
@@ -75,8 +110,7 @@ def test_structure_exhaustive():
 
 @pytest.mark.exhaustive
 def test_structure_extent_exhaustive():
-    assert_extent("exhaustive:structure",
-                  dict(sorted(run("exhaustive").layers["structure"].counts.items())))
+    assert_extent("exhaustive:structure", _extent("exhaustive"))
 
 
 def test_core_dominating_nodes_check_agrees_with_dau():

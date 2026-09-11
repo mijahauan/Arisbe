@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
-from calculus_expected import expected, maps_carried
+from calculus_expected import acceptable, maps_carried
 from tarski import dominating_nodes
 
 Check = Callable[[object, dict], Tuple[str, Optional[str]]]
@@ -30,8 +30,11 @@ def refusal(rec, cache) -> Tuple[str, Optional[str]]:
 
 def structure(rec, cache) -> Tuple[str, Optional[str]]:
     """§5.2: the result is an EGI, keeps the B-min maps, and — where the
-    licensed result can be built — equals it. Only applied moves are checked;
-    an applied-but-illegal move is checked for EGI-hood and maps only."""
+    licensed result can be built — equals one of the licensed forms. Only
+    applied moves are checked; an applied-but-illegal move is checked for
+    EGI-hood and maps only. A record whose source carries a B-min map is
+    labelled with a ``:maps`` suffix, so the pinned extent shows whether the
+    maps clause was ever exercised."""
     out = rec.outcome
     if not out.applied:
         return f"not:{rec.move.rule}:refused", None
@@ -40,11 +43,12 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     if dominating_nodes(g) and not dominating_nodes(h):
         problems.append("the result is not an EGI (Def 12.5)")
     problems += maps_carried(g, h)
-    exp = expected(g, m) if rec.verdict else None
-    if exp is not None and not nav.same_graph(exp, h):
+    forms = acceptable(g, m) if rec.verdict else None
+    if forms is not None and not any(nav.same_graph(f, h) for f in forms):
         problems.append("the result differs from the licensed change")
-    kind = "exact" if exp is not None else ("postcondition" if rec.verdict is None else "illegal")
-    return f"{m.rule}:{kind}", "; ".join(problems) or None
+    kind = "exact" if forms is not None else ("postcondition" if rec.verdict is None else "illegal")
+    maps = g.alphabet is not None or bool(g.rho or g.sort or g.quotation)
+    return f"{m.rule}:{kind}" + (":maps" if maps else ""), "; ".join(problems) or None
 
 
 LAYERS: Dict[str, Check] = {"refusal": refusal}

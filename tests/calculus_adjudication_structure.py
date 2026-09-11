@@ -96,18 +96,6 @@ REASONS = {
         "top-level vertices reused when the target is deeper), and G ≡ G′ at domain sizes 1–2. "
         "Sound (iteration is an equivalence), but a larger move than the one named — the IT+ "
         "counterpart of refusal entry era-auto-closes-a-vertex-selection."),
-    "it-plus-copies-the-line-fresh-in-its-own-context": ("structure", "IT+",
-        P + "Iterating an edge within its own context: the suite's licensed change (legal()'s "
-        "shared-vertex reading of Def 15.2, p.166) attaches the copy to the SAME vertex — Θ-linked "
-        "and merged, Lemma 16.3 (p.173). The engine's closure (analyze_closure(allow_expansion=True)) "
-        "adds the edge's vertex, which completes the Def 12.10 subgraph (p.134: V_e ⊆ V′), and "
-        "IterationRule, iterating into the source area, copies that vertex FRESH with no identity "
-        "edge — Def 15.2's literal iteration with W_v = ∅ (p.166). Measured by "
-        "calculus_adjudication_structure on every move in this entry (225 moves): the result is "
-        "exactly the suite's iteration of the engine's closed subgraph, and G ≡ G′ at domain sizes "
-        "1–2. Dau-licensed and sound; it departs from the suite's reuse convention (and from the "
-        "engine's own deeper-context behaviour, which reuses the line). For the author: should the "
-        "expectation accept Dau's literal W_v = ∅ form too?"),
     "it-plus-reuses-a-selected-vertex-in-a-deeper-context": ("structure", "IT+",
         P + "Dau Def 15.2 iteration (p.166) copies every vertex of the subgraph: V′ := V×{1} ∪ "
         "V0×{2}. Iterating into a context deeper than the source, IterationRule maps each selected "
@@ -134,6 +122,8 @@ def _orphans(g, X):
 
 
 def classify(rec):
+    # Order matters: a check claims a record before the later ones see it
+    # (a non-EGI DC+ is claimed first, whatever else is wrong with it).
     g, m, out = rec.g, rec.move, rec.outcome
     if m.rule == "DC+" and not dominating_nodes(out.result):
         return "dc-plus-result-not-an-egi"
@@ -148,8 +138,6 @@ def classify(rec):
         added = _closed(g, m, c0) - X
         if any(a in g.nu for a in added):
             return "it-plus-auto-closes-a-vertex-selection"
-        if added and m.target == c0:
-            return "it-plus-copies-the-line-fresh-in-its-own-context"
         if not added and m.target != c0 and any(x in vs and g.get_context(x) == c0 for x in X):
             return "it-plus-reuses-a-selected-vertex-in-a-deeper-context"
     return None
