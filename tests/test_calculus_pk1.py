@@ -8,7 +8,8 @@ import pytest
 
 from calculus_pk1 import pk1
 
-RECORDED_OUTCOME = None  # set in Task 3 Step 4 from the first run
+RECORDED_OUTCOME = ("REFUTED: premise — colore_field is not an EGI (Def 12.5); "
+                     "the round trip repairs it")
 
 
 @pytest.mark.exhaustive
