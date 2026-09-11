@@ -324,6 +324,25 @@ def validate_drawing(
                     elements=(id1, id2),
                 ))
 
+    # -- WARNING: one individual named at two spots --------------------------- #
+    # A name denotes one individual, so two spots bearing it are one line of
+    # identity (the constant-normal-form ruling, 2026-09-09). Warned, never
+    # merged: §3.3 checks injectivity against this very drawing.
+    spots_by_name: Dict[str, List[str]] = {}
+    for vid, label in sorted((vertex_labels or {}).items()):
+        if label is not None and vid in dto.vertex_positions:
+            spots_by_name.setdefault(label, []).append(vid)
+    for name, vids in sorted(spots_by_name.items()):
+        if len(vids) > 1:
+            issues.append(ValidityIssue(
+                code="one_individual_two_spots",
+                severity="warning",
+                message=(f'"{name}" is written at {len(vids)} spots. A name denotes one '
+                         "individual, so these are one line of identity: connect them "
+                         "with a line, or keep a single spot."),
+                elements=tuple(vids),
+            ))
+
     return ValidityReport(issues=issues)
 
 

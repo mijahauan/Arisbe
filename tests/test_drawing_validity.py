@@ -218,3 +218,20 @@ def test_separated_labels_do_not_warn():
     preds = {"P": Point(0, 0), "Q": Point(200, 0)}
     report = validate_drawing(_free_dto({}, preds, {}, []))
     assert "label_overlap" not in _codes(report, "warning")
+
+
+def test_one_individual_at_two_spots_warns():
+    # A name denotes one individual, so two spots bearing it are one line of
+    # identity (constant-normal-form ruling, 2026-09-09). Warned, never merged:
+    # §3.3 checks injectivity against the very drawing the EGI is read from.
+    dto = _free_dto({"v1": Point(-50, 0), "v2": Point(50, 0)}, {}, {}, [])
+    report = validate_drawing(dto, vertex_labels={"v1": "a", "v2": "a"})
+    assert "one_individual_two_spots" in _codes(report, "warning")
+    assert report.is_well_formed
+
+
+def test_distinct_names_and_generic_spots_do_not_warn():
+    dto = _free_dto({"v1": Point(-50, 0), "v2": Point(50, 0)}, {}, {}, [])
+    assert "one_individual_two_spots" not in _codes(
+        validate_drawing(dto, vertex_labels={"v1": "a", "v2": "b"}))
+    assert "one_individual_two_spots" not in _codes(validate_drawing(dto))
