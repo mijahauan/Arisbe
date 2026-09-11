@@ -19,6 +19,21 @@ def _extent(mode):
     assert_extent(f"{mode}:refusal", dict(sorted(r.layers["refusal"].counts.items())))
 
 
+def test_key_separates_a_target_that_is_selected():
+    """Task 6 review: signing the target alone merged an illegal move (IT+ of a
+    cut into itself, Def 15.2 p.164: c ∉ Cut₀) with a legal sibling."""
+    from calculus_ledger import instance_key
+    from calculus_rules import Move
+    from canonical_signature import compute_canonical_signatures
+    from egif_parser_dau import parse_egif
+
+    g = parse_egif("~[ ] ~[ ]")
+    c1, c2 = sorted(c.id for c in g.Cut)
+    sigs = compute_canonical_signatures(g)
+    key = lambda t: instance_key("A", "g", g, Move("IT+", (c1,), t), sigs)  # noqa: E731
+    assert key(c1) != key(c2)
+
+
 def test_refusal_agreement():
     _agree("default")
 

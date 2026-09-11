@@ -270,12 +270,15 @@ def _dc_plus(g: G, m: Move) -> Verdict:
     """Def 15.2 double cuts (p.164): area(c1) = {c2}, in any context.
     Insertion reverses erasure, so c1 enters the target and c2 receives some
     of the target's direct contents. A vertex may move inward only with all
-    its edges, or the result breaks dominating nodes (Def 12.5)."""
+    its edges, or the result breaks dominating nodes (Def 12.5). A cut named
+    with some of its contents is the subgraph of the cut alone (Def 12.10,
+    p.134), so it is the selection's TOP elements that must be in the target."""
     if m.target is None:
         return False, "no target"
-    if any(g.get_context(x) != m.target for x in m.selection):
+    X = expand(g, m.selection)
+    if any(g.get_context(x) != m.target for x in tops(g, X)):
         return False, "the selection is not directly in the target"
-    if not _nothing_dangles(g, expand(g, m.selection)):
+    if not _nothing_dangles(g, X):
         return False, "a vertex would move inside its own edge's context"
     return True, "any context"
 

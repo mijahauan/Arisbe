@@ -2,7 +2,8 @@
  "default:refusal": {
   "A:DC+:applied/illegal": 762,
   "A:DC+:applied/legal": 1184,
-  "A:DC+:refused/illegal": 419,
+  "A:DC+:refused/illegal": 268,
+  "A:DC+:refused/legal": 151,
   "A:DC-:applied/legal": 9,
   "A:DC-:refused/illegal": 1298,
   "A:ERA:applied/illegal": 243,

@@ -68,6 +68,15 @@ def test_dc_plus_moves_a_vertex_inward_only_with_its_edges():   # Def 12.5 on th
     assert ok(g, Move("DC+", (v, _edge(g, "P"), _edge(g, "Q")), g.sheet)) is True
 
 
+def test_dc_plus_a_cut_named_with_its_contents_is_the_cut():   # Def 12.10, p.134
+    # A subgraph holding a cut holds its whole area, so {c, e in c} is the
+    # subgraph {c}: its top element is directly in the sheet.
+    g = parse_egif("~[ (P *x) ]")
+    c = _cuts_by_depth(g)[0]
+    assert ok(g, Move("DC+", (c, _edge(g, "P")), g.sheet)) is True
+    assert ok(g, Move("DC+", (c, _edge(g, "P")), c)) is False
+
+
 def test_dc_minus_needs_exactly_one_inner_cut():
     g = parse_egif("~[ ~[ (P *x) ] ]")
     assert ok(g, Move("DC-", (_cuts_by_depth(g)[0],))) is True

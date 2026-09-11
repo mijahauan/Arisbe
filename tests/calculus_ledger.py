@@ -15,7 +15,9 @@ import sys
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import List, Set
+
+from calculus_rules import expand
 
 HERE = Path(__file__).resolve().parent
 LEDGER = HERE / "calculus_ledger.json"
@@ -39,11 +41,33 @@ def _sig(g, x, sigs) -> str:
     return f"?{x}"
 
 
+def _target(g, m, sigs):
+    """The target signed jointly with its relation to the selection — signing
+    it alone would merge IT+{c1}→c1 with IT+{c1}→c2 in ``~[ ] ~[ ]``."""
+    if m.target is None:
+        return None
+    if m.target in m.selection:
+        rel = "selected"
+    elif m.target in expand(g, m.selection):
+        rel = "inside-selection"
+    else:
+        rel = "outside"
+    return (_sig(g, m.target, sigs), rel)
+
+
 def instance_key(tier: str, gname: str, g, m, sigs) -> str:
-    """UUID-independent: the move's elements by canonical signature. Truly
-    symmetric moves share a key, which is intended — they are one move."""
+    """UUID-independent: the rule, the selection as a multiset of canonical
+    signatures, the target as (signature, relation to the selection: selected /
+    inside-selection / outside), the content, and the hooks by signature.
+
+    It does NOT distinguish moves that agree on all of that: two selections
+    with the same multiset of signatures, or two targets with the same
+    signature and the same relation to the selection, share a key. The
+    signature is a Weisfeiler-Leman refinement, not a complete invariant, so a
+    shared key is not a proof of symmetry; calculus_adjudication reports any
+    failing key whose moves land in more than one refusal cell."""
     parts = (m.rule, sorted(_sig(g, x, sigs) for x in m.selection),
-             None if m.target is None else _sig(g, m.target, sigs), m.content,
+             _target(g, m, sigs), m.content,
              sorted((_sig(g, e, sigs), i) for e, i in m.hooks))
     return f"{tier}|{gname}|{m.rule}|{hashlib.sha256(repr(parts).encode()).hexdigest()[:12]}"
 
