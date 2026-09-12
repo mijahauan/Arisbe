@@ -145,6 +145,55 @@ def test_structure_extent_exhaustive():
     assert_extent("exhaustive:structure", _extent("exhaustive"))
 
 
+def test_a_no_op_ligature_move_is_now_a_failure():
+    """The defect shape the suite could not see: success that changes nothing."""
+    g = parse_egif('(= "a" "b")')
+    m = Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|noop", Outcome(True, g, ""), None, "not judged")
+    label, detail = structure(rec, {})
+    assert label.endswith("egi-only") and detail and "changes nothing" in detail
+
+
+def test_a_ligature_move_that_drops_a_relation_is_a_failure():
+    g = parse_egif('(P "a") (= "a" "b")')
+    h = parse_egif('(= "a" "b")')          # the P edge has vanished
+    m = Move("MOVE_BRANCHES", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|dropped", Outcome(True, h, ""), None, "not judged")
+    assert "relations" in structure(rec, {})[1]
+
+
+def test_split_must_add_one_vertex_and_one_identity_edge():
+    g = parse_egif("(P *x) (Q x)")
+    m = Move("SPLIT_VERTEX", (sorted(v.id for v in g.V)[0],), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|split", Outcome(True, g, ""), None, "not judged")
+    assert "+1 vertex" in structure(rec, {})[1]
+
+
+def test_a_real_retraction_passes_its_postconditions():
+    """`(= "a" "b")` retracted to one vertex: fewer vertices, no identity edge
+    left, and the non-identity relations untouched (there are none)."""
+    g = parse_egif('(= "a" "b")')
+    h = parse_egif('"a"')
+    m = Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|real", Outcome(True, h, ""), None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_may_choose_the_same_shape():
+    """Def 16.4 (p.174) replaces a ligature (W,F) with a FRESH (W',F') that
+    realizes the same partition; Cor 16.5 (p.175) says only that the result is
+    syntactically equivalent, never that F' differs from F. With a 2-vertex
+    ligature there is exactly one tree connecting them, so a genuine
+    rearrangement is necessarily isomorphic to the source — licensed, not a
+    no-op defect (found live: the engine's REARRANGE_LIGATURE on `(= "a" "b")`
+    replaces the single identity edge with a fresh one joining the same pair)."""
+    g = parse_egif('(= "a" "b")')
+    v1, v2 = sorted(v.id for v in g.V)
+    m = Move("REARRANGE_LIGATURE", (v1, v2), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|rearrange-same-shape", Outcome(True, g, ""), None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
 def test_core_dominating_nodes_check_agrees_with_dau():
     """Def 12.5 is part of what an EGI is. The core's has_dominating_nodes was
     found inverted while planning; its disagreements are ledgered here."""

@@ -7,6 +7,7 @@ from typing import List, Optional
 
 from frozendict import frozendict
 
+import eg_navigation as nav
 from calculus_rules import Move, expand, tops
 from egi_core_dau import Cut as CutEl
 from egi_core_dau import Edge, RelationalGraphWithCuts, Vertex
@@ -189,3 +190,57 @@ def maps_carried(g: G, h: G) -> List[str]:
     if [c for c, q in g.quotation.items() if c in hc and h.quotation.get(c) != q]:
         out.append("quotation lost")
     return out
+
+
+# The six rules with no expected form (the four ligature rules, split, merge)
+# re-plumb identity and nothing else, so the non-identity-relations postcondition
+# holds for all of them, and each (save REARRANGE_LIGATURE) carries its own
+# element-count delta. Dau: Lemmas 16.1-16.3 and Def 16.4 (p.169-175) rewire a
+# ligature; Def 16.6 (p.175-176) splits and merges. None of them adds, drops or
+# re-relates a non-identity edge.
+#
+# REARRANGE_LIGATURE is not held to "the result differs from the source": Def
+# 16.4 (p.174) replaces (W,F) with a new (W',F') realizing the SAME partition,
+# and Cor 16.5 (p.175) states only that the two graphs are syntactically
+# equivalent — never that F' differs from F. With a 2-vertex ligature there is
+# exactly one tree connecting them, so the rearrangement is necessarily
+# isomorphic to the source; that is a licensed degenerate instance of Def 16.4,
+# not a no-op defect (test_rearrange_ligature_may_choose_the_same_shape).
+_IDENTITY = "="
+
+
+def _relation_multiset(g: G):
+    return sorted((g.rel[e], len(g.nu[e])) for e in g.nu if g.rel[e] != _IDENTITY)
+
+
+def _counts(g: G):
+    ids = sum(1 for e in g.nu if g.rel[e] == _IDENTITY)
+    return len(g.V), ids
+
+
+def postconditions(g: G, m: Move, h: G) -> List[str]:
+    """What must hold of a rule whose licensed result the suite does not build.
+    Returns the problems; empty means the result satisfies every one."""
+    problems: List[str] = []
+    if m.rule != "REARRANGE_LIGATURE" and nav.same_graph(g, h):
+        problems.append("the move reports success and changes nothing")
+    if _relation_multiset(g) != _relation_multiset(h):
+        problems.append("the non-identity relations changed: these rules re-plumb "
+                        "identity only (Lemmas 16.1-16.3, Def 16.4, Def 16.6)")
+    (v0, i0), (v1, i1) = _counts(g), _counts(h)
+    if m.rule == "SPLIT_VERTEX" and (v1 - v0, i1 - i0) != (1, 1):
+        problems.append(f"split must add +1 vertex and +1 identity edge (Def 16.6, p.175), "
+                        f"got {v1 - v0:+d} vertex and {i1 - i0:+d} identity edge")
+    if m.rule == "MERGE_VERTICES" and (v1 - v0, i1 - i0) != (-1, -1):
+        problems.append(f"merge must drop 1 vertex and 1 identity edge (Def 16.6, p.176), "
+                        f"got {v1 - v0:+d} vertex and {i1 - i0:+d} identity edge")
+    if m.rule == "MOVE_BRANCHES" and (v1, i1) != (v0, i0):
+        problems.append(f"moving a branch changes no counts (Lemma 16.1, p.169), "
+                        f"got {v1 - v0:+d} vertex and {i1 - i0:+d} identity edge")
+    if m.rule == "RETRACT_LIGATURE" and not (v1 < v0 and i1 < i0):
+        problems.append(f"retraction collapses a ligature to one vertex (Lemma 16.3, p.173): "
+                        f"fewer vertices and fewer identity edges, got {v1 - v0:+d} and {i1 - i0:+d}")
+    if m.rule == "EXTEND_LIGATURE" and not (v1 > v0 and i1 > i0):
+        problems.append(f"extension adds vertices and identity edges (Lemma 16.2, p.172), "
+                        f"got {v1 - v0:+d} and {i1 - i0:+d}")
+    return problems

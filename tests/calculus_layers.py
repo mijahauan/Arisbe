@@ -5,11 +5,18 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
-from calculus_expected import acceptable, maps_carried
+from calculus_expected import acceptable, maps_carried, postconditions
 from calculus_rules import RULES
 from tarski import dominating_nodes, model_set, universe, vocabulary
 
 Check = Callable[[object, dict], Tuple[str, Optional[str]]]
+
+# The rules whose licensed result is not built, so postconditions carry the
+# check instead (spec 2026-09-12 §3.1).
+POSTCONDITION_RULES = frozenset({
+    "MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE",
+    "SPLIT_VERTEX", "MERGE_VERTICES",
+})
 
 
 def refusal(rec, cache) -> Tuple[str, Optional[str]]:
@@ -35,12 +42,15 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     applied moves are checked. The label says how much was checked:
     ``exact`` — a legal move of a judged rule, compared with its licensed
     forms; ``illegal`` — an applied move legal() rejects, EGI-hood and maps
-    only; ``egi-only`` — a move legal() does not judge (the four ligature
-    rules, split, merge, and any abstention), EGI-hood and maps only. No
-    per-rule postcondition is checked for ``egi-only`` moves: a no-op passes
-    (spec §5.2; the real postconditions are queued for the fix arc). A record
-    whose source carries a B-min map is labelled with a ``:maps`` suffix, so
-    the pinned extent shows whether the maps clause was ever exercised."""
+    only; ``egi-only`` — a move legal() does not judge. For the six rules in
+    POSTCONDITION_RULES (the four ligature rules, split, merge) an ``egi-only``
+    move is now checked for EGI-hood, maps, **and** the rule's postconditions
+    (calculus_expected.postconditions) — these rules re-plumb identity, and
+    the postconditions are the check a built licensed form would otherwise
+    provide. Only an abstention on a *judged* rule is checked for EGI-hood and
+    maps alone. A record whose source carries a B-min map is labelled with a
+    ``:maps`` suffix, so the pinned extent shows whether the maps clause was
+    ever exercised."""
     out = rec.outcome
     if not out.applied:
         return f"not:{rec.move.rule}:refused", None
@@ -50,6 +60,8 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
         problems.append("the result is not an EGI (Def 12.5)")
     problems += maps_carried(g, h)
     forms = acceptable(g, m) if rec.verdict else None
+    if forms is None and m.rule in POSTCONDITION_RULES:
+        problems += postconditions(g, m, h)
     if forms is not None and not any(nav.same_graph(f, h) for f in forms):
         problems.append("the result differs from the licensed change")
     kind = "exact" if forms is not None else ("egi-only" if rec.verdict is None else "illegal")
