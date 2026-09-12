@@ -20,7 +20,7 @@ from typing import Callable, Dict, Tuple
 import eg_navigation as nav
 from calculus_enum import edges_on
 from calculus_expected import remove
-from calculus_rules import expand, tops
+from calculus_rules import expand, positive, tops
 from tarski import dominating_nodes
 
 Pred = Callable[[object, str], bool]
@@ -106,14 +106,17 @@ def _rule(r, name) -> bool:
 
 REFUSAL: Dict[str, Pred] = {
     "heavy-dot-negative-only":
-        lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied
+        and positive(r.g, r.move.target),
     "ins-mixes-arities-without-an-alphabet":
         lambda r, d: _rule(r, "INS") and r.outcome.applied and r.verdict is False
         and "another arity" in r.why,
     "vertex-era-positive-only":
-        lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied
+        and not positive(r.g, r.g.get_context(r.move.selection[0])),
     "vertex-era-erases-a-line-with-its-edges":
-        lambda r, d: _rule(r, "VERTEX_ERA") and r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_ERA") and r.outcome.applied
+        and bool(edges_on(r.g, r.move.selection[0])),
     "era-auto-closes-a-vertex-selection":
         lambda r, d: _rule(r, "ERA") and r.outcome.applied and "leave an edge behind" in r.why,
     "era-refuses-a-cut-named-with-its-contents":
@@ -204,7 +207,8 @@ SOUNDNESS: Dict[str, Pred] = {
     "vertex-era-erases-a-line-not-an-equivalence":
         lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
     "merge-vertices-erases-a-constant-vertex":
-        lambda r, d: _rule(r, "MERGE_VERTICES") and bool(erased_constants(r.g, r.outcome.result)),
+        lambda r, d: _rule(r, "MERGE_VERTICES") and failure_kind("soundness", d) in
+        ("UNSOUND", "NOT AN EQUIVALENCE") and bool(erased_constants(r.g, r.outcome.result)),
     "retract-ligature-erases-a-constant-vertex":
         lambda r, d: _rule(r, "RETRACT_LIGATURE") and bool(erased_constants(r.g, r.outcome.result)),
     "move-branches-moves-the-identity-edge-it-moves-along":

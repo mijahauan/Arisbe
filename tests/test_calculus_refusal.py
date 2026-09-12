@@ -105,6 +105,42 @@ def test_key_separates_a_target_within_the_source_context():
     assert instance_key("A", "g", g, a, sigs) != instance_key("A", "g", g, b, sigs)
 
 
+def test_an_abstention_is_labelled_by_its_reason():
+    from calculus_apply import Outcome
+    from calculus_layers import refusal
+    from calculus_rules import Move
+    from calculus_run import Record
+    from egif_parser_dau import parse_egif
+
+    g = parse_egif("(P *x)")
+    m = Move("MOVE_BRANCHES", (sorted(v.id for v in g.V)[0],), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|abst", Outcome(False, None, ""), None,
+                 "not judged: MOVE_BRANCHES's parameters underdetermine the move")
+    assert refusal(rec, {})[0] == "not:MOVE_BRANCHES:underdetermined"
+
+
+def test_heavy_dot_classifier_requires_a_positive_context():
+    """The entry's reason is about positive contexts (Dau p.166 allows any), so
+    its classifier must not claim a refusal in a negative one."""
+    from calculus_apply import Outcome
+    from calculus_classifiers import REFUSAL
+    from calculus_rules import Move
+    from calculus_run import Record
+    from egif_parser_dau import parse_egif
+
+    g = parse_egif("~[ ]")
+    c = next(iter(g.Cut)).id
+    neg = Record("A", "hand", g, Move("VERTEX_INS", (), c), "k", Outcome(False, None, "no"), True, "any context")
+    pos = Record("A", "hand", g, Move("VERTEX_INS", (), g.sheet), "k", Outcome(False, None, "no"), True, "any context")
+    assert not REFUSAL["heavy-dot-negative-only"](neg, "d")
+    assert REFUSAL["heavy-dot-negative-only"](pos, "d")
+
+
+def test_no_abstention_reason_is_unrecognised():
+    counts = run("default").layers["refusal"].counts
+    assert not [k for k in counts if k.endswith(":other")], sorted(counts)
+
+
 def test_refusal_agreement():
     _agree("default")
 

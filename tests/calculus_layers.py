@@ -19,6 +19,26 @@ POSTCONDITION_RULES = frozenset({
 })
 
 
+# legal()'s abstentions, tagged so the extent shows which reason grew
+# (spec 2026-09-12 §3.4). The order is longest-match-first; an unrecognised
+# reason is tagged "other", which the tests pin at 0.
+_ABSTENTIONS = (
+    ("underdetermine", "underdetermined"),
+    ("quotation-bearing graph", "quotation-bearing"),
+    ("quotation apparatus", "quotation-apparatus"),
+    ("Θ clause", "theta-clause"),
+    ("search budget", "search-budget"),
+    ("not an EGI", "not-an-EGI"),
+)
+
+
+def _abstention(why: str) -> str:
+    for needle, tag in _ABSTENTIONS:
+        if needle in why:
+            return tag
+    return "other"
+
+
 def refusal(rec, cache) -> Tuple[str, Optional[str]]:
     """§5.1: engine (applied/refused) against legal (true/false). A crash is
     a defect whatever the rule; a not-judged instance is counted, not scored."""
@@ -26,7 +46,7 @@ def refusal(rec, cache) -> Tuple[str, Optional[str]]:
     if out.crashed:
         return f"{rec.move.rule}:crash", f"CRASH {out.message[:160]}"
     if rec.verdict is None:
-        return f"not:{rec.move.rule}", None
+        return f"not:{rec.move.rule}:{_abstention(rec.why)}", None
     label = f"{rec.move.rule}:{'applied' if out.applied else 'refused'}/" \
             f"{'legal' if rec.verdict else 'illegal'}"
     if out.applied and not rec.verdict:

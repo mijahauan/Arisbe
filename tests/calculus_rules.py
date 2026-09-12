@@ -466,7 +466,7 @@ def _ins_edge(g: G, m: Move) -> Verdict:
     if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
         return False, "select the existing vertex the edge hooks onto"
     v = m.selection[0]
-    if m.target not in ancestors(g, m.target) or g.get_context(v) not in ancestors(g, m.target):
+    if g.get_context(v) not in ancestors(g, m.target):
         return False, "the vertex's context must enclose the target (Def 12.5)"
     return True, "an edge onto an existing line, negative context"
 
