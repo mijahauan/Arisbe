@@ -1146,6 +1146,25 @@ class IterationRule(FormalTransformationRule):
                 f"Source: {source_area}, Destination: {context.target_area}"
             )
 
+        # Dau Def 15.2 (p.164, 166): the destination c must satisfy both
+        # c <= ctx(G0) *and* c ∉ Cut0 — a cut being copied may not receive the
+        # copy. Without the second half, iterating the inner cut of ~[ ~[ ] ]
+        # into itself gives ~[ ~[ ~[ ] ] ]: true becomes false.
+        expanded = set(context.selected_subgraph)
+        stack = list(expanded)
+        while stack:
+            element = stack.pop()
+            for nested in egi.area.get(element, frozenset()):
+                if nested not in expanded:
+                    expanded.add(nested)
+                    stack.append(nested)
+        if context.target_area in expanded:
+            return False, (
+                f"IT+ may not copy into the selection's own cut "
+                f"(Dau Def 15.2, p.166: c ∉ Cut₀). Destination "
+                f"{context.target_area} lies inside the selected subgraph."
+            )
+
         # B-min: never into a quotation area; iterating the quotation
         # apparatus (even as a whole unit, even enclosed in a selected plain
         # cut) is a named limit — the copy paths would degrade the exhibit

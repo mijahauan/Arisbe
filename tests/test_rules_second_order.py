@@ -296,9 +296,15 @@ class TestOpacity:
         assert r2.success
         outer2 = r2.changes_made["outer_cut"]
         host = r2.result_egi
-        r3 = ENGINE.apply_rule("IT+", host, outer2, frozenset({outer2}))
+        # ... into the sheet. Dau Def 15.2 (p.166) leaves a selected cut only
+        # c = ctx(G0) as a destination — every deeper area lies inside the cut
+        # itself — so this is the move the B-min guard has to refuse on its own.
+        r3 = ENGINE.apply_rule("IT+", host, host.sheet, frozenset({outer2}))
         assert not r3.success
         assert "degrade" in r3.error_message or "B-min" in r3.error_message
+        # ... and into itself: refused one condition earlier, by c ∉ Cut₀
+        r4 = ENGINE.apply_rule("IT+", host, outer2, frozenset({outer2}))
+        assert not r4.success and "Def 15.2" in r4.error_message
 
     def test_it_minus_refuses_quoted_ink_as_repetition(self):
         # host ink (white *w) on the sheet AND the same shape inside the

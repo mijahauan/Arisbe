@@ -87,22 +87,6 @@ REASONS = {
         "join_deeper on every move. The default mode reaches none (a pair plus a cut plus an "
         "identity edge exceeds its three-element bound). Separate from "
         "retract-ligature-erases-a-constant-vertex, which erases a name."),
-    "it-plus-into-its-own-selection-changes-meaning": ("IT+", "it-plus-into-its-own-selection",
-        P + "The soundness half of refusal entry it-plus-into-its-own-selection, the same "
-        "mechanism: Dau Def 15.2 iteration (p.164, 166) requires the target c ∉ Cut₀, and the "
-        "engine (ITPlusInteraction._validate_dest) copies a selected cut into itself or into a "
-        "cut it contains — a move legal() rejects. Iteration is an equivalence (deiteration is its "
-        "inverse, Def 15.2), so the result must keep the source's models exactly. Measured by "
-        "calculus_adjudication_soundness in the default mode: 265 moves in 262 keys — 261 illegal, "
-        "every key an instance of that refusal entry (in_refusal_entry), and 4 on quotation-"
-        "bearing corpus graphs where legal() abstains from IT± altogether, the engine again "
-        "iterating a cut into itself (not_judged). 74 are UNSOUND — a structure satisfies G but "
-        "not G′: ~[ ~[ ] ] (true in every structure) becomes ~[ ~[ ~[ ] ] ] (false in every "
-        "structure), separating structure Structure(1, (), ()) — and the other 191 gain models "
-        "(~[ ] becomes ~[ ~[ ] ]: false to true). Of the refusal entry's 462 keys, 204 are "
-        "evaluated here and pass, every one with G ≡ G′ over the budget (refusal_entry_passing, "
-        "passing_equivalent). No failure on a move legal() judges legal. "
-        "In the exhaustive mode (sizes 1–3, tier-B universes capped): 3,824 moves in 3,756 keys (3,228 tier A, 596 tier B), 711 UNSOUND (705 illegal, 6 on quotation-bearing graphs legal() does not judge) and 3,113 not an equivalence — none on a move legal() judges legal."),
     "it-minus-erases-a-copy-of-another-line-changes-meaning": ("IT-", "it-minus-erases-a-copy-of-another-line",
         P + "The soundness half of refusal entry it-minus-erases-a-copy-of-another-line, the same "
         "mechanism: Dau Def 15.2 deiteration (p.164, 166) erases only what iteration could have "

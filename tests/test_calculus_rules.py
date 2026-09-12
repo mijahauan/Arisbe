@@ -111,3 +111,16 @@ def test_ligature_moves_offer_both_orders_and_apply_in_order():
     assert list(InOrder((b, a))) == [b, a] and next(iter(InOrder((a, b)))) == a
     kept = lambda sel: {v.id for v in apply_move(g, Move("RETRACT_LIGATURE", sel, g.sheet)).result.V}  # noqa: E731
     assert kept((a, b)) == {a} and kept((b, a)) == {b}
+
+
+def test_the_engine_refuses_iteration_into_its_own_selection():
+    """Dau Def 15.2 (p.164, 166): the destination must satisfy c <= ctx(G0) AND
+    c not in Cut0. Without the second half, `~[ ~[ ] ]` (true in every
+    structure) becomes `~[ ~[ ~[ ] ] ]` (false in every structure)."""
+    from calculus_apply import apply_move
+    from tarski import Structure, satisfies
+    g = parse_egif("~[ ~[ ] ]")
+    inner = next(c.id for c in g.Cut if g.get_context(c.id) != g.sheet)
+    out = apply_move(g, Move("IT+", (inner,), inner))
+    assert not out.applied and not out.crashed, out.message
+    assert satisfies(g, Structure(1, {}, {}))          # the source still holds

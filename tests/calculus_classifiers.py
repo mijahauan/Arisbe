@@ -124,8 +124,6 @@ REFUSAL: Dict[str, Pred] = {
     "era-closure-drags-a-quoting-name":
         lambda r, d: _rule(r, "ERA") and not r.outcome.applied and not r.outcome.crashed
         and "selected without its oval" in r.outcome.message,
-    "it-plus-into-its-own-selection":
-        lambda r, d: _rule(r, "IT+") and r.outcome.applied and "inside the selection" in r.why,
     "it-plus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "IT+") and _named_apart(r),
     "it-minus-refuses-a-cut-named-with-its-contents":
@@ -198,9 +196,6 @@ STRUCTURE: Dict[str, Pred] = {
 # -- soundness ----------------------------------------------------------------
 
 SOUNDNESS: Dict[str, Pred] = {
-    "it-plus-into-its-own-selection-changes-meaning":
-        lambda r, d: _rule(r, "IT+") and r.verdict is not True and bool(r.move.selection)
-        and r.move.target in expand(r.g, r.move.selection),
     "it-minus-erases-a-copy-of-another-line-changes-meaning":
         lambda r, d: _rule(r, "IT-") and r.verdict is False
         and "no source of which this is a copy" in r.why,

@@ -143,16 +143,6 @@ REASONS = {
         "so there it is not shown to be an input-form restriction alone; at tier B the top-"
         "elements move is applied on all 14 (tops_only_applied 14 of 22). Ledgered by count in "
         "the exhaustive mode."),
-    "it-plus-into-its-own-selection": ("IT+", SEVERE,
-        P + "Dau Def 15.2 iteration (p.164, and formally p.166): the target context must satisfy "
-        "c ∉ Cut_0 — a subgraph may not be copied into one of its own cuts. The engine's "
-        "destination check (ITPlusInteraction._validate_dest) only asks that the target be the "
-        "source area or nested inside it, so it copies a selected cut into itself or into a cut "
-        "it contains. Measured by calculus_adjudication in the default mode: 70 of the entry's 483 "
-        "moves are UNSOUND (unsound) — a structure satisfies G but not G′ (e.g. ~[ ~[ ] ] (true) becomes "
-        "~[ ~[ ~[ ] ] ] (false) by iterating the empty inner cut into itself); on others the "
-        "result is merely not the equivalence IT+ must be. "
-        "In the exhaustive mode: 6,619 moves in 6,322 keys (4,430 tier A, 2,189 tier B), 704 of them UNSOUND at sizes 1–2."),
     "it-minus-erases-a-copy-of-another-line": ("IT-", SEVERE,
         P + "Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration "
         "could have inserted it, and iteration copies every vertex of the source fresh "
@@ -276,10 +266,6 @@ def measure(rec, eid, c: Counter):
     elif eid == "dc-plus-strands-a-vertex":
         c["non_egi"] += not dominating_nodes(out.result)
         c["target_also_ignored"] += any(g.get_context(x) != m.target for x in tops(g, expand(g, m.selection)))
-    elif eid == "it-plus-into-its-own-selection":
-        fwd, bwd = _entail(g, out.result)
-        c["unsound"] += not fwd
-        c["equivalent"] += fwd and bwd
     elif eid.endswith("-cut-named-with-its-contents"):
         t = tuple(tops(g, expand(g, m.selection)))
         c["tops_only_applied"] += apply_move(g, Move(m.rule, t, m.target, m.content)).applied
