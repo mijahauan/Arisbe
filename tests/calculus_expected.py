@@ -205,7 +205,10 @@ def maps_carried(g: G, h: G) -> List[str]:
 # equivalent — never that F' differs from F. With a 2-vertex ligature there is
 # exactly one tree connecting them, so the rearrangement is necessarily
 # isomorphic to the source; that is a licensed degenerate instance of Def 16.4,
-# not a no-op defect (test_rearrange_ligature_may_choose_the_same_shape).
+# not a no-op defect (test_rearrange_ligature_may_choose_the_same_shape). Nor
+# is it held to a count delta: Def 16.4 (p.174) lets |W'|/|F'| differ from
+# |W|/|F| (this engine happens to keep them equal, but nothing in Dau requires
+# it) — see _rearrange_ligature_ok below for what IS required.
 _IDENTITY = "="
 
 
@@ -216,6 +219,40 @@ def _relation_multiset(g: G):
 def _counts(g: G):
     ids = sum(1 for e in g.nu if g.rel[e] == _IDENTITY)
     return len(g.V), ids
+
+
+def _rearrange_ligature_ok(g: G, m: Move, h: G) -> List[str]:
+    """Def 16.4 (p.174) touches one ligature (W,F) in one context and leaves
+    the rest of the graph alone; Cor 16.5 (p.175) licenses any reshape of it
+    "as long as it keeps connected" — not "must differ" (exempted above) and
+    not "same counts" (Def 16.4 lets |W'|/|F'| differ). What IS required, and
+    checked here independently of the engine's own partition self-check
+    (ligature_manipulation_rules.py:708-720, "the instrument's job" per
+    review): the whole-graph co-denotation partition (Dau's ligatures, as
+    connected components of identity edges) is unchanged, and every
+    non-identity hook that sat on a vertex of the touched ligature still sits
+    on a vertex of it (Def 16.4: an edge on w "is now connected to a vertex
+    w' of the new ligature" — some vertex of it, not necessarily the same
+    one, since every vertex of a ligature co-denotes)."""
+    problems: List[str] = []
+    g_partition = frozenset(frozenset(c) for c in g.get_ligatures())
+    h_partition = frozenset(frozenset(c) for c in h.get_ligatures())
+    if g_partition != h_partition:
+        problems.append("rearrangement changed the co-denotation partition (Def 16.4, "
+                        "p.174; Cor 16.5, p.175: 'as long as it keeps connected')")
+        return problems
+    if not m.selection:
+        return problems
+    v0 = m.selection[0]
+    W = next((c for c in g_partition if v0 in c), frozenset())
+    stray = [e for e in g.nu if g.rel.get(e) != _IDENTITY and any(v in W for v in g.nu[e])
+             and not (e in h.nu and any(v in W for v in h.nu[e]))]
+    if stray:
+        problems.append(f"rearrangement moved {len(stray)} non-identity hook"
+                        + ("s" if len(stray) > 1 else "") +
+                        " off the ligature (Def 16.4, p.174: a hook on the ligature "
+                        "lands on a vertex of the new one)")
+    return problems
 
 
 def postconditions(g: G, m: Move, h: G) -> List[str]:
@@ -237,10 +274,19 @@ def postconditions(g: G, m: Move, h: G) -> List[str]:
     if m.rule == "MOVE_BRANCHES" and (v1, i1) != (v0, i0):
         problems.append(f"moving a branch changes no counts (Lemma 16.1, p.169), "
                         f"got {v1 - v0:+d} vertex and {i1 - i0:+d} identity edge")
+    # Lemma 16.3 (p.173) admits the degenerate case W = {w0} (nothing to
+    # retract); Lemma 16.2 (p.172) admits V' = ∅ with a loop added instead of
+    # a fresh vertex. Neither is reachable through this engine today
+    # (RetractLigatureRule refuses fewer than 2 selected vertices;
+    # ExtendRestrictLigatureRule always adds exactly 2 vertices and 2 identity
+    # edges), so a future engine change implementing either is not to be read
+    # as failing these clauses without revisiting them.
     if m.rule == "RETRACT_LIGATURE" and not (v1 < v0 and i1 < i0):
         problems.append(f"retraction collapses a ligature to one vertex (Lemma 16.3, p.173): "
                         f"fewer vertices and fewer identity edges, got {v1 - v0:+d} and {i1 - i0:+d}")
     if m.rule == "EXTEND_LIGATURE" and not (v1 > v0 and i1 > i0):
         problems.append(f"extension adds vertices and identity edges (Lemma 16.2, p.172), "
                         f"got {v1 - v0:+d} and {i1 - i0:+d}")
+    if m.rule == "REARRANGE_LIGATURE":
+        problems += _rearrange_ligature_ok(g, m, h)
     return problems

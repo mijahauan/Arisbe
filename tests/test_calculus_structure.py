@@ -1,9 +1,12 @@
 """Structure (spec 2026-09-10 §5.2): a rule changes what it licenses, and
 nothing else; the result is an EGI; the B-min maps travel with it."""
+from dataclasses import replace
+
 import pytest
+from frozendict import frozendict
 
 import eg_navigation as nav
-from calculus_apply import Outcome
+from calculus_apply import Outcome, apply_move
 from calculus_enum import DEFAULT_BOUNDS, tier_a
 from calculus_expected import expected, iterate, maps_carried
 from calculus_layers import structure
@@ -163,9 +166,14 @@ def test_a_ligature_move_that_drops_a_relation_is_a_failure():
 
 
 def test_split_must_add_one_vertex_and_one_identity_edge():
+    """A genuine +2/+2 result (not the identical-object stand-in, which would
+    also trip 'changes nothing' and leave this clause untested in isolation):
+    two fresh vertices and two identity edges where Def 16.6 (p.175) licenses
+    exactly one of each."""
     g = parse_egif("(P *x) (Q x)")
+    bad = parse_egif("(P *x) (Q x) (= x *y) (= x *z)")
     m = Move("SPLIT_VERTEX", (sorted(v.id for v in g.V)[0],), g.sheet)
-    rec = Record("A", "hand", g, m, "hand|split", Outcome(True, g, ""), None, "not judged")
+    rec = Record("A", "hand", g, m, "hand|split", Outcome(True, bad, ""), None, "not judged")
     assert "+1 vertex" in structure(rec, {})[1]
 
 
@@ -185,13 +193,51 @@ def test_rearrange_ligature_may_choose_the_same_shape():
     syntactically equivalent, never that F' differs from F. With a 2-vertex
     ligature there is exactly one tree connecting them, so a genuine
     rearrangement is necessarily isomorphic to the source — licensed, not a
-    no-op defect (found live: the engine's REARRANGE_LIGATURE on `(= "a" "b")`
-    replaces the single identity edge with a fresh one joining the same pair)."""
+    no-op defect. Pinned to the engine's own output (a fresh edge id), the
+    live instance found in Step 5 (A|813a0c4dfed7030b#0|REARRANGE_LIGATURE|...),
+    not the identical-object stand-in."""
     g = parse_egif('(= "a" "b")')
     v1, v2 = sorted(v.id for v in g.V)
     m = Move("REARRANGE_LIGATURE", (v1, v2), g.sheet)
-    rec = Record("A", "hand", g, m, "hand|rearrange-same-shape", Outcome(True, g, ""), None, "not judged")
+    outcome = apply_move(g, m)
+    assert outcome.applied
+    rec = Record("A", "hand", g, m, "hand|rearrange-same-shape", outcome, None, "not judged")
     assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_reshape_preserves_partition_and_hooks():
+    """A genuine 3-vertex reshape (beyond the 2-vertex degenerate case above):
+    the real engine's own output on a path ligature carrying a hook, checked
+    against Def 16.4 (p.174) / Cor 16.5 (p.175) independently of the engine's
+    own partition self-check (ligature_manipulation_rules.py:708-720)."""
+    g = parse_egif('(P "a") (= "a" "b") (= "b" "c")')
+    labels = {v.label: v.id for v in g.V}
+    m = Move("REARRANGE_LIGATURE", (labels["a"], labels["b"]), g.sheet)
+    outcome = apply_move(g, m)
+    assert outcome.applied
+    rec = Record("A", "hand", g, m, "hand|rearrange-reshape", outcome, None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_split_partition_is_reported():
+    """Cor 16.5 (p.175): a rearranged ligature must 'keep connected' — the
+    same co-denotation partition must survive. Built by hand: the b-c
+    identity edge of an a-b-c ligature silently dropped, splitting one
+    3-vertex ligature into {a,b} and {c}."""
+    g = parse_egif('(= "a" "b") (= "b" "c")')
+    labels = {v.label: v.id for v in g.V}
+    a, b, c = labels["a"], labels["b"], labels["c"]
+    drop = next(e for e in g.nu if g.rel[e] == "=" and set(g.nu[e]) == {b, c})
+    new_area = dict(g.area)
+    new_area[g.sheet] = frozenset(new_area[g.sheet] - {drop})
+    h = replace(g, E=frozenset(e for e in g.E if e.id != drop),
+                nu=frozendict({e: v for e, v in g.nu.items() if e != drop}),
+                rel=frozendict({e: r for e, r in g.rel.items() if e != drop}),
+                area=frozendict(new_area))
+    m = Move("REARRANGE_LIGATURE", (a, b), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|rearrange-split", Outcome(True, h, ""), None, "not judged")
+    detail = structure(rec, {})[1]
+    assert detail and "partition" in detail
 
 
 def test_core_dominating_nodes_check_agrees_with_dau():
