@@ -64,6 +64,23 @@ def test_lca_of_one_area_is_itself():
     assert lca(g, [c]) == c
 
 
+def test_the_stress_tier_carries_the_shapes_tier_a_cannot():
+    from calculus_enum import tier_s
+    from tarski import dominating_nodes
+    graphs = dict(tier_s())
+    assert set(graphs) == {
+        "scroll-with-a-line", "deiteration-across-two-cuts", "arguments-swapped",
+        "theta-linked-copy", "parity-depth-3", "parity-depth-4",
+        "alphabet-and-quotation", "name-against-name", "edge-insertion-target",
+    }
+    assert all(dominating_nodes(g) for g in graphs.values())
+    # every one is beyond the default tier-A bound of 3 elements
+    assert all(len(g.V) + len(g.E) + len(g.Cut) > 3 for g in graphs.values())
+    # the one shape no linear form carries: B-min maps, so the maps clause bites
+    q = graphs["alphabet-and-quotation"]
+    assert q.alphabet is not None and q.sort and q.quotation
+
+
 def test_tier_b_covers_every_uod_and_every_chain_state():
     from calculus_enum import TOMOS, tier_b
     from calculus_ledger import assert_extent

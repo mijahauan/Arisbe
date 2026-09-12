@@ -6,7 +6,7 @@ import hashlib
 import pytest
 from frozendict import frozendict
 
-from calculus_enum import tier_a
+from calculus_enum import tier_a, tier_s
 from calculus_ledger import Failure, assert_extent, check_ledger, ledgered
 from calculus_run import MODES
 from domain_oracle import CorpusOracle
@@ -47,12 +47,17 @@ def test_the_encoding_round_trips_through_semantic_game():
 
 @functools.lru_cache(maxsize=None)
 def _compare(mode_name: str):
+    """Tier A and the stress tier (spec 2026-09-12 §3.2), each counted under
+    its own tier prefix: this layer walks the enumerators directly rather than
+    calculus_run.records, so tier S has to be named here to reach it."""
     mode = MODES[mode_name]
     sem = mode.sem
     known = ledgered("differential")
     counts, failures, evaluated = {}, [], set()
     oracles = {}
-    for gname, g in tier_a(mode.bounds).graphs:
+    named = [("A", n, g) for n, g in tier_a(mode.bounds).graphs] \
+        + [("S", n, g) for n, g in tier_s()]
+    for tier, gname, g in named:
         rels, consts = vocabulary(g)
         for n in sem.sizes:
             us, exh = universe(rels, consts, n, cap=sem.tuple_cap, sample_n=sem.sample_n,
@@ -62,7 +67,7 @@ def _compare(mode_name: str):
                     oracles[s] = CorpusOracle([("M", facts_graph(s))], closed=True)
                 ours = satisfies(g, s)
                 theirs = evaluate(g, oracles[s]).verdict
-                key = f"A|{gname}|diff|{hashlib.sha256(repr(s).encode()).hexdigest()[:12]}"
+                key = f"{tier}|{gname}|diff|{hashlib.sha256(repr(s).encode()).hexdigest()[:12]}"
                 if theirs is Verdict3.UNKNOWN:
                     col = "unknown"
                 elif (theirs is Verdict3.TRUE) == ours:
@@ -73,7 +78,7 @@ def _compare(mode_name: str):
                                             f"tarski {ours}, semantic_game {theirs.value} on {s}"))
                 if col != "unknown" and key in known:
                     evaluated.add(key)
-                label = f"{col}:{'exhaustive' if exh else 'sampled'}"
+                label = f"{tier}:{col}:{'exhaustive' if exh else 'sampled'}"
                 counts[label] = counts.get(label, 0) + 1
     return dict(sorted(counts.items())), failures, evaluated
 

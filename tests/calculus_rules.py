@@ -95,7 +95,9 @@ def units(g: G) -> List[Tuple[str, ...]]:
 
 
 def _selections(g: G, tier: str, lo: int, units_only: bool):
-    if tier == "A":
+    if tier in ("A", "S"):
+        # Tier S is hand-chosen and small, so it is enumerated exhaustively as
+        # tier A is: every subset of the elements, not just the units.
         yield from _subsets(elements(g), lo)
         return
     seen = set()
