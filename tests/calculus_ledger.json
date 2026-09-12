@@ -4396,6 +4396,26 @@
    }
   },
   {
+   "id": "ins-edge-has-no-entry-point",
+   "layer": "refusal",
+   "rule": "INS_EDGE",
+   "classifier": "ins-edge-has-no-entry-point",
+   "reason": "Dau Def 15.2 insertion (p.165): erasing an edge from ctx(e) keeps its vertices (V^(e) := V), and insertion is the inverse, so in a negative context an edge may be inserted onto vertices already present there — *x ~[ ] becomes *x ~[ (P x) ]. The engine has no separate entry point for this; INS_EDGE reaches the same protocol INS does, which takes only standalone EGIF, so the content names a line by its bound label ('x') the protocol cannot see and refuses every candidate ('Undefined variable x'). Task 3 of the fix arc enumerates INS_EDGE's candidate moves (calculus_rules.moves) so this gap is counted as INCOMPLETE on every run rather than only named in the rule table; the engine fix itself is out of scope here.",
+   "instances": {
+    "INCOMPLETE": [
+     "S|arguments-swapped|INS_EDGE|2be8713614ec",
+     "S|arguments-swapped|INS_EDGE|afaf26190bbf",
+     "S|deiteration-across-two-cuts|INS_EDGE|265a71259777",
+     "S|edge-insertion-target|INS_EDGE|1d7720a4249f",
+     "S|edge-insertion-target|INS_EDGE|3fbc52e6c226",
+     "S|scroll-with-a-line|INS_EDGE|cc77b1351a83",
+     "S|theta-linked-copy|INS_EDGE|8ad2a20ec769",
+     "S|theta-linked-copy|INS_EDGE|993aa5b78c03"
+    ]
+   },
+   "counts": {}
+  },
+  {
    "id": "ins-mixes-arities-without-an-alphabet",
    "layer": "refusal",
    "rule": "INS",

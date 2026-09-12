@@ -52,8 +52,11 @@ this spec were wrong or incomplete, and the plan follows the corrections, not th
    present** (Def 15.2, p.165: erasing an edge keeps its vertices, V^(e) := V, and inserting it is
    the inverse, so in a negative context `*x ~[ ]` → `*x ~[ (P x) ]` is licensed). The protocol's
    INS takes standalone EGIF only and refuses it ("Undefined variable x"). The table records it as
-   INS_EDGE, the sixth rule with no entry point, and keeps INS as the insertion of a closed
-   subgraph. Its moves are not enumerated yet; that is queued for the fix arc.
+   INS_EDGE, keeps INS as the insertion of a closed subgraph, and — after Task 3 of the fix arc —
+   gives INS_EDGE the same `protocol:INS` entry point (so the refusal is judged and counted, not
+   merely named): its candidates were unenumerated at the final review, and five rules, not six,
+   remain with no entry point at all (ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY,
+   CONSTANT_EXISTENCE, SEPARATE_CONSTANT).
 3. **The vertex split/merge rules are live** (`derived_rules`, `world_scroll` call
    `_apply_vertex_split` / `_apply_vertex_merge`) and join the table as Def 16.6 / Lemma 16.7.
 4. **Arisbe does not write lines the way Dau does.** Dau joins areas with identity edges (`=`);

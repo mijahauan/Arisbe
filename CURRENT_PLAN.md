@@ -206,12 +206,15 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   with its contents.
 - ERA and the vertex rule auto-close a vertex selection, and erase a line together with its edges.
 - INS mixes arities when the graph declares no alphabet (Def 12.6–12.7, p.126).
-- Six Dau rules have no entry point at all: INS_EDGE, ORIENT_IDENTITY, LIGATURE_VERTEX,
+- Five Dau rules have no entry point at all: ORIENT_IDENTITY, LIGATURE_VERTEX,
   CONSTANT_IDENTITY, CONSTANT_EXISTENCE and SEPARATE_CONSTANT (`tests/calculus_rules.py`).
   INS_EDGE is inserting an edge onto vertices already present (Def 15.2, p.165: erasing an edge
   keeps its vertices, and insertion is its inverse), so in a negative context `*x ~[ ]` →
   `*x ~[ (P x) ]` is licensed. The protocol's INS refuses it ("Undefined variable x"): it takes
-  standalone EGIF only. The final review found it; the table had counted INS as implemented.
+  standalone EGIF only. The final review found it; the table had counted INS as implemented. Task
+  3 of the fix arc (below) gave INS_EDGE its own `protocol:INS` entry point and enumerated its
+  candidates, so the refusal is now judged and counted (ledger entry
+  `ins-edge-has-no-entry-point`, INCOMPLETE) rather than only named.
 
 **Findings outside the engine.**
 - Two corpus graphs are not EGIs. `bfo_core:current` fails on the generic vertex `v_x26`, and
@@ -247,7 +250,8 @@ these touches `src/`:
   `*x *y (P x) ~[ (= x y) (P y) ]`; parity at depth 3–4; a directly built graph carrying an
   alphabet and a quotation oval; the name-against-name IT- case; and `*x ~[ ]` with an edge
   insertion.
-- **Enumerating INS_EDGE's candidate moves**, so they land as counted INCOMPLETE.
+- ~~Enumerating INS_EDGE's candidate moves, so they land as counted INCOMPLETE.~~ **DONE
+  (Task 3).**
 - **Splitting the refusal layer's `not:{rule}` label by abstention reason.**
 - **Narrowing the four broad refusal classifiers** before exhaustive counts are relied on to
   certify a fix.

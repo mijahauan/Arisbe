@@ -54,6 +54,16 @@ def test_ins_into_a_negative_context_only():
     assert ok(g, Move("INS", (), g.sheet, "(P *x)")) is False
 
 
+def test_ins_edge_is_legal_onto_an_existing_line_in_a_negative_context():
+    """Dau p.165: erasing an edge keeps its vertices (V^(e) := V), and insertion
+    is its inverse, so `*x ~[ ]` may become `*x ~[ (P x) ]`."""
+    g = parse_egif("*x ~[ ]")
+    c = _cuts_by_depth(g)[0]
+    v = _vertex(g)
+    assert ok(g, Move("INS_EDGE", (v,), c, "(P x)")) is True
+    assert ok(g, Move("INS_EDGE", (v,), g.sheet, "(P x)")) is False   # positive context
+
+
 # DC+ / DC- — Def 15.2, p.164
 def test_dc_plus_empty_anywhere():
     g = parse_egif("~[ ]")

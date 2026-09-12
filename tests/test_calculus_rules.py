@@ -20,24 +20,34 @@ def test_every_engine_entry_point_is_a_dau_rule_and_vice_versa():
 
 
 def test_the_unimplemented_dau_rules_are_exactly_these():
-    assert UNIMPLEMENTED == {"INS_EDGE", "ORIENT_IDENTITY", "LIGATURE_VERTEX", "CONSTANT_IDENTITY",
+    assert UNIMPLEMENTED == {"ORIENT_IDENTITY", "LIGATURE_VERTEX", "CONSTANT_IDENTITY",
                              "CONSTANT_EXISTENCE", "SEPARATE_CONSTANT"}
 
 
-def test_edge_insertion_onto_an_existing_vertex_has_no_entry_point():
+def test_the_ins_protocol_cannot_perform_edge_insertion_directly():
     """A recorded fact, not a pass: Dau p.165 defines erasing an edge e from
     ctx(e) with V^(e) := V — the edge goes, its vertices stay — and inserting
     e into c as its inverse, so in a negative context an edge may be inserted
     onto vertices already there: *x ~[ ] -> *x ~[ (P x) ]. The protocol's INS
     takes standalone EGIF only, and ``(P x)`` names a line it cannot see
-    ('Undefined variable x'), so the move is refused. INS_EDGE is therefore
-    unimplemented (the rule table above). Its candidate moves are not yet
-    enumerated; that is ruled to the fix arc, where they land as INCOMPLETE."""
+    ('Undefined variable x'), so the move is refused. INS_EDGE's own entry
+    point (below, calculus_rules.py) reaches the same protocol and is refused
+    the same way — its candidates are enumerated so the gap is counted as
+    INCOMPLETE on every run, not fixed here (that is the engine arc)."""
     g = parse_egif("*x ~[ ]")
     cut = next(iter(g.Cut)).id
     out = apply_move(g, Move("INS", (), cut, "(P x)"))
     assert not out.applied and not out.crashed
     assert "Undefined variable x" in out.message
+
+
+def test_ins_edge_moves_are_enumerated_and_the_engine_refuses_them():
+    from calculus_apply import apply_move
+    g = parse_egif("*x ~[ ]")
+    ms = [m for m in moves("INS_EDGE", g, "A")]
+    assert ms, "INS_EDGE must offer at least one candidate on *x ~[ ]"
+    out = apply_move(g, ms[0])
+    assert not out.applied and not out.crashed        # counted INCOMPLETE, never a crash
 
 
 def test_split_merge_module_holds_exactly_two_rules():

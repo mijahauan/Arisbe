@@ -212,6 +212,16 @@ REASONS = {
         "G ⊨ G′ ⊨ G at domain sizes 1–2 — a protocol convention (the spot is ignored when a "
         "subject is given), not an unsound step; but the named move is not the one performed and "
         "the engine does not refuse."),
+    "ins-edge-has-no-entry-point": ("INS_EDGE", INCOMPLETE,
+        "Dau Def 15.2 insertion (p.165): erasing an edge from ctx(e) keeps its vertices "
+        "(V^(e) := V), and insertion is the inverse, so in a negative context an edge may be "
+        "inserted onto vertices already present there — *x ~[ ] becomes *x ~[ (P x) ]. The "
+        "engine has no separate entry point for this; INS_EDGE reaches the same protocol INS "
+        "does, which takes only standalone EGIF, so the content names a line by its bound label "
+        "('x') the protocol cannot see and refuses every candidate ('Undefined variable x'). "
+        "Task 3 of the fix arc enumerates INS_EDGE's candidate moves (calculus_rules.moves) so "
+        "this gap is counted as INCOMPLETE on every run rather than only named in the rule "
+        "table; the engine fix itself is out of scope here."),
 }
 
 

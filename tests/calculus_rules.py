@@ -35,7 +35,7 @@ DAU_RULES: Tuple[DauRule, ...] = (
     # edge onto vertices already present (p.165: erasing an edge keeps its
     # vertices, V^(e) := V, and insertion is its inverse) is INS_EDGE, below.
     DauRule("INS", "Def 15.2 insertion of a closed subgraph, p.164-165: negative contexts", "one-way", "protocol:INS", True),
-    DauRule("INS_EDGE", "Def 15.2 insertion of an edge onto existing vertices, p.165: negative contexts", "one-way", None, False),
+    DauRule("INS_EDGE", "Def 15.2 insertion of an edge onto existing vertices, p.165: negative contexts", "one-way", "protocol:INS", True),
     DauRule("IT+", "Def 15.2 iteration, p.164, 166: no polarity condition", "equivalence", "protocol:IT+", True),
     DauRule("IT-", "Def 15.2 deiteration, p.164, 166", "equivalence", "protocol:IT-", True),
     DauRule("DC+", "Def 15.2 double cuts, p.164: any context", "equivalence", "protocol:DC+", True),
@@ -130,6 +130,20 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for a in areas:
             for c in INS_CATALOGUE:
                 yield Move(rule, (), a, c)
+    elif rule == "INS_EDGE":
+        # Dau p.165: an edge inserted into a negative context onto vertices
+        # already present. The content names the host's own line by its EGIF
+        # bound label, which is what the engine cannot parse.
+        for a in areas:
+            if positive(g, a):
+                continue
+            for v in sorted(x.id for x in g.V if x.is_generic):
+                label = g.variable_names.get(v)
+                # The line must be in scope at the target: ctx(v) encloses it
+                # (Def 12.5), i.e. ctx(v) is on the target's ancestor chain.
+                if label is None or g.get_context(v) not in ancestors(g, a):
+                    continue          # unnamed line, or out of scope here
+                yield Move(rule, (v,), a, f"(P {label})")
     elif rule == "VERTEX_INS":
         for a in areas:
             yield Move(rule, (), a)
@@ -442,5 +456,21 @@ def _vertex_era(g: G, m: Move) -> Verdict:
     return True, "an isolated vertex, any context"
 
 
+def _ins_edge(g: G, m: Move) -> Verdict:
+    """Def 15.2 insertion, p.165: erasing an edge keeps its vertices
+    (V^(e) := V), so its inverse inserts an edge onto vertices already
+    present, in a negative context. The selection names those vertices; the
+    content is the edge, written with the host's bound label."""
+    if m.target is None or positive(g, m.target):
+        return False, "the target is not a negative context"
+    if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
+        return False, "select the existing vertex the edge hooks onto"
+    v = m.selection[0]
+    if m.target not in ancestors(g, m.target) or g.get_context(v) not in ancestors(g, m.target):
+        return False, "the vertex's context must enclose the target (Def 12.5)"
+    return True, "an edge onto an existing line, negative context"
+
+
 _LEGAL = {"ERA": _era, "INS": _ins, "DC+": _dc_plus, "DC-": _dc_minus, "IT+": _it_plus,
-          "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era}
+          "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era,
+          "INS_EDGE": _ins_edge}

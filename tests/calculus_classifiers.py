@@ -141,6 +141,8 @@ REFUSAL: Dict[str, Pred] = {
     "dc-plus-ignores-target":
         lambda r, d: _rule(r, "DC+") and r.outcome.applied and dominating_nodes(r.outcome.result)
         and "not directly in the target" in r.why,
+    "ins-edge-has-no-entry-point":
+        lambda r, d: _rule(r, "INS_EDGE") and not r.outcome.applied and not r.outcome.crashed,
 }
 
 
