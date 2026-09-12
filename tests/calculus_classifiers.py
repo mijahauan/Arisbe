@@ -206,9 +206,16 @@ SOUNDNESS: Dict[str, Pred] = {
         and "no source of which this is a copy" in r.why,
     "vertex-era-erases-a-line-not-an-equivalence":
         lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
+    # The discriminating condition is erased_constants: a genuine mechanism
+    # check that the merge erased a constant vertex (Def 24.10, p.270-272 —
+    # the ligature rules move generic vertices only). No kind-based narrowing
+    # is possible today: the soundness layer's failure_kind only ever returns
+    # "UNSOUND" or "NOT AN EQUIVALENCE" (calculus_classifiers.failure_kind),
+    # and this entry legitimately carries both — a `failure_kind(...) in
+    # (...)` guard here would be True for every soundness detail, narrowing
+    # nothing (Task 4 fix round 1, the review's Important finding).
     "merge-vertices-erases-a-constant-vertex":
-        lambda r, d: _rule(r, "MERGE_VERTICES") and failure_kind("soundness", d) in
-        ("UNSOUND", "NOT AN EQUIVALENCE") and bool(erased_constants(r.g, r.outcome.result)),
+        lambda r, d: _rule(r, "MERGE_VERTICES") and bool(erased_constants(r.g, r.outcome.result)),
     "retract-ligature-erases-a-constant-vertex":
         lambda r, d: _rule(r, "RETRACT_LIGATURE") and bool(erased_constants(r.g, r.outcome.result)),
     "move-branches-moves-the-identity-edge-it-moves-along":
