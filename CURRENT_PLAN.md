@@ -2,7 +2,8 @@
 
 **Last Updated**: 2026-09-11 (seventeenth arc) — **THE CALCULUS, TESTED DIRECTLY: NO MOVE DAU
 LICENSES FAILS, BUT THE ENGINE MAKES MOVES HE DOES NOT LICENSE, AND SOME OF THEM TURN A TRUE GRAPH
-FALSE.** Branch `tier0-readiness` (43 commits ahead of `main`, **not merged**). Spec:
+FALSE.** **Merged into `main` 2026-09-12** at `30c1f34` (fast-forward; the branch's 45 commits,
+this arc's 26 among them, now sit on `main`, which is 45 commits ahead of `origin/main`). Spec:
 [the calculus property suite](docs/superpowers/specs/2026-09-10-calculus-property-suite-design.md) ·
 plan: [twelve tasks](docs/superpowers/plans/2026-09-10-calculus-property-suite.md).
 
@@ -12,12 +13,16 @@ plan: [twelve tasks](docs/superpowers/plans/2026-09-10-calculus-property-suite.m
 manner that ensures this, and vigilant for examples that stress our implementation." It governs
 the fix arc below and everything after it.
 
-**State:** full suite **4,936 passed, 226 skipped, 1 xfailed, 1 failed** (40m59s). The one failure is
-`test_performance_working.py::test_memory_stability`: it measured 122.59 MB of memory growth
-against a 120 MB threshold that its own comment sizes for a warm process. It does not reproduce.
-Alone the test grows 0.09 MB, after the calculus files 0.00 MB, and a rerun of every file up to
-it in one process gave 103.11 MB and passed. It is a threshold near the edge of warm-process
-noise, not a leak, and nothing in this arc touches the code it exercises. Left as it is, for you.
+**State:** full suite on the merged tree **4,946 passed, 226 skipped, 10 deselected, 4 xfailed,
+0 failed** (41m24s). Three of the four xfails are the strict IT- controls, which turn into an
+XPASS — and so into a suite failure — the moment IT- is fixed. An earlier run at `169b94c` had
+one failure, `test_performance_working.py::test_memory_stability`: 122.59 MB of memory growth
+against a 120 MB threshold that its own comment sizes for a warm process. It passed on the
+merged tree and does not reproduce. Alone the test grows 0.09 MB, after the calculus files
+0.00 MB, and a rerun of every file up to it in one process gave 103.11 MB and passed. It is a
+threshold near the edge of warm-process noise, not a leak, and nothing in this arc touches the
+code it exercises. The threshold was deliberately **not** loosened: one that follows the
+measurement guards nothing.
 Quality gate green, 152 core tests. Tree clean apart from a pre-existing
 `.vscode/settings.json`. `.core_modification_authorized` exists (gitignored); nothing under `src/`
 changed in this arc.
@@ -270,9 +275,10 @@ and the six missing entry points.
 `ligature_manipulation_rules`, `egi_core_dau`), and step 7 may. Confirm each protected-core edit
 with the author at the start of that arc. Steps 5 and 6 touch nothing protected.
 
-**Deferred minors.** The SDD ledger lists them under "minor (deferred)", for the final
-whole-branch review to triage:
-`.superpowers/sdd/2026-09-10-calculus-property-suite/progress.md`.
+**Deferred minors, and the decision trail.** The run's ledger is preserved at
+[runs/RUN_CALCULUS_SUITE_LEDGER.md](runs/RUN_CALCULUS_SUITE_LEDGER.md): every controller ruling,
+every finding as it was made, and the deferred minors under "minor (deferred)" with the final
+review's triage (one was must-fix and is fixed; the rest can wait for the fix arc).
 
 ---
 
