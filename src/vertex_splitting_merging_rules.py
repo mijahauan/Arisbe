@@ -340,7 +340,12 @@ class VertexMergingRule(FormalTransformationRule):
         ):
             return False, "Both selected elements must be vertices"
 
-        refusal = self._refuse_constant_vertices(egi, (v1_id, v2_id))
+        # Def 16.6 (p.176) erases v2 and keeps v1, so Def 24.10's genericity
+        # condition (p.270) falls on v2 alone: merging a generic vertex INTO a
+        # constant keeps the name and is an equivalence; merging the constant
+        # away loses it. v2 is the vertex this rule's apply_transformation
+        # erases (both take it from the same list of the same selection).
+        refusal = self._refuse_constant_vertices(egi, (v2_id,))
         if refusal:
             return False, refusal
 
@@ -405,7 +410,8 @@ class VertexMergingRule(FormalTransformationRule):
     def _refuse_constant_vertices(
         self, egi: RelationalGraphWithCuts, vertex_ids
     ) -> Optional[str]:
-        """Def 24.10 (p.270-272): the ligature rules move generic vertices only.
+        """Def 24.10 (p.270): the vertex a ligature rule ERASES must be generic.
+        ``vertex_ids`` is therefore the erased vertex, never the whole selection.
         Shared with the Chapter 16 ligature rules so the refusal reads the same
         wherever it comes from (imported inside the method: the two modules are
         siblings and neither may import the other at module level)."""
@@ -433,7 +439,9 @@ class VertexMergingRule(FormalTransformationRule):
         selection and cannot express this; ``_apply_vertex_merge`` performs the
         operation and checks nothing. This is the ordered, checked entry point.
         """
-        refusal = self._refuse_constant_vertices(egi, (v1_id, v2_id))
+        # Only v2 — the vertex merging erases (Def 16.6, p.176; Def 24.10,
+        # p.270). v1 survives with whatever name it carries.
+        refusal = self._refuse_constant_vertices(egi, (v2_id,))
         if refusal:
             return TransformationResult(False, None, refusal, {})
 

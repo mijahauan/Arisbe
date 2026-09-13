@@ -148,6 +148,44 @@ def test_merging_refuses_a_constant_vertex_and_still_merges_generic_ones():
     assert ok.applied and len(ok.result.V) == 1
 
 
+def test_a_lawful_move_over_a_constant_anchor_applies():
+    """Def 24.10 (p.270) restricts genericity to the vertex ADDED or REMOVED:
+    "Let v ∈ V be a vertex which is attached to a hook (e,i) … a new GENERIC
+    vertex v′ and a new identity-edge between v and v′ is inserted". So a
+    constant may anchor an extension, and a generic vertex may be merged INTO
+    a constant — the name survives, and the adjudication's own control measures
+    that merge as an equivalence. The first form of this condition tested the
+    whole selection and refused both: a lawful move blocked."""
+    from calculus_apply import apply_move
+    g = parse_egif('(= "a" *y) (P y)')
+    a = next(v.id for v in g.V if v.label == "a")
+    y = next(v.id for v in g.V if v.is_generic)
+    join = next(e for e in g.nu if g.rel[e] == "=")
+
+    ext = apply_move(g, Move("EXTEND_LIGATURE", (a,), g.sheet))
+    assert ext.applied and not ext.crashed, ext.message
+    assert len(ext.result.V) > len(g.V)                 # v′ added, "a" still there
+    assert {v.label for v in ext.result.V if v.label} == {"a"}
+
+    merged = apply_move(g, Move("MERGE_VERTICES", (a, y, join)))
+    assert merged.applied and not merged.crashed, merged.message
+    assert {v.label for v in merged.result.V} == {"a"}  # the name survives
+
+
+def test_a_merge_that_would_erase_the_name_is_still_refused():
+    """The other direction of the same move, which the narrowing must keep out:
+    merging the constant INTO the generic vertex erases "a", and with it the
+    only thing the graph says about that object by name (Def 24.10, p.270 —
+    the vertex removed must be generic)."""
+    from calculus_apply import apply_move
+    g = parse_egif('(= "a" *y) (P y)')
+    a = next(v.id for v in g.V if v.label == "a")
+    y = next(v.id for v in g.V if v.is_generic)
+    join = next(e for e in g.nu if g.rel[e] == "=")
+    out = apply_move(g, Move("MERGE_VERTICES", (y, a, join)))
+    assert not out.applied and "generic" in out.message
+
+
 def test_the_survivor_does_not_depend_on_the_hash_seed():
     """Two vertices, both generic, one ligature: whichever survives, the
     choice is a function of the graph (canonical signature), not of the

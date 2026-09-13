@@ -42,12 +42,28 @@ def _canonical_vertex_order(
 def _refuse_constant_vertices(
     egi: RelationalGraphWithCuts, vertex_ids
 ) -> Optional[str]:
-    """Def 24.10 (p.270-272) states the transformation rules for ligatures over
-    *generic* vertices ("in the rules 'adding a generic vertex to a ligature'
-    and 'removing a generic vertex from a ligature', only generic vertices are
-    considered", p.272). A constant vertex's name is part of what the graph
-    says; the one rule that joins constants is the Constant Identity Rule
-    (p.271), and it requires ρ(v) = ρ(w). Returns a refusal, or None.
+    """Def 24.10 (p.270) restricts genericity to the vertex ADDED or REMOVED.
+
+    "adding a generic vertex to a ligature: Let v ∈ V be a vertex which is
+    attached to a hook (e, i) … In c, a new GENERIC vertex v′ and a new
+    identity-edge between v and v′ is inserted" — v may be any vertex,
+    constant included; only v′ must be generic. "removing a generic vertex
+    from a ligature" is that rule reversed, so it is again v′ — the vertex
+    that goes — that must be generic. p.272's "only generic vertices are
+    considered" is about those two rules' own v′, not about every vertex of
+    the ligature: Def 24.9 (p.269) deliberately lets a ligature mix generic
+    and constant vertices, and Deseparating (p.271) works on constant ones.
+
+    So ``vertex_ids`` is the vertices the caller is about to ERASE (or add),
+    never the whole selection. The first form of this guard passed the whole
+    selection and refused lawful moves: an extension anchored on a constant, a
+    rearrangement of a constant ligature, and the merge of a generic vertex
+    INTO a constant — which keeps the name, and which the suite's own control
+    measures as an equivalence.
+
+    A constant vertex's name is part of what the graph says, so erasing one is
+    not a ligature move at all; the rule that joins constants is the Constant
+    Identity Rule (p.271), which requires ρ(v) = ρ(w). Returns a refusal, or None.
     """
     by_id = {v.id: v for v in egi.V}
     named = sorted(
@@ -131,9 +147,10 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         if not va or not vb:
             return False, "Selected elements must be vertices"
 
-        refusal = _refuse_constant_vertices(egi, (va_id, vb_id))
-        if refusal:
-            return False, refusal
+        # No genericity condition here: Lemma 16.1 (p.169) moves a hook and
+        # adds or removes no vertex, so Def 24.10's generic v′ (p.270) has
+        # nothing to bind to. v_aΘv_b makes the two denote one object, so
+        # moving a hook between them is sound whatever names they carry.
 
         # Check if vertices are in same context
         va_context = self._get_vertex_context(egi, va_id)
@@ -372,9 +389,10 @@ class ExtendRestrictLigatureRule(FormalTransformationRule):
         if not any(v.id == vertex_id for v in egi.V):
             return False, "Selected element must be a vertex"
 
-        refusal = _refuse_constant_vertices(egi, (vertex_id,))
-        if refusal:
-            return False, refusal
+        # No genericity condition on the anchor: Def 24.10 (p.270) is explicit
+        # that the vertex an extension hangs from is any "v ∈ V" and only the
+        # ADDED vertex v′ is generic — which the ones this rule creates are,
+        # by construction (Vertex(id) with no label).
 
         # Check if vertex is on a ligature (has identity connections)
         has_identity_connections = False
@@ -525,7 +543,12 @@ class RetractLigatureRule(FormalTransformationRule):
             if not any(v.id == vertex_id for v in egi.V):
                 return False, f"Selected element {vertex_id} is not a vertex"
 
-        refusal = _refuse_constant_vertices(egi, selected_vertices)
+        # Lemma 16.3 (p.173) keeps w0 and ERASES W\{w0}, so Def 24.10's
+        # condition (p.270) falls on the erased vertices only: w0 may carry a
+        # name — retracting `(= "a" *y)` onto "a" keeps it — while erasing one
+        # would take a name the graph asserts with it. selected_vertices[0] is
+        # w0 (the canonical order this rule's apply_transformation also uses).
+        refusal = _refuse_constant_vertices(egi, selected_vertices[1:])
         if refusal:
             return False, refusal
 
@@ -741,9 +764,12 @@ class LigatureRearrangementRule(FormalTransformationRule):
             if not any(v.id == vertex_id for v in egi.V):
                 return False, f"Selected element {vertex_id} is not a vertex"
 
-        refusal = _refuse_constant_vertices(egi, selected_vertices)
-        if refusal:
-            return False, refusal
+        # No genericity condition: this rule replaces (W, F) by (W', F') with
+        # W' = W — it rewires identity edges and adds or removes no vertex
+        # (apply_transformation below keeps egi.V untouched), so Def 24.10's
+        # generic v′ (p.270) has nothing to bind to. Def 24.9 (p.269) lets a
+        # ligature mix generic and constant vertices, and rearranging one
+        # changes no name.
 
         # Check if vertices form a connected ligature
         if not self._vertices_form_ligature(egi, selected_vertices):

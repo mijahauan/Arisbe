@@ -195,12 +195,8 @@ def test_rearrange_ligature_may_choose_the_same_shape():
     rearrangement is necessarily isomorphic to the source — licensed, not a
     no-op defect. Pinned to the engine's own output (a fresh edge id), the
     live instance found in Step 5 (A|813a0c4dfed7030b#0|REARRANGE_LIGATURE|...),
-    not the identical-object stand-in.
-
-    A GENERIC line: Task 7 gave the rule Def 24.10's condition (p.270-272,
-    "only generic vertices are considered"), so the constant pair this was
-    first written with — `(= "a" "b")` — is now refused, and rightly."""
-    g = parse_egif("(= *x *y)")
+    not the identical-object stand-in."""
+    g = parse_egif('(= "a" "b")')
     v1, v2 = sorted(v.id for v in g.V)
     m = Move("REARRANGE_LIGATURE", (v1, v2), g.sheet)
     outcome = apply_move(g, m)
@@ -213,13 +209,14 @@ def test_rearrange_ligature_reshape_preserves_partition_and_hooks():
     """A genuine 3-vertex reshape (beyond the 2-vertex degenerate case above):
     the real engine's own output on a path ligature carrying a hook, checked
     against Def 16.4 (p.174) / Cor 16.5 (p.175) independently of the engine's
-    own partition self-check.
+    own partition self-check (ligature_manipulation_rules.py).
 
-    A GENERIC path, for the same reason as the test above: Def 24.10 (p.270-272)
-    keeps the ligature rules off constant vertices."""
-    g = parse_egif("(P *x) (= x *y) (= y *z)")
-    join = sorted(e for e in g.nu if g.rel[e] == "=")[0]
-    m = Move("REARRANGE_LIGATURE", tuple(g.nu[join]), g.sheet)
+    A CONSTANT path, selected by label: rearrangement adds and removes no
+    vertex, so Def 24.10's genericity condition (p.270) does not reach it —
+    Def 24.9 (p.269) lets a ligature mix generic and constant vertices."""
+    g = parse_egif('(P "a") (= "a" "b") (= "b" "c")')
+    labels = {v.label: v.id for v in g.V}
+    m = Move("REARRANGE_LIGATURE", (labels["a"], labels["b"]), g.sheet)
     outcome = apply_move(g, m)
     assert outcome.applied
     rec = Record("A", "hand", g, m, "hand|rearrange-reshape", outcome, None, "not judged")
