@@ -208,4 +208,9 @@ def normalize_constants(
         result = result.without_element(twin)
     for edge, arguments, relation, area in carried:
         result = result.with_edge(edge, arguments, relation, context_id=area)
-    return result
+    # The survivor inherits its twins' edges, so it must dominate them all
+    # (Def 12.5, p.125). Keeping it where the id sort left it put edges outside
+    # their own vertex's context whenever the twins sat in sibling cuts, or the
+    # survivor sat deeper than a twin's edge. This is the module's own
+    # "outward only" rule, applied to the merged line.
+    return hoist_vertices_to_lca(result)
