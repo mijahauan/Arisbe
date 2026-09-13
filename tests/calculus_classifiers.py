@@ -132,9 +132,6 @@ REFUSAL: Dict[str, Pred] = {
         lambda r, d: _rule(r, "IT-") and not r.outcome.applied and not r.outcome.crashed and (
             "No enclosing areas" in r.outcome.message
             or "No isomorphic original" in r.outcome.message),
-    "it-minus-erases-a-copy-of-another-line":
-        lambda r, d: _rule(r, "IT-") and r.outcome.applied and r.verdict is False
-        and "no source of which this is a copy" in r.why,
     "dc-plus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "DC+") and _named_apart(r),
     "dc-plus-strands-a-vertex":
@@ -196,9 +193,6 @@ STRUCTURE: Dict[str, Pred] = {
 # -- soundness ----------------------------------------------------------------
 
 SOUNDNESS: Dict[str, Pred] = {
-    "it-minus-erases-a-copy-of-another-line-changes-meaning":
-        lambda r, d: _rule(r, "IT-") and r.verdict is False
-        and "no source of which this is a copy" in r.why,
     "vertex-era-erases-a-line-not-an-equivalence":
         lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
     # The discriminating condition is erased_constants: a genuine mechanism

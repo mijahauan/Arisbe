@@ -4484,58 +4484,6 @@
    }
   },
   {
-   "id": "it-minus-erases-a-copy-of-another-line",
-   "layer": "refusal",
-   "rule": "IT-",
-   "classifier": "it-minus-erases-a-copy-of-another-line",
-   "reason": "PROVISIONAL — for the author: Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration could have inserted it, and iteration copies every vertex of the source fresh (V′ := V×{1} ∪ V₀×{2}), linking a copy to an outside vertex w only by an identity edge, and only where wΘv (the same line). So a candidate that hooks, outside itself, a DIFFERENT vertex from the one its supposed source hooks — another line, or another name — is not a copy. The engine's search for the original (ITMinusInteraction via graph_isomorphism_engine) ignores the identity of every vertex outside the copy, names included, and erases such a candidate anyway. What it does compare lies inside the copy: (P \"a\") ~[ (P \"b\") ] is refused, the vertex of \"b\" sitting in the cut with the candidate edge; with both names on the sheet, outside the copy, the name-against-name control (Q \"a\") (Q \"b\") ~[ (P \"b\") ] ~[ ~[ (P \"a\") ] ] has its cut ~[ (P \"a\") ] deiterated against ~[ (P \"b\") ]: the satisfiable graph becomes (Q \"a\") (Q \"b\") ~[ (P \"b\") ] ~[ ], unsatisfiable — UNSOUND. Measured by calculus_adjudication in the default mode: every move in this entry is a tier-B move legal() rejects ('no source of which this is a copy'), and on every one a source exists once each outside vertex may match ANY vertex (source_on_any_vertex); on only some does one exist when it must match a vertex of the same kind (source_on_another_line) — e.g. foaf_core's Person(x) erased because Person(\"Bob\") stands in an enclosing context. None of those corpus results separates from G at domain sizes 1–2 (the difference is inert where they sit). It is not inert in general: the hand-built controls (IT_MINUS_CONTROLS, printed with their separating structures, and held as strict xfails by test_calculus_it_minus_controls) — *x *y (P x) ~[ (P y) ] (satisfiable) is deiterated to *x *y (P x) ~[ ] (unsatisfiable), UNSOUND; *y (P \"a\") ~[ (P y) ] likewise; and the name-against-name control above. Tier A cannot build these shapes (the exhaustive bound is four elements), which is why tier B found it. In the exhaustive mode (calculus_adjudication --exhaustive): 64 moves in 64 keys, all tier B; a source exists for all 64 once any vertex may match, for 24 with a vertex of the same kind; 59 are equivalences at sizes 1–2, and the other 5 — on group_identity's chain states — change meaning, some UNSOUND (soundness entry it-minus-erases-a-copy-of-another-line-changes-meaning).",
-   "instances": {
-    "SEVERE": [
-     "B|agon_evolution_swan:current|IT-|e03f71f3e32c",
-     "B|arithmetic_from_two_laws:current|IT-|fe8bbd56414c",
-     "B|colore_between:current|IT-|9a9fe75671a3",
-     "B|colore_between:current|IT-|9e77fe41c7dd",
-     "B|colore_between:current|IT-|b831cdf031e7",
-     "B|episode_discharge:current|IT-|b03dcf87f262",
-     "B|episode_discharge:current|IT-|e507fd2e12b9",
-     "B|foaf_core:current|IT-|b71c12277ca3",
-     "B|foaf_core:current|IT-|c8da239c46cd",
-     "B|foaf_core:current|IT-|fc4e98c54aeb",
-     "B|peirce_order_1881:current|IT-|0ebcb961fe94",
-     "B|peirce_order_1881:current|IT-|c06fc324531e",
-     "B|peirce_order_1881:current|IT-|ff5624544648",
-     "B|porphyry_tree:current|IT-|376c15ba50a1",
-     "B|porphyry_tree:current|IT-|873e12a7201f",
-     "B|skos_core:current|IT-|31922dddf26e",
-     "B|skos_core:current|IT-|4b06bd1d5362",
-     "B|skos_core:current|IT-|50c2d3382380",
-     "B|skos_core:current|IT-|61476fcddd13",
-     "B|skos_core:current|IT-|6ff63d92849e",
-     "B|skos_core:current|IT-|b2ff248ccebd",
-     "B|skos_core:current|IT-|e0eeffe6861b",
-     "B|skos_core:current|IT-|ee71585d3235",
-     "B|skos_core:current|IT-|faa58d69ea91",
-     "B|swan_alternatives:current|IT-|ac6c36385fb7",
-     "B|swan_alternatives:current|IT-|f5e53c4ee7d6",
-     "B|swan_episode_unpacked:current|IT-|0ee64b490733",
-     "B|swan_episode_unpacked:current|IT-|479924542af7",
-     "B|swan_episode_unpacked:current|IT-|e27abb6070ce",
-     "B|zoo_world:current|IT-|4ccb1a0ec458",
-     "B|zoo_world:current|IT-|699c4c9c2653",
-     "B|zoo_world:current|IT-|6bb2ab2da87f",
-     "B|zoo_world:current|IT-|9505bf32c16d",
-     "S|arguments-swapped|IT-|f9eef3014c99",
-     "S|name-against-name|IT-|61c17b7a829e",
-     "S|theta-linked-copy|IT-|93f9d905a62e"
-    ]
-   },
-   "counts": {
-    "exhaustive": {
-     "SEVERE": 64
-    }
-   }
-  },
-  {
    "id": "it-minus-refuses-a-cut-named-with-its-contents",
    "layer": "refusal",
    "rule": "IT-",
@@ -5382,25 +5330,6 @@
    "counts": {
     "exhaustive": {
      "INCOMPLETE": 298
-    }
-   }
-  },
-  {
-   "id": "it-minus-erases-a-copy-of-another-line-changes-meaning",
-   "layer": "soundness",
-   "rule": "IT-",
-   "classifier": "it-minus-erases-a-copy-of-another-line-changes-meaning",
-   "reason": "PROVISIONAL — for the author: The soundness half of refusal entry it-minus-erases-a-copy-of-another-line, the same mechanism: Dau Def 15.2 deiteration (p.164, 166) erases only what iteration could have inserted — a copy hooking the source's own lines — and it is an equivalence. The engine erases an edge whose supposed original hooks a different vertex (a move legal() rejects), and on corpus graphs the result can change meaning. Measured by calculus_adjudication_soundness --exhaustive (the default mode reaches none): on group_identity's chain states, deiterating (M x1 x2 x4) beside (M x1 x2 x3) in ~[ *x1 *x2 *x3 *x4 (M x1 x2 x3) (M x1 x2 x4) ~[ (= x3 x4) ] ] is UNSOUND (5 moves in 5 keys, all tier B: 4 UNSOUND, 1 not an equivalence) — separating structure Structure(2, (), (('M', ((0, 0, 0), (1, 0, 1))),)) models G but not G′ — and erasing (M z y z) from *x *y (M x y y) ~[ *z ~[ (M z y z) ] ] … loses the equivalence. Every key is an instance of that refusal entry (in_refusal_entry); figures by kind are the pinned exhaustive counts.",
-   "instances": {
-    "UNSOUND": [
-     "S|arguments-swapped|IT-|f9eef3014c99",
-     "S|name-against-name|IT-|61c17b7a829e"
-    ]
-   },
-   "counts": {
-    "exhaustive": {
-     "NOT AN EQUIVALENCE": 1,
-     "UNSOUND": 4
     }
    }
   },

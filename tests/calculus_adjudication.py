@@ -143,33 +143,6 @@ REASONS = {
         "so there it is not shown to be an input-form restriction alone; at tier B the top-"
         "elements move is applied on all 14 (tops_only_applied 14 of 22). Ledgered by count in "
         "the exhaustive mode."),
-    "it-minus-erases-a-copy-of-another-line": ("IT-", SEVERE,
-        P + "Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration "
-        "could have inserted it, and iteration copies every vertex of the source fresh "
-        "(V′ := V×{1} ∪ V₀×{2}), linking a copy to an outside vertex w only by an identity edge, "
-        "and only where wΘv (the same line). So a candidate that hooks, outside itself, a "
-        "DIFFERENT vertex from the one its supposed source hooks — another line, or another "
-        "name — is not a copy. The engine's search for the original (ITMinusInteraction via "
-        "graph_isomorphism_engine) ignores the identity of every vertex outside the copy, names "
-        "included, and erases such a candidate anyway. What it does compare lies inside the "
-        "copy: (P \"a\") ~[ (P \"b\") ] is refused, the vertex of \"b\" sitting in the cut with the "
-        "candidate edge; with both names on the sheet, outside the copy, the name-against-name "
-        "control (Q \"a\") (Q \"b\") ~[ (P \"b\") ] ~[ ~[ (P \"a\") ] ] has its cut ~[ (P \"a\") ] "
-        "deiterated against ~[ (P \"b\") ]: the satisfiable graph becomes (Q \"a\") (Q \"b\") "
-        "~[ (P \"b\") ] ~[ ], unsatisfiable — UNSOUND. Measured by calculus_adjudication in the "
-        "default mode: every move in this entry is a tier-B move legal() rejects ('no source of "
-        "which this is a copy'), and on every one a source exists once each outside vertex may "
-        "match ANY vertex (source_on_any_vertex); on only some does one exist when it must match "
-        "a vertex of the same kind (source_on_another_line) — e.g. foaf_core's Person(x) erased "
-        "because Person(\"Bob\") stands in an enclosing context. None of those corpus results "
-        "separates from G at domain sizes 1–2 (the difference is inert where they sit). It is "
-        "not inert in general: the hand-built controls (IT_MINUS_CONTROLS, printed with their "
-        "separating structures, and held as strict xfails by test_calculus_it_minus_controls) — "
-        "*x *y (P x) ~[ (P y) ] (satisfiable) is deiterated to *x *y (P x) ~[ ] "
-        "(unsatisfiable), UNSOUND; *y (P \"a\") ~[ (P y) ] likewise; and the name-against-name "
-        "control above. Tier A cannot build these shapes (the exhaustive bound is four elements), "
-        "which is why tier B found it. "
-        "In the exhaustive mode (calculus_adjudication --exhaustive): 64 moves in 64 keys, all tier B; a source exists for all 64 once any vertex may match, for 24 with a vertex of the same kind; 59 are equivalences at sizes 1–2, and the other 5 — on group_identity's chain states — change meaning, some UNSOUND (soundness entry it-minus-erases-a-copy-of-another-line-changes-meaning)."),
     "it-minus-strictly-enclosing-only": ("IT-", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): iteration copies into any c ≤ ctx(G0), c = ctx(G0) included, "
         "and deiteration erases whatever iteration could have inserted — so a copy whose source "
@@ -269,11 +242,6 @@ def measure(rec, eid, c: Counter):
     elif eid.endswith("-cut-named-with-its-contents"):
         t = tuple(tops(g, expand(g, m.selection)))
         c["tops_only_applied"] += apply_move(g, Move(m.rule, t, m.target, m.content)).applied
-    elif eid == "it-minus-erases-a-copy-of-another-line":
-        X = expand(g, m.selection)
-        c["source_on_another_line"] += bool(_relaxed_source(g, X))
-        c["source_on_any_vertex"] += bool(_relaxed_source(g, X, any_vertex=True))
-        c["equivalent"] += all(_entail(g, out.result))
     elif eid == "ins-mixes-arities-without-an-alphabet":
         c["no_declared_alphabet"] += g.alphabet is None
         c["sound"] += _entail(g, out.result)[0]
@@ -287,31 +255,8 @@ def measure(rec, eid, c: Counter):
         c["on_sheet" if "No enclosing areas" in out.message else "in_a_cut"] += 1
 
 
-def _relaxed_source(g, X, any_vertex=False) -> bool:
-    """legal()'s deiteration search with line identity ignored: an edge's
-    vertex outside the copy may match another vertex of the same kind (same
-    constant, or any generic line) — or, with ``any_vertex``, ANY vertex, name
-    or line. True means the engine's match is a copy up to that choice."""
-    import calculus_rules as cr
-    strict = cr._same_kind
-
-    def outside(g_, v, w, vmap, cuts):
-        return w in vmap if any_vertex else strict(g_, v, w, vmap, cuts, set(), {})
-
-    def relaxed(g_, x, y, vmap, cuts, X_, f):
-        if x in g_.nu and y in g_.nu and g_.rel[x] == g_.rel[y] and len(g_.nu[x]) == len(g_.nu[y]):
-            return all((f.get(v) == w) if v in X_ else outside(g_, v, w, vmap, cuts)
-                       for v, w in zip(g_.nu[x], g_.nu[y]))
-        return strict(g_, x, y, vmap, cuts, X_, f)
-    cr._same_kind = relaxed
-    try:
-        c = cr._one_context(g, X)
-        return c is not None and bool(cr._source_of_copy(g, X, c))
-    finally:
-        cr._same_kind = strict
-
-
-# Also held, as strict xfails, by tests/test_calculus_it_minus_controls.py.
+# Also held, as collected tests, by tests/test_calculus_it_minus_controls.py: since
+# the Task 6 copy condition (Dau Def 15.2, p.166) the engine refuses all four.
 IT_MINUS_CONTROLS = ("*x *y (P x) ~[ (P y) ]", '*y (P "a") ~[ (P y) ]', '(P "a") ~[ (P "b") ]',
                      '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]')
 

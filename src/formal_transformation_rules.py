@@ -1403,21 +1403,54 @@ class DeiterationRule(FormalTransformationRule):
     def _check_deiteration_with_isomorphism_engine(
         self, context: TransformationContext
     ) -> Tuple[bool, Optional[str]]:
-        """Check deiteration validity using the sophisticated isomorphism engine."""
+        """Check deiteration validity: a structural match in the nest of cuts
+        that is also a *copy*.
+
+        Dau Def 15.2 (p.166): iteration copies G0's own vertices (V0 × {2}) and
+        reaches a vertex outside the copy only through an identity edge
+        e_{v,w} with wΘv — the same line. So a candidate whose edge hooks an
+        outside vertex is a copy only if the original hooks *that very vertex*
+        at that position. The isomorphism engine matches structure alone, which
+        is why the engine deiterated non-copies: `*x *y (P x) ~[ (P y) ]` and,
+        with names, `(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]`.
+        """
         egi = context.source_egi
-        selected_subgraph = context.selected_subgraph
-        target_area = context.target_area
+        selected = context.selected_subgraph
+        nesting_hierarchy = self._get_nesting_hierarchy(egi, context.target_area)
+        search_areas = [a for a in nesting_hierarchy if a != context.target_area]
 
-        # Build nesting hierarchy from target area to sheet
-        nesting_hierarchy = self._get_nesting_hierarchy(egi, target_area)
-
-        # Use IsomorphismValidator for rigorous structural checking
         validator = IsomorphismValidator()
-        is_valid, error_message = validator.validate_deiteration_candidate(
-            egi, selected_subgraph, target_area, nesting_hierarchy
+        matches = validator.engine.find_isomorphic_subgraphs(egi, selected, search_areas)
+        if not matches:
+            return False, "No structurally identical subgraph found in nest of cuts"
+
+        for _area, _image, mapping in matches:
+            if self._match_is_a_copy(egi, selected, mapping):
+                return True, None
+        return False, (
+            "No isomorphic original found whose edges reach the same lines: a copy "
+            "hooks an outside vertex only along that same line (Dau Def 15.2, p.166)"
         )
 
-        return is_valid, error_message
+    def _match_is_a_copy(self, egi, selected, mapping) -> bool:
+        """Every edge of the candidate must reach, at each position, either the
+        image of a selected vertex or the very same outside vertex."""
+        for edge_id in selected:
+            if edge_id not in egi.nu:
+                continue
+            source_edge = mapping.edge_mapping.get(edge_id)
+            if source_edge is None or source_edge not in egi.nu:
+                return False
+            copy_args, source_args = egi.nu[edge_id], egi.nu[source_edge]
+            if len(copy_args) != len(source_args):
+                return False
+            for position, vertex_id in enumerate(copy_args):
+                if vertex_id in selected:
+                    if mapping.vertex_mapping.get(vertex_id) != source_args[position]:
+                        return False
+                elif source_args[position] != vertex_id:
+                    return False
+        return True
 
     def _basic_deiteration_validation(
         self, context: TransformationContext

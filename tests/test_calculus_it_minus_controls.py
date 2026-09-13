@@ -1,19 +1,28 @@
 """IT- deiterating what is not a copy, held by collected tests (Dau Def 15.2,
-p.164-166; ledger entry it-minus-erases-a-copy-of-another-line and its
-soundness half it-minus-erases-a-copy-of-another-line-changes-meaning).
+p.164-166).
 
 Deiteration erases only what iteration could have inserted, and iteration
-hooks a copy to an outside vertex only along the same line. The engine ignores
-the identity of every vertex outside the copy, names included, so it erases
-candidates that are not copies, and on these hand-built controls the result is
-UNSOUND. The corpus instances of the entry happen to be inert, so a partial
-fix to IT- could shrink the ledger and go green while these survive: the
-controls are the instrument that tells a real repair from a partial one.
+hooks a copy to an outside vertex only along the same line.
 
-Each unsound application is a strict xfail. A fix to IT- flips it to XPASS,
-which strict mode fails until the xfail is removed — the ledger's SHRINK
-discipline, applied to the controls. The controls are calculus_adjudication's,
-so the script's printed figures and these tests cover one list.
+History. The engine ignored the identity of every vertex outside the copy,
+names included, so it erased candidates that are not copies, and on these
+hand-built controls the result was UNSOUND — ledger entries
+it-minus-erases-a-copy-of-another-line (refusal, SEVERE) and its soundness
+half it-minus-erases-a-copy-of-another-line-changes-meaning. The corpus
+instances of those entries happened to be inert, so a partial fix to IT- could
+shrink the ledger and go green while these survived: the controls were the
+instrument that told a real repair from a partial one. Each unsound
+application was a strict xfail, so a fix flipped it to XPASS, which strict
+mode failed until the xfail was removed.
+
+FIXED by this arc's Task 6, commit "IT- erases only a copy, not a look-alike
+(Dau Def 15.2, p.166)": DeiterationRule._check_deiteration_with_isomorphism_engine
+now filters the isomorphism engine's structural matches through
+_match_is_a_copy, and both ledger entries were retired. The three xfails are
+gone; what stands below is the positive fact — each of the three is refused,
+with the copy condition's message, and legal() still finds no source. The
+controls are calculus_adjudication's, so the script's printed figures and
+these tests cover one list.
 """
 import pytest
 
@@ -31,12 +40,8 @@ NAME_AGAINST_NAME = '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]'
 APPLIED = {"another-line": ANOTHER_LINE, "name-against-line": NAME_AGAINST_LINE,
            "name-against-name": NAME_AGAINST_NAME}
 
-XFAIL_REASON = (
-    "ledger it-minus-erases-a-copy-of-another-line (refusal, SEVERE) and "
-    "it-minus-erases-a-copy-of-another-line-changes-meaning (soundness): Dau Def 15.2 "
-    "deiteration (p.164-166) erases only what iteration could have inserted; the engine "
-    "deiterates this non-copy and the result is UNSOUND. XPASS means IT- was fixed: "
-    "remove this xfail and shrink those entries.")
+# The copy condition's refusal, from DeiterationRule (Dau Def 15.2, p.166).
+COPY_REFUSAL = "No isomorphic original found whose edges reach the same lines"
 
 
 def _case(text):
@@ -58,8 +63,9 @@ def test_legal_finds_no_source_for_any_control(text):
 
 
 def test_a_name_inside_the_copy_is_compared_and_refused():
-    """The refusal the entry records: the vertex of "b" sits in the cut with
-    the candidate edge, where the engine compares it."""
+    """The refusal the entry recorded: the vertex of "b" sits in the cut with
+    the candidate edge, where the engine compares it — so this one was always
+    refused, before the copy condition and after it."""
     rec, (label, detail) = _case(NAME_INSIDE_THE_COPY)
     out = rec.outcome
     assert not out.applied and not out.crashed
@@ -67,15 +73,18 @@ def test_a_name_inside_the_copy_is_compared_and_refused():
     assert (label, detail) == ("not:IT-:refused", None)
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=XFAIL_REASON)
 @pytest.mark.parametrize("text", list(APPLIED.values()), ids=list(APPLIED))
 def test_a_non_copy_is_not_deiterated(text):
+    """Each of the three the engine used to deiterate is now refused by the
+    copy condition, and legal() still finds no source of which the candidate
+    is a copy (Dau Def 15.2, p.166: iteration copies G0's vertices fresh and
+    reaches an outside vertex only along that same line)."""
     rec, (label, detail) = _case(text)
     out = rec.outcome
-    # The recorded fact: the engine applies the move and the result is UNSOUND.
-    # Anything else — a crash, or an application that is no longer UNSOUND —
-    # is a change to read, not a fix, and fails outright (not an xfail).
-    if out.crashed or (out.applied and not (detail or "").startswith("UNSOUND")):
-        pytest.fail(f"the recorded fact moved: applied={out.applied} crashed={out.crashed} "
-                    f"soundness={label} {detail} {out.message[:120]}")
-    assert not out.applied, f"the engine deiterates a non-copy: {detail}"
+    assert not out.applied and not out.crashed, out.message
+    assert COPY_REFUSAL in out.message, out.message
+    assert "Dau Def 15.2, p.166" in out.message, out.message
+    # legal() judged these illegal all along; the engine now agrees.
+    assert (rec.verdict, rec.why) == (False, "no source of which this is a copy")
+    # A refused move is not evaluated for soundness: nothing left to be UNSOUND.
+    assert (label, detail) == ("not:IT-:refused", None)

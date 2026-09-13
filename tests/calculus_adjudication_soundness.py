@@ -87,20 +87,6 @@ REASONS = {
         "join_deeper on every move. The default mode reaches none (a pair plus a cut plus an "
         "identity edge exceeds its three-element bound). Separate from "
         "retract-ligature-erases-a-constant-vertex, which erases a name."),
-    "it-minus-erases-a-copy-of-another-line-changes-meaning": ("IT-", "it-minus-erases-a-copy-of-another-line",
-        P + "The soundness half of refusal entry it-minus-erases-a-copy-of-another-line, the same "
-        "mechanism: Dau Def 15.2 deiteration (p.164, 166) erases only what iteration could have "
-        "inserted — a copy hooking the source's own lines — and it is an equivalence. The engine "
-        "erases an edge whose supposed original hooks a different vertex (a move legal() "
-        "rejects), and on corpus graphs the result can change meaning. Measured by "
-        "calculus_adjudication_soundness --exhaustive (the default mode reaches none): on "
-        "group_identity's chain states, deiterating (M x1 x2 x4) beside (M x1 x2 x3) in "
-        "~[ *x1 *x2 *x3 *x4 (M x1 x2 x3) (M x1 x2 x4) ~[ (= x3 x4) ] ] is UNSOUND (5 moves in 5 "
-        "keys, all tier B: 4 UNSOUND, 1 not an equivalence) — "
-        "separating structure Structure(2, (), (('M', ((0, 0, 0), (1, 0, 1))),)) models G "
-        "but not G′ — and erasing (M z y z) from *x *y (M x y y) ~[ *z ~[ (M z y z) ] ] … loses "
-        "the equivalence. Every key is an instance of that refusal entry (in_refusal_entry); "
-        "figures by kind are the pinned exhaustive counts."),
     "vertex-era-erases-a-line-not-an-equivalence": ("VERTEX_ERA", "vertex-era-erases-a-line-with-its-edges",
         P + "The soundness half of refusal entry vertex-era-erases-a-line-with-its-edges, the "
         "same mechanism: Dau Def 15.2 (p.164, 166) erases a vertex with E_v = ∅ only, and that "
