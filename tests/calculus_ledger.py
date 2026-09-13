@@ -138,9 +138,11 @@ def instance_key(tier: str, gname: str, g, m, sigs) -> str:
     outside, ``holds`` — each selected element whose enclosing chain contains
     the target, at what depth — and ``meets`` — where the target's context
     chain meets each selected element's, in steps up from each; see _target),
-    the content, and the hooks by signature. For the ligature rules
-    the selection is signed IN ORDER, since the engine keeps (or moves from)
-    its first element (calculus_apply.InOrder).
+    the content, and the hooks by signature. For the ligature rules the
+    selection is signed IN ORDER — the enumerator's own order, which is stable
+    (sorted element ids); since Task 7 the engine's choice within a selection
+    no longer follows that order but the graph's canonical signature, so this
+    now only keeps ligature keys stable, it no longer distinguishes two moves.
 
     It does NOT distinguish moves that agree on all of that. The signature is
     a Weisfeiler-Leman refinement, not a complete invariant, so a shared key is

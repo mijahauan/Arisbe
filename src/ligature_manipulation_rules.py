@@ -19,6 +19,76 @@ from formal_transformation_rules import (
 )
 
 
+def _canonical_vertex_order(
+    egi: RelationalGraphWithCuts, vertex_ids
+) -> List[ElementID]:
+    """The selected vertices in an order that is a function of the graph.
+
+    These rules keep — or move a hook from — one vertex of an unordered
+    selection, and a frozenset iterates in the order of the per-process string
+    hash, so ``list(selection)[0]`` kept one vertex under one hash seed and
+    another under another. Canonical signatures are UUID- and seed-independent;
+    the id only breaks a tie between vertices the signature cannot tell apart,
+    which are the symmetric ones, where the two results are isomorphic anyway.
+    """
+    from canonical_signature import compute_canonical_signatures
+
+    vertex_signatures, _, _ = compute_canonical_signatures(egi)
+    return sorted(
+        vertex_ids, key=lambda v_id: (repr(vertex_signatures.get(v_id)), v_id)
+    )
+
+
+def _refuse_constant_vertices(
+    egi: RelationalGraphWithCuts, vertex_ids
+) -> Optional[str]:
+    """Def 24.10 (p.270-272) states the transformation rules for ligatures over
+    *generic* vertices ("in the rules 'adding a generic vertex to a ligature'
+    and 'removing a generic vertex from a ligature', only generic vertices are
+    considered", p.272). A constant vertex's name is part of what the graph
+    says; the one rule that joins constants is the Constant Identity Rule
+    (p.271), and it requires ρ(v) = ρ(w). Returns a refusal, or None.
+    """
+    by_id = {v.id: v for v in egi.V}
+    named = sorted(
+        v_id for v_id in vertex_ids if v_id in by_id and not by_id[v_id].is_generic
+    )
+    if named:
+        return (
+            f"The ligature rules move generic vertices only (Def 24.10, p.270-272); "
+            f"{named[0]} carries a constant name"
+        )
+    return None
+
+
+def _refuse_edges_in_another_context(
+    egi: RelationalGraphWithCuts, vertex_ids, contexts
+) -> Optional[str]:
+    """Lemma 16.3 (p.173) and Def 16.4 (p.174) both take a ligature (W, F)
+    *placed in* a context c — "ctx(w) = c = ctx(f) for all w ∈ W and f ∈ F" —
+    so every identity edge of the ligature sits in c too, not only its
+    vertices; Θ itself says the same (Def 24.9, p.269: ctx(e_i) = ctx(v_{i+1})).
+    Without this, `*x *y ~[ (= x y) ]` retracts to `*x ~[ ]`: true becomes
+    false, because that edge was an assertion under a negation, not wiring.
+    """
+    (ligature_context,) = contexts
+    selected = set(vertex_ids)
+    for edge_id, vertex_sequence in sorted(egi.nu.items()):
+        if (
+            egi.rel.get(edge_id) == "="
+            and len(vertex_sequence) == 2
+            and vertex_sequence[0] in selected
+            and vertex_sequence[1] in selected
+            and egi.get_context(edge_id) != ligature_context
+        ):
+            return (
+                f"The ligature's identity edges must lie in the same context as its "
+                f"vertices (Lemma 16.3, p.173): {edge_id} sits in "
+                f"{egi.get_context(edge_id)}, the vertices in {ligature_context}"
+            )
+    return None
+
+
 class MoveBranchesAlongLigatureRule(FormalTransformationRule):
     """
     Lemma 16.1: Moving Branches along a Ligature in a Context
@@ -50,16 +120,20 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         if len(context.selected_subgraph) != 2:
             return False, "Must select exactly two vertices for branch moving"
 
-        vertices = list(context.selected_subgraph)
+        egi = context.source_egi
+        vertices = _canonical_vertex_order(egi, context.selected_subgraph)
         va_id, vb_id = vertices[0], vertices[1]
 
         # Verify both are vertices
-        egi = context.source_egi
         va = self._get_vertex_by_id(egi, va_id)
         vb = self._get_vertex_by_id(egi, vb_id)
 
         if not va or not vb:
             return False, "Selected elements must be vertices"
+
+        refusal = _refuse_constant_vertices(egi, (va_id, vb_id))
+        if refusal:
+            return False, refusal
 
         # Check if vertices are in same context
         va_context = self._get_vertex_context(egi, va_id)
@@ -71,6 +145,20 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         # Check if vertices are on the same ligature (connected by identity edges)
         if not self._vertices_on_same_ligature(egi, va_id, vb_id):
             return False, "Vertices must be on the same ligature (vaΘvb relation)"
+
+        # Lemma 16.1 (p.169-171): the lemma moves ONE hook (e, i) on v_a, and
+        # its proof deiterates v3/e4/e1 as a copy of v2 — which needs v_aΘv_b
+        # to hold in the graph *without* the hook being moved. So the side
+        # condition is about the hook actually moved, not about every edge on
+        # v_a: _hook_to_move takes the first hook the lemma licenses and passes
+        # over one whose edge is the join's only witness. If v_a carries no
+        # such hook, the lemma licenses nothing here.
+        if self._hook_to_move(egi, va_id, vb_id) is None:
+            return False, (
+                f"Every hook on {va_id} sits on an identity edge that witnesses "
+                f"the link itself, so moving one would take the witness with it "
+                f"(Lemma 16.1, p.169-171)"
+            )
 
         return True, None
 
@@ -84,26 +172,19 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            vertices = list(context.selected_subgraph)
+            vertices = _canonical_vertex_order(egi, context.selected_subgraph)
             va_id, vb_id = vertices[0], vertices[1]
 
-            # Find edge with hook attached to va that we want to move to vb
-            edge_to_modify = None
-            hook_position = None
+            # The one hook Lemma 16.1 (p.169) licenses moving — the very hook
+            # check_preconditions vouched for, so the condition it checks and
+            # the hook this moves can never come apart.
+            hook = self._hook_to_move(egi, va_id, vb_id)
 
-            for edge_id, vertex_sequence in egi.nu.items():
-                for i, vertex_id in enumerate(vertex_sequence):
-                    if vertex_id == va_id:
-                        edge_to_modify = edge_id
-                        hook_position = i
-                        break
-                if edge_to_modify:
-                    break
-
-            if not edge_to_modify:
+            if hook is None:
                 return TransformationResult(
-                    False, None, "No edge found attached to source vertex", {}
+                    False, None, "No hook on the source vertex that Lemma 16.1 licenses moving", {}
                 )
+            edge_to_modify, hook_position = hook
 
             # Create new nu mapping with vertex replaced
             new_nu = dict(egi.nu)
@@ -149,6 +230,57 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
             if vertex_id in contents:
                 return area_id
         return egi.sheet  # Default to sheet
+
+    def _hook_to_move(
+        self, egi: RelationalGraphWithCuts, va_id: ElementID, vb_id: ElementID
+    ) -> Optional[Tuple[ElementID, int]]:
+        """The one hook (e, i) on v_a that this rule moves, or None.
+
+        Lemma 16.1 (p.169) is stated for *an* edge e whose hook (e, i) is
+        attached to v_a; the rule is not told which, so the engine chooses.
+        The choice is a function of the graph (canonical signature order), and
+        it is a hook whose move the lemma licenses: a hook on the only identity
+        edge witnessing v_aΘv_b is passed over, since the lemma's proof
+        (p.170-171) deiterates against a v_aΘv_b that survives the move.
+        """
+        from canonical_signature import compute_canonical_signatures
+
+        _, edge_signatures, _ = compute_canonical_signatures(egi)
+        hooks = sorted(
+            (repr(edge_signatures.get(edge_id)), edge_id, position)
+            for edge_id, vertex_sequence in egi.nu.items()
+            for position, vertex_id in enumerate(vertex_sequence)
+            if vertex_id == va_id
+        )
+        for _, edge_id, position in hooks:
+            if self._vertices_on_same_ligature_excluding(egi, va_id, vb_id, edge_id):
+                return edge_id, position
+        return None
+
+    def _vertices_on_same_ligature_excluding(
+        self,
+        egi: RelationalGraphWithCuts,
+        va_id: ElementID,
+        vb_id: ElementID,
+        excluded_edge: ElementID,
+    ) -> bool:
+        """Whether v_aΘv_b still holds with ``excluded_edge`` set aside."""
+        adjacency: Dict[ElementID, Set[ElementID]] = {}
+        for edge_id, seq in egi.nu.items():
+            if edge_id == excluded_edge or egi.rel.get(edge_id) != "=" or len(seq) != 2:
+                continue
+            adjacency.setdefault(seq[0], set()).add(seq[1])
+            adjacency.setdefault(seq[1], set()).add(seq[0])
+        seen, stack = {va_id}, [va_id]
+        while stack:
+            current = stack.pop()
+            if current == vb_id:
+                return True
+            for neighbour in adjacency.get(current, ()):
+                if neighbour not in seen:
+                    seen.add(neighbour)
+                    stack.append(neighbour)
+        return vb_id in seen
 
     def _vertices_on_same_ligature(
         self, egi: RelationalGraphWithCuts, va_id: ElementID, vb_id: ElementID
@@ -239,6 +371,10 @@ class ExtendRestrictLigatureRule(FormalTransformationRule):
         # Verify it's a vertex
         if not any(v.id == vertex_id for v in egi.V):
             return False, "Selected element must be a vertex"
+
+        refusal = _refuse_constant_vertices(egi, (vertex_id,))
+        if refusal:
+            return False, refusal
 
         # Check if vertex is on a ligature (has identity connections)
         has_identity_connections = False
@@ -382,12 +518,16 @@ class RetractLigatureRule(FormalTransformationRule):
             )
 
         egi = context.source_egi
-        selected_vertices = list(context.selected_subgraph)
+        selected_vertices = _canonical_vertex_order(egi, context.selected_subgraph)
 
         # Verify all selected elements are vertices
         for vertex_id in selected_vertices:
             if not any(v.id == vertex_id for v in egi.V):
                 return False, f"Selected element {vertex_id} is not a vertex"
+
+        refusal = _refuse_constant_vertices(egi, selected_vertices)
+        if refusal:
+            return False, refusal
 
         # Check if vertices form a connected ligature
         if not self._vertices_form_ligature(egi, selected_vertices):
@@ -405,6 +545,10 @@ class RetractLigatureRule(FormalTransformationRule):
                 "All ligature vertices must be in the same context for retraction",
             )
 
+        refusal = _refuse_edges_in_another_context(egi, selected_vertices, contexts)
+        if refusal:
+            return False, refusal
+
         return True, None
 
     def apply_transformation(
@@ -417,9 +561,12 @@ class RetractLigatureRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            ligature_vertices = list(context.selected_subgraph)
+            # Lemma 16.3 (p.173) retracts to *a* vertex w0 ∈ W and does not say
+            # which; the engine must choose, and the choice must be a function
+            # of the graph, not of the process (see _canonical_vertex_order).
+            ligature_vertices = _canonical_vertex_order(egi, context.selected_subgraph)
 
-            # Choose first vertex as target (w0 in Dau's notation)
+            # Choose the canonically first vertex as target (w0 in Dau's notation)
             target_vertex_id = ligature_vertices[0]
             vertices_to_remove = set(ligature_vertices[1:])
 
@@ -587,12 +734,16 @@ class LigatureRearrangementRule(FormalTransformationRule):
             )
 
         egi = context.source_egi
-        selected_vertices = list(context.selected_subgraph)
+        selected_vertices = _canonical_vertex_order(egi, context.selected_subgraph)
 
         # Verify all selected elements are vertices
         for vertex_id in selected_vertices:
             if not any(v.id == vertex_id for v in egi.V):
                 return False, f"Selected element {vertex_id} is not a vertex"
+
+        refusal = _refuse_constant_vertices(egi, selected_vertices)
+        if refusal:
+            return False, refusal
 
         # Check if vertices form a connected ligature
         if not self._vertices_form_ligature(egi, selected_vertices):
@@ -609,6 +760,10 @@ class LigatureRearrangementRule(FormalTransformationRule):
                 False,
                 "All ligature vertices must be in the same context for rearrangement",
             )
+
+        refusal = _refuse_edges_in_another_context(egi, selected_vertices, contexts)
+        if refusal:
+            return False, refusal
 
         return True, None
 
@@ -630,7 +785,7 @@ class LigatureRearrangementRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            selected_vertices = list(context.selected_subgraph)
+            selected_vertices = _canonical_vertex_order(egi, context.selected_subgraph)
             ligature_context = self._get_vertex_context(egi, selected_vertices[0])
 
             # Find the full ligature containing the selection.

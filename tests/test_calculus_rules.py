@@ -99,18 +99,95 @@ def test_apply_move_applies_a_lawful_erasure():
     assert out.applied and len(out.result.E) == 1
 
 
-def test_ligature_moves_offer_both_orders_and_apply_in_order():
-    """Task 10: the ligature engine keeps (or moves from) the FIRST element of
-    its selection, and a plain frozenset's order follows the hash seed. The
-    suite hands the order over (calculus_apply.InOrder) and offers both."""
-    from calculus_apply import InOrder
-    g = parse_egif("(= *x *y)")
+def test_a_ligature_selection_is_one_move_whatever_order_it_arrives_in():
+    """Task 7 retired the suite's InOrder workaround: the engine chooses the
+    vertex it keeps (or moves from) by canonical signature, so the order the
+    selection is handed over in changes nothing, and the enumerator offers a
+    selection once rather than twice."""
+    g = parse_egif("[*x] [*y] (= x y) (P x)")
     a, b = sorted(v.id for v in g.V)
     sels = {m.selection for m in moves("RETRACT_LIGATURE", g, "A") if m.target == g.sheet}
-    assert (a, b) in sels and (b, a) in sels
-    assert list(InOrder((b, a))) == [b, a] and next(iter(InOrder((a, b)))) == a
+    assert (a, b) in sels and (b, a) not in sels
     kept = lambda sel: {v.id for v in apply_move(g, Move("RETRACT_LIGATURE", sel, g.sheet)).result.V}  # noqa: E731
-    assert kept((a, b)) == {a} and kept((b, a)) == {b}
+    assert kept((a, b)) == kept((b, a)) and len(kept((a, b))) == 1
+
+
+def test_retraction_refuses_a_ligature_whose_edge_is_deeper_than_its_vertices():
+    """Lemma 16.3 (p.173) requires ctx(w) = c = ctx(f) for every vertex AND
+    every identity edge. `*x *y ~[ (= x y) ]` says two things differ; retracting
+    it gave `*x ~[ ]`, which is false."""
+    from calculus_apply import apply_move
+    g = parse_egif("[*x] [*y] ~[ (= x y) ]")
+    out = apply_move(g, Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet))
+    assert not out.applied and "same context" in out.message
+
+
+def test_the_ligature_rules_refuse_constant_vertices():
+    """Def 24.10 (p.270-272) states them for generic vertices; joining
+    constants is the Constant Identity rule, which requires the same name."""
+    from calculus_apply import apply_move
+    g = parse_egif('(= "a" "b")')
+    out = apply_move(g, Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet))
+    assert not out.applied and "generic" in out.message
+
+
+def test_merging_refuses_a_constant_vertex_and_still_merges_generic_ones():
+    """Def 24.10 (p.270-272) again, at the other entry point: merging erases v2
+    (Def 16.6, p.176), and with it the name a constant vertex carries. The
+    generic merge is left alone — the condition is about names, not about
+    merging."""
+    from calculus_apply import apply_move
+    g = parse_egif('(= "a" "b")')
+    v1, v2 = sorted(v.id for v in g.V)
+    e = next(iter(g.nu))
+    out = apply_move(g, Move("MERGE_VERTICES", (v1, v2, e)))
+    assert not out.applied and "generic" in out.message
+    h = parse_egif("(= *x *y) (P x)")
+    w1, w2 = h.nu[next(e for e in h.nu if h.rel[e] == "=")]
+    ok = apply_move(h, Move("MERGE_VERTICES", (w1, w2, next(e for e in h.nu if h.rel[e] == "="))))
+    assert ok.applied and len(ok.result.V) == 1
+
+
+def test_the_survivor_does_not_depend_on_the_hash_seed():
+    """Two vertices, both generic, one ligature: whichever survives, the
+    choice is a function of the graph (canonical signature), not of the
+    process."""
+    from calculus_apply import apply_move
+    g = parse_egif("[*x] [*y] (= x y) (P x)")
+    sel = tuple(sorted(v.id for v in g.V))
+    first = apply_move(g, Move("RETRACT_LIGATURE", sel, g.sheet))
+    second = apply_move(g, Move("RETRACT_LIGATURE", tuple(reversed(sel)), g.sheet))
+    assert first.applied and second.applied
+    assert sorted(v.id for v in first.result.V) == sorted(v.id for v in second.result.V)
+
+
+def test_move_branches_refuses_to_move_the_edge_that_witnesses_the_link():
+    """Lemma 16.1 (p.169-171) needs v_aΘv_b to hold in the graph without the
+    hook being moved; its proof's deiteration step is otherwise unlicensed.
+    Here the identity edge is the only hook v_a carries, so there is no hook
+    to move that the lemma licenses."""
+    from calculus_apply import apply_move
+    g = parse_egif("[*x] [*y] (= x y)")
+    out = apply_move(g, Move("MOVE_BRANCHES", tuple(sorted(v.id for v in g.V)), g.sheet))
+    assert not out.applied and "witness" in out.message
+
+
+def test_move_branches_still_moves_a_hook_the_lemma_licenses():
+    """The other half of Lemma 16.1 (p.169): the side condition is about the
+    ONE hook being moved, not about every edge on v_a. Each vertex here
+    carries a relation hook beside the identity edge that joins them, so
+    whichever vertex the engine takes as v_a, moving that relation hook
+    leaves v_aΘv_b standing — and the lemma licenses it. A condition that
+    refused this would block a lawful move, which is the same class of error
+    as the unlawful move it is there to stop."""
+    from calculus_apply import apply_move
+    g = parse_egif("(P *x) (= x *y) (Q y)")
+    out = apply_move(g, Move("MOVE_BRANCHES", tuple(sorted(v.id for v in g.V)), g.sheet))
+    assert out.applied and not out.crashed, out.message
+    # the identity edge still joins the same two vertices: only a hook moved
+    join = next(e for e in g.nu if g.rel[e] == "=")
+    assert out.result.nu[join] == g.nu[join]
+    assert sorted(out.result.rel.values()) == sorted(g.rel.values())
 
 
 def test_the_engine_refuses_iteration_into_its_own_selection():

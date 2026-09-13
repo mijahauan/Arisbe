@@ -22,25 +22,6 @@ from vertex_splitting_merging_rules import (
 G = RelationalGraphWithCuts
 
 
-class InOrder(frozenset):
-    """A frozenset that iterates in the order it was built from. The ligature
-    engine takes its selection as a FrozenSet and uses its first element
-    (``list(context.selected_subgraph)[0]``, ligature_manipulation_rules.py
-    lines 53, 87, 385, 420, 590, 633), so with a plain frozenset the choice
-    follows the per-process string hash seed — Task 10 measured 74 exhaustive
-    tier-A keys whose outcome changes with PYTHONHASHSEED. Handing the order
-    over explicitly makes the run deterministic; the enumerator offers both
-    orders, so neither of the engine's arbitrary choices goes untested."""
-
-    def __new__(cls, items):
-        obj = super().__new__(cls, items)
-        obj._order = tuple(dict.fromkeys(items))
-        return obj
-
-    def __iter__(self):
-        return iter(self._order)
-
-
 @dataclass(frozen=True)
 class Outcome:
     applied: bool
@@ -69,17 +50,26 @@ def apply_move(g: G, m: Move) -> Outcome:
                 engine.split(":", 1)[1], g, m.target, frozenset(m.selection))
             return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
         if engine.startswith("ligature:"):
+            # A plain frozenset: the engine's choice of vertex within the
+            # selection is a function of the graph (canonical signature), so
+            # the suite no longer has to hand an order over to make a run
+            # deterministic (Task 7 retired calculus_apply.InOrder).
             r = LigatureManipulationEngine().apply_rule(
-                engine.split(":", 1)[1], g, m.target, InOrder(m.selection))
+                engine.split(":", 1)[1], g, m.target, frozenset(m.selection))
             return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
         if engine == "split":
             spec = VertexSplitSpec(source_vertex=m.selection[0], target_context=m.target,
                                    hooks_to_move=list(m.hooks), new_vertex_id="split_new_v")
             return Outcome(True, VertexSplittingRule()._apply_vertex_split(g, spec), "")
         if engine == "merge":
+            # Def 16.6 merging names v1 and v2 in order (v2 into v1), which a
+            # frozenset selection cannot carry, so this is the rule's ordered
+            # entry point rather than apply_transformation. It checks the rule's
+            # own preconditions: _apply_vertex_merge, the private operation the
+            # suite used to call, performs the merge and checks nothing.
             v1, v2, e = m.selection
-            return Outcome(True, VertexMergingRule()._apply_vertex_merge(
-                g, v1_id=v1, v2_id=v2, identity_edge_id=e), "")
+            r = VertexMergingRule().merge_vertices(g, v1_id=v1, v2_id=v2, identity_edge_id=e)
+            return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
     except AssertionError as exc:          # the protocol's own rejection
         return Outcome(False, None, str(exc))
     except Exception as exc:               # anything else is a crash

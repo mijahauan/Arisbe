@@ -153,14 +153,14 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for x in sorted(v.id for v in g.V):
             yield Move(rule, (x,))
     elif rule in LIGATURE_RULES:
-        # The ligature engine reads its unordered selection in iteration order
-        # (the first vertex is the one kept, or moved from), so the order is part
-        # of the move: calculus_apply hands the selection over in the tuple's
-        # order, and each order of a two-element selection is its own candidate.
+        # Task 7: the engine's choice of vertex within the selection (the one
+        # kept, or moved from) is now a function of the graph — its canonical
+        # signature — not of the order the selection arrives in, so a selection
+        # is ONE candidate. Enumerating both orders tested nothing the engine
+        # could still tell apart.
         for s in _subsets(elements(g), 1, 2):
-            for p in dict.fromkeys((s, s[::-1])):
-                for a in areas:
-                    yield Move(rule, p, a)
+            for a in areas:
+                yield Move(rule, s, a)
     elif rule == "SPLIT_VERTEX":
         # Only Def 16.6's domain: ctx(v) >= c >= ctx(e_k) for every moved hook.
         for v in sorted(x.id for x in g.V):
