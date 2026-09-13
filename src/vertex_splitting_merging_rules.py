@@ -331,8 +331,7 @@ class VertexMergingRule(FormalTransformationRule):
             return False, "Must select exactly two vertices for merging"
 
         egi = context.source_egi
-        vertices = list(context.selected_subgraph)
-        v1_id, v2_id = vertices[0], vertices[1]
+        v1_id, v2_id = self._merge_order(egi, context.selected_subgraph)
 
         # Verify both are vertices
         if not (
@@ -381,8 +380,9 @@ class VertexMergingRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            vertices = list(context.selected_subgraph)
-            v1_id, v2_id = vertices[0], vertices[1]
+            # The same choice check_preconditions made, from the same place, so
+            # the pair it vouched for is the pair this merges.
+            v1_id, v2_id = self._merge_order(egi, context.selected_subgraph)
 
             # Find identity edge
             identity_edge_id = self._find_identity_edge_between_vertices(
@@ -406,6 +406,35 @@ class VertexMergingRule(FormalTransformationRule):
 
         except Exception as e:
             return TransformationResult(False, None, str(e), {})
+
+    def _merge_order(
+        self, egi: RelationalGraphWithCuts, vertex_ids
+    ) -> Tuple[ElementID, ElementID]:
+        """(v1 kept, v2 removed) — decided by the graph, never by the iteration
+        order of the selection's frozenset.
+
+        Def 24.10 (p.270) requires the vertex REMOVED to be generic, and on a
+        mixed pair that settles it outright: the generic vertex goes and the
+        constant stays, which is also the merge that keeps what the graph says
+        by name. Where the pair is symmetric in that respect — both generic —
+        the canonical-signature order the Chapter 16 ligature rules use decides,
+        for the reason given there. Both constant: the order is canonical too,
+        and the merge is refused on Def 24.10 whichever way it faces.
+
+        Without this, ``list(selected_subgraph)[1]`` picked v2 by the
+        per-process string hash, so on one and the same mixed pair this rule
+        applied under some hash seeds and refused under others — sound either
+        way, but a function of the process rather than of the graph.
+        """
+        from ligature_manipulation_rules import _canonical_vertex_order
+
+        by_id = {v.id: v for v in egi.V}
+        ordered = _canonical_vertex_order(egi, vertex_ids)
+        generic = [v_id for v_id in ordered if v_id in by_id and by_id[v_id].is_generic]
+        named = [v_id for v_id in ordered if v_id in by_id and not by_id[v_id].is_generic]
+        if len(generic) == 1 and len(named) == 1:
+            return named[0], generic[0]
+        return ordered[0], ordered[1]
 
     def _refuse_constant_vertices(
         self, egi: RelationalGraphWithCuts, vertex_ids

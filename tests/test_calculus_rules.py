@@ -172,6 +172,33 @@ def test_a_lawful_move_over_a_constant_anchor_applies():
     assert {v.label for v in merged.result.V} == {"a"}  # the name survives
 
 
+def test_merging_an_unordered_mixed_pair_removes_the_generic_vertex():
+    """Which vertex a merge removes must be a function of the graph, and on a
+    mixed pair Def 24.10 (p.270) decides it outright: the vertex removed must
+    be generic, so the generic one goes and the constant stays.
+
+    This pins the CHOICE, not merely its stability: a rule that deterministically
+    removed the constant would pass a stability test and still be wrong. The
+    unordered entry point (apply_transformation, which takes its pair from a
+    frozenset) is the one under test — it used to apply under PYTHONHASHSEED 3
+    and 7 and refuse under 1, 2, 5 and 11 on this very graph."""
+    from formal_transformation_rules import AreaPolarity, TransformationContext
+    from vertex_splitting_merging_rules import VertexMergingRule
+    g = parse_egif('(= "a" *y) (P y)')
+    a = next(v.id for v in g.V if v.label == "a")
+    y = next(v.id for v in g.V if v.is_generic)
+    ctx = TransformationContext(
+        source_egi=g, target_area=g.sheet, selected_subgraph=frozenset([a, y]),
+        area_polarity=AreaPolarity.POSITIVE, nesting_depth=0,
+    )
+    res = VertexMergingRule().apply_transformation(ctx)
+    assert res.success, res.error_message
+    assert {v.label for v in res.result_egi.V} == {"a"}        # the name survives
+    assert y not in {v.id for v in res.result_egi.V}           # the generic vertex went
+    assert res.changes_made["merged_vertex"] == str(y)
+    assert res.changes_made["target_vertex"] == str(a)
+
+
 def test_a_merge_that_would_erase_the_name_is_still_refused():
     """The other direction of the same move, which the narrowing must keep out:
     merging the constant INTO the generic vertex erases "a", and with it the
