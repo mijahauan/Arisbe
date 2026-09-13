@@ -17,10 +17,13 @@ Instantiate a universally-quantified line to a *deeper* existing line while
 leaving the universal asserted: IT+ (copy the universal into the deeper target,
 producing a fresh line ``z``) → insert ``=``(target, z) in ``z``'s context → merge
 ``z`` into the target.  This is the move Barbara's step 1 needs and the one a naive
-IT+ "quietly drops" (it copies the line as fresh instead of joining it).  In
-Arisbe's per-context vertex model a line cannot be *rebound* across cut-depth
-(``replace_vertex_on_hook`` rightly refuses a deep hook → shallow line — that *is*
-Dau's constraint), so the join is a **merge**, which rewrites incidence directly.
+IT+ "quietly drops" (it copies the line as fresh instead of joining it).  The
+join is performed here as a **merge**, which rewrites incidence directly.  (An
+earlier note here said ``replace_vertex_on_hook`` "rightly refuses a deep hook →
+shallow line — that *is* Dau's constraint".  It was not Dau's constraint but an
+inverted dominating-nodes test, since corrected: Def 12.9, p.128, *licenses*
+replacing a hook by a vertex whose context encloses the edge's.  The merge stays
+the move this rule makes.)
 
 **`instantiate_to_lines`** — the *consuming, multi-line* variant (in-place).
 Instantiate the universal's own lines to *shallower* existing individuals (e.g.

@@ -713,19 +713,24 @@ class RelationalGraphWithCuts:
                     return False
         return True
 
-    def _context_dominates(self, context1: ElementID, context2: ElementID) -> bool:
-        """Check if context1 ≤ context2 in Dau's ordering."""
-        if context1 == context2:
-            return True
+    def _context_dominates(self, inner: ElementID, outer: ElementID) -> bool:
+        """Whether ``inner ≤ outer`` in Dau's context order (Def 12.2, p.125):
+        ``outer`` is ``inner`` itself or encloses it.
 
-        # Check if context1 is in area^n(context2) for some n
-        current = context2
-        while current != self.sheet:
-            if context1 == current:
+        Walk outward from ``inner``. The previous implementation walked out
+        from ``outer`` and returned True for any ``inner`` on the sheet, so it
+        tested the relation backwards: `has_dominating_nodes` called an
+        ordinary `(P *x) ~[ (Q x) ]` malformed and an edge-outside-its-vertex
+        graph well formed, and `replace_vertex_on_hook` refused the lawful
+        inner-to-outer hook move of Def 12.9.
+        """
+        current = inner
+        while True:
+            if current == outer:
                 return True
+            if current == self.sheet:
+                return False
             current = self.get_context(current)
-
-        return context1 == self.sheet
 
     # Creation methods
 

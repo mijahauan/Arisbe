@@ -261,3 +261,28 @@ def test_core_dominating_nodes_check_agrees_with_dau():
                                     f"core says {g.has_dominating_nodes()}, Def 12.5 says {dominating_nodes(g)}"))
     problems = check_ledger("core-dominating", evaluated, failures)
     assert not problems, "\n\n".join(problems)
+
+
+def test_the_core_check_now_agrees_with_dau():
+    """Def 12.5 (p.125): ctx(e) <= ctx(v). The helper tested the relation
+    backwards and passed any edge on the sheet."""
+    from frozendict import frozendict
+    from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+    lawful = parse_egif("[*x] ~[ (Q x) ]")
+    assert lawful.has_dominating_nodes()
+    unlawful = RelationalGraphWithCuts(
+        V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}),
+        nu=frozendict({"e1": ("v1",)}), sheet="S", Cut=frozenset({Cut("c1")}),
+        area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+        rel=frozendict({"e1": "P"}))
+    assert not unlawful.has_dominating_nodes()
+
+
+def test_a_lawful_hook_move_is_accepted():
+    """Def 12.9 (p.128): a hook may be replaced by a vertex whose context
+    encloses the edge's. The inverted helper refused exactly this."""
+    g = parse_egif("[*x] ~[ [*y] (Q y) ]")
+    outer = next(v.id for v in g.V if g.get_context(v.id) == g.sheet)
+    edge = next(iter(g.E)).id
+    moved = g.replace_vertex_on_hook(edge, 1, outer)
+    assert moved.nu[edge] == (outer,)
