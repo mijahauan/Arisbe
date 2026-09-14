@@ -14,10 +14,21 @@ original by ``same_graph`` — isomorphism in Dau's sense, not text equality,
 because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
-The result is now total: as of 2026-09-13, **147 of 147 hold**, up from 83 at
-the start of the arc. The last six were two graphs failing in all three
-formats, and that symmetry was the finding: no linear form had a defect left,
-and what remained sat upstream of all of them. ``bfo_core`` and
+The result is now total, and the "how" matters as much as the count: as of
+2026-09-13, of 147 round trips checked, **144 hold by ``same_graph`` and 3 hold
+by stable re-emission** — up from 83 holding at the start of the arc. The three
+are ``sumo_upper``'s (one per format), listed in ``BY_REEMISSION`` below: on
+that ontology the isomorphism search does not finish in reasonable time, so the
+check is ``generate(parse(generate(g))) == generate(g)`` instead. That is
+strictly weaker. It says the text survives a second pass, which a defect that
+both the generator and the parser share — or one that loses information the
+generator never emits — would also survive; it does not say the graph that came
+back is the graph that went out. Any statement of this guarantee should carry
+the split, not the total alone.
+
+The last six failures were two graphs failing in all three formats, and that
+symmetry was the finding: no linear form had a defect left, and what remained
+sat upstream of all of them. ``bfo_core`` and
 ``colore_field`` were stored with a generic vertex placed in one cut while
 edges in *sibling* cuts used it, so neither graph dominated its own edges
 (Dau Def 12.5, p.125) and neither was an EGI. Generating and re-parsing
