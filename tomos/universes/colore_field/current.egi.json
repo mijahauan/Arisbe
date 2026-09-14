@@ -537,7 +537,6 @@
       "e_=_1",
       "e_prod_0",
       "v__fnz1_3",
-      "v_one",
       "v_y_2"
     ],
     "c_all_inner_11": [
@@ -621,8 +620,7 @@
       "e_sum_7",
       "v__fnz4_10",
       "v__fnz5_11",
-      "v_y_9",
-      "v_zero"
+      "v_y_9"
     ],
     "c_all_inner_7": [
       "e_=_13",
@@ -722,7 +720,9 @@
       "c_all_outer_26",
       "c_all_outer_4",
       "c_all_outer_6",
-      "c_all_outer_8"
+      "c_all_outer_8",
+      "v_one",
+      "v_zero"
     ],
     "cut_34f6b9d9": [],
     "cut_938e6fa0": [

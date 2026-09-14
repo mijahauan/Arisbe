@@ -69,18 +69,17 @@ REASONS = {
     # ctx(e) ≤ ctx(v) (Def 12.5, p.125) and agrees with tarski.dominating_nodes
     # on every tier-A graph. The layer stays owned and core_figures below still
     # measures it, so a regression is measured rather than merely absent.
-    "corpus-graph-not-an-egi": ("corpus-egi", "graph",
-        "Dau Def 12.7 (p.126) makes dominating nodes part of what an EGI is, and Def 12.5 "
-        "(p.125) requires ctx(e) ≤ ctx(v) for every edge e and v ∈ V_e. Two stored corpus "
-        "graphs break it — measured by calculus_adjudication_structure over every tier-B "
-        "source (52 current graphs, 178 chain states): bfo_core:current (4 edge–vertex pairs on "
-        "1 vertex) and colore_field:current (8 pairs on 2 vertices); no chain state does. They "
-        "are exactly the linear-form round-trip residue (test_tomos_parsing.KNOWN_BROKEN): the "
-        "stored graph is not an EGI and its round trip repairs it (P-K1's recorded outcome). "
-        "Nothing else in the repository catches a non-EGI — the core's own has_dominating_nodes "
-        "reads in Dau's direction since Task 8, but nothing calls it at construction. Not a rule defect: "
-        "a standing guard over the corpus, and the rules' verdicts on these two sources are "
-        "counted as not judged (legal() refuses to judge a non-EGI source)."),
+    # Task 10 retired corpus-graph-not-an-egi: bfo_core held the generic vertex
+    # v_x26 and colore_field v_zero and v_one, each in one cut while edges in
+    # sibling cuts used them, so neither stored graph dominated its own edges
+    # (Def 12.5, p.125) and neither was an EGI — which is why their round trips
+    # failed: generating and re-parsing repaired them. Each vertex was hoisted
+    # to the least common area of its uses (tools/repair_non_egi_corpus_graphs.py),
+    # the reading every parser already applies. Not an inert renaming: every
+    # vertex moved is generic, so placement would be meaning — had there been a
+    # meaning, which for a non-EGI there was not. The layer stays owned and
+    # corpus_figures below still measures every tier-B source, so a stored
+    # non-EGI is measured rather than merely absent.
     "dc-plus-result-not-an-egi": ("structure", "DC+",
         P + "The structure half of refusal entry dc-plus-strands-a-vertex, the same mechanism: "
         "given a selection holding a vertex but not all of its edges, the engine wraps the vertex "

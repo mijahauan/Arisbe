@@ -14,14 +14,20 @@ original by ``same_graph`` — isomorphism in Dau's sense, not text equality,
 because two parses of one structure may order symmetric elements differently
 and still denote the same graph.
 
-The result is honest rather than flattering: most round-trips hold and a
-specific, named few do not. As of 2026-09-09: **141 of 147 hold, 6 do not**,
-down from 64 failures at the start of the arc. The six are two graphs, each
-failing in all three formats — a symmetry worth reading, since it says no
-linear form is known to carry a defect any more and the residue lies upstream
-of all of them. They are listed in ``KNOWN_BROKEN`` with what goes wrong in
-each, and the check is run for them too, so a repair announces itself as an
-unexpected pass rather than sitting silently in the list.
+The result is now total: as of 2026-09-13, **147 of 147 hold**, up from 83 at
+the start of the arc. The last six were two graphs failing in all three
+formats, and that symmetry was the finding: no linear form had a defect left,
+and what remained sat upstream of all of them. ``bfo_core`` and
+``colore_field`` were stored with a generic vertex placed in one cut while
+edges in *sibling* cuts used it, so neither graph dominated its own edges
+(Dau Def 12.5, p.125) and neither was an EGI. Generating and re-parsing
+*repaired* them — which is exactly why the graph that came back was not the
+graph that went out. They were repaired in place by
+``tools/repair_non_egi_corpus_graphs.py``.
+
+``KNOWN_BROKEN`` is empty, and the machinery around it is kept: the check is
+run for anything listed there, so a stale entry fails with "now round-trips"
+rather than sitting silently in the list.
 """
 
 import pytest
@@ -54,33 +60,25 @@ SECOND_ORDER = {"forcing_forces", "peirce_law_commentary", "swan_third_tense"}
 
 # Round-trips that do not hold, measured rather than assumed. Listed so the
 # guarantee is stated at its true extent and a fix announces itself as an
-# unexpected pass.
+# unexpected pass. Nothing is listed: every round trip in the corpus holds.
 #
-# Two graphs remain, and each fails in *all three* formats. That symmetry is
-# itself the finding: no linear form is known to have a defect left, and what
-# is left sits upstream of all of them.
+# Two families were retired from here rather than excused.
 #
-# episode_discharge used to sit here too. Its graph carried two lines of
-# identity for "Rex" — INS scribes fresh ink, so a fact discharged into M
-# arrives with its own line for an individual M already stands on. Two lines
-# say exactly what one says, but no linear form can write the difference down.
-# The representative is now chosen where M's content is constructed
-# (world_scroll.discharge_episode), the corpus boundary refuses anything else,
-# and the exemplar was rebuilt.
+# episode_discharge's graph carried two lines of identity for "Rex" — INS
+# scribes fresh ink, so a fact discharged into M arrives with its own line for
+# an individual M already stands on. Two lines say exactly what one says, but
+# no linear form can write the difference down. The representative is now
+# chosen where M's content is constructed (world_scroll.discharge_episode),
+# the corpus boundary refuses anything else, and the exemplar was rebuilt.
 #
-#   bfo_core          — same_graph says no while the legible diff finds nothing
-#                       to report, so the difference is structural rather than
-#                       in content.
-#   colore_field      — the equality relation returns joined to a different
-#                       pair of lines (~40 incidence findings).
-KNOWN_BROKEN = frozenset([
-    ("bfo_core", "CGIF"),
-    ("bfo_core", "CLIF"),
-    ("bfo_core", "EGIF"),
-    ("colore_field", "CGIF"),
-    ("colore_field", "CLIF"),
-    ("colore_field", "EGIF"),
-])
+# bfo_core and colore_field were not linear-form failures at all: each stored a
+# generic vertex in one cut while edges in sibling cuts used it, so the graph
+# did not dominate its own edges (Dau Def 12.5, p.125) and was never an EGI.
+# The round trip *repaired* them, which is why what came back differed. The
+# stored graphs were repaired in place — each such vertex hoisted to the least
+# common area of its uses, the reading every parser already applies — by
+# tools/repair_non_egi_corpus_graphs.py, and their six round trips then held.
+KNOWN_BROKEN = frozenset()
 
 
 # same_graph is a full isomorphism search; on the largest imported ontology it
@@ -166,8 +164,11 @@ def test_the_round_trip_guarantee_is_stated_at_its_true_extent():
     broken = len(KNOWN_BROKEN)
     holding = total - second_order - broken
     # Pinned exactly, never floored: a floor of 90 against a measured 141 let
-    # 51 regressions land unseen. A moved count is read, then re-pinned.
-    assert (total, second_order, broken, holding) == (156, 9, 6, 141), (
+    # 51 regressions land unseen. A moved count is read, then re-pinned. The
+    # last move, 141 -> 147, was earned: the six were the two graphs that were
+    # not EGIs (Def 12.5, p.125), and repairing the stored graphs is what made
+    # their round trips hold — no check here was weakened to reach it.
+    assert (total, second_order, broken, holding) == (156, 9, 0, 147), (
         f"the round-trip extent moved: {total} checks, {second_order} refused as "
         f"second-order, {broken} known broken, {holding} holding — update this pin "
         f"and the module docstring deliberately"
