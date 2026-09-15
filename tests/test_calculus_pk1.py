@@ -8,8 +8,10 @@ import pytest
 
 from calculus_pk1 import pk1
 
-RECORDED_OUTCOME = ("REFUTED: premise — colore_field is not an EGI (Def 12.5); "
-                     "the round trip repairs it")
+# Recorded 2026-09-15, against colore_field as repaired in Task 10 of the
+# calculus fix arc. (2026-09-10: "REFUTED: premise — colore_field is not an
+# EGI (Def 12.5); the round trip repairs it".)
+RECORDED_OUTCOME = "REFUTED: no separation found at this budget"
 
 
 @pytest.mark.exhaustive

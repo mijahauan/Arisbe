@@ -317,6 +317,7 @@ All are **existence** questions — answerable in the calculus as it stands.
   same census finds exactly one other non-EGI in the corpus — bfo_core (4 pairs, 1 vertex) — and
   none among 178 chain states: the two are exactly the round-trip residue. The "lines above their
   uses" diagnosis was wrong.
+  **Outcome (2026-09-15, colore_field repaired):** REFUTED: no separation found at this budget.
 - **`P-K2`.** The severe cell is empty on tier A: the engine applies no move `legal` rejects.
   *Fails if* any tier-A instance lands there.
   **Outcome (2026-09-10 run, default bounds, 208 graphs):** REFUTED — `dc-plus-strands-a-vertex`,
