@@ -544,6 +544,32 @@ except Exception as exc:
 else:
     white = next(e for e in g2.rel if g2.rel[e] == "white")
     out["two_lines"] = {"anchor": g2.nu[white][0]}
+
+# 3. The same, with the ids ordered AGAINST the canonical signatures: the
+#    bird line's id now sorts last, so a choice made by id alone picks the
+#    swan line and a choice made by signature still picks the bird line.
+crossed = RelationalGraphWithCuts(
+    V=frozenset({Vertex("v_z_ciel", "Ciel", False),
+                 Vertex("v_a_ciel", "Ciel", False)}),
+    E=frozenset({Edge("e_bird"), Edge("e_swan")}),
+    nu=frozendict({"e_bird": ("v_z_ciel",), "e_swan": ("v_a_ciel",)}),
+    sheet="S", Cut=frozenset(),
+    area=frozendict({"S": frozenset({"v_z_ciel", "v_a_ciel",
+                                     "e_bird", "e_swan"})}),
+    rel=frozendict({"e_bird": "bird", "e_swan": "swan"}))
+m3, _ = wrap_state(crossed)
+try:
+    g3 = enlarge_m(m3, '(white "Ciel")')
+except Exception as exc:
+    out["signature_beats_id"] = {"raised": f"{type(exc).__name__}: {exc}"}
+else:
+    white = next(e for e in g3.rel if g3.rel[e] == "white")
+    anchor = g3.nu[white][0]
+    bird = next(e for e in g3.rel if g3.rel[e] == "bird")
+    out["signature_beats_id"] = {
+        "anchor": anchor,
+        "hangs_with_bird": g3.nu[bird] == (anchor,),
+    }
 print(json.dumps(out))
 '''
 
@@ -611,3 +637,13 @@ class TestTheAdmissionJoin:
 
         anchors = {seed: r["two_lines"]["anchor"] for seed, r in results.items()}
         assert len(set(anchors.values())) == 1, anchors
+
+        # And the choice is the signature's, not the id's: with the ids
+        # ordered against the signatures, the bird line still wins. Ordering
+        # by id alone would pick "v_a_ciel" here and pass every other
+        # assertion in this test.
+        crossed = {seed: r["signature_beats_id"] for seed, r in results.items()}
+        for seed, result in crossed.items():
+            assert result == {"anchor": "v_z_ciel", "hangs_with_bird": True}, (
+                f"PYTHONHASHSEED={seed}: {result} — the standing line was "
+                f"chosen by id order, not by canonical signature")

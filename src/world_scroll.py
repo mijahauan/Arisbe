@@ -407,13 +407,15 @@ def _join_admitted_individuals(
     may be joined by an identity link in any context c with c ≤ ctx(v) and
     c ≤ ctx(w): Dau's *Constant Identity Rule* (Def 24.10, p.271), which has
     no polarity condition. Collapsing the linked pair into one vertex is the
-    project's ruled "one constant, one line" normal form (``vertex_scope``'s
-    module docstring): meaning-preserving because a name denotes one
-    individual, which is what constant separation and deseparation state
-    (Def 24.6, p.265-266; sound by Lemma 24.7, p.266). The engine has no entry
-    point for either rule, and the checked ``merge_vertices`` rightly refuses
-    to remove a constant vertex (Def 24.10's ligature rules move generic
-    vertices only), so the collapse calls the unchecked
+    project's own ruled "one constant, one line" normal form (``vertex_scope``'s
+    module docstring), not a rule of Dau's. What Dau supplies under it is the
+    semantics of constants in a vertex-based EGI (Def 24.10, p.270-272): ρ
+    gives both vertices the same name, and a name denotes one individual, which
+    is why the Constant Identity Rule may link them from any context at all.
+    Dau's calculus has no rule that removes a constant vertex — his ligature
+    rules move generic vertices only (Def 24.10, p.270, and the remark on
+    p.271-272) — which is exactly what the checked ``merge_vertices`` refuses,
+    so the collapse calls the unchecked
     ``_apply_vertex_merge`` deliberately. It is *not* a Def 16.6 merge, and it
     does not follow ``derived_rules.universal_instantiation``, whose removed
     vertex is a generic line.
