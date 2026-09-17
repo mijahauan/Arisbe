@@ -262,17 +262,18 @@ def test_core_dominating_nodes_check_agrees_with_dau():
 
 def test_the_core_check_now_agrees_with_dau():
     """Def 12.5 (p.125): ctx(e) <= ctx(v). The helper tested the relation
-    backwards and passed any edge on the sheet."""
+    backwards and passed any edge on the sheet. Since Task 10 the core also
+    enforces it at construction, so the unlawful graph cannot be built."""
     from frozendict import frozendict
     from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
     lawful = parse_egif("[*x] ~[ (Q x) ]")
     assert lawful.has_dominating_nodes()
-    unlawful = RelationalGraphWithCuts(
-        V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}),
-        nu=frozendict({"e1": ("v1",)}), sheet="S", Cut=frozenset({Cut("c1")}),
-        area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
-        rel=frozendict({"e1": "P"}))
-    assert not unlawful.has_dominating_nodes()
+    with pytest.raises(ValueError, match=r"Dominating nodes violated \(Def 12\.5\)"):
+        RelationalGraphWithCuts(
+            V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}),
+            nu=frozendict({"e1": ("v1",)}), sheet="S", Cut=frozenset({Cut("c1")}),
+            area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+            rel=frozendict({"e1": "P"}))
 
 
 def test_a_lawful_hook_move_is_accepted():

@@ -250,6 +250,18 @@ class RelationalGraphWithCuts:
         # Constraint: area mapping constraints
         self._validate_area_constraints()
 
+        # Def 12.5 with Def 12.7 (p.125-126): dominating nodes is part of what
+        # an EGI *is*, so a structure without it is not one. Enforced here only
+        # after the corpus was repaired (two stored graphs violated it), since
+        # before that this raised on load.
+        for edge_id, sequence in self.nu.items():
+            edge_context = self.get_context(edge_id)
+            for vertex_id in sequence:
+                if not self._context_dominates(edge_context, self.get_context(vertex_id)):
+                    raise ValueError(
+                        f"Dominating nodes violated (Def 12.5): ctx({edge_id}) ≰ ctx({vertex_id})"
+                    )
+
     def _validate_area_constraints(self):
         """Validate area mapping constraints from Definition 12.1."""
         all_contexts = set(self.Cut) | {self.sheet}
@@ -708,7 +720,7 @@ class RelationalGraphWithCuts:
             edge_context = self.get_context(edge_id)
             for vertex_id in vertex_seq:
                 vertex_context = self.get_context(vertex_id)
-                # Check if ctx(e) ≤ ctx(v) (edge context dominates vertex context)
+                # Check if ctx(e) ≤ ctx(v) (the vertex's context is the edge's or encloses it)
                 if not self._context_dominates(edge_context, vertex_context):
                     return False
         return True

@@ -119,6 +119,32 @@ def test_an_abstention_is_labelled_by_its_reason():
     assert refusal(rec, {})[0] == "not:MOVE_BRANCHES:underdetermined"
 
 
+def test_a_core_refusal_of_a_non_egi_has_its_own_label():
+    """Task 10: once the core enforces Def 12.5 (p.125) at construction, a move
+    whose result would not be an EGI is refused by the core, not the engine.
+    It is counted under its own label in every layer — never merged into the
+    engine's refusals, never a crash — and on a move legal() judges legal it
+    still fails, so the new label cannot hide an incomplete engine."""
+    from calculus_apply import CORE_NON_EGI, Outcome
+    from calculus_layers import refusal, soundness, structure
+    from calculus_rules import Move
+    from calculus_run import Record
+    from egif_parser_dau import parse_egif
+
+    g = parse_egif("(P *x)")
+    m = Move("DC+", (next(iter(g.V)).id,), g.sheet)
+    out = Outcome(False, None, f"DC+ apply failed: Rule rejected: {CORE_NON_EGI}: ctx(e) ≰ ctx(v)",
+                  core_refused_non_egi=True)
+    illegal = Record("A", "hand", g, m, "k", out, False, "strands a vertex")
+    legal_ = Record("A", "hand", g, m, "k", out, True, "hand")
+    for layer in (refusal, structure, soundness):
+        assert layer(illegal, {"_sem": None}) == ("not:DC+:core-refused-non-egi", None)
+    label, detail = refusal(legal_, {})
+    assert label == "not:DC+:core-refused-non-egi" and detail.startswith("INCOMPLETE")
+    plain = Record("A", "hand", g, m, "k", Outcome(False, None, "no"), False, "")
+    assert structure(plain, {})[0] == soundness(plain, {"_sem": None})[0] == "not:DC+:refused"
+
+
 def test_heavy_dot_classifier_requires_a_positive_context():
     """The entry's reason is about positive contexts (Dau p.166 allows any), so
     its classifier must not claim a refusal in a negative one."""

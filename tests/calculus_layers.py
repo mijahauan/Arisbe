@@ -39,10 +39,24 @@ def _abstention(why: str) -> str:
     return "other"
 
 
+def _refused(out) -> str:
+    """A move that did not apply: the core's Def 12.5 refusal is kept apart
+    from the engine's own."""
+    return "core-refused-non-egi" if out.core_refused_non_egi else "refused"
+
+
 def refusal(rec, cache) -> Tuple[str, Optional[str]]:
     """§5.1: engine (applied/refused) against legal (true/false). A crash is
     a defect whatever the rule; a not-judged instance is counted, not scored."""
     out = rec.outcome
+    if out.core_refused_non_egi:
+        # The core would not build the engine's result (Def 12.5). Counted
+        # under its own label; on a move legal() judges legal it still fails.
+        label = f"not:{rec.move.rule}:core-refused-non-egi"
+        if rec.verdict is True:
+            return label, (f"INCOMPLETE refused but legal ({rec.why}); the core refused "
+                           f"the engine's result as a non-EGI: {out.message[:120]}")
+        return label, None
     if out.crashed:
         return f"{rec.move.rule}:crash", f"CRASH {out.message[:160]}"
     if rec.verdict is None:
@@ -73,7 +87,7 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     ever exercised."""
     out = rec.outcome
     if not out.applied:
-        return f"not:{rec.move.rule}:refused", None
+        return f"not:{rec.move.rule}:{_refused(out)}", None
     g, h, m = rec.g, out.result, rec.move
     problems = []
     if dominating_nodes(g) and not dominating_nodes(h):
@@ -116,7 +130,7 @@ def soundness(rec, cache) -> Tuple[str, Optional[str]]:
     source graph by the run)."""
     out, m, g = rec.outcome, rec.move, rec.g
     if not out.applied:
-        return f"not:{m.rule}:refused", None
+        return f"not:{m.rule}:{_refused(out)}", None
     sem = cache["_sem"]
     h = out.result
     if len(g.V) + len(g.E) + len(g.Cut) > sem.max_elements:

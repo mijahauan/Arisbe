@@ -22,12 +22,21 @@ from vertex_splitting_merging_rules import (
 G = RelationalGraphWithCuts
 
 
+# The core's refusal to construct a non-EGI (egi_core_dau._validate_dau_constraints,
+# Dau Def 12.5 p.125). The engines catch the ValueError and pass its message on,
+# so it is recognised by that message however it arrives. It is read as its own
+# kind of refusal — never folded into the engine's refusals, never a crash — so
+# the moves it stops stay counted under a label of their own.
+CORE_NON_EGI = "Dominating nodes violated (Def 12.5)"
+
+
 @dataclass(frozen=True)
 class Outcome:
     applied: bool
     result: Optional[G]
     message: str
     crashed: bool = False
+    core_refused_non_egi: bool = False
 
 
 def engine_entry_points() -> FrozenSet[str]:
@@ -39,6 +48,13 @@ def engine_entry_points() -> FrozenSet[str]:
 
 
 def apply_move(g: G, m: Move) -> Outcome:
+    out = _apply_move(g, m)
+    if not out.applied and CORE_NON_EGI in out.message:
+        return Outcome(False, None, out.message, core_refused_non_egi=True)
+    return out
+
+
+def _apply_move(g: G, m: Move) -> Outcome:
     engine = RULES[m.rule].engine
     try:
         if engine.startswith("protocol:"):

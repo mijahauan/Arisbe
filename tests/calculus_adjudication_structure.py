@@ -245,8 +245,12 @@ def core_figures(bounds) -> Counter:
     area = {k: set(s) for k, s in h.area.items()}
     area[h.sheet].discard(v)
     area[cut].add(v)
-    bad = _g(h, V=h.V, E=h.E, nu=h.nu, Cut=h.Cut, area=area, rel=h.rel)
-    c["hand_non_egi_core_accepts"] = int(bad.has_dominating_nodes() and not dominating_nodes(bad))
+    # Task 10: the core enforces Def 12.5 at construction, so it refuses to build it.
+    try:
+        _g(h, V=h.V, E=h.E, nu=h.nu, Cut=h.Cut, area=area, rel=h.rel)
+        c["hand_non_egi_core_refuses"] = 0
+    except ValueError as exc:
+        c["hand_non_egi_core_refuses"] = int("Dominating nodes violated (Def 12.5)" in str(exc))
     return c
 
 

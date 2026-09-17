@@ -4,6 +4,8 @@ These cases fix what the suite means by "legal" before it is compared with
 the engine: a disagreement later is then a question about the engine or about
 this reading of Dau, never about an unstated assumption.
 """
+import pytest
+
 from calculus_rules import Move, legal
 from egif_parser_dau import parse_egif
 
@@ -137,15 +139,18 @@ def test_rules_whose_parameters_underdetermine_the_move_are_not_judged():
     assert verdict is None and why.startswith("not judged")
 
 
-def test_a_non_egi_source_is_not_judged():
+def test_a_non_egi_source_cannot_be_built():
+    """Dau Def 12.5 (p.125): ctx(e) ≤ ctx(v). Task 10 enforces it at
+    construction, so a non-EGI source never reaches legal(): the core refuses
+    to build one. (Before, legal() was shown to abstain on it.)"""
     from frozendict import frozendict
     from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
-    bad = RelationalGraphWithCuts(
-        V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}), nu=frozendict({"e1": ("v1",)}),
-        sheet="S", Cut=frozenset({Cut("c1")}),
-        area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
-        rel=frozendict({"e1": "P"}))
-    assert legal(bad, Move("ERA", ("e1",)))[0] is None
+    with pytest.raises(ValueError, match=r"Dominating nodes violated \(Def 12\.5\)"):
+        RelationalGraphWithCuts(
+            V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}), nu=frozendict({"e1": ("v1",)}),
+            sheet="S", Cut=frozenset({Cut("c1")}),
+            area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+            rel=frozendict({"e1": "P"}))
 
 
 def test_unknown_ids_are_illegal():
