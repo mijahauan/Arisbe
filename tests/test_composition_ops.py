@@ -274,6 +274,24 @@ class TestMoveToArea:
         with pytest.raises(ValueError, match="across a cut"):
             co.move_to_area(r2.egi, line, r2.created["cut"])
 
+    def test_move_edge_outward_past_its_line_refused(self):
+        # (Human x) with its line inside a cut, the relation dragged out onto
+        # the sheet: the line no longer encloses it (Def 12.5, p.125). Refused
+        # in the op's own words before any graph is built.
+        r1 = co.add_cut(empty())
+        cut = r1.created["cut"]
+        r2 = co.add_relation(r1.egi, "Human", cut, arity=1)
+        edge = r2.created["edge"]
+        line = r2.created["placeholders"][0]
+        with pytest.raises(
+            ValueError,
+            match=(
+                rf"^Move refused: relation 'Human' \({edge}\) would reach "
+                rf"line '{line}' across a cut it does not sit inside\.$"
+            ),
+        ):
+            co.move_to_area(r2.egi, edge, r2.egi.sheet)
+
     def test_move_cut_with_contents(self):
         # ~[ (P x) ] moved inside another cut: the subtree travels.
         r1 = co.add_cut(empty())
