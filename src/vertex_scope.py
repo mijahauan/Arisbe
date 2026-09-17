@@ -206,11 +206,37 @@ def normalize_constants(
         result = result.without_element(edge_id)
     for twin in sorted(twins):
         result = result.without_element(twin)
+
+    # The survivor inherits its twins' edges, so it must dominate them all
+    # (Def 12.5, p.125). Keeping it where the id sort left it would put edges
+    # outside their own vertex's context whenever the twins sat in sibling
+    # cuts, or the survivor sat deeper than a twin's edge. So it is placed
+    # *before* the edges are re-hung, by the module's own "outward only" rule
+    # read over the edges it keeps and the edges it inherits: every graph
+    # built here is an EGI. A quoting name is pinned, as in
+    # ``hoist_vertices_to_lca``.
+    pinned: Set[ElementID] = set(getattr(result, "quotation", {}).values())
+    for survivor in sorted(set(twins.values())):
+        if survivor in pinned:
+            continue
+        areas = {
+            result.get_context(edge_id)
+            for edge_id, arguments in result.nu.items()
+            if survivor in arguments
+        }
+        areas |= {
+            area for _edge, arguments, _rel, area in carried
+            if survivor in arguments
+        }
+        current = result.get_context(survivor)
+        if not areas or all(current in _ancestors(result, a) for a in areas):
+            continue
+        result = result.with_vertex_moved_to_context(
+            survivor, _least_common_area(result, areas)
+        )
     for edge, arguments, relation, area in carried:
         result = result.with_edge(edge, arguments, relation, context_id=area)
-    # The survivor inherits its twins' edges, so it must dominate them all
-    # (Def 12.5, p.125). Keeping it where the id sort left it put edges outside
-    # their own vertex's context whenever the twins sat in sibling cuts, or the
-    # survivor sat deeper than a twin's edge. This is the module's own
-    # "outward only" rule, applied to the merged line.
+    # Kept from a1ad708. With the survivors placed above, and the core refusing
+    # any graph without dominating nodes, this moves nothing on a graph that
+    # reaches it; it stays as the module's single statement of the rule.
     return hoist_vertices_to_lca(result)
