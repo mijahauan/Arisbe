@@ -35,7 +35,11 @@ class TestGraphIsomorphismEngine(unittest.TestCase):
         v1 = Vertex(id="v1", label="Socrates", is_generic=False)
         v2 = Vertex(id="v2", label="Socrates", is_generic=False)  # Identical to v1
         v3 = Vertex(id="v3", label=None, is_generic=True)
-        v4 = Vertex(id="v4", label=None, is_generic=True)  # Identical to v3
+        v4 = Vertex(
+            id="v4", label=None, is_generic=True
+        )  # e3's second argument; same context as v3 (Def 12.5, p.125:
+        # a relation's context must be dominated by each vertex it hooks, so
+        # both of e3's arguments live where e3 does — cut2, not a sibling cut)
         v5 = Vertex(id="v5", label="Plato", is_generic=False)  # Different from v1
 
         # Edges
@@ -46,9 +50,9 @@ class TestGraphIsomorphismEngine(unittest.TestCase):
         # Cuts
         cut1 = Cut(id="cut1")
         cut2 = Cut(id="cut2")  # Will have same contents as cut1
-        cut3 = Cut(id="cut3")  # Different contents
+        cut3 = Cut(id="cut3")  # Empty — different (fewer) contents than cut1/cut2
 
-        return RelationalGraphWithCuts(
+        egi = RelationalGraphWithCuts(
             V=frozenset([v1, v2, v3, v4, v5]),
             E=frozenset([e1, e2, e3]),
             Cut=frozenset([cut1, cut2, cut3]),
@@ -65,9 +69,11 @@ class TestGraphIsomorphismEngine(unittest.TestCase):
                     "sheet": frozenset(["v1", "e1", "v5", "cut1", "cut2", "cut3"]),
                     "cut1": frozenset(["v2", "e2"]),
                     "cut2": frozenset(
-                        ["v3", "e3"]
-                    ),  # Different from cut1 to satisfy disjoint constraint
-                    "cut3": frozenset(["v4"]),  # Different from cut1/cut2
+                        ["v3", "e3", "v4"]
+                    ),  # Different from cut1 to satisfy disjoint constraint;
+                    # v4 lives here (with v3) because e3: Knows(v3, v4) hooks
+                    # both from this context — Def 12.5 dominating nodes
+                    "cut3": frozenset(),  # Empty cut: different contents than cut1/cut2
                 }
             ),
             rel=frozendict(
@@ -78,6 +84,12 @@ class TestGraphIsomorphismEngine(unittest.TestCase):
                 }
             ),
         )
+        # Def 12.5 (p.125): a structure without dominating nodes is not an
+        # EGI. Assert it here so a future edit to this fixture cannot
+        # silently reintroduce the defect even if construction-time
+        # enforcement is ever relaxed.
+        assert egi.has_dominating_nodes()
+        return egi
 
     def test_identical_vertices(self):
         """Test isomorphism of identical vertices."""
@@ -157,9 +169,9 @@ class TestGraphIsomorphismEngine(unittest.TestCase):
         """Test non-isomorphism of cuts with different contents."""
         egi = self.create_test_egi()
 
-        # cut1 has (v2, e2), cut3 has (v4) - different contents
+        # cut1 has (v2, e2), cut3 is empty - different contents
         result = self.engine.test_subgraph_isomorphism(
-            egi, frozenset(["cut1", "v2", "e2"]), frozenset(["cut3", "v4"])
+            egi, frozenset(["cut1", "v2", "e2"]), frozenset(["cut3"])
         )
 
         self.assertFalse(result.is_isomorphic)
