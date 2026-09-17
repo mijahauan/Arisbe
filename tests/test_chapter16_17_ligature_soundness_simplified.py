@@ -1012,6 +1012,8 @@ class TestChapter16_17LigatureSoundnessSimplified:
 
         suite = Chapter17ComplianceTestSuite()
         egi, ctx = suite._create_test_case_for_rule(rule_name)
+        # The fixture must be an EGI: dominating nodes, Dau Def 12.5 (p.125).
+        assert egi.has_dominating_nodes(), f"{rule_name} fixture is not an EGI"
         rule = suite.rules[rule_name]
 
         result = suite.evaluator.evaluate_rule_soundness(rule, egi, ctx)
@@ -1034,6 +1036,8 @@ class TestChapter16_17LigatureSoundnessSimplified:
 
         suite = Chapter17ComplianceTestSuite()
         egi, ctx = suite._create_test_case_for_rule("REARRANGE_LIGATURE")
+        # The fixture must be an EGI: dominating nodes, Dau Def 12.5 (p.125).
+        assert egi.has_dominating_nodes(), "REARRANGE_LIGATURE fixture is not an EGI"
         rule = suite.rules["REARRANGE_LIGATURE"]
 
         result = suite.evaluator.evaluate_rule_soundness(rule, egi, ctx)
