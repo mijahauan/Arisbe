@@ -318,6 +318,10 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         - The target area must exist in the EGI.
         - Every element of the selected subgraph must live directly in the
           target area (not inside a nested cut within that area).
+        - The result must be an EGI (Def 15.2, p.164), so dominating nodes
+          (Def 12.5, p.125) must survive: a vertex may move inside the double
+          cut only together with all of its edges, each one selected or
+          inside a selected cut.
 
     Result: a new outer cut O and inner cut I are created; O lives in
     target_area, I lives inside O, and the selected subgraph moves inside I.
@@ -330,8 +334,12 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         self, context: TransformationContext
     ) -> Tuple[bool, Optional[str]]:
         """
-        DC+ can be applied in any area to enclose any subgraph (including empty).
-        No specific preconditions beyond valid area and subgraph selection.
+        DC+ can be applied in any area to enclose a subgraph (including empty),
+        provided the target area exists, the selection lies directly in it, the
+        B-min quotation boundary allows it, and the result is an EGI (Def 15.2,
+        p.164): dominating nodes (Def 12.5, p.125) must survive, so a vertex
+        may move inside the double cut only together with all of its edges,
+        each one selected or inside a selected cut.
         """
         # Verify target area exists
         if context.target_area not in context.source_egi.area:
@@ -351,6 +359,25 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         )
         if refusal:
             return False, refusal
+
+        # Def 15.2 double cuts (p.164) insert c1, c2 only where the result is an
+        # EGI, and Def 12.5 (p.125) needs ctx(e) <= ctx(v) for every edge e on
+        # every vertex v. A vertex may therefore move inside the double cut only
+        # together with all of its edges: each one selected, or inside a
+        # selected cut.
+        egi = context.source_egi
+        moved, stack = set(), list(context.selected_subgraph)
+        while stack:
+            x = stack.pop()
+            if x not in moved:
+                moved.add(x)
+                stack.extend(egi.area.get(x, ()))
+        for edge_id, sequence in egi.nu.items():
+            if edge_id not in moved and any(v in moved for v in sequence):
+                return False, (
+                    f"DC+ would move a vertex inside the double cut while its edge "
+                    f"{edge_id} stays outside (Dau Def 15.2, p.164; Def 12.5, p.125)"
+                )
 
         return True, None
 
