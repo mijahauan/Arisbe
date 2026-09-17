@@ -96,11 +96,22 @@ def _least_common_area(
 
 def hoist_vertices_to_lca(
     egi: RelationalGraphWithCuts,
+    occurrences: Optional[Dict[ElementID, Set[ElementID]]] = None,
 ) -> RelationalGraphWithCuts:
     """Move each vertex outward to the least common area of its occurrences.
 
     Occurrences are read from incidence (``nu``), so this needs no bookkeeping
     from the parser that built the graph and can be applied to anything.
+
+    ``occurrences`` (vertex id → the areas of the edges that will hook it)
+    lets a builder place its vertices *before* it scribes those edges. A
+    parser that scribed each edge as it met it, and placed the vertex only
+    afterwards, stepped through structures that are not EGIs: an edge in a cut
+    that its vertex's area does not enclose (Def 12.5, p.125). Placed first,
+    on a graph with no edges yet, every move is an EGI, and every edge scribed
+    afterwards lands inside its vertex's area, as Ψ places a line's vertex
+    where it encloses every hook (p.207). When omitted, occurrences are read
+    from ``nu`` as before.
     """
     # A quoting name is pinned to its quotation cut: the B-min device requires
     # the two to sit in the same area, because that shared area *is* the drawn
@@ -109,13 +120,14 @@ def hoist_vertices_to_lca(
     # might argue for a different home, so these are left where they are.
     pinned: Set[ElementID] = set(getattr(egi, "quotation", {}) .values())
 
-    occurrences: Dict[ElementID, Set[ElementID]] = {}
-    for edge_id, args in egi.nu.items():
-        edge_area = _area_of(egi, edge_id)
-        if edge_area is None:
-            continue
-        for vertex_id in args:
-            occurrences.setdefault(vertex_id, set()).add(edge_area)
+    if occurrences is None:
+        occurrences = {}
+        for edge_id, args in egi.nu.items():
+            edge_area = _area_of(egi, edge_id)
+            if edge_area is None:
+                continue
+            for vertex_id in args:
+                occurrences.setdefault(vertex_id, set()).add(edge_area)
 
     for vertex_id, areas in occurrences.items():
         if vertex_id in pinned:

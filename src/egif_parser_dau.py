@@ -376,6 +376,9 @@ class EGIFParser:
         # New: track occurrence contexts for LCA hoisting
         self.var_occ_contexts: Dict[str, Set[ElementID]] = {}
         self.const_occ_contexts: Dict[str, Set[ElementID]] = {}
+        # Edges recorded during the walk, scribed only once every constant has
+        # been placed (see ``parse``).
+        self._pending_edges: List[Tuple[Edge, VertexSequence, RelationName, ElementID]] = []
         # Preserve all variable name mappings created during parsing
         self.all_variable_names = {}  # Maps vertex_id -> variable_name for all variables
 
@@ -453,6 +456,7 @@ class EGIFParser:
         self.var_def_context = {}
         self.var_occ_contexts = {}
         self.const_occ_contexts = {}
+        self._pending_edges = []
 
         # Parse the expression
         self._parse_eg()
@@ -472,7 +476,18 @@ class EGIFParser:
         # ``roberts_1973_p57_disjunction`` stores its constant at depth 1,
         # spanning both disjuncts, and read it back at depth 2 inside one of
         # them. Same vertex count, same canonical text, different graph.
+        #
+        # The walk recorded its edges rather than scribing them, so this pass
+        # runs on a graph of cuts and vertices only, and the edges go in after.
+        # Scribed as met, an edge could hook a constant whose area did not yet
+        # enclose it — ``(P "x")`` in one disjunct, ``(Q "x")`` in its sibling —
+        # and every graph built until the hoist was not an EGI (Def 12.5,
+        # p.125). Placed first, each constant encloses all its edges before any
+        # of them exists, as Ψ puts a line's vertex where it encloses every
+        # hook (p.207).
         self._hoist_vertices_to_lca()
+        for edge, vertex_ids, relation_name, context_id in self._pending_edges:
+            self.graph = self.graph.with_edge(edge, vertex_ids, relation_name, context_id)
 
         # Add variable name mapping to preserve semantic names
         final_graph = replace(self.graph, variable_names=frozendict(self.all_variable_names))
@@ -506,7 +521,9 @@ class EGIFParser:
                 return vertex
 
     def _fresh_edge(self):
-        existing = {e.id for e in self.graph.E}
+        existing = {e.id for e in self.graph.E} | {
+            edge.id for edge, _args, _rel, _ctx in self._pending_edges
+        }
         while True:
             edge = create_edge()
             if edge.id not in existing:
@@ -583,11 +600,14 @@ class EGIFParser:
             raise ValueError("Expected ')' to close relation")
         self._advance()
 
-        # Create edge
+        # Record the edge; ``parse`` scribes it once the constants are placed.
+        # An unknown vertex is refused here, where the relation is written, as
+        # ``with_edge`` would have refused it at this point.
+        for vertex_id in vertex_ids:
+            if vertex_id not in self.graph._vertex_map:
+                raise ValueError(f"Vertex {vertex_id} not found")
         edge = self._fresh_edge()
-        self.graph = self.graph.with_edge(
-            edge, tuple(vertex_ids), relation_name, context_id
-        )
+        self._pending_edges.append((edge, tuple(vertex_ids), relation_name, context_id))
 
     def _parse_argument(self, context_id: ElementID) -> ElementID:
         """Parse one argument of a relation (or an isolated vertex) and return its vertex ID.

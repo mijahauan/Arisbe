@@ -272,6 +272,9 @@ class CGIFParser:
         )  # Maps defining labels to bound labels (reserved for future use)
         # Track created vertices by label -> vertex_id to prevent duplicate insertions
         self._label_to_vertex_id = {}
+        # Edges recorded during the walk, scribed only once every vertex has
+        # been placed (see ``parse``).
+        self._pending_edges: List[Tuple[Edge, Tuple[str, ...], str, str]] = []
 
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CGIF text into EGI structure."""
@@ -284,13 +287,25 @@ class CGIFParser:
 
         # Convert parse tree to EGI (immutably)
         egi = create_empty_graph()
+        self._pending_edges = []
         egi = self._convert_to_egi(parse_tree, egi, egi.sheet)
         # Place every line of identity at the least common area of its
         # occurrences. A coreference label or a constant may be mentioned from
         # several areas; interned where first seen, the line sits inside one of
         # them and the graph reads with the wrong scope. Outward only — a line
         # already enclosing all its uses stays where it is.
-        egi = hoist_vertices_to_lca(egi)
+        #
+        # The walk recorded its edges rather than scribing them, so placement
+        # runs on a graph of cuts and vertices only, and the edges go in after.
+        # Scribed as met, an edge could hook a vertex whose area did not yet
+        # enclose it — [swan: Ciel] in one cell, [white: Ciel] in its sibling —
+        # and every graph built until the hoist was not an EGI (Def 12.5,
+        # p.125). Placed first, each vertex encloses all its edges before any
+        # of them exists, as Ψ puts a line's vertex where it encloses every
+        # hook (p.207).
+        egi = hoist_vertices_to_lca(egi, self._pending_occurrences())
+        for edge, vertex_ids, relation, area_id in self._pending_edges:
+            egi = egi.with_edge(edge, vertex_ids, relation, context_id=area_id)
         # Populate AlphabetDAU and rho from parsed graph
         egi = self._finalize_alphabet_and_rho(egi)
         return egi
@@ -525,6 +540,33 @@ class CGIFParser:
                 f"Unexpected token {self.current_token.type} at position {self.current_token.position}"
             )
 
+    def _record_edge(
+        self,
+        egi: RelationalGraphWithCuts,
+        edge: Edge,
+        vertex_ids: Tuple[str, ...],
+        relation: str,
+        area_id: str,
+    ) -> None:
+        """Record an edge to be scribed after vertex placement.
+
+        Refuses an unknown vertex here, where the concept or relation is
+        written — a ``?x`` with no ``*x`` before it — exactly as ``with_edge``
+        would have refused it at this point.
+        """
+        for vertex_id in vertex_ids:
+            if vertex_id not in egi._vertex_map:
+                raise ValueError(f"Vertex {vertex_id} not found")
+        self._pending_edges.append((edge, vertex_ids, relation, area_id))
+
+    def _pending_occurrences(self) -> Dict[str, Set[str]]:
+        """Each recorded vertex → the areas of the edges that will hook it."""
+        occurrences: Dict[str, Set[str]] = {}
+        for _edge, vertex_ids, _relation, area_id in self._pending_edges:
+            for vertex_id in vertex_ids:
+                occurrences.setdefault(vertex_id, set()).add(area_id)
+        return occurrences
+
     def _convert_to_egi(
         self, node: CGIFParseNode, egi: RelationalGraphWithCuts, area_id: str
     ) -> RelationalGraphWithCuts:
@@ -547,11 +589,9 @@ class CGIFParser:
                 # Track mapping for reuse
                 self._label_to_vertex_id[node.attributes["defining_label"]] = vertex_id
                 # Create type relation edge attached to the vertex
-                type_edge_id = f"e_{node.value}_{len(egi.E)}"
+                type_edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
                 type_edge = Edge(id=type_edge_id)
-                egi = egi.with_edge(
-                    type_edge, (vertex_id,), node.value, context_id=area_id
-                )
+                self._record_edge(egi, type_edge, (vertex_id,), node.value, area_id)
                 return egi
 
             if "bound_label" in node.attributes:
@@ -560,11 +600,9 @@ class CGIFParser:
                 # an isolated [* x] or as a defining occurrence). Same lookup
                 # convention as the "relation" branch below.
                 vertex_id = f"v_{node.attributes['bound_label']}"
-                type_edge_id = f"e_{node.value}_{len(egi.E)}"
+                type_edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
                 type_edge = Edge(id=type_edge_id)
-                egi = egi.with_edge(
-                    type_edge, (vertex_id,), node.value, context_id=area_id
-                )
+                self._record_edge(egi, type_edge, (vertex_id,), node.value, area_id)
                 return egi
 
             if "constant" in node.attributes:
@@ -575,11 +613,9 @@ class CGIFParser:
                     vertex = Vertex(id=vertex_id, label=const_name, is_generic=False)
                     egi = egi.with_vertex_in_context(vertex, area_id)
                 # Create type relation edge
-                type_edge_id = f"e_{node.value}_{len(egi.E)}"
+                type_edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
                 type_edge = Edge(id=type_edge_id)
-                egi = egi.with_edge(
-                    type_edge, (vertex_id,), node.value, context_id=area_id
-                )
+                self._record_edge(egi, type_edge, (vertex_id,), node.value, area_id)
                 return egi
 
         if node.type == "existential_concept":
@@ -605,11 +641,9 @@ class CGIFParser:
                         vertex = Vertex(id=vertex_id, label=arg.value, is_generic=False)
                         egi = egi.with_vertex_in_context(vertex, area_id)
                     vertex_refs.append(vertex_id)
-            edge_id = f"e_{node.value}_{len(egi.E)}"
+            edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
             edge = Edge(id=edge_id)
-            egi = egi.with_edge(
-                edge, tuple(vertex_refs), node.value, context_id=area_id
-            )
+            self._record_edge(egi, edge, tuple(vertex_refs), node.value, area_id)
             return egi
 
         if node.type == "negation":

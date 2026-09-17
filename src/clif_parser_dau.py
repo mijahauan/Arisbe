@@ -218,6 +218,9 @@ class CLIFParser:
         # polarity, so it is used in preference to guessing the line's home
         # from where its atoms happen to sit.
         self._binder_area: Dict[str, str] = {}
+        # Edges recorded during the walk, scribed only once every vertex has
+        # been placed (see ``parse``).
+        self._pending_edges: List[Tuple[Edge, Tuple[str, ...], str, str]] = []
 
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CLIF text into EGI structure.
@@ -239,6 +242,7 @@ class CLIFParser:
 
         # Convert parse trees to EGI — all sentences conjuncted on sheet
         egi = create_empty_graph()
+        self._pending_edges = []
         for sentence in sentences:
             egi = self._convert_to_egi(sentence, egi, egi.sheet)
 
@@ -256,7 +260,18 @@ class CLIFParser:
         # re-emitted as (forall (x) ...). Hoisting is outward only, so a line
         # already outside its uses keeps the position that fixes its
         # quantification.
-        egi = hoist_vertices_to_lca(egi)
+        #
+        # The walk scribed no edges; it recorded them. Placement happens here,
+        # on a graph with cuts and vertices only, and the edges go in after.
+        # Scribing each edge as it was met hooked a vertex whose area did not
+        # yet enclose the edge — a constant first mentioned in one cell and
+        # used again in a sibling — and every graph built from then until the
+        # hoist was not an EGI (Def 12.5, p.125). Placed first, each vertex
+        # encloses all its edges before any of them exists, as Ψ puts a line's
+        # vertex where it encloses every hook (p.207).
+        egi = hoist_vertices_to_lca(egi, self._pending_occurrences())
+        for edge, vertex_ids, relation, area_id in self._pending_edges:
+            egi = egi.with_edge(edge, vertex_ids, relation, context_id=area_id)
         # Populate AlphabetDAU and rho
         egi = self._finalize_alphabet_and_rho(egi)
         return egi
@@ -472,6 +487,32 @@ class CLIFParser:
         ]
         return node
 
+    def _record_edge(
+        self,
+        egi: RelationalGraphWithCuts,
+        edge: Edge,
+        vertex_ids: Tuple[str, ...],
+        relation: str,
+        area_id: str,
+    ) -> None:
+        """Record an edge to be scribed after vertex placement.
+
+        Refuses an unknown vertex here, where the atom is written, exactly as
+        ``with_edge`` would have refused it at this point.
+        """
+        for vertex_id in vertex_ids:
+            if vertex_id not in egi._vertex_map:
+                raise ValueError(f"Vertex {vertex_id} not found")
+        self._pending_edges.append((edge, vertex_ids, relation, area_id))
+
+    def _pending_occurrences(self) -> Dict[str, Set[str]]:
+        """Each recorded vertex → the areas of the edges that will hook it."""
+        occurrences: Dict[str, Set[str]] = {}
+        for _edge, vertex_ids, _relation, area_id in self._pending_edges:
+            for vertex_id in vertex_ids:
+                occurrences.setdefault(vertex_id, set()).add(area_id)
+        return occurrences
+
     def _convert_to_egi(
         self, node: CLIFParseNode, egi: RelationalGraphWithCuts, area_id: str
     ) -> RelationalGraphWithCuts:
@@ -510,10 +551,10 @@ class CLIFParser:
                         )
                     egi = egi.with_vertex_in_context(vertex, home)
                 vertex_ids.append(vertex_id)
-            # Create edge for predicate in same area
-            edge_id = f"e_{node.value}_{len(egi.E)}"
-            edge = Edge(id=edge_id)
-            egi = egi.with_edge(edge, tuple(vertex_ids), node.value, context_id=area_id)
+            # Record the edge for its area; ``parse`` scribes it once the
+            # vertices are placed. Numbered as if scribed now.
+            edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
+            self._record_edge(egi, Edge(id=edge_id), tuple(vertex_ids), node.value, area_id)
             return egi
 
         if node.type == "not":
