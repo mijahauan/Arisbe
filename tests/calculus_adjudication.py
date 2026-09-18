@@ -62,6 +62,26 @@ REASONS = {
         "The engine's only vertex-insertion entry point, HEAVY_DOT, refuses every positive context "
         "(sheet included) with 'Heavy dot insertion only allowed in negatively-enclosed areas'. "
         "Incompleteness, not unsoundness: half of an equivalence rule is missing."),
+    "move-branches-tries-one-direction-only": ("MOVE_BRANCHES", INCOMPLETE,
+        "Dau Lemma 16.1 (p.169-171) takes two vertices v_a, v_b with ctx(v_a) = ctx(v_b) and "
+        "v_aΘv_b, and 'an edge e such that the hook (e, i) is attached to v_a'. Θ is symmetric "
+        "(Def 15.1, p.163) and the move's parameters name an unordered pair, so the lemma "
+        "licenses the move whenever SOME hook on EITHER vertex qualifies — which is how legal() "
+        "reads it. The engine fixes v_a as _canonical_vertex_order(selection)[0] and asks only "
+        "whether THAT vertex carries a hook the lemma licenses moving; when v_a's every hook sits "
+        "on the join's only witness it refuses, although the other direction is available. The "
+        "shape is always the same: the selection is a pair joined by one identity edge, one of "
+        "them carries nothing else, and the other carries the relation hook that could lawfully "
+        "move — e.g. *x (= x \"a\") (P x), where the engine picks the constant as v_a and finds "
+        "only the = edge on it, while (P x)'s hook could move from x to \"a\" with the = edge "
+        "surviving to witness Θ. 0 moves in the default mode (the shape needs 4 elements); 36 at "
+        "exhaustive bounds, all tier A, each a distinct graph. Never unsound: refusing more than "
+        "the lemma licenses cannot make a step that changes meaning. It became visible only when "
+        "MOVE_BRANCHES gained an oracle (07025c2) — before that legal() abstained and these moves "
+        "counted as not judged. Before 85d316c the engine APPLIED them, moving the identity "
+        "edge's own hook: *x (= x \"a\") (P x) became *x \"a\" (= x x) (P x), which erases the "
+        "assertion x = \"a\". So the refusal is the right answer to the wrong question, and the "
+        "fix is to try the other direction, not to relax the side condition."),
     "vertex-era-positive-only": ("VERTEX_ERA", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): an isolated vertex may be erased from ARBITRARY contexts; "
         "for a constant vertex Def 24.10's Existence of Constants rule (p.271) says the same. "

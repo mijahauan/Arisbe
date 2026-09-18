@@ -72,6 +72,7 @@ def test_the_stress_tier_carries_the_shapes_tier_a_cannot():
         "scroll-with-a-line", "deiteration-across-two-cuts", "arguments-swapped",
         "theta-linked-copy", "parity-depth-3", "parity-depth-4",
         "alphabet-and-quotation", "name-against-name", "edge-insertion-target",
+        "theta-in-one-context",
     }
     assert all(dominating_nodes(g) for g in graphs.values())
     # every one is beyond the default tier-A bound of 3 elements
@@ -79,6 +80,25 @@ def test_the_stress_tier_carries_the_shapes_tier_a_cannot():
     # the one shape no linear form carries: B-min maps, so the maps clause bites
     q = graphs["alphabet-and-quotation"]
     assert q.alphabet is not None and q.sort and q.quotation
+
+
+def test_the_stress_tier_makes_move_branches_apply_somewhere():
+    """Why theta-in-one-context is in the tier, stated as a guard rather than a
+    comment. Before it, the default mode had NO graph on which MOVE_BRANCHES
+    applies at all — every candidate was refused — so the layers measured the
+    rule's refusals and nothing else, and it took the exhaustive run over the
+    corpus to find the rule unsound. A rule whose every move is refused is a
+    rule nothing is testing. Here Θ genuinely holds (Def 15.1, p.163: x, y and
+    the identity edge joining them share one context, so clause 3's
+    ctx(e_i) = ctx(v_{i+1}) is satisfied), the engine applies the move, legal()
+    judges it legal, and it is an equivalence."""
+    from calculus_apply import apply_move
+    from calculus_enum import tier_s
+    from calculus_rules import legal, moves
+    g = dict(tier_s())["theta-in-one-context"]
+    applied = [m for m in moves("MOVE_BRANCHES", g, "S") if apply_move(g, m).applied]
+    assert applied, "MOVE_BRANCHES applies on no tier-S graph: the rule is unmeasured"
+    assert all(legal(g, m)[0] for m in applied), "applied here, but legal() does not judge it legal"
 
 
 def test_tier_b_covers_every_uod_and_every_chain_state():

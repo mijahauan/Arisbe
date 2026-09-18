@@ -209,12 +209,20 @@ def adjudicate(mode_name):
         figs[eid][f"tier_{rec.tier}"] += 1
         measure(rec, eid, figs[eid], refusal_keys)
     if mode_name == "default":
+        # Both guards' entries were retired (Tasks 8 and 10), so neither id has a
+        # reason any more and filing into one would abort --write with "classified
+        # into entries with no reason". They keep running: a disagreement here is
+        # a NEW failure, reported unclassified — someone decides what it is before
+        # anything is written.
         for gname, g in tier_a(DEFAULT_BOUNDS).graphs:
             if g.has_dominating_nodes() != dominating_nodes(g):
-                found["core-has-dominating-nodes-inverted"]["DISAGREE"].add(f"A|{gname}|graph")
+                unclassified.append((f"A|{gname}|graph",
+                                     f"core has_dominating_nodes={g.has_dominating_nodes()}, "
+                                     f"Def 12.5 (p.125) says {dominating_nodes(g)}"))
         for name, g in tier_b_sources(include_chains=True):
             if not dominating_nodes(g):
-                found["corpus-graph-not-an-egi"]["NOT AN EGI"].add(f"B|{name}|graph")
+                unclassified.append((f"B|{name}|graph",
+                                     "stored corpus graph is not an EGI (Def 12.5, p.125)"))
     for eid in figs:
         figs[eid]["keys"] = len(set().union(*found[eid].values()))
     return found, figs, unclassified

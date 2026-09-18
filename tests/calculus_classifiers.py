@@ -128,6 +128,10 @@ REFUSAL: Dict[str, Pred] = {
         lambda r, d: _rule(r, "IT+") and _named_apart(r),
     "it-minus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "IT-") and _named_apart(r),
+    "move-branches-tries-one-direction-only":
+        lambda r, d: _rule(r, "MOVE_BRANCHES") and not r.outcome.applied
+        and not r.outcome.crashed
+        and "sits on an identity edge that witnesses the link itself" in r.outcome.message,
     "it-minus-strictly-enclosing-only":
         lambda r, d: _rule(r, "IT-") and not r.outcome.applied and not r.outcome.crashed and (
             "No enclosing areas" in r.outcome.message

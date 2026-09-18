@@ -323,6 +323,25 @@ STRESS: Tuple[Tuple[str, str], ...] = (
     ("theta-linked-copy", "*x *y (P x) ~[ (= x y) (P y) ]"),
     ("name-against-name", '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]'),
     ("edge-insertion-target", "*x *y (P x) (Q y) ~[ ]"),
+    # The positive MOVE_BRANCHES exercise, added 2026-09-18 after the exhaustive
+    # run found the rule unsound on two corpus chain states. Until then the suite
+    # had NO graph in the default mode where MOVE_BRANCHES applies at all, which
+    # is how the defect survived a whole fix arc: a rule whose every move is
+    # refused is a rule nothing is measuring.
+    #
+    # Here Θ genuinely holds (Def 15.1, p.163): x and y sit in one context and
+    # the identity edge joining them sits in that same context, so clause 3's
+    # ctx(e_i) = ctx(v_{i+1}) is satisfied. MOVE_BRANCHES applies, legal() judges
+    # it legal, and the move is an equivalence — `(= x y) (P x) (Q y)` becomes
+    # `(= x y) (P y) (Q y)`, which says the same because x = y is asserted.
+    #
+    # Note what theta-linked-copy above is NOT: its identity edge lies inside the
+    # cut while its vertices lie outside it, so Θ fails and the rule now refuses
+    # it. Its move used to look meaning-preserving only because both hooked
+    # relations were `P`; break that symmetry — `*x *y (P x) (Q y) ~[ (= x y) ]`
+    # — and the same move is unsound. It is `group_identity:s3`'s shape, not a
+    # lawful move, and it must not be cited as one.
+    ("theta-in-one-context", "*x *y (= x y) (P x) (Q y)"),
 )
 
 
