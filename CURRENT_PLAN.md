@@ -3,7 +3,7 @@
 **Last Updated**: 2026-09-18 (eighteenth arc) — **SEVEN ENGINE DEFECTS FIXED AT THE RULE, AND DEF
 12.5 ENFORCED WHERE GRAPHS ARE BUILT — WHICH EXPOSED EIGHT MORE PLACES IN `src/` QUIETLY BUILDING
 GRAPHS THAT ARE NOT EGIs. THE LAST TWO DEFECTS WERE FOUND BY THE INSTRUMENT AFTER THE ARC THOUGHT
-IT WAS DONE, WHICH IS THE BEST THING IN THIS REPORT.**
+IT WAS DONE.**
 Branch `calculus-fix-arc` (off `main` at `3b237c2`, **not merged** — integration is
 yours to decide). Spec:
 [the calculus fix arc](docs/superpowers/specs/2026-09-12-calculus-fix-arc-design.md) ·
@@ -170,8 +170,14 @@ regression**. Before `85d316c` the engine *applied* these, moving the identity e
 refusal is the right answer to the wrong question. What is new is only that it can be *seen*:
 before `07025c2` `legal()` abstained on MOVE_BRANCHES and these counted as `not judged`.
 
-**The fix, and why it is not taken here.** One line, in a protected module: try the other
-direction when `v_a` carries no licensed hook. But it converts 36 refusals into **applications**,
+**The fix, and why it is not taken here.** Small, in a protected module: try the other direction
+when `v_a` carries no licensed hook. Not one line, though the controller first estimated it as one
+and that estimate reached this page before it was checked — `va_id, vb_id = vertices[0],
+vertices[1]` appears in **both** `check_preconditions` and `apply_transformation`, so the two must
+be changed together and must keep agreeing about which hook moves. A rule that validates one hook
+and moves another is exactly the divergence Task 7's review went looking for, which is why
+`_hook_to_move` is shared between them today; the `moved_from` / `moved_to` metadata follows the
+same choice. But it also converts 36 refusals into **applications**,
 and newly-enabled MOVE_BRANCHES applications are exactly where this arc's unsoundness hid — so it
 needs a fresh exhaustive soundness pass (~2½ h) and a refusal re-pin (~43 min) before the entry
 could retire. That is the author's call, not the arc's.
