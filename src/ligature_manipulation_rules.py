@@ -105,6 +105,109 @@ def _refuse_edges_in_another_context(
     return None
 
 
+def _encloses(
+    egi: RelationalGraphWithCuts, outer: ElementID, inner: ElementID
+) -> bool:
+    """``outer`` >= ``inner`` in Dau's order on contexts: outer is inner, or
+    encloses it. Dau writes the sheet as the maximum and reads inward as
+    smaller (Def 15.2's iteration, p.164: "let c <= ctx(G0)" copies inward)."""
+    current = inner
+    while True:
+        if current == outer:
+            return True
+        if current == egi.sheet:
+            return False
+        current = egi.get_context(current)
+
+
+def _identity_edges_below(
+    egi: RelationalGraphWithCuts, va_id: ElementID, vb_id: ElementID
+) -> List[ElementID]:
+    """The identity edges on {v_a, v_b} that sit deeper than both vertices."""
+    pair = {va_id, vb_id}
+    return sorted(
+        edge_id
+        for edge_id, seq in egi.nu.items()
+        if egi.rel.get(edge_id) == "="
+        and len(seq) == 2
+        and set(seq) == pair
+        and egi.get_context(edge_id) not in (
+            egi.get_context(va_id),
+            egi.get_context(vb_id),
+        )
+    )
+
+
+def _theta(
+    egi: RelationalGraphWithCuts,
+    v_id: ElementID,
+    w_id: ElementID,
+    excluded_edge: Optional[ElementID] = None,
+) -> bool:
+    """Def 15.1 (Θ, p.163), as Dau states it — NOT bare `=`-connectivity.
+
+    "vΘw iff there exist vertices v1, ..., vn with 1. either v = v1 and vn = w,
+    or w = v1 and vn = v, 2. ctx(v1) >= ctx(v2) >= ... >= ctx(vn), and 3. for
+    each i, there exists an identity edge ei = {vi, vi+1} with
+    ctx(ei) = ctx(vi+1)."
+
+    Clause 3 is the one this module kept losing. An identity edge may lawfully
+    sit DEEPER than the vertices it joins (Def 12.5's dominating nodes, p.125,
+    asks only that each vertex's context enclose the edge's) — but then it is
+    an assertion made under a cut, not wiring, and Θ does not hold. That is
+    exactly what the iteration rule needs Θ for (Def 15.2, p.164): vΘw is what
+    licenses inserting an identity edge between v and w INTO the target
+    context c, which is the step Lemma 16.1's proof (p.170-171) takes.
+
+    Walk clause 1's two orientations separately: clause 2 makes a chain
+    monotone INWARD, so a chain from v to w and one from w to v are different
+    claims. (Dau notes Θ is reflexive and symmetric but not transitive.)
+    """
+    return _theta_chain(egi, v_id, w_id, excluded_edge) or _theta_chain(
+        egi, w_id, v_id, excluded_edge
+    )
+
+
+def _theta_chain(
+    egi: RelationalGraphWithCuts,
+    start: ElementID,
+    goal: ElementID,
+    excluded_edge: Optional[ElementID],
+) -> bool:
+    """One orientation of Def 15.1: a chain start = v1, ..., vn = goal running
+    monotonically inward, each step's identity edge in the inner vertex's own
+    context."""
+    if start == goal:
+        return True          # n = 1: Θ is reflexive
+    seen, stack = {start}, [start]
+    while stack:
+        current = stack.pop()
+        current_context = egi.get_context(current)
+        for edge_id, seq in sorted(egi.nu.items()):
+            if (
+                edge_id == excluded_edge
+                or egi.rel.get(edge_id) != "="
+                or len(seq) != 2
+                or current not in seq
+            ):
+                continue
+            next_id = seq[1] if seq[0] == current else seq[0]
+            if next_id in seen:
+                continue
+            next_context = egi.get_context(next_id)
+            # Clause 3: ctx(e_i) = ctx(v_{i+1}).
+            if egi.get_context(edge_id) != next_context:
+                continue
+            # Clause 2: ctx(v_i) >= ctx(v_{i+1}) — the chain runs inward.
+            if not _encloses(egi, current_context, next_context):
+                continue
+            if next_id == goal:
+                return True
+            seen.add(next_id)
+            stack.append(next_id)
+    return False
+
+
 class MoveBranchesAlongLigatureRule(FormalTransformationRule):
     """
     Lemma 16.1: Moving Branches along a Ligature in a Context
@@ -159,9 +262,16 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         if va_context != vb_context:
             return False, "Vertices must be in the same context for branch moving"
 
-        # Check if vertices are on the same ligature (connected by identity edges)
+        # Lemma 16.1's own premise (p.169): "let va, vb be two vertices with
+        # c := ctx(va) = ctx(vb) and vaΘvb". Θ is Def 15.1 (p.163) — a chain
+        # running inward whose every identity edge sits in the context of the
+        # vertex it reaches. With ctx(va) = ctx(vb) that forces the whole chain,
+        # edges included, into c: the same reading Lemma 16.3 (p.173) and Def
+        # 16.4 (p.174) get from _refuse_edges_in_another_context. Counting any
+        # `=` edge wherever it sits made the rule move a hook across an
+        # identity that a cut ASSERTS rather than wires, and changed meaning.
         if not self._vertices_on_same_ligature(egi, va_id, vb_id):
-            return False, "Vertices must be on the same ligature (vaΘvb relation)"
+            return False, self._theta_refusal(egi, va_id, vb_id)
 
         # Lemma 16.1 (p.169-171): the lemma moves ONE hook (e, i) on v_a, and
         # its proof deiterates v3/e4/e1 as a copy of v2 — which needs v_aΘv_b
@@ -282,73 +392,34 @@ class MoveBranchesAlongLigatureRule(FormalTransformationRule):
         excluded_edge: ElementID,
     ) -> bool:
         """Whether v_aΘv_b still holds with ``excluded_edge`` set aside."""
-        adjacency: Dict[ElementID, Set[ElementID]] = {}
-        for edge_id, seq in egi.nu.items():
-            if edge_id == excluded_edge or egi.rel.get(edge_id) != "=" or len(seq) != 2:
-                continue
-            adjacency.setdefault(seq[0], set()).add(seq[1])
-            adjacency.setdefault(seq[1], set()).add(seq[0])
-        seen, stack = {va_id}, [va_id]
-        while stack:
-            current = stack.pop()
-            if current == vb_id:
-                return True
-            for neighbour in adjacency.get(current, ()):
-                if neighbour not in seen:
-                    seen.add(neighbour)
-                    stack.append(neighbour)
-        return vb_id in seen
+        return _theta(egi, va_id, vb_id, excluded_edge=excluded_edge)
 
     def _vertices_on_same_ligature(
         self, egi: RelationalGraphWithCuts, va_id: ElementID, vb_id: ElementID
     ) -> bool:
-        """Check if two vertices are connected by identity edges (same ligature)."""
-        # Build ligature graph from identity edges
-        identity_edges = []
-        for edge_id, vertex_sequence in egi.nu.items():
-            if egi.rel.get(edge_id) == "=":  # Identity relation
-                if len(vertex_sequence) == 2:
-                    identity_edges.append((vertex_sequence[0], vertex_sequence[1]))
+        """Whether v_aΘv_b — Def 15.1 (p.163), not bare `=`-connectivity."""
+        return _theta(egi, va_id, vb_id)
 
-        # Use graph traversal to check connectivity
-        return self._vertices_connected_by_identity(identity_edges, va_id, vb_id)
-
-    def _vertices_connected_by_identity(
-        self,
-        identity_edges: List[Tuple[ElementID, ElementID]],
-        va_id: ElementID,
-        vb_id: ElementID,
-    ) -> bool:
-        """Check if two vertices are connected through identity edges."""
-        # Build adjacency list
-        graph = {}
-        for v1, v2 in identity_edges:
-            if v1 not in graph:
-                graph[v1] = []
-            if v2 not in graph:
-                graph[v2] = []
-            graph[v1].append(v2)
-            graph[v2].append(v1)
-
-        # BFS to check connectivity
-        if va_id not in graph or vb_id not in graph:
-            return False
-
-        visited = set()
-        queue = [va_id]
-        visited.add(va_id)
-
-        while queue:
-            current = queue.pop(0)
-            if current == vb_id:
-                return True
-
-            for neighbor in graph.get(current, []):
-                if neighbor not in visited:
-                    visited.add(neighbor)
-                    queue.append(neighbor)
-
-        return False
+    def _theta_refusal(
+        self, egi: RelationalGraphWithCuts, va_id: ElementID, vb_id: ElementID
+    ) -> str:
+        """Why Θ fails, in EG terms, naming a deeper identity edge if one is why."""
+        deeper = _identity_edges_below(egi, va_id, vb_id)
+        if deeper:
+            edge_id = deeper[0]
+            return (
+                f"The identity edge {edge_id} joining {va_id} to {vb_id} lies inside "
+                f"{egi.get_context(edge_id)}, deeper than the vertices in "
+                f"{egi.get_context(va_id)}: enclosed by a cut it ASSERTS that the two "
+                f"denote one thing rather than wiring them into one ligature, so "
+                f"v_aΘv_b fails (Def 15.1, p.163, clause 3: ctx(e_i) = ctx(v_i+1)) "
+                f"and Lemma 16.1 (p.169-171) licenses no move"
+            )
+        return (
+            f"No ligature joins {va_id} to {vb_id} within their own context, so "
+            f"v_aΘv_b fails (Def 15.1, p.163) and Lemma 16.1 (p.169-171), which is "
+            f"stated for v_aΘv_b, licenses no move"
+        )
 
 
 class ExtendRestrictLigatureRule(FormalTransformationRule):
