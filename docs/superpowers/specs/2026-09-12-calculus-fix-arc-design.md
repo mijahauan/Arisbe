@@ -1,7 +1,10 @@
 # The calculus fix arc — making the engine stay inside what Dau states
 
-**Date:** 2026-09-12 · **Branch:** to be created off `main` (`3b237c2`) · **Status:** design,
-approved in session; not built.
+**Date:** 2026-09-12 · **Branch:** `calculus-fix-arc`, off `main` (`3b237c2`) · **Status:** BUILT
+2026-09-17. All eleven tasks done; six engine defects fixed at the rule, Def 12.5 enforced at
+construction, both stored non-EGIs repaired. See the eighteenth arc's block at the head of
+[CURRENT_PLAN.md](../../../CURRENT_PLAN.md) for the outcome, what remains ledgered, and the three
+findings that await the author. §4 step 7 (the alphabet question) is still the author's to decide.
 
 **Predecessors:** the property suite
 ([spec](2026-09-10-calculus-property-suite-design.md),

@@ -342,6 +342,23 @@ All are **existence** questions — answerable in the calculus as it stands.
 
   Both are ledgered PROVISIONAL. At exhaustive bounds the refusal ledger holds 77,636 keys in 15
   entries, pinned by count per kind, with 0 failing keys spanning two cells.
+
+  *Note (added by the fix arc, 2026-09-17; the prior and every outcome above stand unedited):*
+  **HELD for the three rules the arc fixed, in both modes.** IT+ no longer copies a cut into its
+  own selection (Def 15.2, p.164: `c ∉ Cut₀`) and IT- no longer erases a look-alike whose
+  supposed original hooks another vertex (Def 15.2, p.166), so `it-plus-into-its-own-selection`
+  and `it-minus-erases-a-copy-of-another-line` are **gone from the ledger**, not smaller; the
+  extent shows it directly — `A:IT+:applied/illegal` 4,430 → absent (with the same 4,430 arriving
+  in `A:IT+:refused/illegal`), `B:IT+:applied/illegal` 2,189 → absent,
+  `B:IT-:applied/illegal` 64 → absent. DC+ now refuses a selection holding a vertex without all
+  of its edges, so `dc-plus-strands-a-vertex` is gone too (exhaustive SEVERE 14,954 → 0):
+  `A:DC+:applied/illegal` 20,763 → 8,149, exactly the 12,614 of the retired
+  `A:not:DC+:not-an-EGI` label, every one of them now in `A:DC+:refused/illegal`.
+  The severe cell is **not** empty. What remains is `dc-plus-ignores-target`,
+  `era-auto-closes-a-vertex-selection` and `vertex-era-erases-a-line-with-its-edges` — the three
+  protocol conventions, sound on every instance measured — and
+  `ins-mixes-arities-without-an-alphabet`, which waits on the alphabet decision (fix-arc spec
+  §4 step 7).
 - **`P-K3`.** No tier-A soundness failure in the one-way rules (ERA, INS, IT+).
   *Fails if* any structure models G but not G′.
   *Note (added at the Task 8 review):* this prior was written under §5.3's superseded reading
@@ -385,6 +402,39 @@ All are **existence** questions — answerable in the calculus as it stands.
   - MERGE_VERTICES: 12;
   - IT- erasing an edge whose supposed original hooks another vertex, on group_identity's chain
     states: 4. Separating structure `Structure(2, (), (('M', ((0, 0, 0),)),))`.
+
+  *Note (added by the fix arc, 2026-09-17; the prior and every outcome above stand unedited):*
+  **HELD for five of the six rules the arc fixed, and the headline is unchanged.** Six of the
+  seven soundness entries are **gone from the ledger** —
+  `it-plus-into-its-own-selection-changes-meaning`,
+  `it-minus-erases-a-copy-of-another-line-changes-meaning`,
+  `ligature-rules-take-a-join-deeper-than-its-vertices`,
+  `retract-ligature-erases-a-constant-vertex`, `merge-vertices-erases-a-constant-vertex` and
+  `move-branches-moves-the-identity-edge-it-moves-along` — and the extent shows each one's
+  `<tier>:<rule>:failed` key disappearing: `A:IT+:failed` 3,228, `B:IT+:failed` 596,
+  `B:IT-:failed` 5, `A:MERGE_VERTICES:failed` 156, `A:MOVE_BRANCHES:failed` 206,
+  `A:REARRANGE_LIGATURE:failed` 28, `A:RETRACT_LIGATURE:failed` 174,
+  `B:REARRANGE_LIGATURE:failed` 6 and `B:RETRACT_LIGATURE:failed` 6, all absent. The one
+  soundness entry left, `vertex-era-erases-a-line-not-an-equivalence` (111 / 1,898), is sound.
+
+  **The exhaustive run found a seventh defect after the arc thought it was finished, and it is
+  now fixed too.** `B:MOVE_BRANCHES:failed` first went 28 → **6**, not to 0 — 3 UNSOUND on
+  `group_identity:s2` and 3 NOT AN EQUIVALENCE on `group_identity:s3`, reached only at exhaustive
+  bounds, and reported as a residue rather than ledgered (ledgering a known-unsound move as
+  accepted is the one thing the arc forbids). The cause was the **premise**, not the side
+  condition: Lemma 16.1 (p.169–171) licenses a move only when `v_aΘv_b`, and Θ (Def 15.1, p.163)
+  requires a chain whose clause 3 reads `ctx(e_i) = ctx(v_{i+1})` — in s2 both vertices sit in
+  `c_960ad0ea` while their only identity edge sits in `c_4f8f1508`, in s3 both sit on the sheet
+  while the edge sits two cuts in, so Θ never held and the lemma licensed nothing.
+  `_vertices_on_same_ligature` and its `_excluding` twin walked every `=` edge wherever it sat;
+  they now ask for Θ (`6dde7c7`), and `B:MOVE_BRANCHES:failed` is absent. Tier A keeps all 123 of
+  its MOVE_BRANCHES applications; across 219 graphs / 32,476 moves exactly 8 dispositions
+  changed, every one applied → refused. MOVE_BRANCHES also gained a `legal()` oracle (`07025c2`)
+  — it had been `judged=False`, so the refusal layer scored none of its moves — and tier S gained
+  `theta-in-one-context` (`*x *y (= x y) (P x) (Q y)`), the suite's **first** graph on which
+  MOVE_BRANCHES applies in the default mode at all.
+  The headline held throughout and still holds: **no soundness failure on any move `legal` judges
+  legal**.
 - **`P-K4`.** Where both evaluators answer, they agree. *Fails if* any disagreement is counted.
   **Outcome (2026-09-10 run, default bounds, 208 graphs, domain sizes 1–2, unique names, closed
   world):** HELD — 4,392 comparisons, **0 disagreements, 0 UNKNOWN**; 808 over every structure
@@ -401,6 +451,11 @@ All are **existence** questions — answerable in the calculus as it stands.
   Outside the layer's assumptions
   nothing is claimed: co-denoting names (Def 24.2 allows them; `semantic_game` matches constants
   by label) and open worlds are not compared here.
+
+  *Note (added by the fix arc, 2026-09-17; the prior and its outcome above stand unedited):*
+  **still HELD after the six fixes.** The exhaustive re-pin leaves tier A's figures untouched
+  (3,401,174 exhaustive + 540,160 sampled, 0 disagreements) and adds the stress tier's
+  `S:agree:exhaustive` 1,168 — so nothing the arc changed moved the two evaluators apart.
 
 `bfo_core` carries no prior: it has none of the line-above-use shape and remains undiagnosed.
 
