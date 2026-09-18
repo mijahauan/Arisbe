@@ -135,8 +135,65 @@ def test_vertex_rules_ignore_polarity():
 # Not judged
 def test_rules_whose_parameters_underdetermine_the_move_are_not_judged():
     g = parse_egif("(P *x)")
-    verdict, why = legal(g, Move("MOVE_BRANCHES", (_vertex(g),), g.sheet))
-    assert verdict is None and why.startswith("not judged")
+    for rule in ("EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE"):
+        verdict, why = legal(g, Move(rule, (_vertex(g),), g.sheet))
+        assert verdict is None and why.startswith("not judged"), rule
+
+
+# MOVE_BRANCHES — Lemma 16.1, p.169-171; Theta is Def 15.1, p.163
+def _two_vertices(g):
+    return tuple(sorted(v.id for v in g.V))
+
+
+def test_move_branches_wants_two_vertices():            # p.169, "two vertices va, vb"
+    g = parse_egif("*x *y (= x y) (P x) (Q y)")
+    assert ok(g, Move("MOVE_BRANCHES", (_vertex(g),), g.sheet)) is False
+    assert ok(g, Move("MOVE_BRANCHES", (_edge(g, "="), _vertex(g)), g.sheet)) is False
+
+
+def test_move_branches_wants_one_context():             # p.169, "c := ctx(va) = ctx(vb)"
+    g = parse_egif("*x (P x) ~[ *y (= x y) (Q y) ]")
+    assert ok(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet)) is False
+
+
+def test_move_branches_theta_holds_in_one_context():    # p.163 clause 3, satisfied
+    g = parse_egif("*x *y (= x y) (P x) (Q y)")
+    assert ok(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet)) is True
+
+
+def test_move_branches_theta_fails_when_the_join_is_deeper():
+    """Def 15.1 clause 3 (p.163): ctx(e_i) = ctx(v_i+1). An identity edge may
+    lawfully sit deeper than the vertices it joins (Def 12.5, p.125), but
+    under a cut it ASSERTS an identity rather than wiring a ligature, so Theta
+    fails and Lemma 16.1 licenses nothing. `*x *y (P x) (Q y) ~[ (= x y) ]` is
+    the shape: moving (P x)'s hook to y turns a true graph false."""
+    g = parse_egif("*x *y (P x) (Q y) ~[ (= x y) ]")
+    verdict, why = legal(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet))
+    assert verdict is False and "Def 15.1" in why
+
+
+def test_move_branches_theta_is_not_transitive():
+    """Dau, p.163: the vertex in the cut is in Theta-relation with each of the
+    two vertices on the sheet, but those two are not in Theta-relation."""
+    g = parse_egif('(P "a") (Q "b") ~[ *z (= "a" z) (= "b" z) ]')
+    by_name = {v.label: v.id for v in g.V if not v.is_generic}
+    a, b = by_name["a"], by_name["b"]
+    z = next(v.id for v in g.V if v.is_generic)
+    assert ok(g, Move("MOVE_BRANCHES", (a, b), g.sheet)) is False   # not transitive
+    for outer in (a, b):
+        # ...and each outer vertex is not in ONE context with z either, so
+        # Lemma 16.1 is out of reach from both directions (p.169).
+        assert ok(g, Move("MOVE_BRANCHES", (outer, z), g.sheet)) is False
+
+
+def test_move_branches_needs_a_hook_that_is_not_the_only_witness():
+    """Lemma 16.1's proof (p.170-171) deiterates a copy of vb against a
+    vaTHETAvb that must survive the move, so the hook moved may not sit on the
+    join's only witness. Two vertices joined by nothing but their identity
+    edge carry no other hook."""
+    g = parse_egif("*x *y (= x y)")
+    verdict, why = legal(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet))
+    assert verdict is False and "p.170-171" in why
 
 
 def test_a_non_egi_source_cannot_be_built():
@@ -199,7 +256,8 @@ def test_legal_never_consults_the_engine():
     import calculus_rules
     src = open(calculus_rules.__file__).read()
     for forbidden in ("formal_transformation_rules", "subgraph_closure_validator",
-                      "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring"):
+                      "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring",
+                      "ligature_manipulation_rules"):
         assert forbidden not in src, forbidden
 
 
