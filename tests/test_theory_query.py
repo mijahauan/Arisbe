@@ -110,10 +110,23 @@ def test_clif_imported_names_with_hyphens_do_not_break():
     # (e.g. ``Warm-blooded``).  The query relation names are clean (EGIF-authored),
     # but the *theory* carries hyphenated ones — the combined-graph build must not
     # round-trip through EGIF text.  Materializing + querying must still work.
+    #
+    # The second binder is `y`, not a second `x`, and that is load-bearing: CLIF
+    # and CGIF key a generic vertex by the variable's *name*, so two foralls
+    # reusing one name come back as a SINGLE line of identity on the sheet
+    # (`*x ~[ … ] ~[ … ]`) instead of one line inside each antecedent.  Dau binds
+    # a quantifier to the occurrences in its own formula (Def 18.1 p.197), so that
+    # reading is wrong, and it is held by the strict xfails in
+    # ``tests/test_linear_form_binder_scoping.py``.  This test used to pass with a
+    # reused name only because materialization ALSO misread a sheet-level line as
+    # a universal variable — two defects cancelling.  The reused-name shape is
+    # incidental to what this test guards (hyphenated relation names surviving the
+    # combined-graph build), so it is spelled correctly here rather than relying on
+    # the parser defect.
     from clif_parser_dau import parse_clif
     theory = parse_clif(
         "(forall (x) (if (Bird x) (Warm-blooded x))) "
-        "(forall (x) (if (Penguin x) (Bird x)))")
+        "(forall (y) (if (Penguin y) (Bird y)))")
     # A clean-named query whose derivation passes *through* the hyphenated relation.
     r = _q_egi(theory, '~[ (Penguin *x) ~[ (Bird x) ] ]')
     assert r.verdict == "true"
@@ -161,3 +174,33 @@ def test_foaf_typing_chains_through_subsumption(tomos):
     assert _corpus_q(tomos, "foaf_core", '~[ (knows *y *z) ~[ (Person y) ] ]').verdict == "true"
     assert _corpus_q(tomos, "foaf_core", '~[ (knows *y *z) ~[ (Agent y) ] ]').verdict == "true"
     assert _corpus_q(tomos, "foaf_core", '~[ (Person *x) ~[ (Agent x) ] ]').verdict == "true"
+
+
+# ---------------------------------------------------------------------------
+# A line's AREA is its quantification (Ψ/Φ, Dau p.207–208)
+#
+# `_as_universal_horn` is a private re-implementation of the materializer's Horn
+# classification, and it carried the same defect independently: it checked for
+# stray sheet-level *edges* but never asked where the scroll's *lines* sit.  A
+# query whose line lies on the sheet is `∃x(B(x) → H(x))` — not a universal at
+# all — so `entails` must decline it, exactly as its own contract says.
+# ---------------------------------------------------------------------------
+
+THEORY = '(P "a") (Q "a") (P "b")'
+
+
+def test_a_query_whose_line_sits_on_the_sheet_is_not_a_universal():
+    r = _q(THEORY, '*x ~[ (P x) ~[ (Q x) ] ]')
+    assert r.applicable is False
+
+
+def test_the_twin_with_the_line_in_the_antecedent_still_is_a_universal():
+    # The ONLY difference is the line's area.
+    r = _q(THEORY, '~[ *x (P x) ~[ (Q x) ] ]')
+    assert r.applicable is True
+
+
+def test_area_alone_must_change_the_answer():
+    sheet = _q(THEORY, '*x ~[ (P x) ~[ (Q x) ] ]')
+    cut = _q(THEORY, '~[ *x (P x) ~[ (Q x) ] ]')
+    assert (sheet.applicable, sheet.verdict) != (cut.applicable, cut.verdict)

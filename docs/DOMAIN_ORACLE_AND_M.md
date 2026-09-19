@@ -266,6 +266,20 @@ an honest **skip-report** of the rules left unmaterialized.
   (`~[ ~[A] ~[B] ]` inside H), or an **existential head** (a `*x` in H not bound in B
   → would demand a new individual; skolemization is the contest game's business). A
   bare fact (no scroll) is already in M′.
+- **Which lines are the rule's variables — a line's area *is* its quantification**
+  (Ψ/Φ, Dau p.207–208). The universally quantified lines of `~[ B ~[ H ] ]` are exactly
+  those whose **area is the antecedent cut**: those, and only those, are the ones the
+  enclosing negation turns into ∀. A line lying *outside* the scroll is a top-level
+  existential — **one fixed individual** — so the scroll is a *ground* rule about it and
+  licenses nothing about anybody else. `*x ~[ (Penguin x) ~[ (Bird x) ] ]` is
+  ∃x(Penguin(x) → Bird(x)), **not** the law, and must not make a bird of someone else's
+  `"p"`; its twin `~[ (Penguin *x) ~[ (Bird x) ] ]`, differing in nothing but where the
+  line sits, *is* the law. Reading every line in a scroll as a variable regardless of
+  area was a live defect until 2026-09-19 (it derived facts nobody asserted, and
+  `theory_query`'s `_as_universal_horn` carried its own copy on the query side). The
+  ground reading keeps Peirce's modus ponens `*x (P x) ~[ (P x) ~[ (Q x) ] ]` deriving
+  `Q` of that one individual, which is sound and is what it buys over refusing the
+  scroll outright.
 - **The fixpoint.** Repeatedly: for each Horn rule, find every binding of B into the
   current facts (this is exactly `match_atoms`), and add H's atoms under that binding;
   stop when a pass adds nothing. **Termination is guaranteed**: function-free,
@@ -300,7 +314,11 @@ The decision that can is **deduction**, and for the Horn/Datalog fragment it is 
 standard, complete, terminating procedure — **freeze a fresh witness** (`entails` in
 `src/theory_query.py`):
 
-1. take the universal `G = ~[ B(x⃗) ~[ H(x⃗) ] ]` (body → head, range-restricted);
+1. take the universal `G = ~[ B(x⃗) ~[ H(x⃗) ] ]` (body → head, range-restricted) —
+   and it is a universal only when its lines sit in the **antecedent cut**, per the
+   area rule in §6.1 above. A `G` with a line on the sheet is `∃x(B(x) → H(x))`, not a
+   universal at all, so `entails` declines it (`applicable=False`) and the caller falls
+   back to the ordinary peel;
 2. mint a fresh constant for each line of identity in `B` and assert `B` over those
    constants — an *arbitrary* individual mentioned nowhere in M;
 3. **materialize** `M ∪ {frozen B}` (run M's rules over the witness);

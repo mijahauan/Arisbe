@@ -268,3 +268,45 @@ def test_k3_ratio_one_when_all_derived_no_explicit():
     assert k3.explicit == 0
     assert k3.derived == 1
     assert k3.ratio == 1.0
+
+
+# ---------------------------------------------------------------------------
+# A line's AREA is its quantification (Ψ/Φ, Dau p.207–208)
+#
+# In the scroll ``~[ B ~[ H ] ]`` only a line whose area is the antecedent cut
+# is universally quantified by the enclosing negation — that is a rule
+# variable.  A line sitting on the **sheet** is a top-level existential: ONE
+# fixed individual, which licenses nothing about anybody else.  The materializer
+# read every line in a scroll as a universal variable regardless of its area,
+# so a model derived facts nobody asserted.
+# ---------------------------------------------------------------------------
+
+def test_a_sheet_level_line_in_a_scroll_is_not_a_universal_law():
+    # `*x ~[ (Penguin x) ~[ (Bird x) ] ]` is ∃x(Penguin(x) → Bird(x)), which says
+    # nothing whatever about "p".  Read as ∀x it wrongly derives (Bird "p").
+    M = parse_egif('*x ~[ (Penguin x) ~[ (Bird x) ] ] (Penguin "p")')
+    facts, rep = materialize_egi(M)
+    assert ("Bird", "p") not in _facts(facts)
+    assert rep.derived_facts == 0
+
+
+def test_the_same_scroll_with_the_line_inside_the_cut_IS_a_universal_law():
+    # The twin: the ONLY difference is the line's area, and here it is the
+    # antecedent — ∀x(Penguin(x) → Bird(x)).  This one must still fire.
+    M = parse_egif('~[ (Penguin *x) ~[ (Bird x) ] ] (Penguin "p")')
+    facts, rep = materialize_egi(M)
+    assert ("Bird", "p") in _facts(facts)
+    assert rep.rules_applied == 1
+    assert rep.derived_facts == 1
+
+
+def test_modus_ponens_on_a_sheet_line_derives_for_that_individual_only():
+    # `peirce_modus_ponens`' own shape: ∃x(P(x) ∧ (P(x) → Q(x))).  The scroll is a
+    # GROUND rule about that one individual, so Q holds of it — and of nobody
+    # else.  Read as a universal law it leaks onto the unrelated (P "b").
+    M = parse_egif('*x (P x) ~[ (P x) ~[ (Q x) ] ] (P "b")')
+    facts, rep = materialize_egi(M)
+    atoms = _facts(facts)
+    assert ("Q", "b") not in atoms                  # the leak
+    assert rep.derived_facts == 1                   # still derives Q of the line
+    assert any(rel == "Q" for rel, *_ in atoms)

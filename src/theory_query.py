@@ -115,8 +115,16 @@ def _as_universal_horn(
 
     sheet_cuts = [x for x in g.area.get(g.sheet, ()) if x in cut_ids]
     sheet_edges = [x for x in g.area.get(g.sheet, ()) if x in edge_ids]
+    # A line's **area is its quantification** (Ψ/Φ, Dau p.207–208): a generic line
+    # lying on the sheet is a top-level ∃, so the graph is `∃x(B(x) → H(x))` and not
+    # a universal at all — whatever the scroll beneath it looks like.  `*x ~[ (P x)
+    # ~[ (Q x) ] ]` and `~[ *x (P x) ~[ (Q x) ] ]` differ in nothing else, and only
+    # the second is a law.  (A *constant* spot on the sheet is not quantified and
+    # does not disqualify.)
+    sheet_lines = [x for x in g.area.get(g.sheet, ())
+                   if x in vmap and vmap[x].is_generic]
     # A clean universal is one scroll on an otherwise-empty sheet.
-    if len(sheet_cuts) != 1 or sheet_edges:
+    if len(sheet_cuts) != 1 or sheet_edges or sheet_lines:
         return None
     c1 = sheet_cuts[0]
     inner = [x for x in g.area.get(c1, ()) if x in cut_ids]

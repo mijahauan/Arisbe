@@ -20,6 +20,17 @@ the rules merely fill out the world.
   (**range-restricted** — no fresh existential individual in the head).  These are
   forward-chained to a fixpoint (termination guaranteed: function-free,
   range-restricted rules coin no new individuals — Datalog).
+
+  A line's **area is its quantification** (Ψ/Φ, Dau p.207–208), and the rule's
+  variables are exactly the lines whose area is the antecedent cut — those are the
+  ones the enclosing negation turns into ∀.  A line lying *outside* the scroll is a
+  top-level existential: **one fixed individual**, so the scroll is a *ground* rule
+  about it and licenses nothing about anybody else.  ``*x ~[ (Penguin x) ~[ (Bird x)
+  ] ]`` is ∃x(Penguin(x) → Bird(x)), not the law — it must not make a penguin of
+  someone else's ``"p"``.  Its twin ``~[ (Penguin *x) ~[ (Bird x) ] ]``, differing
+  only in where the line sits, *is* the law.  (Peirce's modus ponens ``*x (P x) ~[
+  (P x) ~[ (Q x) ] ]`` keeps deriving ``Q`` of that one individual, which is sound
+  and is what the ground reading buys over refusing the scroll outright.)
 - Everything else is **left to the contest/deduction game** and named in the report,
   never silently dropped: a negation in the head (a cut inside H), a disjunctive or
   complex body (≠1 nested cut), an existential head (a head line not bound in the
@@ -48,8 +59,14 @@ from egi_core_dau import (
     create_empty_graph,
 )
 
-# An individual key: ("c", label) for a named constant, ("g", vertex_id) for a
-# generic line of identity (an anonymous-but-distinct individual).
+# An individual key.  A line's **area is its quantification** (Ψ/Φ, Dau p.207–208),
+# so the tag records which of the three a line is:
+#   ("c", label)      a named constant
+#   ("i", vertex_id)  a generic line that is a *fixed individual* — a top-level
+#                     existential, ground here exactly as a constant is
+#   ("g", vertex_id)  a generic line that is a *rule variable* — a line whose area
+#                     is the antecedent of the scroll being read as a Horn rule
+# Only "g" is a variable; "c" and "i" are ground.
 Key = Tuple[str, str]
 # An atom in the fact base: (relation_name, (individual_key, ...)).
 Fact = Tuple[str, Tuple[Key, ...]]
@@ -106,8 +123,9 @@ def _match_body_at(
     """All bindings under which ``body`` holds with atom ``i`` drawn from the
     *delta* facts and every other atom from the full set — the semi-naive
     restriction (a derivation is found in the pass its last supporting fact
-    arrives, never re-found).  A constant body key matches only the same
-    constant; a generic body key is a variable."""
+    arrives, never re-found).  A **ground** body key ("c" or "i") matches only
+    itself; only a "g" key — a line quantified by the rule's own antecedent —
+    is a variable."""
     order = [i] + [j for j in range(len(body)) if j != i]
     results: List[Dict[Key, Key]] = []
 
@@ -122,7 +140,8 @@ def _match_body_at(
             trial = dict(bind)
             ok = True
             for k, ind in zip(args, fargs):
-                if k[0] == "c":            # a constant in the body
+                if k[0] != "g":            # ground in the body: a constant, or a
+                                           # line fixed by its area
                     if ind != k:
                         ok = False
                         break
@@ -154,7 +173,7 @@ def _match_body(
 def _instantiate(atom: Fact, bind) -> Fact:
     """A body atom under a binding — the same substitution the head uses."""
     rel, args = atom
-    return (rel, tuple(k if k[0] == "c" else bind[k] for k in args))
+    return (rel, tuple(k if k[0] != "g" else bind[k] for k in args))
 
 
 def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None,
@@ -190,7 +209,7 @@ def _chase(facts: Set[Fact], horn, delta: Set[Fact] = None,
             for i in range(len(body)):
                 for bind in _match_body_at(body, i, all_idx, delta_idx):
                     for hrel, hargs in head:
-                        f: Fact = (hrel, tuple(k if k[0] == "c" else bind[k]
+                        f: Fact = (hrel, tuple(k if k[0] != "g" else bind[k]
                                                for k in hargs))
                         if f not in facts:
                             new.add(f)
@@ -220,7 +239,7 @@ def _canonical_rule(body: List[Fact], head: List[Fact]) -> Tuple[Tuple[Fact, ...
     interchangeable atoms stay deterministic within one extraction."""
     def blind(atom: Fact):
         rel, args = atom
-        return (rel, len(args), tuple(k if k[0] == "c" else ("g", "?") for k in args))
+        return (rel, len(args), tuple(k if k[0] != "g" else ("g", "?") for k in args))
 
     sorted_body = sorted(body, key=blind)
     sorted_head = sorted(head, key=blind)
@@ -257,13 +276,29 @@ def _extract(
     edge_ids = {e.id for e in egi.E}
     cut_ids = {c.id for c in egi.Cut}
 
-    def keyv(vid: str) -> Key:
-        v = vmap[vid]
-        return ("c", v.label) if (not v.is_generic and v.label) else ("g", vid)
+    # Ψ/Φ (Dau p.207–208): a line's **area is its quantification**.  In the scroll
+    # ``~[ B ~[ H ] ]`` only a line whose area is the antecedent cut is universally
+    # quantified by the enclosing negation — that, and only that, is a rule
+    # variable.  A line lying anywhere else is a top-level existential: ONE fixed
+    # individual, ground here exactly as a named constant is (and already rendered
+    # as a synthetic ``_i<n>`` in the facts-EGI this module returns).
+    varea = {eid: a for a, elems in egi.area.items() for eid in elems}
 
-    def atoms_in(area_id: str) -> List[Fact]:
+    def keyv(vid: str, antecedent: str = None) -> Key:
+        v = vmap[vid]
+        if not v.is_generic and v.label:
+            return ("c", v.label)
+        # ``antecedent is None`` means "not reading a rule" (the sheet facts), and a
+        # line with no area at all must never read as a variable — hence the
+        # explicit guard rather than a bare equality against the default.
+        if antecedent is not None and varea.get(vid) == antecedent:
+            return ("g", vid)
+        return ("i", vid)
+
+    def atoms_in(area_id: str, antecedent: str = None) -> List[Fact]:
         return [
-            (egi.get_relation_name(eid), tuple(keyv(v) for v in egi.nu[eid]))
+            (egi.get_relation_name(eid),
+             tuple(keyv(v, antecedent) for v in egi.nu[eid]))
             for eid in egi.area.get(area_id, ()) if eid in edge_ids
         ]
 
@@ -291,14 +326,21 @@ def _extract(
         if any(x in cut_ids for x in egi.area.get(c2, ())):
             report.skipped.append(SkippedRule("negation_in_head", _describe_cut(egi, c1, edge_ids, cut_ids)))
             continue
-        body = [
-            (egi.get_relation_name(e), tuple(keyv(v) for v in egi.nu[e]))
-            for e in egi.area.get(c1, ()) if e in edge_ids
-        ]
-        head = atoms_in(c2)
+        # c1 is the antecedent: a line sitting there is this rule's variable.
+        body = atoms_in(c1, antecedent=c1)
+        head = atoms_in(c2, antecedent=c1)
+        # A line whose area is the HEAD cut is an existential in the head — a
+        # fresh individual the body never binds, which range restriction refuses
+        # (Skolemizing it under a universal body would want a function, not a
+        # constant, and Datalog has none).
+        head_existential = any(
+            vmap[v].is_generic and varea.get(v) == c2
+            for eid in egi.area.get(c2, ()) if eid in edge_ids
+            for v in egi.nu[eid]
+        )
         body_gen = {k for _r, args in body for k in args if k[0] == "g"}
         head_gen = {k for _r, args in head for k in args if k[0] == "g"}
-        if not head_gen <= body_gen:
+        if head_existential or not head_gen <= body_gen:
             report.skipped.append(SkippedRule("existential_head", _describe_cut(egi, c1, edge_ids, cut_ids)))
             continue
         horn.add(_canonical_rule(body, head))

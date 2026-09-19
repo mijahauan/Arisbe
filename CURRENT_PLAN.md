@@ -1,5 +1,100 @@
 # Current Plan
 
+**Last Updated**: 2026-09-19 (nineteenth arc, first sitting) — **A LINE'S AREA IS ITS
+QUANTIFICATION: FINDING 1 FIXED AT TWO SITES, NOT ONE — AND FIXING IT UNMASKED FINDING 3, WHICH HAD
+BEEN CANCELLING IT OUT IN A PASSING TEST.**
+
+**What was asked and what was done.** Of the six items the eighteenth arc left, you chose **#1 —
+the existential scroll read as a universal law** — and ruled the reading: *ground it*. Both sites
+are fixed, each with a red-then-green test that discriminates on **area alone**. Neither module is
+protected; `.core_modification_authorized` was not created and core protection reports CLEAN.
+
+**The defect, stated at its root.** `model_materialization._extract` promoted **every** generic
+vertex in a sheet-level scroll `~[ B ~[ H ] ]` to a universally quantified rule variable, without
+ever asking where that line sits. Downstream a `("g", vid)` key is a *variable* in a rule body and
+an *individual* in the fact base, and which one it was got decided by position alone. Under Ψ/Φ
+(Dau p.207–208) a line's **area is its quantification**: only a line whose area is the antecedent
+cut is universally quantified by the enclosing negation.
+
+**The module already disagreed with itself, and that settled the remedy.** `_FactsBuilder` renders
+a sheet-level generic line in its own output as a *fixed individual* `_i1`. Only the rule
+extraction called it a variable. So the fix is not to refuse the scroll but to make the extraction
+agree: a line outside the antecedent is **one fixed individual**, and the scroll is a *ground* Horn
+rule about it. That is strictly more truthful **and** strictly more capable than skipping —
+Peirce's modus ponens keeps working, and two shapes that used to be refused now correctly apply.
+
+- `*x ~[ (Penguin x) ~[ (Bird x) ] ] (Penguin "p")` → `rules 1, derived 0`. Was: `(Bird "p")`.
+- Its twin `~[ (Penguin *x) ~[ (Bird x) ] ] (Penguin "p")` → `(Bird "p")`, unchanged. **The two
+  differ in nothing but where the line sits**, and that is what the new tests pin.
+- `*x (P x) ~[ (P x) ~[ (Q x) ] ] (P "b")` → derives `Q` of its own line and **no longer leaks
+  `(Q "b")`**. `peirce_modus_ponens` and `beta_converse_mp` are the corpus shapes; both keep their
+  derivations.
+
+**Site 2: `theory_query` has its own copy — the plan's claim about it is refuted.** The eighteenth
+arc recorded that the root was in `model_materialization`, "not `theory_query`, which merely
+surfaces it". That is wrong, and was verified directly in the main session rather than taken from
+the survey that raised it: `_as_universal_horn` is a private re-implementation whose "clean
+universal is one scroll on an otherwise-empty sheet" check tested sheet *cuts* and sheet *edges*
+and never sheet **vertices** — which is exactly what a line is. Two graphs differing only in the
+line's area got the identical answer from `entails` (`applicable=True, verdict=false` both). Now a
+sheet-level line makes `entails` decline (`applicable=False`), which is what its own contract
+already said should happen.
+
+**The same plan sentence's other half is also refuted: `semantic_game` does NOT share the
+defect.** The peel reads area correctly and independently — TRUE (with witness) for the sheet-level
+line, FALSE (with counterexample) for the universal. `CorpusOracle` is clean too: it only ever
+indexes sheet-level facts and refuses a graph with cuts outright. **So finding 1 was two sites, and
+neither of them was the two the plan named.**
+
+**Fixing finding 1 unmasked finding 3 — two defects had been cancelling.**
+`test_clif_imported_names_with_hyphens_do_not_break` went red, and the cause is not the fix. Its
+fixture reuses one binder name across two `forall`s, and the CLIF parser keys a generic vertex by
+the variable's *name*, so it built **one** sheet-level line shared by both universals
+(`*x ~[ (Bird x) ~[ (Warm-blooded x) ] ] ~[ (Penguin x) ~[ (Bird x) ] ]`). The materializer then
+misread that line as a universal variable — and the two wrongs produced the right answer. Spelled
+with distinct binders the parser builds the correct `~[ *x (Bird x) … ] ~[ *y (Penguin y) … ]` and
+the query reads `true`. **Your ruling: rename the second binder**, since the reused-name shape is
+incidental to what the test guards (hyphenated relation names surviving the combined-graph build) —
+the same call you were offered on the alphabet question's two-arity fixtures. The assertion was
+**not** weakened, the comment names finding 3, and the 6 strict xfails in
+`tests/test_linear_form_binder_scoping.py` still xfail. **Finding 3 is now known to be load-bearing
+for more than the linear forms**, which it was not before.
+
+**Corpus effect, measured before and after over all 245 stored graphs.** Exactly **4 change, and
+every one derives *more*, not less**: `would_be_de_inesse`, `beta_converse_mp:s1`,
+`beta_modus_ponens:s1` and `group_identity:s5` were skipped as `existential_head` and now apply.
+Each is a double-cut assertion `~[ ~[ (S y x) ] ]` whose head line is a sheet individual, not a
+fresh existential — range restriction never applied to it, and refusing it was the same
+area-blindness seen from the other side. **No corpus graph lost a derivation.** A separate scan
+found 220 of the corpus's sheet-level scrolls already put their lines inside the antecedent, which
+is why the blast radius is this small.
+
+**A THIRD copy of the same area-blind reading is live and NOT fixed here: `dl_reasoning`.**
+`_sheet_denials` carries its own `_keyv`, area-blind like the other two, so the disjointness axiom
+`~[ (Beast *z) (Man z) ]` and the existential `*z ~[ (Beast z) (Man z) ]` ("something is not both")
+yield the **identical** constraint. Found by going looking for further copies after site 2 turned
+up, so it is evidence about the shape of the problem rather than a stray: **one Dau semantic rule,
+three independent implementations, two of them named in no plan.** Deliberately left out of this
+commit — folding it in would have hidden the pattern and invalidated a finished verification run.
+It is the natural opening move of the core/testing review.
+
+**Verification, on the final tree.** Full suite: **1 failed, 5,012 passed, 220 skipped, 10
+deselected, 7 xfailed, 46 m 18 s**. The arithmetic closes against the eighteenth arc's baseline:
+5,006 + the 6 tests added here = 5,012 passing. The one failure is `test_memory_stability` at
+124.61 MB against its 120 MB threshold — the documented warm-process flake (the merge verification
+recorded 125.09 MB); it passes alone in 0.24 s and **the threshold was not touched**. Quality gate
+green: core protection ✅, 152 core tests ✅, syntax ✅; `.core_modification_authorized` does not
+exist. The EGIF idempotence defect (finding 4) did not fire in this run, which is what a coin-flip
+defect looks like. An earlier full run, taken before the fixture rename, read 2 failed / 5,011
+passed — the second failure being the CLIF test discussed above.
+
+**Still open, unchanged.** Findings 2, 3 and 4 and every decision the eighteenth arc left you —
+below. Finding 1 is closed. Of the six-item list, **#1 is done**; #2 (the alphabet question), #3
+(oracles for the five unjudged rules), #4 (`discharge_episode`), #5 (the IT− docstring) and #6
+(defect 8) stand as written.
+
+---
+
 **Last Updated**: 2026-09-18 (eighteenth arc) — **SEVEN ENGINE DEFECTS FIXED AT THE RULE, AND DEF
 12.5 ENFORCED WHERE GRAPHS ARE BUILT — WHICH EXPOSED EIGHT MORE PLACES IN `src/` QUIETLY BUILDING
 GRAPHS THAT ARE NOT EGIs. THE LAST TWO DEFECTS WERE FOUND BY THE INSTRUMENT AFTER THE ARC THOUGHT

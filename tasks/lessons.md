@@ -113,3 +113,34 @@ generic antecedents over-firing, quotations silently breaking Horn recognition,
 quotation-bearing graphs having no linear form — were found in four short probes
 before a line of production code existed. Two of the three fail *silently*: the rule
 stops firing and nothing raises. Argument would not have found them.
+
+**Two defects can cancel, and fixing one alone reads as a regression.** Repairing the
+materializer's quantification defect (a line's area *is* its quantification, Ψ/Φ
+p.207–208) turned `test_clif_imported_names_with_hyphens_do_not_break` red — not
+because the fix was wrong, but because that test's CLIF fixture reused one binder
+name across two `forall`s, and the parser's binder-scoping defect (plan finding 3)
+collapsed them into a single sheet-level line. The materializer then misread that
+line as a universal variable, and the two wrongs produced the right answer. **Rule:**
+when a correctness fix breaks a test, first ask whether the test was passing *because
+of* a second defect — reproduce the fixture's intermediate form (here: generate the
+EGIF the parser actually built) before touching the fix or the assertion. A masked
+defect is the likeliest explanation when the fix is Dau-cited and the break is remote
+from it.
+
+**Check whether the module already disagrees with itself.** `model_materialization`
+rendered a sheet-level line as a fixed individual `_i1` in its own output while its
+rule extraction treated the same line as a universal variable. That internal
+contradiction was the strongest single piece of evidence for which reading was
+intended, and it argued for *grounding* the line rather than refusing the scroll —
+the fix that preserved Peirce's modus ponens instead of losing it. **Rule:** before
+choosing between "refuse it" and "read it correctly", look for a place where the
+module has already committed to one of the two.
+
+**A survey that contradicts the written plan gets verified before it gets relayed.**
+A delegated survey reported that `theory_query` carried its own copy of the
+quantification defect, contradicting the plan's claim that it "merely surfaces"
+the materializer's. Re-running the two-graph discriminator directly confirmed it
+(both readings gave the identical answer, so no area was consulted) — and also
+refuted the plan's claim that `semantic_game` shared the defect, which it does not.
+**Rule:** a subagent finding that revises a standing document is a claim, not a
+result, until reproduced in the main session.
