@@ -11,6 +11,38 @@ plan: [eleven tasks](docs/superpowers/plans/2026-09-12-calculus-fix-arc.md).
 
 **▶▶▶ NEXT SESSION — read this first.**
 
+**Start here: the branch, then one of six.** `calculus-fix-arc` is pushed to `origin` at
+`b4d4741` for backup and is **not merged** — decide integration before building on it. Then pick;
+the list is ordered by what it buys, not by size. Nothing is half-done, so any of them can be
+first, and each says what it costs.
+
+1. **The existential scroll read as a universal law** (finding 1, below). `model_materialization`
+   forward-chains `*x ~[ (Penguin x) ~[ (Bird x) ] ]` as though the line were inside the cut, so a
+   model derives facts nobody asserted. A line's area *is* its quantification (Ψ/Φ, p.207–208).
+   Widest blast radius of anything open: `semantic_game`, `CorpusOracle` and every live loop read
+   through it. Its own investigation, not a patch.
+2. **The alphabet question** (decisions, below). The one decision that is genuinely yours and
+   genuinely large: **239 failing items**, not the 15 first recorded, and two Dau-compliance
+   findings underneath it. Blocks nothing else, but it will only grow.
+3. **Oracles for the five implemented rules that have none** (decisions, below). Defect 7 sat in
+   exactly that blind spot for the whole arc and was caught only by the soundness layer at
+   exhaustive bounds. This is where the next defect of its kind is.
+4. **`discharge_episode` pulls a quoted constant out of its oval** (finding 2). Small, reachable
+   today, and the same defect class the admission join already closed.
+5. **The IT− docstring** (decisions, last item). One protected edit, text already written out in
+   the Task 11 report; cheapest item on the list.
+6. **Defect 8's fix, if you want the entry retired** — MOVE_BRANCHES tries one direction only.
+   Small in code but it turns 36 refusals into applications, so it needs a fresh exhaustive
+   soundness pass (~2½ h) and a refusal re-pin (~43 min) to prove it changed no meaning.
+
+**Before touching the suite, three things that cost hours to learn.** A SHRINK line comes only
+from a fix's **refusal-layer** entry — a soundness entry whose moves become refused leaves
+`evaluated_ledgered` and can never announce itself, so prove that half by its
+`<tier>:<rule>:failed` extent key disappearing. Watch the **passing** keys in an extent diff too:
+a rule silently switched off looks exactly like a rule fixed. And a scratch-worktree quality gate
+needs **both** the real `.venv` and `node_modules/elkjs` linked in, or it fails on ELK for reasons
+that have nothing to do with the change.
+
 **The author's standing principle (2026-09-11):** "we MUST remain Dau-compliant, testing in a
 manner that ensures this, and vigilant for examples that stress our implementation." It governed
 every step of this arc. Nothing was loosened — not an assertion, not a threshold, not a pin — and
