@@ -459,7 +459,8 @@
       "c_not_43",
       "c_not_44",
       "c_not_45",
-      "c_not_46"
+      "c_not_46",
+      "v_x26"
     ],
     "c_if_inner_1": [
       "e_Entity_1"
@@ -636,8 +637,7 @@
     ],
     "c_not_43": [
       "e_IndependentContinuant_44",
-      "e_SpecificallyDependentContinuant_45",
-      "v_x26"
+      "e_SpecificallyDependentContinuant_45"
     ],
     "c_not_44": [
       "e_GenericallyDependentContinuant_47",

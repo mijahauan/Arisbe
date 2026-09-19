@@ -10,7 +10,9 @@ from typing import Dict, Iterator, List, Optional, Set, Tuple
 
 from calculus_apply import Outcome, apply_move
 from calculus_classifiers import claims
-from calculus_enum import DEFAULT_BOUNDS, EXHAUSTIVE_BOUNDS, Bounds, tier_a, tier_b
+from calculus_enum import (
+    DEFAULT_BOUNDS, EXHAUSTIVE_BOUNDS, Bounds, tier_a, tier_b, tier_s,
+)
 from calculus_layers import LAYERS
 from calculus_ledger import Failure, instance_key, ledgered
 from calculus_rules import IMPLEMENTED, Move, expand, legal, moves
@@ -95,11 +97,15 @@ class Run:
 def graphs_for(mode: Mode, tier: str):
     if tier == "A":
         return tier_a(mode.bounds).graphs
+    if tier == "S":
+        return tier_s()
     return tier_b(include_chains=(mode.tier_b == "all")).graphs
 
 
 def _tiers(mode: Mode):
-    return ("A",) if mode.tier_b == "none" else ("A", "B")
+    # Tier S (spec 2026-09-12 §3.2) is small, hand-chosen and always run, in
+    # both modes: the shapes tier A's bounds cannot reach.
+    return ("A", "S") if mode.tier_b == "none" else ("A", "S", "B")
 
 
 # Engine entry points that do not finish on large patterns, measured in Task 10
@@ -125,7 +131,7 @@ def records(mode_name: str, tally: Optional["Run"] = None) -> Iterator[Tuple[Rec
     ``tally`` (a Run) receives the graph, move and skip counts."""
     mode = MODES[mode_name]
     for tier in _tiers(mode):
-        budget = None if tier == "A" else mode.tier_b_budget
+        budget = None if tier in ("A", "S") else mode.tier_b_budget
         units_only = tier == "B" and mode.tier_b == "current-units"
         for gname, g in graphs_for(mode, tier):
             if tally is not None:

@@ -226,3 +226,44 @@ class TestAConstantsPositionIsWritable:
         assert nav.same_graph(erased, parse_egif(emitted)), (
             f"a stranded constant was lost on the way out: {emitted!r}"
         )
+
+
+class TestTheSurvivorIsPlacedLawfully:
+    """The ruling is Dau's (Def 24.10's Constant Identity rule, p.271, licenses
+    the merge), but the survivor must still dominate every use it inherits
+    (Def 12.5, p.125). Keeping it where it sat gave a non-EGI."""
+
+    def _two_spots_in_sibling_cuts(self, first, second):
+        from frozendict import frozendict
+        from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+        return RelationalGraphWithCuts(
+            V=frozenset({Vertex(first, label="a", is_generic=False),
+                         Vertex(second, label="a", is_generic=False)}),
+            E=frozenset({Edge("eP"), Edge("eQ")}),
+            nu=frozendict({"eP": (first,), "eQ": (second,)}), sheet="S",
+            Cut=frozenset({Cut("c1"), Cut("c2")}),
+            area=frozendict({"S": frozenset({"c1", "c2"}),
+                             "c1": frozenset({first, "eP"}),
+                             "c2": frozenset({second, "eQ"})}),
+            rel=frozendict({"eP": "P", "eQ": "Q"}))
+
+    @pytest.mark.parametrize("order", [("va", "vb"), ("vb", "va")])
+    def test_sibling_cuts_normalize_to_an_egi(self, order):
+        from tarski import dominating_nodes
+        g = self._two_spots_in_sibling_cuts(*order)
+        assert dominating_nodes(normalize_constants(g))
+
+    def test_a_survivor_deeper_than_a_twins_edge_is_hoisted(self):
+        from frozendict import frozendict
+        from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+        from tarski import dominating_nodes
+        g = RelationalGraphWithCuts(
+            V=frozenset({Vertex("va", label="a", is_generic=False),
+                         Vertex("vb", label="a", is_generic=False)}),
+            E=frozenset({Edge("eP"), Edge("eQ")}),
+            nu=frozendict({"eP": ("va",), "eQ": ("vb",)}), sheet="S",
+            Cut=frozenset({Cut("c1")}),
+            area=frozendict({"S": frozenset({"vb", "eQ", "c1"}),
+                             "c1": frozenset({"va", "eP"})}),
+            rel=frozendict({"eP": "P", "eQ": "Q"}))
+        assert dominating_nodes(normalize_constants(g))

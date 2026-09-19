@@ -719,7 +719,11 @@ class Chapter17ComplianceTestSuite:
         """Create appropriate test EGI and context for each rule type."""
         from egi_core_dau import Cut, Edge, Vertex
 
-        # Base test EGI with ligature structure
+        # Base test EGI with ligature structure:
+        #   *A *B (= A B) ~[ *C (= B C) (R A C) ]
+        # R sits in cut1 because its hook C does. On the sheet it would break
+        # dominating nodes, ctx(R) <= ctx(C) (Dau Def 12.5, p.125), and the
+        # fixture would not be an EGI.
         vertex_a = Vertex(ElementID("A"))
         vertex_b = Vertex(ElementID("B"))
         vertex_c = Vertex(ElementID("C"))
@@ -749,11 +753,12 @@ class Chapter17ComplianceTestSuite:
                             ElementID("A"),
                             ElementID("B"),
                             ElementID("id_AB"),
-                            ElementID("R"),
                             ElementID("cut1"),
                         ]
                     ),
-                    ElementID("cut1"): frozenset([ElementID("C"), ElementID("id_BC")]),
+                    ElementID("cut1"): frozenset(
+                        [ElementID("C"), ElementID("id_BC"), ElementID("R")]
+                    ),
                 }
             ),
             rel=frozendict(

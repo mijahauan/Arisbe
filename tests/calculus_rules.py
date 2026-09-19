@@ -35,14 +35,14 @@ DAU_RULES: Tuple[DauRule, ...] = (
     # edge onto vertices already present (p.165: erasing an edge keeps its
     # vertices, V^(e) := V, and insertion is its inverse) is INS_EDGE, below.
     DauRule("INS", "Def 15.2 insertion of a closed subgraph, p.164-165: negative contexts", "one-way", "protocol:INS", True),
-    DauRule("INS_EDGE", "Def 15.2 insertion of an edge onto existing vertices, p.165: negative contexts", "one-way", None, False),
+    DauRule("INS_EDGE", "Def 15.2 insertion of an edge onto existing vertices, p.165: negative contexts", "one-way", "protocol:INS", True),
     DauRule("IT+", "Def 15.2 iteration, p.164, 166: no polarity condition", "equivalence", "protocol:IT+", True),
     DauRule("IT-", "Def 15.2 deiteration, p.164, 166", "equivalence", "protocol:IT-", True),
     DauRule("DC+", "Def 15.2 double cuts, p.164: any context", "equivalence", "protocol:DC+", True),
     DauRule("DC-", "Def 15.2 double cuts, p.164: any context", "equivalence", "protocol:DC-", True),
     DauRule("VERTEX_INS", "Def 15.2 inserting a vertex, p.164, 166: any context", "equivalence", "engine:HEAVY_DOT", True),
     DauRule("VERTEX_ERA", "Def 15.2 erasing a vertex, p.164, 166: any context", "equivalence", "protocol:ERA", True),
-    DauRule("MOVE_BRANCHES", "Lemma 16.1, p.169", "equivalence", "ligature:MOVE_BRANCHES", False),
+    DauRule("MOVE_BRANCHES", "Lemma 16.1, p.169", "equivalence", "ligature:MOVE_BRANCHES", True),
     DauRule("EXTEND_LIGATURE", "Lemma 16.2, p.172", "equivalence", "ligature:EXTEND_LIGATURE", False),
     DauRule("RETRACT_LIGATURE", "Lemma 16.3, p.173", "equivalence", "ligature:RETRACT_LIGATURE", False),
     DauRule("REARRANGE_LIGATURE", "Def 16.4, Cor 16.5, p.174-175", "equivalence", "ligature:REARRANGE_LIGATURE", False),
@@ -95,7 +95,9 @@ def units(g: G) -> List[Tuple[str, ...]]:
 
 
 def _selections(g: G, tier: str, lo: int, units_only: bool):
-    if tier == "A":
+    if tier in ("A", "S"):
+        # Tier S is hand-chosen and small, so it is enumerated exhaustively as
+        # tier A is: every subset of the elements, not just the units.
         yield from _subsets(elements(g), lo)
         return
     seen = set()
@@ -128,6 +130,20 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for a in areas:
             for c in INS_CATALOGUE:
                 yield Move(rule, (), a, c)
+    elif rule == "INS_EDGE":
+        # Dau p.165: an edge inserted into a negative context onto vertices
+        # already present. The content names the host's own line by its EGIF
+        # bound label, which is what the engine cannot parse.
+        for a in areas:
+            if positive(g, a):
+                continue
+            for v in sorted(x.id for x in g.V if x.is_generic):
+                label = g.variable_names.get(v)
+                # The line must be in scope at the target: ctx(v) encloses it
+                # (Def 12.5), i.e. ctx(v) is on the target's ancestor chain.
+                if label is None or g.get_context(v) not in ancestors(g, a):
+                    continue          # unnamed line, or out of scope here
+                yield Move(rule, (v,), a, f"(P {label})")
     elif rule == "VERTEX_INS":
         for a in areas:
             yield Move(rule, (), a)
@@ -137,14 +153,14 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for x in sorted(v.id for v in g.V):
             yield Move(rule, (x,))
     elif rule in LIGATURE_RULES:
-        # The ligature engine reads its unordered selection in iteration order
-        # (the first vertex is the one kept, or moved from), so the order is part
-        # of the move: calculus_apply hands the selection over in the tuple's
-        # order, and each order of a two-element selection is its own candidate.
+        # Task 7: the engine's choice of vertex within the selection (the one
+        # kept, or moved from) is now a function of the graph — its canonical
+        # signature — not of the order the selection arrives in, so a selection
+        # is ONE candidate. Enumerating both orders tested nothing the engine
+        # could still tell apart.
         for s in _subsets(elements(g), 1, 2):
-            for p in dict.fromkeys((s, s[::-1])):
-                for a in areas:
-                    yield Move(rule, p, a)
+            for a in areas:
+                yield Move(rule, s, a)
     elif rule == "SPLIT_VERTEX":
         # Only Def 16.6's domain: ctx(v) >= c >= ctx(e_k) for every moved hook.
         for v in sorted(x.id for x in g.V):
@@ -440,5 +456,99 @@ def _vertex_era(g: G, m: Move) -> Verdict:
     return True, "an isolated vertex, any context"
 
 
+def _ins_edge(g: G, m: Move) -> Verdict:
+    """Def 15.2 insertion, p.165: erasing an edge keeps its vertices
+    (V^(e) := V), so its inverse inserts an edge onto vertices already
+    present, in a negative context. The selection names those vertices; the
+    content is the edge, written with the host's bound label."""
+    if m.target is None or positive(g, m.target):
+        return False, "the target is not a negative context"
+    if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
+        return False, "select the existing vertex the edge hooks onto"
+    v = m.selection[0]
+    if g.get_context(v) not in ancestors(g, m.target):
+        return False, "the vertex's context must enclose the target (Def 12.5)"
+    return True, "an edge onto an existing line, negative context"
+
+
+def theta(g: G, v: str, w: str, without: Optional[str] = None) -> bool:
+    """Def 15.1 (Θ, p.163), stated here from the book, not from the engine.
+
+    "vΘw iff there exist vertices v1, ..., vn (n ∈ N) with 1. either v = v1
+    and vn = w, or w = v1 and vn = v, 2. ctx(v1) ≥ ctx(v2) ≥ ... ≥ ctx(vn),
+    and 3. for each i = 1, ..., n − 1, there exists an identity edge
+    ei = {vi, vi+1} between vi and vi+1 with ctx(ei) = ctx(vi+1)."
+
+    Clause 3 is what distinguishes Θ from bare `=`-connectivity: an identity
+    edge may lawfully lie DEEPER than the vertices it joins (Def 12.5, p.125,
+    asks only that each vertex's context enclose the edge's), but there it
+    asserts an identity under a cut rather than wiring two spots into one
+    ligature, and Θ does not hold. Clause 2 makes each chain run inward, so
+    the two orientations of clause 1 are separate claims — Dau notes Θ is
+    reflexive and symmetric but not transitive (p.163).
+
+    ``without`` sets one identity edge aside, which is how Lemma 16.1's side
+    condition is asked: does the join survive the hook about to be moved?
+    """
+    return _theta_one_way(g, v, w, without) or _theta_one_way(g, w, v, without)
+
+
+def _theta_one_way(g: G, start: str, goal: str, without: Optional[str]) -> bool:
+    if start == goal:
+        return True                      # n = 1
+    seen, stack = {start}, [start]
+    while stack:
+        cur = stack.pop()
+        for e, seq in sorted(g.nu.items()):
+            if e == without or g.rel.get(e) != "=" or len(seq) != 2 or cur not in seq:
+                continue
+            nxt = seq[1] if seq[0] == cur else seq[0]
+            if nxt in seen or g.get_context(e) != g.get_context(nxt):
+                continue                 # clause 3
+            if g.get_context(cur) not in ancestors(g, g.get_context(nxt)):
+                continue                 # clause 2: ctx(v_i) >= ctx(v_i+1)
+            if nxt == goal:
+                return True
+            seen.add(nxt)
+            stack.append(nxt)
+    return False
+
+
+def _move_branches(g: G, m: Move) -> Verdict:
+    """Lemma 16.1 (Moving Branches along a Ligature in a Context, p.169-171).
+
+    "Let va, vb be two vertices with c := ctx(va) = ctx(vb) and vaΘvb, and let
+    e be an edge such that the hook (e, i) is attached to va. Let G' be
+    obtained from G by replacing va by vb on the hook (e, i). Then G and G'
+    are syntactically equivalent."
+
+    Three conditions, all on the selection: two vertices, one context, Θ.
+    The lemma names no target — the context is fixed by ctx(va) = ctx(vb) —
+    so a target cannot make the move illegal, and every target offered for one
+    selection reads alike.
+
+    A fourth condition comes from the proof (p.170-171), which deiterates a
+    copy of vb against a vaΘvb that must still hold once the hook has moved:
+    the hook moved may not sit on the join's only witness. The lemma says only
+    "an edge e", so this asks whether SOME hook on either vertex qualifies —
+    which is the same question the move itself is, since the selection does
+    not name the hook.
+    """
+    vs = {v.id for v in g.V}
+    if len(set(m.selection)) != 2 or not set(m.selection) <= vs:
+        return False, "Lemma 16.1 is stated for two vertices (p.169)"
+    va, vb = m.selection
+    if g.get_context(va) != g.get_context(vb):
+        return False, "the two vertices are not in one context: c := ctx(va) = ctx(vb) (p.169)"
+    if not theta(g, va, vb):
+        return False, "vaΘvb fails (Def 15.1, p.163: ctx(e_i) = ctx(v_i+1))"
+    for src, dst in ((va, vb), (vb, va)):
+        for e in edges_on(g, src):
+            if theta(g, src, dst, without=e):
+                return True, "two vertices, one context, vaΘvb, and a hook to move"
+    return False, "every hook sits on the join's only witness (Lemma 16.1's proof, p.170-171)"
+
+
 _LEGAL = {"ERA": _era, "INS": _ins, "DC+": _dc_plus, "DC-": _dc_minus, "IT+": _it_plus,
-          "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era}
+          "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era,
+          "INS_EDGE": _ins_edge, "MOVE_BRANCHES": _move_branches}

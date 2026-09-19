@@ -4,6 +4,8 @@ These cases fix what the suite means by "legal" before it is compared with
 the engine: a disagreement later is then a question about the engine or about
 this reading of Dau, never about an unstated assumption.
 """
+import pytest
+
 from calculus_rules import Move, legal
 from egif_parser_dau import parse_egif
 
@@ -52,6 +54,16 @@ def test_ins_into_a_negative_context_only():
     c = _cuts_by_depth(g)[0]
     assert ok(g, Move("INS", (), c, "(P *x)")) is True
     assert ok(g, Move("INS", (), g.sheet, "(P *x)")) is False
+
+
+def test_ins_edge_is_legal_onto_an_existing_line_in_a_negative_context():
+    """Dau p.165: erasing an edge keeps its vertices (V^(e) := V), and insertion
+    is its inverse, so `*x ~[ ]` may become `*x ~[ (P x) ]`."""
+    g = parse_egif("*x ~[ ]")
+    c = _cuts_by_depth(g)[0]
+    v = _vertex(g)
+    assert ok(g, Move("INS_EDGE", (v,), c, "(P x)")) is True
+    assert ok(g, Move("INS_EDGE", (v,), g.sheet, "(P x)")) is False   # positive context
 
 
 # DC+ / DC- — Def 15.2, p.164
@@ -123,19 +135,79 @@ def test_vertex_rules_ignore_polarity():
 # Not judged
 def test_rules_whose_parameters_underdetermine_the_move_are_not_judged():
     g = parse_egif("(P *x)")
-    verdict, why = legal(g, Move("MOVE_BRANCHES", (_vertex(g),), g.sheet))
-    assert verdict is None and why.startswith("not judged")
+    for rule in ("EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE"):
+        verdict, why = legal(g, Move(rule, (_vertex(g),), g.sheet))
+        assert verdict is None and why.startswith("not judged"), rule
 
 
-def test_a_non_egi_source_is_not_judged():
+# MOVE_BRANCHES — Lemma 16.1, p.169-171; Theta is Def 15.1, p.163
+def _two_vertices(g):
+    return tuple(sorted(v.id for v in g.V))
+
+
+def test_move_branches_wants_two_vertices():            # p.169, "two vertices va, vb"
+    g = parse_egif("*x *y (= x y) (P x) (Q y)")
+    assert ok(g, Move("MOVE_BRANCHES", (_vertex(g),), g.sheet)) is False
+    assert ok(g, Move("MOVE_BRANCHES", (_edge(g, "="), _vertex(g)), g.sheet)) is False
+
+
+def test_move_branches_wants_one_context():             # p.169, "c := ctx(va) = ctx(vb)"
+    g = parse_egif("*x (P x) ~[ *y (= x y) (Q y) ]")
+    assert ok(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet)) is False
+
+
+def test_move_branches_theta_holds_in_one_context():    # p.163 clause 3, satisfied
+    g = parse_egif("*x *y (= x y) (P x) (Q y)")
+    assert ok(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet)) is True
+
+
+def test_move_branches_theta_fails_when_the_join_is_deeper():
+    """Def 15.1 clause 3 (p.163): ctx(e_i) = ctx(v_i+1). An identity edge may
+    lawfully sit deeper than the vertices it joins (Def 12.5, p.125), but
+    under a cut it ASSERTS an identity rather than wiring a ligature, so Theta
+    fails and Lemma 16.1 licenses nothing. `*x *y (P x) (Q y) ~[ (= x y) ]` is
+    the shape: moving (P x)'s hook to y turns a true graph false."""
+    g = parse_egif("*x *y (P x) (Q y) ~[ (= x y) ]")
+    verdict, why = legal(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet))
+    assert verdict is False and "Def 15.1" in why
+
+
+def test_move_branches_theta_is_not_transitive():
+    """Dau, p.163: the vertex in the cut is in Theta-relation with each of the
+    two vertices on the sheet, but those two are not in Theta-relation."""
+    g = parse_egif('(P "a") (Q "b") ~[ *z (= "a" z) (= "b" z) ]')
+    by_name = {v.label: v.id for v in g.V if not v.is_generic}
+    a, b = by_name["a"], by_name["b"]
+    z = next(v.id for v in g.V if v.is_generic)
+    assert ok(g, Move("MOVE_BRANCHES", (a, b), g.sheet)) is False   # not transitive
+    for outer in (a, b):
+        # ...and each outer vertex is not in ONE context with z either, so
+        # Lemma 16.1 is out of reach from both directions (p.169).
+        assert ok(g, Move("MOVE_BRANCHES", (outer, z), g.sheet)) is False
+
+
+def test_move_branches_needs_a_hook_that_is_not_the_only_witness():
+    """Lemma 16.1's proof (p.170-171) deiterates a copy of vb against a
+    vaTHETAvb that must survive the move, so the hook moved may not sit on the
+    join's only witness. Two vertices joined by nothing but their identity
+    edge carry no other hook."""
+    g = parse_egif("*x *y (= x y)")
+    verdict, why = legal(g, Move("MOVE_BRANCHES", _two_vertices(g), g.sheet))
+    assert verdict is False and "p.170-171" in why
+
+
+def test_a_non_egi_source_cannot_be_built():
+    """Dau Def 12.5 (p.125): ctx(e) ≤ ctx(v). Task 10 enforces it at
+    construction, so a non-EGI source never reaches legal(): the core refuses
+    to build one. (Before, legal() was shown to abstain on it.)"""
     from frozendict import frozendict
     from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
-    bad = RelationalGraphWithCuts(
-        V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}), nu=frozendict({"e1": ("v1",)}),
-        sheet="S", Cut=frozenset({Cut("c1")}),
-        area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
-        rel=frozendict({"e1": "P"}))
-    assert legal(bad, Move("ERA", ("e1",)))[0] is None
+    with pytest.raises(ValueError, match=r"Dominating nodes violated \(Def 12\.5\)"):
+        RelationalGraphWithCuts(
+            V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}), nu=frozendict({"e1": ("v1",)}),
+            sheet="S", Cut=frozenset({Cut("c1")}),
+            area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+            rel=frozendict({"e1": "P"}))
 
 
 def test_unknown_ids_are_illegal():
@@ -184,7 +256,8 @@ def test_legal_never_consults_the_engine():
     import calculus_rules
     src = open(calculus_rules.__file__).read()
     for forbidden in ("formal_transformation_rules", "subgraph_closure_validator",
-                      "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring"):
+                      "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring",
+                      "ligature_manipulation_rules"):
         assert forbidden not in src, forbidden
 
 

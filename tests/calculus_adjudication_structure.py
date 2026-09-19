@@ -64,28 +64,22 @@ LAYERS_OWNED = ("structure", "core-dominating", "corpus-egi")
 
 # id -> (layer, rule, reason). Figures quoted are this script's, in the default mode.
 REASONS = {
-    "core-has-dominating-nodes-inverted": ("core-dominating", "graph",
-        "Dau Def 12.5 (p.125): G has dominating nodes iff ctx(e) ≤ ctx(v) for every edge e and "
-        "v ∈ V_e — the edge sits in the vertex's context or deeper (≤ is 'is enclosed by', Def "
-        "12.2). The core's RelationalGraphWithCuts.has_dominating_nodes calls "
-        "_context_dominates(ctx(e), ctx(v)), which walks UP from ctx(v) looking for ctx(e): it "
-        "tests ctx(v) ≤ ctx(e), the converse. Measured by calculus_adjudication_structure: it "
-        "answers False on every tier-A graph with a line reaching into a cut (9 of 208 at the "
-        "default bounds, e.g. *x ~[ (P x) ]), and True on a hand-built non-EGI (an edge on the "
-        "sheet whose vertex sits in a cut). Protected core, not edited; nothing in src/ relies on "
-        "it (it is only printed by two __main__ demos). The suite uses tarski.dominating_nodes."),
-    "corpus-graph-not-an-egi": ("corpus-egi", "graph",
-        "Dau Def 12.7 (p.126) makes dominating nodes part of what an EGI is, and Def 12.5 "
-        "(p.125) requires ctx(e) ≤ ctx(v) for every edge e and v ∈ V_e. Two stored corpus "
-        "graphs break it — measured by calculus_adjudication_structure over every tier-B "
-        "source (52 current graphs, 178 chain states): bfo_core:current (4 edge–vertex pairs on "
-        "1 vertex) and colore_field:current (8 pairs on 2 vertices); no chain state does. They "
-        "are exactly the linear-form round-trip residue (test_tomos_parsing.KNOWN_BROKEN): the "
-        "stored graph is not an EGI and its round trip repairs it (P-K1's recorded outcome). "
-        "Nothing else in the repository catches a non-EGI — the core does not enforce Def 12.5, "
-        "and its own check is inverted (core-has-dominating-nodes-inverted). Not a rule defect: "
-        "a standing guard over the corpus, and the rules' verdicts on these two sources are "
-        "counted as not judged (legal() refuses to judge a non-EGI source)."),
+    # Task 8 retired core-has-dominating-nodes-inverted: _context_dominates now
+    # walks outward from its first argument, so has_dominating_nodes tests Dau's
+    # ctx(e) ≤ ctx(v) (Def 12.5, p.125) and agrees with tarski.dominating_nodes
+    # on every tier-A graph. The layer stays owned and core_figures below still
+    # measures it, so a regression is measured rather than merely absent.
+    # Task 10 retired corpus-graph-not-an-egi: bfo_core held the generic vertex
+    # v_x26 and colore_field v_zero and v_one, each in one cut while edges in
+    # sibling cuts used them, so neither stored graph dominated its own edges
+    # (Def 12.5, p.125) and neither was an EGI — which is why their round trips
+    # failed: generating and re-parsing repaired them. Each vertex was hoisted
+    # to the least common area of its uses (tools/repair_non_egi_corpus_graphs.py),
+    # the reading every parser already applies. Not an inert renaming: every
+    # vertex moved is generic, so placement would be meaning — had there been a
+    # meaning, which for a non-EGI there was not. The layer stays owned and
+    # corpus_figures below still measures every tier-B source, so a stored
+    # non-EGI is measured rather than merely absent.
     "dc-plus-result-not-an-egi": ("structure", "DC+",
         P + "The structure half of refusal entry dc-plus-strands-a-vertex, the same mechanism: "
         "given a selection holding a vertex but not all of its edges, the engine wraps the vertex "
@@ -215,12 +209,20 @@ def adjudicate(mode_name):
         figs[eid][f"tier_{rec.tier}"] += 1
         measure(rec, eid, figs[eid], refusal_keys)
     if mode_name == "default":
+        # Both guards' entries were retired (Tasks 8 and 10), so neither id has a
+        # reason any more and filing into one would abort --write with "classified
+        # into entries with no reason". They keep running: a disagreement here is
+        # a NEW failure, reported unclassified — someone decides what it is before
+        # anything is written.
         for gname, g in tier_a(DEFAULT_BOUNDS).graphs:
             if g.has_dominating_nodes() != dominating_nodes(g):
-                found["core-has-dominating-nodes-inverted"]["DISAGREE"].add(f"A|{gname}|graph")
+                unclassified.append((f"A|{gname}|graph",
+                                     f"core has_dominating_nodes={g.has_dominating_nodes()}, "
+                                     f"Def 12.5 (p.125) says {dominating_nodes(g)}"))
         for name, g in tier_b_sources(include_chains=True):
             if not dominating_nodes(g):
-                found["corpus-graph-not-an-egi"]["NOT AN EGI"].add(f"B|{name}|graph")
+                unclassified.append((f"B|{name}|graph",
+                                     "stored corpus graph is not an EGI (Def 12.5, p.125)"))
     for eid in figs:
         figs[eid]["keys"] = len(set().union(*found[eid].values()))
     return found, figs, unclassified
@@ -251,8 +253,12 @@ def core_figures(bounds) -> Counter:
     area = {k: set(s) for k, s in h.area.items()}
     area[h.sheet].discard(v)
     area[cut].add(v)
-    bad = _g(h, V=h.V, E=h.E, nu=h.nu, Cut=h.Cut, area=area, rel=h.rel)
-    c["hand_non_egi_core_accepts"] = int(bad.has_dominating_nodes() and not dominating_nodes(bad))
+    # Task 10: the core enforces Def 12.5 at construction, so it refuses to build it.
+    try:
+        _g(h, V=h.V, E=h.E, nu=h.nu, Cut=h.Cut, area=area, rel=h.rel)
+        c["hand_non_egi_core_refuses"] = 0
+    except ValueError as exc:
+        c["hand_non_egi_core_refuses"] = int("Dominating nodes violated (Def 12.5)" in str(exc))
     return c
 
 
@@ -263,7 +269,7 @@ def main(argv):
     mode = "exhaustive" if "--exhaustive" in argv else "default"
     print(f"mode={mode}")
     found, figs, unclassified = adjudicate(mode)
-    print("core-has-dominating-nodes-inverted  " + " ".join(
+    print("core-dominating-nodes  " + " ".join(
         f"{k}={v}" for k, v in sorted(core_figures(DEFAULT_BOUNDS).items())))
     c, lines = corpus_figures()
     print("corpus-graph-not-an-egi  " + " ".join(f"{k}={v}" for k, v in sorted(c.items())))

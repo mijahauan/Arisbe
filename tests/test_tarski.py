@@ -12,7 +12,7 @@ from eg_navigation import same_graph
 from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
 from tarski import (
-    NotAnEGI, Structure, dominating_nodes, model_set, restrict, satisfies,
+    Structure, dominating_nodes, model_set, restrict, satisfies,
     sheet_components, tuple_bits, universe, vocabulary,
 )
 
@@ -109,12 +109,12 @@ def test_generic_multiplicity_and_placement_are_meaning(pair):
 # -- guards -------------------------------------------------------------------
 
 def test_a_non_egi_is_refused_not_evaluated():
-    bad = g_([Vertex("v1")], ["e1"], {"e1": ("v1",)}, {"S": {"e1", "c1"}, "c1": {"v1"}},
-             {"e1": "P"}, cuts=["c1"])
-    assert not dominating_nodes(bad)
+    """Dau Def 12.5 (p.125). Since Task 10 the core refuses to build a non-EGI,
+    so one can no longer reach satisfies() (whose NotAnEGI guard stays)."""
+    with pytest.raises(ValueError, match=r"Dominating nodes violated \(Def 12\.5\)"):
+        g_([Vertex("v1")], ["e1"], {"e1": ("v1",)}, {"S": {"e1", "c1"}, "c1": {"v1"}},
+           {"e1": "P"}, cuts=["c1"])
     assert dominating_nodes(parse_egif("(P *x) ~[ (Q x) ]"))
-    with pytest.raises(NotAnEGI):
-        satisfies(bad, S1)
 
 
 def test_universe_is_exhaustive_under_the_cap_and_says_so():

@@ -56,6 +56,7 @@ from formal_transformation_rules import (
 )
 from subgraph_closure_validator import SubgraphClosureValidator
 
+import tarski
 from test_properties_round_trip import egif_sheet
 
 
@@ -97,7 +98,8 @@ def _dcplus_target(draw):
 
     DC+ has no polarity restriction. ``selected_subgraph`` may be empty (DC+
     encloses everything in the area in that case) or any subset of the area's
-    *direct* contents.
+    *direct* contents — including subsets that take a vertex without all of
+    its edges, which the property below requires DC+ to refuse.
     """
     egi = draw(_seed_egi())
     area_id = draw(st.sampled_from(list(egi.area.keys())))
@@ -109,8 +111,77 @@ def _dcplus_target(draw):
     return egi, area_id, frozenset(selection)
 
 
+class _WouldBeDCPlus:
+    """The graph a DC+ of ``selection`` into ``area_id`` would draw, built from
+    the definition alone — no rule code, and no ``RelationalGraphWithCuts``
+    (whose constructor may refuse a non-EGI): the area map with the selection
+    (or, for an empty selection, the whole area — the rule's documented
+    default) lifted into an inner cut, inside an outer cut placed in the area
+    (Dau Def 15.2, p.164). It exposes only what ``tarski.dominating_nodes``
+    reads: ``nu``, ``sheet`` and ``get_context``. ``edges`` narrows ``nu`` to
+    those edges, so each can be judged on its own."""
+
+    def __init__(self, egi: RelationalGraphWithCuts, area_id, selection, edges=None):
+        enclosed = frozenset(selection) or egi.area.get(area_id, frozenset())
+        outer, inner = ElementID("__outer__"), ElementID("__inner__")
+        area = dict(egi.area)
+        area[area_id] = (area[area_id] - enclosed) | {outer}
+        area[outer] = frozenset({inner})
+        area[inner] = enclosed
+        self.nu = egi.nu if edges is None else {e: egi.nu[e] for e in edges}
+        self.sheet = egi.sheet
+        self._context = {x: a for a, xs in area.items() for x in xs}
+
+    def get_context(self, element_id):
+        return self._context[element_id]
+
+
+def _edges_breaking_dominance(egi: RelationalGraphWithCuts, area_id, selection) -> set:
+    """The edges of the DC+ result that break dominating nodes (Def 12.5,
+    p.125), each asked of the suite's independent evaluator on its own. The
+    result is an EGI iff this is empty; otherwise no insertion of a double cut
+    yields it (Def 15.2, p.164)."""
+    breaking = {
+        e for e in egi.nu
+        if not tarski.dominating_nodes(_WouldBeDCPlus(egi, area_id, selection, edges={e}))
+    }
+    assert tarski.dominating_nodes(_WouldBeDCPlus(egi, area_id, selection)) == (not breaking)
+    return breaking
+
+
 class TestDoubleCutReversibility:
-    """DC+ then DC− on the just-added outer cut reproduces the original EGI."""
+    """DC+ then DC− on the just-added outer cut reproduces the original EGI,
+    and DC+ refuses exactly the selections that would strand an edge."""
+
+    def test_dc_plus_refuses_to_strand_an_edge(self):
+        """``(P *x) (Q *y)``: the double cut may take y only with (Q y)
+        (Dau Def 12.5, p.125; Def 15.2, p.164)."""
+        egi = parse_egif("(P *x) (Q *y)")
+        e_q = next(e.id for e in egi.E if egi.rel[e.id] == "Q")
+        v_y = egi.nu[e_q][0]
+        polarity, depth = egi.area_polarity(egi.sheet)
+
+        def dc_plus(selection):
+            return DoubleCutInsertionRule().apply_transformation(
+                TransformationContext(
+                    source_egi=egi,
+                    target_area=egi.sheet,
+                    selected_subgraph=frozenset(selection),
+                    area_polarity=polarity,
+                    nesting_depth=depth,
+                )
+            )
+
+        refused = dc_plus({v_y})
+        assert not refused.success
+        # The rule's own refusal (it cites Def 15.2), not the data model's.
+        assert "Def 15.2" in refused.error_message
+        assert "Def 12.5" in refused.error_message
+        assert str(e_q) in refused.error_message
+
+        applied = dc_plus({v_y, e_q})
+        assert applied.success, applied.error_message
+        assert applied.result_egi.has_dominating_nodes()
 
     @settings(
         max_examples=120,
@@ -131,7 +202,20 @@ class TestDoubleCutReversibility:
         )
 
         plus_result = DoubleCutInsertionRule().apply_transformation(ctx_plus)
+        breaking = _edges_breaking_dominance(egi, area_id, selection)
+        if breaking:
+            # The result would break dominating nodes: not an EGI (Def 12.5,
+            # p.125), so not a DC+ (Def 15.2, p.164). The rule must refuse it,
+            # naming an edge left outside while one of its vertices moves in.
+            assert not plus_result.success, (
+                f"DC+ applied although its result is not an EGI: {sorted(map(str, selection))}"
+            )
+            assert "Def 15.2" in plus_result.error_message
+            assert "Def 12.5" in plus_result.error_message
+            assert any(str(e) in plus_result.error_message for e in breaking)
+            return
         assert plus_result.success, f"DC+ failed: {plus_result.error_message}"
+        assert plus_result.result_egi.has_dominating_nodes()
         g_plus = plus_result.result_egi
         outer_cut_id = ElementID(plus_result.changes_made["outer_cut"])
 

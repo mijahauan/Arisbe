@@ -5,21 +5,62 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
-from calculus_expected import acceptable, maps_carried
+from calculus_expected import acceptable, maps_carried, postconditions
 from calculus_rules import RULES
 from tarski import dominating_nodes, model_set, universe, vocabulary
 
 Check = Callable[[object, dict], Tuple[str, Optional[str]]]
+
+# The rules whose licensed result is not built, so postconditions carry the
+# check instead (spec 2026-09-12 §3.1).
+POSTCONDITION_RULES = frozenset({
+    "MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE",
+    "SPLIT_VERTEX", "MERGE_VERTICES",
+})
+
+
+# legal()'s abstentions, tagged so the extent shows which reason grew
+# (spec 2026-09-12 §3.4). The order is longest-match-first; an unrecognised
+# reason is tagged "other", which the tests pin at 0.
+_ABSTENTIONS = (
+    ("underdetermine", "underdetermined"),
+    ("quotation-bearing graph", "quotation-bearing"),
+    ("quotation apparatus", "quotation-apparatus"),
+    ("Θ clause", "theta-clause"),
+    ("search budget", "search-budget"),
+    ("not an EGI", "not-an-EGI"),
+)
+
+
+def _abstention(why: str) -> str:
+    for needle, tag in _ABSTENTIONS:
+        if needle in why:
+            return tag
+    return "other"
+
+
+def _refused(out) -> str:
+    """A move that did not apply: the core's Def 12.5 refusal is kept apart
+    from the engine's own."""
+    return "core-refused-non-egi" if out.core_refused_non_egi else "refused"
 
 
 def refusal(rec, cache) -> Tuple[str, Optional[str]]:
     """§5.1: engine (applied/refused) against legal (true/false). A crash is
     a defect whatever the rule; a not-judged instance is counted, not scored."""
     out = rec.outcome
+    if out.core_refused_non_egi:
+        # The core would not build the engine's result (Def 12.5). Counted
+        # under its own label; on a move legal() judges legal it still fails.
+        label = f"not:{rec.move.rule}:core-refused-non-egi"
+        if rec.verdict is True:
+            return label, (f"INCOMPLETE refused but legal ({rec.why}); the core refused "
+                           f"the engine's result as a non-EGI: {out.message[:120]}")
+        return label, None
     if out.crashed:
         return f"{rec.move.rule}:crash", f"CRASH {out.message[:160]}"
     if rec.verdict is None:
-        return f"not:{rec.move.rule}", None
+        return f"not:{rec.move.rule}:{_abstention(rec.why)}", None
     label = f"{rec.move.rule}:{'applied' if out.applied else 'refused'}/" \
             f"{'legal' if rec.verdict else 'illegal'}"
     if out.applied and not rec.verdict:
@@ -35,21 +76,26 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     applied moves are checked. The label says how much was checked:
     ``exact`` — a legal move of a judged rule, compared with its licensed
     forms; ``illegal`` — an applied move legal() rejects, EGI-hood and maps
-    only; ``egi-only`` — a move legal() does not judge (the four ligature
-    rules, split, merge, and any abstention), EGI-hood and maps only. No
-    per-rule postcondition is checked for ``egi-only`` moves: a no-op passes
-    (spec §5.2; the real postconditions are queued for the fix arc). A record
-    whose source carries a B-min map is labelled with a ``:maps`` suffix, so
-    the pinned extent shows whether the maps clause was ever exercised."""
+    only; ``egi-only`` — a move legal() does not judge. For the six rules in
+    POSTCONDITION_RULES (the four ligature rules, split, merge) an ``egi-only``
+    move is now checked for EGI-hood, maps, **and** the rule's postconditions
+    (calculus_expected.postconditions) — these rules re-plumb identity, and
+    the postconditions are the check a built licensed form would otherwise
+    provide. Only an abstention on a *judged* rule is checked for EGI-hood and
+    maps alone. A record whose source carries a B-min map is labelled with a
+    ``:maps`` suffix, so the pinned extent shows whether the maps clause was
+    ever exercised."""
     out = rec.outcome
     if not out.applied:
-        return f"not:{rec.move.rule}:refused", None
+        return f"not:{rec.move.rule}:{_refused(out)}", None
     g, h, m = rec.g, out.result, rec.move
     problems = []
     if dominating_nodes(g) and not dominating_nodes(h):
         problems.append("the result is not an EGI (Def 12.5)")
     problems += maps_carried(g, h)
     forms = acceptable(g, m) if rec.verdict else None
+    if forms is None and m.rule in POSTCONDITION_RULES:
+        problems += postconditions(g, m, h)
     if forms is not None and not any(nav.same_graph(f, h) for f in forms):
         problems.append("the result differs from the licensed change")
     kind = "exact" if forms is not None else ("egi-only" if rec.verdict is None else "illegal")
@@ -84,7 +130,7 @@ def soundness(rec, cache) -> Tuple[str, Optional[str]]:
     source graph by the run)."""
     out, m, g = rec.outcome, rec.move, rec.g
     if not out.applied:
-        return f"not:{m.rule}:refused", None
+        return f"not:{m.rule}:{_refused(out)}", None
     sem = cache["_sem"]
     h = out.result
     if len(g.V) + len(g.E) + len(g.Cut) > sem.max_elements:

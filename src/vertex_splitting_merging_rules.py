@@ -331,14 +331,22 @@ class VertexMergingRule(FormalTransformationRule):
             return False, "Must select exactly two vertices for merging"
 
         egi = context.source_egi
-        vertices = list(context.selected_subgraph)
-        v1_id, v2_id = vertices[0], vertices[1]
+        v1_id, v2_id = self._merge_order(egi, context.selected_subgraph)
 
         # Verify both are vertices
         if not (
             any(v.id == v1_id for v in egi.V) and any(v.id == v2_id for v in egi.V)
         ):
             return False, "Both selected elements must be vertices"
+
+        # Def 16.6 (p.176) erases v2 and keeps v1, so Def 24.10's genericity
+        # condition (p.270) falls on v2 alone: merging a generic vertex INTO a
+        # constant keeps the name and is an equivalence; merging the constant
+        # away loses it. v2 is the vertex this rule's apply_transformation
+        # erases (both take it from the same list of the same selection).
+        refusal = self._refuse_constant_vertices(egi, (v2_id,))
+        if refusal:
+            return False, refusal
 
         # Check if vertices are connected by identity edge
         identity_edge = self._find_identity_edge_between_vertices(egi, v1_id, v2_id)
@@ -372,8 +380,9 @@ class VertexMergingRule(FormalTransformationRule):
 
         try:
             egi = context.source_egi
-            vertices = list(context.selected_subgraph)
-            v1_id, v2_id = vertices[0], vertices[1]
+            # The same choice check_preconditions made, from the same place, so
+            # the pair it vouched for is the pair this merges.
+            v1_id, v2_id = self._merge_order(egi, context.selected_subgraph)
 
             # Find identity edge
             identity_edge_id = self._find_identity_edge_between_vertices(
@@ -397,6 +406,118 @@ class VertexMergingRule(FormalTransformationRule):
 
         except Exception as e:
             return TransformationResult(False, None, str(e), {})
+
+    def _merge_order(
+        self, egi: RelationalGraphWithCuts, vertex_ids
+    ) -> Tuple[ElementID, ElementID]:
+        """(v1 kept, v2 removed) — decided by the graph, never by the iteration
+        order of the selection's frozenset.
+
+        Def 24.10 (p.270) requires the vertex REMOVED to be generic, and on a
+        mixed pair that settles it outright: the generic vertex goes and the
+        constant stays, which is also the merge that keeps what the graph says
+        by name. Where the pair is symmetric in that respect — both generic —
+        the canonical-signature order the Chapter 16 ligature rules use decides,
+        for the reason given there. Both constant: the order is canonical too,
+        and the merge is refused on Def 24.10 whichever way it faces.
+
+        Without this, ``list(selected_subgraph)[1]`` picked v2 by the
+        per-process string hash, so on one and the same mixed pair this rule
+        applied under some hash seeds and refused under others — sound either
+        way, but a function of the process rather than of the graph.
+        """
+        from ligature_manipulation_rules import _canonical_vertex_order
+
+        by_id = {v.id: v for v in egi.V}
+        ordered = _canonical_vertex_order(egi, vertex_ids)
+        generic = [v_id for v_id in ordered if v_id in by_id and by_id[v_id].is_generic]
+        named = [v_id for v_id in ordered if v_id in by_id and not by_id[v_id].is_generic]
+        if len(generic) == 1 and len(named) == 1:
+            return named[0], generic[0]
+        return ordered[0], ordered[1]
+
+    def _refuse_constant_vertices(
+        self, egi: RelationalGraphWithCuts, vertex_ids
+    ) -> Optional[str]:
+        """Def 24.10 (p.270): the vertex a ligature rule ERASES must be generic.
+        ``vertex_ids`` is therefore the erased vertex, never the whole selection.
+        Shared with the Chapter 16 ligature rules so the refusal reads the same
+        wherever it comes from (imported inside the method: the two modules are
+        siblings and neither may import the other at module level)."""
+        from ligature_manipulation_rules import _refuse_constant_vertices
+
+        return _refuse_constant_vertices(egi, vertex_ids)
+
+    def merge_vertices(
+        self,
+        egi: RelationalGraphWithCuts,
+        v1_id: ElementID,
+        v2_id: ElementID,
+        identity_edge_id: Optional[ElementID] = None,
+    ) -> TransformationResult:
+        """Def 16.6 merging (p.176) with v1 and v2 named IN ORDER: v2 is merged
+        into v1, so which vertex survives is part of the move rather than of
+        the iteration order of a set.
+
+        The conditions checked are Dau's own: e = (v1, v2) is an identity edge
+        with ctx(v1) ≥ ctx(e) = ctx(v2) (p.176), and both vertices are generic
+        (Def 24.10, p.270-272 — merging a constant vertex away erases its name,
+        which is part of what the graph says).
+
+        ``apply_transformation`` takes its two vertices from an unordered
+        selection and cannot express this; ``_apply_vertex_merge`` performs the
+        operation and checks nothing. This is the ordered, checked entry point.
+        """
+        # Only v2 — the vertex merging erases (Def 16.6, p.176; Def 24.10,
+        # p.270). v1 survives with whatever name it carries.
+        refusal = self._refuse_constant_vertices(egi, (v2_id,))
+        if refusal:
+            return TransformationResult(False, None, refusal, {})
+
+        if identity_edge_id is None:
+            identity_edge_id = self._find_identity_edge_between_vertices(
+                egi, v1_id, v2_id
+            )
+        if identity_edge_id is None or set(egi.nu.get(identity_edge_id, ())) != {
+            v1_id,
+            v2_id,
+        } or egi.rel.get(identity_edge_id) != "=":
+            return TransformationResult(
+                False, None, "Vertices must be connected by an identity edge", {}
+            )
+
+        v1_context = self._get_vertex_context(egi, v1_id)
+        v2_context = self._get_vertex_context(egi, v2_id)
+        edge_context = self._get_edge_context(egi, identity_edge_id)
+        if not (
+            self._context_contains_or_equals(egi, v1_context, edge_context)
+            and edge_context == v2_context
+        ):
+            return TransformationResult(
+                False,
+                None,
+                "Context constraints not satisfied: ctx(v1) ≥ ctx(e) = ctx(v2)",
+                {},
+            )
+
+        try:
+            result_egi = self._apply_vertex_merge(
+                egi, v1_id, v2_id, identity_edge_id
+            )
+        except Exception as exc:  # a malformed graph, not a refusal
+            return TransformationResult(False, None, str(exc), {})
+
+        return TransformationResult(
+            success=True,
+            result_egi=result_egi,
+            error_message=None,
+            changes_made={
+                "rule": "MERGE_VERTICES",
+                "target_vertex": str(v1_id),
+                "merged_vertex": str(v2_id),
+                "removed_identity_edge": str(identity_edge_id),
+            },
+        )
 
     def _apply_vertex_merge(
         self,

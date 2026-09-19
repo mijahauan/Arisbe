@@ -18,7 +18,7 @@ byte-stably from its parameters (``verify_chain_replay``).
 
 import uuid
 from dataclasses import dataclass, field, replace
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 
 from frozendict import frozendict
 
@@ -149,16 +149,37 @@ def _extended_alphabet(egi: RelationalGraphWithCuts, name: str, arity: int):
     )
 
 
-def _validate_context_condition(egi: RelationalGraphWithCuts) -> None:
-    """Whole-graph check that every edge only reaches same-or-enclosing lines.
+def _validate_context_condition(
+    egi: RelationalGraphWithCuts, area_map: Mapping[ElementID, frozenset]
+) -> None:
+    """Whole-graph check that every edge only reaches same-or-enclosing lines,
+    read off a *proposed* area map before any graph is built from it.
 
     Used by the move ops, where a single relocation can break the condition
     for edges far from the moved element (e.g. moving a cut whose interior
-    edges reach an ambient line)."""
+    edges reach an ambient line). The condition is Dau's dominating nodes
+    (Def 12.5, p.125), which the core enforces at construction, so it has to
+    be checked on the map first: building the candidate and inspecting it
+    would construct a non-EGI, and the core would refuse in its own words
+    rather than the op's."""
+    parent = {
+        element: area_id
+        for area_id, contents in area_map.items()
+        for element in contents
+    }
+
+    def same_or_enclosing(candidate: ElementID, reference: ElementID) -> bool:
+        current = reference
+        while current != candidate:
+            if current == egi.sheet:
+                return False
+            current = parent[current]
+        return True
+
     for edge_id, seq in egi.nu.items():
-        edge_area = _area_of(egi, edge_id)
+        edge_area = parent[edge_id]
         for vid in seq:
-            if not _same_or_enclosing(egi, _area_of(egi, vid), edge_area):
+            if not same_or_enclosing(parent[vid], edge_area):
                 raise ValueError(
                     f"Move refused: relation '{egi.rel.get(edge_id, edge_id)}' "
                     f"({edge_id}) would reach line '{vid}' across a cut it "
@@ -589,43 +610,36 @@ def move_to_area(
     e_ids = {e.id for e in egi.E}
     c_ids = {c.id for c in egi.Cut}
 
-    if element_id in v_ids:
-        work = egi.with_vertex_moved_to_context(element_id, area)
-        work = _keep_varnames(work, egi)
-    elif element_id in e_ids:
-        old_area = _area_of(egi, element_id)
-        if old_area == area:
-            work = egi
-        else:
-            new_area_map = dict(egi.area)
-            new_area_map[old_area] = new_area_map[old_area] - {element_id}
-            new_area_map[area] = new_area_map.get(area, frozenset()) | {
-                element_id
-            }
-            work = replace(
-                egi, area=frozendict(new_area_map), hierarchical_index=None
-            )
-    elif element_id in c_ids:
-        if area == element_id or element_id in _ancestors_or_self(egi, area):
-            raise ValueError(
-                "Cannot move a cut into itself or its own interior."
-            )
-        old_area = _area_of(egi, element_id)
-        if old_area == area:
-            work = egi
-        else:
-            new_area_map = dict(egi.area)
-            new_area_map[old_area] = new_area_map[old_area] - {element_id}
-            new_area_map[area] = new_area_map.get(area, frozenset()) | {
-                element_id
-            }
-            work = replace(
-                egi, area=frozendict(new_area_map), hierarchical_index=None
-            )
-    else:
+    if element_id not in v_ids | e_ids | c_ids:
         raise ValueError(f"Element '{element_id}' does not exist.")
+    if element_id in c_ids and (
+        area == element_id or element_id in _ancestors_or_self(egi, area)
+    ):
+        raise ValueError(
+            "Cannot move a cut into itself or its own interior."
+        )
 
-    _validate_context_condition(work)
+    old_area = _area_of(egi, element_id)
+    if old_area == area:
+        work = egi
+    else:
+        # Check the relocation on the proposed area map, then build: every
+        # graph constructed here is an EGI (Def 12.5, p.125).
+        new_area_map = dict(egi.area)
+        new_area_map[old_area] = new_area_map[old_area] - {element_id}
+        new_area_map[area] = new_area_map.get(area, frozenset()) | {
+            element_id
+        }
+        _validate_context_condition(egi, new_area_map)
+        if element_id in v_ids:
+            work = _keep_varnames(
+                egi.with_vertex_moved_to_context(element_id, area), egi
+            )
+        else:
+            work = replace(
+                egi, area=frozendict(new_area_map), hierarchical_index=None
+            )
+
     return ComposeResult(
         egi=work,
         recorded_parameters={"element_id": element_id, "context_id": area},

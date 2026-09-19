@@ -487,3 +487,163 @@ class TestDischargeNormalizesConstants:
 
         _, discharged, _ = self._episode()
         assert '(mammal "Rex")' in generate_egif(m_view(discharged))
+
+
+# The probe the seed test runs in a fresh interpreter per PYTHONHASHSEED.
+# Printed as JSON so the parent asserts on what was CHOSEN, not merely on a
+# stable output.
+_JOIN_PROBE = r'''
+import json, sys
+sys.path.insert(0, sys.argv[1])
+from frozendict import frozendict
+from egi_core_dau import Edge, RelationalGraphWithCuts, Vertex
+from egif_parser_dau import parse_egif
+from oracle_notes import bank_answer
+from world_scroll import enlarge_m, find_world_scroll, wrap_m, wrap_state
+
+out = {}
+
+# 1. M holds a plain "Ciel" (on swan) and a QUOTED "Ciel" inside an oval.
+m, _ = wrap_m(parse_egif('(swan "Ciel")'))
+m, oval = bank_answer(m, "Ciel", qid="q", note_date="2026-09-17")
+swan = next(e for e in m.rel if m.rel[e] == "swan")
+utterance = next(e for e in m.rel if m.rel[e] == "utterance")
+oval_before = sorted(m.area[oval])
+quoted_before = {e: m.nu[e] for e in m.area[oval] if e in m.nu}
+try:
+    g = enlarge_m(m, '(white "Ciel")')
+except Exception as exc:
+    out["quoted"] = {"raised": f"{type(exc).__name__}: {exc}"}
+else:
+    white = next(e for e in g.rel if g.rel[e] == "white")
+    out["quoted"] = {
+        "white_hangs_on_the_plain_line": g.nu[white] == g.nu[swan],
+        "white_hangs_on_the_quoted_line": g.nu[white] == g.nu[utterance],
+        "oval_contents_untouched": sorted(g.area[oval]) == oval_before,
+        "quoted_incidence_untouched": all(
+            g.nu.get(e) == seq for e, seq in quoted_before.items()),
+        "quotation_map_untouched": dict(g.quotation) == dict(m.quotation),
+    }
+
+# 2. Two plain standing "Ciel" lines (fixed ids): which one the admitted
+#    mention joins must be a function of the graph.
+sheet = RelationalGraphWithCuts(
+    V=frozenset({Vertex("v_on_bird", "Ciel", False),
+                 Vertex("v_on_swan", "Ciel", False)}),
+    E=frozenset({Edge("e_bird"), Edge("e_swan")}),
+    nu=frozendict({"e_bird": ("v_on_bird",), "e_swan": ("v_on_swan",)}),
+    sheet="S", Cut=frozenset(),
+    area=frozendict({"S": frozenset({"v_on_bird", "v_on_swan",
+                                     "e_bird", "e_swan"})}),
+    rel=frozendict({"e_bird": "bird", "e_swan": "swan"}))
+m2, _ = wrap_state(sheet)
+try:
+    g2 = enlarge_m(m2, '(white "Ciel")')
+except Exception as exc:
+    out["two_lines"] = {"raised": f"{type(exc).__name__}: {exc}"}
+else:
+    white = next(e for e in g2.rel if g2.rel[e] == "white")
+    out["two_lines"] = {"anchor": g2.nu[white][0]}
+
+# 3. The same, with the ids ordered AGAINST the canonical signatures: the
+#    bird line's id now sorts last, so a choice made by id alone picks the
+#    swan line and a choice made by signature still picks the bird line.
+crossed = RelationalGraphWithCuts(
+    V=frozenset({Vertex("v_z_ciel", "Ciel", False),
+                 Vertex("v_a_ciel", "Ciel", False)}),
+    E=frozenset({Edge("e_bird"), Edge("e_swan")}),
+    nu=frozendict({"e_bird": ("v_z_ciel",), "e_swan": ("v_a_ciel",)}),
+    sheet="S", Cut=frozenset(),
+    area=frozendict({"S": frozenset({"v_z_ciel", "v_a_ciel",
+                                     "e_bird", "e_swan"})}),
+    rel=frozendict({"e_bird": "bird", "e_swan": "swan"}))
+m3, _ = wrap_state(crossed)
+try:
+    g3 = enlarge_m(m3, '(white "Ciel")')
+except Exception as exc:
+    out["signature_beats_id"] = {"raised": f"{type(exc).__name__}: {exc}"}
+else:
+    white = next(e for e in g3.rel if g3.rel[e] == "white")
+    anchor = g3.nu[white][0]
+    bird = next(e for e in g3.rel if g3.rel[e] == "bird")
+    out["signature_beats_id"] = {
+        "anchor": anchor,
+        "hangs_with_bird": g3.nu[bird] == (anchor,),
+    }
+print(json.dumps(out))
+'''
+
+
+class TestTheAdmissionJoin:
+    """``enlarge_m`` ties an admitted constant to the line already standing:
+    Dau's Constant Identity Rule (p.271) scribes the identity link, and the
+    project's one-constant-one-line normal form collapses the pair. Every
+    intermediate graph must be an EGI (Def 12.5, p.125), the standing line
+    moves only outward, and a quoted or quoting line is never touched."""
+
+    def test_a_constant_in_two_cells_becomes_one_line_in_w(self):
+        m, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        g = enlarge_m(m, '(white "Ciel")')
+        w = find_world_scroll(g).cut_id
+        ciel = [v.id for v in g.V if v.label == "Ciel"]
+        assert len(ciel) == 1
+        assert g.get_context(ciel[0]) == w
+        by_rel = {g.rel[e]: g.nu[e] for e in g.nu}
+        assert by_rel["swan"] == by_rel["white"] == (ciel[0],)
+        assert "=" not in by_rel
+        assert g.has_dominating_nodes()
+
+    def test_a_standing_line_above_w_is_not_moved_inward(self):
+        from egi_core_dau import Vertex
+
+        m, _ = wrap_m(parse_egif('(swan "Dover")'))
+        m = m.with_vertex(Vertex("v_ciel", "Ciel", False))
+        assert find_world_scroll(m) is not None
+        g = enlarge_m(m, '(white "Ciel")')
+        white = next(e for e in g.rel if g.rel[e] == "white")
+        assert g.nu[white] == ("v_ciel",)
+        assert g.get_context("v_ciel") == g.sheet
+        assert [v.id for v in g.V if v.label == "Ciel"] == ["v_ciel"]
+
+    @pytest.mark.parametrize("seeds", [(0, 1, 2, 3, 4, 5, 42)])
+    def test_the_choice_is_the_graphs_and_quoted_ink_stays_in_its_oval(
+        self, seeds
+    ):
+        import json
+        import os
+        import subprocess
+
+        src = str(Path(__file__).parent.parent / "src")
+        results = {}
+        for seed in seeds:
+            env = {**os.environ, "PYTHONHASHSEED": str(seed)}
+            run = subprocess.run(
+                [sys.executable, "-c", _JOIN_PROBE, src],
+                capture_output=True, text=True, env=env, timeout=120,
+            )
+            assert run.returncode == 0, run.stderr
+            results[seed] = json.loads(run.stdout.strip().splitlines()[-1])
+
+        for seed, result in results.items():
+            assert result["quoted"] == {
+                "white_hangs_on_the_plain_line": True,
+                "white_hangs_on_the_quoted_line": False,
+                "oval_contents_untouched": True,
+                "quoted_incidence_untouched": True,
+                "quotation_map_untouched": True,
+            }, f"PYTHONHASHSEED={seed}: {result['quoted']}"
+            assert "anchor" in result["two_lines"], (
+                f"PYTHONHASHSEED={seed}: {result['two_lines']}")
+
+        anchors = {seed: r["two_lines"]["anchor"] for seed, r in results.items()}
+        assert len(set(anchors.values())) == 1, anchors
+
+        # And the choice is the signature's, not the id's: with the ids
+        # ordered against the signatures, the bird line still wins. Ordering
+        # by id alone would pick "v_a_ciel" here and pass every other
+        # assertion in this test.
+        crossed = {seed: r["signature_beats_id"] for seed, r in results.items()}
+        for seed, result in crossed.items():
+            assert result == {"anchor": "v_z_ciel", "hangs_with_bird": True}, (
+                f"PYTHONHASHSEED={seed}: {result} — the standing line was "
+                f"chosen by id order, not by canonical signature")

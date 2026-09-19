@@ -318,6 +318,10 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         - The target area must exist in the EGI.
         - Every element of the selected subgraph must live directly in the
           target area (not inside a nested cut within that area).
+        - The result must be an EGI (Def 15.2, p.164), so dominating nodes
+          (Def 12.5, p.125) must survive: a vertex may move inside the double
+          cut only together with all of its edges, each one selected or
+          inside a selected cut.
 
     Result: a new outer cut O and inner cut I are created; O lives in
     target_area, I lives inside O, and the selected subgraph moves inside I.
@@ -330,8 +334,12 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         self, context: TransformationContext
     ) -> Tuple[bool, Optional[str]]:
         """
-        DC+ can be applied in any area to enclose any subgraph (including empty).
-        No specific preconditions beyond valid area and subgraph selection.
+        DC+ can be applied in any area to enclose a subgraph (including empty),
+        provided the target area exists, the selection lies directly in it, the
+        B-min quotation boundary allows it, and the result is an EGI (Def 15.2,
+        p.164): dominating nodes (Def 12.5, p.125) must survive, so a vertex
+        may move inside the double cut only together with all of its edges,
+        each one selected or inside a selected cut.
         """
         # Verify target area exists
         if context.target_area not in context.source_egi.area:
@@ -351,6 +359,25 @@ class DoubleCutInsertionRule(FormalTransformationRule):
         )
         if refusal:
             return False, refusal
+
+        # Def 15.2 double cuts (p.164) insert c1, c2 only where the result is an
+        # EGI, and Def 12.5 (p.125) needs ctx(e) <= ctx(v) for every edge e on
+        # every vertex v. A vertex may therefore move inside the double cut only
+        # together with all of its edges: each one selected, or inside a
+        # selected cut.
+        egi = context.source_egi
+        moved, stack = set(), list(context.selected_subgraph)
+        while stack:
+            x = stack.pop()
+            if x not in moved:
+                moved.add(x)
+                stack.extend(egi.area.get(x, ()))
+        for edge_id, sequence in egi.nu.items():
+            if edge_id not in moved and any(v in moved for v in sequence):
+                return False, (
+                    f"DC+ would move a vertex inside the double cut while its edge "
+                    f"{edge_id} stays outside (Dau Def 15.2, p.164; Def 12.5, p.125)"
+                )
 
         return True, None
 
@@ -1146,6 +1173,25 @@ class IterationRule(FormalTransformationRule):
                 f"Source: {source_area}, Destination: {context.target_area}"
             )
 
+        # Dau Def 15.2 (p.164, 166): the destination c must satisfy both
+        # c <= ctx(G0) *and* c ∉ Cut0 — a cut being copied may not receive the
+        # copy. Without the second half, iterating the inner cut of ~[ ~[ ] ]
+        # into itself gives ~[ ~[ ~[ ] ] ]: true becomes false.
+        expanded = set(context.selected_subgraph)
+        stack = list(expanded)
+        while stack:
+            element = stack.pop()
+            for nested in egi.area.get(element, frozenset()):
+                if nested not in expanded:
+                    expanded.add(nested)
+                    stack.append(nested)
+        if context.target_area in expanded:
+            return False, (
+                f"IT+ may not copy into the selection's own cut "
+                f"(Dau Def 15.2, p.166: c ∉ Cut₀). Destination "
+                f"{context.target_area} lies inside the selected subgraph."
+            )
+
         # B-min: never into a quotation area; iterating the quotation
         # apparatus (even as a whole unit, even enclosed in a selected plain
         # cut) is a named limit — the copy paths would degrade the exhibit
@@ -1384,21 +1430,54 @@ class DeiterationRule(FormalTransformationRule):
     def _check_deiteration_with_isomorphism_engine(
         self, context: TransformationContext
     ) -> Tuple[bool, Optional[str]]:
-        """Check deiteration validity using the sophisticated isomorphism engine."""
+        """Check deiteration validity: a structural match in the nest of cuts
+        that is also a *copy*.
+
+        Dau Def 15.2 (p.166): iteration copies G0's own vertices (V0 × {2}) and
+        reaches a vertex outside the copy only through an identity edge
+        e_{v,w} with wΘv — the same line. So a candidate whose edge hooks an
+        outside vertex is a copy only if the original hooks *that very vertex*
+        at that position. The isomorphism engine matches structure alone, which
+        is why the engine deiterated non-copies: `*x *y (P x) ~[ (P y) ]` and,
+        with names, `(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]`.
+        """
         egi = context.source_egi
-        selected_subgraph = context.selected_subgraph
-        target_area = context.target_area
+        selected = context.selected_subgraph
+        nesting_hierarchy = self._get_nesting_hierarchy(egi, context.target_area)
+        search_areas = [a for a in nesting_hierarchy if a != context.target_area]
 
-        # Build nesting hierarchy from target area to sheet
-        nesting_hierarchy = self._get_nesting_hierarchy(egi, target_area)
-
-        # Use IsomorphismValidator for rigorous structural checking
         validator = IsomorphismValidator()
-        is_valid, error_message = validator.validate_deiteration_candidate(
-            egi, selected_subgraph, target_area, nesting_hierarchy
+        matches = validator.engine.find_isomorphic_subgraphs(egi, selected, search_areas)
+        if not matches:
+            return False, "No structurally identical subgraph found in nest of cuts"
+
+        for _area, _image, mapping in matches:
+            if self._match_is_a_copy(egi, selected, mapping):
+                return True, None
+        return False, (
+            "No isomorphic original found whose edges reach the same lines: a copy "
+            "hooks an outside vertex only along that same line (Dau Def 15.2, p.166)"
         )
 
-        return is_valid, error_message
+    def _match_is_a_copy(self, egi, selected, mapping) -> bool:
+        """Every edge of the candidate must reach, at each position, either the
+        image of a selected vertex or the very same outside vertex."""
+        for edge_id in selected:
+            if edge_id not in egi.nu:
+                continue
+            source_edge = mapping.edge_mapping.get(edge_id)
+            if source_edge is None or source_edge not in egi.nu:
+                return False
+            copy_args, source_args = egi.nu[edge_id], egi.nu[source_edge]
+            if len(copy_args) != len(source_args):
+                return False
+            for position, vertex_id in enumerate(copy_args):
+                if vertex_id in selected:
+                    if mapping.vertex_mapping.get(vertex_id) != source_args[position]:
+                        return False
+                elif source_args[position] != vertex_id:
+                    return False
+        return True
 
     def _basic_deiteration_validation(
         self, context: TransformationContext

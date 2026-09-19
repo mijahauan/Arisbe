@@ -62,6 +62,26 @@ REASONS = {
         "The engine's only vertex-insertion entry point, HEAVY_DOT, refuses every positive context "
         "(sheet included) with 'Heavy dot insertion only allowed in negatively-enclosed areas'. "
         "Incompleteness, not unsoundness: half of an equivalence rule is missing."),
+    "move-branches-tries-one-direction-only": ("MOVE_BRANCHES", INCOMPLETE,
+        "Dau Lemma 16.1 (p.169-171) takes two vertices v_a, v_b with ctx(v_a) = ctx(v_b) and "
+        "v_aΘv_b, and 'an edge e such that the hook (e, i) is attached to v_a'. Θ is symmetric "
+        "(Def 15.1, p.163) and the move's parameters name an unordered pair, so the lemma "
+        "licenses the move whenever SOME hook on EITHER vertex qualifies — which is how legal() "
+        "reads it. The engine fixes v_a as _canonical_vertex_order(selection)[0] and asks only "
+        "whether THAT vertex carries a hook the lemma licenses moving; when v_a's every hook sits "
+        "on the join's only witness it refuses, although the other direction is available. The "
+        "shape is always the same: the selection is a pair joined by one identity edge, one of "
+        "them carries nothing else, and the other carries the relation hook that could lawfully "
+        "move — e.g. *x (= x \"a\") (P x), where the engine picks the constant as v_a and finds "
+        "only the = edge on it, while (P x)'s hook could move from x to \"a\" with the = edge "
+        "surviving to witness Θ. 0 moves in the default mode (the shape needs 4 elements); 36 at "
+        "exhaustive bounds, all tier A, each a distinct graph. Never unsound: refusing more than "
+        "the lemma licenses cannot make a step that changes meaning. It became visible only when "
+        "MOVE_BRANCHES gained an oracle (07025c2) — before that legal() abstained and these moves "
+        "counted as not judged. Before 85d316c the engine APPLIED them, moving the identity "
+        "edge's own hook: *x (= x \"a\") (P x) became *x \"a\" (= x x) (P x), which erases the "
+        "assertion x = \"a\". So the refusal is the right answer to the wrong question, and the "
+        "fix is to try the other direction, not to relax the side condition."),
     "vertex-era-positive-only": ("VERTEX_ERA", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): an isolated vertex may be erased from ARBITRARY contexts; "
         "for a constant vertex Def 24.10's Existence of Constants rule (p.271) says the same. "
@@ -143,43 +163,6 @@ REASONS = {
         "so there it is not shown to be an input-form restriction alone; at tier B the top-"
         "elements move is applied on all 14 (tops_only_applied 14 of 22). Ledgered by count in "
         "the exhaustive mode."),
-    "it-plus-into-its-own-selection": ("IT+", SEVERE,
-        P + "Dau Def 15.2 iteration (p.164, and formally p.166): the target context must satisfy "
-        "c ∉ Cut_0 — a subgraph may not be copied into one of its own cuts. The engine's "
-        "destination check (ITPlusInteraction._validate_dest) only asks that the target be the "
-        "source area or nested inside it, so it copies a selected cut into itself or into a cut "
-        "it contains. Measured by calculus_adjudication in the default mode: 70 of the entry's 483 "
-        "moves are UNSOUND (unsound) — a structure satisfies G but not G′ (e.g. ~[ ~[ ] ] (true) becomes "
-        "~[ ~[ ~[ ] ] ] (false) by iterating the empty inner cut into itself); on others the "
-        "result is merely not the equivalence IT+ must be. "
-        "In the exhaustive mode: 6,619 moves in 6,322 keys (4,430 tier A, 2,189 tier B), 704 of them UNSOUND at sizes 1–2."),
-    "it-minus-erases-a-copy-of-another-line": ("IT-", SEVERE,
-        P + "Dau Def 15.2 deiteration (p.164, 166): a subgraph may be erased only if iteration "
-        "could have inserted it, and iteration copies every vertex of the source fresh "
-        "(V′ := V×{1} ∪ V₀×{2}), linking a copy to an outside vertex w only by an identity edge, "
-        "and only where wΘv (the same line). So a candidate that hooks, outside itself, a "
-        "DIFFERENT vertex from the one its supposed source hooks — another line, or another "
-        "name — is not a copy. The engine's search for the original (ITMinusInteraction via "
-        "graph_isomorphism_engine) ignores the identity of every vertex outside the copy, names "
-        "included, and erases such a candidate anyway. What it does compare lies inside the "
-        "copy: (P \"a\") ~[ (P \"b\") ] is refused, the vertex of \"b\" sitting in the cut with the "
-        "candidate edge; with both names on the sheet, outside the copy, the name-against-name "
-        "control (Q \"a\") (Q \"b\") ~[ (P \"b\") ] ~[ ~[ (P \"a\") ] ] has its cut ~[ (P \"a\") ] "
-        "deiterated against ~[ (P \"b\") ]: the satisfiable graph becomes (Q \"a\") (Q \"b\") "
-        "~[ (P \"b\") ] ~[ ], unsatisfiable — UNSOUND. Measured by calculus_adjudication in the "
-        "default mode: every move in this entry is a tier-B move legal() rejects ('no source of "
-        "which this is a copy'), and on every one a source exists once each outside vertex may "
-        "match ANY vertex (source_on_any_vertex); on only some does one exist when it must match "
-        "a vertex of the same kind (source_on_another_line) — e.g. foaf_core's Person(x) erased "
-        "because Person(\"Bob\") stands in an enclosing context. None of those corpus results "
-        "separates from G at domain sizes 1–2 (the difference is inert where they sit). It is "
-        "not inert in general: the hand-built controls (IT_MINUS_CONTROLS, printed with their "
-        "separating structures, and held as strict xfails by test_calculus_it_minus_controls) — "
-        "*x *y (P x) ~[ (P y) ] (satisfiable) is deiterated to *x *y (P x) ~[ ] "
-        "(unsatisfiable), UNSOUND; *y (P \"a\") ~[ (P y) ] likewise; and the name-against-name "
-        "control above. Tier A cannot build these shapes (the exhaustive bound is four elements), "
-        "which is why tier B found it. "
-        "In the exhaustive mode (calculus_adjudication --exhaustive): 64 moves in 64 keys, all tier B; a source exists for all 64 once any vertex may match, for 24 with a vertex of the same kind; 59 are equivalences at sizes 1–2, and the other 5 — on group_identity's chain states — change meaning, some UNSOUND (soundness entry it-minus-erases-a-copy-of-another-line-changes-meaning)."),
     "it-minus-strictly-enclosing-only": ("IT-", INCOMPLETE,
         "Dau Def 15.2 (p.164, 166): iteration copies into any c ≤ ctx(G0), c = ctx(G0) included, "
         "and deiteration erases whatever iteration could have inserted — so a copy whose source "
@@ -212,6 +195,16 @@ REASONS = {
         "G ⊨ G′ ⊨ G at domain sizes 1–2 — a protocol convention (the spot is ignored when a "
         "subject is given), not an unsound step; but the named move is not the one performed and "
         "the engine does not refuse."),
+    "ins-edge-has-no-entry-point": ("INS_EDGE", INCOMPLETE,
+        "Dau Def 15.2 insertion (p.165): erasing an edge from ctx(e) keeps its vertices "
+        "(V^(e) := V), and insertion is the inverse, so in a negative context an edge may be "
+        "inserted onto vertices already present there — *x ~[ ] becomes *x ~[ (P x) ]. The "
+        "engine has no separate entry point for this; INS_EDGE reaches the same protocol INS "
+        "does, which takes only standalone EGIF, so the content names a line by its bound label "
+        "('x') the protocol cannot see and refuses every candidate ('Undefined variable x'). "
+        "Task 3 of the fix arc enumerates INS_EDGE's candidate moves (calculus_rules.moves) so "
+        "this gap is counted as INCOMPLETE on every run rather than only named in the rule "
+        "table; the engine fix itself is out of scope here."),
 }
 
 
@@ -266,18 +259,9 @@ def measure(rec, eid, c: Counter):
     elif eid == "dc-plus-strands-a-vertex":
         c["non_egi"] += not dominating_nodes(out.result)
         c["target_also_ignored"] += any(g.get_context(x) != m.target for x in tops(g, expand(g, m.selection)))
-    elif eid == "it-plus-into-its-own-selection":
-        fwd, bwd = _entail(g, out.result)
-        c["unsound"] += not fwd
-        c["equivalent"] += fwd and bwd
     elif eid.endswith("-cut-named-with-its-contents"):
         t = tuple(tops(g, expand(g, m.selection)))
         c["tops_only_applied"] += apply_move(g, Move(m.rule, t, m.target, m.content)).applied
-    elif eid == "it-minus-erases-a-copy-of-another-line":
-        X = expand(g, m.selection)
-        c["source_on_another_line"] += bool(_relaxed_source(g, X))
-        c["source_on_any_vertex"] += bool(_relaxed_source(g, X, any_vertex=True))
-        c["equivalent"] += all(_entail(g, out.result))
     elif eid == "ins-mixes-arities-without-an-alphabet":
         c["no_declared_alphabet"] += g.alphabet is None
         c["sound"] += _entail(g, out.result)[0]
@@ -291,31 +275,8 @@ def measure(rec, eid, c: Counter):
         c["on_sheet" if "No enclosing areas" in out.message else "in_a_cut"] += 1
 
 
-def _relaxed_source(g, X, any_vertex=False) -> bool:
-    """legal()'s deiteration search with line identity ignored: an edge's
-    vertex outside the copy may match another vertex of the same kind (same
-    constant, or any generic line) — or, with ``any_vertex``, ANY vertex, name
-    or line. True means the engine's match is a copy up to that choice."""
-    import calculus_rules as cr
-    strict = cr._same_kind
-
-    def outside(g_, v, w, vmap, cuts):
-        return w in vmap if any_vertex else strict(g_, v, w, vmap, cuts, set(), {})
-
-    def relaxed(g_, x, y, vmap, cuts, X_, f):
-        if x in g_.nu and y in g_.nu and g_.rel[x] == g_.rel[y] and len(g_.nu[x]) == len(g_.nu[y]):
-            return all((f.get(v) == w) if v in X_ else outside(g_, v, w, vmap, cuts)
-                       for v, w in zip(g_.nu[x], g_.nu[y]))
-        return strict(g_, x, y, vmap, cuts, X_, f)
-    cr._same_kind = relaxed
-    try:
-        c = cr._one_context(g, X)
-        return c is not None and bool(cr._source_of_copy(g, X, c))
-    finally:
-        cr._same_kind = strict
-
-
-# Also held, as strict xfails, by tests/test_calculus_it_minus_controls.py.
+# Also held, as collected tests, by tests/test_calculus_it_minus_controls.py: since
+# the Task 6 copy condition (Dau Def 15.2, p.166) the engine refuses all four.
 IT_MINUS_CONTROLS = ("*x *y (P x) ~[ (P y) ]", '*y (P "a") ~[ (P y) ]', '(P "a") ~[ (P "b") ]',
                      '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]')
 

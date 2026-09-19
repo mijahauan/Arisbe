@@ -250,6 +250,18 @@ class RelationalGraphWithCuts:
         # Constraint: area mapping constraints
         self._validate_area_constraints()
 
+        # Def 12.5 with Def 12.7 (p.125-126): dominating nodes is part of what
+        # an EGI *is*, so a structure without it is not one. Enforced here only
+        # after the corpus was repaired (two stored graphs violated it), since
+        # before that this raised on load.
+        for edge_id, sequence in self.nu.items():
+            edge_context = self.get_context(edge_id)
+            for vertex_id in sequence:
+                if not self._context_dominates(edge_context, self.get_context(vertex_id)):
+                    raise ValueError(
+                        f"Dominating nodes violated (Def 12.5): ctx({edge_id}) ≰ ctx({vertex_id})"
+                    )
+
     def _validate_area_constraints(self):
         """Validate area mapping constraints from Definition 12.1."""
         all_contexts = set(self.Cut) | {self.sheet}
@@ -708,24 +720,29 @@ class RelationalGraphWithCuts:
             edge_context = self.get_context(edge_id)
             for vertex_id in vertex_seq:
                 vertex_context = self.get_context(vertex_id)
-                # Check if ctx(e) ≤ ctx(v) (edge context dominates vertex context)
+                # Check if ctx(e) ≤ ctx(v) (the vertex's context is the edge's or encloses it)
                 if not self._context_dominates(edge_context, vertex_context):
                     return False
         return True
 
-    def _context_dominates(self, context1: ElementID, context2: ElementID) -> bool:
-        """Check if context1 ≤ context2 in Dau's ordering."""
-        if context1 == context2:
-            return True
+    def _context_dominates(self, inner: ElementID, outer: ElementID) -> bool:
+        """Whether ``inner ≤ outer`` in Dau's context order (Def 12.2, p.125):
+        ``outer`` is ``inner`` itself or encloses it.
 
-        # Check if context1 is in area^n(context2) for some n
-        current = context2
-        while current != self.sheet:
-            if context1 == current:
+        Walk outward from ``inner``. The previous implementation walked out
+        from ``outer`` and returned True for any ``inner`` on the sheet, so it
+        tested the relation backwards: `has_dominating_nodes` called an
+        ordinary `(P *x) ~[ (Q x) ]` malformed and an edge-outside-its-vertex
+        graph well formed, and `replace_vertex_on_hook` refused the lawful
+        inner-to-outer hook move of Def 12.9.
+        """
+        current = inner
+        while True:
+            if current == outer:
                 return True
+            if current == self.sheet:
+                return False
             current = self.get_context(current)
-
-        return context1 == self.sheet
 
     # Creation methods
 

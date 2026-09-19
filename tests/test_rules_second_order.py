@@ -89,6 +89,11 @@ def sheet_exhibit() -> tuple:
     return egi, name_id, cut.id
 
 
+def _superseded_edge(egi):
+    """The host edge on the exhibit's quoting name: (superseded "M_law")."""
+    return next(e.id for e in egi.E if egi.rel[e.id] == "superseded")
+
+
 def negative_area_host() -> tuple:
     """A host whose quotation unit sits inside one negative cut:
     ~[ (superseded "M_law") <oval> ]. Returns (egi, name_id, oval_id, outer_id)."""
@@ -290,15 +295,24 @@ class TestOpacity:
         # iterating the whole unit
         r = ENGINE.apply_rule("IT+", egi, outer_id, frozenset({oval_id, name_id}))
         assert not r.success and "B-min" in r.error_message
-        # iterating a plain cut that ENCLOSES the apparatus
+        # iterating a plain cut that ENCLOSES the apparatus. The double cut
+        # takes the name's host edge too: a vertex moves inside only with all
+        # of its edges (Dau Def 12.5, p.125; Def 15.2, p.164).
         egi2, name2, oval2 = sheet_exhibit()
-        r2 = ENGINE.apply_rule("DC+", egi2, egi2.sheet, frozenset({oval2, name2}))
-        assert r2.success
+        edge2 = _superseded_edge(egi2)
+        r2 = ENGINE.apply_rule("DC+", egi2, egi2.sheet, frozenset({oval2, name2, edge2}))
+        assert r2.success, r2.error_message
         outer2 = r2.changes_made["outer_cut"]
         host = r2.result_egi
-        r3 = ENGINE.apply_rule("IT+", host, outer2, frozenset({outer2}))
+        # ... into the sheet. Dau Def 15.2 (p.166) leaves a selected cut only
+        # c = ctx(G0) as a destination — every deeper area lies inside the cut
+        # itself — so this is the move the B-min guard has to refuse on its own.
+        r3 = ENGINE.apply_rule("IT+", host, host.sheet, frozenset({outer2}))
         assert not r3.success
         assert "degrade" in r3.error_message or "B-min" in r3.error_message
+        # ... and into itself: refused one condition earlier, by c ∉ Cut₀
+        r4 = ENGINE.apply_rule("IT+", host, outer2, frozenset({outer2}))
+        assert not r4.success and "Def 15.2" in r4.error_message
 
     def test_it_minus_refuses_quoted_ink_as_repetition(self):
         # host ink (white *w) on the sheet AND the same shape inside the
@@ -322,8 +336,21 @@ class TestOpacity:
 
     def test_dc_plus_around_the_whole_unit_round_trips(self):
         egi, name_id, cut_id = sheet_exhibit()
-        r = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({cut_id, name_id}))
+        edge_id = _superseded_edge(egi)
+        # The unit without the name's host edge would put the name inside the
+        # double cut and leave (superseded ...) outside: ctx(e) <= ctx(v) fails
+        # (Dau Def 12.5, p.125), the result is not an EGI, so it is no insertion
+        # of a double cut (Def 15.2, p.164). The rule refuses it by that reason.
+        stranded = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({cut_id, name_id}))
+        assert not stranded.success
+        # The rule's own refusal (it cites Def 15.2), not the data model's.
+        assert "Def 15.2" in stranded.error_message
+        assert "Def 12.5" in stranded.error_message
+        assert str(edge_id) in stranded.error_message
+        # The lawful move takes the unit together with every edge on its name.
+        r = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({cut_id, name_id, edge_id}))
         assert r.success, r.error_message
+        assert r.result_egi.has_dominating_nodes()
         assert dict(r.result_egi.quotation) == dict(egi.quotation)
         outer = r.changes_made["outer_cut"]
         r2 = ENGINE.apply_rule("DC-", r.result_egi, r.result_egi.sheet, frozenset({outer}))
@@ -333,6 +360,16 @@ class TestOpacity:
     def test_dc_plus_around_part_of_the_unit_refused(self):
         egi, name_id, cut_id = sheet_exhibit()
         r = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({name_id}))
+        assert not r.success and "whole unit" in r.error_message
+        # The name alone would also strand its host edge (Dau Def 12.5, p.125;
+        # Def 15.2, p.164), but B-min decides what the rule may see before Dau
+        # decides what it sees, so the whole-unit refusal comes first. With its
+        # edge added it strands nothing, and the same guard refuses it.
+        edge_id = _superseded_edge(egi)
+        r = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({name_id, edge_id}))
+        assert not r.success and "whole unit" in r.error_message
+        # ... and so is the oval without its name.
+        r = ENGINE.apply_rule("DC+", egi, egi.sheet, frozenset({cut_id}))
         assert not r.success and "whole unit" in r.error_message
 
     def test_first_order_graphs_feel_nothing(self):

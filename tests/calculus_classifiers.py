@@ -20,7 +20,7 @@ from typing import Callable, Dict, Tuple
 import eg_navigation as nav
 from calculus_enum import edges_on
 from calculus_expected import remove
-from calculus_rules import expand, tops
+from calculus_rules import expand, positive, tops
 from tarski import dominating_nodes
 
 Pred = Callable[[object, str], bool]
@@ -106,14 +106,17 @@ def _rule(r, name) -> bool:
 
 REFUSAL: Dict[str, Pred] = {
     "heavy-dot-negative-only":
-        lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied
+        and positive(r.g, r.move.target),
     "ins-mixes-arities-without-an-alphabet":
         lambda r, d: _rule(r, "INS") and r.outcome.applied and r.verdict is False
         and "another arity" in r.why,
     "vertex-era-positive-only":
-        lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied
+        and not positive(r.g, r.g.get_context(r.move.selection[0])),
     "vertex-era-erases-a-line-with-its-edges":
-        lambda r, d: _rule(r, "VERTEX_ERA") and r.outcome.applied,
+        lambda r, d: _rule(r, "VERTEX_ERA") and r.outcome.applied
+        and bool(edges_on(r.g, r.move.selection[0])),
     "era-auto-closes-a-vertex-selection":
         lambda r, d: _rule(r, "ERA") and r.outcome.applied and "leave an edge behind" in r.why,
     "era-refuses-a-cut-named-with-its-contents":
@@ -121,19 +124,18 @@ REFUSAL: Dict[str, Pred] = {
     "era-closure-drags-a-quoting-name":
         lambda r, d: _rule(r, "ERA") and not r.outcome.applied and not r.outcome.crashed
         and "selected without its oval" in r.outcome.message,
-    "it-plus-into-its-own-selection":
-        lambda r, d: _rule(r, "IT+") and r.outcome.applied and "inside the selection" in r.why,
     "it-plus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "IT+") and _named_apart(r),
     "it-minus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "IT-") and _named_apart(r),
+    "move-branches-tries-one-direction-only":
+        lambda r, d: _rule(r, "MOVE_BRANCHES") and not r.outcome.applied
+        and not r.outcome.crashed
+        and "sits on an identity edge that witnesses the link itself" in r.outcome.message,
     "it-minus-strictly-enclosing-only":
         lambda r, d: _rule(r, "IT-") and not r.outcome.applied and not r.outcome.crashed and (
             "No enclosing areas" in r.outcome.message
             or "No isomorphic original" in r.outcome.message),
-    "it-minus-erases-a-copy-of-another-line":
-        lambda r, d: _rule(r, "IT-") and r.outcome.applied and r.verdict is False
-        and "no source of which this is a copy" in r.why,
     "dc-plus-refuses-a-cut-named-with-its-contents":
         lambda r, d: _rule(r, "DC+") and _named_apart(r),
     "dc-plus-strands-a-vertex":
@@ -141,6 +143,8 @@ REFUSAL: Dict[str, Pred] = {
     "dc-plus-ignores-target":
         lambda r, d: _rule(r, "DC+") and r.outcome.applied and dominating_nodes(r.outcome.result)
         and "not directly in the target" in r.why,
+    "ins-edge-has-no-entry-point":
+        lambda r, d: _rule(r, "INS_EDGE") and not r.outcome.applied and not r.outcome.crashed,
 }
 
 
@@ -193,24 +197,19 @@ STRUCTURE: Dict[str, Pred] = {
 # -- soundness ----------------------------------------------------------------
 
 SOUNDNESS: Dict[str, Pred] = {
-    "it-plus-into-its-own-selection-changes-meaning":
-        lambda r, d: _rule(r, "IT+") and r.verdict is not True and bool(r.move.selection)
-        and r.move.target in expand(r.g, r.move.selection),
-    "it-minus-erases-a-copy-of-another-line-changes-meaning":
-        lambda r, d: _rule(r, "IT-") and r.verdict is False
-        and "no source of which this is a copy" in r.why,
     "vertex-era-erases-a-line-not-an-equivalence":
         lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
-    "merge-vertices-erases-a-constant-vertex":
-        lambda r, d: _rule(r, "MERGE_VERTICES") and bool(erased_constants(r.g, r.outcome.result)),
-    "retract-ligature-erases-a-constant-vertex":
-        lambda r, d: _rule(r, "RETRACT_LIGATURE") and bool(erased_constants(r.g, r.outcome.result)),
-    "move-branches-moves-the-identity-edge-it-moves-along":
-        lambda r, d: _rule(r, "MOVE_BRANCHES") and moved_join(r),
-    "ligature-rules-take-a-join-deeper-than-its-vertices":
-        lambda r, d: r.move.rule in ("RETRACT_LIGATURE", "REARRANGE_LIGATURE")
-        and not erased_constants(r.g, r.outcome.result)
-        and join_deeper_than_its_vertices(r.g, r.move.selection),
+    # Task 7 retired four ligature entries — merge-vertices-erases-a-constant-vertex,
+    # retract-ligature-erases-a-constant-vertex,
+    # move-branches-moves-the-identity-edge-it-moves-along and
+    # ligature-rules-take-a-join-deeper-than-its-vertices — with the engine
+    # conditions that make their mechanisms unreachable: Lemma 16.3 (p.173) /
+    # Def 16.4 (p.174) place the whole ligature, edges included, in ONE
+    # context; Def 24.10 (p.270-272) keeps these rules off constant vertices;
+    # Lemma 16.1 (p.169-171) moves only a hook the join survives. The
+    # measurement helpers above (erased_constants, moved_join,
+    # join_deeper_than_its_vertices) stay: the adjudication script still
+    # measures with them, so a regression is measured, not merely absent.
 }
 
 

@@ -1,9 +1,12 @@
 """Structure (spec 2026-09-10 §5.2): a rule changes what it licenses, and
 nothing else; the result is an EGI; the B-min maps travel with it."""
+from dataclasses import replace
+
 import pytest
+from frozendict import frozendict
 
 import eg_navigation as nav
-from calculus_apply import Outcome
+from calculus_apply import Outcome, apply_move
 from calculus_enum import DEFAULT_BOUNDS, tier_a
 from calculus_expected import expected, iterate, maps_carried
 from calculus_layers import structure
@@ -145,6 +148,102 @@ def test_structure_extent_exhaustive():
     assert_extent("exhaustive:structure", _extent("exhaustive"))
 
 
+def test_a_no_op_ligature_move_is_now_a_failure():
+    """The defect shape the suite could not see: success that changes nothing."""
+    g = parse_egif('(= "a" "b")')
+    m = Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|noop", Outcome(True, g, ""), None, "not judged")
+    label, detail = structure(rec, {})
+    assert label.endswith("egi-only") and detail and "changes nothing" in detail
+
+
+def test_a_ligature_move_that_drops_a_relation_is_a_failure():
+    g = parse_egif('(P "a") (= "a" "b")')
+    h = parse_egif('(= "a" "b")')          # the P edge has vanished
+    m = Move("MOVE_BRANCHES", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|dropped", Outcome(True, h, ""), None, "not judged")
+    assert "relations" in structure(rec, {})[1]
+
+
+def test_split_must_add_one_vertex_and_one_identity_edge():
+    """A genuine +2/+2 result (not the identical-object stand-in, which would
+    also trip 'changes nothing' and leave this clause untested in isolation):
+    two fresh vertices and two identity edges where Def 16.6 (p.175) licenses
+    exactly one of each."""
+    g = parse_egif("(P *x) (Q x)")
+    bad = parse_egif("(P *x) (Q x) (= x *y) (= x *z)")
+    m = Move("SPLIT_VERTEX", (sorted(v.id for v in g.V)[0],), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|split", Outcome(True, bad, ""), None, "not judged")
+    assert "+1 vertex" in structure(rec, {})[1]
+
+
+def test_a_real_retraction_passes_its_postconditions():
+    """`(= "a" "b")` retracted to one vertex: fewer vertices, no identity edge
+    left, and the non-identity relations untouched (there are none)."""
+    g = parse_egif('(= "a" "b")')
+    h = parse_egif('"a"')
+    m = Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|real", Outcome(True, h, ""), None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_may_choose_the_same_shape():
+    """Def 16.4 (p.174) replaces a ligature (W,F) with a FRESH (W',F') that
+    realizes the same partition; Cor 16.5 (p.175) says only that the result is
+    syntactically equivalent, never that F' differs from F. With a 2-vertex
+    ligature there is exactly one tree connecting them, so a genuine
+    rearrangement is necessarily isomorphic to the source — licensed, not a
+    no-op defect. Pinned to the engine's own output (a fresh edge id), the
+    live instance found in Step 5 (A|813a0c4dfed7030b#0|REARRANGE_LIGATURE|...),
+    not the identical-object stand-in."""
+    g = parse_egif('(= "a" "b")')
+    v1, v2 = sorted(v.id for v in g.V)
+    m = Move("REARRANGE_LIGATURE", (v1, v2), g.sheet)
+    outcome = apply_move(g, m)
+    assert outcome.applied
+    rec = Record("A", "hand", g, m, "hand|rearrange-same-shape", outcome, None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_reshape_preserves_partition_and_hooks():
+    """A genuine 3-vertex reshape (beyond the 2-vertex degenerate case above):
+    the real engine's own output on a path ligature carrying a hook, checked
+    against Def 16.4 (p.174) / Cor 16.5 (p.175) independently of the engine's
+    own partition self-check (ligature_manipulation_rules.py).
+
+    A CONSTANT path, selected by label: rearrangement adds and removes no
+    vertex, so Def 24.10's genericity condition (p.270) does not reach it —
+    Def 24.9 (p.269) lets a ligature mix generic and constant vertices."""
+    g = parse_egif('(P "a") (= "a" "b") (= "b" "c")')
+    labels = {v.label: v.id for v in g.V}
+    m = Move("REARRANGE_LIGATURE", (labels["a"], labels["b"]), g.sheet)
+    outcome = apply_move(g, m)
+    assert outcome.applied
+    rec = Record("A", "hand", g, m, "hand|rearrange-reshape", outcome, None, "not judged")
+    assert structure(rec, {})[1] is None
+
+
+def test_rearrange_ligature_split_partition_is_reported():
+    """Cor 16.5 (p.175): a rearranged ligature must 'keep connected' — the
+    same co-denotation partition must survive. Built by hand: the b-c
+    identity edge of an a-b-c ligature silently dropped, splitting one
+    3-vertex ligature into {a,b} and {c}."""
+    g = parse_egif('(= "a" "b") (= "b" "c")')
+    labels = {v.label: v.id for v in g.V}
+    a, b, c = labels["a"], labels["b"], labels["c"]
+    drop = next(e for e in g.nu if g.rel[e] == "=" and set(g.nu[e]) == {b, c})
+    new_area = dict(g.area)
+    new_area[g.sheet] = frozenset(new_area[g.sheet] - {drop})
+    h = replace(g, E=frozenset(e for e in g.E if e.id != drop),
+                nu=frozendict({e: v for e, v in g.nu.items() if e != drop}),
+                rel=frozendict({e: r for e, r in g.rel.items() if e != drop}),
+                area=frozendict(new_area))
+    m = Move("REARRANGE_LIGATURE", (a, b), g.sheet)
+    rec = Record("A", "hand", g, m, "hand|rearrange-split", Outcome(True, h, ""), None, "not judged")
+    detail = structure(rec, {})[1]
+    assert detail and "partition" in detail
+
+
 def test_core_dominating_nodes_check_agrees_with_dau():
     """Def 12.5 is part of what an EGI is. The core's has_dominating_nodes was
     found inverted while planning; its disagreements are ledgered here."""
@@ -159,3 +258,29 @@ def test_core_dominating_nodes_check_agrees_with_dau():
                                     f"core says {g.has_dominating_nodes()}, Def 12.5 says {dominating_nodes(g)}"))
     problems = check_ledger("core-dominating", evaluated, failures)
     assert not problems, "\n\n".join(problems)
+
+
+def test_the_core_check_now_agrees_with_dau():
+    """Def 12.5 (p.125): ctx(e) <= ctx(v). The helper tested the relation
+    backwards and passed any edge on the sheet. Since Task 10 the core also
+    enforces it at construction, so the unlawful graph cannot be built."""
+    from frozendict import frozendict
+    from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+    lawful = parse_egif("[*x] ~[ (Q x) ]")
+    assert lawful.has_dominating_nodes()
+    with pytest.raises(ValueError, match=r"Dominating nodes violated \(Def 12\.5\)"):
+        RelationalGraphWithCuts(
+            V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}),
+            nu=frozendict({"e1": ("v1",)}), sheet="S", Cut=frozenset({Cut("c1")}),
+            area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+            rel=frozendict({"e1": "P"}))
+
+
+def test_a_lawful_hook_move_is_accepted():
+    """Def 12.9 (p.128): a hook may be replaced by a vertex whose context
+    encloses the edge's. The inverted helper refused exactly this."""
+    g = parse_egif("[*x] ~[ [*y] (Q y) ]")
+    outer = next(v.id for v in g.V if g.get_context(v.id) == g.sheet)
+    edge = next(iter(g.E)).id
+    moved = g.replace_vertex_on_hook(edge, 1, outer)
+    assert moved.nu[edge] == (outer,)

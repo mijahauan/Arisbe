@@ -301,3 +301,94 @@ def tier_b(include_chains: bool = True) -> TierBReport:
     report = TierBReport(sources=len(named))
     report.graphs, report.duplicates, report.key_only = dedupe(named)
     return report
+
+
+# -- tier S -------------------------------------------------------------------
+
+# The stress tier (spec 2026-09-12 §3.2): hand-chosen shapes beyond tier A's
+# bounds, the ones that stress the rules Dau states. Every graph here was named
+# by the final whole-branch review of the property suite.
+#
+# The bound the tier must clear is tier A's: at most 3 elements by default, 4 at
+# exhaustive, at most 2 cuts. ``edge-insertion-target`` is the spec's
+# ``*x ~[ ]`` (Dau p.165: an edge may be inserted in a negative context onto
+# vertices already there) grown past that bound — as written it is two elements
+# and tier A enumerates it already, so it stressed nothing. It keeps the shape
+# that matters (an empty NEGATIVE cut, depth 1) and adds a second line, so an
+# inserted edge has two distinguishable lines outside the cut to hook onto.
+STRESS: Tuple[Tuple[str, str], ...] = (
+    ("scroll-with-a-line", "*x ~[ (P x) ~[ (Q x) ] ]"),
+    ("deiteration-across-two-cuts", "*x (P x) ~[ ~[ (P x) ] ]"),
+    ("arguments-swapped", "*x *y (R x y) ~[ (R y x) ]"),
+    ("theta-linked-copy", "*x *y (P x) ~[ (= x y) (P y) ]"),
+    ("name-against-name", '(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]'),
+    ("edge-insertion-target", "*x *y (P x) (Q y) ~[ ]"),
+    # The positive MOVE_BRANCHES exercise, added 2026-09-18 after the exhaustive
+    # run found the rule unsound on two corpus chain states. Until then the suite
+    # had NO graph in the default mode where MOVE_BRANCHES applies at all, which
+    # is how the defect survived a whole fix arc: a rule whose every move is
+    # refused is a rule nothing is measuring.
+    #
+    # Here Θ genuinely holds (Def 15.1, p.163): x and y sit in one context and
+    # the identity edge joining them sits in that same context, so clause 3's
+    # ctx(e_i) = ctx(v_{i+1}) is satisfied. MOVE_BRANCHES applies, legal() judges
+    # it legal, and the move is an equivalence — `(= x y) (P x) (Q y)` becomes
+    # `(= x y) (P y) (Q y)`, which says the same because x = y is asserted.
+    #
+    # Note what theta-linked-copy above is NOT: its identity edge lies inside the
+    # cut while its vertices lie outside it, so Θ fails and the rule now refuses
+    # it. Its move used to look meaning-preserving only because both hooked
+    # relations were `P`; break that symmetry — `*x *y (P x) (Q y) ~[ (= x y) ]`
+    # — and the same move is unsound. It is `group_identity:s3`'s shape, not a
+    # lawful move, and it must not be cited as one.
+    ("theta-in-one-context", "*x *y (= x y) (P x) (Q y)"),
+)
+
+
+def _parity(depth: int) -> G:
+    """``~[ ~[ ~[ (p) ] ] ]`` and one deeper: nesting past tier A's two-cut
+    bound, so a rule's polarity reading is exercised at depth 3 and 4.
+
+    Built directly, not parsed: EGIF has no syntax for a 0-ary relation (the
+    same reason INS_CATALOGUE offers none, and REQUIRED_SHAPES names
+    ``zero_arity`` as a shape only direct construction reaches), so the spec's
+    own example is not a linear form. Depth alone is the point, and a 0-ary
+    edge keeps the graph to cuts plus one edge — no line of identity crossing
+    the cuts to confound the polarity reading."""
+    parent = {f"c{i}": (f"c{i - 1}" if i > 1 else "S") for i in range(1, depth + 1)}
+    return build(parent, [], [("p", (), f"c{depth}")])
+
+
+def _alphabet_and_quotation() -> G:
+    """The one stress shape no linear form carries: a declared alphabet, a
+    sorted quoting name and a quotation oval, so the structure layer's maps
+    clause is exercised at a tier that is not the corpus (tier A has no
+    maps-bearing record at all). The isolated vertex is the quoting name and
+    the cut is its oval; the alphabet is set directly because the parser
+    leaves it None. Verified while planning: sort, quotation and alphabet all
+    present, a valid EGI of four elements."""
+    from dataclasses import replace
+
+    from egi_core_dau import AlphabetDAU
+    from egif_parser_dau import parse_egif
+
+    g = parse_egif("[*z] ~[ (P *x) ]")
+    used = {v for e in g.nu for v in g.nu[e]}
+    quoting_name = next(v.id for v in g.V if v.id not in used)
+    oval = next(c.id for c in g.Cut)
+    h = g.with_quotation_binding(quoting_name, oval, sort_name="proposition")
+    alphabet = AlphabetDAU(
+        C=frozenset(), F=frozenset(), R=frozenset({"P"}), ar=frozendict({"P": 1})
+    ).with_defaults()
+    return replace(h, alphabet=alphabet, rho=frozendict({v.id: None for v in h.V}))
+
+
+@functools.lru_cache(maxsize=None)
+def tier_s() -> List[Tuple[str, G]]:
+    """The stress tier: the parseable shapes, plus the three no linear form
+    carries (parity at depth 3 and 4, and the maps-bearing graph)."""
+    from egif_parser_dau import parse_egif
+    out = [(name, parse_egif(text)) for name, text in STRESS]
+    out += [("parity-depth-3", _parity(3)), ("parity-depth-4", _parity(4)),
+            ("alphabet-and-quotation", _alphabet_and_quotation())]
+    return sorted(out)

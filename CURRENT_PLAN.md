@@ -1,5 +1,409 @@
 # Current Plan
 
+**Last Updated**: 2026-09-18 (eighteenth arc) — **SEVEN ENGINE DEFECTS FIXED AT THE RULE, AND DEF
+12.5 ENFORCED WHERE GRAPHS ARE BUILT — WHICH EXPOSED EIGHT MORE PLACES IN `src/` QUIETLY BUILDING
+GRAPHS THAT ARE NOT EGIs. THE LAST TWO DEFECTS WERE FOUND BY THE INSTRUMENT AFTER THE ARC THOUGHT
+IT WAS DONE.**
+Branch `calculus-fix-arc` (off `main` at `3b237c2`, **not merged** — integration is
+yours to decide). Spec:
+[the calculus fix arc](docs/superpowers/specs/2026-09-12-calculus-fix-arc-design.md) ·
+plan: [eleven tasks](docs/superpowers/plans/2026-09-12-calculus-fix-arc.md).
+
+**▶▶▶ NEXT SESSION — read this first.**
+
+**Start here: the branch, then one of six.** `calculus-fix-arc` is pushed to `origin` at
+`b4d4741` for backup and is **not merged** — decide integration before building on it. Then pick;
+the list is ordered by what it buys, not by size. Nothing is half-done, so any of them can be
+first, and each says what it costs.
+
+1. **The existential scroll read as a universal law** (finding 1, below). `model_materialization`
+   forward-chains `*x ~[ (Penguin x) ~[ (Bird x) ] ]` as though the line were inside the cut, so a
+   model derives facts nobody asserted. A line's area *is* its quantification (Ψ/Φ, p.207–208).
+   Widest blast radius of anything open: `semantic_game`, `CorpusOracle` and every live loop read
+   through it. Its own investigation, not a patch.
+2. **The alphabet question** (decisions, below). The one decision that is genuinely yours and
+   genuinely large: **239 failing items**, not the 15 first recorded, and two Dau-compliance
+   findings underneath it. Blocks nothing else, but it will only grow.
+3. **Oracles for the five implemented rules that have none** (decisions, below). Defect 7 sat in
+   exactly that blind spot for the whole arc and was caught only by the soundness layer at
+   exhaustive bounds. This is where the next defect of its kind is.
+4. **`discharge_episode` pulls a quoted constant out of its oval** (finding 2). Small, reachable
+   today, and the same defect class the admission join already closed.
+5. **The IT− docstring** (decisions, last item). One protected edit, text already written out in
+   the Task 11 report; cheapest item on the list.
+6. **Defect 8's fix, if you want the entry retired** — MOVE_BRANCHES tries one direction only.
+   Small in code but it turns 36 refusals into applications, so it needs a fresh exhaustive
+   soundness pass (~2½ h) and a refusal re-pin (~43 min) to prove it changed no meaning.
+
+**Before touching the suite, three things that cost hours to learn.** A SHRINK line comes only
+from a fix's **refusal-layer** entry — a soundness entry whose moves become refused leaves
+`evaluated_ledgered` and can never announce itself, so prove that half by its
+`<tier>:<rule>:failed` extent key disappearing. Watch the **passing** keys in an extent diff too:
+a rule silently switched off looks exactly like a rule fixed. And a scratch-worktree quality gate
+needs **both** the real `.venv` and `node_modules/elkjs` linked in, or it fails on ELK for reasons
+that have nothing to do with the change.
+
+**The author's standing principle (2026-09-11):** "we MUST remain Dau-compliant, testing in a
+manner that ensures this, and vigilant for examples that stress our implementation." It governed
+every step of this arc. Nothing was loosened — not an assertion, not a threshold, not a pin — and
+no entry was deleted to make a suite green. A fix counted as done only when the ledger entry it
+targeted **failed** with "shrink this entry", or vanished from the counted pins, with the extent
+re-pinned and the diff read. Twice a fix did not finish the job, and both times the arc said so
+rather than ledgering the remainder as acceptable — once for a **residue**, which was then fixed
+(defect 7), and once for a **departure that is not this arc's to fix**, which is ledgered with its
+Dau page and left for you (defect 8).
+
+**State:** exhaustive calculus run **green — 10 passed, 130 deselected, 2 h 28 min 37 s**, and it
+wrote nothing (no write flag), so every pin it checked is exact. Default calculus suite 130
+passed. Full suite **5,006 passed, 1 failed, 220 skipped, 10 deselected, 7 xfailed, 46 m 33 s**.
+Quality gate green in a scratch worktree (core protection ✅, 152 core tests ✅).
+`.core_modification_authorized` does not exist; core protection reports clean. Tree clean apart
+from a pre-existing `.vscode/settings.json`.
+
+**The one failure is not this arc's, and it is worth your attention** —
+`test_egif_generate_is_idempotent_on_regenerated_output`. Hypothesis itself labels it
+`FlakyFailure` ("Falsified on the first call but did not on a subsequent one"), and the falsifying
+input is now stored in the gitignored local `.hypothesis` database, so it replays instantly here
+and would not appear on a fresh clone until Hypothesis rediscovered it. **The database entry was
+not deleted**: that would hide a real defect. Measured directly, with no Hypothesis involved: the
+input `(P *u) (P *v) ~[ (Loves v *y) (Loves u *x) ]`, parsed and generated **200 times in one
+process**, yields **two distinct texts, 105 and 95** — a coin flip — and `generate(parse(generate
+(parse(t)))) == generate(parse(t))` fails on **101 of 200** trials. It reproduces identically on a
+clean worktree at `07025c2` with none of this arc's changes, and it varies *within* a fixed
+`PYTHONHASHSEED`, so it is driven by minted uuids, not by the hash seed. The cause is the
+generator's tie-break between the two structurally **symmetric** lines `x1` and `z`:
+`canonical_signature` ranks them equal, as it must, and the order then falls to uuid iteration.
+So the test's own docstring — "two structurally equivalent EGIs produce identical EGIF" — is not
+true of symmetric graphs, and this is the root of the whole family of text-equality flakes the
+last two arcs have seen (its CGIF sibling among them). Nothing was loosened and nothing was
+skipped; it is finding 4 below.
+
+**The seven engine defects fixed at the rule, each proved by measurement — and an eighth, found
+by the instrument at the very end and left ledgered for you.** Every
+claim cites Dau (`docs/references/mathematical_logic_with_diagrams.pdf`, PDF page = book page+10).
+
+1. **IT+ copied a cut into its own selection** (`ad3d145`, `formal_transformation_rules.py`,
+   protected). Def 15.2 (p.164) requires `c ∉ Cut₀`. `~[ ~[ ] ]`, true in every structure, became
+   `~[ ~[ ~[ ] ] ]`, false in every structure. Retired: `it-plus-into-its-own-selection` and
+   `it-plus-into-its-own-selection-changes-meaning`. At exhaustive bounds
+   `A:IT+:applied/illegal` 4,430 → absent, the same 4,430 arriving in `A:IT+:refused/illegal`;
+   `A:IT+:failed` 3,228 and `B:IT+:failed` 596 → absent.
+2. **IT− erased a look-alike, not a copy** (`8fa30fb`, same file). Def 15.2 (p.166): iteration
+   copies `G₀`'s own vertices and reaches outside only along the same line, so a candidate whose
+   edge hooks an outside vertex is a copy only if the original hooks that very vertex at that
+   position. `*x *y (P x) ~[ (P y) ]` was deiterated to `*x *y (P x) ~[ ]`. Retired:
+   `it-minus-erases-a-copy-of-another-line` and its soundness half. At exhaustive bounds
+   `B:IT-:applied/illegal` 64 and `B:IT-:failed` 5 → absent, and the four hand-built IT− controls
+   all read `applied=0 legal=0`.
+3. **The four ligature faults** (`85d316c`, `47dfdd8`, `1e8a0a5`;
+   `ligature_manipulation_rules.py` protected, `vertex_splitting_merging_rules.py` not):
+   collapsing along an identity edge deeper than both its vertices (Lemma 16.3, p.173 places the
+   whole ligature, edges included, in one context); erasing or merging a constant's name, which
+   these rules never do (Def 24.10, p.270–272); MOVE_BRANCHES re-hooking the very identity edge
+   it moves along (Lemma 16.1, p.169–171); and a survivor chosen by `list(selection)[0]` off a
+   frozenset, so it followed the hash seed. Retired: all four soundness entries. At exhaustive
+   bounds `A:MERGE_VERTICES:failed` 156, `A:MOVE_BRANCHES:failed` 206,
+   `A:REARRANGE_LIGATURE:failed` 28, `A:RETRACT_LIGATURE:failed` 174,
+   `B:REARRANGE_LIGATURE:failed` 6 and `B:RETRACT_LIGATURE:failed` 6 → absent. **Not
+   `B:MOVE_BRANCHES:failed`**, which went 28 → 6, not to 0 — defect 7.
+4. **`has_dominating_nodes` / `_context_dominates` read Def 12.5 backwards** (`9482d2c`,
+   `egi_core_dau.py`, protected — confirmed with you before the edit). Def 12.5 (p.125) is
+   `ctx(e) ≤ ctx(v)`; the helper tested the relation the other way, answered False on every graph
+   with a line reaching into a cut, and made `replace_vertex_on_hook` refuse lawful hook moves.
+   Retired: `core-has-dominating-nodes-inverted`.
+5. **`normalize_constants` left its survivor where it stood** (`a1ad708`, `vertex_scope.py`, not
+   protected). The ruling behind the merge stands — the project's own "one constant, one line"
+   normal form, under Dau's constant semantics (Def 24.10, p.270–272) — but the placement did
+   not: two same-name spots in sibling cuts normalized to a non-EGI. The survivor is now hoisted
+   to the least common area of its uses.
+6. **DC+ had no Def 12.5 precondition** (`120312d`, `formal_transformation_rules.py`, protected —
+   confirmed with you before the edit). Given a selection holding a vertex but not all of its
+   edges, DC+ wrapped the vertex in the double cut and left its edges outside, so the result was
+   not an EGI, where Def 15.2 (p.164) yields EGIs. Retired: `dc-plus-strands-a-vertex` (refusal)
+   and `dc-plus-result-not-an-egi` (structure). At exhaustive bounds `A:DC+:applied/illegal`
+   20,763 → 8,149 — exactly the 12,614 of the now-absent `A:not:DC+:not-an-EGI` label, every one
+   of them landing in `A:DC+:refused/illegal` (10,708 → 23,322); `B:not:DC+:not-an-EGI` 3,038 →
+   absent. The `not:<rule>:core-refused-non-egi` tripwire reads 0 in every tier, because DC+ now
+   refuses at the rule before construction is ever asked.
+
+7. **MOVE_BRANCHES asked for *any* `=` edge, not for Θ** (`6dde7c7`,
+   `ligature_manipulation_rules.py`, protected; the oracle in `07025c2`). **The exhaustive run
+   found this one after the arc thought it was finished**, which is the arc's best evidence that
+   the instrument is worth its runtime. At exhaustive bounds the soundness layer held **6
+   failures no entry covered** — 3 UNSOUND on `group_identity:s2`, 3 NOT AN EQUIVALENCE on
+   `group_identity:s3`, all MOVE_BRANCHES, all tier B, none reachable at default bounds:
+
+       s2  *x *y (M x y x) (M x y y) ~[ *x1 *x2 *x3 *z (M z x1 x2) (M z x1 x3) ~[ (= x2 x3) ] ]
+        →  *x *y (M x y x) (M x y y) ~[ *x1 *x2 *x3 *z (M z x1 x2) (M z x1 x2) ~[ (= x3 x2) ] ]
+           UNSOUND at size 2, Structure(2, (), (('M', ((0, 0, 0),)),))
+
+       s3  *x *y (M x y x) (M x y y) ~[ (M x y x) (M x y y) ~[ (= y x) ] ]
+        →  *x *y (M x x y) (M x y x) ~[ (M x y x) (M x y y) ~[ (= y x) ] ]
+           NOT AN EQUIVALENCE at size 2, Structure(2, (), (('M', ((0, 0, 1), (0, 1, 0))),))
+
+   Each appeared three times: the same selection under three targets, and MOVE_BRANCHES ignores
+   the target. **The fix is to the premise, not to the side condition.** Lemma 16.1 (p.169–171)
+   is *Moving Branches along a Ligature in a Context*, and its premise is `v_aΘv_b`. Def 15.1
+   (p.163) builds Θ from a chain whose clause 3 requires `ctx(e_i) = ctx(v_{i+1})` — the identity
+   edge must sit in the context of the vertex it reaches. In s2 both vertices sit in
+   `c_960ad0ea` while their only identity edge sits in `c_4f8f1508`; in s3 both sit on the sheet
+   while the edge sits two cuts in. **So Θ never held, and the lemma licensed nothing** — the
+   question of its side condition (that Θ survive the move) never arose, because Θ did not hold
+   before the move either. `_vertices_on_same_ligature` and its `_excluding` twin walked every
+   `=` edge wherever it sat and never consulted `ctx`; they now ask for Θ. Result:
+   `B:MOVE_BRANCHES:failed` 6 → absent — and with `A:MOVE_BRANCHES:failed` 206 gone with it, **no
+   `failed` soundness key remains for MOVE_BRANCHES in any tier**. Tier A keeps all 123 of its
+   MOVE_BRANCHES applications, and across 219 graphs / 32,476 moves exactly 8 dispositions
+   changed, every one applied → refused.
+
+**Two things that came with defect 7, and both matter more than the defect.**
+
+- **MOVE_BRANCHES now has a `legal()` oracle** (`07025c2`). It was `judged=False` — the suite
+  abstained on it, so the refusal layer scored none of its moves and only the soundness layer
+  could catch anything. The oracle reads Dau directly (two vertices, one context, `v_aΘv_b` with
+  Θ per Def 15.1, and a hook the lemma licenses moving), and
+  `ligature_manipulation_rules` joins the modules `test_legal_never_consults_the_engine` forbids
+  it to import. The extent shows the change directly: `A:not:MOVE_BRANCHES` 56,460 — the unjudged
+  bucket — is **gone**, replaced by scored cells (tier A applied/legal **123**, refused/illegal
+  35,281, refused/legal 36; tier B 2 and 34,392; tier S 1 and 501). **No `applied/illegal` cell
+  exists for MOVE_BRANCHES in any tier**, so the engine never applies a move the oracle rejects.
+  And it paid for itself on its first sweep, which is defect 8 below.
+- **A positive exercise, which the suite had never had.** Before this, the default mode held **no
+  graph on which MOVE_BRANCHES applies at all** — every candidate was refused, so the layers
+  measured the rule's refusals and nothing else. That is how the defect survived the whole arc.
+  Tier S gains `theta-in-one-context`, `*x *y (= x y) (P x) (Q y)`, where Θ genuinely holds
+  (vertices and identity edge in one context); the engine applies, `legal()` judges it legal, and
+  the move `(= x y) (P x) (Q y)` → `(= x y) (P y) (Q y)` is an equivalence over all 84 structures
+  of sizes 1–3. `test_the_stress_tier_makes_move_branches_apply_somewhere` holds it so.
+
+**Defect 8, found by the new oracle on its first sweep, ledgered and NOT fixed here: MOVE_BRANCHES
+refuses what Lemma 16.1 licenses, because it tries one direction only.** New entry
+`move-branches-tries-one-direction-only` — INCOMPLETE, **0 in the default mode / 36 at exhaustive
+bounds**, tier A only, every one in the `refused/legal` cell.
+
+Lemma 16.1 (p.169–171) takes two vertices with `ctx(v_a) = ctx(v_b)` and `v_aΘv_b`, "and let e be
+an edge such that the hook (e, i) is attached to v_a". Θ is symmetric (Def 15.1, p.163), ctx
+equality is symmetric, and the move's parameters name an **unordered** pair — so the move is
+licensed when *some* hook on *either* vertex qualifies, which is how `legal()` reads it. The
+engine fixes `v_a = _canonical_vertex_order(selection)[0]` and asks only about that one vertex.
+
+The worked case, the whole graph on the sheet: **`*x *y (= x y) (P y)`**. The engine picks the
+bare vertex as `v_a`; its only hook is the `=` edge, which is the join's sole witness, so the side
+condition rightly protects it and the engine refuses. But from the other vertex, `(P y)`'s hook
+may lawfully move — the `=` edge survives to witness Θ. Measured across all 36: **every one has
+exactly one identity edge joining the pair** (so no second Θ chain is being ignored), and in
+**36 of 36** `legal()` accepts via the *other* vertex, never via the engine's `v_a`. The oracle is
+not merely permissive: on `*x *y (= x y)`, where both directions' only hooks are the join itself,
+it returns False citing the lemma's proof (p.170–171).
+
+**Never unsound** — refusing more than a lemma licenses cannot change a meaning — and **not a
+regression**. Before `85d316c` the engine *applied* these, moving the identity edge's own hook:
+`*x (= x "a") (P x)` became `*x "a" (= x x) (P x)`, erasing the very assertion `x = "a"`. The
+refusal is the right answer to the wrong question. What is new is only that it can be *seen*:
+before `07025c2` `legal()` abstained on MOVE_BRANCHES and these counted as `not judged`.
+
+**The fix, and why it is not taken here.** Small, in a protected module: try the other direction
+when `v_a` carries no licensed hook. Not one line, though the controller first estimated it as one
+and that estimate reached this page before it was checked — `va_id, vb_id = vertices[0],
+vertices[1]` appears in **both** `check_preconditions` and `apply_transformation`, so the two must
+be changed together and must keep agreeing about which hook moves. A rule that validates one hook
+and moves another is exactly the divergence Task 7's review went looking for, which is why
+`_hook_to_move` is shared between them today; the `moved_from` / `moved_to` metadata follows the
+same choice. But it also converts 36 refusals into **applications**,
+and newly-enabled MOVE_BRANCHES applications are exactly where this arc's unsoundness hid — so it
+needs a fresh exhaustive soundness pass (~2½ h) and a refusal re-pin (~43 min) before the entry
+could retire. That is the author's call, not the arc's.
+
+**A correction I must not let stand, because it was said out loud.** While diagnosing defect 7 the
+review treated tier S's `theta-linked-copy` (`*x *y (P x) ~[ (= x y) (P y) ]`) as a *lawful*
+MOVE_BRANCHES move that the broad side condition wrongly refused. **That was wrong.** It is
+`group_identity:s3`'s shape — identity edge inside the cut, vertices outside — so Θ fails there
+too, and its move looked meaning-preserving only because both hooked relations happened to be
+`P`. Break the symmetry, `*x *y (P x) (Q y) ~[ (= x y) ]`, and the same move is unsound. The
+engine now refuses all three. The broad side condition is still the wrong guard, but for its own
+reason and not that one: measured over tier A + tier S + the two chain states, it applies **no
+MOVE_BRANCHES move anywhere at all**.
+
+**Def 12.5 is now enforced where graphs are built** (`d20b700`, `egi_core_dau.py`, protected —
+confirmed with you before the edit). The core refuses to construct a graph in which an edge is
+not dominated by its vertices. That is the invariant the whole arc turns on, and enforcing it
+**broke 242 tests** — which is the finding, not the cost. Eight producers in `src/` were quietly
+building non-EGIs, all now fixed:
+
+| producer | commit | what it did |
+|---|---|---|
+| `composition_ops` | `c368a1b` | built the graph first and checked the move after |
+| `vertex_scope.normalize_constants` | `c7ebe5e` | let the survivor inherit its twins' edges before it was placed |
+| `world_scroll`'s admission join | `fc2f75b`, `f437c26` | joined a constant through intermediate non-EGIs, and through a quotation oval |
+| `egif_parser_dau` | `ced7b45` | hooked an edge onto a vertex not yet placed |
+| `cgif_parser_dau` | `ced7b45` | the same |
+| `clif_parser_dau` | `ced7b45` | the same |
+| `chapter17_soundness_evaluation`'s fixture | `e647265` | placed `R` outside the cut holding `C` |
+| `formal_transformation_rules`' DC+ | `120312d` | defect 6 above |
+
+The three parsers now record edges during the walk, place the vertices on the edge-free graph,
+and then scribe — as Ψ puts a line's vertex where it encloses every hook (p.207). Their output is
+**byte-identical, element ids included**, on all 2,755 inputs compared. One test fixture built a
+non-EGI by hand and was repaired with them (`608b12c`).
+
+**The corpus holds only EGIs again** (`b602eab`, `d585158`). `bfo_core` held the generic vertex
+`v_x26` and `colore_field` held `v_zero` and `v_one`, each in one cut while edges in *sibling*
+cuts used it — so neither stored graph dominated its own edges, and neither was an EGI. Each
+vertex was hoisted to the least common area of its uses
+(`tools/repair_non_egi_corpus_graphs.py`), the reading every parser already applies. Every vertex
+moved is generic, so its placement would have been meaning — had there been a meaning, which for
+a non-EGI there was not.
+
+**The round trip, stated at its true extent.** Of 147 round trips, **144 hold by `same_graph` and
+3 hold by stable re-emission** — up from 83 at the start of the arc. The three are `sumo_upper`'s,
+one per format, where the isomorphism search does not finish in reasonable time, so the check is
+`generate(parse(generate(g))) == generate(g)`. **That is strictly weaker**: it compares two
+outputs of the same generator and never re-touches the original EGI, so it is blind to exactly
+the defect class this arc repaired. Any statement of the guarantee carries the split, never the
+total alone.
+
+**What remains ledgered — 18 entries, from 29 at the arc's start.** Entry id, then default keys /
+exhaustive keys, read from `tests/calculus_ledger.json`. **Nothing here is UNSOUND.** Every SEVERE
+entry left is a protocol convention (the engine performs a larger or differently placed Dau-legal
+move than the one named) or the alphabet question; every INCOMPLETE entry is the engine refusing
+something Dau licenses, which can never make a step that changes meaning.
+
+*Refusal (14).* `dc-plus-ignores-target` SEVERE 2,479 / 22,366 ·
+`era-auto-closes-a-vertex-selection` SEVERE 284 / 9,891 ·
+`vertex-era-erases-a-line-with-its-edges` SEVERE 235 / 2,608 ·
+`ins-mixes-arities-without-an-alphabet` SEVERE 52 / 244 (waits on the alphabet decision) ·
+`heavy-dot-negative-only` INCOMPLETE 511 / 3,140 ·
+`it-plus-refuses-a-cut-named-with-its-contents` 507 / 7,154 ·
+`dc-plus-refuses-a-cut-named-with-its-contents` 322 / 5,827 ·
+`era-refuses-a-cut-named-with-its-contents` 303 / 6,158 · `it-minus-strictly-enclosing-only`
+35 / 512 · `vertex-era-positive-only` 31 / 298 · `ins-edge-has-no-entry-point` 8 / 8 ·
+`era-closure-drags-a-quoting-name` 6 / 18 · `it-minus-refuses-a-cut-named-with-its-contents`
+0 / 18 · **`move-branches-tries-one-direction-only` 0 / 36** (new — see above).
+
+*Structure (3), each equivalent to Dau's result but a larger move than the one named.*
+`it-plus-auto-closes-a-vertex-selection` 381 / 10,802 · `era-also-erases-the-vertex-it-isolates`
+285 / 5,860 · `it-plus-reuses-a-selected-vertex-in-a-deeper-context` 116 / 1,903.
+
+*Soundness (1), and it is the whole of the soundness layer.* At exhaustive bounds, over tiers A,
+B and S, every soundness failure the suite counts — 1,912 moves in 1,900 keys — belongs to
+`vertex-era-erases-a-line-not-an-equivalence` (113 / 1,900), and it is **sound**: an erasure
+where Dau's vertex rule is an equivalence. **0 failures on any move `legal()` judges legal.**
+
+Counts rose at this re-pin for a stated reason, never an absorbed one: the arc added a stress
+tier (tier S, now 10 graphs) whose moves were in no earlier pin, tier B's two repaired graphs
+enumerate differently now that they are EGIs, and `theta-in-one-context` adds the first applying
+MOVE_BRANCHES moves. Where the arithmetic closes exactly it is given above (`A:DC+`, `A:IT+`);
+where two inputs moved at once it is attributed to both and not decomposed further.
+
+**The four findings that await you.** Each is a defect; none was fixed here, and each is stated
+with its evidence rather than an impression.
+
+1. **`model_materialization`'s Horn classifier forward-chains an existential scroll as a
+   universal law.** `*x ~[ (Penguin x) ~[ (Bird x) ] ] (Penguin "p")` materializes to
+   `(Bird "p") (Penguin "p")` with `rules_applied=1`, `skipped=[]` — reproduced this session. A
+   line's **area is its quantification** (Ψ/Φ, p.207–208): a line sitting *outside* the cut is
+   existential and licenses nothing. The root is the classifier in `src/model_materialization.py`,
+   not `theory_query`, which merely surfaces it — so the same reading is taken by
+   `semantic_game`, `CorpusOracle` and every live loop.
+2. **`discharge_episode` pulls a quoted constant out of its quotation oval.** Reproduced this
+   session: bank the answer "Rex" into a resident M that already carries a plain `(dog "Rex")`,
+   then entertain and discharge `(mammal "Rex")`. Before, the oval holds the constant vertex;
+   after, the oval is empty and its `utterance` edge hooks a vertex living *outside* the oval, in
+   M's cell. The cause is the `normalize_constants` call closing
+   `world_scroll.discharge_episode`: it and `_constant_twins` know nothing of quotation ovals.
+   B-min's opacity says quoted ink is **mention, not use**, and no rule operates inside an oval.
+   It is the defect class Fix B closed in the admission join, arriving through the other door,
+   and it does not depend on which constant the discharge names.
+3. **CLIF and CGIF read two binders that reuse a name as one line.**
+   `(forall (x) (P x)) (forall (x) (Q x))` comes back as one existential line spanning both:
+   both parsers key a generic vertex by the variable's *name*. Dau binds a quantifier to the
+   occurrences in its own formula (Def 18.1 p.197, ∀ as ¬∃¬ p.198, α-conversion Def 18.3 p.199,
+   Ψ p.207). Now held by 6 strict xfails in `tests/test_linear_form_binder_scoping.py`
+   (`a47d78e`), so a fix shows up as XPASS and fails loudly — but the wrong reading is live for
+   every caller, and the importers emit reused names.
+4. **The EGIF generator is nondeterministic on a symmetric graph, and the round-trip tests assert
+   text equality anyway.** `(P *u) (P *v) ~[ (Loves v *y) (Loves u *x) ]`, parsed and generated
+   200 times in one process, gives two texts 105/95, and generator idempotence fails on 101 of
+   200 trials — measured directly, no Hypothesis, and reproduced on a clean worktree at `07025c2`.
+   The two inner lines are genuinely symmetric, `canonical_signature` ranks them equal, and the
+   order falls to minted uuids (it varies within one `PYTHONHASHSEED`). This is the root of the
+   text-equality flakes both recent arcs have chased, and it is why one full-suite run in this
+   arc is red. Two honest repairs are possible and they are not the same: break the tie
+   *deterministically* (some total order on equal-ranked elements, so one structure has one text),
+   or stop asserting text equality where the structures are symmetric and compare by `same_graph`.
+   The first is the stronger guarantee and the one the corpus round trip really wants.
+
+**Three lessons about the instrument, which outlive this arc.**
+- **A SHRINK line is only reliably available from a fix's refusal-layer entry.** A move the
+  engine now refuses never enters `evaluated_ledgered`, so that move's *structure* and
+  *soundness* entries cannot print "shrink this entry" — they simply stop being found. Every fix
+  therefore needs a second witness: its `<tier>:<rule>:failed` or equivalent **extent key**, read
+  from the pinned diff. `dc-plus-result-not-an-egi` was retired exactly that way. Without the
+  second witness a fix can read unproved when it is proved, or proved when it is not.
+- **The suite has a blind path.** `calculus_apply` reached MERGE_VERTICES only through an
+  already-ordered call, so a real hash-seed dependence in the production merge lived where no
+  counted record could see it. It was found by reading the code, not by the measurement. A layer
+  that cannot reach a code path says nothing about it, and the extent pins do not announce the
+  gap.
+- **A rule with no positive exercise is a rule nothing is measuring, and a rule with no oracle is
+  worse.** Defect 7 hid behind both at once: MOVE_BRANCHES had no `legal()` verdict, so the
+  refusal layer scored none of its moves, *and* no default-mode graph on which it applied, so the
+  structure and soundness layers saw only refusals. What was left was an exhaustive sweep of the
+  corpus — 2½ hours, once, at the end of an arc. Two cheap habits follow: give every implemented
+  rule at least one graph where it **applies**, and treat "the layers are quiet" as a question
+  (is the rule doing nothing, or is nothing watching it?) rather than as an answer.
+
+**Still yours to decide; nothing was pre-empted.**
+- **The alphabet question** (fix-arc spec §4 step 7). Wiring
+  `egif_parser_dau._finalize_alphabet_and_rho` fails **exactly the 15 tests recorded**, and a
+  full-suite sweep at this head shows the blast radius is now far larger: **239 failing items**
+  (224 failed + 15 errors), of which 207 of 213 traceback sections read "Relation name … not in
+  Alphabet (C∪F∪R)" and the remaining six are downstream of the same change. Two causes, both
+  themselves Dau-compliance findings.
+  (a) *A name at two arities* — 2 tests in `tests/test_properties_round_trip.py`
+  (`test_shadowed_defining_var_across_cut_boundary_round_trips`,
+  `test_relation_name_reused_with_different_arities_round_trips`): both fixtures use `P` at arity
+  1 and 2 in one graph, and the alphabet then refuses it ("Arity mismatch for 'P': expected 2,
+  got 1"). Def 12.6 (p.126) gives each name one arity. Both are regressions for a *lexer* defect,
+  so the two-arity shape is incidental to what they guard — but changing them is your call.
+  (b) *The core's builders do not grow the alphabet* — 13 tests in
+  `tests/test_rules_second_order.py` (`TestPreservation` 2, `TestOpacity` 9,
+  `TestChapter16MapForwarding` 2), and the great majority of the other 224: a graph is parsed
+  from EGIF and then given ink with `with_edge`, and the result carries a relation the alphabet
+  does not declare. The six transformation rules already grow the alphabet; the core's builders
+  do not. So: does the EGIF parser refuse a name used at two arities, and what becomes of those
+  two tests? And do the core's builders extend the alphabet (touching protected `egi_core_dau`),
+  or is the alphabet derived rather than stored?
+- **Whether the five entry-point-less rules should be counted, not merely named.**
+  ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY, CONSTANT_EXISTENCE and SEPARATE_CONSTANT
+  are named by one test (`test_the_unimplemented_dau_rules_are_exactly_these`) and nothing else.
+  INS_EDGE sat in that position until Task 3 gave it candidate moves; it is now counted as
+  INCOMPLETE on every run (exhaustive 8 keys, tier S). "Named but uncounted" is the shape that
+  let earlier gaps sit unnoticed.
+- **And its sharper twin, which defect 7 just demonstrated: five *implemented* rules still have
+  no oracle.** EXTEND_LIGATURE (Lemma 16.2, p.172), RETRACT_LIGATURE (Lemma 16.3, p.173),
+  REARRANGE_LIGATURE (Def 16.4 / Cor 16.5, p.174–175), SPLIT_VERTEX (Def 16.6 / Lemma 16.7,
+  p.175–178) and MERGE_VERTICES (Def 16.6, p.176) are all `judged=False`: `legal()` abstains, the
+  refusal layer scores none of their moves, and the structure layer checks them only for
+  EGI-hood and the B-min maps (`egi-only`, where a no-op passes). **Nothing but the soundness
+  layer judges them at all** — which is exactly the blind spot MOVE_BRANCHES sat in until
+  `07025c2`. Whether to write the other five oracles is yours; what is not in doubt is that this
+  is where the next defect of this kind will be.
+- **One protected edit, prepared but not made.** `DeiterationRule`'s
+  `_check_deiteration_with_isomorphism_engine` docstring glosses `w = v` and `wΘv` as the same
+  condition. They are not: Θ is reflexive *and* holds along an inward chain of identity edges
+  (Def 15.1, p.163), so the implemented `w = v` is its reflexive case alone — a strict
+  under-approximation of what Def 15.2 (p.166) licenses. It deiterates nothing Dau forbids and
+  refuses some deiterations he allows. The corrected docstring is written out in the Task 11
+  report; the file was not touched, and `.core_modification_authorized` was not created.
+
+**Out of scope, still open.** The INCOMPLETE departures (HEAVY_DOT inserting in negative contexts
+only; DC+ ignoring its target; ERA auto-closing a vertex selection), the five rules above,
+`semantic_game`'s co-denotation and `=` gaps, and the tracemalloc rewrite of
+`test_memory_stability`.
+
+---
+
 **Last Updated**: 2026-09-11 (seventeenth arc) — **THE CALCULUS, TESTED DIRECTLY: NO MOVE DAU
 LICENSES FAILS, BUT THE ENGINE MAKES MOVES HE DOES NOT LICENSE, AND SOME OF THEM TURN A TRUE GRAPH
 FALSE.** **Merged into `main` 2026-09-12** at `30c1f34` (fast-forward; the branch's 45 commits,
@@ -7,7 +411,7 @@ this arc's 26 among them, now sit on `main`, which is 45 commits ahead of `origi
 [the calculus property suite](docs/superpowers/specs/2026-09-10-calculus-property-suite-design.md) ·
 plan: [twelve tasks](docs/superpowers/plans/2026-09-10-calculus-property-suite.md).
 
-**▶▶▶ NEXT SESSION — read this first.**
+**Where the seventeenth arc stopped** (superseded by the eighteenth, above).
 
 **The author's standing principle (2026-09-11):** "we MUST remain Dau-compliant, testing in a
 manner that ensures this, and vigilant for examples that stress our implementation." It governs
@@ -171,7 +575,10 @@ line. Eighteen of the 28 reasons open "PROVISIONAL — for the author"; those wa
 *Guards (2 entries).*
 - `core-has-dominating-nodes-inverted` (9 of 208 tier-A graphs): `has_dominating_nodes` answers
   False on every tier-A graph with a line reaching into a cut, and True on a hand-built non-EGI.
+  **Fixed and retired in the eighteenth arc (`9482d2c`); since `d20b700` the core also enforces
+  Def 12.5 at construction, so the hand-built non-EGI cannot be built at all.**
 - `corpus-graph-not-an-egi` (2 of 230 sources): `bfo_core:current` and `colore_field:current`.
+  **Fixed and retired in the eighteenth arc (`b602eab`): both graphs were repaired in place.**
 
 **Engine defects, for the author.** You have said these require fixing. Each is ledgered, so a
 fix shows itself when its entry fails with "shrink this entry". Protected modules are marked.
@@ -198,7 +605,8 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   - MOVE_BRANCHES can move the very identity edge it moves along.
 - `has_dominating_nodes` / `_context_dominates` is inverted (`egi_core_dau.py`, protected; Def
   12.5, p.125). The core never enforces the check at construction, and `replace_vertex_on_hook`
-  refuses lawful hook moves through the same helper.
+  refuses lawful hook moves through the same helper. **FIXED in the eighteenth arc: the helper
+  reads Dau's direction (`9482d2c`) and the core enforces Def 12.5 at construction (`d20b700`).**
 - HEAVY_DOT inserts in negative contexts only, and mints the fixed id `heavy_dot_vertex`
   (`formal_transformation_rules.py`, protected). Vertex erasure outside positive contexts has no
   entry point.
@@ -206,12 +614,15 @@ fix shows itself when its entry fails with "shrink this entry". Protected module
   with its contents.
 - ERA and the vertex rule auto-close a vertex selection, and erase a line together with its edges.
 - INS mixes arities when the graph declares no alphabet (Def 12.6–12.7, p.126).
-- Six Dau rules have no entry point at all: INS_EDGE, ORIENT_IDENTITY, LIGATURE_VERTEX,
+- Five Dau rules have no entry point at all: ORIENT_IDENTITY, LIGATURE_VERTEX,
   CONSTANT_IDENTITY, CONSTANT_EXISTENCE and SEPARATE_CONSTANT (`tests/calculus_rules.py`).
   INS_EDGE is inserting an edge onto vertices already present (Def 15.2, p.165: erasing an edge
   keeps its vertices, and insertion is its inverse), so in a negative context `*x ~[ ]` →
   `*x ~[ (P x) ]` is licensed. The protocol's INS refuses it ("Undefined variable x"): it takes
-  standalone EGIF only. The final review found it; the table had counted INS as implemented.
+  standalone EGIF only. The final review found it; the table had counted INS as implemented. Task
+  3 of the fix arc (below) gave INS_EDGE its own `protocol:INS` entry point and enumerated its
+  candidates, so the refusal is now judged and counted (ledger entry
+  `ins-edge-has-no-entry-point`, INCOMPLETE) rather than only named.
 
 **Findings outside the engine.**
 - Two corpus graphs are not EGIs. `bfo_core:current` fails on the generic vertex `v_x26`, and
@@ -247,7 +658,8 @@ these touches `src/`:
   `*x *y (P x) ~[ (= x y) (P y) ]`; parity at depth 3–4; a directly built graph carrying an
   alphabet and a quotation oval; the name-against-name IT- case; and `*x ~[ ]` with an edge
   insertion.
-- **Enumerating INS_EDGE's candidate moves**, so they land as counted INCOMPLETE.
+- ~~Enumerating INS_EDGE's candidate moves, so they land as counted INCOMPLETE.~~ **DONE
+  (Task 3).**
 - **Splitting the refusal layer's `not:{rule}` label by abstention reason.**
 - **Narrowing the four broad refusal classifiers** before exhaustive counts are relied on to
   certify a fix.
