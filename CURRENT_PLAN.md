@@ -53,6 +53,13 @@ rather than ledgering the remainder as acceptable — once for a **residue**, wh
 (defect 7), and once for a **departure that is not this arc's to fix**, which is ledgered with its
 Dau page and left for you (defect 8).
 
+**Merged to `main` as `aaae586` and pushed (2026-09-18).** Verification on the merged tree:
+**5,006 passed, 1 failed, 220 skipped, 10 deselected, 7 xfailed, 45 m 29 s**. The one failure is
+`test_memory_stability` at 125.09 MB against its 120 MB threshold — the documented warm-process
+flake; it passes alone in 0.21 s and **the threshold was not touched**. The EGIF idempotence
+defect (finding 4) did not fail in this run, which is what a coin-flip defect looks like: measured
+directly it is 101 of 200 trials, and `main` had it before the merge at exactly the same rate.
+
 **State:** exhaustive calculus run **green — 10 passed, 130 deselected, 2 h 28 min 37 s**, and it
 wrote nothing (no write flag), so every pin it checked is exact. Default calculus suite 130
 passed. Full suite **5,006 passed, 1 failed, 220 skipped, 10 deselected, 7 xfailed, 46 m 33 s**.
