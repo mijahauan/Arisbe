@@ -1,5 +1,146 @@
 # Current Plan
 
+**Last Updated**: 2026-09-20 (nineteenth arc, second sitting) — **THE INTEGRITY REVIEW: THE SUITE
+PUT THROUGH THE SAME GATE THE CORPUS IS. 72 TESTS THAT COULD NOT FAIL, TEN OF THEM INSIDE THE CORE
+GATE — AND REWRITING ONE OF THOSE FILES UNCOVERED A LIVE DEFECT IN A PROTECTED MODULE THAT REACHED
+THE WEB API.**
+
+**The author's principle (2026-09-19), which governs this arc.** Admission to the canonical corpus
+is gated: residence in a UoD means passing a formal Dau threshold. A work in progress that is not
+yet well-formed belongs in **Ergasterion**. A graph that *loses* the EPG may still teach the shape
+of a mistake. A graph once accepted and since falsified has its own status in the **history** of a
+UoD. What the principle forbids is ink sitting in the canonical corpus that never passed the gate.
+**"In our provision of exemplars, they must pass this gate. Our testing of candidates and code must
+also pass a similar gate."** Ergasterion should do this for syntax, Organon for import/export and
+the linear forms — and the calculus underneath must be as solid as we can make it.
+
+**The test-admission gate, built.** `tests/admission_scan.py` + `tests/admission_ledger.json` +
+`tests/test_admission.py`. Clause 1 — **a test must be able to fail** — measured mechanically by a
+pure AST reader that imports nothing from `src/` and executes no test, so it cannot be fooled by
+the code it judges. Inadmissible means *no outcome of the code under test can fail it*: no
+effective assertion **and** every call that could raise is swallowed. Ledger semantics are
+deliberately `calculus_ledger.json`'s — a new one fails as **new**, a repaired one fails with
+**"shrink this entry"**, counts are derived not narrated, and the instrument is shown to bite on
+three hand-built shapes while correctly *not* flagging an imported asserting helper or a
+does-not-raise test. Clause 2 (*it is reached*) is enforced where the parametrization lives; clause
+3 (*it measures what it claims*) is a reading task, tracked in `tasks/todo.md`.
+
+**First run: 72 tests that cannot fail** — 62 in a twelve-file "PHASE N" block from one commit
+(`except Exception: print(...)` swallowing every assertion, a trailing `assert True` per file), and
+**ten inside the 152-test core suite** that `tools/quality_gate_system.py` runs and that this file
+calls "must always pass". Nine of the ten were the whole of `test_chapter15_formal_calculus.py`.
+*A correction made in the open:* a first scan said 102. It was wrong — it missed `unittest`-style
+`self.assertTrue` and does-not-raise tests, which falsely condemned `test_rule_interaction.py` (34
+genuine tests). The criterion was sharpened and the number is 72.
+
+**Chapter 15 rewritten — and the rewrite found a live defect.** The predecessor could not fail: all
+nine tests wrapped every check in `try/except Exception: print`, and every `target_area` it named
+(`"sheet_of_assertion"`, `"cut_area"`, `"positive_area"`) exists in no graph. Run with `-s` it
+printed `⚠️  DC+ transformation failed: Target area sheet_of_assertion does not exist`, printed `✅`
+beside a `False`, carried a genuine `TypeError` — and reported **9 passed**. It had never tested
+Chapter 15. The replacement is the hand-built, citation-carrying complement to the enumerated
+calculus suite: one worked textbook case per rule with its Dau page, every expected value measured
+against the engine before it was written down, and no assertion inside a handler that could swallow
+it. 23 tests.
+
+**The defect it uncovered, fixed with the author's authorization (protected module).**
+`InsertionRule.apply_transformation`'s selection path only ever inserted ids literally prefixed
+`"new_vertex_"` or `"inserted_"`. Every real id fell through, `inserted_elements` stayed empty, and
+it returned **`success=True` on an unchanged graph**. The alternate `insertion_edge_id` branch was
+unreachable — `TransformationContext` is a dataclass without that field. `POST /api/transform/apply`
+built its `selected_subgraph` from the ids of the *parsed* EGIF — ids of a different graph — so the
+web API told users their insertion had succeeded while the graph was untouched. **The interaction
+protocol was always sound** (it overrides `apply` and uses `insert_from_egif`), which is why the
+property suite never saw this: the engine path has exactly one production caller, that route.
+**Fixed by routing INS through `rule_interaction.insert_from_egif`** — the canonical implementation
+the protocol and the Endoporeutic Game engine already share (one rule, one implementation, the
+author's ruling) — plus `TransformationContext.insertion_egif` and an `insertion_egif=` kwarg on
+`apply_rule`, and a contentless INS now **refuses** instead of reporting a silent no-op. The route
+passes the content through. `tests/test_transformation_routes.py` is new: that route had **no test
+at all**, which is why this sat there. Both new files were shown to bite — reverting the fix turns
+7 of the 29 red.
+
+**Where this came from, measured rather than supposed — and it is bounded, not a live leak.** The
+author's reading was that the debt predates a robust TDD requirement; the dates bear it out exactly.
+**All 11 files holding the 63 remaining ledgered tests were added on one day, 2025-09-19**, in
+commits titled "PHASE 1/3 COMPLETE" and "COMPREHENSIVE ANALYSIS: Core Capabilities & Coherence
+Framework Assessment". Every instrument the project now trusts postdates them and **none is
+ledgered**: `test_tomos_parsing` 2025-10-14, `test_rule_interaction` 2026-03-27,
+`test_correspondence_attestation` 2026-05-31, `test_corpus_polarity_discipline` 2026-07-15,
+`test_second_order_conservativity` 2026-07-16, `test_calculus_legal` and `test_calculus_soundness`
+2026-09-10. **Nothing added in the last twelve months is inadmissible**, so the practice that
+replaced that phase works — those later files are precisely the ones carrying falsifiers, ledgers
+and "the instrument is shown to catch". It also explains how the deposit survived: it reached
+*into* the core gate (`test_chapter15_formal_calculus`, `test_egi_core_comprehensive` are both from
+that day), where being **named** core shielded it from scrutiny instead of subjecting it to any —
+the same category error as "protected module". Consequence for the standing gate: its new-entry
+half is what earns its keep from here; the shrink half retires the backlog honestly as it is
+cleared.
+
+**All 220 skips attributed** (full `-rs` run). Four families: 21 declared environment gates
+(Playwright, the `nl` and `mcp` extras); ~90 chain-shape skips — **the family that can silently
+reach zero coverage, and one did**; ~100 per-UoD rule-site skips, healthy in extent, whose real gap
+is that transformation invariance exists for only **3 of the 6 rules** (DC+, ERA, IT+); and 13
+quotation-opacity refusals, each asserted in a dedicated test. **No second instance of the
+`test_tomos_parsing` dead-path archetype.**
+
+**The polarity gate was not ranging over the evidence.** `test_discharges_cite_a_confirming_peel`
+was **19 parameters, 19 skipped, 0 exercised** — the ⊥-door discipline, the ruling that makes
+licence ≠ certification, asserted in this file and measured by nothing. The only UoD carrying an
+`m_discharge` step is `episode_discharge`, categorised `theorem_proof`, while `_m_bearing_ids()`
+admitted `domain_model` only; `episode_entertained` (0 inside) and `quotation` (0 inside, 5
+outside) sat in the same hole. Widened to any chain-bearing UoD that records an act, and closed as
+a **class** by `test_every_recorded_act_is_reachable_by_this_gate` — an act the corpus records but
+the gate cannot reach is an unmeasured claim.
+
+**Widening it immediately exposed three real corpus defects, now repaired (author's ruling: repair
+the graphs, since these were built rather than derived — there is no derivation to preserve).**
+`swan_third_tense`, `forcing_forces` and `peirce_law_commentary` each supplied M by a hand-rolled
+`pc.apply("INS", ...)` carrying **no act at all** — a silent M-change, exactly what the m_view
+tripwire exists to catch. `tools/build_quotation_exemplars._residence` now goes through
+`m_steps.admit_step` (disposition `definition`, mode `convention`: this content is *stipulated*
+scholarly context, not observed). A **second** defect was masked behind the first — each exemplar's
+`QUOTE` step was also an unacknowledged M-change. Its record does carry everything replay needs, so
+the gate learned to re-execute both quotation flavours (`with_sort`, `with_quotation_binding`)
+rather than refuse them: a **strengthening**, since three flavours are now re-executed and compared
+where two were refused outright, and a quotation act carrying none of the three is still refused.
+**All three regenerated graphs are `same_graph` with the originals** — the repair changed what the
+chain *says*, not what the graphs *are*; `swan_third_tense` still pins S5 at `s4–s7`.
+
+**The extent pins moved, and were read before they were re-pinned.** Exactly one move, seen
+consistently by two layers, totals conserved: `B:DC+:applied/illegal` 1907 → 1906 with
+`B:not:DC+:quotation-apparatus` 181 → 182, and `B:DC+:illegal:maps` 162 → 161 with
+`B:DC+:egi-only:maps` 76 → 77. The cause was *proved*, not assumed — with the corpus stashed and
+nothing else changed, both pins pass — so it is the exemplar regeneration shifting tier B's
+enumeration. The two **default** extents are re-pinned; the write touched those four keys and
+nothing else.
+
+**Verification on the final tree.** Full suite **1 failed, 5,061 passed, 241 skipped, 10
+deselected, 7 xfailed, 46 m 12 s**. The arithmetic closes against the previous run (3 failed /
+5,039 passed): chapter 15 went 9 → 23 tests (+14), `test_transformation_routes` added 6, and the
+two extent failures resolved (+2). The one failure is `test_memory_stability` at 125.30 MB against
+its 120 MB threshold — the documented warm-process flake; it passes alone in 0.23 s and **the
+threshold was not touched**. Quality gate green: core protection ✅, **166 core tests** ✅ (up from
+152 by chapter 15's +14), syntax ✅. **1 of those 166 can now not fail, down from 10** — a single
+self-labelled `assert True` summary in `test_egi_core_comprehensive`.
+
+**▶ The exhaustive pins are STALE and must be re-run** (`exhaustive:refusal`, `:structure`, `:run`,
+`:soundness`, `:differential`). A pass was started and then deliberately killed, because `src/`
+changed underneath it and it was measuring a tree that no longer exists. ~2½ hours; read the diff,
+do not write blindly.
+
+**Still open from the first sitting:** findings 2, 3 and 4 (`discharge_episode` pulling a quoted
+constant out of its oval; CLIF/CGIF binder scoping — now known to be load-bearing beyond the linear
+forms; the EGIF generator's nondeterminism on symmetric graphs), the alphabet question, oracles for
+the five unjudged rules, the IT− docstring, and defect 8. **New and open:** the 62 ledgered
+`validation-theatre` tests (still collected, still counted in any "N passing" figure); the one
+remaining core-gate entry (`test_egi_core_comprehensive`'s `assert True` summary); a third
+area-blind copy of the quantification reading in `dl_reasoning._sheet_denials`; and clause 3 of the
+admission gate — the claim→test reading, where a first survey flags CLAUDE.md line 192 ("all three
+linear generators" refuse, while the test xfails CLIF) as a live self-contradiction.
+
+---
+
 **Last Updated**: 2026-09-19 (nineteenth arc, first sitting) — **A LINE'S AREA IS ITS
 QUANTIFICATION: FINDING 1 FIXED AT TWO SITES, NOT ONE — AND FIXING IT UNMASKED FINDING 3, WHICH HAD
 BEEN CANCELLING IT OUT IN A PASSING TEST.**

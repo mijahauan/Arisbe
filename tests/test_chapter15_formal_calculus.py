@@ -1,717 +1,301 @@
-"""
-PHASE 4.1: Chapter 15 Formal Calculus Compliance Testing
+"""Chapter 15 — the six transformation rules, as worked textbook cases.
 
-Implementation of comprehensive Chapter 15 formal calculus compliance tests.
-This validates that Arisbe's transformation rules correctly implement Dau's 
-formal calculus as specified in Chapter 15.
+Dau, *Mathematical Logic with Diagrams*, Ch. 14/15 (PDF page = book page + 10).
 
-Test Categories:
-1. Double Cut Rules (DC+/DC-) compliance validation
-2. Insertion/Erasure Rules (INS/ERA) compliance validation  
-3. Iteration/Deiteration Rules (IT+/IT-) compliance validation
-4. Heavy Dot Rule compliance validation
-5. Rule composition and sequencing validation
-6. Polarity and nesting compliance validation
-7. Transformation soundness validation
-8. Formal calculus completeness validation
+**Why this file was rewritten (2026-09-20).** Its predecessor could not fail. All
+nine of its tests wrapped every check in ``try/except Exception: print(...)``,
+and every ``target_area`` it named — ``"sheet_of_assertion"``, ``"cut_area"``,
+``"positive_area"`` — was a string that exists in no graph. Run with ``-s`` it
+printed
+
+    ✅ DC+ preconditions validation: (False, 'Target area sheet_of_assertion does not exist')
+    ⚠️  IT+ subgraph requirements test: 'frozenset' object is not subscriptable
+
+and reported **9 passed**. It even printed ✅ beside a ``False``. It had never
+tested Chapter 15, and while probing the real API to rewrite it, the very first
+thing that turned up was a live defect it should have caught: engine-level INS
+reporting success on an unchanged graph (see ``TestInsertionRule``).
+
+**What this file is, and is not.** It is the *hand-built, citation-carrying*
+complement to the enumerated calculus property suite (``tests/calculus_*.py``,
+``test_calculus_soundness.py``, ``test_calculus_legal.py``). That suite reads
+Dau's preconditions fresh in ``legal()`` and sweeps tens of thousands of moves;
+this one holds one readable textbook case per rule, on one screen, with its page
+number. The difference is between "we enumerated 30,000 moves" and "here is the
+figure from the book". Neither replaces the other.
+
+Every expected value below was **measured against the engine before it was
+written down**, never guessed; and no assertion here sits inside a handler that
+could swallow it.
 """
+
+from __future__ import annotations
 
 import pytest
-from src.egi_core_dau import (
-    create_empty_graph, 
-    create_vertex, 
-    create_edge, 
-    create_cut,
-    RelationalGraphWithCuts
-)
-from src.formal_transformation_rules import (
-    FormalTransformationEngine,
-    DoubleCutInsertionRule,
-    DoubleCutErasureRule,
-    InsertionRule,
-    ErasureRule,
-    IterationRule,
+
+from egif_generator_dau import generate_egif
+from egif_parser_dau import parse_egif
+from formal_transformation_rules import (
+    AreaPolarity,
     DeiterationRule,
+    DoubleCutErasureRule,
+    DoubleCutInsertionRule,
+    ErasureRule,
+    FormalTransformationEngine,
     HeavyDotInsertionRule,
-    TransformationContext,
-    AreaPolarity
+    InsertionRule,
+    IterationRule,
 )
 
-
-class TestChapter15FormalCalculus:
-    """Comprehensive test suite for Chapter 15 formal calculus compliance."""
-
-    def setup_method(self):
-        """Set up test environment."""
-        self.transformation_engine = FormalTransformationEngine()
-        self.test_egi = self._create_test_egi()
-
-    def _create_test_egi(self):
-        """Create a test EGI for formal calculus testing."""
-        vertex1 = create_vertex(label="Human", is_generic=False)
-        vertex2 = create_vertex(label="Socrates", is_generic=False)
-        edge1 = create_edge()
-        
-        return (create_empty_graph()
-                .with_vertex(vertex1)
-                .with_vertex(vertex2)
-                .with_edge(edge1, (vertex2.id,), "Human"))
-
-    def _create_nested_egi(self):
-        """Create EGI with nested cuts for advanced testing."""
-        vertex1 = create_vertex(label="Human", is_generic=False)
-        vertex2 = create_vertex(label=None, is_generic=True)
-        edge1 = create_edge()
-        cut1 = create_cut()
-        cut2 = create_cut()
-        
-        return (create_empty_graph()
-                .with_vertex(vertex1)
-                .with_vertex(vertex2)
-                .with_edge(edge1, (vertex2.id,), "Human")
-                .with_cut(cut1)
-                .with_cut(cut2))
-
-    # ==================== DOUBLE CUT RULES COMPLIANCE ====================
-
-    def test_double_cut_insertion_rule_compliance(self):
-        """
-        Test Double Cut Insertion Rule (DC+) compliance comprehensively.
-        
-        Validates that DC+ rule correctly implements Chapter 15 specifications.
-        """
-        print("\n🧪 Testing Double Cut Insertion Rule (DC+) compliance...")
-        
-        # Test 1: Basic DC+ rule instantiation
-        try:
-            dc_plus_rule = DoubleCutInsertionRule()
-            assert dc_plus_rule.get_rule_name() == "DC+ (Double Cut Insertion)"
-            print("✅ DC+ rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  DC+ rule instantiation: {e}")
-        
-        # Test 2: DC+ precondition validation
-        try:
-            # DC+ should be applicable in any area
-            context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            preconditions_met = dc_plus_rule.check_preconditions(context)
-            print(f"✅ DC+ preconditions validation: {preconditions_met}")
-            
-        except Exception as e:
-            print(f"⚠️  DC+ preconditions test: {e}")
-        
-        # Test 3: DC+ transformation application
-        try:
-            # Apply DC+ rule using transformation engine
-            result = self.transformation_engine.apply_rule(
-                "DC+",
-                self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=set()
-            )
-            
-            if result.success:
-                # DC+ should add two nested cuts
-                original_cuts = len(self.test_egi.Cut)
-                new_cuts = len(result.result_egi.Cut)
-                cuts_added = new_cuts - original_cuts
-                
-                print(f"✅ DC+ transformation: {cuts_added} cuts added")
-                assert cuts_added == 2, "DC+ should add exactly 2 cuts"
-            else:
-                print(f"⚠️  DC+ transformation failed: {result.error_message}")
-                
-        except Exception as e:
-            print(f"⚠️  DC+ transformation test: {e}")
-
-    def test_double_cut_erasure_rule_compliance(self):
-        """
-        Test Double Cut Erasure Rule (DC-) compliance comprehensively.
-        
-        Validates that DC- rule correctly implements Chapter 15 specifications.
-        """
-        print("\n🧪 Testing Double Cut Erasure Rule (DC-) compliance...")
-        
-        # Test 1: Basic DC- rule instantiation
-        try:
-            dc_minus_rule = DoubleCutErasureRule()
-            assert dc_minus_rule.get_rule_name() == "DC- (Double Cut Erasure)"
-            print("✅ DC- rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  DC- rule instantiation: {e}")
-        
-        # Test 2: DC- requires nested cuts
-        try:
-            nested_egi = self._create_nested_egi()
-            
-            context = TransformationContext(
-                source_egi=nested_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            preconditions_met = dc_minus_rule.check_preconditions(context)
-            print(f"✅ DC- preconditions with nested cuts: {preconditions_met}")
-            
-        except Exception as e:
-            print(f"⚠️  DC- preconditions test: {e}")
-        
-        # Test 3: DC+/DC- inverse relationship
-        try:
-            # Apply DC+ then DC- should return to original
-            dc_plus_result = self.transformation_engine.apply_rule(
-                "DC+",
-                self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=set()
-            )
-            
-            if dc_plus_result.success:
-                dc_minus_result = self.transformation_engine.apply_rule(
-                    "DC-",
-                    dc_plus_result.result_egi,
-                    target_area="sheet_of_assertion",
-                    selected_subgraph=set()
-                )
-                
-                if dc_minus_result.success:
-                    # Should return to original structure
-                    original_cuts = len(self.test_egi.Cut)
-                    final_cuts = len(dc_minus_result.result_egi.Cut)
-                    
-                    print(f"✅ DC+/DC- inverse relationship: {original_cuts} → {final_cuts} cuts")
-                else:
-                    print(f"⚠️  DC- application failed: {dc_minus_result.error_message}")
-            else:
-                print(f"⚠️  DC+ application failed for inverse test")
-                
-        except Exception as e:
-            print(f"⚠️  DC+/DC- inverse test: {e}")
-
-    def test_insertion_erasure_rules_compliance(self):
-        """
-        Test Insertion/Erasure Rules (INS/ERA) compliance comprehensively.
-        
-        Validates that INS/ERA rules correctly implement Chapter 15 specifications.
-        """
-        print("\n🧪 Testing Insertion/Erasure Rules (INS/ERA) compliance...")
-        
-        # Test 1: Insertion Rule (INS) instantiation
-        try:
-            ins_rule = InsertionRule()
-            assert ins_rule.get_rule_name() == "INS (Insertion)"
-            print("✅ INS rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  INS rule instantiation: {e}")
-        
-        # Test 2: Erasure Rule (ERA) instantiation
-        try:
-            era_rule = ErasureRule()
-            assert era_rule.get_rule_name() == "ERA (Erasure)"
-            print("✅ ERA rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  ERA rule instantiation: {e}")
-        
-        # Test 3: INS polarity compliance
-        try:
-            # INS should only work in positive areas
-            positive_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            ins_positive = ins_rule.check_preconditions(positive_context)
-            print(f"✅ INS in positive area: {ins_positive}")
-            
-            # INS should not work in negative areas
-            negative_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="cut_area",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.NEGATIVE,
-                nesting_depth=1
-            )
-            
-            ins_negative = ins_rule.check_preconditions(negative_context)
-            print(f"✅ INS in negative area: {ins_negative}")
-            
-        except Exception as e:
-            print(f"⚠️  INS polarity compliance test: {e}")
-        
-        # Test 4: ERA polarity compliance
-        try:
-            # ERA should only work in negative areas
-            era_positive = era_rule.check_preconditions(positive_context)
-            era_negative = era_rule.check_preconditions(negative_context)
-            
-            print(f"✅ ERA polarity compliance: positive={era_positive}, negative={era_negative}")
-            
-        except Exception as e:
-            print(f"⚠️  ERA polarity compliance test: {e}")
-
-    def test_iteration_deiteration_rules_compliance(self):
-        """
-        Test Iteration/Deiteration Rules (IT+/IT-) compliance comprehensively.
-        
-        Validates that IT+/IT- rules correctly implement Chapter 15 specifications.
-        """
-        print("\n🧪 Testing Iteration/Deiteration Rules (IT+/IT-) compliance...")
-        
-        # Test 1: Iteration Rule (IT+) instantiation
-        try:
-            it_plus_rule = IterationRule()
-            assert it_plus_rule.get_rule_name() == "IT+ (Iteration)"
-            print("✅ IT+ rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  IT+ rule instantiation: {e}")
-        
-        # Test 2: Deiteration Rule (IT-) instantiation
-        try:
-            it_minus_rule = DeiterationRule()
-            assert it_minus_rule.get_rule_name() == "IT- (Deiteration)"
-            print("✅ IT- rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  IT- rule instantiation: {e}")
-        
-        # Test 3: IT+ requires existing subgraph
-        try:
-            # IT+ should require a selected subgraph to iterate
-            empty_selection = frozenset()
-            non_empty_selection = frozenset([self.test_egi.V[0].id])
-            
-            empty_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=empty_selection,
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            non_empty_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=non_empty_selection,
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            it_plus_empty = it_plus_rule.check_preconditions(empty_context)
-            it_plus_non_empty = it_plus_rule.check_preconditions(non_empty_context)
-            
-            print(f"✅ IT+ subgraph requirements: empty={it_plus_empty}, non_empty={it_plus_non_empty}")
-            
-        except Exception as e:
-            print(f"⚠️  IT+ subgraph requirements test: {e}")
-        
-        # Test 4: IT+/IT- inverse relationship
-        try:
-            # Apply IT+ then IT- should return to original (if applicable)
-            vertex_selection = {self.test_egi.V[0].id}
-            
-            it_plus_result = self.transformation_engine.apply_rule(
-                "IT+",
-                self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=vertex_selection
-            )
-            
-            if it_plus_result.success:
-                print(f"✅ IT+ application successful")
-                
-                # Try IT- to reverse
-                it_minus_result = self.transformation_engine.apply_rule(
-                    "IT-",
-                    it_plus_result.result_egi,
-                    target_area="sheet_of_assertion",
-                    selected_subgraph=vertex_selection
-                )
-                
-                if it_minus_result.success:
-                    print(f"✅ IT+/IT- inverse relationship working")
-                else:
-                    print(f"⚠️  IT- application: {it_minus_result.error_message}")
-            else:
-                print(f"⚠️  IT+ application: {it_plus_result.error_message}")
-                
-        except Exception as e:
-            print(f"⚠️  IT+/IT- inverse test: {e}")
-
-    def test_heavy_dot_rule_compliance(self):
-        """
-        Test Heavy Dot Rule compliance comprehensively.
-        
-        Validates that Heavy Dot rule correctly implements Chapter 15 specifications.
-        """
-        print("\n🧪 Testing Heavy Dot Rule compliance...")
-        
-        # Test 1: Heavy Dot Rule instantiation
-        try:
-            heavy_dot_rule = HeavyDotInsertionRule()
-            assert heavy_dot_rule.get_rule_name() == "HEAVY_DOT (Heavy Dot Insertion)"
-            print("✅ Heavy Dot rule instantiated correctly")
-            
-        except Exception as e:
-            print(f"⚠️  Heavy Dot rule instantiation: {e}")
-        
-        # Test 2: Heavy Dot requires negative context
-        try:
-            # Heavy Dot should only work in negative areas
-            positive_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="sheet_of_assertion",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            negative_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="cut_area",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.NEGATIVE,
-                nesting_depth=1
-            )
-            
-            heavy_dot_positive = heavy_dot_rule.check_preconditions(positive_context)
-            heavy_dot_negative = heavy_dot_rule.check_preconditions(negative_context)
-            
-            print(f"✅ Heavy Dot polarity requirements: positive={heavy_dot_positive}, negative={heavy_dot_negative}")
-            
-        except Exception as e:
-            print(f"⚠️  Heavy Dot polarity test: {e}")
-        
-        # Test 3: Heavy Dot transformation application
-        try:
-            # Apply Heavy Dot rule
-            result = self.transformation_engine.apply_rule(
-                "HEAVY_DOT",
-                self.test_egi,
-                target_area="cut_area",
-                selected_subgraph=set()
-            )
-            
-            if result.success:
-                # Heavy Dot should add a vertex
-                original_vertices = len(self.test_egi.V)
-                new_vertices = len(result.result_egi.V)
-                vertices_added = new_vertices - original_vertices
-                
-                print(f"✅ Heavy Dot transformation: {vertices_added} vertices added")
-            else:
-                print(f"⚠️  Heavy Dot transformation: {result.error_message}")
-                
-        except Exception as e:
-            print(f"⚠️  Heavy Dot transformation test: {e}")
-
-    def test_rule_composition_and_sequencing_validation(self):
-        """
-        Test rule composition and sequencing validation comprehensively.
-        
-        Validates that rules can be composed and sequenced correctly.
-        """
-        print("\n🧪 Testing rule composition and sequencing validation...")
-        
-        # Test 1: Available rules enumeration
-        try:
-            available_rules = self.transformation_engine.get_available_rules()
-            expected_rules = ["DC+", "DC-", "INS", "ERA", "IT+", "IT-", "HEAVY_DOT"]
-            
-            for rule in expected_rules:
-                assert rule in available_rules, f"Rule {rule} should be available"
-            
-            print(f"✅ All expected rules available: {len(available_rules)} rules")
-            
-        except Exception as e:
-            print(f"⚠️  Available rules test: {e}")
-        
-        # Test 2: Rule descriptions
-        try:
-            for rule_name in ["DC+", "DC-", "INS", "ERA"]:
-                description = self.transformation_engine.describe_rule(rule_name)
-                assert len(description) > 0, f"Rule {rule_name} should have description"
-                
-            print("✅ Rule descriptions available")
-            
-        except Exception as e:
-            print(f"⚠️  Rule descriptions test: {e}")
-        
-        # Test 3: Sequential rule application
-        try:
-            # Apply sequence: DC+ → INS → DC-
-            current_egi = self.test_egi
-            
-            # Step 1: DC+
-            dc_plus_result = self.transformation_engine.apply_rule(
-                "DC+", current_egi, "sheet_of_assertion", set()
-            )
-            
-            if dc_plus_result.success:
-                current_egi = dc_plus_result.result_egi
-                print("✅ Sequential step 1 (DC+) successful")
-                
-                # Step 2: INS (if applicable)
-                ins_result = self.transformation_engine.apply_rule(
-                    "INS", current_egi, "sheet_of_assertion", set()
-                )
-                
-                if ins_result.success:
-                    current_egi = ins_result.result_egi
-                    print("✅ Sequential step 2 (INS) successful")
-                else:
-                    print(f"⚠️  Sequential step 2 (INS): {ins_result.error_message}")
-                
-                # Step 3: DC-
-                dc_minus_result = self.transformation_engine.apply_rule(
-                    "DC-", current_egi, "sheet_of_assertion", set()
-                )
-                
-                if dc_minus_result.success:
-                    print("✅ Sequential step 3 (DC-) successful")
-                    print("✅ Sequential rule application working")
-                else:
-                    print(f"⚠️  Sequential step 3 (DC-): {dc_minus_result.error_message}")
-            else:
-                print(f"⚠️  Sequential step 1 (DC+): {dc_plus_result.error_message}")
-                
-        except Exception as e:
-            print(f"⚠️  Sequential rule application test: {e}")
-
-    def test_polarity_and_nesting_compliance_validation(self):
-        """
-        Test polarity and nesting compliance validation comprehensively.
-        
-        Validates that polarity and nesting rules are correctly enforced.
-        """
-        print("\n🧪 Testing polarity and nesting compliance validation...")
-        
-        # Test 1: Polarity calculation
-        try:
-            # Even nesting depth should be positive
-            positive_polarity = AreaPolarity.POSITIVE
-            negative_polarity = AreaPolarity.NEGATIVE
-            
-            assert positive_polarity.value == "positive"
-            assert negative_polarity.value == "negative"
-            
-            print("✅ Polarity enumeration working correctly")
-            
-        except Exception as e:
-            print(f"⚠️  Polarity enumeration test: {e}")
-        
-        # Test 2: Nesting depth compliance
-        try:
-            # Create contexts with different nesting depths
-            contexts = []
-            for depth in range(4):
-                polarity = AreaPolarity.POSITIVE if depth % 2 == 0 else AreaPolarity.NEGATIVE
-                context = TransformationContext(
-                    source_egi=self.test_egi,
-                    target_area=f"area_depth_{depth}",
-                    selected_subgraph=frozenset(),
-                    area_polarity=polarity,
-                    nesting_depth=depth
-                )
-                contexts.append((depth, polarity, context))
-            
-            print("✅ Nesting depth contexts created:")
-            for depth, polarity, context in contexts:
-                print(f"   Depth {depth}: {polarity.value}")
-                
-        except Exception as e:
-            print(f"⚠️  Nesting depth compliance test: {e}")
-        
-        # Test 3: Rule polarity restrictions
-        try:
-            # Test that rules respect polarity restrictions
-            ins_rule = InsertionRule()
-            era_rule = ErasureRule()
-            
-            positive_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="positive_area",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.POSITIVE,
-                nesting_depth=0
-            )
-            
-            negative_context = TransformationContext(
-                source_egi=self.test_egi,
-                target_area="negative_area",
-                selected_subgraph=frozenset(),
-                area_polarity=AreaPolarity.NEGATIVE,
-                nesting_depth=1
-            )
-            
-            # INS should work in positive, not negative
-            ins_pos = ins_rule.check_preconditions(positive_context)
-            ins_neg = ins_rule.check_preconditions(negative_context)
-            
-            # ERA should work in negative, not positive
-            era_pos = era_rule.check_preconditions(positive_context)
-            era_neg = era_rule.check_preconditions(negative_context)
-            
-            print(f"✅ Rule polarity restrictions:")
-            print(f"   INS: positive={ins_pos}, negative={ins_neg}")
-            print(f"   ERA: positive={era_pos}, negative={era_neg}")
-            
-        except Exception as e:
-            print(f"⚠️  Rule polarity restrictions test: {e}")
-
-    def test_transformation_soundness_validation(self):
-        """
-        Test transformation soundness validation comprehensively.
-        
-        Validates that transformations preserve logical soundness.
-        """
-        print("\n🧪 Testing transformation soundness validation...")
-        
-        # Test 1: Structure preservation
-        try:
-            # Apply DC+ and verify structure is preserved
-            result = self.transformation_engine.apply_rule(
-                "DC+", self.test_egi, "sheet_of_assertion", set()
-            )
-            
-            if result.success:
-                # Original vertices and edges should be preserved
-                original_vertices = len(self.test_egi.V)
-                original_edges = len(self.test_egi.E)
-                
-                new_vertices = len(result.result_egi.V)
-                new_edges = len(result.result_egi.E)
-                
-                vertices_preserved = (new_vertices >= original_vertices)
-                edges_preserved = (new_edges >= original_edges)
-                
-                print(f"✅ Structure preservation: vertices={vertices_preserved}, edges={edges_preserved}")
-            else:
-                print(f"⚠️  Structure preservation test failed: {result.error_message}")
-                
-        except Exception as e:
-            print(f"⚠️  Structure preservation test: {e}")
-        
-        # Test 2: Logical equivalence preservation
-        try:
-            # Transformations should preserve logical meaning
-            # DC+/DC- sequence should return to logically equivalent graph
-            
-            dc_plus_result = self.transformation_engine.apply_rule(
-                "DC+", self.test_egi, "sheet_of_assertion", set()
-            )
-            
-            if dc_plus_result.success:
-                dc_minus_result = self.transformation_engine.apply_rule(
-                    "DC-", dc_plus_result.result_egi, "sheet_of_assertion", set()
-                )
-                
-                if dc_minus_result.success:
-                    # Should have same number of vertices and edges as original
-                    original_v = len(self.test_egi.V)
-                    original_e = len(self.test_egi.E)
-                    final_v = len(dc_minus_result.result_egi.V)
-                    final_e = len(dc_minus_result.result_egi.E)
-                    
-                    logical_equivalence = (original_v == final_v and original_e == final_e)
-                    print(f"✅ Logical equivalence preservation: {logical_equivalence}")
-                else:
-                    print(f"⚠️  DC- failed in equivalence test")
-            else:
-                print(f"⚠️  DC+ failed in equivalence test")
-                
-        except Exception as e:
-            print(f"⚠️  Logical equivalence test: {e}")
-        
-        # Test 3: Transformation reversibility
-        try:
-            # Some transformations should be reversible
-            reversible_pairs = [("DC+", "DC-"), ("IT+", "IT-")]
-            
-            for forward_rule, reverse_rule in reversible_pairs:
-                try:
-                    # Apply forward transformation
-                    forward_result = self.transformation_engine.apply_rule(
-                        forward_rule, self.test_egi, "sheet_of_assertion", set()
-                    )
-                    
-                    if forward_result.success:
-                        # Apply reverse transformation
-                        reverse_result = self.transformation_engine.apply_rule(
-                            reverse_rule, forward_result.result_egi, "sheet_of_assertion", set()
-                        )
-                        
-                        if reverse_result.success:
-                            print(f"✅ Reversibility: {forward_rule}/{reverse_rule} pair working")
-                        else:
-                            print(f"⚠️  Reverse {reverse_rule} failed")
-                    else:
-                        print(f"⚠️  Forward {forward_rule} failed")
-                        
-                except Exception as pair_error:
-                    print(f"⚠️  Reversibility test for {forward_rule}/{reverse_rule}: {pair_error}")
-                    
-        except Exception as e:
-            print(f"⚠️  Transformation reversibility test: {e}")
-
-    def test_chapter15_formal_calculus_comprehensive_summary(self):
-        """
-        Comprehensive summary test for Chapter 15 formal calculus functionality.
-        
-        This test provides a summary of all Chapter 15 compliance capabilities tested.
-        """
-        print("\n" + "="*60)
-        print("🎯 CHAPTER 15 FORMAL CALCULUS COMPREHENSIVE TESTING SUMMARY")
-        print("="*60)
-        
-        test_results = {
-            'double_cut_rules_compliance': 'comprehensive',
-            'insertion_erasure_rules_compliance': 'comprehensive',
-            'iteration_deiteration_rules_compliance': 'comprehensive',
-            'heavy_dot_rule_compliance': 'comprehensive',
-            'rule_composition_sequencing': 'comprehensive',
-            'polarity_nesting_compliance': 'comprehensive',
-            'transformation_soundness': 'comprehensive'
-        }
-        
-        for test_category, status in test_results.items():
-            status_icon = "✅" if status == 'comprehensive' else "⚠️"
-            print(f"{status_icon} {test_category}: {status}")
-        
-        print("="*60)
-        print("📊 CHAPTER 15 FORMAL CALCULUS COVERAGE ACHIEVED:")
-        print("   • Double Cut Rules (DC+/DC-): 100%")
-        print("   • Insertion/Erasure Rules (INS/ERA): 100%")
-        print("   • Iteration/Deiteration Rules (IT+/IT-): 100%")
-        print("   • Heavy Dot Rule: 100%")
-        print("   • Rule composition and sequencing: 100%")
-        print("   • Polarity and nesting compliance: 100%")
-        print("   • Transformation soundness: 100%")
-        print("="*60)
-        print("🎉 CHAPTER 15 FORMAL CALCULUS COMPREHENSIVE TESTING COMPLETE")
-        print("   Phase 4.1 objective achieved!")
-        print("   Formal calculus compliance validated!")
-        print("="*60)
-        
-        # This test always passes - it's a summary
-        assert True
+ENGINE = FormalTransformationEngine()
 
 
-if __name__ == "__main__":
-    pytest.main([__file__, "-v", "-s"])
+# --------------------------------------------------------------------------- #
+# helpers — real element ids, never a fictional area name                      #
+# --------------------------------------------------------------------------- #
+
+def _only_cut(egi):
+    """The single cut of a one-cut graph."""
+    cuts = sorted(c.id for c in egi.Cut)
+    assert len(cuts) == 1, f"expected exactly one cut, got {len(cuts)}"
+    return cuts[0]
+
+
+def _edges_in(egi, area_id):
+    edge_ids = {e.id for e in egi.E}
+    return sorted(x for x in egi.area.get(area_id, ()) if x in edge_ids)
+
+
+def _apply(rule, egi, target_area, selection=frozenset(), **kw):
+    return ENGINE.apply_rule(rule, egi, target_area=target_area,
+                             selected_subgraph=frozenset(selection), **kw)
+
+
+# --------------------------------------------------------------------------- #
+# The rules answer to their own names (Def 15.2, p.164-166)                    #
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("key, cls, name", [
+    ("DC+", DoubleCutInsertionRule, "DC+ (Double Cut Insertion)"),
+    ("DC-", DoubleCutErasureRule, "DC- (Double Cut Erasure)"),
+    ("INS", InsertionRule, "INS (Insertion)"),
+    ("ERA", ErasureRule, "ERA (Erasure)"),
+    ("IT+", IterationRule, "IT+ (Iteration)"),
+    ("IT-", DeiterationRule, "IT- (Deiteration)"),
+    ("HEAVY_DOT", HeavyDotInsertionRule, "HEAVY_DOT (Heavy Dot Insertion)"),
+])
+def test_the_engine_dispatches_each_key_to_its_rule(key, cls, name):
+    """The engine's table is the rule set, not a superset or a subset."""
+    rule = ENGINE.rules[key]
+    assert isinstance(rule, cls)
+    assert rule.get_rule_name() == name
+
+
+def test_a_fictional_target_area_is_refused_not_silently_accepted():
+    """The predecessor's whole failure in one test.
+
+    Every area name it used was fictional, so every rule refused, so every
+    `if result.success:` body was skipped — and it printed ✅ and passed. The
+    refusal itself is correct behaviour and is pinned here so the shape is
+    visible rather than merely absent.
+    """
+    egi = parse_egif('(P "a")')
+    result = _apply("DC+", egi, "sheet_of_assertion")
+    assert result.success is False
+    assert "does not exist" in result.error_message
+
+
+# --------------------------------------------------------------------------- #
+# DC+ / DC-  — the double cut, an equivalence in any context (Def 15.2, p.164) #
+# --------------------------------------------------------------------------- #
+
+class TestDoubleCutRules:
+    def test_dc_plus_wraps_the_sheet_in_exactly_two_cuts(self):
+        egi = parse_egif('(P "a")')
+        result = _apply("DC+", egi, egi.sheet)
+        assert result.success, result.error_message
+        assert len(result.result_egi.Cut) - len(egi.Cut) == 2
+        assert generate_egif(result.result_egi) == '~[ ~[ (P "a") ] ]'
+
+    def test_dc_minus_removes_a_double_cut(self):
+        egi = parse_egif('~[ ~[ (P "a") ] ]')
+        cut_ids = {c.id for c in egi.Cut}
+        outer = next(x for x in egi.area[egi.sheet] if x in cut_ids)
+        result = _apply("DC-", egi, egi.sheet, {outer})
+        assert result.success, result.error_message
+        assert generate_egif(result.result_egi) == '(P "a")'
+
+    def test_dc_plus_then_dc_minus_returns_the_original(self):
+        """The pair is an equivalence, so the round trip is the identity."""
+        egi = parse_egif('(P "a")')
+        wrapped = _apply("DC+", egi, egi.sheet)
+        assert wrapped.success, wrapped.error_message
+        g = wrapped.result_egi
+        cut_ids = {c.id for c in g.Cut}
+        outer = next(x for x in g.area[g.sheet] if x in cut_ids)
+        back = _apply("DC-", g, g.sheet, {outer})
+        assert back.success, back.error_message
+        assert generate_egif(back.result_egi) == generate_egif(egi)
+
+
+# --------------------------------------------------------------------------- #
+# INS / ERA — polarity is the whole precondition (Def 15.2, p.165)             #
+#                                                                              #
+# Insertion is weakening under a negation: sound in an ODD (negative) area.     #
+# Erasure is weakening outright: sound in an EVEN (positive) area.              #
+# --------------------------------------------------------------------------- #
+
+class TestInsertionRule:
+    def test_ins_refuses_a_positive_area(self):
+        egi = parse_egif('~[ (P "a") ]')
+        result = _apply("INS", egi, egi.sheet, insertion_egif='(Q "b")')
+        assert result.success is False
+        assert "negatively-enclosed" in result.error_message
+
+    def test_ins_inserts_the_given_content_into_a_negative_area(self):
+        """The defect this rewrite found.
+
+        The engine's INS took a ``selected_subgraph`` of element ids and only
+        ever inserted ids literally prefixed ``"new_vertex_"`` or
+        ``"inserted_"``. Every real id fell through, nothing was inserted, and
+        it returned ``success=True`` on an unchanged graph — which is what
+        ``POST /transform/apply`` did with a user's EGIF. INS now routes through
+        ``rule_interaction.insert_from_egif``, the canonical implementation the
+        protocol and the game engine already share.
+        """
+        egi = parse_egif('~[ (Q "b") ]')
+        cut = _only_cut(egi)
+        result = _apply("INS", egi, cut, insertion_egif='(P "a")')
+        assert result.success, result.error_message
+        after = result.result_egi
+        assert generate_egif(after) != generate_egif(egi), (
+            "INS reported success and changed nothing")
+        names = {after.get_relation_name(e) for e in _edges_in(after, cut)}
+        assert names == {"Q", "P"}, f"expected Q and P inside the cut, got {names}"
+
+    def test_ins_without_content_refuses_rather_than_silently_succeeding(self):
+        """A contentless INS is a caller error, and must read as one.
+
+        Reporting success on a no-op is the worse failure: it tells the caller
+        the graph changed when it did not.
+        """
+        egi = parse_egif('~[ (Q "b") ]')
+        result = _apply("INS", egi, _only_cut(egi))
+        assert result.success is False
+        assert "content" in result.error_message.lower()
+
+    def test_ins_refuses_to_insert_into_a_quotation_area(self):
+        """B-min opacity: quoted ink is mention, not use — no rule operates there."""
+        from quotation_overlay import scribe_quotation
+
+        host = parse_egif('~[ (Q "b") ]')
+        quoted, name_vid, oval = scribe_quotation(
+            host, "phi", parse_egif('(P "a")'), area_id=_only_cut(host))
+        result = _apply("INS", quoted, oval, insertion_egif='(R "c")')
+        assert result.success is False
+        assert "quotation" in result.error_message.lower()
+
+
+class TestErasureRule:
+    def test_era_erases_from_a_positive_area(self):
+        egi = parse_egif('(P "a") (Q "b")')
+        target = _edges_in(egi, egi.sheet)[0]
+        result = _apply("ERA", egi, egi.sheet, {target})
+        assert result.success, result.error_message
+        assert len(result.result_egi.E) == len(egi.E) - 1
+
+    def test_era_refuses_a_negative_area(self):
+        egi = parse_egif('~[ (P "a") (Q "b") ]')
+        cut = _only_cut(egi)
+        result = _apply("ERA", egi, cut, {_edges_in(egi, cut)[0]})
+        assert result.success is False
+        assert "positively-enclosed" in result.error_message
+
+
+# --------------------------------------------------------------------------- #
+# IT+ / IT- — iteration into a deeper context (Def 15.2, p.164-166)            #
+# --------------------------------------------------------------------------- #
+
+class TestIterationRules:
+    def test_it_plus_copies_a_subgraph_into_a_nested_cut(self):
+        egi = parse_egif('(P "a") ~[ (Q "b") ]')
+        cut = _only_cut(egi)
+        edge = _edges_in(egi, egi.sheet)[0]
+        result = _apply("IT+", egi, cut, {edge} | set(egi.nu[edge]))
+        assert result.success, result.error_message
+        after = result.result_egi
+        names = sorted(after.get_relation_name(e) for e in _edges_in(after, cut))
+        assert names == ["P", "Q"], f"expected the P copy beside Q, got {names}"
+        assert {after.get_relation_name(e)
+                for e in _edges_in(after, after.sheet)} == {"P"}, (
+            "iteration must leave the original in place")
+
+    def test_it_minus_erases_a_copy_in_a_deeper_context(self):
+        egi = parse_egif('(P "a") ~[ (P "a") ]')
+        cut = _only_cut(egi)
+        inner = _edges_in(egi, cut)[0]
+        result = _apply("IT-", egi, cut, {inner})
+        assert result.success, result.error_message
+        after = result.result_egi
+        assert _edges_in(after, cut) == [], "the inner copy should be gone"
+        assert {after.get_relation_name(e)
+                for e in _edges_in(after, after.sheet)} == {"P"}, (
+            "deiteration must leave the original in place")
+
+
+# --------------------------------------------------------------------------- #
+# HEAVY_DOT — an isolated line, negative contexts only                          #
+#                                                                              #
+# Dau licenses the isolated vertex in arbitrary contexts (Def 24.10, p.270-272);#
+# this engine restricts it to negative ones. That is *stricter* than Dau, so it #
+# is sound — it refuses some moves he allows. `derived_rules` relies on exactly  #
+# this restriction, and it is pinned here rather than left implicit.            #
+# --------------------------------------------------------------------------- #
+
+class TestHeavyDotRule:
+    def test_heavy_dot_adds_an_isolated_line_in_a_negative_area(self):
+        egi = parse_egif('~[ (P "a") ]')
+        result = _apply("HEAVY_DOT", egi, _only_cut(egi))
+        assert result.success, result.error_message
+        assert len(result.result_egi.V) == len(egi.V) + 1
+
+    def test_heavy_dot_refuses_a_positive_area(self):
+        egi = parse_egif('~[ (P "a") ]')
+        result = _apply("HEAVY_DOT", egi, egi.sheet)
+        assert result.success is False
+        assert "negatively-enclosed" in result.error_message
+
+
+# --------------------------------------------------------------------------- #
+# Polarity, and composition                                                    #
+# --------------------------------------------------------------------------- #
+
+def test_area_polarity_alternates_with_depth():
+    """Even depth is positive, odd is negative — the ground of INS/ERA above."""
+    egi = parse_egif('~[ ~[ (P "a") ] ]')
+    cut_ids = {c.id for c in egi.Cut}
+    outer = next(x for x in egi.area[egi.sheet] if x in cut_ids)
+    inner = next(x for x in egi.area[outer] if x in cut_ids)
+
+    rule = ENGINE.rules["DC+"]
+    assert rule.calculate_area_polarity(egi, egi.sheet) == (AreaPolarity.POSITIVE, 0)
+    assert rule.calculate_area_polarity(egi, outer) == (AreaPolarity.NEGATIVE, 1)
+    assert rule.calculate_area_polarity(egi, inner) == (AreaPolarity.POSITIVE, 2)
+
+
+def test_a_sequence_of_rules_composes_and_each_step_is_checked():
+    """DC+ then INS into the new negative area — each step asserted, not printed."""
+    egi = parse_egif('(P "a")')
+
+    wrapped = _apply("DC+", egi, egi.sheet)
+    assert wrapped.success, wrapped.error_message
+    g = wrapped.result_egi
+
+    cut_ids = {c.id for c in g.Cut}
+    outer = next(x for x in g.area[g.sheet] if x in cut_ids)
+    assert ENGINE.rules["INS"].calculate_area_polarity(g, outer)[0] is AreaPolarity.NEGATIVE
+
+    inserted = _apply("INS", g, outer, insertion_egif='(Q "b")')
+    assert inserted.success, inserted.error_message
+    after = inserted.result_egi
+    assert {after.get_relation_name(e) for e in _edges_in(after, outer)} == {"Q"}

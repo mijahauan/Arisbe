@@ -262,9 +262,19 @@ class TestTier3RulesRestraint:
         for step in chain.steps:
             rule_name = step.rule_name
             assert (
-                rule_name in dau_rules or rule_name == "QUOTE"
+                rule_name in dau_rules or rule_name in {"QUOTE", "ADMIT_TO_M"}
             ), f"Unexpected rule {rule_name} — not a Dau rule or QUOTE"
             # QUOTE steps must be marked neutral
+            # ADMIT_TO_M is not a new rule: it is ONE licensed INS of a closed
+            # cell into the standing residence, recorded under the name of the
+            # act it performs (m_steps.admit_step). Held to exactly that here,
+            # rather than merely added to the list — a bare "INS" step carried
+            # no such obligation, so naming the act strengthens this check.
+            if rule_name == "ADMIT_TO_M":
+                assert step.parameters.get("act") == "m_enlargement"
+                assert step.parameters.get("derivation") == ["INS"], (
+                    f"ADMIT_TO_M must execute exactly one INS, got "
+                    f"{step.parameters.get('derivation')!r}")
             if rule_name == "QUOTE":
                 assert rule_name in NEUTRAL_RULES
                 assert step.parameters.get("act") == "quotation"
@@ -329,8 +339,18 @@ class TestTier3RulesRestraint:
         for step in chain.steps:
             rule_name = step.rule_name
             assert (
-                rule_name in dau_rules or rule_name == "QUOTE"
+                rule_name in dau_rules or rule_name in {"QUOTE", "ADMIT_TO_M"}
             ), f"Unexpected rule {rule_name}"
+            # ADMIT_TO_M is not a new rule: it is ONE licensed INS of a closed
+            # cell into the standing residence, recorded under the name of the
+            # act it performs (m_steps.admit_step). Held to exactly that here,
+            # rather than merely added to the list — a bare "INS" step carried
+            # no such obligation, so naming the act strengthens this check.
+            if rule_name == "ADMIT_TO_M":
+                assert step.parameters.get("act") == "m_enlargement"
+                assert step.parameters.get("derivation") == ["INS"], (
+                    f"ADMIT_TO_M must execute exactly one INS, got "
+                    f"{step.parameters.get('derivation')!r}")
             if rule_name == "QUOTE":
                 assert rule_name in NEUTRAL_RULES
                 assert step.parameters.get("act") == "quotation"
@@ -382,8 +402,18 @@ class TestTier3RulesRestraint:
         for step in chain.steps:
             rule_name = step.rule_name
             assert (
-                rule_name in dau_rules or rule_name == "QUOTE"
+                rule_name in dau_rules or rule_name in {"QUOTE", "ADMIT_TO_M"}
             ), f"Unexpected rule {rule_name}"
+            # ADMIT_TO_M is not a new rule: it is ONE licensed INS of a closed
+            # cell into the standing residence, recorded under the name of the
+            # act it performs (m_steps.admit_step). Held to exactly that here,
+            # rather than merely added to the list — a bare "INS" step carried
+            # no such obligation, so naming the act strengthens this check.
+            if rule_name == "ADMIT_TO_M":
+                assert step.parameters.get("act") == "m_enlargement"
+                assert step.parameters.get("derivation") == ["INS"], (
+                    f"ADMIT_TO_M must execute exactly one INS, got "
+                    f"{step.parameters.get('derivation')!r}")
             if rule_name == "QUOTE":
                 assert rule_name in NEUTRAL_RULES
                 assert step.parameters.get("act") == "quotation"

@@ -1,175 +1,175 @@
 {
   "Cut": [
     {
-      "id": "c_3c3dce03"
+      "id": "c_243d0868"
     },
     {
-      "id": "c_56460436"
+      "id": "c_76374875"
     },
     {
-      "id": "c_9dfe18ea"
+      "id": "c_88ac2b66"
     },
     {
-      "id": "c_b0a0d5f8"
+      "id": "c_a32303b0"
     },
     {
-      "id": "c_ea742410"
+      "id": "c_dd90bb54"
     },
     {
-      "id": "cut_034eea3f"
+      "id": "cut_c3b10cbe"
     },
     {
-      "id": "cut_1037d778"
+      "id": "cut_cd4d28e3"
     }
   ],
   "E": [
     {
-      "id": "e_03daba11"
+      "id": "e_13cdbba9"
     },
     {
-      "id": "e_a387b33a"
+      "id": "e_2634de01"
     },
     {
-      "id": "e_a5500fa7"
+      "id": "e_3458b5ab"
     },
     {
-      "id": "e_bf4fd3bd"
+      "id": "e_440c8a13"
     },
     {
-      "id": "e_e481f640"
+      "id": "e_44afb9fb"
     },
     {
-      "id": "e_eea8e317"
+      "id": "e_6af33d6c"
     }
   ],
   "V": [
     {
-      "id": "v_3f6d1901",
+      "id": "v_0c9c19ef",
       "is_generic": true,
       "label": null
     },
     {
-      "id": "v_56ed3da5",
-      "is_generic": false,
-      "label": "phi-zero"
+      "id": "v_4be39005",
+      "is_generic": true,
+      "label": null
     },
     {
-      "id": "v_5e574c53",
+      "id": "v_6dfd626c",
+      "is_generic": true,
+      "label": null
+    },
+    {
+      "id": "v_7c0f180d",
       "is_generic": false,
       "label": "s6"
     },
     {
-      "id": "v_63a75ad3",
-      "is_generic": true,
-      "label": null
-    },
-    {
-      "id": "v_71e6a6a6",
-      "is_generic": false,
-      "label": "phi-two"
-    },
-    {
-      "id": "v_79f26d1c",
+      "id": "v_ae6ce9fc",
       "is_generic": false,
       "label": "phi-one"
     },
     {
-      "id": "v_87ee850e",
+      "id": "v_ae72a67d",
       "is_generic": true,
       "label": null
     },
     {
-      "id": "v_e849f2a5",
+      "id": "v_c54fa136",
+      "is_generic": false,
+      "label": "phi-zero"
+    },
+    {
+      "id": "v_d07ddea8",
       "is_generic": false,
       "label": "s0"
     },
     {
-      "id": "v_f1b0c5fa",
-      "is_generic": true,
-      "label": null
+      "id": "v_d957d371",
+      "is_generic": false,
+      "label": "phi-two"
     }
   ],
   "alphabet": null,
   "area": {
-    "c_3c3dce03": [
-      "e_e481f640",
-      "v_87ee850e"
+    "c_243d0868": [
+      "e_440c8a13",
+      "v_6dfd626c"
     ],
-    "c_56460436": [
-      "c_b0a0d5f8",
-      "e_03daba11",
-      "v_71e6a6a6",
-      "v_f1b0c5fa"
+    "c_76374875": [
+      "e_6af33d6c",
+      "v_ae72a67d"
     ],
-    "c_9dfe18ea": [
-      "c_3c3dce03",
-      "c_56460436",
-      "c_ea742410",
-      "e_a387b33a",
-      "e_bf4fd3bd",
-      "v_56ed3da5",
-      "v_5e574c53",
-      "v_79f26d1c",
-      "v_e849f2a5"
+    "c_88ac2b66": [
+      "c_dd90bb54",
+      "e_44afb9fb",
+      "v_4be39005",
+      "v_d957d371"
     ],
-    "c_b0a0d5f8": [
-      "e_a5500fa7",
-      "v_63a75ad3"
+    "c_a32303b0": [
+      "c_243d0868",
+      "c_76374875",
+      "c_88ac2b66",
+      "e_13cdbba9",
+      "e_3458b5ab",
+      "v_7c0f180d",
+      "v_ae6ce9fc",
+      "v_c54fa136",
+      "v_d07ddea8"
     ],
-    "c_ea742410": [
-      "e_eea8e317",
-      "v_3f6d1901"
+    "c_dd90bb54": [
+      "e_2634de01",
+      "v_0c9c19ef"
     ],
-    "cut_034eea3f": [],
-    "cut_1037d778": [
-      "c_9dfe18ea",
-      "cut_034eea3f"
+    "cut_c3b10cbe": [],
+    "cut_cd4d28e3": [
+      "c_a32303b0",
+      "cut_c3b10cbe"
     ],
-    "sheet_ccf5ebff": [
-      "cut_1037d778"
+    "sheet_cf6d3289": [
+      "cut_cd4d28e3"
     ]
   },
   "nu": {
-    "e_03daba11": [
-      "v_f1b0c5fa",
-      "v_71e6a6a6"
+    "e_13cdbba9": [
+      "v_7c0f180d",
+      "v_c54fa136"
     ],
-    "e_a387b33a": [
-      "v_e849f2a5",
-      "v_79f26d1c"
+    "e_2634de01": [
+      "v_0c9c19ef"
     ],
-    "e_a5500fa7": [
-      "v_63a75ad3"
+    "e_3458b5ab": [
+      "v_d07ddea8",
+      "v_ae6ce9fc"
     ],
-    "e_bf4fd3bd": [
-      "v_5e574c53",
-      "v_56ed3da5"
+    "e_440c8a13": [
+      "v_6dfd626c"
     ],
-    "e_e481f640": [
-      "v_87ee850e"
+    "e_44afb9fb": [
+      "v_4be39005",
+      "v_d957d371"
     ],
-    "e_eea8e317": [
-      "v_3f6d1901"
+    "e_6af33d6c": [
+      "v_ae72a67d"
     ]
   },
   "quotation": {
-    "c_3c3dce03": "v_79f26d1c",
-    "c_b0a0d5f8": "v_71e6a6a6",
-    "c_ea742410": "v_56ed3da5"
+    "c_243d0868": "v_c54fa136",
+    "c_76374875": "v_ae6ce9fc",
+    "c_dd90bb54": "v_d957d371"
   },
   "rel": {
-    "e_03daba11": "forces",
-    "e_a387b33a": "forces",
-    "e_a5500fa7": "two",
-    "e_bf4fd3bd": "forces",
-    "e_e481f640": "one",
-    "e_eea8e317": "zero"
+    "e_13cdbba9": "forces",
+    "e_2634de01": "two",
+    "e_3458b5ab": "forces",
+    "e_440c8a13": "zero",
+    "e_44afb9fb": "forces",
+    "e_6af33d6c": "one"
   },
   "rho": {},
-  "sheet": "sheet_ccf5ebff",
+  "sheet": "sheet_cf6d3289",
   "sort": {
-    "v_56ed3da5": "proposition",
-    "v_71e6a6a6": "proposition",
-    "v_79f26d1c": "proposition"
+    "v_ae6ce9fc": "proposition",
+    "v_c54fa136": "proposition",
+    "v_d957d371": "proposition"
   }
 }

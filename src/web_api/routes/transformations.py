@@ -193,19 +193,23 @@ async def apply_transform(request: TransformApplyRequest):
         elif rule == "INS":
             egif_content = params.get("egif_content", "")
             target_area = params.get("target_area", egi.sheet)
-            # For INS the selected_subgraph is the parsed graph's elements
+            # Parse only to reject invalid EGIF early with a clear code; the
+            # content itself is what INS needs, and it is passed through as
+            # `insertion_egif` below.
+            #
+            # This route used to hand the rule a `selected_subgraph` built from
+            # the *parsed* graph's ids — ids belonging to a different graph,
+            # which the engine then silently ignored, so INS reported success
+            # and changed nothing (fixed 2026-09-20; INS now routes through
+            # `rule_interaction.insert_from_egif`, the canonical implementation).
             try:
-                insert_egi = parse_egif(egif_content)
-                selected = frozenset(
-                    [v.id for v in insert_egi.V]
-                    + [e.id for e in insert_egi.E]
-                    + [c.id for c in insert_egi.Cut]
-                )
+                parse_egif(egif_content)
             except Exception as e:
                 return ApiResponse(
                     success=False,
                     error={"code": "PARSE_ERROR", "message": f"Invalid EGIF: {e}"},
                 )
+            selected = frozenset()
 
         elif rule == "DC+":
             selected = frozenset(params.get("selected_elements", []))
@@ -237,7 +241,10 @@ async def apply_transform(request: TransformApplyRequest):
             )
 
         # Apply the rule
-        result = _engine.apply_rule(rule, egi, target_area, selected)
+        result = _engine.apply_rule(
+            rule, egi, target_area, selected,
+            insertion_egif=(params.get("egif_content", "") if rule == "INS" else None),
+        )
 
         if not result.success:
             return ApiResponse(

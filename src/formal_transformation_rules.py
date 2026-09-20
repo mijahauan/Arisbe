@@ -246,6 +246,12 @@ class TransformationContext:
     # back to enclosing the whole area.  Distinguishes "a double negative at
     # this spot, around nothing" from the convenience "wrap the whole area".
     enclose_empty: bool = False
+    # INS only: the EGIF content to insert. INS inserts *new* content, so what
+    # goes in cannot be named by ids of elements already present — which is what
+    # ``selected_subgraph`` holds. The interaction protocol has always set this
+    # attribute dynamically; declaring it makes the engine path (and the web
+    # route behind it) able to say what to insert at all.
+    insertion_egif: Optional[str] = None
 
 
 @dataclass
@@ -653,6 +659,17 @@ class InsertionRule(FormalTransformationRule):
         if refusal:
             return False, refusal
 
+        # INS inserts *new* content. Given it, nothing further is required here:
+        # `insert_from_egif` parses and merges it, and it cannot be unclosed —
+        # it is a whole graph, not a selection out of one.
+        if getattr(context, "insertion_egif", None):
+            return True, None
+
+        # Neither content nor a selection: there is nothing to insert. Say so.
+        # This used to fall through and report success on an unchanged graph.
+        if not context.selected_subgraph:
+            return False, "INS requires EGIF content to insert (none given)"
+
         # CRITICAL: Check if subgraph to insert is closed per Dau's requirement
         # Use comprehensive closure validator
         # Beta: pass context_area so vertices in ancestor areas are free
@@ -702,9 +719,23 @@ class InsertionRule(FormalTransformationRule):
         if not precondition_ok:
             return TransformationResult(False, None, error_msg, {})
 
+        # Given EGIF content, defer to the canonical insertion implementation —
+        # the one the interaction protocol and the Endoporeutic Game engine
+        # already share (`rule_interaction.insert_from_egif`). One rule, one
+        # implementation: the hand-rolled path below only ever inserted ids
+        # literally prefixed "new_vertex_"/"inserted_", so every real id fell
+        # through and it returned success on an unchanged graph — which is what
+        # `POST /transform/apply` did with a user's EGIF (fixed 2026-09-20).
+        # Imported inside the function: `rule_interaction` imports this module.
+        if getattr(context, "insertion_egif", None):
+            from rule_interaction import insert_from_egif
+
+            return insert_from_egif(
+                context.source_egi, context.target_area, context.insertion_egif)
+
         try:
             egi = context.source_egi
-            
+
             # Use expanded subgraph if available (from closure validation)
             selected_elements = getattr(context, 'expanded_subgraph', context.selected_subgraph)
 
@@ -1859,8 +1890,15 @@ class FormalTransformationEngine:
         source_egi: RelationalGraphWithCuts,
         target_area: ElementID,
         selected_subgraph: FrozenSet[ElementID],
+        insertion_egif: Optional[str] = None,
     ) -> TransformationResult:
-        """Apply a transformation rule to an EGI."""
+        """Apply a transformation rule to an EGI.
+
+        ``insertion_egif`` is INS's content — what to insert. INS adds *new*
+        ink, so it cannot be named by ``selected_subgraph``, which holds ids of
+        elements already in ``source_egi``. Without it INS now refuses rather
+        than reporting success on an unchanged graph.
+        """
 
         if rule_name not in self.rules:
             return TransformationResult(
@@ -1882,6 +1920,7 @@ class FormalTransformationEngine:
             selected_subgraph=selected_subgraph,
             area_polarity=polarity,
             nesting_depth=nesting_depth,
+            insertion_egif=insertion_egif,
         )
 
         # Apply the rule

@@ -63,10 +63,32 @@ def tomos():
 
 
 def _m_bearing_ids():
+    """Every UoD this gate must range over: the domain models, **plus any other
+    UoD whose chain records an ``act`` at all**.
+
+    The category filter on its own was a silent hole. `episode_discharge` carries
+    the corpus's ONLY `m_discharge` and `episode_entertained` steps, but it is
+    categorised `theorem_proof`, so every ⊥-door check skipped on every parameter
+    — the ruling that makes licence ≠ certification was asserted in the
+    documentation and measured by nothing. The three quotation-bearing
+    `canonical_pattern` UoDs sat in the same blind spot. An act is this gate's
+    business wherever it is recorded, not only where the category says M lives.
+
+    Held by :func:`test_every_recorded_act_is_reachable_by_this_gate`.
+    """
     svc = TomosService(TOMOS_ROOT)
-    return [u["uod_id"] for u in svc.list_uods()
-            if u.get("category") == "domain_model"
-            and u["uod_id"] not in ONTOLOGY_ALLOWLIST]
+    ids = []
+    for u in svc.list_uods():
+        uid = u["uod_id"]
+        if uid in ONTOLOGY_ALLOWLIST:
+            continue
+        if u.get("category") == "domain_model":
+            ids.append(uid)
+            continue
+        chain = svc.load_chain(uid)
+        if chain and any((s.parameters or {}).get("act") for s in chain.steps):
+            ids.append(uid)
+    return ids
 
 
 def _chain_states(tomos, uod_id):
@@ -136,20 +158,51 @@ M_RULES = ("REVISE_M", "REVISE_M(sibling)", "ADMIT_TO_M", "RETRACT_FROM_M",
            "BANK_TO_M")
 
 
+def _quotation_flavor(params) -> str:
+    """Which replayable flavour of a ``"quotation"`` act this is, or ``""``.
+
+    Three are replayable from the record, and the gate verifies each by
+    re-executing it in :func:`_replay_act`:
+
+    * ``oracle-answer`` — the banking flow (``oracle_notes.bank_answer``),
+      identified by ``provenance``;
+    * ``with_sort`` — ``quotation_overlay.sort_step``, the oval-less half of a
+      cross-UoD mention: the name gains the core sort and nothing else. Needs
+      ``name_label`` + ``sort``;
+    * ``with_quotation_binding`` — ``quotation_overlay.quote_step``: the drawn
+      name gains the sort and a dotted oval holding the quoted ink. Needs
+      ``name_label`` + ``sort`` + ``quoted_egif``.
+    """
+    p = params or {}
+    if p.get("provenance") == "oracle-answer":
+        return "oracle-answer"
+    derivation = p.get("derivation") or []
+    if derivation == ["with_sort"] and p.get("name_label") and p.get("sort"):
+        return "with_sort"
+    if (derivation == ["with_quotation_binding"] and p.get("name_label")
+            and p.get("sort") and p.get("quoted_egif")):
+        return "with_quotation_binding"
+    return ""
+
+
 def _acknowledged(act, params) -> bool:
     """Is ``act`` (with its recorded ``params``) an act the gate actually
     acknowledges? True iff ``act in M_ACTS`` — EXCEPT ``"quotation"``, which
-    additionally requires ``params.get("provenance") == "oracle-answer"``.
+    additionally requires a **replayable flavour** (:func:`_quotation_flavor`).
 
-    ``_replay_act`` only knows how to re-execute the oracle-answer banking
-    flavor of a ``"quotation"`` act (``bank_answer``); any other quotation act
-    (e.g. a bare ``quote_step``/``sort_step`` mention landing inside a
-    resident-M cell — ``src/quotation_overlay.py``'s builders stamp
-    ``act="quotation"`` with no ``provenance`` key at all) is unreplayable
-    from the record. Unreplayable means unearned: the gate must not let a
-    provenance-less quotation act ride through on the bare act name."""
+    The rule is not "which acts do we like" but **unreplayable means unearned**:
+    the gate must not let a quotation act ride through on the bare act name when
+    nothing in the record lets it be re-executed and checked.
+
+    Widened 2026-09-20 from ``provenance == "oracle-answer"`` alone to the two
+    ``quotation_overlay`` builders, whose steps *do* carry everything replay
+    needs. That is a strengthening, not a relaxation: three flavours are now
+    re-executed and their results compared, where two of them were previously
+    refused outright. A quotation act carrying none of the three is still
+    refused, exactly as before.
+    """
     if act == "quotation":
-        return (params or {}).get("provenance") == "oracle-answer"
+        return bool(_quotation_flavor(params))
     return act in M_ACTS
 
 
@@ -726,11 +779,24 @@ def _replay_act(before, act, p):
         if "new_m_egif" not in p:
             return None    # recorded before revise_step captured new_m_egif
         return withdraw_and_resupply(before, p["new_m_egif"])[0]
-    if act == "quotation" and p.get("provenance") == "oracle-answer":
-        from oracle_notes import bank_answer
-        return bank_answer(before, p["answer_text"],
-                           qid=p.get("qid", ""),
-                           note_date=p.get("note_date", ""))[0]
+    if act == "quotation":
+        flavor = _quotation_flavor(p)
+        if flavor == "oracle-answer":
+            from oracle_notes import bank_answer
+            return bank_answer(before, p["answer_text"],
+                               qid=p.get("qid", ""),
+                               note_date=p.get("note_date", ""))[0]
+        if flavor == "with_sort":
+            from eg_navigation import vertex_by_label
+            return before.with_sort(
+                vertex_by_label(before, p["name_label"]), p["sort"])
+        if flavor == "with_quotation_binding":
+            from eg_navigation import vertex_by_label
+            from quotation_overlay import quote_existing_name
+            return quote_existing_name(
+                before, vertex_by_label(before, p["name_label"]),
+                parse_egif(p["quoted_egif"]), sort=p["sort"])[0]
+        return None
     return None            # a non-M act carrying a derivation — not replayed
 
 
@@ -881,3 +947,45 @@ def test_the_ontology_allowlist_matches_the_corpus(tomos):
         assert find_world_scroll(egi) is None, (
             f"{uod_id} now carries a world-scroll — remove it from the "
             f"allowlist so the gate covers it")
+
+
+# --------------------------------------------------------------------------- #
+# The gate's own coverage — silence must never be mistaken for assent          #
+# --------------------------------------------------------------------------- #
+
+def _acts_recorded_anywhere(svc):
+    """Every ``act`` recorded by any chain in the corpus, with the UoDs that
+    carry it — what this gate is obliged to range over."""
+    out: dict = {}
+    for u in svc.list_uods():
+        chain = svc.load_chain(u["uod_id"])
+        if chain is None:
+            continue
+        for s in chain.steps:
+            act = (s.parameters or {}).get("act")
+            if act:
+                out.setdefault(act, set()).add(u["uod_id"])
+    return out
+
+
+def test_every_recorded_act_is_reachable_by_this_gate(tomos):
+    """A parametrized check that skips on EVERY parameter measures nothing — and
+    it reads exactly like a check that passes.
+
+    `test_discharges_cite_a_confirming_peel` skipped on all 19 parameters for as
+    long as it existed: the only UoD in the corpus carrying an `m_discharge` step
+    is `episode_discharge`, categorised `theorem_proof`, and the parametrization
+    admitted `domain_model` only. So the ⊥-door discipline — the ruling that makes
+    licence ≠ certification — was asserted in the documentation and measured by
+    nothing. `episode_entertained` and `quotation` sat in the same blind spot.
+
+    This test closes the class rather than the instance: an act the corpus records
+    but the parametrization cannot reach is an unmeasured claim, and a new act
+    added later cannot slip in behind a quiet suite.
+    """
+    reachable = set(_m_bearing_ids())
+    for act, carriers in sorted(_acts_recorded_anywhere(tomos).items()):
+        assert carriers & reachable, (
+            f"act {act!r} is recorded in {sorted(carriers)} but this gate is "
+            f"parametrized over none of them — every check of {act!r} skips on "
+            f"every parameter and measures nothing")

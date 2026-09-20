@@ -1,0 +1,470 @@
+{
+  "_README": [
+    "The admission ledger - tests that CANNOT FAIL, each recorded with its reason.",
+    "",
+    "The author's principle (2026-09-19): residence in the canonical corpus is earned by",
+    "passing a formal Dau threshold; a work in progress belongs in Ergasterion; a graph",
+    "that loses the EPG may still teach the shape of a mistake; a graph once accepted and",
+    "since falsified has its own place in a UoD's history. 'Our testing of candidates and",
+    "code must also pass a similar gate.'",
+    "",
+    "A test that cannot fail has passed no gate, yet it is counted in every 'N passing'",
+    "figure the project quotes. This ledger is that debt, written down - the same idiom as",
+    "tests/calculus_ledger.json: a NEW inadmissible test fails as new; a REPAIRED one fails",
+    "with 'shrink this entry'. Nothing here is deleted to make a suite green.",
+    "",
+    "Clause 1 of the test-admission gate (IT CAN FAIL) is what this measures.",
+    "Clause 2 (IT IS REACHED) is enforced where the parametrization lives.",
+    "Clause 3 (IT MEASURES WHAT IT CLAIMS) is a reading task, tracked in tasks/todo.md."
+  ],
+  "_generated": "2026-09-20; 9 entries earned out by the chapter-15 rewrite (tests/test_chapter15_formal_calculus.py), which also uncovered the live engine-INS no-op it never tested",
+  "_counts": {
+    "total": 63,
+    "in_the_core_gate": 1,
+    "validation_theatre": 62,
+    "unclassified": 0
+  },
+  "entries": {
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_advanced_performance_optimization_comprehensive_summary": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 516,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_algorithmic_complexity_validation": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 299,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_concurrent_operation_performance_validation": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 371,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_large_scale_egi_performance_benchmarking": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 106,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_memory_optimization_garbage_collection_validation": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 196,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_advanced_performance_optimization::TestAdvancedPerformanceOptimization.test_production_scale_performance_validation": {
+      "path": "tests/test_advanced_performance_optimization.py",
+      "line": 439,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_chapter16_17_ligature_soundness_comprehensive_summary": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 674,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_enhanced_ligature_algorithms_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 315,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_algorithm_integration_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 363,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_error_handling_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 550,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_manipulation_rules_compliance": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 210,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_optimization_soundness_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 268,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_performance_characteristics_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 464,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter16_17_ligature_soundness_simplified::TestChapter16_17LigatureSoundnessSimplified.test_ligature_soundness_theorem_validation": {
+      "path": "tests/test_chapter16_17_ligature_soundness_simplified.py",
+      "line": 606,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_chapter20_syntactic_equivalence_comprehensive_summary": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 513,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_double_cut_equivalence_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 220,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_equivalence_composition_transitivity_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 401,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_iteration_deiteration_equivalence_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 277,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_ligature_equivalence_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 345,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_structural_equivalence_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 118,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_syntactic_equivalence_checker_instantiation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 78,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_syntactic_equivalence_soundness_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 454,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_chapter20_syntactic_equivalence::TestChapter20SyntacticEquivalence.test_transformation_based_equivalence_validation": {
+      "path": "tests/test_chapter20_syntactic_equivalence.py",
+      "line": 161,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_binary_serialization_comprehensive_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 266,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_complete_serialization_comprehensive_summary": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 632,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_json_serialization_comprehensive_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 130,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_large_scale_serialization_performance_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 400,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_production_serialization_reliability_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 551,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_round_trip_serialization_fidelity_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 324,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_serialization_error_handling_recovery_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 495,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_comprehensive::TestCompleteSerializationComprehensive.test_yaml_serialization_comprehensive_validation": {
+      "path": "tests/test_complete_serialization_comprehensive.py",
+      "line": 211,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_complete_serialization_comprehensive_summary": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 565,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_dictionary_serialization_comprehensive_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 211,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_json_serialization_comprehensive_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 128,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_large_scale_serialization_performance_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 345,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_production_serialization_reliability_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 489,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_round_trip_serialization_fidelity_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 266,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_serialization_simplified::TestCompleteSerializationSimplified.test_serialization_error_handling_validation": {
+      "path": "tests/test_complete_serialization_simplified.py",
+      "line": 435,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_complete_mathematical_framework_integration": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 422,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_complete_system_integration_comprehensive_summary": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 553,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_cross_component_data_flow_validation": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 224,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_end_to_end_workflow_integration_validation": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 105,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_multi_format_translation_pipeline_integration": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 334,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_complete_system_integration::TestCompleteSystemIntegration.test_performance_serialization_integration_validation": {
+      "path": "tests/test_complete_system_integration.py",
+      "line": 492,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_comprehensive_edge_case_validation::TestComprehensiveEdgeCaseValidation.test_boundary_condition_validation": {
+      "path": "tests/test_comprehensive_edge_case_validation.py",
+      "line": 61,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_comprehensive_edge_case_validation::TestComprehensiveEdgeCaseValidation.test_comprehensive_edge_case_validation_summary": {
+      "path": "tests/test_comprehensive_edge_case_validation.py",
+      "line": 516,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_comprehensive_edge_case_validation::TestComprehensiveEdgeCaseValidation.test_extreme_input_handling_validation": {
+      "path": "tests/test_comprehensive_edge_case_validation.py",
+      "line": 206,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_comprehensive_edge_case_validation::TestComprehensiveEdgeCaseValidation.test_malformed_data_handling_validation": {
+      "path": "tests/test_comprehensive_edge_case_validation.py",
+      "line": 325,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_comprehensive_edge_case_validation::TestComprehensiveEdgeCaseValidation.test_resource_exhaustion_handling_validation": {
+      "path": "tests/test_comprehensive_edge_case_validation.py",
+      "line": 422,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_cross_manager_communication::TestCrossManagerCommunication.test_cross_manager_communication_comprehensive_summary": {
+      "path": "tests/test_cross_manager_communication.py",
+      "line": 505,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_cross_manager_communication::TestCrossManagerCommunication.test_error_propagation_and_handling": {
+      "path": "tests/test_cross_manager_communication.py",
+      "line": 379,
+      "shape": "every assertion sits inside a try whose handler swallows it",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_egi_core_comprehensive::TestEGICoreComprehensive.test_egi_core_comprehensive_summary": {
+      "path": "tests/test_egi_core_comprehensive.py",
+      "line": 474,
+      "shape": "only `assert True`",
+      "status": "in-the-core-gate",
+      "note": "Resident in the core suite the quality gate runs and CLAUDE.md says 'must always pass'. Highest priority for repair against Dau: a non-test certifying the calculus."
+    },
+    "test_final_production_readiness::TestFinalProductionReadiness.test_enterprise_scalability_assessment_validation": {
+      "path": "tests/test_final_production_readiness.py",
+      "line": 269,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_final_production_readiness::TestFinalProductionReadiness.test_final_production_readiness_comprehensive_summary": {
+      "path": "tests/test_final_production_readiness.py",
+      "line": 566,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_final_production_readiness::TestFinalProductionReadiness.test_performance_benchmarking_validation": {
+      "path": "tests/test_final_production_readiness.py",
+      "line": 492,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_final_production_readiness::TestFinalProductionReadiness.test_production_deployment_readiness_validation": {
+      "path": "tests/test_final_production_readiness.py",
+      "line": 102,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_final_production_readiness::TestFinalProductionReadiness.test_system_reliability_stability_validation": {
+      "path": "tests/test_final_production_readiness.py",
+      "line": 391,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_concurrent_user_simulation_validation": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 280,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_high_volume_egi_processing_validation": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 109,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_memory_scalability_under_load_validation": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 193,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_production_scalability_comprehensive_summary": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 575,
+      "shape": "only `assert True`",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_production_workload_simulation_validation": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 471,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    },
+    "test_production_scalability_validation::TestProductionScalabilityValidation.test_system_stability_under_stress_validation": {
+      "path": "tests/test_production_scalability_validation.py",
+      "line": 388,
+      "shape": "no assertion, and every call that could raise is swallowed",
+      "status": "validation-theatre",
+      "note": "From the 'PHASE N comprehensive validation' block (one commit, one authorial fingerprint): computes a result, prints it, asserts nothing. Keeps pedagogical value as an exhibit of the shape - a test that looks like a test and measures nothing - but earns no residence in the suite."
+    }
+  }
+}

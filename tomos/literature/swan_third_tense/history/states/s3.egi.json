@@ -1,103 +1,103 @@
 {
   "Cut": [
     {
-      "id": "c_5294a50e"
+      "id": "c_23bd9ff6"
     },
     {
-      "id": "c_8c709163"
+      "id": "c_494b7aee"
     },
     {
-      "id": "c_a582060e"
+      "id": "c_7de2d2c3"
     },
     {
-      "id": "c_b8f86647"
+      "id": "c_a87fe49c"
     },
     {
-      "id": "cut_41818b3b"
+      "id": "cut_11fbb77a"
     },
     {
-      "id": "cut_c29d1207"
+      "id": "cut_9d76352c"
     }
   ],
   "E": [
     {
-      "id": "e_3a53c136"
+      "id": "e_71aa1fb3"
     },
     {
-      "id": "e_9a612997"
+      "id": "e_924e294f"
     },
     {
-      "id": "e_e1c55d0f"
+      "id": "e_965fa608"
     }
   ],
   "V": [
     {
-      "id": "v_3266cbbf",
+      "id": "v_0a60e3f1",
       "is_generic": true,
       "label": null
     },
     {
-      "id": "v_9393edd9",
-      "is_generic": false,
-      "label": "M_swan_law"
-    },
-    {
-      "id": "v_a662bbb0",
+      "id": "v_2e023bdd",
       "is_generic": false,
       "label": "Nox"
+    },
+    {
+      "id": "v_e7efb421",
+      "is_generic": false,
+      "label": "M_swan_law"
     }
   ],
   "alphabet": null,
   "area": {
-    "c_5294a50e": [
-      "c_a582060e",
-      "e_9a612997",
-      "v_9393edd9",
-      "v_a662bbb0"
+    "c_23bd9ff6": [
+      "e_924e294f"
     ],
-    "c_8c709163": [
-      "e_3a53c136"
+    "c_494b7aee": [
+      "c_a87fe49c",
+      "e_71aa1fb3",
+      "v_2e023bdd",
+      "v_e7efb421"
     ],
-    "c_a582060e": [
-      "c_b8f86647"
+    "c_7de2d2c3": [
+      "c_23bd9ff6",
+      "e_965fa608",
+      "v_0a60e3f1"
     ],
-    "c_b8f86647": [
-      "c_8c709163",
-      "e_e1c55d0f",
-      "v_3266cbbf"
+    "c_a87fe49c": [
+      "c_7de2d2c3"
     ],
-    "cut_41818b3b": [],
-    "cut_c29d1207": [
-      "c_5294a50e",
-      "cut_41818b3b"
+    "cut_11fbb77a": [
+      "c_494b7aee",
+      "cut_9d76352c"
     ],
-    "sheet_baa93720": [
-      "cut_c29d1207"
+    "cut_9d76352c": [],
+    "sheet_a577f696": [
+      "cut_11fbb77a"
     ]
   },
   "nu": {
-    "e_3a53c136": [
-      "v_3266cbbf"
+    "e_71aa1fb3": [
+      "v_e7efb421",
+      "v_2e023bdd"
     ],
-    "e_9a612997": [
-      "v_9393edd9",
-      "v_a662bbb0"
+    "e_924e294f": [
+      "v_0a60e3f1"
     ],
-    "e_e1c55d0f": [
-      "v_3266cbbf"
+    "e_965fa608": [
+      "v_0a60e3f1"
     ]
   },
   "quotation": {
-    "c_a582060e": "v_9393edd9"
+    "c_a87fe49c": "v_e7efb421"
   },
   "rel": {
-    "e_3a53c136": "white",
-    "e_9a612997": "superseded",
-    "e_e1c55d0f": "swan"
+    "e_71aa1fb3": "superseded",
+    "e_924e294f": "white",
+    "e_965fa608": "swan"
   },
   "rho": {},
-  "sheet": "sheet_baa93720",
+  "sheet": "sheet_a577f696",
   "sort": {
-    "v_9393edd9": "proposition"
+    "v_e7efb421": "proposition"
   }
 }

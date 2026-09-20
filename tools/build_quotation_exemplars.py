@@ -116,18 +116,37 @@ def _layout_fn(egi):
 
 def _residence(content_egif: str) -> ProofChain:
     """The gapless inbound construction (build_ontologies' pattern): DC+ opens
-    the standing scroll (asserts nothing), INS supposes the commentary into its
-    negative antecedent area — nothing contingent stands at depth 0."""
+    the standing scroll (asserts nothing), then one licensed INS of a closed cell
+    supplies the commentary into its negative antecedent area — nothing
+    contingent stands at depth 0.
+
+    The second move goes through :func:`m_steps.admit_step`, **not** a hand-rolled
+    ``pc.apply("INS", ...)``. It is the same rule on the same target, but it
+    records what the move *is*: ``act: m_enlargement`` with ``derivation:
+    ["INS"]``. Written by hand it carried no act at all, so the corpus-polarity
+    gate's m_view tripwire read it as a silent M-change — content reaching M
+    through the ⊥-door unrecorded. That went unnoticed because the gate was
+    parametrized over `domain_model` UoDs only and never ranged over these three
+    (fixed 2026-09-19, with `test_every_recorded_act_is_reachable_by_this_gate`
+    now holding the class). An exemplar must pass the gate it exemplifies.
+
+    The disposition is ``definition`` (mode ``convention``): this content is
+    *stipulated* scholarly context — a citation, a superseded-law note, a forcing
+    structure — not something observed, which is what ``new_fact``/``induction``
+    would claim.
+    """
+    from m_steps import admit_step
+
     pc = ProofChain.from_blank()
     pc.apply("DC+", into=lambda g: g.sheet,
              note="Open the standing residence: an empty double cut asserts "
                   "nothing, and until it exists there is nowhere to hold a "
                   "commentary that is not an assertion at the world's level.")
-    pc.apply("INS", insert=f"~[ {content_egif.strip()} ]",
-             into=lambda g: nav.child_cuts(g, g.sheet)[0],
-             note="Supply the commentary as one closed cell — insertion is "
-                  "sound in the negative arena, the content lands at even "
-                  "depth, and the claims are fenced (low warrant).")
+    admit_step(pc, content_egif.strip(),
+               disposition="definition", mode="convention", warrant="low",
+               note="Supply the commentary as one closed cell — insertion is "
+                    "sound in the negative arena, the content lands at even "
+                    "depth, and the claims are fenced (low warrant).")
     return pc
 
 
