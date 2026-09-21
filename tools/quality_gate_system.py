@@ -5,6 +5,7 @@ Standalone quality gate system for AI coherence framework.
 import subprocess
 import sys
 import os
+from pathlib import Path
 
 def run_quality_checks():
     """Run basic quality checks with core protection enforcement."""
@@ -89,9 +90,46 @@ def run_quality_checks():
                 if result.returncode != 0:
                     print(f"❌ Syntax error in {filepath}")
                     return False
-    
+
+    _warn_if_graph_is_stale()
+
     print("✅ All quality checks passed")
     return True
+
+
+def _warn_if_graph_is_stale() -> None:
+    """Say so when `graphify-out/` is older than the code it describes.
+
+    A stale instrument is worse than none, because it still answers. The
+    knowledge graph went four days stale during the nineteenth arc and would
+    have described a tree that no longer existed with no sign it was doing so —
+    the same defect class as a pinned extent nobody re-ran, or a test file
+    aimed at a renamed directory.
+
+    This only *reports*; it never fails the gate and never runs graphify itself.
+    Rebuilding is one command (`graphify update .` — AST-only, no API cost), and
+    whether to spend the ~30s belongs to whoever is committing, not to a hook
+    that would surprise them mid-commit.
+    """
+    report = Path("graphify-out/GRAPH_REPORT.md")
+    if not report.exists():
+        return
+    built = report.stat().st_mtime
+    newer = [
+        f"{root}/{name}"
+        for base in ("src", "tools", "tests")
+        for root, _dirs, files in os.walk(base)
+        for name in files
+        if name.endswith(".py") and os.path.getmtime(os.path.join(root, name)) > built
+    ]
+    if not newer:
+        return
+    print(f"📊 Knowledge graph is stale: {len(newer)} .py file(s) changed since it was "
+          f"built. Run `graphify update .` (AST-only, ~30s, no API cost).")
+    for f in sorted(newer)[:3]:
+        print(f"   - {f}")
+    if len(newer) > 3:
+        print(f"   … and {len(newer) - 3} more")
 
 def main():
     success = run_quality_checks()
