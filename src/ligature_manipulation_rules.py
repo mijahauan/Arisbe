@@ -464,17 +464,25 @@ class ExtendRestrictLigatureRule(FormalTransformationRule):
         # that the vertex an extension hangs from is any "v ∈ V" and only the
         # ADDED vertex v′ is generic — which the ones this rule creates are,
         # by construction (Vertex(id) with no label).
-
-        # Check if vertex is on a ligature (has identity connections)
-        has_identity_connections = False
-        for edge_id, vertex_sequence in egi.nu.items():
-            if egi.rel.get(edge_id) == "=" and vertex_id in vertex_sequence:
-                has_identity_connections = True
-                break
-
-        if not has_identity_connections:
-            return False, "Selected vertex must be on an existing ligature"
-
+        #
+        # And no *ligature* condition either (2026-09-21). Lemma 16.2 (p.172)
+        # reads: "Let a EGI 𝔊 be given with a vertex v. Let V′ be a set of fresh
+        # vertices and E′ be a set of fresh edges ... placed in the context
+        # ctx(v), and all fresh edges are identity edges between the vertices of
+        # {v} ⊍ V′ such that we have vΘv′ for each v′ ∈ V′." The only
+        # precondition on the *source* is that v be a vertex; every other clause
+        # governs what is BUILT, which apply_transformation does — two fresh
+        # vertices and two fresh identity edges, all in ctx(v). A lone vertex is
+        # a ligature of one, and the lemma extends it.
+        #
+        # This method used to demand an existing identity edge and refuse with
+        # "Selected vertex must be on an existing ligature", declining half of an
+        # equivalence rule — 524 moves in the default calculus mode, 6,538 at
+        # exhaustive bounds — while the comment directly above already said the
+        # anchor is any v ∈ V. The oracle written for this rule on 2026-09-20
+        # (tests/calculus_rules._extend_ligature) made the departure countable,
+        # and the ledger entry it carried, `extend-ligature-wants-an-existing-
+        # ligature`, is retired by this change rather than rewritten.
         return True, None
 
     def apply_transformation(
