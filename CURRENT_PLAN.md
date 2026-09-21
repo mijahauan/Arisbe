@@ -3,6 +3,62 @@
 **Last Updated**: 2026-09-21 (nineteenth arc, third sitting) — **EXTEND_LIGATURE FIXED AND PROVED
 AT FULL EXTENT; "PROTECTED CORE" RETIRED AS A GUARANTEE AND REPLACED BY AN ACTUAL TEST.**
 
+**▶▶▶ NEXT SESSION — read this first. (The `▶▶▶ NEXT SESSION` block further down, around
+line 470, is the EIGHTEENTH arc's and is STALE — several of its six items are done. This one
+supersedes it.)**
+
+**State: clean.** Everything is committed and pushed through `9f77a4a`; tree clean, in sync,
+no run in flight, `.core_modification_authorized` absent. Full suite **1 failed / 5,088
+passed** (the failure is `test_memory_stability`, the documented warm-process flake — it
+passes alone, the threshold is not to be touched). Exhaustive calculus green, read-only.
+Quality gate green, 166 core tests. Knowledge graph current.
+
+**What the nineteenth arc did** (six commits, 2026-09-19 → 21): fixed four live defects —
+the quantification misreading at two sites, the web API's silent INS no-op, EXTEND_LIGATURE
+refusing what Lemma 16.2 licenses, and CLIF/CGIF binder scoping; repaired three corpus
+exemplars; built the **test-admission gate** (a test must be able to fail) and the
+**calculus map** (a module is attested by a suite that pins its contract and can itself
+fail); wrote `legal()` oracles for the five rules that had none, so **every implemented rule
+is now judged**; and retired "protected core" as a guarantee. The core gate went from **10
+tests that cannot fail to 1**.
+
+**Pick up here — three items, in the order I would take them.**
+
+1. **Clause 3 of the admission gate: does a test measure what it claims?** Clauses 1 (it can
+   fail) and 2 (it is reached) are built and enforced; this one is a *reading* task and is
+   where the remaining false confidence lives. **Time-box it** — CLAUDE.md holds hundreds of
+   claims — to the load-bearing ones: the calculus, Def 12.5, the correspondence check, the
+   round trips, the calculus map. A first survey flagged eight claims weaker than written and
+   seven unmeasured; the sharpest is a live self-contradiction — CLAUDE.md says
+   `SecondOrderNotInLinearForm` is "raised by all three linear generators" while
+   `test_tomos_parsing` **xfails CLIF**, so two of three refuse. Fix contradictions, correct
+   stale figures, and add a test wherever the claim is worth keeping.
+2. **The 62 ledgered `validation-theatre` tests** (`tests/admission_ledger.json`). One dated
+   deposit — **all 11 files added on 2025-09-19** in "PHASE N COMPLETE" commits, nothing
+   inadmissible added since, so this is bounded historical debt and not a live leak. They are
+   still collected and still inflate every "N passing" figure the project quotes. Per the
+   author's principle, keep them *recorded* as an exhibit of the shape rather than silently
+   deleted; the ledger is the right place for that.
+3. **The two unattested calculus modules** — `hierarchical_index.py` (imported by
+   `egi_core_dau` itself) and `single_object_ligature_detector.py`. Declared in
+   `tests/test_calculus_map.py`'s `UNATTESTED`; both are reached only transitively, so their
+   code runs and their contracts are pinned by nothing. Shrink that set by giving them a
+   suite, **never** by deleting a name.
+
+**Also open, from the eighteenth arc and unchanged:** the alphabet question (239 failing
+items, genuinely the author's decision), `discharge_episode` pulling a quoted constant out of
+its oval, the EGIF generator's nondeterminism on symmetric graphs, the IT− docstring, and
+defect 8 (MOVE_BRANCHES tries one direction only). Details in the eighteenth arc's block
+below.
+
+**Before you touch anything, read `CLAUDE.md`'s "Standing cautions"** — seven items, each of
+which cost a real mistake in this arc. The two that cost the most: never change a tree under
+a running measurement (editing a JSON the suite reads at *runtime* corrupts the run outright,
+and cost a 2½-hour pass), and a fix that changes which moves are *applied* moves **every**
+layer's extent, not just the two you looked at.
+
+---
+
 **Item 2b — EXTEND_LIGATURE now extends at any vertex (author-authorized, protected module).**
 Lemma 16.2 (p.172): *"Let a EGI 𝔊 be given with a vertex v..."* — the only precondition on the
 **source** is that v be a vertex; every other clause governs what is *built*. The engine demanded
