@@ -6,7 +6,7 @@ this reading of Dau, never about an unstated assumption.
 """
 import pytest
 
-from calculus_rules import Move, legal
+from calculus_rules import DAU_RULES, UNIMPLEMENTED, Move, legal
 from egif_parser_dau import parse_egif
 
 
@@ -132,12 +132,68 @@ def test_vertex_rules_ignore_polarity():
     assert ok(h, Move("VERTEX_ERA", (_vertex(h),))) is False
 
 
-# Not judged
-def test_rules_whose_parameters_underdetermine_the_move_are_not_judged():
+# The ligature and vertex rules — Lemmas 16.2-16.3, Defs 16.4/16.6
+#
+# These five were `judged=False` until 2026-09-20, and this test recorded that
+# gap. It now records its closing: every IMPLEMENTED rule is judged, so the
+# refusal layer scores its moves instead of parking them in a `not judged`
+# bucket. Only the five rules with no entry point at all remain unjudged, and
+# they are named exactly.
+
+def test_every_implemented_rule_is_judged():
+    """The blind spot MOVE_BRANCHES hid an unsound move in, closed as a class.
+
+    A rule `legal()` abstains on is scored by no refusal layer and checked by
+    the structure layer only for EGI-hood, so nothing but soundness judges it —
+    which is how an unsound MOVE_BRANCHES survived a whole fix arc.
+    """
+    unjudged = sorted(r.name for r in DAU_RULES if r.engine and not r.judged)
+    assert unjudged == [], (
+        f"{unjudged} are implemented but unjudged — write the oracle, or say "
+        f"in the rule table why Dau's parameters cannot decide it")
+
+
+def test_only_the_entry_point_less_rules_are_unjudged():
+    assert sorted(r.name for r in DAU_RULES if not r.judged) == sorted(UNIMPLEMENTED)
+
+
+# Lemma 16.2, p.172 — extension needs only a vertex; Dau requires no existing
+# ligature ("Let a EGI be given with a vertex v"), a lone vertex being one.
+def test_extend_wants_exactly_one_vertex():
     g = parse_egif("(P *x)")
-    for rule in ("EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE"):
-        verdict, why = legal(g, Move(rule, (_vertex(g),), g.sheet))
-        assert verdict is None and why.startswith("not judged"), rule
+    assert ok(g, Move("EXTEND_LIGATURE", (_vertex(g),), g.sheet)) is True
+    assert ok(g, Move("EXTEND_LIGATURE", (sorted(g.nu)[0],), g.sheet)) is False
+
+
+# Lemma 16.3, p.173 — "ctx(w) = c = ctx(f) for all w in W and f in F"
+def test_retract_wants_a_connected_ligature_in_one_context():
+    g = parse_egif('*x *y (= x y) (P x) (Q y)')
+    W = tuple(sorted(v.id for v in g.V))
+    assert ok(g, Move("RETRACT_LIGATURE", W, g.sheet)) is True
+    # one vertex is not a ligature to retract
+    assert ok(g, Move("RETRACT_LIGATURE", W[:1], g.sheet)) is False
+    # two vertices with no identity edge between them are not connected
+    h = parse_egif("(P *x) (Q *y)")
+    assert ok(h, Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in h.V)), h.sheet)) is False
+
+
+def test_retract_refuses_when_the_identity_edge_is_deeper_than_its_vertices():
+    """The clause an earlier arc found the engine ignoring (p.173)."""
+    g = parse_egif('*x *y (P x) (Q y) ~[ (= x y) ]')
+    W = tuple(sorted(v.id for v in g.V))
+    assert ok(g, Move("RETRACT_LIGATURE", W, g.sheet)) is False
+
+
+# Def 16.6 merging, p.176 — "ctx(v1) >= ctx(e) = ctx(v2)"
+def test_merge_wants_the_edge_in_the_merged_vertex_context():
+    g = parse_egif('*x *y (= x y) (P x) (Q y)')
+    e = next(x for x in g.nu if g.rel.get(x) == "=")
+    v1, v2 = g.nu[e]
+    assert ok(g, Move("MERGE_VERTICES", (v1, v2, e))) is True
+    h = parse_egif('*x *y (P x) (Q y) ~[ (= x y) ]')
+    he = next(x for x in h.nu if h.rel.get(x) == "=")
+    hv1, hv2 = h.nu[he]
+    assert ok(h, Move("MERGE_VERTICES", (hv1, hv2, he))) is False
 
 
 # MOVE_BRANCHES — Lemma 16.1, p.169-171; Theta is Def 15.1, p.163

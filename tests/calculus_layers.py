@@ -98,7 +98,24 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
         problems += postconditions(g, m, h)
     if forms is not None and not any(nav.same_graph(f, h) for f in forms):
         problems.append("the result differs from the licensed change")
-    kind = "exact" if forms is not None else ("egi-only" if rec.verdict is None else "illegal")
+    # Four cases, and the fourth only became reachable on 2026-09-20, when the
+    # five remaining ligature/vertex rules gained legal() oracles:
+    #   exact         — a legal move whose licensed forms are built and compared
+    #   egi-only      — legal() does not judge it (verdict None)
+    #   postcondition — legal() judges it LEGAL but its licensed result is not
+    #                   built, so postconditions() above carries the check
+    #   illegal       — legal() judges it illegal and the engine applied anyway
+    # Before the oracles, no POSTCONDITION_RULES move ever reached verdict True,
+    # so a legal-but-unbuilt move fell through to "illegal" and would have been
+    # read as the severe cell. The check was always right; the label was not.
+    if forms is not None:
+        kind = "exact"
+    elif rec.verdict is None:
+        kind = "egi-only"
+    elif m.rule in POSTCONDITION_RULES:
+        kind = "postcondition"
+    else:
+        kind = "illegal"
     maps = g.alphabet is not None or bool(g.rho or g.sort or g.quotation)
     return f"{m.rule}:{kind}" + (":maps" if maps else ""), "; ".join(problems) or None
 

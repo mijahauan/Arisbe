@@ -43,11 +43,11 @@ DAU_RULES: Tuple[DauRule, ...] = (
     DauRule("VERTEX_INS", "Def 15.2 inserting a vertex, p.164, 166: any context", "equivalence", "engine:HEAVY_DOT", True),
     DauRule("VERTEX_ERA", "Def 15.2 erasing a vertex, p.164, 166: any context", "equivalence", "protocol:ERA", True),
     DauRule("MOVE_BRANCHES", "Lemma 16.1, p.169", "equivalence", "ligature:MOVE_BRANCHES", True),
-    DauRule("EXTEND_LIGATURE", "Lemma 16.2, p.172", "equivalence", "ligature:EXTEND_LIGATURE", False),
-    DauRule("RETRACT_LIGATURE", "Lemma 16.3, p.173", "equivalence", "ligature:RETRACT_LIGATURE", False),
-    DauRule("REARRANGE_LIGATURE", "Def 16.4, Cor 16.5, p.174-175", "equivalence", "ligature:REARRANGE_LIGATURE", False),
-    DauRule("SPLIT_VERTEX", "Def 16.6, Lemma 16.7, p.175-178", "equivalence", "split", False),
-    DauRule("MERGE_VERTICES", "Def 16.6 merging, p.176", "equivalence", "merge", False),
+    DauRule("EXTEND_LIGATURE", "Lemma 16.2, p.172", "equivalence", "ligature:EXTEND_LIGATURE", True),
+    DauRule("RETRACT_LIGATURE", "Lemma 16.3, p.173", "equivalence", "ligature:RETRACT_LIGATURE", True),
+    DauRule("REARRANGE_LIGATURE", "Def 16.4, Cor 16.5, p.174-175", "equivalence", "ligature:REARRANGE_LIGATURE", True),
+    DauRule("SPLIT_VERTEX", "Def 16.6, Lemma 16.7, p.175-178", "equivalence", "split", True),
+    DauRule("MERGE_VERTICES", "Def 16.6 merging, p.176", "equivalence", "merge", True),
     DauRule("ORIENT_IDENTITY", "Def 12.14 orientation of an identity edge, p.138", "equivalence", None, False),
     DauRule("LIGATURE_VERTEX", "Def 12.14 adding/removing a vertex, p.138", "equivalence", None, False),
     DauRule("CONSTANT_IDENTITY", "Def 24.10 constant identity rule, p.271", "equivalence", None, False),
@@ -549,6 +549,205 @@ def _move_branches(g: G, m: Move) -> Verdict:
     return False, "every hook sits on the join's only witness (Lemma 16.1's proof, p.170-171)"
 
 
+# --- the ligature and vertex rules (Lemmas 16.2-16.3, Defs 16.4/16.6) --------
+#
+# Written 2026-09-20. Until then these five were `judged=False`: legal() abstained,
+# so the refusal layer scored none of their moves and only the soundness layer
+# judged them at all. MOVE_BRANCHES sat in exactly that blind spot with an unsound
+# move inside it for a whole arc, and was caught only by a 2.5-hour exhaustive
+# sweep at the end. "The layers are quiet" is a question, not an answer.
+
+
+def _ligature_vertices(g: G, m: Move, least: int) -> Optional[Tuple[str, ...]]:
+    """The selection as vertices, or None if it is not `least`-or-more of them."""
+    vs = {v.id for v in g.V}
+    sel = tuple(dict.fromkeys(m.selection))
+    if len(sel) < least or not set(sel) <= vs:
+        return None
+    return sel
+
+
+def _identity_edges_within(g: G, W: set) -> List[str]:
+    """Every identity edge both of whose ends lie in ``W`` — the ligature's F."""
+    return [e for e in sorted(g.nu)
+            if g.rel.get(e) == "=" and set(g.nu[e]) <= W and len(set(g.nu[e])) > 1]
+
+
+def _connected_by_identity(g: G, W: Tuple[str, ...]) -> bool:
+    """Is ``W`` one ligature — connected through identity edges among its own?"""
+    F = _identity_edges_within(g, set(W))
+    seen, stack = {W[0]}, [W[0]]
+    while stack:
+        cur = stack.pop()
+        for e in F:
+            ends = set(g.nu[e])
+            if cur in ends:
+                for w in ends - seen:
+                    seen.add(w)
+                    stack.append(w)
+    return seen >= set(W)
+
+
+def _named(g: G, vid: str) -> bool:
+    v = next(x for x in g.V if x.id == vid)
+    return not v.is_generic and bool(v.label)
+
+
+def _extend_ligature(g: G, m: Move) -> Verdict:
+    """Lemma 16.2 (Extending or Restricting a Ligature in a Context, p.172).
+
+    "Let a EGI 𝔊 be given with a vertex v. Let V' be a set of fresh vertices and
+    E' be a set of fresh edges ... obtained from 𝔊 such that all fresh vertices
+    and edges are placed in the context ctx(v), and all fresh edges are identity
+    edges between the vertices of {v} ⊍ V' such that we have vΘv' for each
+    v' ∈ V'. Then 𝔊 and 𝔊' are syntactically equivalent."
+
+    The lemma's only precondition on the *source* is that v be a vertex: every
+    other clause governs what is built, which is the structure layer's business,
+    not legality. In particular Dau does **not** require v to lie on an existing
+    ligature — a lone vertex is a ligature of one, and the lemma extends it.
+    The target names no context (ctx(v) fixes it), so it cannot make the move
+    illegal.
+    """
+    sel = _ligature_vertices(g, m, 1)
+    if sel is None or len(sel) != 1:
+        return False, "Lemma 16.2 extends at one vertex v (p.172)"
+    return True, "a vertex v: fresh material goes in ctx(v) with vΘv' (p.172)"
+
+
+def _retract_ligature(g: G, m: Move) -> Verdict:
+    """Lemma 16.3 (Retracting a Ligature in a Context, p.173).
+
+    "Let (W,F) be a ligature which is placed in a context c, i.e., ctx(w) = c =
+    ctx(f) for all w ∈ W and f ∈ F, and let w₀ ∈ W ... all vertices of W\\{w₀}
+    and all edges of F are removed from c."
+
+    Three conditions, all on the selection: W is two or more vertices; they are
+    one connected ligature; and the **whole** ligature sits in one context —
+    *edges included*, which is the clause an earlier arc found the engine
+    ignoring (it collapsed along an identity edge deeper than both its vertices).
+
+    A fourth comes from Def 24.10 (p.270-272): W\\{w₀} is *erased*, and these
+    rules never erase a name. The lemma says only "let w₀ ∈ W", so it asks
+    whether SOME survivor works — which leaves at most one named vertex in W.
+    """
+    sel = _ligature_vertices(g, m, 2)
+    if sel is None:
+        return False, "Lemma 16.3 retracts a ligature of two or more vertices (p.173)"
+    if not _connected_by_identity(g, sel):
+        return False, "the selection is not one connected ligature (p.173)"
+    ctxs = {g.get_context(w) for w in sel}
+    if len(ctxs) != 1:
+        return False, "the vertices are not in one context: ctx(w) = c (p.173)"
+    c = ctxs.pop()
+    for e in _identity_edges_within(g, set(sel)):
+        if g.get_context(e) != c:
+            return False, "an identity edge lies outside c: ctx(f) = c fails (p.173)"
+    if sum(1 for w in sel if _named(g, w)) > 1:
+        return False, "no w₀ leaves W\\{w₀} nameless — erasing would take a name (Def 24.10, p.270)"
+    return True, "a connected ligature, vertices and edges in one context, a lawful w₀"
+
+
+def _rearrange_ligature(g: G, m: Move) -> Verdict:
+    """Definition 16.4 / Corollary 16.5 (Rearranging Ligatures in a Context,
+    p.174-175).
+
+    "Let (W,F) be a ligature which is placed in a context c, i.e., ctx(w) = c =
+    ctx(f) for all w ∈ W and f ∈ F ... The ligature (W,F) is replaced by a new
+    ligature (W',F')." Cor 16.5: the result is syntactically equivalent, and the
+    text summarises it as "A ligature in a context may be arbitrarily changed,
+    as long as it keeps connected."
+
+    Same precondition as Lemma 16.3 — it is proved by retracting then extending
+    — so the same three clauses, and **no more**. In particular a constant in W
+    does *not* make the move illegal: Cor 16.5 gives syntactic equivalence, so
+    the replacement ligature still carries the name. Keeping the name is a
+    postcondition on the result, not a precondition on the move. (A first draft
+    of this oracle read Def 24.10 as forbidding a named vertex here and scored 8
+    tier-A applications as SEVERE; the engine was right and the oracle was
+    wrong — `*x (= x "a")` rearranges to `*x (= "a" x)`, which loses nothing.)
+    """
+    sel = _ligature_vertices(g, m, 2)
+    if sel is None:
+        return False, "Def 16.4 rearranges a ligature of two or more vertices (p.174)"
+    if not _connected_by_identity(g, sel):
+        return False, "the selection is not one connected ligature (p.174)"
+    ctxs = {g.get_context(w) for w in sel}
+    if len(ctxs) != 1:
+        return False, "the vertices are not in one context: ctx(w) = c (p.174)"
+    c = ctxs.pop()
+    for e in _identity_edges_within(g, set(sel)):
+        if g.get_context(e) != c:
+            return False, "an identity edge lies outside c: ctx(f) = c fails (p.174)"
+    return True, "a connected ligature wholly placed in one context (p.174)"
+
+
+def _split_vertex(g: G, m: Move) -> Verdict:
+    """Definition 16.6 (Splitting a Vertex, p.175-176).
+
+    "Let v be a vertex in the context c₀ attached to hooks (e₁,i₁),…,(eₙ,iₙ),
+    placed in contexts c₁,…,cₙ. Let c be a context such that c₁,…,cₙ ≤ c ≤ c₀.
+    Then ... In c, a new vertex v' and a new identity-link between v and v' is
+    inserted. On the hooks (e₁,i₁),…,(eₙ,iₙ), v is replaced by v'."
+
+    The hooks are "some (not necessarily all)" of v's, so any non-empty subset
+    of them is Dau's domain. The whole precondition is the sandwich on c: the
+    target context must be enclosed by (or equal to) ctx(v), and must enclose
+    (or equal) the context of every hook's edge.
+    """
+    if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
+        return False, "Def 16.6 splits one vertex v (p.175)"
+    v = m.selection[0]
+    if not m.hooks:
+        return False, "Def 16.6 moves at least one hook (p.175)"
+    for e, i in m.hooks:
+        if e not in g.nu or i >= len(g.nu[e]) or g.nu[e][i] != v:
+            return False, "a named hook is not attached to v (p.175)"
+    if m.target is None or m.target not in all_areas(g):
+        return False, "the target is not a context"
+    if g.get_context(v) not in ancestors(g, m.target):
+        return False, "c ≤ c₀ fails: the target is not enclosed by ctx(v) (p.175)"
+    for e, _i in m.hooks:
+        if m.target not in ancestors(g, g.get_context(e)):
+            return False, "cₖ ≤ c fails: a hook's edge is not enclosed by the target (p.175)"
+    return True, "c₁,…,cₙ ≤ c ≤ c₀ — Def 16.6's sandwich holds (p.175)"
+
+
+def _merge_vertices(g: G, m: Move) -> Verdict:
+    """Definition 16.6 (Merging two Vertices, p.176).
+
+    "Let e ∈ E^id be an identity edge with ν(e) = (v₁, v₂) such that ctx(v₁) ≥
+    ctx(e) = ctx(v₂). Then v₂ may be merged into v₁, i.e., v₂ and e are erased
+    and, for every edge e ∈ E, e|ᵢ = v₁ is replaced by e|ᵢ = v₂."
+
+    ``ctx(e) ≤ ctx(v₁)`` is already guaranteed by Def 12.5 for any EGI, so the
+    clause that bites is **ctx(e) = ctx(v₂)**: the identity edge must sit in the
+    very context of the vertex being merged away. Collapsing along an edge
+    deeper than its vertices is what an earlier arc found the engine doing.
+
+    Def 24.10 (p.270-272) again: v₂ is *erased*, so it may not carry a name.
+    """
+    sel = tuple(dict.fromkeys(m.selection))
+    if len(sel) != 3:
+        return False, "Def 16.6 merging names v₁, v₂ and the identity edge e (p.176)"
+    v1, v2, e = sel
+    if e not in g.nu or g.rel.get(e) != "=" or len(set(g.nu[e])) != 2:
+        return False, "e is not a two-ended identity edge (p.176)"
+    if {v1, v2} != set(g.nu[e]):
+        return False, "v₁ and v₂ are not e's own ends (p.176)"
+    if g.get_context(e) != g.get_context(v2):
+        return False, "ctx(e) = ctx(v₂) fails — the edge is not in v₂'s context (p.176)"
+    if g.get_context(e) not in ancestors(g, g.get_context(e)) or \
+            g.get_context(v1) not in ancestors(g, g.get_context(e)):
+        return False, "ctx(v₁) ≥ ctx(e) fails (p.176)"
+    if _named(g, v2):
+        return False, "v₂ is erased and carries a name (Def 24.10, p.270)"
+    return True, "an identity edge with ctx(v₁) ≥ ctx(e) = ctx(v₂) (p.176)"
+
+
 _LEGAL = {"ERA": _era, "INS": _ins, "DC+": _dc_plus, "DC-": _dc_minus, "IT+": _it_plus,
           "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era,
-          "INS_EDGE": _ins_edge, "MOVE_BRANCHES": _move_branches}
+          "INS_EDGE": _ins_edge, "MOVE_BRANCHES": _move_branches,
+          "EXTEND_LIGATURE": _extend_ligature, "RETRACT_LIGATURE": _retract_ligature,
+          "REARRANGE_LIGATURE": _rearrange_ligature, "SPLIT_VERTEX": _split_vertex,
+          "MERGE_VERTICES": _merge_vertices}

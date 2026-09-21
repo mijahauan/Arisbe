@@ -109,6 +109,50 @@ and **prove that test can fail**.
 - [ ] **2c.** Make both of these standing tests, so a future rule cannot enter the
       engine unjudged or unexercised.
 
+## Item 2b — QUEUED: EXTEND_LIGATURE refuses what Lemma 16.2 licenses
+
+Found 2026-09-20 by the new oracle, on its first sweep — the same way MOVE_BRANCHES'
+oracle paid for itself the moment it existed. **Ledgered, not fixed** (entry
+`extend-ligature-wants-an-existing-ligature`, INCOMPLETE, 524 moves: tier A 336,
+tier B 166, tier S 22).
+
+**The defect.** Lemma 16.2 (p.172): *"Let a EGI 𝔊 be given with a vertex v. Let V' be a
+set of fresh vertices and E' be a set of fresh edges ... placed in the context ctx(v)
+... such that we have vΘv' for each v' ∈ V'."* The only precondition on the source is
+that v be a vertex; every other clause governs what is **built**. Dau does not require v
+to lie on an existing ligature — a lone vertex is a ligature of one.
+`ExtendRestrictLigatureRule.check_preconditions` refuses with *"Selected vertex must be
+on an existing ligature"*, declining half of an equivalence rule wherever the chosen
+vertex carries no identity edge.
+
+**The module already contradicts itself**, which is the strongest evidence for the
+reading: the comment immediately above the offending block says *"No genericity condition
+on the anchor: Def 24.10 (p.270) is explicit that the vertex an extension hangs from is
+any `v ∈ V`"* — and then the next ten lines demand that v carry an identity edge. (Same
+shape as `model_materialization`, which rendered a sheet line as a fixed individual in
+its own output while its rule extraction called it a variable.)
+
+**The fix.** Delete the `has_identity_connections` block,
+`src/ligature_manipulation_rules.py` ~467-476. Ten lines.
+
+**Why it is its own arc, not a drive-by.**
+- [ ] `ligature_manipulation_rules.py` is protected → needs the author's authorization
+      and `.core_modification_authorized`, removed afterwards.
+- [ ] It converts **524 refusals into applications**, and newly-enabled ligature
+      applications are exactly where this project's unsoundness has hidden before
+      (MOVE_BRANCHES, caught only by an exhaustive soundness sweep at the end of an arc).
+      So it needs its **own fresh exhaustive pass** (~2.5 h) to prove it changed no
+      meaning — not the one that pins the oracles.
+- [ ] Never start it while another measurement is in flight. Editing `src/` under a
+      running pass makes that pass describe a tree that no longer exists; editing a
+      JSON the suite reads at *runtime* (the ledger, the extent) corrupts the run
+      outright. Both were learned the hard way on 2026-09-20.
+- [ ] **Proof of the fix is the ledger entry VANISHING**, not being edited — a repaired
+      entry that is merely rewritten proves nothing. Read the extent diff for
+      `EXTEND_LIGATURE:refused/legal` going to absent and `applied/legal` rising by the
+      same 524, and confirm no new soundness failure appears on any move `legal()` judges
+      legal.
+
 ## Item 3 — One semantic rule, one implementation
 
 - [x] **3e. INS routed through `insert_from_egif`** (2026-09-20, author-authorized,

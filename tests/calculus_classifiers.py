@@ -105,6 +105,15 @@ def _rule(r, name) -> bool:
 
 
 REFUSAL: Dict[str, Pred] = {
+    # Lemma 16.2 (p.172) extends a ligature at any vertex — "Let a EGI be given
+    # with a vertex v", with no requirement that v already lie on one, a lone
+    # vertex being a ligature of one. The engine demands an existing identity
+    # connection, so it refuses what the lemma licenses. Visible only since the
+    # rule gained a legal() oracle (2026-09-20); before that every one of these
+    # sat unscored in a `not judged: underdetermined` bucket.
+    "extend-ligature-wants-an-existing-ligature":
+        lambda r, d: _rule(r, "EXTEND_LIGATURE") and not r.outcome.applied
+        and "existing ligature" in (r.outcome.message or ""),
     "heavy-dot-negative-only":
         lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied
         and positive(r.g, r.move.target),

@@ -115,7 +115,15 @@ nothing else changed, both pins pass — so it is the exemplar regeneration shif
 enumeration. The two **default** extents are re-pinned; the write touched those four keys and
 nothing else.
 
-**Verification on the final tree.** Full suite **1 failed, 5,061 passed, 241 skipped, 10
+**Verification, second sitting, on the final tree.** Full suite **1 failed, 5,066 passed, 241
+skipped, 10 deselected, 7 xfailed, 46 m 56 s**. The arithmetic closes: 5,061 + the 6 new `legal()`
+cases − the 1 retired gap-recording test = 5,066. Exhaustive calculus **10 passed, 2 h 38 min** (a
+read-only confirmation pass follows, since the pinning run used the write flag, under which the
+extent tests cannot fail). Quality gate green: core protection ✅, **166 core tests** ✅, syntax ✅.
+The one failure is `test_memory_stability` at 128.91 MB against its 120 MB threshold — the
+documented warm-process flake; it passes alone in 0.26 s and **the threshold was not touched**.
+
+**Verification, first sitting.** Full suite **1 failed, 5,061 passed, 241 skipped, 10
 deselected, 7 xfailed, 46 m 12 s**. The arithmetic closes against the previous run (3 failed /
 5,039 passed): chapter 15 went 9 → 23 tests (+14), `test_transformation_routes` added 6, and the
 two extent failures resolved (+2). The one failure is `test_memory_stability` at 125.30 MB against
@@ -124,7 +132,60 @@ threshold was not touched**. Quality gate green: core protection ✅, **166 core
 152 by chapter 15's +14), syntax ✅. **1 of those 166 can now not fail, down from 10** — a single
 self-labelled `assert True` summary in `test_egi_core_comprehensive`.
 
-**▶ The exhaustive pins are STALE and must be re-run** (`exhaustive:refusal`, `:structure`, `:run`,
+**THE FIVE MISSING ORACLES, WRITTEN — and every implemented rule is now judged.**
+EXTEND_LIGATURE (Lemma 16.2, p.172), RETRACT_LIGATURE (Lemma 16.3, p.173),
+REARRANGE_LIGATURE (Def 16.4 / Cor 16.5, p.174-175), SPLIT_VERTEX and MERGE_VERTICES
+(Def 16.6, p.175-176) each gained a `legal()` oracle read from the book, quoting its
+lemma. Held as a class by `test_every_implemented_rule_is_judged` — a rule `legal()`
+abstains on is scored by no refusal layer and checked by the structure layer only for
+EGI-hood, which is how an unsound MOVE_BRANCHES survived a whole fix arc. Only the five
+rules with **no entry point at all** remain unjudged, and a second test names them
+exactly. ~14,000 moves that sat in `not judged: underdetermined` buckets are now scored.
+
+**No SEVERE cell anywhere, and the exhaustive run agrees.** Every move the engine applies
+across the five, Dau licenses. `test_soundness_exhaustive` and `test_structure_exhaustive`
+are **green** with the new oracles scoring ~700,000 moves at full extent.
+
+**One real departure found, ledgered not fixed:
+`extend-ligature-wants-an-existing-ligature` — INCOMPLETE, 524 default / 6,538
+exhaustive.** Lemma 16.2's only precondition on the source is that v be a vertex; every
+other clause governs what is *built*, and Dau does not require v to lie on an existing
+ligature (a lone vertex is a ligature of one). `ExtendRestrictLigatureRule` refuses with
+"Selected vertex must be on an existing ligature". **The module contradicts its own
+comment** — the lines immediately above say "the vertex an extension hangs from is any
+`v ∈ V`" — the same shape as `model_materialization` rendering a sheet line as a fixed
+individual while its rule extraction called it a variable. Queued as **item 2b** in
+`tasks/todo.md`: a ten-line deletion, but it turns 524 refusals into *applications*,
+which is exactly where this project's unsoundness has hidden, so it gets its own
+exhaustive pass and its proof is the ledger entry **vanishing**, not being edited.
+
+**Two errors of mine, corrected in the open.** (1) My rearrange oracle read Def 24.10 as
+forbidding a named vertex in W and scored 8 tier-A applications as SEVERE. **The engine
+was right and the oracle was wrong**: Cor 16.5 gives equivalence, so the replacement
+ligature keeps the name — `*x (= x "a")` rearranges to `*x (= "a" x)`, losing nothing.
+Name-preservation is a postcondition, not a precondition. (2) A genuine bug in the
+**structure layer's labelling**, exposed by the oracles: a move judged *legal* whose
+licensed forms are not built fell through to `"illegal"`, the severe bucket. The check
+was always right (`postconditions()` runs for exactly those six rules); only the label
+lied — and it had been mislabelling MOVE_BRANCHES' single positive exercise ever since
+that rule got its oracle. There is now a fourth label, `postcondition`.
+
+**One ledger entry SHRANK for a stated cause.**
+`dc-plus-refuses-a-cut-named-with-its-contents` 5,827 → 5,824, and that −3 is exactly
+`B:DC+:refused/legal` −3 in the corpus-only diff: the exemplar regeneration shifting
+tier B's enumeration, not a change to DC+. The reason is written into the entry.
+
+**The exhaustive pins are re-pinned, in three passes kept separable.** (1) A pre-oracle
+pass isolated the **corpus-only** effect: 5 keys in refusal, 3 in structure, 2 in
+soundness, all tier B, all in the quotation-bearing graphs' neighbourhood — the three
+repaired exemplars behave as their originals did across ~700,000 moves. (2) A clean
+post-oracle read-only pass gave the true counts. (3) A write pass set the pins: 56 + 2 +
+41 keys. **A process lesson paid for in a wasted 2½-hour run:** editing `src/` under a
+running measurement makes that pass describe a tree that no longer exists, and editing a
+JSON the suite reads at *runtime* — the ledger, the extent — corrupts the run outright.
+The first was known; the second was learned by doing it.
+
+**▶ SUPERSEDED — the exhaustive pins were stale and have been re-run** (`exhaustive:refusal`, `:structure`, `:run`,
 `:soundness`, `:differential`). A pass was started and then deliberately killed, because `src/`
 changed underneath it and it was measuring a tree that no longer exists. ~2½ hours; read the diff,
 do not write blindly.
