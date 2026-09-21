@@ -46,7 +46,9 @@ ROOT = Path(__file__).resolve().parent.parent
 from admission_scan import (
     LEDGER_PATH,
     Inadmissible,
+    all_test_ids,
     new_against_ledger,
+    removed_against_ledger,
     repaired_against_ledger,
     scan_suite,
 )
@@ -84,12 +86,37 @@ def test_a_repaired_test_is_read_off_the_ledger():
     """
     ledger = _ledger()["entries"]
     found = {f.test_id: f for f in scan_suite()}
-    repaired = repaired_against_ledger(found, ledger)
+    repaired = repaired_against_ledger(found, ledger, all_test_ids())
     assert not repaired, (
         f"{len(repaired)} ledgered test(s) can now fail — shrink this entry:\n  "
         + "\n  ".join(repaired)
         + "\n\nRemove them from tests/admission_ledger.json and update its "
           "_counts. A repair must show up as a change.")
+
+
+def test_a_ledgered_test_is_never_quietly_deleted():
+    """An entry leaves the ledger by being *earned* out, never by deletion.
+
+    The author's ruling on the 62 `validation-theatre` entries is that they keep
+    their value as **an exhibit of the shape** — a worked example of a test that
+    cannot fail, which is why the ledger is the right place for them rather than
+    a delete commit. That ruling had no enforcement: until 2026-09-21 the shrink
+    half above reported `set(ledger) - set(found)`, and a deleted test is not
+    found either, so **deleting the exhibit read as repairing it**. The one
+    disposal the principle forbids was the one that looked like success.
+
+    Separating them costs a presence oracle (`all_test_ids`) and makes the two
+    outcomes say different things.
+    """
+    ledger = _ledger()["entries"]
+    removed = removed_against_ledger(ledger, all_test_ids())
+    assert not removed, (
+        f"{len(removed)} ledgered test(s) are no longer in the suite at all:\n  "
+        + "\n  ".join(removed)
+        + "\n\nThese were kept deliberately, as exhibits of a test that cannot "
+          "fail. If removing one is genuinely right, say so in the commit and "
+          "drop its ledger entry in the same change — do not let a deletion "
+          "arrive looking like a repair.")
 
 
 def test_the_ledger_counts_match_its_entries():
@@ -143,6 +170,61 @@ def _core_gate_files() -> list:
     raise AssertionError(
         "tools/quality_gate_system.py no longer assigns core_test_files — this "
         "test, and CLAUDE.md's core-suite figures, are reading a list that moved")
+
+
+def test_every_ledgered_test_is_still_collected_and_the_split_is_derived():
+    """The debt is stated as a split, and the exhibit is actually exhibited.
+
+    Two things, because they share one collection run.
+
+    **(1) The split.** The ledger's own README names the problem: "a test that
+    cannot fail has passed no gate, yet it is counted in every 'N passing'
+    figure the project quotes." This project already has a rule for exactly that
+    shape — the round trips are never quoted as a total, only as "144 hold by
+    `same_graph` and 3 by stable re-emission", with "always state the split" in
+    writing. The same rule applied here makes the suite headline honest:
+    **5,098 passing, of which 63 cannot fail.** Pinned here so the figure is
+    generated rather than narrated.
+
+    **(2) A third way an entry can go quiet.** `all_test_ids` reads the AST, so
+    it sees a function that pytest never *collects* — one whose class got
+    renamed off `Test*`, or whose file moved under a `norecursedirs` path. Such
+    a test is present and inadmissible, so both the shrink and removal halves
+    stay silent, while it contributes nothing to any run. Requiring each
+    ledgered id to appear in a real collection closes that.
+    """
+    import subprocess
+
+    ledger = _ledger()["entries"]
+    files = sorted({v["path"] for v in ledger.values()})
+
+    out = subprocess.run(
+        [sys.executable, "-m", "pytest", *files, "-q", "--collect-only",
+         "-p", "no:cacheprovider"],
+        cwd=ROOT, capture_output=True, text=True, timeout=600,
+    ).stdout
+
+    def _norm(line):
+        # "tests/x.py::Cls::test_m[p]" -> "x::Cls.test_m", the ledger's spelling
+        path, rest = line.split("::", 1)
+        stem = path.split("/")[-1][: -len(".py")]
+        return f"{stem}::{rest.split('[')[0].replace('::', '.')}"
+
+    collected = [_norm(l.strip()) for l in out.splitlines() if "::" in l]
+    assert collected, f"collected nothing from {files}:\n{out[-2000:]}"
+
+    uncollected = sorted(set(ledger) - set(collected))
+    assert not uncollected, (
+        f"{len(uncollected)} ledgered test(s) are in the source but pytest does "
+        f"not collect them:\n  " + "\n  ".join(uncollected)
+        + "\n\nAn exhibit nobody runs is not an exhibit. Check for a class "
+          "renamed off Test*, or a file moved out of collection.")
+
+    ledgered_items = [c for c in collected if c in ledger]
+    assert (len(ledger), len(ledgered_items)) == (63, 63), (
+        f"the debt moved: {len(ledger)} ledger entries, {len(ledgered_items)} "
+        f"collected items. CLAUDE.md quotes the suite as 'N passing, of which 63 "
+        f"cannot fail' — re-pin both together, and never quote the total alone.")
 
 
 def test_the_core_gates_figures_are_derived_not_narrated():
@@ -239,6 +321,42 @@ def test_the_shrink_half_bites_on_a_repaired_test():
     ledger = {"a::t1": {"status": "validation-theatre"},
               "b::t2": {"status": "validation-theatre"}}
     assert repaired_against_ledger(found, ledger) == ["b::t2"]
+
+
+def test_a_repair_and_a_deletion_are_told_apart():
+    """The two ways a ledgered id stops being found must not read alike.
+
+    One ledgered test is repaired (still in the suite, no longer inadmissible);
+    the other is deleted (gone from the suite entirely). The shrink half must
+    claim only the first, and the removal half only the second.
+    """
+    ledger = {"a::t_repaired": {"status": "validation-theatre"},
+              "a::t_deleted": {"status": "validation-theatre"}}
+    found = {}                                   # neither is inadmissible now
+    present = {"a::t_repaired", "a::t_unrelated"}  # t_deleted is gone
+
+    assert repaired_against_ledger(found, ledger, present) == ["a::t_repaired"]
+    assert removed_against_ledger(ledger, present) == ["a::t_deleted"]
+
+    # And without the presence oracle the old, conflating behaviour returns —
+    # pinned so the regression is visible rather than silent.
+    assert repaired_against_ledger(found, ledger) == ["a::t_deleted", "a::t_repaired"]
+
+
+def test_the_presence_oracle_sees_the_whole_suite():
+    """`all_test_ids` must find admissible tests too, or the split is a no-op.
+
+    If it only returned what `scan_suite` returns, every ledgered id would look
+    present and `removed_against_ledger` would never speak.
+    """
+    ids = all_test_ids()
+    inadmissible = {f.test_id for f in scan_suite()}
+    assert inadmissible <= ids, "the presence oracle misses inadmissible tests"
+    assert len(ids) > len(inadmissible) * 10, (
+        f"the presence oracle found only {len(ids)} ids against "
+        f"{len(inadmissible)} inadmissible — it is not seeing the whole suite")
+    # This very test is admissible, and must be in there.
+    assert "test_admission::test_the_presence_oracle_sees_the_whole_suite" in ids
 
 
 def test_both_halves_are_silent_when_the_ledger_matches_the_scan():

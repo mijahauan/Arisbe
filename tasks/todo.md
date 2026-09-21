@@ -475,6 +475,200 @@ out of it.
 
 ---
 
+## Item 8 — The two unattested calculus modules — **DONE 2026-09-21**
+
+The handoff's item 3. `UNATTESTED` is now **empty**, emptied the only way the rule allows: by
+giving each module a suite, never by deleting a name.
+
+- [x] **8a. `hierarchical_index.py` → `tests/test_hierarchical_index.py` (24).**
+      **It is load-bearing for soundness, which was not obvious and is now written down.**
+      Every EGI builds one in `__post_init__`; `egi_core_dau.area_polarity` reads its levels and
+      returns POSITIVE iff even (Dau Def 12.4) **with no cross-check** — the fallback fires only
+      when the level is `None`, never when it is *wrong*. Measured before writing the suite:
+      bumping one level on `(P *x) ~[ (Q x) ]` turns the cut from `(NEGATIVE, 1)` to
+      `(POSITIVE, 2)`, and ERA and INS licensing invert in silence.
+      Pinned against an index-free oracle (`calculus_enum.ancestors`/`all_areas`) over 341
+      graphs / 1,267 areas — levels, chains, completeness — plus `NestingInfo.polarity` held in
+      step with `area_polarity` (one convention written in two files, previously unheld), and
+      **the staleness invariant**: `hierarchical_index` is a dataclass *field*, so
+      `dataclasses.replace(egi, area=…)` carries a stale index and nothing raises. The `with_*`
+      constructors rebuild only because they call the constructor rather than `replace` — now
+      pinned, since that is exactly the fact a refactor erases. **Shown to bite: one extra level
+      of nesting fails 6 of 24.**
+- [x] **8b. `single_object_ligature_detector.py` → its own file (13).** Dau **Def 16.8** (p.180),
+      quoted verbatim in the docstring. The condition worth the most is the one Dau states
+      explicitly and a reimplementation would most likely break — *a single-object ligature may
+      contain cycles, as long as the whole cycle sits in one context* — so a flat cycle is
+      **accepted**; reading condition 3 as "no cycles" is the likely error. And `<` is the
+      context tree's **partial order**, not a depth comparison: two vertices in different
+      branches are incomparable however different their depths. **Shown to bite:** replacing
+      `_is_context_deeper` with `level(a) > level(b)` fails exactly that test, and it is the only
+      test in the repository that would notice.
+      Assertions deliberately avoid message counts, exact text and `cycles` — all follow
+      set-iteration order under per-process string hashing. *(The recon reported the count
+      varying 1–3 across processes; on my fixtures it was stable across 8 fresh runs, so I did
+      not pin someone else's unreproduced observation — I pinned only what the module is for,
+      the verdict, and wrote down why.)*
+- [x] **8c. A trap closed on the way.** `test_an_unattested_module_is_still_reachable_from_src`
+      was parametrized over `UNATTESTED`. Emptying that set would have left it ranging over
+      nothing — and pytest reports an empty parameter set as a **skip**, so the check would have
+      gone quiet at the exact moment its subject disappeared. That is the
+      `test_discharges_cite_a_confirming_peel` archetype (19 parameters, 19 skipped) repeating
+      inside the file that exists to prevent it. Widened to the whole map: strictly stronger,
+      cannot empty, all 14 verified reachable, with a companion test pinning that the
+      parametrization still covers every module.
+
+**Recorded, not repaired — and queued below as 6j/6k.** Both modules carry real gaps. They are
+pinned as *current behaviour* so the state is written down and a fix is visible as a change;
+repairing an uncalled method is a change with no beneficiary and some risk, while leaving it
+undescribed is how a landmine stays a landmine.
+
+---
+
+## Item 7 — The 62 ledgered validation-theatre tests — **DONE 2026-09-21**
+
+The handoff's item 2. The debt itself is **bounded historical, not a live leak**: one dated
+deposit, all 11 files added 2025-09-19 in "PHASE N COMPLETE" commits, nothing inadmissible
+added since. The author's ruling is that they keep their value as **exhibits of the shape** and
+so are recorded rather than deleted. Two live consequences remained, and both are now closed.
+
+- [x] **7a. The ruling had no enforcement — and the disposal it forbids was the one that
+      looked like success.** The shrink half computed `set(ledger) - set(found)`, and a
+      **deleted** test is not found either, so deleting an exhibit reported as *"can now fail
+      — shrink this entry"*: indistinguishable from repairing it. Demonstrated, then closed by
+      a presence oracle (`admission_scan.all_test_ids`, the same AST walk and id spelling) and
+      a split into `repaired_against_ledger(..., present)` and `removed_against_ledger`. The
+      two now say different things, with a falsifier pinning that they do — and pinning that
+      the old conflating behaviour is what you get if the oracle is omitted.
+      *Incidental confirmation:* the new removal guard passes against the real ledger, which
+      also proves `all_test_ids` spells ids exactly as the ledger does — had it not, all 63
+      would have read as removed.
+- [x] **7b. A third quiet route, found while measuring 7a.** A test can stay in the source yet
+      stop being **collected** — a class renamed off `Test*`, a file moved under
+      `norecursedirs`. It is then present and inadmissible, so both halves stay silent while
+      it contributes nothing to any run. Now required to appear in a real collection.
+      *An exhibit nobody runs is not an exhibit.*
+- [x] **7c. The inflation of every "N passing" figure, stated as a split.** The ledger's own
+      README named this and nothing acted on it. This project already has the rule — the round
+      trips are never quoted as a total, only "144 by `same_graph`, 3 by re-emission", with
+      "always state the split" in writing — so it is applied here: the suite headline is now
+      **"5,098 passing, of which 63 cannot fail"**. Measured exactly: all 63 ledgered
+      functions collect to exactly one item each (63 of the 95 items in those 11 files), so
+      the subtraction is honest. Derived, not narrated.
+- [x] **7d. The ledger README rewritten** to name the three routes (REPAIRED / REMOVED /
+      UNCOLLECTED) and the split rule. Entries untouched — only `_README` changed.
+
+**Not done, deliberately:** nothing was repaired or deleted. Rewriting 62 tests that were
+never real tests is a different job from this arc's, and the author's ruling is that their
+value is as exhibits. What changed is that the record can now tell what happens to them.
+
+---
+
+## Item 6 — THE CLAUSE-3 DOCKET (opened 2026-09-21, fourth sitting)
+
+Everything clause 3 found and **deliberately did not change**, promoted out of item 1c's prose
+into a docket so it is tracked rather than buried in a closed item. All of these are in `src/`
+or on the calculus map, which is why the audit recorded them instead of acting: the convention
+is to confirm with the author before changing the calculus.
+
+**Ordered by what I would take first, with the reasoning.** The first two are cheap and
+purely additive (new tests, no `src/` change) and would close written claims that are
+currently false as written. The rest need a ruling because they change behaviour or scope.
+
+- [ ] **6a. Two §3.3 falsifiers that are cheap and already verified to bite.**
+      `CLAUDE.md` claims "adversarial unit tests confirming **each** §3.3 property's failure
+      raises `CorrespondenceViolation`". Three properties have none: `incidence:`,
+      `arg-order:`, `identity-connected:`. The first two **do** fire when a DTO is doctored —
+      confirmed by probe: dropping one of a binary predicate's two ligature paths gives
+      *"incidence: predicate e_… arity mismatch — ν says 2, DTO has 1"*, and swapping two
+      `port_index` values gives *"arg-order: … sorted vertex sequence ≠ ν"*. Writing those two
+      tests is additive, needs no ruling, and makes the sentence true. **Do this one first.**
+- [ ] **6b. A test for `attest_served_quotations`.** It is called at two `layout_service`
+      boundary sites and referenced by **zero** tests — deleting both calls would redden
+      nothing. Additive; the fixture pattern already exists in `test_second_order_reader.py`.
+      Consider also pinning S3 on `swan_third_tense`/`forcing_forces` **or** correcting the
+      claim further — note that `test_quotation_overlay` currently asserts S3 is *skip-named*
+      on `swan_third_tense`, so these two would contradict unless the skip is retired
+      deliberately.
+
+- [ ] **6c. §3.3's identity-connectedness half has no independent failure mode.**
+      **Needs a ruling — it is a calculus-map module.** Verified: whenever
+      `identity-connected` fires, `identity-endpoint` has already fired on the same path, and
+      a path that teleports in from 5,000 units away while *ending* correctly at the vertex is
+      **accepted**. Given the endpoint check forces every path to terminate at the vertex
+      position, and a polyline is connected through its own consecutive points, the
+      "disconnected paths" branch is unreachable alone. The doc calls this row load-bearing.
+      Two ways out: strengthen the check to mean something independent (what *should* it
+      forbid that endpoint placement does not?), or retire it and say the identity row is two
+      checks, not three. Either is honest; leaving it is not.
+      *Rider, same module:* the engine **aliases** `vertex_positions[vid]` and
+      `path.points[-1]` to one `Point` object, so on engine-produced DTOs the endpoint check
+      compares an object with itself. It bites only on doctored or freeform ink — which is its
+      job, but not what a reader of the claim would assume, and it is why my first probe
+      misread the check as broken.
+
+- [ ] **6d. Transformation invariance covers 3 of 6 rules.** DC+, ERA, IT+ only. **No test in
+      the repository pairs INS, IT− or DC− with a correspondence check**, though §7 says "for
+      every rule applied to every applicable site". IT+ reaches only 29 of 52 UoDs. Either
+      extend the suite to the missing three, or amend §7 and `CLAUDE.md` to state the real
+      extent. (Measured rule-site skips: 57, plus 28 regime-3 — the eighteenth arc's "~100"
+      estimate was high.)
+- [ ] **6e. Shape 1 is not the test §7 defines.** §7 shape 1 is render → serialize → re-parse
+      → structural equality against the source EGI. What runs under that name in
+      `test_correspondence_invariant` compares DTO key sets to element ids — that is §3.3's
+      totality/injectivity row. The genuine round trip
+      (`reading_matches_egi(read_drawing(dto), egi)`) lives in `test_eg_reader.py`, a
+      different file than `CLAUDE.md` credits. Decide whether shape 1 moves, is renamed, or
+      the credit is corrected.
+- [ ] **6f. "Every served (EGI, drawing) pair is verified" is not true of every path.**
+      Three gaps, in descending severity: (i) the **deltas path** calls
+      `rebuild_ligature_anchors` — a geometry change — *after* the last attestation, and the
+      following `place_clockwise_hooks` swallows `CorrespondenceViolation` with a bare
+      `pass`, so the returned DTO can be one that was never attested (observed on 2 of 5 runs
+      of one fixture; in all five it still satisfied the check, so this is an **unverified
+      serve, not a live violation**); (ii) `GET /api/diagram/session/{id}` and
+      `POST /api/transform/{undo,redo}` render a session-stored DTO with no re-attestation —
+      stale-attested, so a mutation in the session store would not be caught; (iii)
+      `generate_overview_layout` attests the collapsed quotient plus `attest_overview`, and
+      its own docstring says that is not a full §3.3 correspondence — the flat sentence in
+      `CLAUDE.md` hides that.
+- [ ] **6g. The calculus map's "says *what* it pins" conjunct is a non-empty string check.**
+      Replacing every module's description with `"x"` keeps `test_calculus_map` green. Checking
+      prose against substance is clause 3 one level down and wants its own thinking — the
+      reachable version is probably "the description names at least one Dau citation or one
+      test in the named suite", not free-text validation.
+- [ ] **6h. `has_dominating_nodes` has no negative case anywhere in the suite** — not
+      unmeasured but *unmeasurable*, since `d20b700` means no non-EGI can be constructed to
+      test it against. A helper hard-wired to `return True` would pass everything. If it is
+      worth pinning, the test has to build the violator **below** the constructor (the
+      instrument in `test_parsers_place_vertices_before_edges` does exactly this by
+      monkeypatching `_validate_dau_constraints`, and is the model to copy).
+- [ ] **6j. `hierarchical_index`'s dead half — three real defects, pinned as behaviour.**
+      Nine public methods have no caller in `src/`. `get_children` returns **the live internal
+      set**, so `hi.get_children(sheet).add(x)` corrupts the index in place. `remove_area`
+      **orphans descendants** — after removing a middle cut, its child survives claiming a
+      parent that is gone and its ancestor chain never reaches the sheet. `validate_containment`
+      compares **depth, not ancestry**, so two unrelated branches validate. All three are pinned
+      in `TestTheDeadHalfIsRecordedNotTrusted`; fixing any is a behaviour change and wants a
+      ruling. Also: `NestingInfo` is `frozen=True` but holds a mutable `set`, so it is
+      unhashable and its contents are mutable through any returned reference.
+- [ ] **6k. `single_object_ligature_detector`'s three gaps.** Parallel identity edges are
+      **invisible to cycle detection** (adjacency is a `set`, so a second `=` edge between the
+      same pair collapses onto the first — under Def 16.8 that *is* a cycle in (W, F));
+      **unknown vertex ids pass silently** (no check that W ⊆ V; an empty ligature passes too);
+      and `separate_into_single_object_components` is **a stub** returning one singleton per
+      vertex whatever the graph, with no caller. Low urgency — nothing in the production path
+      constructs the evaluator that reads this module — but the day something does, Def 16.8 is
+      what it will be trusting.
+- [ ] **6i. A process question, not a defect.** Four of nine narrated per-file test counts in
+      `CLAUDE.md` were wrong, one never true. That argues for pinning them as every other
+      extent here is pinned — a test parsing the `(N)` claims and checking them against
+      collection, failing with "read why this moved, then re-pin deliberately". **Not built
+      on purpose:** it reddens the suite on every added test until the doc is updated, and
+      that is a change to the working rhythm, which is the author's call.
+
+---
+
 ## Review
 
 *(filled in as items close)*

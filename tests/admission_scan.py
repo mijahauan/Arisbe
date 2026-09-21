@@ -239,6 +239,30 @@ def scan_file(path: Path, suite_helpers: set = None) -> List[Inadmissible]:
     return found
 
 
+def all_test_ids(root: Path = TESTS_ROOT) -> set:
+    """Every test id in the suite, admissible or not — the presence oracle.
+
+    ``scan_suite`` reports only the tests that *cannot fail*, which is not
+    enough to tell why a ledgered id stopped being found. It could have been
+    repaired (good, and the ledger should shrink) or **deleted** (not good: the
+    author's ruling on the 62 is to keep them *recorded as an exhibit of the
+    shape* rather than silently removed). Without this, both read identically —
+    so the one disposal the principle forbids was the one the gate could not
+    see. Same AST walk and same id spelling as ``scan_file``.
+    """
+    ids = set()
+    for path in sorted(root.rglob("test_*.py")):
+        try:
+            tree = ast.parse(path.read_text(encoding="utf-8"))
+        except (SyntaxError, UnicodeDecodeError):
+            continue
+        for fn in ast.walk(tree):
+            if isinstance(fn, (ast.FunctionDef, ast.AsyncFunctionDef)) \
+                    and fn.name.startswith("test"):
+                ids.add(f"{path.stem}::{_qualname(tree, fn)}")
+    return ids
+
+
 def scan_suite(root: Path = TESTS_ROOT) -> List[Inadmissible]:
     """Every test in the suite that cannot fail, sorted for a stable diff."""
     suite_helpers = _asserting_helpers_across_suite(root)
@@ -277,10 +301,30 @@ def new_against_ledger(found: Dict[str, "Inadmissible"],
 
 
 def repaired_against_ledger(found: Dict[str, "Inadmissible"],
-                            ledger: Dict[str, dict]) -> List[str]:
-    """Recorded test ids that can now fail — the **shrink this entry** half.
+                            ledger: Dict[str, dict],
+                            present: set = None) -> List[str]:
+    """Recorded test ids that **still exist** and can now fail — *shrink this entry*.
 
     Empty means clean. Without this half a repair reads as no change at all and
     the ledger drifts into a list of things that used to be true.
+
+    ``present`` (from :func:`all_test_ids`) separates a repair from a deletion.
+    Omit it and the old behaviour returns — every ledgered id the scan no longer
+    finds, whatever became of it.
     """
-    return sorted(set(ledger) - set(found))
+    gone = set(ledger) - set(found)
+    if present is not None:
+        gone &= present
+    return sorted(gone)
+
+
+def removed_against_ledger(ledger: Dict[str, dict], present: set) -> List[str]:
+    """Recorded test ids that are **no longer in the suite at all**.
+
+    The disposal the author's ruling forbids for the 62: they keep their value
+    as an exhibit of the shape, so an entry leaves the ledger by being *earned*
+    out, never by having its test quietly deleted. Before this existed a
+    deletion was reported as "can now fail — shrink this entry", i.e. as a
+    repair — so the forbidden disposal was the one that looked like success.
+    """
+    return sorted(set(ledger) - set(present))

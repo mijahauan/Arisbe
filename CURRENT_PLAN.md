@@ -1,8 +1,17 @@
 # Current Plan
 
-**Last Updated**: 2026-09-21 (nineteenth arc, **fourth sitting**) — **CLAUSE 3 OF THE ADMISSION
-GATE: THE WRITTEN CLAIMS AUDITED AGAINST THE TESTS THAT MEASURE THEM. FIFTEEN FINDINGS. THE
-SUITE'S OWN DOCUMENTED "ONE REAL FAILURE" HAD GONE SILENT WHILE THE DEFECT STAYED LIVE.**
+**Last Updated**: 2026-09-21 (nineteenth arc, **fourth sitting**) — **ALL THREE QUEUED ITEMS
+DONE. CLAUSE 3 AUDITED THE WRITTEN CLAIMS AGAINST THE TESTS THAT MEASURE THEM (THE SUITE'S OWN
+DOCUMENTED "ONE REAL FAILURE" HAD GONE SILENT WHILE THE DEFECT STAYED LIVE); THE LEDGER CAN NOW
+TELL A REPAIR FROM A DELETION; AND `UNATTESTED` IS EMPTY.**
+
+**The through-line of all three.** Each item turned out to be the same shape one level further
+in: **a discipline written down, and nothing enforcing it.** Clause 3 found claims true but
+unmeasured. Item 2 found the author's own ruling — keep these as exhibits, never delete —
+unenforced, with the forbidden disposal reading as success. Item 3 found two modules whose code
+ran on every EGI ever built with their contracts pinned by nothing, and closing that nearly
+opened a third hole (a check parametrized over the set it was about to empty). The useful
+question throughout: **not "is this right?" but "what would tell me the day it stops being?"**
 
 **▶▶▶ NEXT SESSION — READ THIS BLOCK FIRST (fourth sitting). The third sitting's block
 follows below and is still accurate for its own work; its three queued items are updated
@@ -111,8 +120,12 @@ draft of the new `_structurally_equal_egi` falsifier guarded an arm with
 `hasattr(base, "with_rel_name")` — a method that does not exist, so the arm silently never
 ran: the very shape this audit hunts, committed inside the audit, caught only by checking.
 
-**Left for the author — recorded, deliberately not changed under a time-box.** All are in
-`src/` or on the calculus map.
+**Left for the author — now QUEUED as `tasks/todo.md` item 6, "the clause-3 docket"** (6a–6i,
+ordered, each with what it would take and why it was not done). Summarised here; the docket
+carries the detail. All are in `src/` or on the calculus map, which is why the audit recorded
+them instead of acting. **6a and 6b are cheap, purely additive, and need no ruling** — two
+§3.3 falsifiers already verified to bite when a DTO is doctored, and a first test for
+`attest_served_quotations`; take those first.
 - **§3.3's identity-connectedness half has no independent failure mode.** Verified: whenever
   `identity-connected` fires, `identity-endpoint` has already fired on the same path, and a
   path that teleports in from 5,000 units away while ending correctly at the vertex is
@@ -141,12 +154,18 @@ ran: the very shape this audit hunts, committed inside the audit, caught only by
   **Not built**: it would redden the suite on every added test until the doc is updated, and
   that is a change to the working rhythm, which is yours.
 
-**Verification, fourth sitting.** Full suite **1 failed, 5,098 passed, 241 skipped, 10
-deselected, 2 xfailed, 47 m 05 s**. The arithmetic closes exactly against the previous run
-(5,088 passed, 1 xfailed): **+10 passed** — the round-trip split pin (1), `TestImmutability`
-(3), the admission gate's two ledger falsifiers + the silence check + the derived core figures
-+ the scan-independence guard (5), the structural-equality falsifier (1) — and **+1 xfailed**,
-the newly pinned EGIF symmetric-lines defect. Skips unchanged at 241. The one failure is
+**Verification, fourth sitting — two full runs, and the arithmetic closes exactly both times.**
+After clause 3: **1 failed, 5,098 passed, 241 skipped, 10 deselected, 2 xfailed, 47 m 05 s** —
+**+10 passed** against the previous run (5,088 passed, 1 xfailed): the round-trip split pin (1),
+`TestImmutability` (3), the admission gate's two ledger falsifiers + the silence check + the
+derived core figures + the scan-independence guard (5), the structural-equality falsifier (1) —
+and **+1 xfailed**, the newly pinned EGIF symmetric-lines defect.
+After items 2 and 3: **1 failed, 5,152 passed, 241 skipped, 10 deselected, 2 xfailed,
+47 m 19 s** — **+54**, every one attributable: the ledger's repaired/removed/uncollected split
+(+4, `test_admission` 10 → 14), `test_hierarchical_index` (+24),
+`test_single_object_ligature_detector` (+13), and the calculus map's reachability check widened
+from the two unattested modules to all fourteen (+13, `test_calculus_map` 9 → 22).
+Skips unchanged at 241 across both. The one failure is
 `test_memory_stability`, the documented warm-process flake; it passes alone in 0.23 s and **the
 threshold was not touched**. Quality gate green: core protection ✅, **166 core tests** ✅
 (now also asserted, not just reported), syntax ✅. **The exhaustive calculus was not re-run**
@@ -154,12 +173,49 @@ and its figure is carried forward: this sitting touched `test_calculus_enum` in 
 docstrings only and `test_calculus_map`'s import check, neither of which the calculus suite
 consults, and **no ledger or extent file was written**.
 
-**Still next, unchanged from the third sitting's handoff:** item 2, the 62 ledgered
-`validation-theatre` tests (bounded historical debt — one dated deposit, all 11 files added
-2025-09-19); item 3, the two unattested calculus modules (`hierarchical_index.py`,
-`single_object_ligature_detector.py` — shrink that set by giving them a suite, never by
-deleting a name). Plus the eighteenth arc's open items: the alphabet question, `discharge_
-episode` pulling a quoted constant out of its oval, the IT− docstring, defect 8.
+**Items 2 and 3 of the third sitting's handoff are also DONE** (same sitting; `tasks/todo.md`
+items 7 and 8).
+
+**Item 2 — the 62 ledgered `validation-theatre` tests.** The debt is bounded historical, as the
+handoff said, and the author's ruling is that they keep their value as *exhibits of the shape*.
+**That ruling had no enforcement, and the disposal it forbids was the one that looked like
+success:** the shrink half computed `set(ledger) - set(found)`, and a **deleted** test is not
+found either — so deleting an exhibit reported as *"can now fail — shrink this entry"*,
+indistinguishable from repairing it. Closed with a presence oracle (`all_test_ids`) splitting
+`repaired_against_ledger` from `removed_against_ledger`, verified against the real gate by
+simulating a deletion: the removal guard fires and the repair half correctly stays silent.
+**A third quiet route turned up while measuring the first** — a test can stay in the source yet
+stop being *collected* (a class renamed off `Test*`, a file moved under `norecursedirs`), and
+both halves would stay silent while it contributes nothing; an exhibit nobody runs is not an
+exhibit, so each ledgered id must now appear in a real collection. And the **inflation the
+ledger's own README named** is fixed by the rule this project already applies to the round
+trips: the headline reads **"5,098 passing, of which 63 cannot fail"**, derived not narrated
+(all 63 collect to exactly one item each — measured). Nothing was repaired or deleted; what
+changed is that the record can tell what happens to them.
+
+**Item 3 — the two unattested calculus modules. `UNATTESTED` is now EMPTY**, emptied the only
+way the rule allows: a suite each, never a deletion. **The two are opposites, which is the part
+worth carrying.** `hierarchical_index.py` is **load-bearing for soundness** — every EGI builds
+one in `__post_init__`, `area_polarity` reads its levels and returns POSITIVE iff even (Dau Def
+12.4) with **no cross-check**, so a one-level error silently inverts every ERA and INS
+licensing decision (measured before the suite was written; shown to bite — injecting one extra
+level fails 6 of 24). It also carries a **staleness hazard** worth knowing: the index is a
+dataclass *field*, so `dataclasses.replace(egi, area=…)` keeps a stale one and nothing raises;
+the `with_*` constructors are safe only because they call the constructor, and that is now
+pinned. `single_object_ligature_detector.py` is **not** load-bearing — its one caller is an
+evaluator layer no production path constructs — but Def 16.8 (p.180) is now pinned, including
+the clause Dau states explicitly and a reimplementation would most likely break (*a cycle is
+fine while the whole cycle sits in one context*) and `<` as the context tree's **partial
+order** rather than a depth comparison, which is the only test in the repository that would
+catch that simplification. Their known gaps are **recorded, not repaired** — queued as 6j/6k.
+**A trap closed en route:** the reachability check was parametrized over `UNATTESTED`, so
+emptying the set would have left it ranging over nothing, and pytest reports an empty parameter
+set as a *skip* — the `test_discharges_cite_a_confirming_peel` archetype repeating inside the
+file that exists to prevent it. Widened to all 14 modules, with a companion test pinning that.
+
+**Still open from the eighteenth arc:** the alphabet question (and with it the EGIF symmetric-
+lines tie-break now pinned as a strict xfail), `discharge_episode` pulling a quoted constant out
+of its oval, the IT− docstring, defect 8 (MOVE_BRANCHES tries one direction only).
 
 ---
 

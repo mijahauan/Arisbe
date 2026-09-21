@@ -13,9 +13,22 @@
     "tests/calculus_ledger.json: a NEW inadmissible test fails as new; a REPAIRED one fails",
     "with 'shrink this entry'. Nothing here is deleted to make a suite green.",
     "",
+    "Three ways an entry can stop being found, told apart since 2026-09-21 (item 2):",
+    "  REPAIRED - still in the suite, now able to fail. Shrink this entry; that is a win.",
+    "  REMOVED  - gone from the suite entirely. These are kept as EXHIBITS of the shape,",
+    "             so this is the disposal the principle forbids. Until the halves were",
+    "             split it reported as a repair - the forbidden route looked like success.",
+    "  UNCOLLECTED - still in the source, but pytest no longer collects it (a class renamed",
+    "             off Test*, a file moved out of collection). An exhibit nobody runs is not",
+    "             an exhibit.",
+    "",
+    "The suite headline states the split - \"N passing, of which 63 cannot fail\" - by the",
+    "same rule the round trips follow. It is derived, not narrated.",
+    "",
     "Clause 1 of the test-admission gate (IT CAN FAIL) is what this measures.",
     "Clause 2 (IT IS REACHED) is enforced where the parametrization lives.",
-    "Clause 3 (IT MEASURES WHAT IT CLAIMS) is a reading task, tracked in tasks/todo.md."
+    "Clause 3 (IT MEASURES WHAT IT CLAIMS) had its first pass 2026-09-21; see",
+    "  tasks/todo.md item 1c for the findings and item 6 for what it queued."
   ],
   "_generated": "2026-09-20; 9 entries earned out by the chapter-15 rewrite (tests/test_chapter15_formal_calculus.py), which also uncovered the live engine-INS no-op it never tested",
   "_counts": {

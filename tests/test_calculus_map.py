@@ -68,7 +68,13 @@ CALCULUS_MAP: dict[str, tuple[tuple[str, ...], str]] = {
         ("test_second_order_conservativity.py",),
         "to_dict/from_dict round trips, byte-identical re-save corpus-wide",
     ),
-    "hierarchical_index.py": ((), ""),          # unattested — see the test below
+    "hierarchical_index.py": (
+        ("test_hierarchical_index.py",),
+        "the nesting index as the polarity oracle: levels and ancestor chains "
+        "agree with an index-free walk of egi.area corpus-wide (Dau Def 12.4, "
+        "evenly/oddly enclosed), NestingInfo.polarity agrees with "
+        "area_polarity, and every builder that moves an area rebuilds it",
+    ),
     # Diachronic state
     "universe_of_discourse.py": (
         ("test_universe_of_discourse.py",),
@@ -117,7 +123,13 @@ CALCULUS_MAP: dict[str, tuple[tuple[str, ...], str]] = {
         "Lemma 16.2's extension as worked cases, and soundness over the "
         "ligature rules at full extent",
     ),
-    "single_object_ligature_detector.py": ((), ""),   # unattested — see below
+    "single_object_ligature_detector.py": (
+        ("test_single_object_ligature_detector.py",),
+        "Dau Def 16.8 (p.180): each of the three conditions on a worked "
+        "fixture, a cycle within one context accepted as the definition "
+        "requires, and `<` held to the context tree's partial order rather "
+        "than a depth comparison",
+    ),
 }
 
 # Modules on the map that NO suite exercises directly. Named here rather than
@@ -125,14 +137,23 @@ CALCULUS_MAP: dict[str, tuple[tuple[str, ...], str]] = {
 # `test_the_unimplemented_dau_rules_are_exactly_these`: a gap that is counted is
 # a gap someone can close; a gap that is merely absent is one nobody can see.
 #
-# Both are reached only transitively — `hierarchical_index` through
-# `egi_core_dau` (which imports it), `single_object_ligature_detector` through
-# `chapter17_soundness_evaluation`. So their code runs, and their *contracts* are
-# pinned by nothing.
-UNATTESTED = frozenset({
-    "hierarchical_index.py",
-    "single_object_ligature_detector.py",
-})
+# **EMPTY since 2026-09-21, and emptied the only way the rule allows** — by
+# giving both modules a suite, never by deleting a name. They were
+# `hierarchical_index.py` (reached through `egi_core_dau`, which imports it) and
+# `single_object_ligature_detector.py` (through `chapter17_soundness
+# _evaluation`): reached only transitively, so their code ran on every EGI ever
+# built while their contracts were pinned by nothing.
+#
+# The two turned out to be opposites, which is worth recording. The index is
+# **load-bearing for soundness** — `area_polarity` reads its levels and has no
+# cross-check, so a one-level error silently inverts every ERA and INS licensing
+# decision (measured, before the suite was written). The detector is **not**:
+# its one caller is an evaluator layer no production path constructs, which is
+# why its known gaps are recorded rather than repaired.
+#
+# If this set ever grows again, the module named in it has no attestation, and
+# the way out is a suite.
+UNATTESTED: frozenset[str] = frozenset()
 
 
 def _tool_modules() -> frozenset[str]:
@@ -290,10 +311,20 @@ def test_the_unattested_modules_are_exactly_these():
     assert declared == UNATTESTED
 
 
-@pytest.mark.parametrize("module", sorted(UNATTESTED))
-def test_an_unattested_module_is_still_reachable_from_src(module):
-    """If nothing imports it either, it is not load-bearing and does not belong
-    on the map at all — the reasoning that dropped two modules in 2026-05."""
+@pytest.mark.parametrize("module", sorted(CALCULUS_MAP))
+def test_every_mapped_module_is_reachable_from_src(module):
+    """If nothing imports it, it is not load-bearing and does not belong on the
+    map at all — the reasoning that dropped two modules in 2026-05.
+
+    **This used to range over `UNATTESTED` alone** (2026-09-21). Emptying that
+    set would have left it parametrized over nothing: pytest reports an empty
+    parameter set as a *skip*, so the check would have gone quiet at the exact
+    moment its subject disappeared — the `test_discharges_cite_a_confirming
+    _peel` archetype, which ran 19 parameters and skipped all 19 while this file
+    claimed the discipline it measured. Widened to the whole map instead, which
+    is strictly stronger and cannot empty: every one of the 14 is verified
+    reachable, not just the ones without a suite.
+    """
     stem = module[:-3]
     pattern = re.compile(rf"\b(?:import\s+{stem}\b|from\s+{stem}\s+import)")
     importers = [
@@ -301,5 +332,21 @@ def test_an_unattested_module_is_still_reachable_from_src(module):
         if p.name != module and pattern.search(p.read_text(encoding="utf-8"))
     ]
     assert importers, (
-        f"{module} is on the calculus map, has no suite, and nothing in src/ "
-        f"imports it — it is orphaned and should be dropped from the map")
+        f"{module} is on the calculus map and nothing in src/ imports it — it "
+        f"is orphaned and should be dropped from the map")
+
+
+def test_the_reachability_check_ranges_over_every_mapped_module():
+    """Clause 2, applied to the test above: it is reached, on every module.
+
+    A parametrized check is only as good as its parameter set, and the set above
+    is computed. This pins that it covers the whole map — so shrinking the map,
+    or reverting the parametrization to a set that can empty, is a failure here
+    rather than a silent loss of coverage.
+    """
+    assert len(CALCULUS_MAP) == 14, (
+        f"the calculus map now names {len(CALCULUS_MAP)} modules, not 14 — "
+        f"re-pin this deliberately")
+    assert not UNATTESTED, (
+        f"UNATTESTED is non-empty again: {sorted(UNATTESTED)}. That is allowed, "
+        f"but say so deliberately — the way out is a suite, never a deletion.")
