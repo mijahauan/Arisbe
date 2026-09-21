@@ -162,6 +162,59 @@ def test_egif_generate_is_idempotent_on_regenerated_output(text):
     assert first == second, f"generator not idempotent on round-trip: {text!r}"
 
 
+# The symmetric-lines defect, kept visible without a gitignored cache
+# --------------------------------------------------------------------------- #
+# Added 2026-09-21 by the clause-3 audit, which found this defect had gone
+# invisible while the project's records still called it "the suite's one real
+# failure".
+#
+# The defect (eighteenth arc): `canonical_signature` ranks two genuinely
+# symmetric lines equal, as it must, and the order then falls to minted uuids —
+# so ONE input yields TWO texts, varying within a fixed PYTHONHASHSEED. It is
+# the root of the text-equality flakes two arcs chased.
+#
+# How it went quiet. The property test above searches
+# `egif_sheet(max_atoms=3, ...)`, and the falsifying input has FOUR atoms — so
+# that strategy cannot generate it and never could. It was only ever reported
+# because Hypothesis held the example in the local `.hypothesis` database, which
+# CLAUDE.md acknowledged ("do not delete that entry — it is the only thing
+# keeping the defect visible"). That database now holds no examples directory,
+# the test passes, and the last full-suite run's only failure was the unrelated
+# `test_memory_stability`. A defect whose visibility depends on a gitignored,
+# machine-local cache is a defect nobody is keeping — this project's standing
+# rule 4, in the one place it had been written down as acceptable.
+#
+# So it is pinned here instead: hand-built, deterministic in its detection, and
+# a STRICT xfail, which is this project's idiom for a live defect (cf.
+# `test_linear_form_binder_scoping`'s six, which caught both the fix landing and
+# a regression the fix introduced). When the generator is made deterministic on
+# symmetric lines, this XPASSes and fails loudly, rather than going green in
+# silence the way its predecessor went red in silence.
+
+SYMMETRIC_LINES = "(P *u) (P *v) ~[ (Loves v *y) (Loves u *x) ]"
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="EGIF generation is nondeterministic on symmetric lines: "
+           "canonical_signature ranks the two inner lines equal (correctly), and "
+           "the tie falls to minted uuids. Unfixed — the alphabet/tie-break "
+           "question is the author's.",
+)
+def test_egif_generation_is_deterministic_on_symmetric_lines():
+    """One graph, one text — on a graph whose lines are genuinely symmetric.
+
+    Two parses of one structure must emit identical text; that is the whole
+    promise `canonical_signature` was introduced to keep, and the reason the
+    three generators share it.
+    """
+    texts = {generate_egif(parse_egif(SYMMETRIC_LINES)) for _ in range(200)}
+    assert len(texts) == 1, (
+        f"one input produced {len(texts)} distinct texts in a single process:\n  "
+        + "\n  ".join(sorted(texts))
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Sanity check on the strategy itself                                         #
 # --------------------------------------------------------------------------- #

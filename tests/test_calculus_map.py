@@ -35,6 +35,7 @@ became a substitute for checking.
 
 from __future__ import annotations
 
+import ast
 import json
 import re
 from pathlib import Path
@@ -167,24 +168,55 @@ def test_every_attested_module_says_what_its_suite_pins():
         assert what.strip(), f"{module} names {suites} but not what they pin"
 
 
-def _imports(text: str, stem: str) -> bool:
-    """Does ``text`` import ``stem``, in either spelling the suite uses?
+def _imported_names(text: str) -> set:
+    """Every module name ``text`` actually imports, read from its AST.
 
-    ``from src.X import`` is the non-conforming form — CLAUDE.md's stated pattern
-    is ``from X import`` — but several older suites use it, and an import is an
-    import. Recorded rather than silently accepted: see
-    ``test_the_suites_that_use_the_non_conforming_src_prefix``.
+    This was a regex over the source text until 2026-09-21, and it counted a
+    mention in a comment, a docstring or a string literal as an import — all
+    four of these passed::
+
+        # from egi_core_dau import Foo
+        \"\"\"see: import natural_layout for details\"\"\"
+        #import presentation_ops
+        msg = "import egi_core_dau to fix"
+
+    which made "the suite reaches the module" satisfiable by *talking about*
+    reaching it. Clause 3 of the admission gate is the reason that is no longer
+    acceptable: the check is the evidence for an attestation, and evidence that
+    a comment can forge is not evidence. Parsing means only real import
+    statements count. (Rewriting it changed no verdict on any of the 16 current
+    module→suite pairs — it closes what the check would let through, not what
+    is in the tree today.)
+
+    Both spellings are collected. ``from src.X import`` is the non-conforming
+    form — CLAUDE.md's stated pattern is ``from X import`` — but several older
+    suites use it and an import is an import. Recorded rather than silently
+    accepted: see ``test_the_suites_that_use_the_non_conforming_src_prefix``.
     """
-    return bool(re.search(
-        rf"\b(?:import\s+(?:src\.)?{stem}\b|from\s+(?:src\.)?{stem}\s+import)", text))
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:  # a suite that will not parse imports nothing
+        return set()
+
+    names = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            names.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and not node.level:
+            names.add(node.module)
+    # "src.egi_core_dau" also attests "egi_core_dau"
+    return names | {n[len("src."):] for n in names if n.startswith("src.")}
+
+
+def _imports(text: str, stem: str) -> bool:
+    """Does ``text`` import ``stem``? (See ``_imported_names``.)"""
+    return stem in _imported_names(text)
 
 
 def _tests_local_modules(text: str) -> list[str]:
     """Sibling modules under tests/ that this file imports — the suite's own
     adapters, e.g. ``calculus_apply``."""
-    names = set(re.findall(r"^\s*(?:from\s+(\w+)\s+import|import\s+(\w+))",
-                           text, re.M))
-    return [a or b for a, b in names if (TESTS / f"{a or b}.py").exists()]
+    return sorted(n for n in _imported_names(text) if (TESTS / f"{n}.py").exists())
 
 
 def test_each_suite_actually_exercises_the_module_it_attests():

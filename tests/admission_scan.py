@@ -253,3 +253,34 @@ def load_ledger(path: Path = LEDGER_PATH) -> Dict[str, dict]:
     if not path.exists():
         return {}
     return json.loads(path.read_text(encoding="utf-8"))["entries"]
+
+
+# --- the two ledger halves, as functions so they can be shown to bite ---------
+#
+# These were inline one-liners in the two gate tests until 2026-09-21. That is
+# why neither half had a falsifier: to exercise the comparison you had to
+# re-write it in the falsifier, which proves nothing about the comparison the
+# gate actually runs. ``calculus_ledger.check_ledger`` is a function for exactly
+# this reason and carries seven falsifiers; this is the same idiom, applied at
+# last to the instrument that enforces it.
+
+
+def new_against_ledger(found: Dict[str, "Inadmissible"],
+                       ledger: Dict[str, dict]) -> List[str]:
+    """Test ids that cannot fail and are not recorded — the **new** half.
+
+    Empty means clean. A non-empty result must fail the gate: a test that
+    cannot fail has passed no gate, and entering unrecorded is how the debt
+    grows.
+    """
+    return sorted(set(found) - set(ledger))
+
+
+def repaired_against_ledger(found: Dict[str, "Inadmissible"],
+                            ledger: Dict[str, dict]) -> List[str]:
+    """Recorded test ids that can now fail — the **shrink this entry** half.
+
+    Empty means clean. Without this half a repair reads as no change at all and
+    the ledger drifts into a list of things that used to be true.
+    """
+    return sorted(set(ledger) - set(found))

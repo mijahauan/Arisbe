@@ -87,13 +87,192 @@ and **prove that test can fail**.
 - [ ] **1b-old. Vacuous assertions.** Sweep for tests that cannot fail: `assert True`, a
       loop body never entered, an early `return`/`continue` guard that makes the
       assertion unreachable, a `try/except` that swallows the failure.
-- [ ] **1c. Claim → test map.** Take the integrity claims in `CLAUDE.md` and
-      `CURRENT_PLAN.md`, name the test that measures each, and flag every claim with no
-      test or with a test weaker than the claim (the re-emission shape).
-- [x] **1d (partial). Falsifier discipline.** The admission gate carries its own falsifier
-      (`test_the_scan_catches_a_test_that_cannot_fail`, three shapes, plus two it must
-      NOT flag), and both ledger halves were demonstrated to bite by planting and
-      removing an entry. Extending this to the remaining layers is still open.
+- [~] **1c. Claim → test map — CLAUSE 3, first pass done 2026-09-21.** Time-boxed to the
+      load-bearing claims (the calculus, Def 12.5, the correspondence check, the round
+      trips, the calculus map), as the handoff directed. Method: three parallel read-only
+      audits, each finding reproduced in the main session before it was acted on
+      (standing caution 5). **Nine findings; seven closed by a test, two recorded.**
+
+      **Contradictions fixed.**
+      - `CLAUDE.md` said the CLIF/CGIF binder defect was "live and pinned, not fixed
+        (6 strict xfails)" forty lines above its own entry saying "**FIXED** 2026-09-21".
+        The file passes 6/6, no xfails. Prose corrected; both halves now agree.
+      - `CLAUDE.md` said "Six more are correctly refused as the second-order limit". It is
+        **nine** (3 UoDs × 3 forms), and `test_tomos_parsing`'s own extent pin has
+        asserted 9 all along. Standing caution 8, in the file that states it.
+      - `test_calculus_enum.test_every_corpus_graph_is_an_egi`'s docstring justified itself
+        by "the core does not enforce it and its own check is inverted". Both halves were
+        true when written and **both are now false** (`9482d2c`, `d20b700`). Consequence,
+        now written down: tier-B graphs arrive through the core constructor, so a stored
+        non-EGI raises at *load* and this test's legible failure path is unreachable. Kept
+        — it still proves the corpus loadable and pins `sources` at 230 — but honestly
+        labelled. Same for `test_every_kept_graph_has_dominating_nodes`, whose comment
+        "the core would not refuse one" is refuted thirty lines above it by
+        `TierAReport.refused_by_core`, which exists to count that very refusal.
+
+      **Claims that were true and unmeasured — now measured.**
+      - **The round-trip split.** The extent pin held `(total, second_order, broken,
+        holding)`; `BY_REEMISSION` was in none of them. Moving a UoD into that set
+        downgrades it from `same_graph` to the strictly weaker re-emission check **with
+        every pin still green** and the headline still "147". This is the exact defect
+        class the arc already caught once. New
+        `test_the_split_between_the_strong_and_weak_checks_is_pinned_too` holds the set by
+        *name* and 144/3 as a pair. Shown to bite: with a UoD quietly downgraded, the old
+        pin passes and the new one fails — the gap demonstrated in one run.
+      - **"EGI is immutable."** The first Data Model Invariant in `CLAUDE.md`, and the
+        calculus map attests `egi_core_dau.py` as "**the immutable EGI** …" naming
+        `test_second_order_core.py` — which contained no immutability assertion. The only
+        `FrozenInstanceError` in the whole suite was in `test_c_marks.py`, on an unrelated
+        class. Dropping `frozen=True` would have reddened nothing *for that reason*. New
+        `TestImmutability` (3): frozen dataclass, `frozenset`/`frozendict` insides (a
+        frozen shell around mutable insides is immutability in name), and `with_*` leaves
+        the original alone. The attestation is now true.
+      - **"166 core tests, 1 of which cannot fail."** Both figures correct, both prose
+        only — the shape that let "~118" stand against a real 166. New
+        `test_the_core_gates_figures_are_derived_not_narrated` parses
+        `tools/quality_gate_system.py`'s own `core_test_files` list (never re-typed), runs
+        it, scans it, and pins both. The second figure is the load-bearing one: ten
+        unfailable tests once sat inside the core gate.
+      - **"`admission_scan` imports nothing from `src/`."** True, unguarded. The exact
+        analogue — `test_calculus_legal.test_legal_never_consults_the_engine` — existed
+        for `legal()` but had not been applied to the newer instrument. Now it has.
+
+      **Mechanisms weaker than the claim — strengthened.**
+      - **The calculus map's "the suite reaches the module"** was a regex over source
+        *text*. Verified forgeable four ways: a comment, a docstring, a commented-out
+        import and a string literal all read as imports. Now an AST parse. No verdict
+        changed on any of the 16 real module→suite pairs — it closes what the check would
+        let through.
+
+      **THE ONE THAT MATTERS MOST: the suite's documented "one real failure" had gone
+      silent while the defect stayed live.** `CLAUDE.md`'s Testing section opens by saying
+      the 2026-09-18 run "also had **1 failure, and it is a real defect, not a threshold**:
+      `test_egif_generate_is_idempotent_on_regenerated_output`". That test now **passes**,
+      and the defect it names is **entirely unfixed** — parsing and generating
+      `(P *u) (P *v) ~[ (Loves v *y) (Loves u *x) ]` 200 times in one process still yields
+      two distinct texts (measured today: 102/98). The last full-suite run noticed nothing:
+      its only failure was the unrelated `test_memory_stability`.
+      **Why it went quiet, and it was structural, not luck.** The property test searches
+      `egif_sheet(max_atoms=3, max_cut_depth=1)`; the falsifying input has **four** atoms,
+      so that strategy *cannot generate it and never could*. It was only ever reported
+      because Hypothesis held the example in the machine-local `.hypothesis` database —
+      which `CLAUDE.md` knew and wrote down as the mitigation ("do not delete that entry —
+      it is the only thing keeping the defect visible"). That database now has no examples
+      directory. A defect whose visibility depends on a gitignored cache is a defect nobody
+      is keeping, and this was standing rule 4 suspended in writing, in the file that
+      states it.
+      **Closed** by `test_egif_generation_is_deterministic_on_symmetric_lines` — hand-built,
+      deterministic in its detection, a **strict xfail** (this project's idiom for a live
+      defect; cf. the binder-scoping six, which caught both the fix landing and a
+      regression it introduced). Stable across three runs. When the tie-break is fixed it
+      XPASSes and fails loudly, instead of going green in silence the way its predecessor
+      went red in silence. **The underlying defect remains the author's call** (it is the
+      alphabet/tie-break question already open from the eighteenth arc) — this changes only
+      whether the project can tell.
+
+      **The per-file test counts in `CLAUDE.md`, swept mechanically — 4 of 9 were wrong.**
+      Every `(N)` figure quoted beside a test filename, compared against collection:
+      `test_second_order_core` 27→**30** (before my 3, now 33), `test_rules_second_order`
+      18→**20**, `test_world_scroll` 45→**52**, `test_m_steps` 31→**25**. The last is the
+      instructive one: that file holds 25 `def test_` and has **not been touched since the
+      commit that wrote "31"**, so the figure was never true — not drift, just never
+      checked. (`test_second_order_reader` 12, `test_second_order_conservativity` 15,
+      `test_use_mention_fork` 6, `test_calculus_map` 9 and `test_chapter15_formal_calculus`
+      23 all hold.) Corrected in place.
+
+      **The correspondence check (§3.3) and the six §7 shapes — the central contract.**
+      - **`test_regime3_identity_null_op` asserted that an object equals itself.**
+        `egi_before = uod.current_egi` … `egi_after = uod.current_egi`: one attribute read
+        twice off one immutable object, 52 UoDs per engine/style, docstring conceding
+        "trivially true" while claiming to give the other three regime-3 tests "a
+        known-good baseline" — which is precisely what comparing a thing to itself cannot
+        give. It now loads a **second, independent** copy and asserts the two are not the
+        same object. Worse, and the reason this mattered: **`_structurally_equal_egi`, the
+        helper all four of shape 6's tests decide by, had no falsifier at all** — stubbed
+        to `return True, []` it would have turned the whole shape green. It has one now
+        (three arms: agrees with a graph about itself, rejects a different graph, and
+        catches a ρ-only rename built with `dataclasses.replace` so exactly one field
+        moves). *A caution for whoever reads this:* my first draft of that falsifier
+        guarded an arm with `hasattr(base, "with_rel_name")` — a method that does not
+        exist, so the arm silently never ran. I caught it by checking. It is the same
+        shape as everything else in this list and it took ten minutes to reproduce inside
+        the very audit that hunts it.
+      - **S3 — the prose said the opposite of a test.** `CLAUDE.md` read "**S3 CHECKED** on
+        `swan_third_tense`/`forcing_forces`" while `test_quotation_overlay
+        .test_s3_is_skip_named_never_silently_passed` asserts `read_back_faithful is None`
+        and "S3" among the honest limits, *for `swan_third_tense`*. S3 is genuinely checked
+        end-to-end with six biting falsifiers — on a **synthetic fixture** in
+        `test_second_order_reader.py`. Prose corrected. Related and also corrected:
+        **`attest_served_quotations` is referenced by zero tests**, so deleting both of its
+        `layout_service` call sites would redden nothing, and S1–S3 do not fire at the
+        `tomos_service` save/load boundary at all (only §3.3 does).
+
+      **Recorded, not closed** (judgment calls, not oversights):
+      - **§3.3's identity-connectedness half has no independent failure mode.** Verified
+        here by probe: whenever `identity-connected` fires, `identity-endpoint` has already
+        fired on the same path; and a path that teleports in from 5,000 units away while
+        ending correctly at the vertex is **accepted**. Given the endpoint check forces
+        every path to terminate at the vertex position, and a polyline is connected through
+        its own consecutive points, the "disconnected paths" branch cannot be reached
+        alone. *Correction worth recording:* my own first probe reported that §3.3 accepts
+        a ligature path displaced 9,999 units, which would have been far worse. It was
+        wrong — the engine **aliases** `vertex_positions[vid]` and `path.points[-1]` to one
+        `Point` object, so `pt.x += …` moved both and kept them equal. With fresh point
+        objects the endpoint check fires correctly. The aliasing is itself worth a thought:
+        on engine-produced DTOs that check compares an object with itself, so it bites only
+        on doctored or freeform ink — which is its job, but not what a reader would assume.
+        `correspondence_attestation.py` is on the calculus map, so this is the author's.
+      - **Three §3.3 properties have no falsifier**: `incidence:`, `arg-order:` and
+        `identity-connected:` are asserted by no test in the repo, against `CLAUDE.md`'s
+        "adversarial unit tests confirming **each** §3.3 property's failure raises". The
+        first two **do** bite when doctored (verified), so these are cheap tests somebody
+        should write; the third is the item above.
+      - **Shape 2 (transformation invariance) covers 3 of 6 rules** — DC+, ERA, IT+ only.
+        No test in the repository pairs INS, IT− or DC− with a correspondence check, though
+        §7 says "for every rule applied to every applicable site". IT+ reaches only 29 of
+        52 UoDs. (The eighteenth arc's note estimated ~100 rule-site skips; measured, it is
+        57 plus 28 regime-3.)
+      - **Shape 1 is not the test §7 defines.** §7 shape 1 is render → serialize → re-parse
+        → structural equality. `test_render_round_trip_totality_and_injectivity` compares
+        DTO key sets against element ids — that is §3.3's totality/injectivity row. The
+        real round trip (`reading_matches_egi(read_drawing(dto), egi)`) lives in
+        `test_eg_reader.py`, a different file than `CLAUDE.md` credits.
+      - **"Every served (EGI, drawing) pair is verified" is not true of every path.** The
+        deltas path calls `rebuild_ligature_anchors` *after* the last attestation and the
+        following `place_clockwise_hooks` swallows `CorrespondenceViolation` with a bare
+        `pass`; `GET /api/diagram/session/{id}` and `POST /api/transform/{undo,redo}` serve
+        a session-stored DTO with no re-attestation; `generate_overview_layout` attests the
+        quotient, and its own docstring says that is not a full §3.3 check. All in `src/`,
+        so recorded for the author rather than changed under a time-box.
+      - **A question for the author.** Four of nine narrated counts being wrong argues for
+        pinning them the way every other extent in this project is pinned — a test that
+        parses `CLAUDE.md`'s `(N)` claims and checks them against collection, failing with
+        "read why this moved, then re-pin deliberately". I did **not** build it: it would
+        make every added test red the suite until the doc is updated, and that is a change
+        to the working rhythm, which is the author's call and not a subagent-shaped one.
+      - The map's "says *what* it pins" conjunct is measured as a **non-empty string**.
+        Replacing every description with `"x"` keeps the file green. Checking prose against
+        substance is clause 3 again, one level down, and wants its own thinking.
+      - `has_dominating_nodes` now has **no negative case anywhere in the suite** — not
+        unmeasured but *unmeasurable*, since `d20b700` means no non-EGI can be constructed
+        to test it against. A helper hard-wired to return `True` would pass everything.
+- [x] **1d. Falsifier discipline — the admission gate's own halves, CLOSED 2026-09-21.**
+      This entry used to end: *"both ledger halves were demonstrated to bite by planting
+      and removing an entry."* That demonstration was **manual, and left nothing behind**
+      — a falsifier that lives only in prose is a falsifier nobody is keeping, which is
+      standing rule 4 turned on the instrument that enforces it. Clause 3 caught it: the
+      newest instrument in the project had **zero** falsifiers for its two ledger halves,
+      while `test_calculus_ledger.py` — the idiom `test_admission.py`'s own docstring says
+      it copies — has carried seven for the same shape since it was written. So the
+      semantics were copied and the verification was not.
+      Closed by making the comparison the *same code* the gate runs rather than a
+      re-written copy: `admission_scan.new_against_ledger` /
+      `repaired_against_ledger` (they were inline one-liners inside the two gate tests,
+      which is precisely why neither could be exercised), plus three tests — each half
+      shown to speak, and both shown to fall silent when the ledger matches the scan, so a
+      half hard-wired to report everything cannot pass.
+      `test_the_scan_catches_a_test_that_cannot_fail` remains, and is a different guard:
+      it falsifies the **scanner**, not the ledger comparison.
 - [ ] **1d-rest. Falsifier discipline, the other layers.** For each layer/harness that reports "clean", confirm
       a demonstrated falsifier exists. The calculus suite already does this in places
       ("the instrument is shown to catch …"); extend it to the layers that lack one.

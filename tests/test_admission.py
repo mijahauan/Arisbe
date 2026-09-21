@@ -37,8 +37,19 @@ the suite green; an entry leaves only by being *earned* out.
 from __future__ import annotations
 
 import json
+import re
+import sys
+from pathlib import Path
 
-from admission_scan import LEDGER_PATH, scan_suite
+ROOT = Path(__file__).resolve().parent.parent
+
+from admission_scan import (
+    LEDGER_PATH,
+    Inadmissible,
+    new_against_ledger,
+    repaired_against_ledger,
+    scan_suite,
+)
 
 
 def _ledger() -> dict:
@@ -53,7 +64,7 @@ def test_no_new_test_that_cannot_fail():
     """
     ledger = _ledger()["entries"]
     found = {f.test_id: f for f in scan_suite()}
-    new = sorted(set(found) - set(ledger))
+    new = new_against_ledger(found, ledger)
     assert not new, (
         f"{len(new)} test(s) that CANNOT FAIL entered the suite:\n  "
         + "\n  ".join(f"{t}  ({found[t].path}:{found[t].lineno}) — {found[t].reason}"
@@ -72,8 +83,8 @@ def test_a_repaired_test_is_read_off_the_ledger():
     fixes rather than assert them.
     """
     ledger = _ledger()["entries"]
-    found = {f.test_id for f in scan_suite()}
-    repaired = sorted(set(ledger) - found)
+    found = {f.test_id: f for f in scan_suite()}
+    repaired = repaired_against_ledger(found, ledger)
     assert not repaired, (
         f"{len(repaired)} ledgered test(s) can now fail — shrink this entry:\n  "
         + "\n  ".join(repaired)
@@ -110,6 +121,138 @@ def test_every_ledger_entry_carries_a_written_reason():
         assert entry.get("status") in allowed, f"{test_id}: bad status"
         assert entry.get("note", "").strip(), f"{test_id}: no written reason"
         assert entry.get("shape", "").strip(), f"{test_id}: no shape recorded"
+
+
+def _core_gate_files() -> list:
+    """The core suite, read off the gate that runs it — never re-typed here.
+
+    ``tools/quality_gate_system.py`` is the single source of truth for which
+    files "must always pass". Parsing its list rather than copying it means the
+    two cannot drift: adding a file there is immediately in scope here.
+    """
+    import ast
+
+    tool = ROOT / "tools" / "quality_gate_system.py"
+    tree = ast.parse(tool.read_text(encoding="utf-8"))
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Assign)
+                and any(getattr(t, "id", None) == "core_test_files" for t in node.targets)):
+            files = [el.value for el in node.value.elts if isinstance(el, ast.Constant)]
+            assert files, "core_test_files parsed empty — the gate's shape changed"
+            return files
+    raise AssertionError(
+        "tools/quality_gate_system.py no longer assigns core_test_files — this "
+        "test, and CLAUDE.md's core-suite figures, are reading a list that moved")
+
+
+def test_the_core_gates_figures_are_derived_not_narrated():
+    """CLAUDE.md's "166 core tests, 1 of which cannot fail" — generated here.
+
+    Standing rule 4: *a narrated number is generated or asserted; a figure that
+    lives only in prose is a figure nobody is keeping.* Both figures were prose
+    only until 2026-09-21. They were also both correct, which is the point — the
+    risk is not that a narrated number is wrong today but that nothing tells you
+    the day it stops being. CLAUDE.md carried "~118 core tests" against a real
+    166 for a long time that way, and that is standing caution 8.
+
+    The second figure is the one that matters. The core gate is the suite this
+    project says must always pass; a test inside it that *cannot* fail is the
+    exact defect the admission gate exists to find, and ten of them once sat
+    there — shielded, not scrutinised, by being named core. Pinning the count at
+    1 means the eleventh cannot come back quietly.
+
+    Both numbers are pinned exactly and never floored, in this project's idiom:
+    a moved figure is read, understood, and re-pinned deliberately.
+    """
+    import subprocess
+
+    files = _core_gate_files()
+    assert len(files) == 11, f"the core gate now names {len(files)} files, not 11"
+
+    out = subprocess.run(
+        [sys.executable, "-m", "pytest", *files, "-q", "--tb=no", "-p", "no:cacheprovider"],
+        cwd=ROOT, capture_output=True, text=True, timeout=600,
+    ).stdout
+    match = re.search(r"(\d+) passed", out)
+    assert match, f"could not read a pass count from the core gate run:\n{out[-2000:]}"
+    passed = int(match.group(1))
+
+    core_paths = {f.split("/")[-1] for f in files}
+    inadmissible = sorted(f.test_id for f in scan_suite()
+                          if f.path.split("/")[-1] in core_paths)
+
+    assert (passed, len(inadmissible)) == (166, 1), (
+        f"the core gate's figures moved: {passed} tests pass and {len(inadmissible)} "
+        f"cannot fail ({inadmissible}). CLAUDE.md quotes 166 and 1 — read why this "
+        f"moved, then re-pin both here and there. A test that cannot fail entering "
+        f"the core gate is the defect this whole gate exists to catch."
+    )
+
+
+def test_the_admission_scan_never_consults_the_code_it_judges():
+    """The instrument must not import what it measures.
+
+    ``admission_scan`` is a pure AST reader: it parses test files as text and
+    executes none of them, so no amount of cleverness in the code under test can
+    influence the verdict. CLAUDE.md states this as a property of the
+    instrument; this is the guard that makes it one.
+
+    Directly modelled on ``test_calculus_legal.test_legal_never_consults_the
+    _engine``, which does the same for ``legal()``. That guard existed; this one
+    did not, though the claim was written the same way.
+    """
+    import admission_scan
+
+    source = Path(admission_scan.__file__).read_text(encoding="utf-8")
+    code = "\n".join(line for line in source.splitlines()
+                     if not line.lstrip().startswith("#"))
+    for forbidden in ("egi_core_dau", "formal_transformation_rules", "tomos_service",
+                      "egif_parser_dau", "rule_interaction", "sys.path"):
+        assert forbidden not in code, (
+            f"admission_scan imports or reaches {forbidden!r}. It judges the suite "
+            f"by reading source text; the moment it executes or imports what it "
+            f"measures, a passing verdict stops being independent evidence.")
+
+
+def _fake(test_id: str):
+    """One scan result, with only the field the two halves compare on."""
+    return Inadmissible(test_id=test_id, path="tests/test_x.py", lineno=1, reason="assert True")
+
+
+def test_the_new_half_bites_on_an_unrecorded_test():
+    """An inadmissible test absent from the ledger is reported as new.
+
+    Until 2026-09-21 neither ledger half had a falsifier. The comparison lived
+    inline in the gate test, so exercising it meant re-writing it — which proves
+    nothing about the code the gate runs. The comparison is now a function and
+    this is the falsifier for it. Cf. ``test_calculus_ledger``, which has
+    carried seven of these for the same idiom since the suite was built.
+    """
+    found = {"a::t1": _fake("a::t1"), "b::t2": _fake("b::t2")}
+    ledger = {"a::t1": {"status": "validation-theatre"}}
+    assert new_against_ledger(found, ledger) == ["b::t2"]
+
+
+def test_the_shrink_half_bites_on_a_repaired_test():
+    """A ledgered test that can now fail is reported — 'shrink this entry'."""
+    found = {"a::t1": _fake("a::t1")}
+    ledger = {"a::t1": {"status": "validation-theatre"},
+              "b::t2": {"status": "validation-theatre"}}
+    assert repaired_against_ledger(found, ledger) == ["b::t2"]
+
+
+def test_both_halves_are_silent_when_the_ledger_matches_the_scan():
+    """And the silence is shown to be earned, not structural.
+
+    The pair above prove each half can speak; this proves it stops speaking when
+    it should. Without this, a half hard-wired to report everything would pass
+    both falsifiers.
+    """
+    found = {"a::t1": _fake("a::t1"), "b::t2": _fake("b::t2")}
+    ledger = {"a::t1": {"status": "validation-theatre"},
+              "b::t2": {"status": "in-the-core-gate"}}
+    assert new_against_ledger(found, ledger) == []
+    assert repaired_against_ledger(found, ledger) == []
 
 
 def test_the_scan_catches_a_test_that_cannot_fail():

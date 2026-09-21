@@ -56,6 +56,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from correspondence_attestation import check_correspondence
+from egif_parser_dau import parse_egif
 from elk_layout_engine import ELKLayoutEngine
 from layout_dto import BoundingBox, Point
 from presentation_ops import (
@@ -1111,15 +1112,63 @@ def _structurally_equal_egi(pre, post):
     return (not diffs), diffs
 
 
+def test_the_structural_equality_helper_can_say_no():
+    """The falsifier the whole of shape 6 rests on (added 2026-09-21).
+
+    All four regime-3 tests below decide by ``_structurally_equal_egi``. Nothing
+    showed it could ever return False — so a helper stubbed to ``return True,
+    []`` would have turned every one of them green, and shape 6 with them. The
+    clause-3 audit found this together with the null-op test just below, which
+    used to compare ``uod.current_egi`` to ``uod.current_egi``: the same
+    immutable object, read twice. Its own docstring conceded "this is trivially
+    true" while claiming to give "the other three sub-tests a known-good
+    baseline" — which is exactly what a comparison of an object with itself
+    cannot give.
+
+    Each arm moves one of the six things the helper compares.
+    """
+    base = parse_egif("(P *x) ~[ (Q x) ]")
+
+    ok, diffs = _structurally_equal_egi(base, base)
+    assert ok and not diffs, "the helper disagrees with a graph about itself"
+
+    # A different graph entirely: V, E, ν and area all differ.
+    other = parse_egif("(P *x) (Q *y)")
+    ok, diffs = _structurally_equal_egi(base, other)
+    assert not ok and diffs, "the helper accepted two structurally different EGIs"
+
+    # And the sharper case: identical ids, shape, ν and area — only ρ moves.
+    # Built with dataclasses.replace so exactly one field changes; a renamed
+    # relation is a different graph and the helper must say so on ρ alone.
+    import dataclasses
+
+    from frozendict import frozendict
+
+    eid = next(iter(base.E)).id
+    renamed = dataclasses.replace(
+        base, rel=frozendict({**dict(base.rel), eid: "Renamed"}))
+    ok, diffs = _structurally_equal_egi(base, renamed)
+    assert not ok, "the helper missed a relation rename"
+    assert diffs == [d for d in diffs if "ρ" in d], (
+        f"a rename should differ on ρ and nothing else, got: {diffs}")
+
+
 @pytest.mark.parametrize("uod_id", _uod_ids())
 def test_regime3_identity_null_op(uod_id, tomos, engine, style):
     """The structural-equality helper agrees on an EGI re-rendered untouched.
 
-    The null op: snapshot the EGI, render a layout, render *again* with
-    no mutation in between, assert the EGI is structurally identical to
-    its snapshot.  This is trivially true (EGIs are immutable; rendering
-    is read-only) but it pins down the helper's behaviour and gives the
-    other three sub-tests a known-good baseline.
+    The null op: load the UoD, render a layout twice with no mutation in
+    between, and assert the EGI is structurally identical to an
+    **independently loaded** copy of the same UoD.
+
+    That word is the whole repair (2026-09-21). This test used to read
+    ``egi_before = uod.current_egi`` … ``egi_after = uod.current_egi`` — one
+    attribute read twice off one immutable object — so it asserted that a thing
+    equals itself, 52 times per engine/style, and its docstring said so
+    ("trivially true"). Reading a second UoD makes the helper actually walk two
+    separately constructed graphs, which is what "rendering did not disturb the
+    EGI" was always supposed to mean. The helper's own falsifier is directly
+    above.
 
     Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.3 (Presentation-only
     — invariant preserved by construction), §7 (test shape #6).
@@ -1128,7 +1177,9 @@ def test_regime3_identity_null_op(uod_id, tomos, engine, style):
     egi_before = uod.current_egi
     _ = engine.generate_layout(egi_before, style)
     _ = engine.generate_layout(egi_before, style)
-    egi_after = uod.current_egi
+    egi_after = tomos.load_uod(uod_id).current_egi
+    assert egi_after is not egi_before, (
+        "the two graphs are the same object — this test is vacuous again")
 
     ok, diffs = _structurally_equal_egi(egi_before, egi_after)
     assert ok, f"[{uod_id}] null-op rendered changed EGI:\n  " + "\n  ".join(diffs)

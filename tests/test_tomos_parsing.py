@@ -152,6 +152,16 @@ def test_second_order_uods_refuse_a_linear_form(service, uod_id, form):
     A quotation oval is not a negation, and no linear syntax carries the sort.
     The generators must say so rather than emit something that reads back as an
     ordinary cut.
+
+    All three forms are held to this, with no exemption. There used to be one:
+    a ``pytest.xfail("CLIF emits the first-order projection instead of
+    refusing")`` on the CLIF leg, added 2026-09-08. CLIF had gained the refusal
+    on 2026-07-16 (``caa5f45``, the B-min opening), so the exemption was stale
+    the day it was written and never once fired — and because ``pytest.xfail()``
+    aborts the test where it stands, it could never report an unexpected pass to
+    say so. It sat in the very file whose docstring warns about that archetype.
+    Its only remaining effect would have been to absorb a future CLIF regression
+    back into silence, so it is gone rather than "recorded".
     """
     egi = service.load_uod(uod_id, attest=False).current_egi
     generate, _ = FORMS[form]
@@ -161,10 +171,6 @@ def test_second_order_uods_refuse_a_linear_form(service, uod_id, form):
         return
     except Exception as exc:  # a different failure is still a failure
         pytest.fail(f"{uod_id}/{form} raised {type(exc).__name__}, not the named limit: {exc}")
-    if form == "CLIF":
-        # CLIF currently emits the first-order projection rather than refusing;
-        # recorded here rather than asserted away.
-        pytest.xfail("CLIF emits the first-order projection instead of refusing")
     pytest.fail(f"{uod_id}/{form} emitted a linear form for a quotation-bearing graph")
 
 
@@ -183,4 +189,45 @@ def test_the_round_trip_guarantee_is_stated_at_its_true_extent():
         f"the round-trip extent moved: {total} checks, {second_order} refused as "
         f"second-order, {broken} known broken, {holding} holding — update this pin "
         f"and the module docstring deliberately"
+    )
+
+
+def test_the_split_between_the_strong_and_weak_checks_is_pinned_too():
+    """147 is not one number. Pin *how* each of the 147 holds, not just that it does.
+
+    The headline above cannot see the difference between the two checks this
+    file runs. ``same_graph`` is isomorphism in Dau's sense: the graph that came
+    back is the graph that went out. Re-emission —
+    ``generate(parse(generate(g))) == generate(g)`` — compares two outputs of
+    the same generator and never re-touches the original EGI, so it is blind to
+    exactly the defect class the eighteenth arc repaired (one the generator and
+    the parser share, or one that loses what the generator never emits).
+
+    Until this test existed, moving a UoD into ``BY_REEMISSION`` downgraded it
+    from the strong check to the weak one **with every pin still green**: the
+    tuple above counts a re-emission pass into ``holding`` indistinguishably,
+    so the headline stayed 147 while the split slid from 144/3. The project has
+    already been bitten once by re-emission counted into a ``same_graph`` total;
+    the escape hatch that does it was the one quantity left unmeasured.
+
+    So the weak set is pinned by *name*, not only by size — a swap of equal size
+    would otherwise pass — and the split is pinned alongside the total.
+    """
+    assert BY_REEMISSION == {"sumo_upper"}, (
+        f"the set checked by the weaker re-emission test moved: {sorted(BY_REEMISSION)}. "
+        f"Adding a UoD here silently downgrades its guarantee — do it deliberately, "
+        f"say why in the docstring, and re-pin the split below."
+    )
+
+    total = len(_uods()) * len(FORMS)
+    second_order = len(SECOND_ORDER) * len(FORMS)
+    broken = len(KNOWN_BROKEN)
+    holding = total - second_order - broken
+    by_reemission = len(BY_REEMISSION & set(_uods())) * len(FORMS)
+    by_same_graph = holding - by_reemission
+
+    assert (by_same_graph, by_reemission) == (144, 3), (
+        f"the round-trip SPLIT moved: {by_same_graph} hold by same_graph and "
+        f"{by_reemission} by stable re-emission (total still {holding}). Always "
+        f"state the split, never the total alone."
     )

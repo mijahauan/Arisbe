@@ -157,6 +157,61 @@ class TestValidation:
 # --------------------------------------------------------------------------- #
 
 
+class TestImmutability:
+    """The word "immutable" made into an assertion (added 2026-09-21).
+
+    CLAUDE.md's Data Model Invariants open with **"EGI is immutable: use
+    `.with_vertex()`, `.with_edge()` — never `.add_*()`"**, and the calculus map
+    attests ``egi_core_dau.py`` as *"the immutable EGI, its builders and B-min
+    maps"* — naming this file as one of the two suites that pin it. Clause 3 of
+    the admission gate asks whether a test measures what it claims; for this
+    claim the answer was no. The only ``FrozenInstanceError`` assertion in the
+    whole suite was in ``test_c_marks.py``, on an unrelated class. Dropping
+    ``frozen=True`` from the dataclass would have reddened nothing *for that
+    reason* — every builder would keep working, since they construct new graphs
+    rather than mutate.
+
+    Immutability is not decoration here: the diachronic model keeps every state
+    of a UoD alive at once, the chain holds them all, and rules return new
+    graphs precisely so an earlier state cannot be edited out from under a
+    recorded proof. It is worth an assertion.
+    """
+
+    def test_the_graph_itself_is_frozen(self):
+        import dataclasses
+
+        egi = parse_egif("(P *x) ~[ (Q x) ]")
+        assert egi.__dataclass_params__.frozen
+        for field in ("sheet", "V", "E", "Cut", "nu", "rel", "area"):
+            with pytest.raises(dataclasses.FrozenInstanceError):
+                setattr(egi, field, None)
+
+    def test_the_collections_are_frozen_too(self):
+        """A frozen shell around mutable insides would be immutability in name.
+
+        The sets must have no ``add``; the maps must refuse assignment. Without
+        this, ``egi.area[cut].add(v)`` would move a vertex between areas — a
+        meaning change with no builder, no rule and no record.
+        """
+        egi = parse_egif("(P *x) ~[ (Q x) ]")
+        for name in ("V", "E", "Cut"):
+            assert isinstance(getattr(egi, name), frozenset), name
+        for name in ("nu", "rel", "area", "sort", "quotation"):
+            mapping = getattr(egi, name)
+            assert isinstance(mapping, frozendict), name
+            with pytest.raises(TypeError):
+                mapping["zzz"] = "anything"
+
+    def test_a_builder_returns_a_new_graph_and_leaves_the_old_one_alone(self):
+        """The other half of the invariant: ``with_*`` is not ``add_*`` in disguise."""
+        egi = parse_egif("(P *x)")
+        before_v, before_area = egi.V, dict(egi.area)
+        extended = egi.with_vertex(create_vertex())
+        assert extended is not egi
+        assert len(extended.V) == len(before_v) + 1
+        assert egi.V == before_v and dict(egi.area) == before_area
+
+
 class TestBuilderPreservation:
     def test_with_vertex_and_edge_and_cut_preserve(self):
         egi, name_id, cut_id, _ = quoted_host()

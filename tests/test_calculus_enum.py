@@ -44,8 +44,22 @@ def test_counts_add_up():
 
 
 def test_every_kept_graph_has_dominating_nodes():
-    # Dau Def 12.5 is part of what an EGI is (Def 12.7); the enumerator must
-    # never build a non-EGI, since the core would not refuse one.
+    # Dau Def 12.5 is part of what an EGI is (Def 12.7).
+    #
+    # This comment used to end "since the core would not refuse one", and that
+    # was the test's whole justification. It stopped being true at d20b700,
+    # which enforces Def 12.5 in the core constructor — the proof is thirty
+    # lines up in this very file, where `TierAReport.refused_by_core` counts the
+    # ValueError the core raises. A kept graph is one that survived
+    # construction, so it has dominating nodes *by construction* and this
+    # assertion can no longer fail.
+    #
+    # Kept anyway, and honestly labelled: it is now a cheap agreement check
+    # between the core's enforcement and tarski's independent reading of Def
+    # 12.5, and it would bite if enforcement were removed without this file
+    # being revisited. What it is NOT is the last line of defence it claims.
+    # `refused_by_core` is the number to watch (0 at default bounds: the
+    # enumerator builds no violator here), and it is pinned in the extent.
     from tarski import dominating_nodes
     assert all(dominating_nodes(g) for _, g in tier_a(DEFAULT_BOUNDS).graphs)
 
@@ -117,10 +131,31 @@ def test_tier_b_covers_every_uod_and_every_chain_state():
 
 def test_every_corpus_graph_is_an_egi():
     """Task 10 ruling: a standing guard. Dau Def 12.7 (p.126) makes dominating
-    nodes (Def 12.5, p.125) part of what an EGI is; the core does not enforce
-    it and its own check is inverted, so nothing else in the repository would
-    catch a stored non-EGI. Every tier-B source — each UoD's current graph and
-    every chain state — is held to it; the known violators are ledgered."""
+    nodes (Def 12.5, p.125) part of what an EGI is; every tier-B source — each
+    UoD's current graph and every chain state — is held to it, and the known
+    violators are ledgered.
+
+    **What this test buys has changed, and the docstring is corrected rather
+    than left flattering (2026-09-21, clause 3 of the admission gate).** It used
+    to read "the core does not enforce it and its own check is inverted, so
+    nothing else in the repository would catch a stored non-EGI". Both halves
+    were true when written and both are now false: `9482d2c` fixed the inverted
+    `has_dominating_nodes`, and `d20b700` enforces Def 12.5 in the constructor.
+
+    The consequence is that the failure path below is unreachable. Tier-B
+    sources arrive through `svc.load_uod` / `svc.load_chain`, i.e. through the
+    core constructor, so a stored non-EGI now raises a ValueError at *load* —
+    `dominating_violations(g)` never sees one, `failures` is structurally empty,
+    and the legible per-graph ledger report this test advertises cannot be
+    produced. A stored non-EGI would surface as an exception escaping the
+    fixture (and would redden much of the suite), not as the finding named here.
+
+    It is kept, because two things it does are still real and still load-bearing:
+    the whole corpus is proved *loadable* at all, and `assert_extent` pins
+    `sources` at 230 — so a silently dropped UoD or chain state is caught. The
+    `corpus-egi` ledger is empty and its machinery is kept for the same reason
+    `KNOWN_BROKEN`'s is: were enforcement ever relaxed, this reports it legibly
+    instead of as a stack trace."""
     from calculus_enum import dominating_violations, tier_b_sources
     from calculus_ledger import Failure, assert_extent, check_ledger, ledgered
     from tarski import dominating_nodes
