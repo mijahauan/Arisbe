@@ -43,7 +43,13 @@ can be converted into a test that fails, do that instead of writing it down agai
    `graphify update .` after changing code (AST-only, no API cost). On 2026-09-21 the
    graph was four days stale, the PreToolUse reminder was ignored dozens of times, and
    every mapping error that day was a search error the graph would have answered.
-7. **Verify a number before quoting it.** "~118 core tests" stood in this file while the
+7. **Stage deliberately; `git add -A` sweeps in whatever else is in the tree.** On
+   2026-09-21 it put the standing-cautions and graphify-directive work into `ffdb8fb`,
+   whose message describes only the binder-scoping fix, while `4376578` — whose message
+   describes all three process repairs — holds only the quality-gate change. The commit
+   record is the project's memory; a message that claims work it does not contain is the
+   same failure as a narrated number.
+8. **Verify a number before quoting it.** "~118 core tests" stood in this file while the
    gate reported ~150 and the truth was 166; "87+ tomos examples" while the corpus held
    52. If a figure is worth writing, it is worth generating.
 
