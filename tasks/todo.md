@@ -109,7 +109,7 @@ and **prove that test can fail**.
 - [ ] **2c.** Make both of these standing tests, so a future rule cannot enter the
       engine unjudged or unexercised.
 
-## Item 2b — QUEUED: EXTEND_LIGATURE refuses what Lemma 16.2 licenses
+## Item 2b — DONE (2026-09-21): EXTEND_LIGATURE now extends at any vertex
 
 Found 2026-09-20 by the new oracle, on its first sweep — the same way MOVE_BRANCHES'
 oracle paid for itself the moment it existed. **Ledgered, not fixed** (entry
@@ -147,11 +147,75 @@ its own output while its rule extraction called it a variable.)
       running pass makes that pass describe a tree that no longer exists; editing a
       JSON the suite reads at *runtime* (the ledger, the extent) corrupts the run
       outright. Both were learned the hard way on 2026-09-20.
-- [ ] **Proof of the fix is the ledger entry VANISHING**, not being edited — a repaired
-      entry that is merely rewritten proves nothing. Read the extent diff for
-      `EXTEND_LIGATURE:refused/legal` going to absent and `applied/legal` rising by the
-      same 524, and confirm no new soundness failure appears on any move `legal()` judges
-      legal.
+- [x] **Proof of the fix is the ledger entry VANISHING**, not being edited.
+      **It vanished**: the gate reported *"507 instance(s) no longer fail — shrink this
+      entry"* — every instance — and the entry was deleted, taking the ledger 19 → 18.
+      The extent diff reads exactly as predicted: `EXTEND_LIGATURE:refused/legal` → **0
+      in all three tiers** with `applied/legal` up by the same +336 / +166 / +22 = **524**,
+      totals conserved, and **no `applied/illegal` cell appeared** — the engine now
+      applies what Lemma 16.2 licenses and nothing more. In the structure layer those 524
+      moved from `refused` into `postcondition`, and every non-extent structure test
+      passed, so the postconditions hold on all of them.
+
+**What the fix was.** Deleting the `has_identity_connections` block was the whole change;
+`apply_transformation` needed nothing, because it was *already* building two fresh
+vertices and two fresh identity edges in `ctx(v)` — Lemma 16.2's construction verbatim.
+The module's own comment had said the anchor is any `v ∈ V` all along.
+
+**New:** `tests/test_chapter16_ligature_rules.py` — seven hand-built cases citing p.172
+(a lone vertex extends; fresh material lands in `ctx(v)`, cut included; every fresh edge
+is an identity edge; the anchor's ink survives; an already-ligatured vertex still
+extends; an edge is refused; two anchors are refused). Shown to bite: **4 of 7 fail**
+without the fix. Deliberately a new file rather than
+`test_chapter16_17_ligature_soundness_simplified.py`, which is itself ledgered validation
+theatre — repairing that one stays queued under item 1b.
+
+## Item 5 — QUEUED: finding 3, CLIF/CGIF binder scoping (investigated 2026-09-21)
+
+**The defect.** Both parsers key a generic vertex by the variable's *name*, so two binders
+that reuse a name share one line. `(forall (x) (P x)) (forall (x) (Q x))` comes back as a
+single existential line spanning both. Dau: a quantifier binds only the occurrences in its
+own formula (Def 18.1, p.197; ∀ as ¬∃¬, p.198; α-conversion Def 18.3, p.199; Ψ's
+existential step, p.207). Held by 6 strict xfails in
+`tests/test_linear_form_binder_scoping.py`, so a fix shows up as XPASS and fails loudly.
+
+**Now known to reach past the linear forms.** It was silently cancelling against the
+materializer's quantification defect in a *passing* test
+(`test_clif_imported_names_with_hyphens_do_not_break`): the parser merged two universals
+into one sheet-level line, and the materializer then misread that line as a universal
+variable, so two wrongs gave the right answer. Fixing one exposed the other.
+
+**Exactly where.**
+- `src/clif_parser_dau.py:524` (atomic branch) and `:665` (the ∀ branch) — `f"v_{name}"`
+  with `if not any(v.id == vertex_id ...)`, so a second binder *finds and reuses* the
+  first's vertex. `self._binder_area` is likewise a name→area map assuming one binder
+  per name.
+- `src/cgif_parser_dau.py:584` (defining label), `:602` (bound), `:623`, `:637-639` —
+  same shape, plus a global `self._label_to_vertex_id`.
+
+**The fix.** A lexical **scope stack**: entering a quantifier pushes a fresh vertex id per
+bound name, leaving pops it, and an atom's argument resolves against the innermost
+enclosing binding (else free/constant). That is Def 18.1 directly, and α-conversion falls
+out of it.
+
+**Blast radius, measured over all 245 stored corpus graphs (2026-09-21) — small.**
+- [x] **CLIF: 0** graphs emit a reused binder name. Zero corpus exposure.
+- [x] **CGIF: 18** graphs emit a repeated `*label`, but **all are same-scope
+      coreference** — `[* x] [Human: *x] [Mortal: *x]`, one line with three coreferent
+      mentions in one area, which is how CGIF writes coreference and which the scope-stack
+      fix preserves by construction. None exhibits the defect's shape (two binders in
+      disjoint scopes).
+- [ ] Re-measure after the fix: the 147 round trips must hold at their stated split
+      (144 `same_graph` + 3 by re-emission), and `KNOWN_BROKEN` must stay empty.
+
+**Conditions.**
+- [ ] Neither parser is protected (both were removed from the set 2026-06-27), so no
+      authorization is needed — but the round-trip corpus is the thing to watch.
+- [ ] The 6 strict xfails become XPASS. Convert them to ordinary passing tests in the same
+      change; a strict xfail left in place turns a fix into a suite failure.
+- [ ] Check whether `test_clif_imported_names_with_hyphens_do_not_break`'s fixture can go
+      back to its original reused-binder form once the parser is right — it was changed on
+      2026-09-19 to route around this defect, and the comment there says so.
 
 ## Item 3 — One semantic rule, one implementation
 

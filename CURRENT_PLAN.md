@@ -1,5 +1,73 @@
 # Current Plan
 
+**Last Updated**: 2026-09-21 (nineteenth arc, third sitting) — **EXTEND_LIGATURE FIXED AND PROVED
+AT FULL EXTENT; "PROTECTED CORE" RETIRED AS A GUARANTEE AND REPLACED BY AN ACTUAL TEST.**
+
+**Item 2b — EXTEND_LIGATURE now extends at any vertex (author-authorized, protected module).**
+Lemma 16.2 (p.172): *"Let a EGI 𝔊 be given with a vertex v..."* — the only precondition on the
+**source** is that v be a vertex; every other clause governs what is *built*. The engine demanded
+that the anchor already carry an identity edge, refusing what the lemma licenses. **The fix was
+deleting ten lines**; `apply_transformation` needed nothing, because it was already building two
+fresh vertices and two fresh identity edges in `ctx(v)` — the lemma's construction verbatim. The
+module's own comment directly above had said the anchor is *any* `v ∈ V` all along, the second time
+this arc a module half-knew its own answer.
+
+**The proof, as the queued item demanded — the ledger entry VANISHED rather than being rewritten.**
+The gate reported *"507 instance(s) no longer fail — shrink this entry"*, every instance, and the
+entry was deleted (ledger 19 → 18). At **exhaustive** bounds: `EXTEND_LIGATURE:refused/legal` → **0
+in all three tiers**, `applied/legal` up by exactly 5,125 + 1,606 + 22 = **6,753 moves**, totals
+conserved at 702,192, and **no `applied/illegal` cell exists** — the engine now applies what Lemma
+16.2 licenses and nothing more. (The ledger's 6,538 counted deduplicated *keys*; these are *moves* —
+the same ratio as 507 keys ↔ 524 moves in the default mode.)
+
+**And the safety evidence, which is the reason this needed its own pass.** Converting refusals into
+applications is where this project's unsoundness has hidden — MOVE_BRANCHES survived a whole arc
+that way. Those 6,753 moves are now **submitted to soundness checking for the first time**
+(`A:EXTEND_LIGATURE:exhaustive` 902 → 3,771, `sampled` 264 → 2,520; tier B 2 → 666 and 112 → 1,058),
+and **every one passes**: `test_soundness_exhaustive` green, **zero** UNSOUND or NOT AN EQUIVALENCE
+anywhere in a 2 h 49 min run. They also all satisfy the structure layer's postconditions.
+
+**New:** `tests/test_chapter16_ligature_rules.py` — seven hand-built cases citing p.172, **shown to
+bite** (4 of 7 fail without the fix). A new file rather than
+`test_chapter16_17_ligature_soundness_simplified.py`, which is itself ledgered validation theatre.
+
+**Item 4 — "protected core" retired as a guarantee (the author's ruling).** The old claim — 14
+modules "cannot be modified without authorization" — was never true in the sense it invites, and
+**no test referenced it**, so the claim was itself unmeasured. The mechanism is a commit-time speed
+bump in a *local* git hook: absent on a fresh clone, invisible to CI, bypassed by `--no-verify`
+which this project's own workflow uses on every commit. Worse, the label did the work checking
+should have done: the 2025 deposit of tests that cannot fail reached **into** that set, where being
+*named* core shielded it from scrutiny, and the boundary was wrong both ways — a core Dau property
+lived *outside* it in three copies while `has_dominating_nodes` sat **inverted inside** it.
+
+The two jobs are now separate. **The map** (which modules are the calculus) is kept as
+documentation. **The attestation** is `tests/test_calculus_map.py` (9 tests): every module names the
+suite that pins its contract *and what it pins*; the suite must actually reach the module (directly
+or through a declared `tests/` adapter such as `calculus_apply`); and it must itself be
+**admissible** — able to fail, per `tests/admission_ledger.json`. That join matters concretely: when
+the map was written, `test_chapter15_formal_calculus` had *just* been rewritten because all nine of
+its tests were inadmissible, while it was the named attestation for the six transformation rules.
+**The pause stays, and stays a convention** — it works on a careful contributor and does nothing
+against a careless one, which is the honest description of what it always was.
+
+**Two modules are declared UNATTESTED**: `hierarchical_index.py` (imported by `egi_core_dau`
+itself) and `single_object_ligature_detector.py`. Both are reached only transitively, so their code
+runs and their contracts are pinned by nothing. A test asserts the set is *exactly* those two, in
+the manner of `test_the_unimplemented_dau_rules_are_exactly_these` — shrink it by giving them a
+suite, never by deleting a name. Another holds the map and `tools/core_protection_system.py` in step
+so two lists of the calculus cannot drift apart.
+
+**The map test caught three of my own wrong claims on its first run**, which is the right sign. Two
+were the calculus suite reaching engines through its deliberate `calculus_apply` adapter; the third
+was `test_graph_isomorphism_engine.py` importing `from src.…`, the form CLAUDE.md's own convention
+forbids. That one is **counted, not tidied in passing** — changing imports in a core-gate suite is
+its own change with its own verification. CLAUDE.md's core-suite figure was also corrected: it read
+"~118 tests" while the gate reported ~150 and now reports **166**, and neither number had ever been
+checked against the other.
+
+---
+
+
 **Last Updated**: 2026-09-20 (nineteenth arc, second sitting) — **THE INTEGRITY REVIEW: THE SUITE
 PUT THROUGH THE SAME GATE THE CORPUS IS. 72 TESTS THAT COULD NOT FAIL, TEN OF THEM INSIDE THE CORE
 GATE — AND REWRITING ONE OF THOSE FILES UNCOVERED A LIVE DEFECT IN A PROTECTED MODULE THAT REACHED

@@ -1,12 +1,41 @@
 #!/usr/bin/env python3
 """
-Core Protection System - Protects validated core modules from unauthorized changes
+The calculus map and its deliberation pause — NOT a guarantee.
 
-Protects the validated core modules from unauthorized changes. The mathematical
-core test suite (covering egi_core_dau, formal_transformation_rules, rule_interaction,
-subgraph_closure_validator, graph_isomorphism_engine, and Beta/logical proof
-exercises) must always pass; modifications to protected modules require explicit
-authorization (touch .core_modification_authorized).
+**Read this before trusting the word "protected" (2026-09-21, the author's ruling).**
+
+This tool does two things, and only one of them is a check.
+
+1. It carries the **map**: which modules are the calculus. That is useful
+   documentation and the reason the file is kept.
+
+2. It raises a **pause** when one of them is modified without
+   ``.core_modification_authorized``. That is a commit-time speed bump in a local
+   git hook — absent on a fresh clone, invisible to CI, and bypassed by
+   ``--no-verify``, which this project's own documented workflow uses on every
+   commit because the hook fails on a missing ``python`` alias. It is a
+   **convention**: it works on a careful contributor and does nothing against a
+   careless one. That is the honest description, and it is worth having; calling
+   it protection is not.
+
+The word mattered. Until 2026-09-21 **no test referenced this file at all**, so
+"these modules cannot be modified without authorization" was itself unmeasured —
+the exact shape the nineteenth arc's integrity review was hunting. And the label
+did the work that checking should have done: the 2025 deposit of tests that
+cannot fail reached *into* this set (test_chapter15_formal_calculus,
+test_egi_core_comprehensive), where being **named** core shielded it from
+scrutiny. The boundary was also wrong in both directions — a core Dau property (a
+line's area is its quantification) lived outside it in three copies, while
+``has_dominating_nodes`` sat **inverted inside** it and nothing caught it.
+
+What replaces the guarantee is ``tests/test_calculus_map.py``: every module on
+this map names the **suite that pins its contract**, that suite must actually
+reach the module, and it must itself be admissible (able to fail — see
+``tests/admission_ledger.json``). Two modules are declared **unattested** there
+rather than quietly assumed. Keep the two files' module sets in step; a test
+holds them so.
+
+The mathematical core suite below must still always pass.
 """
 
 import os
@@ -18,7 +47,11 @@ from typing import Set, Dict, List, Optional
 from datetime import datetime
 
 class CoreProtectionSystem:
-    """Protects core modules from unauthorized modifications."""
+    """Carries the calculus map and raises the deliberation pause.
+
+    Not a guarantee — see the module docstring, and
+    ``tests/test_calculus_map.py`` for what actually attests these modules.
+    """
     
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or Path.cwd()
@@ -367,19 +400,21 @@ class CoreProtectionSystem:
     def generate_protection_report(self) -> str:
         """Generate a protection status report."""
         report = []
-        report.append("🔒 ARISBE CORE PROTECTION STATUS REPORT")
+        report.append("🔒 ARISBE CALCULUS MAP + DELIBERATION PAUSE")
         report.append("=" * 50)
         report.append(f"Generated: {datetime.now().isoformat()}")
         report.append("")
         
-        report.append(f"📦 Protected Modules: {len(self.protected_modules)}")
+        report.append(f"📦 The calculus map ({len(self.protected_modules)} modules) — "
+                      f"attested in tests/test_calculus_map.py, not here:")
         for module in sorted(self.protected_modules):
             report.append(f"   - {module}")
         report.append("")
         
         # Check current status
         mod_check = self.check_core_modifications()
-        report.append(f"🛡️  Current Status: {mod_check.get('protection_status', 'UNKNOWN')}")
+        report.append(f"🛡️  Pause status (a convention, not a guarantee): "
+                      f"{mod_check.get('protection_status', 'UNKNOWN')}")
         
         if mod_check.get('core_modifications'):
             report.append("   Modified core files:")

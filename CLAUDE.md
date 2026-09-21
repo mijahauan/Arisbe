@@ -100,20 +100,49 @@ The Qt-based GUI (`arisbe.py`, `src/gui_clean/`) and its `unified_d3` layout
 engine were archived to `archive/qt-gui-2025/` in May 2026 — see that
 directory's README for context. They remain in git history if needed.
 
-## Core Protection System
+## The Calculus Map (formerly "Core Protection System")
 
-**14 modules in `src/` are protected** and cannot be modified without authorization — the genuine
-calculus core: the data model + IO, diachronic state, the Dau rules + validators, the ligature
-machinery, and the correspondence enforcers `correspondence_attestation` / `presentation_ops` /
-`natural_layout` (the three added 2026-06-27). The EGIF/CGIF/CLIF parsers/generators were *removed* from
-the set on 2026-06-27 as application-level I/O guarded by corpus round-trip tests, not the calculus:
+**Retired as a guarantee 2026-09-21, on the author's ruling.** The old sentence — "14 modules are
+protected and cannot be modified without authorization" — was never true in the sense it invites, and
+**no test referenced it**, so the claim was itself unmeasured. The mechanism is a commit-time speed
+bump in a *local* git hook: absent on a fresh clone, invisible to CI, and bypassed by `--no-verify`,
+which this project's own documented workflow uses on every commit (the hook fails on a missing
+`python` alias). Worse, the label did the work checking should have done: the 2025 deposit of tests
+that cannot fail reached **into** that set, where being *named* core shielded it from scrutiny. And
+the boundary was wrong both ways — a core Dau property (a line's area is its quantification) lived
+*outside* it in three copies, while `has_dominating_nodes` sat **inverted inside** it, uncaught.
+
+The two jobs it conflated are now separate.
+
+1. **The map** — which 14 modules are the calculus (data model + IO, diachronic state, the Dau rules
+   + validators, the ligature machinery, the three correspondence enforcers). Useful documentation;
+   not a guarantee. Lives in `tools/core_protection_system.py`.
+2. **The attestation** — `tests/test_calculus_map.py`: every module on the map names the **suite
+   that pins its contract** and says *what* it pins; that suite must actually reach the module
+   (directly, or through a declared `tests/` adapter such as `calculus_apply`); and it must itself
+   be **admissible** — able to fail, per `tests/admission_ledger.json`. Two modules,
+   `hierarchical_index.py` and `single_object_ligature_detector.py`, are declared **unattested**
+   there rather than quietly assumed: both are reached only transitively, so their code runs and
+   their contracts are pinned by nothing. Shrink that set by giving them a suite, never by deleting
+   the name. A test holds the two files' module sets in step so they cannot drift apart.
+3. **The pause** stays, and stays a **convention**: confirm with the author before changing the
+   calculus. It works on a careful contributor and does nothing against a careless one — which is
+   the honest description of what it always was.
 
 ```bash
-touch .core_modification_authorized   # Required before modifying protected modules
-python tools/core_protection_system.py --report  # Check what's protected
+touch .core_modification_authorized   # the pause: raise it deliberately, remove it after
+python tools/core_protection_system.py --report  # the map + pause status
+uv run pytest tests/test_calculus_map.py          # what actually attests these modules
 ```
 
-**The mathematical core test suite must always pass.** The core suite is the subset of `tests/` that covers `egi_core_dau`, `formal_transformation_rules`, `rule_interaction`, `subgraph_closure_validator`, `graph_isomorphism_engine`, and the Beta/logical proof exercises (~118 tests today). Failing core tests indicate real mathematical correctness issues, not test infrastructure problems.
+**The mathematical core test suite must always pass.** The core suite is the 11 files named in
+`tools/quality_gate_system.py`, covering `egi_core_dau`, `formal_transformation_rules`,
+`rule_interaction`, `subgraph_closure_validator`, `graph_isomorphism_engine`, and the Beta/logical
+proof exercises — **166 tests** as of 2026-09-21 (the figure "~118" stood here for a long time while
+the gate reported ~150; neither was checked). Of those 166, **1 cannot fail**, down from 10 before
+the chapter-15 rewrite — a single self-labelled `assert True` summary in
+`test_egi_core_comprehensive`. Failing core tests indicate real mathematical correctness issues, not
+test infrastructure problems.
 
 ## Architecture
 
@@ -398,7 +427,8 @@ Key test files:
 - `test_calculus_enum.py` — tier-A enumeration: every required shape occurs (empty cut, 0-ary and ternary relations, co-denotable and unnormalized constants, a line above its uses); no two kept graphs are isomorphic; the counts add up (kept + discarded); every kept graph has dominating nodes; tier B covers every UoD and every chain state; **every corpus graph is an EGI** (the standing guard — `bfo_core` and `colore_field` were the two that were not, and are repaired, so the entry `corpus-graph-not-an-egi` is retired); and the tier-S stress set is pinned by name, including `theta-in-one-context`, the one graph on which **MOVE_BRANCHES applies** — before it the default mode exercised that rule's refusals only, which is how an unsound MOVE_BRANCHES survived a whole fix arc
 - `test_tarski.py` — the evaluator is validated before it is trusted: constant multiplicity/placement is inert, generic placement is not; a generic line is quantified where it is placed; `=` is equality; constants may co-denote; a non-EGI is refused, not evaluated; `restrict`, `sheet_components`, `universe` (exhaustive under its cap and says so, else sampled)
 - `test_calculus_pk1.py` — prior P-K1 (exhaustive only), pinned at its recorded outcome: REFUTED on its premise, because colore_field's stored graph is not an EGI
-- `test_calculus_legal.py` — `legal()` against hand-built legal and illegal cases for each rule, each cited to a Dau page, plus a guard that it imports nothing from the engine. **2026-09-20: every IMPLEMENTED rule is judged** — the five that were not (EXTEND/RETRACT/REARRANGE_LIGATURE, SPLIT_VERTEX, MERGE_VERTICES) gained oracles read from Lemma 16.2 (p.172), Lemma 16.3 (p.173), Def 16.4/Cor 16.5 (p.174-175) and Def 16.6 (p.175-176), and `test_every_implemented_rule_is_judged` holds the class: a rule `legal()` abstains on is scored by no refusal layer, which is the blind spot an unsound MOVE_BRANCHES survived a whole arc in. Only the five rules with no entry point remain unjudged, named exactly. Found one departure — `extend-ligature-wants-an-existing-ligature`, INCOMPLETE, 524 default / 6,538 exhaustive: Lemma 16.2 extends at any vertex, the engine demands an existing identity edge (queued to fix, `tasks/todo.md` item 2b)
+- `test_calculus_legal.py` — `legal()` against hand-built legal and illegal cases for each rule, each cited to a Dau page, plus a guard that it imports nothing from the engine. **2026-09-20: every IMPLEMENTED rule is judged** — the five that were not (EXTEND/RETRACT/REARRANGE_LIGATURE, SPLIT_VERTEX, MERGE_VERTICES) gained oracles read from Lemma 16.2 (p.172), Lemma 16.3 (p.173), Def 16.4/Cor 16.5 (p.174-175) and Def 16.6 (p.175-176), and `test_every_implemented_rule_is_judged` holds the class: a rule `legal()` abstains on is scored by no refusal layer, which is the blind spot an unsound MOVE_BRANCHES survived a whole arc in. Only the five rules with no entry point remain unjudged, named exactly. Found one departure and it is now **fixed** (2026-09-21): the engine demanded that an extension's anchor already carry an identity edge, declining 524 default / 6,538 exhaustive moves that Lemma 16.2 (p.172) licenses — "Let a EGI be given with a vertex v", a lone vertex being a ligature of one. The ledger entry retired by **vanishing** (all 507 instances stopped failing), `refused/legal` → 0 in every tier with `applied/legal` up the same 524, and no `applied/illegal` cell appeared
+- `test_chapter16_ligature_rules.py` — **new 2026-09-21**; Chapter 16's ligature rules as worked textbook cases, the hand-built complement to the enumerated suite (as `test_chapter15_formal_calculus` is for Ch.15). Seven cases on Lemma 16.2 (p.172): a lone vertex is a ligature of one and extends; the fresh material lands in `ctx(v)`, cut included; every fresh edge is an identity edge; the anchor's own ink survives; an already-ligatured vertex still extends; an edge and a two-vertex selection are refused. Shown to bite — 4 of 7 fail without the fix. A separate file from `test_chapter16_17_ligature_soundness_simplified.py`, which is itself ledgered validation theatre
 - `test_calculus_rules.py` — the rule table follows Dau, not the engine: every engine entry point maps to a Dau rule and back, and the five Dau rules with no entry point at all are named exactly (ORIENT_IDENTITY, LIGATURE_VERTEX, CONSTANT_IDENTITY, CONSTANT_EXISTENCE, SEPARATE_CONSTANT). INS_EDGE — inserting an edge onto vertices already present, Def 15.2 p.165 (erasing an edge keeps its vertices, V^(e) := V, and insertion is its inverse, so a negative context's `*x ~[ ]` may become `*x ~[ (P x) ]`) — has an entry point (it reaches the same `protocol:INS` the INS rule does) that refuses every candidate ("Undefined variable x": the protocol takes only standalone EGIF); its candidate moves are enumerated (`calculus_rules.moves`) so the gap is counted as INCOMPLETE (ledger entry `ins-edge-has-no-entry-point`) on every run rather than only named. **Five *implemented* rules still have no oracle** — EXTEND/RETRACT/REARRANGE_LIGATURE, SPLIT_VERTEX, MERGE_VERTICES are `judged=False`, so `legal()` abstains, the refusal layer scores none of their moves, and only the soundness layer judges them. MOVE_BRANCHES sat in that blind spot until `07025c2`, and an unsound move sat there with it: assume nothing about a `judged=False` rule from a quiet suite
 - `test_calculus_legal.py` — `legal()` against hand-built legal and illegal cases for each rule, each cited to a Dau page, plus a guard that it imports nothing from the engine (`test_legal_never_consults_the_engine`; `ligature_manipulation_rules` joined its forbidden list when MOVE_BRANCHES got an oracle)
 - `test_calculus_ledger.py` — the ledger check bites on hand-built failures before its silence means anything: a new or re-kinded key fails as new, a repaired one as "shrink this entry", an exhaustive per-kind count that rises or falls fails, a classifier that drifts is caught; an IT- move above `ENGINE_PATTERN_CEILING` (64 elements) is counted, not applied
