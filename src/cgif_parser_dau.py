@@ -271,7 +271,23 @@ class CGIFParser:
             {}
         )  # Maps defining labels to bound labels (reserved for future use)
         # Track created vertices by label -> vertex_id to prevent duplicate insertions
+        # A defining label's scope is the context it stands in, AND every
+        # context nested inside it. Repeated in one context it is coreference —
+        # `[* x] [Human: *x] [Mortal: *x]` is one line mentioned three times,
+        # which is how CGIF writes coreference and how the generator emits it.
+        # In a context that is NOT within the first's scope it introduces a new
+        # line: `~[[*x] (P ?x)] ~[[*x] (Q ?x)]` is two lines, not one.
+        #
+        # Keying by the label alone made those sibling cuts share a vertex, so
+        # the parse said something the graph does not. Dau: a quantifier binds
+        # only the occurrences in its own formula (Def 18.1, p.197), and the
+        # name is not meaning (α-conversion, Def 18.3, p.199).
         self._label_to_vertex_id = {}
+        # How many contexts have defined each label, so each scope's line gets
+        # its own vertex. The FIRST keeps the historical ``v_{label}``, so a
+        # graph defining a label once — every corpus graph, measured — parses to
+        # exactly the ids it always did.
+        self._label_count = {}
         # Edges recorded during the walk, scribed only once every vertex has
         # been placed (see ``parse``).
         self._pending_edges: List[Tuple[Edge, Tuple[str, ...], str, str]] = []
@@ -567,6 +583,24 @@ class CGIFParser:
                 occurrences.setdefault(vertex_id, set()).add(area_id)
         return occurrences
 
+    def _fresh_label_vertex(self, label: str) -> str:
+        """A vertex id for one context's definition of ``label``."""
+        seen = self._label_count.get(label, 0)
+        self._label_count[label] = seen + 1
+        return f"v_{label}" if seen == 0 else f"v_{label}__{seen}"
+
+    def _bind_label(self, label: str) -> str:
+        """The line ``*label`` denotes in the context being walked.
+
+        Already defined in THIS scope (or an enclosing one) → that same line,
+        which is coreference. Otherwise a fresh line for this scope.
+        """
+        if label in self._label_to_vertex_id:
+            return self._label_to_vertex_id[label]
+        vertex_id = self._fresh_label_vertex(label)
+        self._label_to_vertex_id[label] = vertex_id
+        return vertex_id
+
     def _convert_to_egi(
         self, node: CGIFParseNode, egi: RelationalGraphWithCuts, area_id: str
     ) -> RelationalGraphWithCuts:
@@ -581,13 +615,11 @@ class CGIFParser:
             # Create vertex and type relation
             if "defining_label" in node.attributes:
                 # [Type: *x] - create vertex with defining label (generic)
-                vertex_id = f"v_{node.attributes['defining_label']}"
+                vertex_id = self._bind_label(node.attributes["defining_label"])
                 # Only create vertex if it does not already exist
                 if vertex_id not in egi._vertex_map:
                     vertex = Vertex(id=vertex_id, label=None, is_generic=True)
                     egi = egi.with_vertex_in_context(vertex, area_id)
-                # Track mapping for reuse
-                self._label_to_vertex_id[node.attributes["defining_label"]] = vertex_id
                 # Create type relation edge attached to the vertex
                 type_edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
                 type_edge = Edge(id=type_edge_id)
@@ -599,7 +631,9 @@ class CGIFParser:
                 # vertex. The vertex must already exist (introduced earlier as
                 # an isolated [* x] or as a defining occurrence). Same lookup
                 # convention as the "relation" branch below.
-                vertex_id = f"v_{node.attributes['bound_label']}"
+                vertex_id = self._label_to_vertex_id.get(
+                    node.attributes["bound_label"],
+                    f"v_{node.attributes['bound_label']}")
                 type_edge_id = f"e_{node.value}_{len(egi.E) + len(self._pending_edges)}"
                 type_edge = Edge(id=type_edge_id)
                 self._record_edge(egi, type_edge, (vertex_id,), node.value, area_id)
@@ -620,12 +654,10 @@ class CGIFParser:
 
         if node.type == "existential_concept":
             # [*x] - create generic vertex
-            vertex_id = f"v_{node.value}"
+            vertex_id = self._bind_label(node.value)
             if vertex_id not in egi._vertex_map:
                 vertex = Vertex(id=vertex_id, label=None, is_generic=True)
                 egi = egi.with_vertex_in_context(vertex, area_id)
-            # Track mapping for reuse
-            self._label_to_vertex_id[node.value] = vertex_id
             return egi
 
         if node.type == "relation":
@@ -634,7 +666,8 @@ class CGIFParser:
             vertex_refs = []
             for arg in node.children:
                 if arg.type == "bound_label":
-                    vertex_refs.append(f"v_{arg.value}")
+                    vertex_refs.append(self._label_to_vertex_id.get(
+                        arg.value, f"v_{arg.value}"))
                 elif arg.type == "constant":
                     vertex_id = f"v_{arg.value}"
                     if not any(v.id == vertex_id for v in egi.V):
@@ -651,9 +684,16 @@ class CGIFParser:
             cut_id = f"c_neg_{len(egi.Cut)}"
             cut = Cut(id=cut_id)
             egi = egi.with_cut(cut, context_id=area_id)
-            # Process negated content in the new cut
-            for child in node.children:
-                egi = self._convert_to_egi(child, egi, cut_id)
+            # A cut opens a scope. Labels defined inside it are visible to its
+            # own descendants and nowhere else, so two sibling cuts that reuse a
+            # defining label get a line each — while a label defined OUTSIDE
+            # stays visible in here, which is what `?x` inside a cut refers to.
+            shadowed = dict(self._label_to_vertex_id)
+            try:
+                for child in node.children:
+                    egi = self._convert_to_egi(child, egi, cut_id)
+            finally:
+                self._label_to_vertex_id = shadowed
             return egi
 
         if node.type == "context":

@@ -218,9 +218,72 @@ class CLIFParser:
         # polarity, so it is used in preference to guessing the line's home
         # from where its atoms happen to sit.
         self._binder_area: Dict[str, str] = {}
+        # **Which line each name currently denotes.** A quantifier binds only
+        # the occurrences in its OWN formula — FV(∃α.f) = FV(f)\{α} (Dau
+        # Def 18.1, p.197), ∀α.f := ¬∃α.¬f (p.198) — and renaming a bound
+        # variable changes nothing (α-conversion, Def 18.3, p.199). Ψ builds
+        # this in: its existential step replaces the α-vertices of Ψ(f), the
+        # formula being quantified, by ONE fresh vertex, so a later ∃α over a
+        # different formula cannot reach them (p.207).
+        #
+        # Keying the vertex by the name alone made two binders that happen to
+        # reuse a name share one line, so `(forall (x) (P x)) (forall (x) (Q x))`
+        # came back as a single existential line spanning both — the parse said
+        # something the formula does not. This maps a name to the line its
+        # INNERMOST enclosing binder introduced; `_open_binder` shadows and
+        # `_close_binder` restores, so the scope is lexical.
+        self._binder_vertex: Dict[str, str] = {}
+        # How many binders have introduced each name so far, so every binder
+        # occurrence gets its own vertex. The FIRST keeps the historical
+        # ``v_{name}``, so a graph with one binder per name — which is every
+        # corpus graph, measured — parses to exactly the ids it always did.
+        self._binder_count: Dict[str, int] = {}
         # Edges recorded during the walk, scribed only once every vertex has
         # been placed (see ``parse``).
         self._pending_edges: List[Tuple[Edge, Tuple[str, ...], str, str]] = []
+
+    def _fresh_binder_vertex(self, name: str) -> str:
+        """A vertex id for one binder occurrence of ``name``."""
+        seen = self._binder_count.get(name, 0)
+        self._binder_count[name] = seen + 1
+        return f"v_{name}" if seen == 0 else f"v_{name}__{seen}"
+
+    def _open_binder(self, names, area_id: Optional[str]
+                     ) -> Dict[str, Tuple[Optional[str], Optional[str]]]:
+        """Bind ``names`` afresh; returns what was shadowed.
+
+        ``area_id`` is where the binder stands, and it decides the line's
+        polarity — but pass **None** when the body supplies its own negative
+        context (an ``if`` or ``not`` under ``forall``). There the line's home
+        is settled by the body's structure and the least-common-area hoist, and
+        claiming the quantifier's own area would drag the line out to the sheet:
+        ``(forall (x) (if (Cat x) (Animal x)))`` would come back as
+        ``*x ~[ (Cat x) ~[ (Animal x) ] ]`` — the existential reading — instead
+        of ``~[ *x (Cat x) ~[ (Animal x) ] ]``. Binding the identity without
+        claiming an area is the whole of what that path needs.
+        """
+        shadowed = {
+            n: (self._binder_vertex.get(n), self._binder_area.get(n)) for n in names
+        }
+        for n in names:
+            self._binder_vertex[n] = self._fresh_binder_vertex(n)
+            if area_id is None:
+                self._binder_area.pop(n, None)
+            else:
+                self._binder_area[n] = area_id
+        return shadowed
+
+    def _close_binder(self, shadowed) -> None:
+        """Restore what ``_open_binder`` shadowed — the scope ends here."""
+        for n, (vertex, area) in shadowed.items():
+            if vertex is None:
+                self._binder_vertex.pop(n, None)
+            else:
+                self._binder_vertex[n] = vertex
+            if area is None:
+                self._binder_area.pop(n, None)
+            else:
+                self._binder_area[n] = area
 
     def parse(self) -> RelationalGraphWithCuts:
         """Parse CLIF text into EGI structure.
@@ -521,7 +584,11 @@ class CLIFParser:
             # Create vertices for arguments
             vertex_ids = []
             for arg_node in node.children:
-                vertex_id = f"v_{arg_node.value}"
+                # The line this name denotes HERE: the one its innermost
+                # enclosing binder introduced, or — for a free name, or a
+                # constant — the historical name-keyed vertex.
+                vertex_id = self._binder_vertex.get(
+                    arg_node.value, f"v_{arg_node.value}")
                 if not any(v.id == vertex_id for v in egi.V):
                     # A bound line belongs in its binder's area, not in the
                     # area of whichever atom mentions it first. Interning it at
@@ -650,8 +717,15 @@ class CLIFParser:
                 len(bodies) == 1 and bodies[0].type in ("if", "not")
             )
             if body_supplies_negation:
-                for child in bodies:
-                    egi = self._convert_to_egi(child, egi, area_id)
+                # The `if`/`not` supplies the negative context and settles the
+                # line's home, but the binder still says WHICH line: without a
+                # scope here a second `(forall (x) (if ...))` reused the first's.
+                shadowed = self._open_binder(var_names, None)
+                try:
+                    for child in bodies:
+                        egi = self._convert_to_egi(child, egi, area_id)
+                finally:
+                    self._close_binder(shadowed)
                 return egi
 
             # ~[ *x⃗ ~[ body ] ]
@@ -661,8 +735,9 @@ class CLIFParser:
             # The bound lines live in the outer (negative) cut — their universal
             # position.  Pre-create them here so the body's atoms in the inner cut
             # wire to these existing vertices rather than minting fresh ones.
+            shadowed = self._open_binder(var_names, outer_cut_id)
             for name in var_names:
-                vertex_id = f"v_{name}"
+                vertex_id = self._binder_vertex[name]
                 if not any(v.id == vertex_id for v in egi.V):
                     egi = egi.with_vertex_in_context(
                         Vertex(id=vertex_id, label=None, is_generic=True),
@@ -671,8 +746,11 @@ class CLIFParser:
             inner_cut_id = f"c_all_inner_{len(egi.Cut)}"
             inner_cut = Cut(id=inner_cut_id)
             egi = egi.with_cut(inner_cut, context_id=outer_cut_id)
-            for child in bodies:
-                egi = self._convert_to_egi(child, egi, inner_cut_id)
+            try:
+                for child in bodies:
+                    egi = self._convert_to_egi(child, egi, inner_cut_id)
+            finally:
+                self._close_binder(shadowed)
             return egi
 
         if node.type == "exists":
@@ -691,19 +769,13 @@ class CLIFParser:
                 for var in child.children
                 if var.value
             ]
-            shadowed = {v: self._binder_area.get(v) for v in bound}
-            for var in bound:
-                self._binder_area[var] = area_id
+            shadowed = self._open_binder(bound, area_id)
             try:
                 for child in node.children:
                     if child.type != "variables":
                         egi = self._convert_to_egi(child, egi, area_id)
             finally:
-                for var, previous in shadowed.items():
-                    if previous is None:
-                        self._binder_area.pop(var, None)
-                    else:
-                        self._binder_area[var] = previous
+                self._close_binder(shadowed)
             return egi
 
         if node.type == "noop":

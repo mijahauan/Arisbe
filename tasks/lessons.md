@@ -144,3 +144,38 @@ the materializer's. Re-running the two-graph discriminator directly confirmed it
 refuted the plan's claim that `semantic_game` shared the defect, which it does not.
 **Rule:** a subagent finding that revises a standing document is a claim, not a
 result, until reproduced in the main session.
+
+**I stopped maintaining this file halfway through a session, and never opened it at all.**
+On 2026-09-19/21 three lessons landed here at the first commit, and everything learned
+afterwards went into `CURRENT_PLAN.md` and `tasks/todo.md` instead, sorted by topic rather
+than by kind. CLAUDE.md says "Review lessons at session start"; I did not. **Rule:** this
+file is the long record, but the *load-bearing* cautions belong in `CLAUDE.md`, which
+arrives in every session whether or not I remember to look — see its "Standing cautions".
+Adding a lesson here and nowhere else is writing it into a drawer.
+
+**Prose decays within hours; a test does not.** In one session I wrote "don't change a
+tree under a running measurement" in a message and then broke it about an hour later, by
+editing a JSON the suite reads at *runtime* rather than a module imported at collection.
+In the same session, the lessons that held without any effort were the ones that had been
+turned into instruments — `test_no_new_test_that_cannot_fail`,
+`test_every_implemented_rule_is_judged`,
+`test_every_recorded_act_is_reachable_by_this_gate`, `test_calculus_map.py`. **Rule:**
+triage each lesson by whether it can be made to *fail*. If it can, build that and skip the
+prose. Reserve writing for the ones that are genuinely judgment — "check whether the module
+already disagrees with itself" cannot be a test, and paid off twice.
+
+**The knowledge graph went four days stale while a hook reminded me about it on nearly
+every command.** `graphify-out/GRAPH_REPORT.md` was last built 2026-09-17; I ran three
+days of work without reading it, without a single `graphify query`, and without
+`graphify update .` (which is AST-only and costs nothing). The PreToolUse hook printed the
+reminder dozens of times. Every mapping error I made in those days was a *search* error —
+finding the three copies of one semantic rule, locating callers of an engine entry point,
+mapping modules to the suites that test them, and that last one I got wrong twice with
+grep. **Rule:** for "where else does this live / who calls this / what tests this", the
+graph is the tool, and a reminder that fires and is ignored is not a mechanism.
+
+**A stale instrument is worse than none, because it still answers.** The graph would have
+answered questions about a tree four days old with no indication it was doing so — the same
+shape as a pinned extent nobody re-ran, or a test file pointing at a renamed directory.
+**Rule:** anything that caches an answer needs its freshness visible at the point of use,
+or a step that refreshes it as part of finishing work.

@@ -170,7 +170,48 @@ without the fix. Deliberately a new file rather than
 `test_chapter16_17_ligature_soundness_simplified.py`, which is itself ledgered validation
 theatre — repairing that one stays queued under item 1b.
 
-## Item 5 — QUEUED: finding 3, CLIF/CGIF binder scoping (investigated 2026-09-21)
+## Item 5 — finding 3, CLIF/CGIF binder scoping — **FIXED 2026-09-21, UNCOMMITTED**
+
+**⚠ IN-FLIGHT STATE (written down so it does not depend on conversation memory).**
+The fix is made and locally verified; the full suite is the only thing outstanding
+before commit. Uncommitted files: `src/clif_parser_dau.py`, `src/cgif_parser_dau.py`,
+`tests/test_linear_form_binder_scoping.py`, plus this file. Neither parser is protected,
+so no authorization was needed and none was raised.
+
+**What was done.**
+- **CLIF** — added `_binder_vertex` (name → the line its innermost enclosing binder
+  introduced) and `_binder_count` (binder occurrences per name), plus `_open_binder` /
+  `_close_binder`. This extends the save/restore discipline `exists` already had from
+  *area only* to *identity and area*. Wired at three sites: the atomic branch, `exists`,
+  and **both** `forall` paths — the delegating `if`/`not` path registered no binder at
+  all, so a second `(forall (x) (if ...))` reused the first's line.
+- **CGIF** — added `_bind_label` / `_label_count` and a scope push-pop on the negation
+  branch, so a defining label scopes to its context **and its descendants**. Wired at
+  seven sites.
+- Both keep `v_{name}` for a name's **first** binder, so every corpus graph parses to
+  exactly the ids it always did. That is why the round trips are untouched.
+- **All 6 strict xfails converted to ordinary passing tests** in the same change, as the
+  queued conditions required — a strict xfail left behind turns a fix into a failure.
+
+**Verified locally:** `test_linear_form_binder_scoping.py` 6 passed; round-trip corpus
+(`test_tomos_parsing`, `test_clif_unit`, `test_properties_round_trip`, `test_owl_import`,
+`test_theory_query`) **226 passed, 0 failed**.
+
+**A regression I introduced, and the strict xfail caught it.** Binding the `if`-bodied
+`forall`'s *area* to the quantifier's own area dragged the line out to the sheet:
+`(forall (x) (if (Cat x) (Animal x)))` came back as `*x ~[ (Cat x) ~[ (Animal x) ] ]` —
+the **existential** reading of a universal. Fixed by binding the identity while leaving
+the area to the body's structure and the least-common-area hoist. `_open_binder` takes
+`area_id=None` for exactly that case, and says so.
+
+**Still to do on this item.**
+- [ ] Full suite + quality gate, then commit and push.
+- [ ] Consider restoring `test_clif_imported_names_with_hyphens_do_not_break`'s fixture to
+      its original reused-binder form. It was changed on 2026-09-19 (author's ruling) to
+      route *around* this defect; with the parser correct it would again test the thing
+      that used to break, and the comment there explains the history.
+
+### The investigation that preceded it (blast radius, measured)
 
 **The defect.** Both parsers key a generic vertex by the variable's *name*, so two binders
 that reuse a name share one line. `(forall (x) (P x)) (forall (x) (Q x))` comes back as a

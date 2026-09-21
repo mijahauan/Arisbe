@@ -1,7 +1,9 @@
 """A reused variable name is two lines of identity, not one (CLIF and CGIF).
 
-**These tests fail today, on purpose, and are pinned strict.** They state the
-reading Dau's translation gives, not the reading the parsers give.
+**FIXED 2026-09-21.** These tests failed on purpose for two arcs, pinned strict
+so a fix would show up as XPASS rather than pass unnoticed. It did. They are
+ordinary tests now, and they state the reading Dau's translation gives — which
+is also, at last, the reading the parsers give.
 
 CLIF and CGIF key a generic vertex by the variable's *name* — ``v_{name}`` at
 ``clif_parser_dau`` (the atomic branch) and ``cgif_parser_dau`` (the concept and
@@ -43,7 +45,6 @@ SCOPING_DEFECT = (
 )
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=SCOPING_DEFECT)
 @pytest.mark.parametrize(
     "clif,egif",
     [
@@ -68,7 +69,6 @@ def test_clif_reads_two_binders_as_two_lines(clif, egif):
     assert nav.same_graph(parse_clif(clif), parse_egif(egif))
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=SCOPING_DEFECT)
 def test_cgif_reads_two_defining_labels_as_two_lines():
     assert nav.same_graph(
         parse_cgif("~[[*x] (P ?x)] ~[[*x] (Q ?x)]"),
@@ -76,7 +76,6 @@ def test_cgif_reads_two_defining_labels_as_two_lines():
     )
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=SCOPING_DEFECT)
 def test_clif_renaming_a_bound_variable_changes_nothing():
     """α-conversion (Dau Def 18.3, p.199): the name a binder uses is not meaning."""
     assert nav.same_graph(
@@ -85,7 +84,6 @@ def test_clif_renaming_a_bound_variable_changes_nothing():
     )
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=SCOPING_DEFECT)
 def test_cgif_renaming_a_defining_label_changes_nothing():
     assert nav.same_graph(
         parse_cgif("~[[*x] (P ?x)] ~[[*x] (Q ?x)]"),

@@ -11,6 +11,42 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 > [docs/ROADMAP.md](docs/ROADMAP.md) (what's next) · [docs/GLOSSARY.md](docs/GLOSSARY.md)
 > (terms + reading order). Read these for the top-down view; CURRENT_PLAN is the chronological log.
 
+## Standing cautions
+
+Each of these cost a real mistake. They live here, not in `tasks/lessons.md`, because
+**this file is loaded into every session unbidden and that one is only read if I remember
+to open it** — and on 2026-09-21 I did not. A lesson that lives only in prose is a lesson
+nobody is keeping (this project's own standing rule 4, applied to itself), so where one
+can be converted into a test that fails, do that instead of writing it down again.
+
+1. **Never change a tree under a running measurement.** A 2½-hour exhaustive pass then
+   describes a tree that no longer exists. Editing a `.py` is survivable (modules are
+   imported once at collection); editing a JSON the suite reads at **runtime** —
+   `tests/calculus_ledger.json`, `tests/calculus_extent.json` — corrupts the run outright.
+   Cost: one wasted exhaustive pass, 2026-09-20.
+2. **A fix that changes which moves are APPLIED moves every layer's extent** — refusal,
+   structure *and* soundness. Re-pin all three; the full suite caught the one I forgot.
+3. **When a correctness fix breaks a test, first ask whether that test was passing
+   *because of* a second defect.** Two wrongs cancelled in a green test twice this month
+   (the materializer against the CLIF binder scoping). Reproduce the fixture's
+   intermediate form before touching either the fix or the assertion.
+4. **Check whether the module already disagrees with itself.** Twice in one arc the right
+   answer was written in a comment three lines above the bug —
+   `model_materialization` rendering a sheet line as a fixed individual while its rule
+   extraction called it a variable; `ExtendRestrictLigatureRule` saying the anchor is any
+   `v ∈ V` and then demanding an existing ligature.
+5. **A subagent's finding that revises a standing document is a claim, not a result,**
+   until reproduced in the main session. One such finding was right (`theory_query` has
+   its own copy) and the same report's neighbour was wrong.
+6. **Use the knowledge graph before grepping.** Read `graphify-out/GRAPH_REPORT.md`, and
+   prefer `graphify query` / `path` / `explain` for "how does X relate to Y". Run
+   `graphify update .` after changing code (AST-only, no API cost). On 2026-09-21 the
+   graph was four days stale, the PreToolUse reminder was ignored dozens of times, and
+   every mapping error that day was a search error the graph would have answered.
+7. **Verify a number before quoting it.** "~118 core tests" stood in this file while the
+   gate reported ~150 and the truth was 166; "87+ tomos examples" while the corpus held
+   52. If a figure is worth writing, it is worth generating.
+
 ## What This Project Is
 
 Arisbe is an environment for **doing logic in pictures, not pictures of logic** — Charles Sanders Peirce's "moving pictures of thought" made operational. Frithjof Dau's formalization is the guarantor of correctness; that bedrock is non-negotiable. The **central engineering and research problem** the codebase exists to solve is the **inerrant correspondence between an EGI's linear written form and its graphical drawn form** — picture and proposition denoting the same mathematical object across every transformation, every layout regeneration, every user edit, every round-trip.
@@ -421,7 +457,7 @@ Key test files:
 - `test_subgraph_closure_validation.py` — Closure validator including Beta-aware checks
 - `test_graph_isomorphism_engine.py` — VF2 isomorphism for IT- validation
 - `test_tomos_parsing.py` — EGIF/CGIF/CLIF round-trip across 87+ tomos examples
-- `test_linear_form_binder_scoping.py` — **a reused variable name is two lines of identity, not one** (6 strict xfails, and they are meant to fail): CLIF and CGIF key a generic vertex by the variable's *name*, so `(forall (x) (P x)) (forall (x) (Q x))` comes back as **one existential line** spanning both. Dau binds a quantifier to the occurrences in its own formula (Def 18.1 p.197, ∀ as ¬∃¬ p.198, α-conversion Def 18.3 p.199, Ψ p.207). Strict xfail means a fix shows up as XPASS and fails loudly, so the defect cannot be repaired silently or regress unnoticed
+- `test_linear_form_binder_scoping.py` — **a reused variable name is two lines of identity, not one — FIXED 2026-09-21** (6 tests, formerly strict xfails): CLIF and CGIF key a generic vertex by the variable's *name*, so `(forall (x) (P x)) (forall (x) (Q x))` comes back as **one existential line** spanning both. Dau binds a quantifier to the occurrences in its own formula (Def 18.1 p.197, ∀ as ¬∃¬ p.198, α-conversion Def 18.3 p.199, Ψ p.207). Both parsers now carry a lexical **scope stack** — CLIF's `_binder_vertex`/`_open_binder` (extending the save/restore discipline `exists` already had from *area only* to *identity and area*, wired at the atomic branch, `exists`, and **both** `forall` paths — the delegating `if`/`not` path registered no binder at all), and CGIF's `_bind_label` with a scope push-pop on the negation branch, so a defining label scopes to its context **and its descendants**. Same-area coreference `[* x] [Human: *x] [Mortal: *x]` is still one line; sibling cuts `~[[*x] (P ?x)] ~[[*x] (Q ?x)]` are now two. Each keeps `v_{name}` for a name's FIRST binder, so every corpus graph parses to exactly the ids it always did and the 147 round trips are untouched. The strict xfail did its job twice: it caught the fix landing, and it caught a regression the fix introduced — binding the `if`-bodied `forall`'s *area* dragged the line out to the sheet, turning a universal into its existential reading
 - `test_parsers_place_vertices_before_edges.py` — every intermediate graph a parser builds is an EGI: the three parsers record edges during the walk, place the vertices on the edge-free graph, then scribe (Def 12.5, p.125; Ψ p.207)
 - **The calculus property suite** (spec `docs/superpowers/specs/2026-09-10-calculus-property-suite-design.md`): tests the calculus directly against Dau, not through a linear form. Shared modules: `tests/calculus_enum.py` (tier A = every small graph built from the data model; tier B = the corpus as used), `tests/calculus_rules.py` (Dau's rule table, every candidate move, and `legal()`, Dau's preconditions written without importing the engine), `tests/calculus_apply.py`, `tests/calculus_run.py` (the modes and budgets), `tests/calculus_layers.py`, `tests/calculus_classifiers.py`, `tests/tarski.py` (a fresh evaluator written from Dau's semantics). `tests/calculus_ledger.json` holds each known failure with its reason — **18 entries, from 29** after the eighteenth arc fixed seven engine defects and ledgered one new departure (a new failure fails as **new**; a repaired one fails with **"shrink this entry"**) — and `tests/calculus_extent.json` pins every count exactly. A caution learned in that arc: a move the engine now *refuses* never enters `evaluated_ledgered`, so its structure/soundness entries can never print a SHRINK line — they simply stop being found. Prove such a fix by its `<tier>:<rule>:failed` (or `not-an-EGI`) **extent key disappearing**, read from the pinned diff. The default run covers a reduced slice (tier A at max 3 elements + tier B's 52 current graphs, plus the 10-graph stress tier S); **`-m exhaustive` runs the full extent (2,382 tier-A + 133 tier-B + 10 tier-S graphs; **2 h 29 min**, measured 2026-09-18 at the eighteenth arc's head)**. **Both modes are green.** They were not for a day: the exhaustive run found MOVE_BRANCHES unsound on two `group_identity` chain states, unreachable at default bounds, and that stayed a *reported, unledgered* residue until the rule was fixed at its premise (`6dde7c7`) — Lemma 16.1 (p.169-171) licenses a move only when v_aΘv_b, and Θ (Def 15.1, p.163, clause 3) wants the identity edge in the context of the vertex it reaches. Ledgering an unsound move as accepted is the one thing this suite must never do. The `tests/calculus_adjudication*.py` scripts (not collected) regenerate every figure quoted in the ledger's reasons.
 - `test_calculus_enum.py` — tier-A enumeration: every required shape occurs (empty cut, 0-ary and ternary relations, co-denotable and unnormalized constants, a line above its uses); no two kept graphs are isomorphic; the counts add up (kept + discarded); every kept graph has dominating nodes; tier B covers every UoD and every chain state; **every corpus graph is an EGI** (the standing guard — `bfo_core` and `colore_field` were the two that were not, and are repaired, so the entry `corpus-graph-not-an-egi` is retired); and the tier-S stress set is pinned by name, including `theta-in-one-context`, the one graph on which **MOVE_BRANCHES applies** — before it the default mode exercised that rule's refusals only, which is how an unsound MOVE_BRANCHES survived a whole fix arc
@@ -438,12 +474,47 @@ Key test files:
 - `test_calculus_it_minus_controls.py` — the hand-built IT- controls (`calculus_adjudication.IT_MINUS_CONTROLS`) as collected tests: `legal()` finds no source for any of the four; `(P "a") ~[ (P "b") ]` is refused; the three the engine deiterates anyway — another line, a name against a line, and a name against a name, `(Q "a") (Q "b") ~[ (P "b") ] ~[ ~[ (P "a") ] ]` — are UNSOUND and held as strict xfails, so a fix to IT- shows as XPASS rather than hiding behind a shrinking ledger
 - `test_calculus_differential.py` — `semantic_game` against `tarski` on every tier-A graph (unique names, closed world): agree / disagree / UNKNOWN counted, any disagreement failing as new (prior P-K4 HELD); the facts-graph encoding round-trips through `semantic_game`
 
-## graphify
+## graphify — the knowledge graph, and what it is actually good at
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+A graph of the codebase at `graphify-out/` (~19.6k nodes, ~43.7k edges): symbols, files,
+imports, calls, community structure.
 
-Rules:
-- ALWAYS read graphify-out/GRAPH_REPORT.md before reading any source files, running grep/glob searches, or answering codebase questions. The graph is your primary map of the codebase.
-- IF graphify-out/wiki/index.md EXISTS, navigate it instead of reading raw files
-- For cross-module "how does X relate to Y" questions, prefer `graphify query "<question>"`, `graphify path "<A>" "<B>"`, or `graphify explain "<concept>"` over grep — these traverse the graph's EXTRACTED + INFERRED edges instead of scanning files
-- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+**This section was rewritten on 2026-09-21 because the previous version over-claimed and
+was therefore ignored.** It said "ALWAYS read GRAPH_REPORT.md before … grep" and called
+the graph "your primary map". A whole three-day arc ran without opening it — with a
+PreToolUse hook printing the reminder on nearly every command — and every mapping mistake
+in those days was a search mistake. The reason is worth recording: the broad claim does
+not survive contact. Tested head-to-head that day, `graphify query "which test files
+exercise ligature_manipulation_rules?"` returned 380 nodes truncated to 57, including
+`package.json`'s `test` and a styles schema's `ligature`, and never answered the question
+— which one `grep -rl` answered exactly. **A tool that disappoints on first use does not
+get a second.** So the rules below claim only what held when it was checked.
+
+**Use the graph for reachability — "how does A get to B".** This is where it is decisively
+better, and it is the question that costs the most greps:
+
+```bash
+graphify path "transformations.py" "insert_from_egif"
+#  transformations.py --imports_from--> formal_transformation_rules.py --imports--> insert_from_egif()
+```
+
+That one line is the entire topology of the INS defect fixed on 2026-09-20, and it had
+been established by hand with five greps and a file read. Reach for `path` whenever the
+question is "does X reach Y, and by what route" — tracing a defect to its callers, sizing
+a blast radius, or asking whether a module is load-bearing.
+
+**Use `graphify explain "<concept>"` and `GRAPH_REPORT.md`** for orientation in unfamiliar
+territory — which communities exist, what the hubs are — not for precise lookups.
+
+**Keep grep for precise lookups**: which files import X, where a string occurs, which
+tests name a symbol. It is exact, and the graph's fuzzy traversal is not. Saying so is
+what makes the rest of this section trustworthy.
+
+**Run `graphify update .` after changing code.** AST-only, no API cost, ~30s. The graph
+went four days stale during that arc and would have answered questions about a tree that
+no longer existed, with no indication it was doing so — the same defect class as a pinned
+extent nobody re-ran. `graphify label` refreshes community names but uses an LLM: ask
+first.
+
+For docs/papers/images, the `/graphify` skill handles the update; `graphify update .` is
+code-only.
