@@ -183,11 +183,13 @@ For each `(EGI, Drawing)` pair claimed to correspond, all of the following must 
 | **Totality** | Every EGI element appears exactly once in the drawing's structural data. |
 | **Injectivity** | No drawing element traces back to two distinct EGI sources. |
 | **Containment fidelity** | The drawing's cut-region nesting matches the EGI's `area` mapping exactly. No two cuts overlap; nesting depth in the drawing equals nesting depth in the EGI. |
-| **Identity fidelity** | The drawing's ligature paths realize the W-partition: vertices in the same partition class are joined by exactly one connected ligature; vertices in different classes share no ligature; the ligature passes through exactly the areas given by the `area` mapping of its members, and no others. |
+| **Identity fidelity** | The drawing's ligature paths realize the W-partition, by **two** checks: every path **terminates at its vertex's drawn position** (endpoint placement), and the **multiset of cut boundaries it crosses** is exactly the one the `area` mapping of its members authorizes — so the ligature passes through exactly those areas and no others. |
 | **Incidence fidelity** | The drawing's predicate hooks realize `ν`: a predicate's drawn arity equals its EGI arity; argument order is visually distinguishable and matches `ν`. |
 | **Convention compliance** | All projection conventions in force are obeyed: ligature crossings disambiguated by the named mechanism, sibling-cut ordering follows the named rule, special markers (bridge marks, polarity indicators, recto/verso, etc.) are present where required. |
 
-The **identity fidelity** row is the load-bearing one. It is where the combinatorial→planar projection is thinnest and where issues #5/#9/#11 historically lived. The **convention compliance** row is where the n-dimensional framing surfaces: a projection can violate correspondence not because the underlying map is wrong, but because a convention got silently broken.
+The **identity fidelity** row is the load-bearing one. It is where the combinatorial→planar projection is thinnest and where issues #5/#9/#11 historically lived.
+
+> **It said three checks until 2026-09-22, and the third was doing nothing.** A "shared-identity connectedness" check walked each path's own consecutive points and reported any unreachable from the vertex position — but endpoint placement already forces every path to *end* at that position, and a polyline is connected through its own points, so the branch could never fire alone. Measured: displacing a whole path raised both messages together; a path that jumps in from 5,000 units away while ending correctly at the vertex raised neither. Retired on the author's ruling rather than left as a check that looked like enforcement and was not. Nothing that was being enforced was lost — and the row is now stated at the strength it actually has. The **convention compliance** row is where the n-dimensional framing surfaces: a projection can violate correspondence not because the underlying map is wrong, but because a convention got silently broken.
 
 ---
 

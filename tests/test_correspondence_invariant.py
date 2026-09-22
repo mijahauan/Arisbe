@@ -19,18 +19,24 @@ the spec:
   - Identity (2/3):  area-chain traversal — every path point and segment
                      midpoint lies on the ancestor chain between the
                      vertex's and the predicate's areas.
-  - Identity (3/3):  shared-identity connectedness — for each vertex,
-                     the count of paths matches ν references and the
-                     union of paths forms one connected component
-                     rooted at the vertex's position.
+  - (There was an Identity 3/3, "shared-identity connectedness".  It was
+     retired 2026-09-22 on the author's ruling: it had no INDEPENDENT
+     failure mode, because 1/3 already forces every path to end at the
+     vertex position and a polyline is connected through its own points.
+     Identity is two checks.  §3.3 in the spec says so now.)
   - Argument order:  the LigaturePath.port_index field realises ν's
                      argument ordering — sorting a predicate's paths by
                      port_index reproduces ν exactly.
-  - Transformation invariance: every rule application (DC+, ERA, IT+)
-                     preserves correspondence on the post-EGI's drawing.
-                     Both a one-site-per-UoD smoke test and an
-                     exhaustive "every applicable site" sweep are run
-                     for each rule.
+  - Transformation invariance: every rule application preserves
+                     correspondence on the post-EGI's drawing.  DC+, ERA
+                     and IT+ carry both a one-site-per-UoD smoke test and
+                     an exhaustive "every applicable site" sweep.  INS,
+                     DC- and IT- were added 2026-09-22 (author's ruling,
+                     docket 6d) — until then NO test in the repository
+                     paired those three with a correspondence check,
+                     while this docstring said "all six".  They run the
+                     smoke form; corpus site availability is INS 42 of 52
+                     UoDs, DC- 8, IT- 1, and a skip names its UoD.
   - Regime-3 non-interference: every projection-only mutation (vertex
                      translation, interior-preserving cut reshape,
                      on-chain ligature reroute) leaves the EGI
@@ -1075,6 +1081,147 @@ def test_transformation_invariance_it_plus_exhaustive(
 # (stays in same area; interior-preserving; on-chain).  If a future
 # refactor causes a LayoutDTO field to alias EGI state, or causes the
 # correspondence check to fail post-mutation, these tests will catch it.
+
+
+# --------------------------------------------------------------------------- #
+# §7 shape 2, completed: INS, DC- and IT-                                     #
+#                                                                             #
+# Added 2026-09-22 on the author's ruling (docket 6d). §7 says the invariant   #
+# must hold "for every rule applied to every applicable site", and this file   #
+# covered DC+, ERA and IT+ only — **no test anywhere in the repository paired  #
+# INS, IT- or DC- with a correspondence check**, while CLAUDE.md described the #
+# file as "all six §7 test shapes". Three rules were changing graphs that      #
+# nothing then re-attested a drawing of.                                      #
+#                                                                             #
+# Corpus site availability, measured before these were written: INS 42 of 52   #
+# UoDs, DC- 8 (7 apply; swan_third_tense is correctly refused, a quotation     #
+# oval is not a negation), IT- 1. The IT- number is thin and honest — a        #
+# deiteration needs an iterated copy, and the corpus mostly does not carry     #
+# one. A skip here names its UoD and reason, as the other rule-site skips do.  #
+# --------------------------------------------------------------------------- #
+
+
+def _first_negative_area(egi):
+    """The lowest-id area of negative polarity, or None. INS's precondition."""
+    from egi_core_dau import AreaPolarity
+
+    for area in [egi.sheet] + sorted(c.id for c in egi.Cut):
+        polarity, _ = egi.area_polarity(area)
+        if polarity is AreaPolarity.NEGATIVE:
+            return area
+    return None
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_ins(uod_id, tomos, engine, style):
+    """INS into the first negative area preserves correspondence.
+
+    INS adds *new* ink, so the content travels as `insertion_egif` rather than
+    in `selected_subgraph` (which names ids already in the host). That is the
+    route the nineteenth arc established — one rule, one implementation,
+    `rule_interaction.insert_from_egif` — after the engine path was found
+    returning success on an unchanged graph.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2, §7 (test shape #2).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    area = _first_negative_area(egi)
+    if area is None:
+        pytest.skip(f"{uod_id} has no negative area for INS")
+
+    result = FormalTransformationEngine().apply_rule(
+        "INS", egi, area, frozenset(), insertion_egif="(P *x)")
+    if not result.success:
+        pytest.skip(f"INS rejected for {uod_id} at {area}: {result.error_message}")
+
+    post_egi = result.result_egi
+    # The insertion must actually have happened; a silent no-op passing this
+    # test is the exact defect that reached the web API in the nineteenth arc.
+    assert len(post_egi.E) > len(egi.E), (
+        f"[{uod_id}] INS reported success without adding ink")
+
+    failures = check_correspondence(post_egi, engine.generate_layout(post_egi, style))
+    assert not failures, (
+        f"[{uod_id}] post-INS drawing fails correspondence:\n" + "\n".join(failures))
+
+
+def _pick_double_cut(egi):
+    """The lowest-id cut whose area is exactly one cut — Def 15.2 (p.164)."""
+    cuts = {c.id for c in egi.Cut}
+    for cut_id in sorted(cuts):
+        inner = egi.area.get(cut_id, frozenset())
+        if len(inner) == 1 and next(iter(inner)) in cuts:
+            return cut_id
+    return None
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_dc_minus(uod_id, tomos, engine, style):
+    """Erasing a double cut preserves correspondence.
+
+    Def 15.2 (p.164): two cuts with area(c1) = {c2} may be erased in any
+    context. The selection is the **outer cut alone**; naming both is what the
+    rule refuses.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2, §7 (test shape #2).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    outer = _pick_double_cut(egi)
+    if outer is None:
+        pytest.skip(f"{uod_id} carries no double cut")
+
+    result = FormalTransformationEngine().apply_rule(
+        "DC-", egi, outer, frozenset([outer]))
+    if not result.success:
+        pytest.skip(f"DC- rejected for {uod_id} at {outer}: {result.error_message}")
+
+    post_egi = result.result_egi
+    assert len(post_egi.Cut) == len(egi.Cut) - 2, (
+        f"[{uod_id}] DC- reported success without removing both cuts")
+
+    failures = check_correspondence(post_egi, engine.generate_layout(post_egi, style))
+    assert not failures, (
+        f"[{uod_id}] post-DC- drawing fails correspondence:\n" + "\n".join(failures))
+
+
+@pytest.mark.parametrize("uod_id", _uod_ids())
+def test_transformation_invariance_deiteration(uod_id, tomos, engine, style):
+    """Deiterating the first erasable copy preserves correspondence.
+
+    IT- needs an iterated copy to remove, which most corpus graphs do not
+    carry, so this skips on all but a few UoDs — named, and counted, like the
+    other rule-site skips. Every edge is offered in stable id order and the
+    engine's own matcher decides; that is broader than guessing at the shape.
+
+    Spec: docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md §4.2, §7 (test shape #2).
+    """
+    from formal_transformation_rules import FormalTransformationEngine
+
+    egi = tomos.load_uod(uod_id).current_egi
+    elem_area = element_area(egi)
+    t_engine = FormalTransformationEngine()
+
+    for edge in sorted(egi.E, key=lambda e: e.id):
+        area = elem_area.get(edge.id)
+        if area is None:
+            continue
+        result = t_engine.apply_rule("IT-", egi, area, frozenset([edge.id]))
+        if result.success:
+            post_egi = result.result_egi
+            assert len(post_egi.E) < len(egi.E), (
+                f"[{uod_id}] IT- reported success without removing ink")
+            failures = check_correspondence(
+                post_egi, engine.generate_layout(post_egi, style))
+            assert not failures, (
+                f"[{uod_id}] post-IT- drawing fails correspondence:\n"
+                + "\n".join(failures))
+            return
+
+    pytest.skip(f"{uod_id} has no deiterable edge")
 
 
 def _structurally_equal_egi(pre, post):

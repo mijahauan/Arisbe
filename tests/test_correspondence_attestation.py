@@ -446,6 +446,83 @@ def test_attest_raises_on_ligature_endpoint_mismatch(tomos, engine, style):
     assert "identity-endpoint" in str(excinfo.value)
 
 
+# --------------------------------------------------------------------------- #
+# Incidence and argument order (§3.3 rows 4 and 5)                            #
+#                                                                             #
+# Added 2026-09-21 by the clause-3 audit. CLAUDE.md has long claimed this file #
+# carries "adversarial unit tests confirming EACH §3.3 property's failure      #
+# raises CorrespondenceViolation". Three properties had none: `incidence:`,    #
+# `arg-order:` and `identity-connected:`. These close the first two — both     #
+# were verified to fire before the tests were written, so the pass is earned   #
+# rather than assumed. The third is a different matter and is queued: its      #
+# failure branch has no INDEPENDENT reachable mode (whenever it fires,         #
+# identity-endpoint has already fired on the same path), so it needs a ruling  #
+# on the check itself, not a test.                                            #
+# --------------------------------------------------------------------------- #
+
+
+def _baseline_with_a_multi_arg_predicate(tomos, engine, style):
+    """A (egi, dto, edge_id) whose predicate has at least two drawn arguments.
+
+    `_baseline` only guarantees a cut and some ligature; incidence and argument
+    order are only falsifiable where a predicate has more than one hook.
+    """
+    for u in tomos.list_uods():
+        egi = tomos.load_uod(u["uod_id"]).current_egi
+        multi = [e for e in egi.E if len(egi.nu.get(e.id, ())) >= 2]
+        if not multi:
+            continue
+        dto = engine.generate_layout(egi, style)
+        for edge in multi:
+            if len([p for p in dto.ligature_paths if p.predicate_id == edge.id]) >= 2:
+                return egi, dto, edge.id
+    pytest.skip("no tomos UoD draws a predicate with two or more arguments")
+
+
+def test_attest_raises_when_a_predicate_loses_an_argument(tomos, engine, style):
+    """ν says the predicate has n arguments; the drawing must show n.
+
+    Drop one of a binary predicate's two lines and the picture says something
+    the graph does not — a reader would take it for a monadic spot.
+    """
+    egi, dto, edge_id = _baseline_with_a_multi_arg_predicate(tomos, engine, style)
+    victim = next(p for p in dto.ligature_paths if p.predicate_id == edge_id)
+    broken = _clone_dto(
+        dto, ligature_paths=[p for p in dto.ligature_paths if p is not victim])
+
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, broken)
+    assert "incidence" in str(excinfo.value)
+    assert "arity mismatch" in str(excinfo.value)
+
+
+def test_attest_raises_when_two_arguments_are_drawn_in_the_wrong_order(
+        tomos, engine, style):
+    """The hooks are ordered, and the order IS the argument order.
+
+    Swapping two `port_index` values leaves every other property intact — same
+    lines, same endpoints, same containment — and changes what the picture
+    says: `(Loves a b)` becomes `(Loves b a)`. This is the row that makes the
+    drawing a proposition rather than a diagram of one, so it is exactly the
+    kind of corruption §3.3 exists to refuse.
+    """
+    egi, dto, edge_id = _baseline_with_a_multi_arg_predicate(tomos, engine, style)
+    paths = list(dto.ligature_paths)
+    mine = [i for i, p in enumerate(paths) if p.predicate_id == edge_id][:2]
+    a, b = paths[mine[0]], paths[mine[1]]
+    assert a.port_index != b.port_index, "the two hooks already share a port index"
+
+    paths[mine[0]] = LigaturePath(predicate_id=a.predicate_id, vertex_id=a.vertex_id,
+                                  points=a.points, port_index=b.port_index)
+    paths[mine[1]] = LigaturePath(predicate_id=b.predicate_id, vertex_id=b.vertex_id,
+                                  points=b.points, port_index=a.port_index)
+    broken = _clone_dto(dto, ligature_paths=paths)
+
+    with pytest.raises(CorrespondenceViolation) as excinfo:
+        attest_correspondence(egi, broken)
+    assert "arg-order" in str(excinfo.value)
+
+
 def test_attest_raises_on_forbidden_cut_crossing(engine, style):
     """A ligature that dips into a cut not on its area chain is rejected.
 

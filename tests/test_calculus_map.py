@@ -78,44 +78,56 @@ CALCULUS_MAP: dict[str, tuple[tuple[str, ...], str]] = {
     # Diachronic state
     "universe_of_discourse.py": (
         ("test_universe_of_discourse.py",),
-        "the UoD entity: synchronic EGI plus diachronic history",
+        "UniverseOfDiscourse: the synchronic EGI plus diachronic history, and "
+        "the UoDMetadata a stored universe carries",
     ),
     "egi_transformation_history.py": (
         ("test_egi_transformation_history.py",),
-        "the branching DAG of states and transformations",
+        "EGITransformationHistory: the branching DAG of StateSnapshots and "
+        "TransformationSteps, and the provenance each carries",
     ),
     # The rules and the stepwise protocol
     "formal_transformation_rules.py": (
         ("test_calculus_soundness.py", "test_chapter15_formal_calculus.py",
          "test_rules_second_order.py"),
-        "the six Dau rules: soundness over every structure, the worked textbook "
-        "case per rule, and B-min opacity",
+        "the six Dau rules (DoubleCutInsertionRule … DeiterationRule) through "
+        "FormalTransformationEngine: soundness over every structure, the worked "
+        "textbook case per rule, and B-min opacity",
     ),
     "rule_interaction.py": (
         ("test_rule_interaction.py",),
-        "the headless stepwise protocol for every rule",
+        "the headless RuleInteraction protocol for every rule "
+        "(DCPlusInteraction … ITMinusInteraction) and insert_from_egif, the "
+        "one implementation INS routes through",
     ),
     # Beta-aware validation and matching
     "subgraph_closure_validator.py": (
         ("test_subgraph_closure_validation.py",),
-        "closure validation, including the Beta free-vertex reading",
+        "SubgraphClosureValidator: closure validation and the ClosureViolation "
+        "it reports, including the Beta free-vertex reading",
     ),
     "graph_isomorphism_engine.py": (
         ("test_graph_isomorphism_engine.py",),
-        "VF2 matching, the authority behind same_graph",
+        "GraphIsomorphismEngine: VF2 matching and the IsomorphismMapping it "
+        "returns — the authority eg_navigation.same_graph delegates to",
     ),
     # The correspondence enforcers
     "correspondence_attestation.py": (
         ("test_correspondence_attestation.py",),
-        "the runtime check, with an adversarial falsifier per property",
+        "check_correspondence / attest_correspondence: the runtime "
+        "§3.3 check, with an adversarial falsifier per property — totality, "
+        "injectivity, containment, incidence, arg-order and the identity rows",
     ),
     "presentation_ops.py": (
         ("test_presentation_ops.py",),
-        "the regime-3 algebra: happy and refusal paths for each op",
+        "the regime-3 algebra: a happy and a Regime3Violation refusal path for "
+        "each op, plus the area-topology helpers (area_chain, "
+        "crossing_sequence) the layout engines read",
     ),
     "natural_layout.py": (
         ("test_natural_layout.py",),
-        "the coordinate-free projection-independent layer",
+        "natural_layout / NaturalLayout: the coordinate-free containment tree, "
+        "per-ligature crossing sequences and authorized_crossings",
     ),
     # Ligature machinery
     "ligature_manipulation_rules.py": (
@@ -182,11 +194,50 @@ def test_every_attested_module_names_a_suite_that_exists():
 
 
 def test_every_attested_module_says_what_its_suite_pins():
-    """A suite name alone is not attestation; the claim has to be stated."""
+    """A suite name alone is not attestation; the claim has to be stated —
+    and it has to point at something.
+
+    **This was `assert what.strip()` until 2026-09-21** (docket 6g). Replacing
+    every description in the map with `"x"` kept the file green, so the "says
+    *what* it pins" conjunct of the attestation was measured as *a non-empty
+    string*. Clause 3's own shape, inside the file that enforces clause 3.
+
+    The check now requires each description to **name something real** — a
+    symbol defined in the module it describes, or a Dau citation. That is not a
+    validation of substance (nothing mechanical can read whether the sentence is
+    *true* of the suite; that stays a reading task) but it does mean a
+    description cannot be a placeholder, cannot be copied from a neighbour, and
+    goes stale loudly when the symbol it names is renamed away.
+
+    Nine of the fourteen descriptions were rewritten to satisfy it. Where a
+    module's contract is a Dau notion the citation carries it; where it is an
+    API the symbol does.
+    """
+    dau_citation = re.compile(
+        r"\b(?:Def(?:inition)?|Lemma|Cor(?:ollary)?|Theorem|p)\.?\s?\d", re.I)
+    vague = []
+
     for module, (suites, what) in CALCULUS_MAP.items():
         if module in UNATTESTED:
             continue
         assert what.strip(), f"{module} names {suites} but not what they pin"
+
+        source = (REPO / "src" / module).read_text(encoding="utf-8")
+        defined = {
+            node.name
+            for node in ast.walk(ast.parse(source))
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+        }
+        mentioned = set(re.findall(r"[A-Za-z_][A-Za-z_0-9]{2,}", what))
+
+        if not (mentioned & defined) and not dau_citation.search(what):
+            vague.append(
+                f"{module}: {what!r} names no symbol defined in the module and "
+                f"carries no Dau citation")
+
+    assert not vague, (
+        "a description that points at nothing is the 'non-empty string' "
+        "problem again:\n  " + "\n  ".join(vague))
 
 
 def _imported_names(text: str) -> set:

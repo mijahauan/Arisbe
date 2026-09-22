@@ -295,3 +295,76 @@ def test_layout_service_attestation_message_carries_context(tomos, monkeypatch):
     assert "Correspondence violated at layout_service.generate_layout" in str(
         excinfo.value
     )
+
+
+def test_the_deltas_path_never_serves_unattested_geometry(tomos, monkeypatch):
+    """Whatever geometry `generate_layout(deltas=…)` serves has been attested.
+
+    Added 2026-09-22 (docket 6f). `apply_deltas` attests each surviving delta,
+    but `rebuild_ligature_anchors` then moved ligature endpoints with nothing
+    checking the result, and the clockwise block *keeps* that DTO whenever
+    placement is a no-op or its own attestation fails. So this path could serve
+    geometry that had never been passed to `attest_correspondence` — observed on
+    2 of 5 runs of one fixture, the intermittency coming from ELK ordering. In
+    every observed case the geometry did satisfy the check, so it was an
+    unverified serve rather than a live violation; the point of a boundary hook
+    is that the difference is not left to luck.
+
+    The comparison is on **geometry, not object identity**: the last two steps
+    of the pipeline (`assign_order_labels`, `assign_second_order_marks`) return
+    fresh DTOs by design and are annotation only — positions, bounds and paths
+    are untouched, which is precisely why they need no re-attestation. An
+    identity assertion would fail on those and say nothing about the defect.
+    """
+    uod = tomos.load_uod(tomos.list_uods()[0]["uod_id"])
+    egi = uod.current_egi
+    base, _svg = layout_service.generate_layout(egi)
+    vid = next(iter(base.vertex_positions))
+    before = base.vertex_positions[vid]
+
+    def _geometry(d):
+        return (
+            tuple(sorted((k, v.x, v.y) for k, v in d.vertex_positions.items())),
+            tuple(sorted((k, v.x, v.y) for k, v in d.predicate_positions.items())),
+            tuple(sorted((k, b.min_x, b.min_y, b.max_x, b.max_y)
+                         for k, b in d.cut_bounds.items())),
+            tuple(sorted((p.predicate_id, p.vertex_id, p.port_index,
+                          tuple((pt.x, pt.y) for pt in p.points))
+                         for p in d.ligature_paths)),
+        )
+
+    attested, contexts = [], []
+    real = layout_service.attest_correspondence
+
+    def spy(e, d, **kwargs):
+        result = real(e, d, **kwargs)
+        attested.append(_geometry(d))
+        contexts.append(kwargs.get("context"))
+        return result
+
+    monkeypatch.setattr(layout_service, "attest_correspondence", spy)
+
+    from presentation_deltas import PresentationDelta
+
+    delta = PresentationDelta(
+        op="move_vertex", params={"vertex_id": vid, "dx": 25.0, "dy": 18.0})
+    served, _svg = layout_service.generate_layout(egi, deltas=[delta])
+
+    assert served.vertex_positions[vid] != before, "the nudge did not take"
+    assert attested, "the deltas path attested nothing at all"
+
+    # The claim.
+    assert _geometry(served) in attested, (
+        "generate_layout served geometry that was never attested — the deltas "
+        "path changed it after the last check")
+
+    # And the deterministic half. The assertion above only bites when the
+    # rebuild actually moves something, which depends on ELK ordering — on many
+    # fixtures the rebuild is a no-op and the served geometry matches the
+    # post-delta attestation anyway. That is precisely why the defect survived:
+    # it was invisible most of the time. So we also pin that the re-attestation
+    # *happens*, which does not depend on the fixture.
+    assert "layout_service.rebuild_ligature_anchors" in contexts, (
+        "the deltas path did not re-attest after rebuilding ligature anchors; "
+        "whatever it serves from there is unverified whenever the rebuild "
+        "moves a ligature endpoint")

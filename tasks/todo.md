@@ -575,7 +575,13 @@ is to confirm with the author before changing the calculus.
 purely additive (new tests, no `src/` change) and would close written claims that are
 currently false as written. The rest need a ruling because they change behaviour or scope.
 
-- [ ] **6a. Two §3.3 falsifiers that are cheap and already verified to bite.**
+- [x] **6a. DONE 2026-09-22 — two §3.3 falsifiers, both shown to fire on real corpus ink.**
+      `test_attest_raises_when_a_predicate_loses_an_argument` (drop one of a binary
+      predicate's two lines → `incidence: … arity mismatch`) and
+      `test_attest_raises_when_two_arguments_are_drawn_in_the_wrong_order` (swap two
+      `port_index` values → `arg-order: …`). The second is the row that makes a drawing a
+      *proposition* rather than a diagram of one: everything else is intact and the picture
+      now says `(Loves b a)`. Original note follows.
       `CLAUDE.md` claims "adversarial unit tests confirming **each** §3.3 property's failure
       raises `CorrespondenceViolation`". Three properties have none: `incidence:`,
       `arg-order:`, `identity-connected:`. The first two **do** fire when a DTO is doctored —
@@ -583,7 +589,13 @@ currently false as written. The rest need a ruling because they change behaviour
       *"incidence: predicate e_… arity mismatch — ν says 2, DTO has 1"*, and swapping two
       `port_index` values gives *"arg-order: … sorted vertex sequence ≠ ν"*. Writing those two
       tests is additive, needs no ruling, and makes the sentence true. **Do this one first.**
-- [ ] **6b. A test for `attest_served_quotations`.** It is called at two `layout_service`
+- [x] **6b. DONE 2026-09-22 — the hook now has three tests.** It fires on the real serve
+      path (spied through `layout_service.generate_layout` on `swan_third_tense`), it has
+      teeth (an oval served with a `solid` stroke instead of the committed `quotation` one
+      is refused), and it is a no-op on a first-order pair. *A guard caught my own wrong
+      assumption while writing it:* I asserted the committed stroke was `"dotted"`; it is
+      `"quotation"`, and the assertion said so instead of silently testing nothing.
+      Original note follows. It is called at two `layout_service`
       boundary sites and referenced by **zero** tests — deleting both calls would redden
       nothing. Additive; the fixture pattern already exists in `test_second_order_reader.py`.
       Consider also pinning S3 on `swan_third_tense`/`forcing_forces` **or** correcting the
@@ -591,7 +603,19 @@ currently false as written. The rest need a ruling because they change behaviour
       on `swan_third_tense`, so these two would contradict unless the skip is retired
       deliberately.
 
-- [ ] **6c. §3.3's identity-connectedness half has no independent failure mode.**
+> **Process note, learned the hard way on 6c (2026-09-22).** `.core_modification_authorized`
+> comes down **after the change is committed**, not after it is written. The pause reads
+> `git diff HEAD` plus the index, so an uncommitted edit to a map module with the marker
+> already removed is a VIOLATION and the quality gate fails — which is what happened here,
+> and is the pause doing its job. CLAUDE.md's "remove it after" means after the commit.
+
+- [x] **6c. RULED + DONE 2026-09-22 — retired; identity is two checks.** The author's
+      ruling: remove the unreachable branch rather than keep a check that looked like
+      enforcement and was not. `correspondence_attestation.py` is on the calculus map, so
+      `.core_modification_authorized` was raised for the change and removed after. The
+      spec's §3.3 table and its commentary now say **two** checks — endpoint placement and
+      the crossing multiset — and name what the third was and why it went. Nothing that was
+      being enforced was lost. Original note follows.
       **Needs a ruling — it is a calculus-map module.** Verified: whenever
       `identity-connected` fires, `identity-endpoint` has already fired on the same path, and
       a path that teleports in from 5,000 units away while *ending* correctly at the vertex is
@@ -607,20 +631,42 @@ currently false as written. The rest need a ruling because they change behaviour
       job, but not what a reader of the claim would assume, and it is why my first probe
       misread the check as broken.
 
-- [ ] **6d. Transformation invariance covers 3 of 6 rules.** DC+, ERA, IT+ only. **No test in
+- [x] **6d. RULED + DONE 2026-09-22 — extended to all six rules.** New
+      `test_transformation_invariance_ins` / `_dc_minus` / `_deiteration`, each applying the
+      rule and re-checking §3.3 on the post-state's drawing. Corpus site availability,
+      measured first: **INS 42 of 52 UoDs, DC- 8 (7 apply; `swan_third_tense` correctly
+      refused — a quotation oval is not a negation), IT- 1** (a deiteration needs an
+      iterated copy and the corpus mostly has none). 50 pass, 106 skip, every skip naming
+      its UoD. Each carries a did-it-actually-happen assertion (INS adds ink, DC- removes
+      both cuts, IT- removes ink) — the silent-no-op archetype that reached the web API.
+      Original note follows. DC+, ERA, IT+ only. **No test in
       the repository pairs INS, IT− or DC− with a correspondence check**, though §7 says "for
       every rule applied to every applicable site". IT+ reaches only 29 of 52 UoDs. Either
       extend the suite to the missing three, or amend §7 and `CLAUDE.md` to state the real
       extent. (Measured rule-site skips: 57, plus 28 regime-3 — the eighteenth arc's "~100"
       estimate was high.)
-- [ ] **6e. Shape 1 is not the test §7 defines.** §7 shape 1 is render → serialize → re-parse
+- [x] **6e. DONE 2026-09-22 — the credit corrected.** The test's own docstring was already
+      honest ("§3.3 Totality, Injectivity"); `CLAUDE.md`'s summary was not. It now states
+      the real extent and points at `test_eg_reader.py`, where the genuine
+      render→read→`reading_matches_egi` round trip actually lives. Original note follows. §7 shape 1 is render → serialize → re-parse
       → structural equality against the source EGI. What runs under that name in
       `test_correspondence_invariant` compares DTO key sets to element ids — that is §3.3's
       totality/injectivity row. The genuine round trip
       (`reading_matches_egi(read_drawing(dto), egi)`) lives in `test_eg_reader.py`, a
       different file than `CLAUDE.md` credits. Decide whether shape 1 moves, is renamed, or
       the credit is corrected.
-- [ ] **6f. "Every served (EGI, drawing) pair is verified" is not true of every path.**
+- [x] **6f. RULED + PARTLY DONE 2026-09-22 — the deltas path fixed; the other two recorded.**
+      The author chose the narrow fix. `rebuild_ligature_anchors` now re-attests, falling
+      back to the `apply_deltas`-attested layout on failure — which also makes the
+      clockwise block's `except CorrespondenceViolation: pass` sound, since everything it
+      can fall back to is now attested. `test_the_deltas_path_never_serves_unattested_geometry`
+      compares **geometry, not object identity** (the last two pipeline steps return fresh
+      DTOs by design and are annotation-only). It carries a second, deterministic assertion
+      because the geometric one only bites when the rebuild actually moves something —
+      which is why the defect survived. **Shown to bite by reverting the fix in the source.**
+      STILL OPEN: `GET /api/diagram/session/{id}` and `POST /api/transform/{undo,redo}`
+      serve stored DTOs unre-attested, and `generate_overview_layout` attests the quotient.
+      Original note follows.
       Three gaps, in descending severity: (i) the **deltas path** calls
       `rebuild_ligature_anchors` — a geometry change — *after* the last attestation, and the
       following `place_clockwise_hooks` swallows `CorrespondenceViolation` with a bare
@@ -632,17 +678,53 @@ currently false as written. The rest need a ruling because they change behaviour
       `generate_overview_layout` attests the collapsed quotient plus `attest_overview`, and
       its own docstring says that is not a full §3.3 correspondence — the flat sentence in
       `CLAUDE.md` hides that.
-- [ ] **6g. The calculus map's "says *what* it pins" conjunct is a non-empty string check.**
+- [x] **6g. DONE 2026-09-22 — a description must now name something real.** It was
+      `assert what.strip()`, so replacing every description with `"x"` kept the file green.
+      The check now requires each to name a **symbol defined in the module** or carry a
+      **Dau citation**; nine of the fourteen were rewritten to satisfy it. Honest about what
+      it is: not a validation of substance (nothing mechanical reads whether the sentence is
+      *true* of the suite — that stays a reading task), but a description can no longer be a
+      placeholder, be copied from a neighbour, or survive the symbol it names being renamed
+      away. Shown to bite on `"x"`. Original note follows.
       Replacing every module's description with `"x"` keeps `test_calculus_map` green. Checking
       prose against substance is clause 3 one level down and wants its own thinking — the
       reachable version is probably "the description names at least one Dau citation or one
       test in the named suite", not free-text validation.
-- [ ] **6h. `has_dominating_nodes` has no negative case anywhere in the suite** — not
+- [x] **6h. DONE 2026-09-22 — it has one now.** Built below the constructor, the seam
+      `test_parsers_place_vertices_before_edges` already uses: suppress
+      `_validate_dau_constraints`, build the violator (edge on the sheet, its vertex in a
+      cut), and ask the helper directly. It answers `False`, and the Dau oracle agrees. This
+      matters because the helper was found **inverted** once already. Original note follows. — not
       unmeasured but *unmeasurable*, since `d20b700` means no non-EGI can be constructed to
       test it against. A helper hard-wired to `return True` would pass everything. If it is
       worth pinning, the test has to build the violator **below** the constructor (the
       instrument in `test_parsers_place_vertices_before_edges` does exactly this by
       monkeypatching `_validate_dau_constraints`, and is the model to copy).
+- [ ] **6l. THE SUITE'S OWN HEADLINE DOES NOT RECONCILE AGAINST COLLECTION — found
+      2026-09-22 while verifying 6a–6i, and it is the same shape as everything else here.**
+      The full-suite figure this project quotes is a **summary line nobody checks against
+      the number of tests that exist**. Measured:
+      - At `e7d48a6`, `pytest --collect-only` reports **5,330 selected** (5,340 − 10
+        deselected), confirmed in a clean detached worktree at that exact commit.
+      - The full run on that same tree reported **5,396 outcomes** (5,152 passed + 241
+        skipped + 1 failed + 2 xfailed) — **66 more outcomes than there are tests**.
+      - This run: collection **5,493**, progress characters **5,493** (they agree), but the
+        summary line says **5,506** — 13 more, which module-level skips would explain,
+        since those are counted in the summary and emit no progress character.
+      So the discrepancy is real, is **not** something this sitting introduced, and is of
+      two different sizes in two consecutive runs. **What is NOT in doubt** (and is why the
+      work below was still committed): a per-file collection diff between `e7d48a6` and now
+      shows **only the five files this sitting touched**, changed by exactly +1/+2/+156/+1/+3
+      = **+163**, with every other file byte-identical in count — so nothing was lost — and
+      the only failure is the documented `test_memory_stability` flake.
+      **Consequence to face squarely:** the previous commit's message claims "+54 against
+      the previous run, every one attributable" and "the arithmetic closes exactly". Given
+      this, that claim was **stated more confidently than the evidence supported** — the
+      per-file delta was right, the cross-run summary reconciliation was not checked against
+      collection at all. The fix is not to re-narrate it but to make the headline derivable:
+      pin `collected == passed + skipped + failed + xfailed − module_level_skips`, or stop
+      quoting a total that nothing reconciles. This is 6i's lesson one level up, on the
+      project's single most-quoted figure.
 - [ ] **6j. `hierarchical_index`'s dead half — three real defects, pinned as behaviour.**
       Nine public methods have no caller in `src/`. `get_children` returns **the live internal
       set**, so `hi.get_children(sheet).add(x)` corrupts the index in place. `remove_area`
@@ -660,7 +742,10 @@ currently false as written. The rest need a ruling because they change behaviour
       vertex whatever the graph, with no caller. Low urgency — nothing in the production path
       constructs the evaluator that reads this module — but the day something does, Def 16.8 is
       what it will be trusting.
-- [ ] **6i. A process question, not a defect.** Four of nine narrated per-file test counts in
+- [x] **6i. RULED + DONE 2026-09-22 — the counts are gone from the doc.** The author chose
+      neither hand-policing nor a pinning test but removing the class of figure: `CLAUDE.md`
+      no longer quotes per-file test counts, and says why. Seven were dropped; the two
+      remaining numeric parentheticals were reworded. Original note follows. Four of nine narrated per-file test counts in
       `CLAUDE.md` were wrong, one never true. That argues for pinning them as every other
       extent here is pinned — a test parsing the `(N)` claims and checking them against
       collection, failing with "read why this moved, then re-pin deliberately". **Not built

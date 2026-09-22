@@ -548,7 +548,31 @@ def generate_layout(
         # A delta translates the moved element's ligature endpoints rigidly;
         # re-derive them so the predicate attachment follows the line's new
         # incident direction (idempotent on unmoved lines, interior-preserving).
-        dto = elk_engine.rebuild_ligature_anchors(egi, dto)
+        #
+        # **Geometry change ⇒ re-attest** (2026-09-22, the author's ruling;
+        # docket 6f). This was an unattested serve: `apply_deltas` attests each
+        # surviving delta, but `rebuild_ligature_anchors` then moves ligature
+        # endpoints with nothing checking the result, and the clockwise block
+        # below *keeps* this `dto` whenever placement is a no-op or its own
+        # attestation fails. So `generate_layout(egi, deltas=…)` could return a
+        # DTO that had never been passed to `attest_correspondence` — observed
+        # on 2 of 5 runs of one fixture (ELK ordering makes it intermittent).
+        # In every observed case the DTO did satisfy the check; this was an
+        # unverified serve rather than a live violation, which is exactly the
+        # gap a boundary hook exists to close.
+        #
+        # On failure we keep the pre-rebuild layout, which `apply_deltas` has
+        # already attested — the same best-effort discipline the clockwise block
+        # uses, and the reason its bare `except: pass` is now sound: whatever
+        # `dto` holds from here on has been attested.
+        rebuilt = elk_engine.rebuild_ligature_anchors(egi, dto)
+        try:
+            attest_correspondence(
+                egi, rebuilt, context="layout_service.rebuild_ligature_anchors"
+            )
+            dto = rebuilt
+        except CorrespondenceViolation:
+            pass  # keep the attested post-delta layout
 
     # Clockwise placement as the order carrier (Peirce's writing convention,
     # docs/EXACT_CORRESPONDENCE.md Phase 3c): draw each relation's hooks clockwise

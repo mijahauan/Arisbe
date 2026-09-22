@@ -276,6 +276,42 @@ def test_the_core_check_now_agrees_with_dau():
             rel=frozendict({"e1": "P"}))
 
 
+def test_the_core_check_says_no_when_given_a_graph_that_violates_def_12_5(monkeypatch):
+    """The helper's **negative** case, which nothing in the suite had.
+
+    Added 2026-09-21 (docket 6h). Since `d20b700` enforces Def 12.5 at
+    construction, no unlawful graph can be built — so `has_dominating_nodes` was
+    only ever asked about graphs that satisfy it, and a helper hard-wired to
+    `return True` would have passed every test in the repository. That is not
+    unmeasured but *unmeasurable* at the normal seam, and it matters because
+    this helper was found **inverted** once already (`9482d2c`): it tested the
+    relation backwards and passed any edge on the sheet.
+
+    The seam is the one `test_parsers_place_vertices_before_edges` already uses
+    — suppress construction-time validation, build the violator underneath it,
+    and ask the helper directly. Dau Def 12.5 (p.125) requires ctx(e) ≤ ctx(v)
+    for every vertex the edge hooks; here the edge sits on the sheet while its
+    only vertex is inside a cut, so the edge is *not* dominated.
+    """
+    from frozendict import frozendict
+
+    import egi_core_dau as core
+    from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
+
+    monkeypatch.setattr(RelationalGraphWithCuts, "_validate_dau_constraints",
+                        lambda self: None)
+    unlawful = RelationalGraphWithCuts(
+        V=frozenset({Vertex("v1")}), E=frozenset({Edge("e1")}),
+        nu=frozendict({"e1": ("v1",)}), sheet="S", Cut=frozenset({Cut("c1")}),
+        area=frozendict({"S": frozenset({"e1", "c1"}), "c1": frozenset({"v1"})}),
+        rel=frozendict({"e1": "P"}))
+
+    assert unlawful.has_dominating_nodes() is False, (
+        "the core helper accepts a graph whose edge is not dominated by its "
+        "vertex — the shape it was once inverted on")
+    assert dominating_nodes(unlawful) is False, "the Dau oracle must agree"
+
+
 def test_a_lawful_hook_move_is_accepted():
     """Def 12.9 (p.128): a hook may be replaced by a vertex whose context
     encloses the edge's. The inverted helper refused exactly this."""

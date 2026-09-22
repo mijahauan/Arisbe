@@ -120,12 +120,38 @@ draft of the new `_structurally_equal_egi` falsifier guarded an arm with
 `hasattr(base, "with_rel_name")` — a method that does not exist, so the arm silently never
 ran: the very shape this audit hunts, committed inside the audit, caught only by checking.
 
-**Left for the author — now QUEUED as `tasks/todo.md` item 6, "the clause-3 docket"** (6a–6i,
-ordered, each with what it would take and why it was not done). Summarised here; the docket
-carries the detail. All are in `src/` or on the calculus map, which is why the audit recorded
-them instead of acting. **6a and 6b are cheap, purely additive, and need no ruling** — two
-§3.3 falsifiers already verified to bite when a DTO is doctored, and a first test for
-`attest_served_quotations`; take those first.
+**The clause-3 docket (`tasks/todo.md` item 6) — RAISED, RULED AND WORKED, 2026-09-22.** Nine
+of the eleven entries are closed; four needed the author's ruling and got one.
+
+- **6a, 6b, 6e, 6g, 6h — additive, no ruling needed, done.** Two §3.3 falsifiers
+  (`incidence:` arity mismatch, `arg-order:` swapped ports), the first three tests for
+  `attest_served_quotations` (it fires on the real serve path, it refuses an oval served with
+  the wrong stroke, it is a no-op on first-order), the shape-1 credit corrected to point at
+  `test_eg_reader`, the map's "says what it pins" raised from *a non-empty string* to *names a
+  symbol in the module or cites Dau* (nine descriptions rewritten; shown to bite on `"x"`), and
+  a **negative case for `has_dominating_nodes`** built below the constructor — the helper had
+  none, and it was found inverted once already.
+- **6c — RULED: retire it. Identity is two checks.** §3.3's third identity check had no
+  independent failure mode; the unreachable branch is gone, the spec's §3.3 table says **two**
+  (endpoint placement + crossing multiset) and records what the third was. Nothing enforced was
+  lost. `.core_modification_authorized` raised for the change and removed after.
+- **6d — RULED: extend to all six rules.** `test_transformation_invariance_ins` / `_dc_minus` /
+  `_deiteration` added. Site availability measured first: **INS 42 of 52 UoDs, DC− 8 (7 apply;
+  `swan_third_tense` correctly refused — a quotation oval is not a negation), IT− 1.** Each
+  carries a did-it-actually-happen assertion, the silent-no-op archetype that reached the web
+  API.
+- **6f — RULED: fix the deltas path only.** `rebuild_ligature_anchors` now re-attests, which
+  also makes the clockwise block's `except CorrespondenceViolation: pass` sound. Shown to bite
+  by reverting the fix in the source. **Still open by the same ruling:** the session-store serve
+  paths and `generate_overview_layout`.
+- **6i — RULED: drop the counts from the doc.** Not hand-policing, not a pinning test —
+  `CLAUDE.md` no longer quotes per-file test counts at all, and says why.
+- **Still open: 6j and 6k** — the recorded defects in `hierarchical_index`'s dead half
+  (`get_children` hands out the live internal set, `remove_area` orphans descendants,
+  `validate_containment` compares depth not ancestry) and in the ligature detector (parallel
+  identity edges invisible to cycle detection, unknown vertex ids pass silently, the
+  `separate_into_single_object_components` stub). All pinned as current behaviour; fixing any is
+  a behaviour change on code with no live caller.
 - **§3.3's identity-connectedness half has no independent failure mode.** Verified: whenever
   `identity-connected` fires, `identity-endpoint` has already fired on the same path, and a
   path that teleports in from 5,000 units away while ending correctly at the vertex is
@@ -154,7 +180,20 @@ them instead of acting. **6a and 6b are cheap, purely additive, and need no ruli
   **Not built**: it would redden the suite on every added test until the doc is updated, and
   that is a change to the working rhythm, which is yours.
 
-**Verification, fourth sitting — two full runs, and the arithmetic closes exactly both times.**
+**Verification, fourth sitting — three full runs, and a correction to what the second one's
+message claimed.** The third run (after the docket work) is **1 failed, 5,161 passed, 342
+skipped, 10 deselected, 2 xfailed, 52 m 04 s**; the failure is the documented
+`test_memory_stability` flake. What is *established* is the **per-file collection diff**:
+between `e7d48a6` and now, only the five files this sitting touched changed — by exactly
++1 / +2 / +156 / +1 / +3 = **+163** — and every other file is identical in count, so nothing
+was lost. What does **not** hold is the cross-run summary reconciliation: at `e7d48a6` the
+suite collects 5,330 tests (confirmed in a detached worktree at that commit) while the run on
+that tree reported 5,396 outcomes, 66 more than exist. **So the previous commit's "the
+arithmetic closes exactly" was stated more confidently than the evidence supported** — the
+per-file delta was right; the summary total was never checked against collection. Recorded as
+docket **6l**, because it is this arc's own lesson applied to the project's most-quoted figure.
+
+**Verification, earlier in the fourth sitting — two full runs, whose per-file deltas hold.**
 After clause 3: **1 failed, 5,098 passed, 241 skipped, 10 deselected, 2 xfailed, 47 m 05 s** —
 **+10 passed** against the previous run (5,088 passed, 1 xfailed): the round-trip split pin (1),
 `TestImmutability` (3), the admission gate's two ledger falsifiers + the silence check + the

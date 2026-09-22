@@ -411,56 +411,26 @@ def check_correspondence(
                     f"({actual} boundary crossing(s)); not on its area chain"
                 )
 
-    # Identity 3/3: shared-identity connectedness.
-    paths_by_vertex: dict = {}
-    for p in dto.ligature_paths:
-        paths_by_vertex.setdefault(p.vertex_id, []).append(p)
-    expected_count: dict = {}
-    for nu_seq in egi.nu.values():
-        for vid in nu_seq:
-            expected_count[vid] = expected_count.get(vid, 0) + 1
-    for vertex in egi.V:
-        vid = vertex.id
-        paths = paths_by_vertex.get(vid, [])
-        if len(paths) != expected_count.get(vid, 0):
-            # Already reported by incidence.
-            continue
-        if not paths:
-            continue
-        vpos = dto.vertex_positions.get(vid)
-        if vpos is None:
-            continue
-        adj: dict = {}
-        nodes: set = set()
-        for p in paths:
-            for pt in p.points:
-                nodes.add((pt.x, pt.y))
-            for i in range(len(p.points) - 1):
-                a = (p.points[i].x, p.points[i].y)
-                b = (p.points[i + 1].x, p.points[i + 1].y)
-                if a == b:
-                    continue
-                adj.setdefault(a, set()).add(b)
-                adj.setdefault(b, set()).add(a)
-        start = (vpos.x, vpos.y)
-        if start not in nodes:
-            failures.append(
-                f"  identity-connected: vertex {vid} pos not in path union"
-            )
-            continue
-        visited = {start}
-        stack = [start]
-        while stack:
-            n = stack.pop()
-            for m in adj.get(n, ()):
-                if m not in visited:
-                    visited.add(m)
-                    stack.append(m)
-        if nodes - visited:
-            failures.append(
-                f"  identity-connected: vertex {vid} has disconnected paths "
-                f"({len(nodes - visited)} unreachable points)"
-            )
+    # Identity is TWO checks, not three (retired 2026-09-22, the author's
+    # ruling; docket 6c).
+    #
+    # A third lived here, "shared-identity connectedness": it gathered the
+    # points of every path ending at a vertex, walked each path's own
+    # consecutive-point chain, and reported any point unreachable from the
+    # vertex position. **It had no independent failure mode.** Identity 1/3
+    # above already requires every path to terminate at the vertex position, and
+    # a polyline is connected through its own consecutive points -- so whenever
+    # this branch fired, the endpoint branch had already fired on the same path.
+    # Measured before removal: displacing a whole path produced both messages
+    # together, and a path that jumps in from 5,000 units away while ending
+    # correctly at the vertex produced neither.
+    #
+    # So it reported nothing a reader did not already learn, while making the
+    # written contract claim three identity checks where two did the work.
+    # docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md 3.3 is amended to match. The
+    # W-partition is still enforced: by endpoint placement (1/3) and by the
+    # crossing multiset (2/3), the latter being what actually carries "the
+    # ligature passes through exactly the areas given by `area`, and no others".
 
     # Argument order.
     for edge in egi.E:

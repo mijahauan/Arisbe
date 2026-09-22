@@ -44,6 +44,7 @@ from quotation_overlay import (
 )
 from second_order_check import run_quotation
 from second_order_reader import quotation_read_backs, read_quotation_back
+from tomos_service import TomosService
 from web_api.services.layout_service import generate_layout
 
 LAW = "~[ (swan *s) ~[ (white s) ] ]"
@@ -171,3 +172,82 @@ class TestFalsifiers:
         rep = run_quotation(cand)
         assert rep.read_back_faithful is False
         assert not rep.ok
+
+
+class TestTheServedBoundaryHook:
+    """`attest_served_quotations` — the hook that had no test at all.
+
+    Added 2026-09-21 by the clause-3 audit (docket 6b). `CLAUDE.md` describes
+    it as "the regime-2 boundary hook beside `attest_correspondence` in
+    `layout_service`: a served quotation-bearing pair verifies S1–S3", and it is
+    called at two sites in `layout_service`. It was referenced by **zero** tests:
+    deleting both call sites would have reddened nothing, and the S3 assertions
+    in this file all reach `run_quotation` directly rather than through the
+    hook. So the claim was about a mechanism nothing measured.
+
+    Three things are pinned: the hook actually fires on the real serve path, it
+    has teeth when the drawing is wrong, and it stays out of the way of
+    first-order graphs.
+    """
+
+    def test_the_hook_fires_on_the_real_serve_path(self, monkeypatch):
+        """Not "a quotation-bearing pair can be attested" — "serving one does".
+
+        `layout_service` imports the hook lazily inside the function, so the
+        module attribute is the seam. The corpus UoD is the point: these are the
+        graphs the claim names.
+        """
+        import second_order_reader
+
+        seen = []
+        real = second_order_reader.attest_served_quotations
+
+        def spy(egi, dto, **kwargs):
+            seen.append(kwargs.get("context"))
+            return real(egi, dto, **kwargs)
+
+        monkeypatch.setattr(second_order_reader, "attest_served_quotations", spy)
+
+        tomos = TomosService(Path(__file__).resolve().parent.parent / "tomos")
+        egi = tomos.load_uod("swan_third_tense", attest=False).current_egi
+        assert getattr(egi, "quotation", None), "fixture UoD carries no quotation"
+
+        generate_layout(egi)
+
+        assert seen == ["layout_service.generate_layout"], (
+            "serving a quotation-bearing UoD did not reach the second-order "
+            "boundary hook")
+
+    def test_the_hook_refuses_a_drawing_that_does_not_carry_the_device(
+            self, quoted_pair):
+        """Teeth. An oval drawn as an ordinary cut is a picture that lies.
+
+        The committed convention is the dotted stroke; strip it and the served
+        pair must be refused rather than served. Without this, the hook could be
+        a no-op and every test above would still pass.
+        """
+        from second_order_check import SecondOrderViolation
+        from second_order_reader import attest_served_quotations
+
+        host, dto, cut_id, _name_id, _law = quoted_pair
+
+        strokes = dict(getattr(dto, "cut_stroke", {}) or {})
+        assert strokes.get(cut_id) == "quotation", (
+            f"the served DTO marks the quotation oval as "
+            f"{strokes.get(cut_id)!r}, not 'quotation' — the committed "
+            f"convention moved and this test is no longer testing it")
+        strokes[cut_id] = "solid"
+        undotted = dataclasses.replace(dto, cut_stroke=strokes)
+
+        with pytest.raises(SecondOrderViolation):
+            attest_served_quotations(host, undotted,
+                                     context="test: undotted oval")
+
+    def test_the_hook_is_a_no_op_on_a_first_order_pair(self):
+        """It must cost nothing and say nothing where there is no device."""
+        from second_order_reader import attest_served_quotations
+
+        plain = parse_egif("(P *x) ~[ (Q x) ]")
+        dto, _svg = generate_layout(plain)
+        assert not getattr(plain, "quotation", None)
+        attest_served_quotations(plain, dto, context="test: first-order")
