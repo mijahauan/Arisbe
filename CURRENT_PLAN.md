@@ -1,9 +1,50 @@
 # Current Plan
 
-**Last Updated**: 2026-09-21 (nineteenth arc, **fourth sitting**) — **ALL THREE QUEUED ITEMS
-DONE. CLAUSE 3 AUDITED THE WRITTEN CLAIMS AGAINST THE TESTS THAT MEASURE THEM (THE SUITE'S OWN
-DOCUMENTED "ONE REAL FAILURE" HAD GONE SILENT WHILE THE DEFECT STAYED LIVE); THE LEDGER CAN NOW
-TELL A REPAIR FROM A DELETION; AND `UNATTESTED` IS EMPTY.**
+**Last Updated**: 2026-09-21/22 (nineteenth arc, **fourth sitting**) — **ALL THREE QUEUED ITEMS
+DONE, AND THE DOCKET THEY GENERATED IS NINE-ELEVENTHS WORKED. CLAUSE 3 AUDITED THE WRITTEN
+CLAIMS AGAINST THE TESTS THAT MEASURE THEM (THE SUITE'S OWN DOCUMENTED "ONE REAL FAILURE" HAD
+GONE SILENT WHILE THE DEFECT STAYED LIVE); THE LEDGER CAN NOW TELL A REPAIR FROM A DELETION;
+`UNATTESTED` IS EMPTY; AND THE SUITE'S HEADLINE TURNS OUT NOT TO RECONCILE AGAINST
+COLLECTION.**
+
+**State: clean.** Everything committed and pushed through **`ee72afd`**; tree clean, in sync,
+no run in flight, `.core_modification_authorized` absent (it was raised for the 6c core change
+and lowered *after* the commit — see the process note below). Full suite **1 failed / 5,161
+passed / 342 skipped / 2 xfailed, 52 min**; the failure is `test_memory_stability`, the
+documented warm-process flake. Quality gate green, 166 core tests. Knowledge graph current.
+
+**▶ PICK UP HERE — what is actually left, in the order I would take it.**
+
+1. **Docket 6l — the suite headline does not reconcile against collection.** Found while
+   verifying this sitting's own work, and it is this arc's lesson landing on the project's
+   most-quoted figure. At `e7d48a6` the suite collects **5,330** tests (confirmed in a
+   detached worktree at that commit) while the run on that tree reported **5,396 outcomes**,
+   66 more than exist. Either derive the headline — pin `collected == passed + skipped +
+   failed + xfailed − module-level skips` — or stop quoting a total nothing reconciles. Note
+   the correction that comes with it: the previous commit's "the arithmetic closes exactly"
+   was stated more confidently than the evidence supported.
+2. **Docket 6f's remaining two serve paths** — `GET /api/diagram/session/{id}` and
+   `POST /api/transform/{undo,redo}` serve stored DTOs unre-attested;
+   `generate_overview_layout` attests the quotient and says so itself. Left open by the
+   author's own ruling ("fix the deltas path only"), so reopening it is a fresh decision.
+3. **Docket 6j / 6k** — the recorded defects in `hierarchical_index`'s dead half and in the
+   ligature detector. All pinned as current behaviour; each fix is a behaviour change on code
+   with no live caller, so each wants a ruling more than it wants effort.
+4. **Clause 3 is unfinished.** This was one time-boxed pass over the load-bearing claims.
+   `CLAUDE.md` holds hundreds more, and the method that worked is in item 1c: parallel
+   read-only audits, every finding reproduced in the main session before acting.
+
+**Also still open from the eighteenth arc:** the **alphabet question** — which now also
+governs the EGIF symmetric-lines tie-break, pinned this sitting as a strict xfail so a fix
+announces itself; `discharge_episode` pulling a quoted constant out of its oval; the IT−
+docstring; defect 8 (MOVE_BRANCHES tries one direction only).
+
+**Before touching anything, read `CLAUDE.md`'s "Standing cautions".** Two this sitting
+re-earned: a subagent's finding is a claim until reproduced (it caught two of my own wrong
+readings — a §3.3 probe fooled by the DTO aliasing `vertex_positions[vid]` to
+`path.points[-1]`, and a falsifier arm guarded by `hasattr` on a method that does not exist),
+and `.core_modification_authorized` comes down **after the commit**, not after the edit — the
+pause reads `git diff HEAD`, so removing it early fails the gate. It did.
 
 **The through-line of all three.** Each item turned out to be the same shape one level further
 in: **a discipline written down, and nothing enforcing it.** Clause 3 found claims true but
@@ -13,9 +54,11 @@ ran on every EGI ever built with their contracts pinned by nothing, and closing 
 opened a third hole (a check parametrized over the set it was about to empty). The useful
 question throughout: **not "is this right?" but "what would tell me the day it stops being?"**
 
-**▶▶▶ NEXT SESSION — READ THIS BLOCK FIRST (fourth sitting). The third sitting's block
-follows below and is still accurate for its own work; its three queued items are updated
-here — item 1 is done, items 2 and 3 are untouched and still next.**
+**On the blocks below.** The third sitting's `▶▶▶ NEXT SESSION` block follows, and it is
+**stale in one specific way**: it queues three items, and **all three are now done** (item 1 =
+clause 3, item 2 = the ledgered validation-theatre tests, item 3 = the unattested modules).
+It stays because its account of its own work is accurate. Anything it calls "next" is not;
+the list above is.
 
 **What this sitting did.** Item 1 of the previous handoff: **clause 3 — does a test measure
 what it claims?** Time-boxed to the load-bearing claims as directed (the calculus, Def 12.5,
@@ -280,7 +323,7 @@ fail); wrote `legal()` oracles for the five rules that had none, so **every impl
 is now judged**; and retired "protected core" as a guarantee. The core gate went from **10
 tests that cannot fail to 1**.
 
-**Pick up here — three items, in the order I would take them.**
+**Pick up here — three items, in the order I would take them.** *(All three were done in the fourth sitting, 2026-09-21/22 — see the block at the top of this file. Kept for its account of the work, not as a queue.)*
 
 1. **Clause 3 of the admission gate: does a test measure what it claims?** Clauses 1 (it can
    fail) and 2 (it is reached) are built and enforced; this one is a *reading* task and is
