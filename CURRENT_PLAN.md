@@ -1,6 +1,119 @@
 # Current Plan
 
-**Last Updated**: 2026-09-21/22 (nineteenth arc, **fourth sitting**) — **ALL THREE QUEUED ITEMS
+**Last Updated**: 2026-09-22 (nineteenth arc, **fifth sitting**) — **DOCKET 6l IS SOLVED, AND
+THE ANSWER IS THAT NOTHING WAS EVER MISCOUNTED. THE SUITE HAS NO FIXED SIZE: 66 TESTS EXIST
+ONLY WHEN CHROMIUM DOES. THE HEADLINE IS NOW DERIVED BY AN INSTRUMENT THAT REFUSES RATHER THAN
+REPORTS A ZERO — A DEFECT I FOUND IN MY OWN NEW TOOL, WHICH IS THE SHAPE THIS WHOLE ARC HUNTS.**
+
+**State: clean once committed.** Full suite **5,182 passed / 342 skipped / 10 deselected /
+2 xfailed / 0 failed, 44 min, pytest exit 0** — the first run in this arc with no failure at
+all (`test_memory_stability`, the documented warm-process flake, passed). Quality gate green,
+166 core tests. Knowledge graph current. `.core_modification_authorized` absent and not needed:
+this sitting touched no calculus module.
+
+**The headline is 5,526 outcomes = 5,513 selected + 13 module-level skips**, and that figure was
+**predicted before the run and matched exactly**. Regenerate it, never retype it:
+
+```bash
+uv run python tools/suite_census.py                      # ~5 s, names the browser gate
+uv run pytest tests/ -q | tee run.log
+uv run python tools/suite_census.py --against run.log    # exits non-zero if it does not close
+```
+
+**▶ PICK UP HERE — what is left, in the order I would take it.**
+
+1. **Docket 6f's remaining two serve paths** — `GET /api/diagram/session/{id}` and
+   `POST /api/transform/{undo,redo}` serve stored DTOs unre-attested;
+   `generate_overview_layout` attests the quotient and says so itself. Left open by the
+   author's own ruling ("fix the deltas path only"), so reopening it is a fresh decision.
+2. **Docket 6j / 6k** — the recorded defects in `hierarchical_index`'s dead half and in the
+   ligature detector. All pinned as current behaviour; each fix is a behaviour change on code
+   with no live caller, so each wants a ruling more than it wants effort.
+3. **Clause 3 is unfinished.** One time-boxed pass covered the load-bearing claims. `CLAUDE.md`
+   holds hundreds more; the method that worked is in item 1c — parallel read-only audits, every
+   finding reproduced in the main session before acting.
+4. **Consider whether the census belongs in the quality gate.** Deliberately not wired in: it
+   would add ~5 s to every commit and, more to the point, `unaccounted_modules` going non-empty
+   is a *finding* to read, not a commit to block. That trade is the author's.
+
+**Also still open from the eighteenth arc:** the **alphabet question** — which also governs the
+EGIF symmetric-lines tie-break, pinned as a strict xfail so a fix announces itself;
+`discharge_episode` pulling a quoted constant out of its oval; the IT− docstring; defect 8
+(MOVE_BRANCHES tries one direction only).
+
+## What the fifth sitting did — docket 6l
+
+**The question was "derive the headline or stop quoting a total nothing reconciles." The answer
+was neither: both figures were exactly right all along.** Two things were missing — a *term*
+for a test that is reported without being collected, and a *name* for the gate that decides how
+many tests there are at all.
+
+**The mechanism, proved with a controlled fixture rather than inferred.**
+`pytest --collect-only -q` prints the item count and says **nothing** about a module that
+skipped at import: such a module contributes **no collected item** and **one `skipped`
+outcome**. A two-test module beside one gated module collects "2 tests" and runs "2 passed,
+1 skipped". (`--collect-only -rs` *does* report them.) So the identity is
+`outcomes == selected items + module-level skips`, where *outcomes* sums what pytest reports
+for something it tried and excludes *deselected* and *warnings*.
+
+**The finding worth carrying: this suite has no fixed size.** The 13 modules that skip at import
+are the `*_e2e.py` suites, gated by `tests/e2e_support.require_browser`. With a launchable
+chromium they collect **exactly 66 items** and skip nothing; without one those **66 tests do not
+exist** and 13 module skips stand in their place (66 measured directly, by satisfying the guard).
+The two figures that would not reconcile were taken on opposite sides of that gate, and both
+close exactly once it is named: `e7d48a6`, 5,330 + 66 = **5,396**; `ee72afd`, 5,493 + 13 =
+**5,506**. Not arithmetic luck — solving the two runs' *independent* passed/skipped deltas
+forces the e2e contribution to 66, which is the measured 66. And the `+156` in that per-file
+diff is `test_correspondence_invariant.py` (937→1093), the 6d rules mostly skipping at
+inapplicable sites, which is what carried skipped +101 against passed +9.
+
+**Built.** `tools/suite_census.py` computes both terms from one ~5-second collection pass
+(against the suite's 44 minutes), names the gate and which side of it this machine is on, and
+with `--against <run.log>` reconciles a finished run and **exits non-zero** when it does not
+close. `tests/test_suite_census.py` (20 tests) pins the identity the only way a claim about
+pytest's reporting can be pinned — by running **real pytest** over one throwaway suite per
+shape and comparing the derived total against the summary pytest actually prints — so a future
+pytest that changes its reporting reddens the day it happens rather than the day someone next
+redoes the arithmetic by hand.
+
+**Shown to bite, twice, and re-verified after refactoring.** Dropping the module-skip term fails
+3 tests (the exact 6l defect). Planting a module that silently stops being collected — a class
+renamed off `Test*` — fails `test_no_test_module_goes_uncounted`, which closes the third quiet
+route item 7 named: a module can sit in `tests/` contributing nothing while every count stays
+green.
+
+**Four defects found by reviewing my own instrument, and the first two are this arc's shape
+committed inside the tool built to close it.**
+1. `take_census` reported a **confident zero** when `pytest.main` died — which is exactly how a
+   real bug presented during development: a `@dataclass` `__eq__` made the plugin unhashable,
+   pytest died in `pytest_sessionstart`, and the census answered "0 selected, 0 module skips,
+   0 expected outcomes" against the real suite in the tone of a measurement. It now raises
+   `CensusFailed`. Note the trap in the obvious fix: pytest 9 fires
+   `pytest_collection_finish` **even on a usage error**, so the hook alone does not tell you a
+   census happened; exit codes 3 and 4 are the discriminator, while 5 (collected nothing) is a
+   real zero.
+2. **A collection error is not one more outcome — it cancels the run.** Measured: pytest
+   reports "Interrupted: 1 error during collection" and the healthy module's test never runs.
+   So a suite with one has no headline, and the census now refuses to publish a total instead
+   of naming a figure for a run that cannot happen.
+3. + 4. `parse_summary` — the pure function every other test decides by — had **no direct
+   test**. Giving it seven found that `no tests ran in 0.01s`, a *finished* run with zero
+   outcomes, read identically to a run that never reported at all.
+
+**The identity's one known exception is pinned**, because an identity trusted past its domain is
+worse than none: a test that fails and then errors in teardown is reported in **two buckets**,
+so the sum legitimately exceeds the item count.
+
+**The correction from the fourth sitting stands.** Its "the arithmetic closes exactly" was
+stated more confidently than its evidence supported. It closes now, and it is checkable by
+command.
+
+**Process note worth keeping: I stopped the verification run twice, deliberately.** Both times I
+had just found something I was going to change. A measurement of a tree you are about to discard
+is worth nothing — standing caution 1 read forwards instead of backwards. The third run was of
+the final tree, with the prediction recorded first.
+
+*(The fourth sitting's own header and state, kept verbatim.)* **Was last updated**: 2026-09-21/22 (nineteenth arc, **fourth sitting**) — **ALL THREE QUEUED ITEMS
 DONE, AND THE DOCKET THEY GENERATED IS NINE-ELEVENTHS WORKED. CLAUSE 3 AUDITED THE WRITTEN
 CLAIMS AGAINST THE TESTS THAT MEASURE THEM (THE SUITE'S OWN DOCUMENTED "ONE REAL FAILURE" HAD
 GONE SILENT WHILE THE DEFECT STAYED LIVE); THE LEDGER CAN NOW TELL A REPAIR FROM A DELETION;
@@ -13,7 +126,7 @@ and lowered *after* the commit — see the process note below). Full suite **1 f
 passed / 342 skipped / 2 xfailed, 52 min**; the failure is `test_memory_stability`, the
 documented warm-process flake. Quality gate green, 166 core tests. Knowledge graph current.
 
-**▶ PICK UP HERE — what is actually left, in the order I would take it.**
+**▶▶ The fourth sitting's pick-up list (SUPERSEDED — its item 1, docket 6l, is DONE; items 2–4 are carried forward in the list above).**
 
 1. **Docket 6l — the suite headline does not reconcile against collection.** Found while
    verifying this sitting's own work, and it is this arc's lesson landing on the project's

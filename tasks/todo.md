@@ -700,7 +700,48 @@ currently false as written. The rest need a ruling because they change behaviour
       worth pinning, the test has to build the violator **below** the constructor (the
       instrument in `test_parsers_place_vertices_before_edges` does exactly this by
       monkeypatching `_validate_dau_constraints`, and is the model to copy).
-- [ ] **6l. THE SUITE'S OWN HEADLINE DOES NOT RECONCILE AGAINST COLLECTION — found
+- [x] **6l. SOLVED 2026-09-22 (fifth sitting) — and nothing was ever miscounted. The
+      instrument was wrong, and the suite has no fixed size.** Both figures are exactly
+      right; what did not exist was a term for the tests that are reported without being
+      collected, and a name for the gate that decides how many tests there are at all.
+      **The mechanism, proved with a controlled fixture rather than inferred:**
+      `pytest --collect-only -q` prints the number of collected items and says **nothing**
+      about a module that skipped at import. Such a module contributes **no collected item**
+      and **one `skipped` outcome** — a two-test fixture beside one gated module collects
+      "2 tests" and runs "2 passed, 1 skipped". So the identity is
+      `outcomes == selected items + module-level skips`, where *outcomes* sums the buckets
+      pytest reports for something it tried (passed/failed/skipped/xfailed/xpassed/errors)
+      and excludes *deselected* and *warnings*, which are not outcomes.
+      **Both terms move with one environment gate**, which is the finding worth carrying:
+      the thirteen `*_e2e.py` modules go through `tests/e2e_support.require_browser`, and
+      with a launchable chromium they collect **exactly 66 items** and skip nothing, while
+      without one those 66 tests **do not exist** and 13 module skips stand in their place
+      (66 measured directly, by satisfying the guard). The two figures in this entry were
+      taken on opposite sides of that gate:
+      - HEAD: 5,493 collected + 13 module skips = **5,506** — the reported summary exactly.
+      - `e7d48a6`: 5,330 collected + **66** e2e items = **5,396** — the reported summary
+        exactly, on a tree whose run had a browser.
+      Not arithmetic luck: solving the two runs' *independent* passed/skipped deltas forces
+      the e2e contribution to be 66, which is the measured 66. And the `+156` in that
+      per-file diff is `test_correspondence_invariant.py` (937→ 1093), the 6d rules mostly
+      skipping at inapplicable sites — which is what carried skipped +101 against passed +9.
+      **Built:** `tools/suite_census.py` computes both terms from one ~5-second collection
+      pass (against the suite's 52 minutes), names the gate and which side of it this machine
+      is on, and with `--against <run.log>` reconciles a real run and **exits non-zero** when
+      it does not add up. `tests/test_suite_census.py` pins the identity the only way a claim
+      about pytest's reporting can be pinned — by running real pytest over one throwaway
+      suite per shape (plain, module-skip, deselected, xfail/xpass/runtime-skip) and comparing
+      the derived total against the summary pytest actually prints — so a future pytest that
+      changes its reporting reddens on the day it happens. Shown to bite twice: dropping the
+      module-skip term fails 3 tests (the exact 6l defect), and planting a module that stops
+      being collected fails `test_no_test_module_goes_uncounted` (the third quiet route item 7
+      named). It also pins the identity's **one known exception** — a test that fails and then
+      errors in teardown is reported in two buckets, so the sum exceeds the item count
+      honestly; an identity trusted past its domain is worse than no identity.
+      **The correction stands:** the previous commit's "the arithmetic closes exactly" was
+      stated more confidently than the evidence supported. It now closes, and is checkable.
+      Original diagnosis follows.
+      **6l (original). THE SUITE'S OWN HEADLINE DOES NOT RECONCILE AGAINST COLLECTION — found
       2026-09-22 while verifying 6a–6i, and it is the same shape as everything else here.**
       The full-suite figure this project quotes is a **summary line nobody checks against
       the number of tests that exist**. Measured:
