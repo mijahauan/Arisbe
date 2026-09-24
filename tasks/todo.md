@@ -826,6 +826,18 @@ ascending risk, not by decision number.
       design ("intrinsic ambiguity, not a bug"). Fix = individualize a tied element, re-refine,
       emit the lexicographic minimum, under a budget. **Touches no calculus-map module.**
       Retires the strict xfail `test_egif_generation_is_deterministic_on_symmetric_lines` as XPASS.
+- [ ] **9e-0. PREREQUISITE, found 2026-09-24 while starting 9e: one finaliser, not three,
+      and it must stop dropping fields.** `_finalize_alphabet_and_rho` exists in **three
+      copies** — `egif_parser_dau:1050`, `cgif_parser_dau:707`, `clif_parser_dau:787` — the
+      same "one rule, three implementations" shape the INS defect taught this project. All
+      three rebuild `RelationalGraphWithCuts` from an **explicit field list**, so they drop
+      `variable_names`, `sort` and `quotation`. Measured: a CGIF- or CLIF-parsed graph carries
+      an alphabet and an **empty** `variable_names`; an EGIF-parsed one carries names and **no**
+      alphabet. Harmless only because CGIF/CLIF never set those fields — wiring EGIF (9e-2)
+      activates the drop and would break the CLIF tie-break, which reads `variable_names`.
+      Consolidate into one field-preserving helper in `egi_core_dau` (which owns `AlphabetDAU`),
+      beside `_extended_alphabet`, which `formal_transformation_rules` already has and the
+      builders will need.
 - [ ] **9e. Decisions 5A + 6A — THE ALPHABET. These are ONE change, not two.** Wiring
       `egif_parser_dau._finalize_alphabet_and_rho` is what makes both visible: of the 239 failing
       items, 2 are the two-arity fixtures (5A) and ~237 are builders not growing the alphabet

@@ -39,6 +39,7 @@ from egi_core_dau import (
     create_edge,
     create_empty_graph,
     create_vertex,
+    with_alphabet_and_rho,
 )
 
 
@@ -336,7 +337,7 @@ class CLIFParser:
         for edge, vertex_ids, relation, area_id in self._pending_edges:
             egi = egi.with_edge(edge, vertex_ids, relation, context_id=area_id)
         # Populate AlphabetDAU and rho
-        egi = self._finalize_alphabet_and_rho(egi)
+        egi = with_alphabet_and_rho(egi)
         return egi
 
     def _advance(self):
@@ -784,61 +785,7 @@ class CLIFParser:
 
         return egi
 
-    def _finalize_alphabet_and_rho(
-        self, graph: RelationalGraphWithCuts
-    ) -> RelationalGraphWithCuts:
-        """Compute AlphabetDAU and rho from the graph, excluding relation-name collisions from constants."""
-        # Relation names and arities from edges
-        relation_names: Set[str] = set()
-        ar_map: Dict[str, int] = {}
-        for eid, name in graph.rel.items():
-            relation_names.add(name)
-            ar_map[name] = max(ar_map.get(name, 0), len(graph.nu.get(eid, tuple())))
 
-        # Candidate constants from non-generic vertex labels
-        candidate_constants: Set[str] = set()
-        for v in graph.V:
-            if not getattr(v, "is_generic", True) and getattr(v, "label", None):
-                candidate_constants.add(v.label)  # type: ignore[arg-type]
-
-        # Disjoint constants
-        constants: Set[str] = {
-            c for c in candidate_constants if c not in relation_names
-        }
-
-        # rho: only map vertices labeled with names in constants; others None
-        rho_map: Dict[str, Optional[str]] = {}
-        for v in graph.V:
-            if not getattr(v, "is_generic", True) and getattr(v, "label", None) and v.label in constants:  # type: ignore[attr-defined]
-                rho_map[v.id] = v.label  # type: ignore[assignment]
-            else:
-                rho_map[v.id] = None
-
-        # ar(c) = 1 for constants
-        for c in constants:
-            ar_map[c] = 1
-
-        alphabet = AlphabetDAU(
-            C=frozenset(constants),
-            F=frozenset(),
-            R=frozenset(relation_names),
-            ar=frozendict(ar_map),
-        ).with_defaults()
-
-        return RelationalGraphWithCuts(
-            V=graph.V,
-            E=graph.E,
-            Cut=graph.Cut,
-            area=graph.area,
-            nu=graph.nu,
-            rel=graph.rel,
-            sheet=graph.sheet,
-            alphabet=alphabet,
-            rho=frozendict(rho_map),
-        )
-
-
-# Factory function
 def parse_clif(clif_text: str) -> RelationalGraphWithCuts:
     """Parse CLIF text into EGI structure."""
     parser = CLIFParser(clif_text)

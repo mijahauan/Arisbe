@@ -1047,66 +1047,6 @@ class EGIFParser:
             # Move if needed
             self.graph = self.graph.with_vertex_moved_to_context(vertex_id, target_ctx)
 
-    def _finalize_alphabet_and_rho(
-        self, graph: RelationalGraphWithCuts
-    ) -> RelationalGraphWithCuts:
-        """Build the ``AlphabetDAU`` and ``rho`` mapping from the fully parsed graph.
-
-        Dau's formal model (§3) requires an explicit alphabet Σ = (C, F, R, ar)
-        where C is the set of constants, F is the set of function symbols (empty
-        for EGIF), R is the set of relation names, and ``ar`` maps each symbol
-        to its arity.  The ``rho`` mapping assigns each vertex to its constant
-        label (or ``None`` for generic vertices).
-
-        These fields are not populated incrementally during parsing because all
-        edges (and hence all arities) must be seen before the alphabet is
-        complete.  This finalisation step is therefore deferred to after the
-        full graph is built.
-
-        Args:
-            graph: The parsed ``RelationalGraphWithCuts`` lacking ``alphabet``
-                and ``rho`` fields.
-
-        Returns:
-            A new ``RelationalGraphWithCuts`` identical to ``graph`` but with
-            ``alphabet`` and ``rho`` set.  Functions (F) are always the empty
-            set since EGIF has no function-symbol syntax.
-        """
-        # Constants from non-generic vertices with labels
-        constants: Set[str] = set()
-        rho_map: Dict[str, Optional[str]] = {}
-        for v in graph.V:
-            if not getattr(v, "is_generic", True) and getattr(v, "label", None):
-                constants.add(v.label)  # type: ignore
-                rho_map[v.id] = v.label  # type: ignore
-            else:
-                rho_map[v.id] = None
-        # Relation names and arities from rel and nu
-        relation_names: Set[str] = set()
-        ar_map: Dict[str, int] = {}
-        for eid, name in graph.rel.items():
-            relation_names.add(name)
-            ar_map[name] = max(ar_map.get(name, 0), len(graph.nu.get(eid, tuple())))
-        alphabet = AlphabetDAU(
-            C=frozenset(constants),
-            F=frozenset(),
-            R=frozenset(relation_names),
-            ar=frozendict(ar_map),
-        ).with_defaults()
-
-        # Build and return new graph with alphabet and rho
-        return RelationalGraphWithCuts(
-            V=graph.V,
-            E=graph.E,
-            nu=graph.nu,
-            sheet=graph.sheet,
-            Cut=graph.Cut,
-            area=graph.area,
-            rel=graph.rel,
-            alphabet=alphabet,
-            rho=frozendict(rho_map),
-        )
-
 
 def parse_egif(text: str) -> RelationalGraphWithCuts:
     """Parse EGIF expression into Dau-compliant graph."""

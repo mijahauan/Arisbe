@@ -35,6 +35,7 @@ from egi_core_dau import (
     Vertex,
     VertexSequence,
     create_empty_graph,
+    with_alphabet_and_rho,
 )
 
 
@@ -323,7 +324,7 @@ class CGIFParser:
         for edge, vertex_ids, relation, area_id in self._pending_edges:
             egi = egi.with_edge(edge, vertex_ids, relation, context_id=area_id)
         # Populate AlphabetDAU and rho from parsed graph
-        egi = self._finalize_alphabet_and_rho(egi)
+        egi = with_alphabet_and_rho(egi)
         return egi
 
     def _advance(self):
@@ -704,62 +705,7 @@ class CGIFParser:
 
         return egi
 
-    def _finalize_alphabet_and_rho(
-        self, graph: RelationalGraphWithCuts
-    ) -> RelationalGraphWithCuts:
-        """Compute AlphabetDAU (C,F,R,ar) and rho mapping from the parsed graph.
-        Constants C come from non-generic vertices' labels; R and arities from rel/nu.
-        """
-        # 1) Gather relation names and arities from edges/nu
-        relation_names: Set[str] = set()
-        ar_map: Dict[str, int] = {}
-        for eid, name in graph.rel.items():
-            relation_names.add(name)
-            ar_map[name] = max(ar_map.get(name, 0), len(graph.nu.get(eid, tuple())))
 
-        # 2) Gather candidate constants from non-generic vertices' labels
-        candidate_constants: Set[str] = set()
-        for v in graph.V:
-            if not getattr(v, "is_generic", True) and getattr(v, "label", None):
-                candidate_constants.add(v.label)  # type: ignore[arg-type]
-
-        # 3) Make C disjoint from R by dropping any name that appears as a relation
-        constants: Set[str] = {
-            c for c in candidate_constants if c not in relation_names
-        }
-
-        # 4) Build rho only for vertices whose label is in C; otherwise rho(v)=None
-        rho_map: Dict[str, Optional[str]] = {}
-        for v in graph.V:
-            if not getattr(v, "is_generic", True) and getattr(v, "label", None) and v.label in constants:  # type: ignore[attr-defined]
-                rho_map[v.id] = v.label  # type: ignore[assignment]
-            else:
-                rho_map[v.id] = None
-
-        # 5) Enforce ar(c)=1 for all constants
-        for c in constants:
-            ar_map[c] = 1
-        alphabet = AlphabetDAU(
-            C=frozenset(constants),
-            F=frozenset(),
-            R=frozenset(relation_names),
-            ar=frozendict(ar_map),
-        ).with_defaults()
-
-        return RelationalGraphWithCuts(
-            V=graph.V,
-            E=graph.E,
-            nu=graph.nu,
-            sheet=graph.sheet,
-            Cut=graph.Cut,
-            area=graph.area,
-            rel=graph.rel,
-            alphabet=alphabet,
-            rho=frozendict(rho_map),
-        )
-
-
-# Factory function
 def parse_cgif(cgif_text: str) -> RelationalGraphWithCuts:
     """Parse CGIF text into EGI structure."""
     parser = CGIFParser(cgif_text)

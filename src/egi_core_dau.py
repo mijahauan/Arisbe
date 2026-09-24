@@ -11,7 +11,7 @@ This implementation replaces the previous "Context" model with Dau's formal:
 
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 from typing import Any, Dict, FrozenSet, List, Optional, Set, Tuple
 
@@ -1473,6 +1473,78 @@ class AlphabetDAU:
             if c not in updated:
                 updated[c] = 1
         return AlphabetDAU(C=self.C, F=self.F, R=self.R, ar=frozendict(updated))
+
+
+def derive_alphabet(graph: "RelationalGraphWithCuts") -> AlphabetDAU:
+    """Read the alphabet Σ = (C, F, R, ar) a graph's own ink implies.
+
+    Dau's Def 12.6-12.7 (p.126) gives each name **one** arity, so a graph using
+    one name at two arities has no alphabet and this refuses rather than
+    inventing one. It used to take the *maximum* of the arities seen, which
+    produced an alphabet no graph satisfied and surfaced later, in validation,
+    as an "Arity mismatch" pointing at an edge rather than at the real fault.
+
+    Measured before that refusal was adopted (2026-09-24): **0 of 133 corpus
+    graphs** use one name at two arities, so it costs the corpus nothing. Seven
+    names are used at different arities in *different* graphs, which violates
+    nothing at all — an alphabet is per-graph.
+
+    F is always empty: none of the three linear forms has function-symbol syntax.
+    """
+    constants = {
+        v.label
+        for v in graph.V
+        if not getattr(v, "is_generic", True) and getattr(v, "label", None)
+    }
+    arities: Dict[str, int] = {}
+    for edge_id, name in graph.rel.items():
+        arity = len(graph.nu.get(edge_id, tuple()))
+        if name in arities and arities[name] != arity:
+            raise ValueError(
+                f"Relation '{name}' is used at two arities "
+                f"({arities[name]} and {arity}); Dau's alphabet (Def 12.6, p.126) "
+                f"gives each name one arity, so this graph has no alphabet."
+            )
+        arities[name] = arity
+    return AlphabetDAU(
+        C=frozenset(constants),
+        F=frozenset(),
+        R=frozenset(graph.rel.values()),
+        ar=frozendict(arities),
+    ).with_defaults()
+
+
+def derive_rho(graph: "RelationalGraphWithCuts") -> frozendict:
+    """Read ρ — each vertex to its constant label, or None if it is a line."""
+    return frozendict({
+        v.id: (
+            v.label
+            if not getattr(v, "is_generic", True) and getattr(v, "label", None)
+            else None
+        )
+        for v in graph.V
+    })
+
+
+def with_alphabet_and_rho(
+    graph: "RelationalGraphWithCuts",
+) -> "RelationalGraphWithCuts":
+    """Return ``graph`` carrying the alphabet and ρ its own ink implies.
+
+    One implementation, replacing three. ``_finalize_alphabet_and_rho`` lived in
+    each of the three parsers, and all three rebuilt the graph from an
+    **explicit field list** — so each silently dropped every field the list
+    forgot: ``variable_names``, ``sort``, ``quotation``. That was harmless only
+    because CGIF and CLIF never set them, and it would have stopped being
+    harmless the moment the EGIF parser was wired up.
+
+    ``replace`` is used deliberately: it preserves every field, including the
+    ones a future field-addition brings. It carries the existing
+    ``hierarchical_index`` across, which is correct **here** because nothing
+    about the area structure changes — see ``test_hierarchical_index``'s
+    staleness invariant for when that would not be safe.
+    """
+    return replace(graph, alphabet=derive_alphabet(graph), rho=derive_rho(graph))
 
 
 if __name__ == "__main__":
