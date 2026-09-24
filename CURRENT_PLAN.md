@@ -36,6 +36,40 @@ uv run python tools/suite_census.py --against run.log    # exits non-zero if it 
    would add ~5 s to every commit and, more to the point, `unaccounted_modules` going non-empty
    is a *finding* to read, not a commit to block. That trade is the author's.
 
+**Where to read for each of those — assembled 2026-09-23 so the next session does not re-derive it.**
+
+- **6f has a real contract document; 6j and 6k do not.** For 6f:
+  `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` — §3.3 "What 'faithful map' requires" (line 177),
+  §7's six property-test shapes (line 272). **§3.3's table was edited under the 6c ruling** and now
+  says identity is **two** checks, not three, recording what the third was. The three code sites:
+  `rebuild_ligature_anchors` re-attests at `src/web_api/services/layout_service.py:568` (fixed);
+  `generate_overview_layout` at the same file, line 701 (attests the quotient, says so itself);
+  the undo/redo pair at `src/web_api/routes/transformations.py:282` and `:314`, plus the
+  session-store `GET /api/diagram/session/{id}` serve path.
+- **6j / 6k have no design doc, and that is the honest answer.** The governing text is Dau:
+  `docs/references/mathematical_logic_with_diagrams.pdf` — **Def 12.4** (polarity is even depth)
+  for the nesting index, **Def 16.8, p.180** for the single-object ligature. The *de facto* specs
+  are the two suites written in the fourth sitting, `tests/test_hierarchical_index.py` and
+  `tests/test_single_object_ligature_detector.py`, where every defect is pinned as **current
+  behaviour** with a note on why it was recorded rather than repaired. `tools/core_protection_system.py`
+  says which modules are on the calculus map; `docs/CAPABILITY_MAP.md` is the what-guards-what index.
+  **Before opening either:** every fix there is a behaviour change on code with **no live caller** —
+  nine public methods of `hierarchical_index` have none in `src/`, and the detector's one caller is
+  an evaluator layer no production path constructs. That is why both want a ruling, not effort.
+- **Docket entries:** 6f at `tasks/todo.md:658`, 6j at `:769`, 6k at `:778`.
+- **Clause 3 restated** (the gate's three clauses: *it can fail* — mechanical, `admission_scan`;
+  *it is reached* — enforced where the parametrization lives; *it measures what it claims* — a
+  **reading** task no scan can do). Its standing lesson: almost every claim that failed clause 3
+  was **true and unmeasured, not false**, so the question is never "is this right?" but
+  **"what would tell me the day it stops being?"** Method that worked: parallel read-only audits,
+  every finding reproduced in the main session before it is acted on.
+- **The alphabet question in one line:** wiring `egif_parser_dau._finalize_alphabet_and_rho` fails
+  **239 items**, and the two decisions are (a) does the EGIF parser refuse a name used at two
+  arities (Def 12.6, p.126 gives each name one arity) and what becomes of the two fixtures that
+  use `P` at arity 1 and 2, and (b) do the core's builders grow the alphabet as the six rules
+  already do — **touching protected `egi_core_dau`** — or is the alphabet **derived rather than
+  stored**? Full text at line 1199 below. The EGIF symmetric-lines tie-break rides with it.
+
 **Also still open from the eighteenth arc:** the **alphabet question** — which also governs the
 EGIF symmetric-lines tie-break, pinned as a strict xfail so a fix announces itself;
 `discharge_episode` pulling a quoted constant out of its oval; the IT− docstring; defect 8
