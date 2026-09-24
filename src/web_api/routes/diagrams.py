@@ -20,6 +20,10 @@ from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 
 from tomos_service import TomosService
 from web_api.paths import TOMOS_PATH
+from correspondence_attestation import (
+    CorrespondenceViolation,
+    attest_correspondence,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -120,6 +124,10 @@ async def get_session(session_id: str):
         egi = session.current_egi
         dto = session.current_layout_dto
 
+        # Same reason as the undo/redo serve paths: this pair was attested when
+        # it was stored, not now. See tests/test_session_serve_attestation.py.
+        attest_correspondence(egi, dto, context="diagrams.get_session serve")
+
         try:
             egif = EGIFGenerator().generate(egi)
         except Exception:
@@ -139,6 +147,11 @@ async def get_session(session_id: str):
                 "can_redo": session.can_redo(),
                 "history_index": session.history_index,
             },
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
         )
     except Exception as exc:
         return ApiResponse(

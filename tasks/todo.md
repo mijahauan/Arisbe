@@ -798,3 +798,41 @@ currently false as written. The rest need a ruling because they change behaviour
 ## Review
 
 *(filled in as items close)*
+
+---
+
+## Item 9 — THE RULED DOCKET (opened 2026-09-24, sixth sitting)
+
+The author ruled on eight decisions after three measurements. Order of execution is by
+ascending risk, not by decision number.
+
+- [ ] **9a. Decision 1A — re-attest both session serve paths.** `POST /api/transform/{undo,redo}`
+      and `GET /session/{session_id}`. **Measured safe before ruling:** 16/16 undo/redo pairs
+      across 8 UoDs attest cleanly; both writers go through `generate_layout` (which attests)
+      and neither passes `deltas=`, so no regime-3 geometry reaches this store. The `None`-DTO
+      caveat is not new: `_render_svg(egi, None)` already raises today.
+- [ ] **9b. Decision 2A — correct `CLAUDE.md:237`.** It claims "every served (EGI, drawing)
+      pair is verified", which 6f showed false. Written AFTER 9a so it describes the end state:
+      the serve paths attest; `generate_overview_layout` attests a *quotient* via
+      `attest_overview`, which is the right check for a collapsed view and not full §3.3.
+- [ ] **9c. Decision 3 — `hierarchical_index`'s dead half, per method.** `get_children`
+      returns a copy; `validate_containment` fixed or deleted (it compares depth, not ancestry,
+      and its name invites trust); `remove_area` LEFT pinned (a correct version needs a
+      re-parent/cascade policy nothing constrains); `NestingInfo` set → frozenset.
+      **On the calculus map** — raise `.core_modification_authorized`, lower it AFTER the commit.
+- [ ] **9d. Decision 7(ii) — canonical tie-break in the generators.** Not a soundness defect:
+      the two emitted texts `same_graph`-match each other and the input. The nondeterminism is
+      `sorted(key=sig)` being stable over a `frozenset` of `uuid4` ids when signatures tie by
+      design ("intrinsic ambiguity, not a bug"). Fix = individualize a tied element, re-refine,
+      emit the lexicographic minimum, under a budget. **Touches no calculus-map module.**
+      Retires the strict xfail `test_egif_generation_is_deterministic_on_symmetric_lines` as XPASS.
+- [ ] **9e. Decisions 5A + 6A — THE ALPHABET. These are ONE change, not two.** Wiring
+      `egif_parser_dau._finalize_alphabet_and_rho` is what makes both visible: of the 239 failing
+      items, 2 are the two-arity fixtures (5A) and ~237 are builders not growing the alphabet
+      (6A). Doing 5 alone is incoherent — nothing fails until the alphabet is wired.
+      **Measured before ruling:** 0 of 133 corpus graphs use one name at two arities (the 7
+      cross-graph reuses are irrelevant — an alphabet is per-graph), so 5A costs exactly the two
+      hand-written fixtures and no corpus migration. 6A touches protected `egi_core_dau`.
+      Its own arc; do not fold into the small items above.
+- [ ] **9f. Decision 8A — clause 3 over the Architecture module list.** Today's finding
+      (CLAUDE.md:237) came from there without anyone looking, which is the argument for it.

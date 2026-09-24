@@ -26,6 +26,10 @@ from subgraph_closure_validator import SubgraphClosureValidator
 from egif_parser_dau import parse_egif
 from simple_svg_renderer import SimpleSVGRenderer
 from egif_generator_dau import EGIFGenerator
+from correspondence_attestation import (
+    CorrespondenceViolation,
+    attest_correspondence,
+)
 
 router = APIRouter(prefix="/api")
 
@@ -291,6 +295,11 @@ async def undo(request: UndoRedoRequest):
                 error={"code": "UNDO_UNAVAILABLE", "message": "Nothing to undo"},
             )
         egi, dto = result
+        # The pair comes from the session history, attested when it was made and
+        # not since. Re-attest at the serve point: stale-attested is the quiet
+        # fault — a mutation after the fact would otherwise reach the client
+        # unchallenged. Measured safe before it was added (16/16 pairs clean).
+        attest_correspondence(egi, dto, context="transformations.undo serve")
         svg = _render_svg(egi, dto)
         session = session_manager.get_session(request.session_id)
         return ApiResponse(
@@ -303,6 +312,11 @@ async def undo(request: UndoRedoRequest):
                 "can_redo": session.can_redo(),
                 "history_index": session.history_index,
             },
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
         )
     except Exception as exc:
         return ApiResponse(
@@ -323,6 +337,11 @@ async def redo(request: UndoRedoRequest):
                 error={"code": "REDO_UNAVAILABLE", "message": "Nothing to redo"},
             )
         egi, dto = result
+        # The pair comes from the session history, attested when it was made and
+        # not since. Re-attest at the serve point: stale-attested is the quiet
+        # fault — a mutation after the fact would otherwise reach the client
+        # unchallenged. Measured safe before it was added (16/16 pairs clean).
+        attest_correspondence(egi, dto, context="transformations.redo serve")
         svg = _render_svg(egi, dto)
         session = session_manager.get_session(request.session_id)
         return ApiResponse(
@@ -335,6 +354,11 @@ async def redo(request: UndoRedoRequest):
                 "can_redo": session.can_redo(),
                 "history_index": session.history_index,
             },
+        )
+    except CorrespondenceViolation as exc:
+        return ApiResponse(
+            success=False,
+            error={"code": "CORRESPONDENCE_VIOLATION", "message": str(exc)},
         )
     except Exception as exc:
         return ApiResponse(
