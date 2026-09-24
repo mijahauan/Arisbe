@@ -8,7 +8,7 @@ The hierarchical structure is core to transformation rules like IT+/IT-.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
+from typing import Dict, FrozenSet, List, Optional, Set
 
 
 @dataclass(frozen=True)
@@ -18,7 +18,15 @@ class NestingInfo:
     area_id: str
     nesting_level: int  # 0 = sheet, 1 = first cut area, 2 = nested cut area, etc.
     parent_area: Optional[str]  # None for sheet
-    child_areas: Set[str]  # Direct children only
+    child_areas: FrozenSet[str]  # Direct children only
+
+    def __post_init__(self) -> None:
+        # `frozen=True` around a mutable `set` is immutability in name only: the
+        # instance is unhashable and its contents are editable through any
+        # returned reference. Callers legitimately pass a plain set, so coerce
+        # here rather than making every construction site say `frozenset`.
+        if not isinstance(self.child_areas, frozenset):
+            object.__setattr__(self, "child_areas", frozenset(self.child_areas))
 
     @property
     def polarity(self) -> str:
@@ -99,9 +107,13 @@ class HierarchicalIndex:
         return info.parent_area if info else None
 
     def get_children(self, area_id: str) -> Set[str]:
-        """Get direct children of an area. O(1) lookup."""
+        """Get direct children of an area. O(1) lookup.
+
+        Returns a **copy**: handing out the index's own collection let any
+        caller corrupt it in place (``get_children(x).add(junk)``).
+        """
         info = self.areas.get(area_id)
-        return info.child_areas if info else set()
+        return set(info.child_areas) if info else set()
 
     def get_ancestors(self, area_id: str) -> List[str]:
         """Get all ancestors from area to sheet. Returns path from area to sheet."""
@@ -182,11 +194,14 @@ class HierarchicalIndex:
         if container_id not in self.areas or contained_id not in self.areas:
             return False
 
-        container_info = self.areas[container_id]
-        contained_info = self.areas[contained_id]
-
-        # Container must be at a lower nesting level
-        return container_info.nesting_level < contained_info.nesting_level
+        # Containment is **ancestry**, not depth. Comparing nesting levels said
+        # yes to any two areas in different branches so long as one was deeper
+        # — `cA` at level 1 "contains" `cB1` at level 2 with no path between
+        # them. `is_ancestor` is reflexive (both live callers compensate), so
+        # the strict relation excludes the area itself.
+        if container_id == contained_id:
+            return False
+        return self.is_ancestor(container_id, contained_id)
 
     def get_statistics(self) -> Dict[str, any]:
         """Get statistics about the hierarchical index."""

@@ -236,23 +236,67 @@ class TestTheIndexIsRebuiltWheneverTheAreaMapMoves:
 # --------------------------------------------------------------------------- #
 
 
-class TestTheDeadHalfIsRecordedNotTrusted:
-    """Nine public methods have no caller in `src/`. Three are defective.
+class TestTheDeadHalfRepaired:
+    """Three of the nine uncalled methods were defective. Two are now fixed.
 
-    These are pinned as *current behaviour* rather than repaired. Repairing an
-    uncalled method is a change with no beneficiary and some risk; leaving it
-    undescribed is how a landmine stays a landmine. Written down, the next
-    person who reaches for one of these sees what it actually does. If one is
-    ever wired up, these tests are where the decision gets made.
+    The author's ruling (2026-09-24, Decision 3): repair per method rather than
+    wholesale, because the three had different characters. What made these worth
+    fixing though nothing calls them is that each would mislead the *first*
+    caller — and `validate_containment` misleads by its name, which is the worst
+    way for an uncalled method to be wrong.
+
+    `remove_area` stays pinned below as a recorded defect: a correct version has
+    to choose between re-parenting orphans and cascading the removal, and
+    nothing in the codebase constrains that choice. Inventing a policy for a
+    method with no caller is how you get a second landmine instead of none.
     """
 
-    def test_get_children_hands_out_the_live_internal_set(self):
+    def test_get_children_hands_out_a_copy(self):
         g = build({"c1": "S"}, [], [])
         hi = g.hierarchical_index
         hi.get_children("S").add("not-an-area")
-        assert "not-an-area" in hi.areas["S"].child_areas, (
-            "recorded defect: get_children returns the internal set, so a caller "
-            "can corrupt the index in place")
+        assert "not-an-area" not in hi.areas["S"].child_areas, (
+            "a caller must not be able to corrupt the index in place")
+        assert hi.get_children("S") == {"c1"}
+
+    def test_validate_containment_follows_ancestry_not_depth(self):
+        g = build({"cA": "S", "cB": "S", "cB1": "cB"}, [], [])
+        hi = g.hierarchical_index
+        # cA is at level 1 and cB1 at level 2, but in *different* branches:
+        # deeper is not contained.
+        assert hi.validate_containment("cA", "cB1") is False
+        assert hi.validate_containment("cB", "cB1") is True
+        assert hi.validate_containment("S", "cB1") is True
+
+    def test_validate_containment_agrees_with_is_ancestor(self):
+        """The two answered different questions while sharing one vocabulary."""
+        g = build({"cA": "S", "cB": "S", "cB1": "cB", "cB2": "cB1"}, [], [])
+        hi = g.hierarchical_index
+        areas = ["S", "cA", "cB", "cB1", "cB2"]
+        for a in areas:
+            for b in areas:
+                expected = a != b and hi.is_ancestor(a, b)
+                assert hi.validate_containment(a, b) is expected, (a, b)
+
+    def test_an_area_does_not_contain_itself(self):
+        """`is_ancestor` is reflexive and stays so — both live callers already
+        compensate. Containment is the strict relation, so it must not be."""
+        g = build({"c1": "S"}, [], [])
+        hi = g.hierarchical_index
+        assert hi.is_ancestor("c1", "c1") is True
+        assert hi.validate_containment("c1", "c1") is False
+
+    def test_nesting_info_is_hashable(self):
+        """`frozen=True` around a mutable `set` is immutability in name only —
+        the same finding `test_second_order_core` made about the EGI itself."""
+        info = NestingInfo("a", 0, None, {"b"})
+        assert hash(info) == hash(NestingInfo("a", 0, None, {"b"}))
+        assert isinstance(info.child_areas, frozenset)
+
+
+class TestTheDeadHalfIsRecordedNotTrusted:
+    """What is still defective, pinned as current behaviour so it is written
+    down. If it is ever fixed, this test says so by failing."""
 
     def test_remove_area_orphans_its_descendants(self):
         g = build({"c1": "S", "c2": "c1", "c3": "c2"}, [], [])
@@ -263,19 +307,6 @@ class TestTheDeadHalfIsRecordedNotTrusted:
         assert hi.get_ancestors("c3") == ["c3", "c2"], (
             "recorded defect: the chain no longer reaches the sheet")
         assert not hi.is_ancestor("S", "c3")
-
-    def test_validate_containment_compares_levels_not_ancestry(self):
-        g = build({"cA": "S", "cB": "S", "cB1": "cB"}, [], [])
-        hi = g.hierarchical_index
-        # cA is at level 1, cB1 at level 2, in *different* branches.
-        assert hi.validate_containment("cA", "cB1") is True, (
-            "recorded defect: 'can contain' is decided by depth alone, so two "
-            "unrelated branches validate")
-        assert not hi.is_ancestor("cA", "cB1"), "…while ancestry says otherwise"
-
-    def test_nesting_info_is_unhashable_despite_frozen(self):
-        with pytest.raises(TypeError):
-            hash(NestingInfo("a", 0, None, set()))
 
 
 # --------------------------------------------------------------------------- #
