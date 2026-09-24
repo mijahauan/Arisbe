@@ -187,20 +187,20 @@ def test_egif_generate_is_idempotent_on_regenerated_output(text):
 # So it is pinned here instead: hand-built, deterministic in its detection, and
 # a STRICT xfail, which is this project's idiom for a live defect (cf.
 # `test_linear_form_binder_scoping`'s six, which caught both the fix landing and
-# a regression the fix introduced). When the generator is made deterministic on
-# symmetric lines, this XPASSes and fails loudly, rather than going green in
-# silence the way its predecessor went red in silence.
+# a regression the fix introduced). It did its third job on 2026-09-24: it was a
+# strict xfail, so the fix announced itself as an XPASS instead of going green in
+# silence — the way its predecessor went red in silence. Now an ordinary test.
+#
+# FIXED 2026-09-24 (Decision 7(ii)): the refinement was right to colour the two
+# lines equally, so the fix is not there. `compute_canonical_signatures(...,
+# break_ties=True)` — opt-in, used only by the three generators — settles the
+# choice by individualization: try each assignment of distinct ranks within a
+# tied class, score each by a structural certificate naming no id, keep the
+# lexicographic minimum. All three forms now emit one text per input.
 
 SYMMETRIC_LINES = "(P *u) (P *v) ~[ (Loves v *y) (Loves u *x) ]"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="EGIF generation is nondeterministic on symmetric lines: "
-           "canonical_signature ranks the two inner lines equal (correctly), and "
-           "the tie falls to minted uuids. Unfixed — the alphabet/tie-break "
-           "question is the author's.",
-)
 def test_egif_generation_is_deterministic_on_symmetric_lines():
     """One graph, one text — on a graph whose lines are genuinely symmetric.
 

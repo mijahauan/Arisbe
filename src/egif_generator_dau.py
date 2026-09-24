@@ -68,7 +68,7 @@ class EGIFGenerator:
         Weisfeiler-Leman-style algorithm. We delegate so EGIF, CGIF, and CLIF
         share one implementation."""
         self._vertex_sig, self._edge_sig, self._cut_sig = (
-            compute_canonical_signatures(self.graph)
+            compute_canonical_signatures(self.graph, break_ties=True)
         )
 
     def _assign_vertex_labels(self):

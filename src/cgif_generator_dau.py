@@ -54,7 +54,7 @@ class CGIFGenerator:
         # Compute canonical structural signatures so all subsequent sort keys
         # are UUID-independent (issue #6).
         self._vertex_sig, self._edge_sig, self._cut_sig = (
-            compute_canonical_signatures(self.graph)
+            compute_canonical_signatures(self.graph, break_ties=True)
         )
         # Identify type relations (monadic relations on vertices)
         self._identify_type_relations()
