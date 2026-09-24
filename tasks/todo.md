@@ -806,21 +806,21 @@ currently false as written. The rest need a ruling because they change behaviour
 The author ruled on eight decisions after three measurements. Order of execution is by
 ascending risk, not by decision number.
 
-- [ ] **9a. Decision 1A — re-attest both session serve paths.** `POST /api/transform/{undo,redo}`
+- [x] **9a. DONE 2026-09-24 (`cf6d8c7`) — Decision 1A.** Original note: **9a. Decision 1A — re-attest both session serve paths.** `POST /api/transform/{undo,redo}`
       and `GET /session/{session_id}`. **Measured safe before ruling:** 16/16 undo/redo pairs
       across 8 UoDs attest cleanly; both writers go through `generate_layout` (which attests)
       and neither passes `deltas=`, so no regime-3 geometry reaches this store. The `None`-DTO
       caveat is not new: `_render_svg(egi, None)` already raises today.
-- [ ] **9b. Decision 2A — correct `CLAUDE.md:237`.** It claims "every served (EGI, drawing)
+- [x] **9b. DONE 2026-09-24 (`cf6d8c7`) — Decision 2A.** Original note: **9b. Decision 2A — correct `CLAUDE.md:237`.** It claims "every served (EGI, drawing)
       pair is verified", which 6f showed false. Written AFTER 9a so it describes the end state:
       the serve paths attest; `generate_overview_layout` attests a *quotient* via
       `attest_overview`, which is the right check for a collapsed view and not full §3.3.
-- [ ] **9c. Decision 3 — `hierarchical_index`'s dead half, per method.** `get_children`
+- [x] **9c. DONE 2026-09-24 (`e4d1a0f`) — Decision 3, per method.** Original note: **9c. Decision 3 — `hierarchical_index`'s dead half, per method.** `get_children`
       returns a copy; `validate_containment` fixed or deleted (it compares depth, not ancestry,
       and its name invites trust); `remove_area` LEFT pinned (a correct version needs a
       re-parent/cascade policy nothing constrains); `NestingInfo` set → frozenset.
       **On the calculus map** — raise `.core_modification_authorized`, lower it AFTER the commit.
-- [ ] **9d. Decision 7(ii) — canonical tie-break in the generators.** Not a soundness defect:
+- [x] **9d. DONE 2026-09-24 (`052b3ec`) — Decision 7(ii).** Original note: **9d. Decision 7(ii) — canonical tie-break in the generators.** Not a soundness defect:
       the two emitted texts `same_graph`-match each other and the input. The nondeterminism is
       `sorted(key=sig)` being stable over a `frozenset` of `uuid4` ids when signatures tie by
       design ("intrinsic ambiguity, not a bug"). Fix = individualize a tied element, re-refine,
@@ -836,3 +836,34 @@ ascending risk, not by decision number.
       Its own arc; do not fold into the small items above.
 - [ ] **9f. Decision 8A — clause 3 over the Architecture module list.** Today's finding
       (CLAUDE.md:237) came from there without anyone looking, which is the argument for it.
+
+
+### Item 9 — what the four completed items actually found
+
+Each turned up something the docket had not predicted, and the pattern is the
+same one this arc keeps meeting: the written claim was *true when written* and
+nothing was keeping it.
+
+- **9a.** The two routes are `/api/undo` and `/api/redo`, **not** the
+  `/api/transform/*` names the docket used — and `Session.current_layout_dto` is
+  its **own field**, not a view onto `history`, so `GET /api/session` and
+  undo/redo serve from genuinely different places and a fix to one does not
+  cover the other. Neither fact was written down anywhere. The routes had **no
+  test of any kind** beforehand.
+- **9c.** `validate_containment` was the one worth fixing though nothing calls
+  it, because it misleads **by its name**. `remove_area` stays pinned: a correct
+  version must choose between re-parenting orphans and cascading, and nothing in
+  the codebase constrains that choice — inventing a policy for a method with no
+  caller yields a second landmine, not none.
+- **9d.** Two findings. (1) The defect was **not** a soundness defect: both
+  emitted texts `same_graph`-match each other and the input, so the refinement
+  was right to colour the symmetric lines equally and the fix does not belong
+  there. (2) Fixing the structural tie left **CLIF still nondeterministic**,
+  because it preserves the parser's variable names, so two interchangeable lines
+  carried different *emitted* names, every certificate tied, and the pick fell
+  back to enumeration order again. Names now ride in the certificate but stay
+  out of the colours, where the isomorphism engine would see them.
+- **Sizing before designing paid for itself twice.** 341 graphs, ten ties, every
+  one a class of two — so exact minimization is affordable everywhere and the
+  budget guards a case that does not arise. And 0 of 133 corpus graphs use one
+  name at two arities, which is what makes 9e's 5A half cheap.
