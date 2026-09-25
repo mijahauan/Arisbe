@@ -167,7 +167,31 @@ class RelationalGraphWithCuts:
 
         # Validate Dau's constraints
         self._validate_dau_constraints()
-        # Validate optional AlphabetDAU / rho if present
+
+        # The alphabet and rho are DERIVED, never stored (author's ruling,
+        # 2026-09-24). Dau's Def 23.1 alphabet is something a graph is *over* —
+        # a relation, satisfied by any superset of the names used — so there is
+        # no canonical alphabet to keep, only a minimal one the ink already
+        # states. Keeping a second copy meant two records of one fact, and every
+        # alphabet failure in this arc was them drifting apart: a name the
+        # summary had not heard of, a rho entry naming a vertex that was gone.
+        # Derived, neither is constructible. Whatever a caller passes is
+        # replaced, so an out-of-date summary in an old JSON file is harmless
+        # (measured: 0 of 15 stored alphabets declared an unused name, and 0 of
+        # 11 stored rhos disagreed with their vertices — nothing is lost).
+        #
+        # The criterion, for the next field someone proposes: STORE WHAT THE INK
+        # CANNOT TELL YOU, DERIVE WHAT IT CAN. `sort` and `quotation` are
+        # choices and stay stored; these two were summaries.
+        #
+        # derive_alphabet also enforces Dau's one-arity-per-name (Def 12.6's
+        # `ar` is a function), which therefore now reaches EVERY graph rather
+        # than only those that happened to carry an alphabet.
+        object.__setattr__(self, "alphabet", derive_alphabet(self))
+        object.__setattr__(self, "rho", derive_rho(self))
+
+        # Now vacuous for membership by construction, and kept for the rho and
+        # constant-arity invariants it also checks.
         self._validate_alphabet_and_rho()
         # Validate the second-order maps if present (no-op on a first-order graph)
         self._validate_second_order()
@@ -1502,8 +1526,9 @@ def derive_alphabet(graph: "RelationalGraphWithCuts") -> AlphabetDAU:
         if name in arities and arities[name] != arity:
             raise ValueError(
                 f"Relation '{name}' is used at two arities "
-                f"({arities[name]} and {arity}); Dau's alphabet (Def 12.6, p.126) "
-                f"gives each name one arity, so this graph has no alphabet."
+                f"({arities[name]} and {arity}); in Dau's alphabet `ar` is a "
+                f"*function* (Def 12.6, p.126; with constants, Def 23.1), so "
+                f"each name has one arity and this graph has no alphabet."
             )
         arities[name] = arity
     return AlphabetDAU(

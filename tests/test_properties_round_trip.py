@@ -244,7 +244,13 @@ def test_shadowed_defining_var_across_cut_boundary_round_trips():
     lexer's identifier classifier: it treated any non-single-letter
     identifier as a relation name. Fixed by tracking defining names as
     they're lexed."""
-    text = "(P *x) ~[ (P *x) (P *y *z) ]"
+    # `P` was used here at arity 1 AND 2. Dau's `ar` is a function (Def 12.6,
+    # p.126), so that graph has no alphabet, and since 2026-09-24 the alphabet
+    # is derived at construction and such a graph is refused. The two-arity
+    # shape was incidental to what this guards — a LEXER defect, relabeled bound
+    # vars mis-classified as relation names — so the binary spot is renamed and
+    # the guard is untouched.
+    text = "(P *x) ~[ (P *x) (Q *y *z) ]"
     egi1 = parse_egif(text)
     regenerated = generate_egif(egi1)
     egi2 = parse_egif(regenerated)
@@ -254,13 +260,17 @@ def test_shadowed_defining_var_across_cut_boundary_round_trips():
 
 
 def test_relation_name_reused_with_different_arities_round_trips():
-    """Regression for issue #1: a relation name used with multiple arities
-    (P as both 1-ary and 2-ary) is accepted by the parser; the generator
-    must emit it in a re-parseable form. Same underlying lexer fix as
+    """Regression for issue #1: a relation name whose arguments are relabeled
+    by the generator must be emitted in a re-parseable form.
+
+    Originally written with `P` at two arities; that is now refused at
+    construction (Def 12.6 — `ar` is a function), and it was never what the
+    test guarded. Same underlying lexer fix as
     ``test_shadowed_defining_var_across_cut_boundary_round_trips`` — the
     relabeled bound vars in the generator's output were being mis-classified
     as relation names."""
-    text = "(P *x) ~[ (P *y) (P *u *w) ]"
+    # Same rename, same reason, same guard: see the sibling test above.
+    text = "(P *x) ~[ (P *y) (Q *u *w) ]"
     egi1 = parse_egif(text)
     regenerated = generate_egif(egi1)
     egi2 = parse_egif(regenerated)

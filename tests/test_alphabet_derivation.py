@@ -83,16 +83,93 @@ class TestItRefusesWhatDauForbids:
     """
 
     def test_a_name_at_two_arities_is_refused_by_name(self):
-        g = parse_egif("(P *x) (P x *y)")
+        """Since the alphabet is derived at construction, the refusal happens
+        as the graph is built — the earliest point at which it is true."""
         with pytest.raises(ValueError, match=r"(?i)aritie?s?.*'P'|'P'.*aritie?s?"):
-            derive_alphabet(g)
+            parse_egif("(P *x) (P x *y)")
 
     def test_the_refusal_names_both_arities_it_saw(self):
-        g = parse_egif("(P *x) (P x *y)")
         with pytest.raises(ValueError) as exc:
-            derive_alphabet(g)
+            parse_egif("(P *x) (P x *y)")
         assert "1" in str(exc.value) and "2" in str(exc.value)
 
     def test_one_name_at_one_arity_is_fine_however_often_used(self):
         g = parse_egif("(P *x) (P *y) (P *z)")
         assert derive_alphabet(g).ar["P"] == 1
+
+
+class TestTheAlphabetIsDerivedNotStored:
+    """The author's ruling, 2026-09-24: derive on demand from the ink.
+
+    It supersedes Decision 6A ("the builders extend the alphabet"), which
+    answered a question we now think was mis-framed. `alphabet` and `rho` were
+    being kept in fields whose Dau meaning is *the alphabet this graph is over*
+    (Def 23.1; being "over A" is a **relation**, and any superset serves), while
+    what they actually held was a **summary of the names the graph uses**. Two
+    copies of one fact drift, and every alphabet failure in this arc was that
+    drift: 31 `not in Alphabet` and 13 `rho refers to unknown vertex`.
+
+    The criterion the ruling generalizes to, worth applying to the next field
+    someone proposes: **store what the ink cannot tell you; derive what it can.**
+    `sort` and `quotation` pass — a sort and a quotation binding are choices,
+    unreadable from the ink. `alphabet` and `rho` fail.
+
+    Measured before ruling, so that "loses nothing" is a reading and not a hope:
+    of 15 corpus graphs carrying an alphabet, **0 declare a name they do not
+    use**; of 11 carrying a rho, **0 disagree with their own vertices**.
+    """
+
+    def test_a_graph_always_has_the_alphabet_its_ink_implies(self):
+        g = parse_egif('(Loves *x *y) ~[ (Happy x) ]')
+        assert g.alphabet is not None
+        assert g.alphabet.R == frozenset({"Loves", "Happy"})
+        assert g.alphabet.ar["Loves"] == 2
+
+    def test_a_wrong_alphabet_handed_in_is_replaced_not_honoured(self):
+        """A stored summary that disagrees with the ink is the defect itself."""
+        from egi_core_dau import AlphabetDAU, RelationalGraphWithCuts
+        from frozendict import frozendict as fd
+
+        g = parse_egif("(P *x)")
+        lying = AlphabetDAU(R=frozenset({"NotUsedAnywhere"}), ar=fd({"NotUsedAnywhere": 9}))
+        rebuilt = RelationalGraphWithCuts(
+            V=g.V, E=g.E, nu=g.nu, sheet=g.sheet, Cut=g.Cut,
+            area=g.area, rel=g.rel, alphabet=lying, rho=g.rho,
+        )
+        assert rebuilt.alphabet.R == frozenset({"P"})
+        assert "NotUsedAnywhere" not in rebuilt.alphabet.R
+
+    def test_rho_is_derived_too(self):
+        from egi_core_dau import RelationalGraphWithCuts
+        from frozendict import frozendict as fd
+
+        g = parse_egif('(Human "Socrates")')
+        stale = RelationalGraphWithCuts(
+            V=g.V, E=g.E, nu=g.nu, sheet=g.sheet, Cut=g.Cut,
+            area=g.area, rel=g.rel, rho=fd({"a-vertex-that-does-not-exist": "Ghost"}),
+        )
+        assert "a-vertex-that-does-not-exist" not in stale.rho
+        assert "Socrates" in set(stale.rho.values())
+
+    def test_drift_is_unconstructible_across_a_builder(self):
+        """`with_edge` needed no growth logic once nothing was stored to grow."""
+        from egi_core_dau import create_edge, create_vertex
+
+        g = parse_egif("(P *x)")
+        v = create_vertex(is_generic=True)
+        grown = g.with_vertex(v).with_edge(create_edge(), (v.id,), "white")
+        assert "white" in grown.alphabet.R
+        assert grown.alphabet.ar["white"] == 1
+
+    def test_the_arity_discipline_now_reaches_every_graph(self):
+        """Def 12.6's `ar` is a *function*, so one name has one arity. This used
+        to bite only on graphs that happened to carry an alphabet."""
+        with pytest.raises(ValueError, match=r"(?i)two arities"):
+            parse_egif("(P *x) (P x *y)")
+
+    def test_what_the_ink_cannot_tell_you_is_still_stored(self):
+        """The criterion's other half: `sort` and `quotation` must survive."""
+        g = parse_egif("(P *x)")
+        vid = next(iter(g.V)).id
+        sorted_graph = g.with_sort(vid, "proposition")
+        assert sorted_graph.sort[vid] == "proposition"

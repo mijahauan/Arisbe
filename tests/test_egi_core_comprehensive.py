@@ -343,11 +343,26 @@ class TestEGICoreComprehensive:
             else:
                 print(f"⚠️  No rho entry for constant vertex {vertex.id}")
         
-        # Test 2: No rho entries for generic vertices
+        # Test 2: generic vertices map to ∗, and ρ is TOTAL on V.
+        #
+        # Dau Def 24.1 (p.250): "ρ : V → {∗} ∪ C is a mapping", with
+        # V* := {v ∈ V | ρ(v) = ∗} the generic vertices. So ρ is total and a
+        # generic vertex has an entry — the marker ∗, which this encoding spells
+        # None (the field is typed Optional[str] for exactly that reason).
+        #
+        # This test previously required the opposite, that a generic vertex have
+        # NO entry — the *partial* convention, which Dau does not use. The two
+        # conventions had coexisted: the parsers' alphabet finaliser already
+        # wrote None for generic vertices, but only CGIF and CLIF ever called
+        # it, so the disagreement never met. Deriving ρ (2026-09-24) made every
+        # graph total, and the older half had to go.
         generic_vertices = [v for v in egi.V if v.is_generic]
         for vertex in generic_vertices:
-            assert vertex.id not in egi.rho, f"Generic vertex {vertex.id} should not have rho entry"
-            print(f"✅ Generic vertex {vertex.id} correctly has no rho entry")
+            assert vertex.id in egi.rho, f"ρ must be total on V (Def 24.1): {vertex.id}"
+            assert egi.rho[vertex.id] is None, (
+                f"Generic vertex {vertex.id} must map to ∗ (None), "
+                f"got {egi.rho[vertex.id]!r}")
+            print(f"✅ Generic vertex {vertex.id} maps to ∗ per Def 24.1")
         
         # Test 3: All rho entries correspond to valid vertices
         vertex_ids = {v.id for v in egi.V}
