@@ -45,7 +45,6 @@
       "label": "Otto"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_64a21565": [
       "e_9d1ff437"
@@ -96,6 +95,5 @@
     "e_cebe699e": "fails_in_business",
     "e_f3668808": "commits_suicide"
   },
-  "rho": {},
   "sheet": "sheet_d7e15fad"
 }

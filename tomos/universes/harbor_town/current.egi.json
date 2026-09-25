@@ -39,7 +39,6 @@
       "label": "Greyrock"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_92b6c089": [
       "e_2764a703",
@@ -84,6 +83,5 @@
     "e_6fd65c17": "lighthouse",
     "e_de06f083": "island"
   },
-  "rho": {},
   "sheet": "sheet_05d98170"
 }

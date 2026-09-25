@@ -21,16 +21,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Loves"
-    ],
-    "ar": {
-      "Loves": 2
-    }
-  },
   "area": {
     "c_e54ec2a1": [
       "e_677d42d2",
@@ -49,10 +39,6 @@
   },
   "rel": {
     "e_677d42d2": "Loves"
-  },
-  "rho": {
-    "v_9eb7f7a6": null,
-    "v_b390b9f3": null
   },
   "sheet": "sheet_4fb9618a"
 }

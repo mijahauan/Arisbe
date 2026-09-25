@@ -1,52 +1,65 @@
 # Current Plan
 
-**Last Updated**: 2026-09-24 (nineteenth arc, **sixth sitting**) — **THE RULED DOCKET IS FIVE-
-SIXTHS WORKED, AND THE ALPHABET QUESTION TURNED OUT TO BE A DIFFERENT QUESTION. THE AUTHOR
-RULED: THE ALPHABET IS DERIVED FROM THE INK, NOT STORED. IT IS IMPLEMENTED, IT WORKS, AND IT
-IS PARKED ON A BRANCH BECAUSE IT MOVES ALL THREE CALCULUS EXTENTS.**
+**Last Updated**: 2026-09-25 (**seventh sitting**) — **`alphabet-derived` IS MERGED. THE
+RE-PIN WAS EARNED: ONE BEHAVIOUR CHANGE, 52 MOVES AT DEFAULT AND 244 EXHAUSTIVE, ACCOUNTED
+CELL BY CELL. THE BRANCH'S OWN "266 INSTANCES NO LONGER FAIL" TURNED OUT TO BE A RELABELLING
+ARTIFACT AND NO SHRINK WAS TAKEN. AND THE AUTHOR'S QUESTION OPENED A LARGER ONE: THE DERIVED
+ALPHABET IS NOT DAU'S Σ.**
 
-**State: `main` is clean and green at `a17c9d3`.** Quality gate ✅, 166 core tests, calculus
-structure/refusal/round-trips all pass. `.core_modification_authorized` absent. Knowledge graph
-current. The parked work is committed on branch **`alphabet-derived`** (`42819a7`) — nothing is
-uncommitted anywhere.
+**State: `main` is green.** Full suite green on the migrated tree; exhaustive calculus pass
+**2 h 44 m, exit 0, all ten layer tests passed**. Quality gate green, 166 core tests.
+`.core_modification_authorized` absent.
 
-**▶ START HERE — one task, and it should be the first thing this sitting does, not the last.**
+**▶ START HERE — the docket is item 10 in `tasks/todo.md`, and its first entry is the
+author's to open.**
 
-**Land `alphabet-derived` by earning the re-pin.** The branch derives `alphabet` and `rho` in
-`__post_init__` instead of storing them. It is *right* and it is *proved to work* everywhere
-except the calculus instrument, which it moves in all three layers. Re-pinning extents is the
-single most consequential act in this repository — it is also exactly how an unsound move would
-be hidden — so it wants a sitting that **begins** with it and has room for the **2 h 29 m
-exhaustive pass**.
+The sixth sitting's alphabet ruling (derive, never store) is landed and proved. Working it
+through surfaced a distinction the ruling did not settle, and the author drew it:
 
-The protocol, in order:
+> *We're not talking about an EGI alone any more but as a view on a UoD that evolves over
+> time. Individuals may come and go.*
 
-1. `git checkout alphabet-derived`, re-read `42819a7`'s message: it records the ruling, the
-   measurements behind it, and the three Dau citations that settled the conventions.
-2. **Restate `calculus_expected.maps_carried`'s alphabet clause.** It asserts
-   `g.alphabet.R ⊆ h.alphabet.R` — the alphabet must never lose a name. Under derivation, ERA
-   removes the last use of a relation and the derived alphabet *correctly* shrinks, which is
-   the whole of the **1,205** structure failures. That clause tests the **stored summary**, not
-   the calculus. Decide what replaces it (probably: nothing, or "equals the derived alphabet",
-   which is true by construction and therefore worthless — say so if you drop it).
-3. **Earn the ledger shrink.** `era-also-erases-the-vertex-it-isolates` has **266 instances that
-   no longer fail**. That is a real improvement — deriving ρ made the engine's result and the
-   licensed form agree where a stale partial ρ had made them differ — but a SHRINK is *earned*,
-   never taken. Account for the instances before shrinking the entry.
-4. **Re-pin all three extents deliberately** — refusal, structure, soundness — per standing
-   caution 2. `test_refusal_agreement` and `test_refusal_extent` both moved, which means
-   **which moves the engine applies has changed**; that is the claim the exhaustive pass exists
-   to check. Watch the *passing* keys in the extent diff too: a rule silently switched off looks
-   exactly like a rule fixed.
-5. **Run `-m exhaustive`** (~2 h 29 m) and hold the result against the pins. Only then merge.
+**Dau's Σ is a language a graph is *over*, held fixed by all six rules.** The alphabet the
+core now derives is therefore **not** Σ — it is the *minimal* Σ one state satisfies. The
+language belongs to the **UoD**, because a constant leaving the sheet is not a word leaving
+the discourse, and **no UoD-level Σ exists anywhere in `src/`**. Three invariants are unheld
+for want of it (item 10a/10b/10c), and one question is open and explicitly the author's
+(10d: does a name introduced only on an abandoned branch stay in the language?).
 
-**What must not happen:** merging with the extents re-pinned but unproved. The one thing this
-suite must never do is ledger an unsound move as accepted.
+**Ruled this sitting, so do not re-litigate:**
+1. **Option A on serialization** — `to_dict`/`from_dict` no longer write or read
+   `alphabet`/`rho`; 245 corpus files migrated (900 deletions, 0 insertions, `same_graph`
+   asserted per file *before* each rewrite). Old files still load; ~99k gitignored `runs/`
+   artifacts depend on that.
+2. **INS-within-Σ is a SEPARATE ARC** and wants the author before it starts. Its point, in
+   the author's words: *"languages do change."* So the arc is not to forbid it but to make a
+   language change a **recorded act** instead of a silent side effect of assertion. Today
+   `INS (Zorblatt *y *z)` is applied and Σ simply grows — a departure older than this arc,
+   which deriving the alphabet made moot at the state level and left untouched where it
+   matters.
+3. **Arity across a chain** resolves by making the adjustment a change of **content**: two
+   names (`Employee₃`, `Employee₄`, so `ar` stays a function) plus a bridging Beta scroll, so
+   the history accounts for it by modus ponens over a law that was written down.
 
-**Then, still open:** **9f** — clause 3 over `CLAUDE.md`'s Architecture module list, which is
-where today's false claim (CLAUDE.md:237) came from without anyone looking for it.
+**One caution carried out of this sitting, because it nearly cost a false shrink.** The
+branch reported 266 instances of `era-also-erases-the-vertex-it-isolates` no longer failing
+and read it as a fix. It was not. The dropped alphabet clause had been firing *alongside* the
+real failure, flipping the kind from `DIFFERS` to `DIFFERS+MAPS:alphabet`, and the ledger
+reports a re-kinded key as "no longer fails". All 285 came back the moment the clause went.
+**A shrink line is not evidence until you have reproduced one instance by hand.**
 
-**▶▶ The fifth sitting's pick-up list (SUPERSEDED — 9a–9d and 9e-0 are DONE; the alphabet is parked on a branch; only 9f remains from it).**
+**Still open from the earlier docket:** 6f's two remaining serve paths; 6j/6k (recorded
+defects on code with no live caller — each wants a ruling more than effort); clause 3 over
+`CLAUDE.md`'s Architecture module list (9f); whether the census belongs in the quality gate.
+
+**A clause-3 finding worth its own line:** `052b3ec` fixed the EGIF symmetric-lines
+nondeterminism and turned its strict xfail into a passing test, and touched none of the six
+files it would have had to touch to say so — CLAUDE.md still called the defect "entirely
+unfixed" and "the author's, riding with the alphabet question" two commits later. Corrected
+this sitting. The fixing commit is the one least likely to update the record, because by then
+the author knows.
+
+**▶▶ The fifth sitting's pick-up list (SUPERSEDED — 9a–9d and 9e-0 are DONE; the alphabet work **landed 2026-09-25**, no longer parked; only 9f remains from it). Kept for the reading notes below, which are still live.**
 
 1. **Docket 6f's remaining two serve paths** — `GET /api/diagram/session/{id}` and
    `POST /api/transform/{undo,redo}` serve stored DTOs unre-attested;

@@ -22,7 +22,6 @@
       "label": "p1"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_a01472cf": [
       "e_fad47f16",
@@ -45,6 +44,5 @@
   "rel": {
     "e_fad47f16": "one"
   },
-  "rho": {},
   "sheet": "sheet_7ad8dd69"
 }

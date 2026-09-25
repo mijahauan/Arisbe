@@ -30,7 +30,6 @@
       "label": "Otto"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_ecbe28ad": [
       "e_13ebdb18",
@@ -60,6 +59,5 @@
     "e_13ebdb18": "husband",
     "e_c9483be2": "married_woman"
   },
-  "rho": {},
   "sheet": "sheet_d7e15fad"
 }

@@ -91,7 +91,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_15dcdedc": [
       "c_a4016471",
@@ -175,6 +174,5 @@
     "e_bb407187": "knows",
     "e_d1894c33": "Person"
   },
-  "rho": {},
   "sheet": "sheet_2d7e5806"
 }

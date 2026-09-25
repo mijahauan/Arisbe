@@ -455,8 +455,18 @@ class TestChapter16MapForwarding:
         if result.success:
             assert dict(result.result_egi.quotation) == dict(g.quotation)
             assert dict(result.result_egi.sort) == dict(g.sort)
-            assert dict(result.result_egi.rho) == dict(g.rho)
-            assert result.result_egi.alphabet == g.alphabet
+            # rho and the alphabet are DERIVED from the ink (2026-09-24), so the
+            # honest contract is not "unchanged" but "unchanged where the ink is
+            # unchanged". This move EXTENDS a ligature, so it adds vertices; the
+            # old stored rho simply had no entry for them, which is the
+            # incompleteness deriving removes. ρ is total on V.
+            after = dict(result.result_egi.rho)
+            assert {k: v for k, v in after.items() if k in g.rho} == dict(g.rho)
+            assert set(after) >= {v.id for v in result.result_egi.V}
+            assert all(after[v.id] is None for v in result.result_egi.V
+                       if v.id not in g.rho), "fresh ligature ink is generic"
+            # The extension adds identity edges, so the alphabet may gain '='.
+            assert g.alphabet.R <= result.result_egi.alphabet.R
         else:
             assert "quotation" in (result.error_message or "").lower()
 

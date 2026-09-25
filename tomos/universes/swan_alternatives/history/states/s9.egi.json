@@ -59,7 +59,6 @@
       "label": "Ciel"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_3ef1d214": [
       "e_582a6918"
@@ -121,6 +120,5 @@
     "e_a46bc42b": "dragon",
     "e_c0e929e9": "fears"
   },
-  "rho": {},
   "sheet": "sheet_cddca1ae"
 }

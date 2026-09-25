@@ -39,7 +39,6 @@
       "label": "Otto"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_052021e9": [
       "e_2c14a937",
@@ -82,6 +81,5 @@
     "e_c71b4661": "commits_suicide",
     "e_c9483be2": "married_woman"
   },
-  "rho": {},
   "sheet": "sheet_d7e15fad"
 }

@@ -234,7 +234,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_009efb8e": [
       "c_8b99f247",
@@ -484,6 +483,5 @@
     "e_ead8595d": "lt",
     "e_edbace2a": "lt"
   },
-  "rho": {},
   "sheet": "sheet_a03e3571"
 }

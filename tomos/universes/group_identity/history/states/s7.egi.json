@@ -20,7 +20,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "sheet_efcab67c": [
       "e_A3eq",
@@ -44,6 +43,5 @@
     "e_A3eq": "=",
     "e_b8b84f37": "M"
   },
-  "rho": {},
   "sheet": "sheet_efcab67c"
 }

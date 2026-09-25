@@ -117,9 +117,6 @@ REFUSAL: Dict[str, Pred] = {
     "heavy-dot-negative-only":
         lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied
         and positive(r.g, r.move.target),
-    "ins-mixes-arities-without-an-alphabet":
-        lambda r, d: _rule(r, "INS") and r.outcome.applied and r.verdict is False
-        and "another arity" in r.why,
     "vertex-era-positive-only":
         lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied
         and not positive(r.g, r.g.get_context(r.move.selection[0])),

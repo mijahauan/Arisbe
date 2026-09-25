@@ -6,7 +6,6 @@
     }
   ],
   "V": [],
-  "alphabet": null,
   "area": {
     "sheet_fbeab284": [
       "e_c5f210f5"
@@ -18,6 +17,5 @@
   "rel": {
     "e_c5f210f5": "daylight"
   },
-  "rho": {},
   "sheet": "sheet_fbeab284"
 }

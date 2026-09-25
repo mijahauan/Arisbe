@@ -56,7 +56,6 @@
       "label": "phi-two"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_88ac2b66": [
       "e_44afb9fb",
@@ -100,6 +99,5 @@
     "e_3458b5ab": "forces",
     "e_44afb9fb": "forces"
   },
-  "rho": {},
   "sheet": "sheet_cf6d3289"
 }

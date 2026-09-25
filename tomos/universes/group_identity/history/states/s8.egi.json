@@ -17,7 +17,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "sheet_efcab67c": [
       "e_A3eq",
@@ -34,6 +33,5 @@
   "rel": {
     "e_A3eq": "="
   },
-  "rho": {},
   "sheet": "sheet_efcab67c"
 }

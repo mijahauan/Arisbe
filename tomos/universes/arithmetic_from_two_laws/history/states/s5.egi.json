@@ -143,7 +143,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_043fbfb6": [
       "e_ec9db8f2"
@@ -288,6 +287,5 @@
     "e_f1c996c7": "sum",
     "e_f3a2fce9": "succ"
   },
-  "rho": {},
   "sheet": "sheet_c08624fb"
 }

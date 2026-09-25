@@ -44,7 +44,6 @@
       "label": "p2"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_030c3bbf": [
       "e_4e20b0d5",
@@ -85,6 +84,5 @@
     "e_4e20b0d5": "one",
     "e_fad47f16": "one"
   },
-  "rho": {},
   "sheet": "sheet_7ad8dd69"
 }

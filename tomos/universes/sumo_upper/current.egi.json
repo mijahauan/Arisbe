@@ -745,7 +745,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_01591cd1": [
       "e_b486f275"
@@ -1493,6 +1492,5 @@
     "e_f9433fb2": "Physical",
     "e_fa29238e": "Relative"
   },
-  "rho": {},
   "sheet": "sheet_a7961cec"
 }

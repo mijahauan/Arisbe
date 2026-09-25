@@ -900,3 +900,100 @@ nothing was keeping it.
   one a class of two — so exact minimization is affordable everywhere and the
   budget guards a case that does not arise. And 0 of 133 corpus graphs use one
   name at two arities, which is what makes 9e's 5A half cheap.
+
+## Item 10 — THE UoD ALPHABET (opened 2026-09-25, seventh sitting)
+
+Opened by the author's question during the `alphabet-derived` merge: *we are not
+talking about an EGI alone any more, but about a view on a UoD that evolves.*
+Everything below follows from one distinction that the merge made visible and
+did not resolve.
+
+**The distinction.** Dau's Σ is a language a graph is *over* (Def 12.7, p.126;
+with constants Def 23.1), not an inventory of what was scribed. All six rules
+are maps from EGIs-over-Σ to EGIs-over-Σ with Σ held **fixed** — erasing the
+last `Penguin` edge leaves a graph over the same Σ. So the alphabet now derived
+in `egi_core_dau.__post_init__` is **not** Dau's Σ. It is the *minimal* Σ that
+one state satisfies: exactly right for well-formedness, and silent about
+language.
+
+The language belongs to the UoD. The case that separates them is an individual
+coming and going: a constant leaving the sheet is not a word leaving the
+discourse. It bites hardest in ρ — Def 24.1 (p.250) gives ρ : V → {∗} ∪ C, so a
+per-state C means ρ's codomain shrinks every time an erasure takes a constant's
+last edge. That is not Dau, and it is not what a UoD means.
+
+**Measured 2026-09-25, before the keys were dropped:** of 245 corpus
+`.egi.json`, 27 carried a stored alphabet, **0** declared a relation or constant
+it did not use, and **0** stored ρ disagreed with its ink. Nothing was lost —
+and note the warning inside that: nothing was lost because nothing was ever
+recorded there. No UoD-level alphabet exists in `src/` (checked:
+`universe_of_discourse`, `egi_transformation_history`, `tomos_service` do not
+mention one).
+
+### 10a — the `maps_carried` clause has a correct form, currently unstatable
+
+`calculus_expected.maps_carried` asserted `g.alphabet.R ⊆ h.alphabet.R` and was
+**dropped** in the merge (it tested a stored summary; derived, ERA falsifies it
+by design — 1,205 failures in the default mode alone). The right invariant is
+not the subset but **"`g` and `h` are EGIs over the same Σ"**, which under a
+fixed Σ holds of every rule and is a genuine calculus property. It cannot be
+written until Σ has a home. Restore it there, not here.
+
+### 10b — INS may introduce a name in no alphabet at all — **the author has ruled this a SEPARATE ARC**
+
+Dau Def 15.2 (p.164-165) asks that inserted content be an EGI over Σ, so INS
+cannot introduce vocabulary. The engine grows Σ instead, and always has:
+`formal_transformation_rules._extended_alphabet` / `rule_interaction`. Shown
+2026-09-25 — `INS (Zorblatt *y *z)` into a negative context of `~[ (P *x) ]`:
+`legal()` true, engine applied, R `['P'] → ['P','Zorblatt']`. Deriving the
+alphabet did not fix this; it made it *moot at the state level* while leaving it
+untouched where it matters. A pre-existing departure, older than this arc.
+
+**The author's framing, and it sets the arc's direction:** *"languages do
+change."* So the arc is not "forbid it" — it is **make language change a
+recorded act rather than a silent side effect of assertion**. Enlarging the
+language is a different act from asserting a new fact; that is the
+enlargement/relinquishment distinction of `model_revision`'s taxonomy, one level
+up, applied to vocabulary instead of content. A behaviour change to the
+calculus: **do not start it without the author.**
+
+### 10c — arity is pinned within a state and unchecked across a chain
+
+`derive_alphabet` refuses one name at two arities in one graph (Def 12.6: `ar`
+is a function) — that discipline now reaches every graph. Across a history
+nothing checks anything. Shown 2026-09-25: `(Employee "Peter" "Acme" "2020")`
+and `(Employee "Peter" "Acme" "2020" "manager")` each build without complaint;
+only together in one graph are they refused.
+
+**The author's reading, and the resolution it points to.** Peter acquiring a
+fourth *attribute* needs nothing — four unary edges on one line, a plain INS, no
+arity moves. The hard case is the **name** changing arity, and no Dau rule
+reaches it, because that is a change *of* the language and not a move *in* it.
+But the adjustment can be made a change of **content** instead: let `Employee₃`
+and `Employee₄` be two names in Σ (so `ar` stays a function and Dau is
+satisfied), and scribe the bridge as an ordinary Beta scroll —
+`~[ (Employee₃ x y z) ~[ *w (Employee₄ x y z w) ] ]`. Then the history accounts
+for the adjustment by **modus ponens over a law that was written down**:
+peelable, doubtable, relinquishable, checked by the same machinery as every
+other proposition. Stronger than recording a language-revision act beside the
+calculus, because the account lives inside it.
+
+Having to choose the law's direction is the feature. `E₃ → ∃w E₄` says there was
+always a role you could not yet name; `E₄ → E₃` says the richer fact carries the
+poorer. Silent arity drift lets you have neither and behave as though you had
+both.
+
+### 10d — open, and the author's: vocabulary on a branching DAG
+
+Does a name introduced only on a path later abandoned stay in the language? That
+is the ◇/□ question (`modal_query`) asked of vocabulary rather than content, and
+a UoD Σ must choose between the union over reachable leaves and something
+narrower. **Not decided. Not to be guessed at.**
+
+### What the merge did, so 10 is not re-derived
+
+`to_dict` no longer writes `alphabet`/`rho` and `from_dict` no longer reads
+them; 245 corpus files were migrated (900 deletions, 0 insertions, `same_graph`
+asserted per file before each rewrite). Old files still load — required, since
+~99k run artifacts under the gitignored `runs/` carry the keys. Emptying the
+slot is what keeps it from being mistaken for the UoD's Σ.

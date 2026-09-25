@@ -25,7 +25,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_ab0cdce6": [
       "e_7643b26d",
@@ -53,6 +52,5 @@
     "e_7643b26d": "num",
     "e_fe50803f": "three"
   },
-  "rho": {},
   "sheet": "sheet_61ddf94d"
 }

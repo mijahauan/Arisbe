@@ -15,18 +15,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Human",
-      "Mortal"
-    ],
-    "ar": {
-      "Human": 1,
-      "Mortal": 1
-    }
-  },
   "area": {
     "sheet_10aeffaa": [
       "e_1154bae3",
@@ -45,9 +33,6 @@
   "rel": {
     "e_1154bae3": "Human",
     "e_8d3b75d9": "Mortal"
-  },
-  "rho": {
-    "v_7e182313": null
   },
   "sheet": "sheet_10aeffaa"
 }
