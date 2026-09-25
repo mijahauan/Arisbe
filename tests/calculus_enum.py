@@ -360,27 +360,28 @@ def _parity(depth: int) -> G:
 
 
 def _alphabet_and_quotation() -> G:
-    """The one stress shape no linear form carries: a declared alphabet, a
-    sorted quoting name and a quotation oval, so the structure layer's maps
-    clause is exercised at a tier that is not the corpus (tier A has no
-    maps-bearing record at all). The isolated vertex is the quoting name and
-    the cut is its oval; the alphabet is set directly because the parser
-    leaves it None. Verified while planning: sort, quotation and alphabet all
-    present, a valid EGI of four elements."""
-    from dataclasses import replace
+    """The one stress shape no linear form carries: a sorted quoting name and a
+    quotation oval, so the structure layer's maps clause is exercised at a tier
+    that is not the corpus. The isolated vertex is the quoting name and the cut
+    is its oval.
 
-    from egi_core_dau import AlphabetDAU
+    It was named for a *declared* alphabet, which it used to set directly
+    because the parser left the field None, and it also set a rho of all-None.
+    Since 2026-09-24 the core derives both from the ink and discards anything
+    passed, so that `replace` had become a no-op and is gone; the ink is
+    untouched, so every pinned tier-S count is unaffected by its removal. The
+    name is kept — it is pinned by `test_calculus_enum` and appears in three
+    pinned extents — but what this graph carries for the maps clause is the
+    sort and the quotation, which is what it always really carried. The rho
+    half of that clause is exercised by every constant-bearing graph in tiers
+    A and B, which is most of them."""
     from egif_parser_dau import parse_egif
 
     g = parse_egif("[*z] ~[ (P *x) ]")
     used = {v for e in g.nu for v in g.nu[e]}
     quoting_name = next(v.id for v in g.V if v.id not in used)
     oval = next(c.id for c in g.Cut)
-    h = g.with_quotation_binding(quoting_name, oval, sort_name="proposition")
-    alphabet = AlphabetDAU(
-        C=frozenset(), F=frozenset(), R=frozenset({"P"}), ar=frozendict({"P": 1})
-    ).with_defaults()
-    return replace(h, alphabet=alphabet, rho=frozendict({v.id: None for v in h.V}))
+    return g.with_quotation_binding(quoting_name, oval, sort_name="proposition")
 
 
 @functools.lru_cache(maxsize=None)

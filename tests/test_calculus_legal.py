@@ -319,18 +319,24 @@ def test_legal_never_consults_the_engine():
 
 def test_ins_refuses_a_name_at_another_arity():
     """Def 12.6 (p.126): a relation name has one arity; Def 12.7 (p.126):
-    |e| = ar(κ(e)) for every edge. Inserting (R x y) where R is unary — by
-    the declared alphabet, or by the graph's own edges — yields no EGI over
-    one alphabet (Task 10, tier B: dau_2006_p112_ligature)."""
-    from dataclasses import replace
-    from frozendict import frozendict
-    from egi_core_dau import AlphabetDAU
+    |e| = ar(κ(e)) for every edge. Inserting (R x y) where the host's own edges
+    make R unary yields no EGI over one alphabet (Task 10, tier B:
+    dau_2006_p112_ligature).
+
+    The third and fourth cases used to hand a graph with NO edges a hand-built
+    alphabet declaring R unary, to show legal() consulted a declaration as well
+    as the ink. They cannot: since 2026-09-24 the alphabet is derived from the
+    ink and a passed one is discarded, so that graph declares nothing and the
+    cases tested a premise that no longer exists. They are replaced by the
+    corpus graph the ledger entry was actually about, whose ink — not a
+    declaration — is what makes R unary, and whose unconstrained name is P."""
+    REFUSED = (False,
+               "the content uses a relation name at another arity (Def 12.6-12.7, p.126)")
     g = parse_egif("~[ (R *x) ]")
     c = next(iter(g.Cut)).id
-    assert legal(g, Move("INS", (), c, "(R *x *y)")) == (
-        False, "the content uses a relation name at another arity (Def 12.6-12.7, p.126)")
+    assert legal(g, Move("INS", (), c, "(R *x *y)")) == REFUSED
     assert legal(g, Move("INS", (), c, "(R *y)"))[0] is True
-    h = replace(parse_egif("~[ ]"), alphabet=AlphabetDAU(R=frozenset({"R", "="}),
-                                                        ar=frozendict({"R": 1, "=": 2})))
-    assert legal(h, Move("INS", (), next(iter(h.Cut)).id, "(R *x *y)"))[0] is False
-    assert legal(h, Move("INS", (), next(iter(h.Cut)).id, "(P *x *y)"))[0] is True
+    p112 = parse_egif("*x (P x) ~[ (Q x) (R x) ]")
+    cut = next(iter(p112.Cut)).id
+    assert legal(p112, Move("INS", (), cut, "(R *y *z)")) == REFUSED
+    assert legal(p112, Move("INS", (), cut, "(S *y *z)"))[0] is True

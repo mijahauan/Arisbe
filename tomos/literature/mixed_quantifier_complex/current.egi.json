@@ -32,18 +32,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "P",
-      "Q"
-    ],
-    "ar": {
-      "P": 1,
-      "Q": 2
-    }
-  },
   "area": {
     "c_1fdd146a": [
       "e_9ac3bca6",
@@ -71,11 +59,6 @@
   "rel": {
     "e_12f44a69": "P",
     "e_9ac3bca6": "Q"
-  },
-  "rho": {
-    "v_3f848e54": null,
-    "v_f332cde4": null,
-    "v_f58158ee": null
   },
   "sheet": "sheet_942a6e15"
 }

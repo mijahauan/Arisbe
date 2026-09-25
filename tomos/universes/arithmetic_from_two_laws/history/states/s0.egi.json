@@ -77,7 +77,6 @@
       "label": "0"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_2dceeb36": [
       "e_032f9e14",
@@ -160,6 +159,5 @@
     "e_e60b451e": "num",
     "e_f3a2fce9": "succ"
   },
-  "rho": {},
   "sheet": "sheet_c08624fb"
 }

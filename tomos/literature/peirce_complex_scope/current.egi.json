@@ -29,16 +29,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Relation"
-    ],
-    "ar": {
-      "Relation": 3
-    }
-  },
   "area": {
     "c_742d9728": [
       "c_ddf23bda"
@@ -62,11 +52,6 @@
   },
   "rel": {
     "e_67fb0d36": "Relation"
-  },
-  "rho": {
-    "v_4aa9a2f6": null,
-    "v_c363987f": null,
-    "v_e37d44e0": null
   },
   "sheet": "sheet_0fb9bbb0"
 }

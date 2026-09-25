@@ -112,20 +112,6 @@ REASONS = {
         "requires every NAMED element to lie in one area and refuses ('All selected elements must "
         "be in the same area'); measured on every move in this entry, the same move named by its "
         "top elements alone is applied. An input-form restriction, not a missing rule."),
-    "ins-mixes-arities-without-an-alphabet": ("INS", SEVERE,
-        P + "Dau Def 12.6 (p.126): an alphabet gives each relation name ONE arity; Def 12.7 "
-        "(p.126): an EGI over it labels every edge within it, |e| = ar(κ(e)). The engine "
-        "enforces arity only when the graph declares an alphabet (it refuses such an insertion "
-        "on dau_2006_p112_ligature, whose alphabet makes R unary). On a graph with no declared "
-        "alphabet it inserts content that uses a name at a second arity — the propositional "
-        "exemplars use P as a 0-ary name ((P)), and inserting (P *x) makes P both 0-ary and "
-        "unary — so the result is an EGI over no single alphabet. Measured by "
-        "calculus_adjudication in the default mode on every move in this entry: none of the "
-        "sources declares an alphabet (no_declared_alphabet), legal() rejects every move, and "
-        "G ⊨ G′ at domain sizes 1–2 (sound) — but only because tarski reads the two arities "
-        "of one name as two relations; Dau's semantics has no reading for such a graph. Tier A "
-        "cannot reach it (its bounds give each name one arity, the INS catalogue's). "
-        "In the exhaustive mode: 244 moves in 244 keys, none on a source with a declared alphabet, all sound under tarski's reading."),
     "era-closure-drags-a-quoting-name": ("ERA", INCOMPLETE,
         "Dau Def 15.2 (p.165): erasing an edge removes the edge only (V^(e) := V) — its vertex "
         "stays, even when the edge was its last. Offered an edge whose argument is a QUOTING NAME "
@@ -262,9 +248,6 @@ def measure(rec, eid, c: Counter):
     elif eid.endswith("-cut-named-with-its-contents"):
         t = tuple(tops(g, expand(g, m.selection)))
         c["tops_only_applied"] += apply_move(g, Move(m.rule, t, m.target, m.content)).applied
-    elif eid == "ins-mixes-arities-without-an-alphabet":
-        c["no_declared_alphabet"] += g.alphabet is None
-        c["sound"] += _entail(g, out.result)[0]
     elif eid == "era-closure-drags-a-quoting-name":
         import re
         X = expand(g, m.selection)

@@ -44,7 +44,6 @@
       "label": "Ciel"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_eb64fa93": [
       "e_2637604e",
@@ -89,6 +88,5 @@
     "e_6fd41b9f": "swan",
     "e_bace02e1": "white"
   },
-  "rho": {},
   "sheet": "sheet_5c54ec0a"
 }

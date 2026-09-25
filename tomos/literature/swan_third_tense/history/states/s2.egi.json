@@ -27,7 +27,6 @@
       "label": "M_swan_law"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_494b7aee": [
       "e_71aa1fb3",
@@ -52,6 +51,5 @@
   "rel": {
     "e_71aa1fb3": "superseded"
   },
-  "rho": {},
   "sheet": "sheet_a577f696"
 }

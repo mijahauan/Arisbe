@@ -286,9 +286,14 @@ def _ins(g: G, m: Move) -> Verdict:
 
     The result must still be an EGI over one alphabet: a relation name has ONE
     arity ar(R) (Def 12.6, p.126) and every edge carries it, |e| = ar(κ(e))
-    (Def 12.7, p.126). So the content may not use a name at an arity the
-    graph's declared alphabet — or, lacking one, its own edges — give it
-    otherwise (Task 10: tier B's dau_2006_p112_ligature declares R unary)."""
+    (Def 12.7, p.126). So the content may not use a name at an arity the host's
+    own edges already give it (Task 10: tier B's dau_2006_p112_ligature,
+    ``*x (P x) ~[ (Q x) (R x) ]``, uses R unary).
+
+    This consulted ``g.alphabet`` first and fell back to the edges. Since
+    2026-09-24 the alphabet is derived from those same edges, so the two
+    branches read one fact twice; the edges are kept because they are the fact,
+    and legal() is left owing the core nothing but the ink."""
     try:
         h = parse_egif(m.content or "")
     except Exception:
@@ -296,8 +301,6 @@ def _ins(g: G, m: Move) -> Verdict:
     if m.target is None or positive(g, m.target):
         return False, "the target is not a negative context"
     arity = {}
-    if g.alphabet is not None:
-        arity.update({r: n for r, n in g.alphabet.ar.items() if r in g.alphabet.R})
     for e, seq in g.nu.items():
         arity.setdefault(g.rel[e], len(seq))
     if any(arity.get(h.rel[e], len(seq)) != len(seq) for e, seq in h.nu.items()):

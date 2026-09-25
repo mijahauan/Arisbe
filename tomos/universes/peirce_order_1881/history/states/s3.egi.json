@@ -170,7 +170,6 @@
       "label": "5"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_01f01619": [
       "c_6370c0d0",
@@ -361,6 +360,5 @@
     "e_ead8595d": "lt",
     "e_edbace2a": "lt"
   },
-  "rho": {},
   "sheet": "sheet_a03e3571"
 }

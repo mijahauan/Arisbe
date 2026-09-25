@@ -16,34 +16,21 @@ from egif_parser_dau import parse_egif
 G = RelationalGraphWithCuts
 
 
-def _alphabet(a, rel, nu, rho):
-    """The source's alphabet grown to cover the result's names — a step may
-    introduce a relation name or constant (INS); the alphabet names the
-    language, it does not close it."""
-    if a is None:
-        return None
-    consts = {c for c in rho.values() if c is not None}
-    new_rels = set(rel.values()) - (a.C | a.F | a.R)
-    if not new_rels and consts <= a.C:
-        return a
-    ar = dict(a.ar)
-    for e, name in rel.items():
-        if name in new_rels:
-            ar.setdefault(name, len(nu.get(e, ())))
-    for c in consts - a.C:
-        ar.setdefault(c, 1)
-    return type(a)(C=a.C | frozenset(consts), F=a.F, R=a.R | frozenset(new_rels), ar=frozendict(ar))
-
-
-def _g(g, *, V, E, nu, Cut, area, rel, rho=None) -> G:
+def _g(g, *, V, E, nu, Cut, area, rel) -> G:
     """Build a result graph. The B-min maps (spec §5.2) travel with every
-    element that survives: rho, sort and quotation are kept for surviving
-    vertices and cuts, and the alphabet grows to cover the result."""
+    element that survives: sort and quotation are kept for surviving vertices
+    and cuts.
+
+    Neither the alphabet nor rho is passed. Both are DERIVED by the core from
+    the ink it is handed (egi_core_dau.__post_init__, 2026-09-24), so anything
+    passed here would be discarded; a constant travels in its own Vertex's
+    ``label``/``is_generic``, which every caller below already carries across.
+    This used to hand over a pruned rho and an alphabet grown by a ``_alphabet``
+    helper — both now deleted rather than left in place looking load-bearing."""
     vids, cids = {v.id for v in V}, {c.id for c in Cut}
-    rho = frozendict({k: c for k, c in (g.rho if rho is None else rho).items() if k in vids})
     return G(V=frozenset(V), E=frozenset(E), nu=frozendict(nu), sheet=g.sheet,
              Cut=frozenset(Cut), area=frozendict({k: frozenset(v) for k, v in area.items()}),
-             rel=frozendict(rel), alphabet=_alphabet(g.alphabet, rel, nu, rho), rho=rho,
+             rel=frozendict(rel),
              sort=frozendict({k: s for k, s in g.sort.items() if k in vids}),
              quotation=frozendict({k: q for k, q in g.quotation.items() if k in cids and q in vids}))
 
@@ -68,8 +55,7 @@ def insert(g: G, target: str, text: str) -> G:
               E=[*g.E, *(Edge(p(e.id)) for e in h.E)],
               nu={**g.nu, **{p(e): tuple(p(v) for v in s) for e, s in h.nu.items()}},
               Cut=[*g.Cut, *(CutEl(p(c.id)) for c in h.Cut)], area=area,
-              rel={**g.rel, **{p(e): r for e, r in h.rel.items()}},
-              rho={**g.rho, **{p(v): c for v, c in h.rho.items()}})
+              rel={**g.rel, **{p(e): r for e, r in h.rel.items()}})
 
 
 def double_cut(g: G, S, target: str) -> G:
@@ -174,13 +160,26 @@ def acceptable(g: G, m: Move) -> Optional[List[G]]:
 
 
 def maps_carried(g: G, h: G) -> List[str]:
-    """The B-min maps must survive the step for every element that survives."""
+    """The B-min maps must survive the step for every element that survives.
+
+    There is no alphabet clause, and that is a decision, not an omission. This
+    held ``set(g.alphabet.R) <= set(h.alphabet.R)`` — the alphabet must never
+    lose a relation name — until the alphabet stopped being stored
+    (egi_core_dau, 2026-09-24: derived from the ink, never kept). Derived,
+    ``h.alphabet.R`` *is* ``set(h.rel.values())``, so the clause says only
+    "every name g uses, h uses too", which ERA falsifies by design the moment
+    it erases a name's last edge — 1,205 of them in the default mode alone.
+    The nearest true replacement, "h's alphabet equals h's own relation names",
+    is true by construction of ``derive_alphabet`` and would test that function
+    rather than the calculus; it is tested where it belongs, in
+    ``test_alphabet_derivation.py``. So the clause is gone rather than
+    weakened.
+
+    ``rho`` stays, and means something it did not before: derived, ρ(v) is the
+    label of the vertex object itself, so "a surviving vertex keeps its
+    constant" is now a claim about the step's ink and not about a summary
+    travelling alongside it."""
     out = []
-    if g.alphabet is not None:
-        if h.alphabet is None:
-            out.append("alphabet dropped")
-        elif not set(g.alphabet.R) <= set(h.alphabet.R):
-            out.append("alphabet lost relation names")
     hv, hc = {v.id for v in h.V}, {c.id for c in h.Cut}
     rho = [v for v, c in g.rho.items() if c is not None and v in hv and h.rho.get(v) != c]
     if rho:

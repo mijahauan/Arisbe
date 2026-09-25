@@ -50,7 +50,6 @@
       "label": "Ciel"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_8ee6f9f0": [
       "e_a47e7a6f"
@@ -103,6 +102,5 @@
     "e_a47e7a6f": "white",
     "e_bace02e1": "white"
   },
-  "rho": {},
   "sheet": "sheet_5c54ec0a"
 }

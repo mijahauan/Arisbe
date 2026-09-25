@@ -169,7 +169,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_2b372540": [
       "e_f3d50243"
@@ -330,6 +329,5 @@
     "e_eef53bd4": "=",
     "e_f3d50243": "between"
   },
-  "rho": {},
   "sheet": "sheet_e5dd5884"
 }

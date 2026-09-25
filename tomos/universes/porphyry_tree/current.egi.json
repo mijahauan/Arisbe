@@ -121,7 +121,6 @@
       "label": "Socrates"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_21fd196d": [
       "e_97034e41"
@@ -243,6 +242,5 @@
     "e_ec761557": "Body",
     "e_fcf60329": "Beast"
   },
-  "rho": {},
   "sheet": "sheet_fe3b9d9f"
 }

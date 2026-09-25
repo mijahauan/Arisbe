@@ -97,7 +97,6 @@
       "label": "0"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_043fbfb6": [
       "e_ec9db8f2"
@@ -202,6 +201,5 @@
     "e_ec9db8f2": "sum",
     "e_f3a2fce9": "succ"
   },
-  "rho": {},
   "sheet": "sheet_c08624fb"
 }

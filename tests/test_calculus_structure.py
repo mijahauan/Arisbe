@@ -73,16 +73,17 @@ def test_iteration_chooses_reuse_or_fresh_per_vertex():
 def test_expected_results_carry_the_maps():
     """Task 10: the expected-result builders kept no B-min maps, so on a
     maps-bearing corpus graph every licensed INS/DC+/VERTEX_INS result
-    'differed' from the engine's — the suite's defect, not the engine's."""
+    'differed' from the engine's — the suite's defect, not the engine's.
+
+    The graph is no longer given an alphabet and a rho: since 2026-09-24 the
+    core derives both from the ink, so setting them would have been discarded
+    and this would have tested nothing. A constant vertex now *is* the rho
+    entry, which is why the assertion reads the same but is checking that the
+    licensed form carried the vertex across rather than a dict alongside it."""
     from calculus_expected import double_cut
-    from egi_core_dau import AlphabetDAU
-    from frozendict import frozendict
-    from dataclasses import replace
     g = parse_egif('(P "a")')
     v = next(iter(g.V)).id
-    g = replace(g, alphabet=AlphabetDAU(C=frozenset({"a"}), R=frozenset({"P"}),
-                                        ar=frozendict({"P": 1, "a": 1})),
-                rho=frozendict({v: "a"}))
+    assert dict(g.rho) == {v: "a"}, "the source's own ink states rho"
     h = double_cut(g, tuple(g.nu), g.sheet)
     assert h.alphabet == g.alphabet and dict(h.rho) == {v: "a"}
 
@@ -101,14 +102,26 @@ def test_double_cut_of_a_cut_named_with_its_contents():
 
 
 def test_maps_carried_names_what_was_dropped():
-    # Stubs, not graphs: the core validates rho against an alphabet, and the
-    # point here is only which attribute comparison names which loss.
+    """The instrument bites on each map it still checks, and is silent on the
+    one it no longer does.
+
+    Stubs, not graphs: the point is only which attribute comparison names which
+    loss. There is no alphabet case because there is no alphabet clause — the
+    third assertion holds that absence, so dropping the clause (2026-09-24) is
+    recorded here and not merely in a comment. A future reinstatement of an
+    alphabet check reddens this line."""
     from types import SimpleNamespace as NS
-    before = NS(alphabet=NS(R={"P"}), rho={"v1": "a"}, sort={}, quotation={},
-                V=[NS(id="v1")], Cut=[])
-    after = NS(alphabet=None, rho={}, sort={}, quotation={}, V=[NS(id="v1")], Cut=[])
-    assert maps_carried(before, after) == ["alphabet dropped", "rho lost for 1 vertex"]
+    before = NS(alphabet=NS(R={"P"}), rho={"v1": "a"}, sort={"v1": "proposition"},
+                quotation={"c1": "v1"}, V=[NS(id="v1")], Cut=[NS(id="c1")])
+    after = NS(alphabet=None, rho={"v1": None}, sort={}, quotation={},
+               V=[NS(id="v1")], Cut=[NS(id="c1")])
+    assert maps_carried(before, after) == [
+        "rho lost for 1 vertex", "sort lost", "quotation lost"]
     assert maps_carried(before, before) == []
+    # An alphabet that loses every relation name it had is NOT a finding.
+    lost = NS(alphabet=NS(R=set()), rho={"v1": "a"}, sort={"v1": "proposition"},
+              quotation={"c1": "v1"}, V=[NS(id="v1")], Cut=[NS(id="c1")])
+    assert maps_carried(before, lost) == []
 
 
 def _layer(mode):
@@ -123,10 +136,14 @@ def test_structure():
 
 def _extent(mode):
     """The structure counts, plus how many checked records had a source
-    carrying a B-min map (label suffix ``:maps``). Tier A carries none; tier B
-    does (14 corpus UoDs' current graphs carry a map: alphabet/rho, and three
-    of them a sort, two of those a quotation), and the pin must stay positive
-    or the maps clause is untested again (Task 10 ruling)."""
+    carrying a B-min map (label suffix ``:maps``) — a constant on a vertex, a
+    sort, or a quotation, which is exactly what maps_carried still inspects.
+    The pin must stay positive or the maps clause is untested again (Task 10
+    ruling). Re-read 2026-09-24: the suffix no longer keys off a *stored*
+    alphabet (there is none), so tier A is no longer empty of maps-bearing
+    records — its enumerated graphs carry constants, and a constant vertex is
+    a rho entry. That widens what the clause is exercised on; it does not
+    weaken it."""
     counts = dict(sorted(run(mode).layers["structure"].counts.items()))
     counts["maps-bearing records"] = sum(v for k, v in counts.items() if k.endswith(":maps"))
     assert counts["maps-bearing records"] > 0, "the maps clause was never exercised"
@@ -154,7 +171,11 @@ def test_a_no_op_ligature_move_is_now_a_failure():
     m = Move("RETRACT_LIGATURE", tuple(sorted(v.id for v in g.V)), g.sheet)
     rec = Record("A", "hand", g, m, "hand|noop", Outcome(True, g, ""), None, "not judged")
     label, detail = structure(rec, {})
-    assert label.endswith("egi-only") and detail and "changes nothing" in detail
+    # The `:maps` suffix rides on the kind: this source has two constants, so
+    # maps_carried has a rho clause to check on it (before 2026-09-24 rho was
+    # stored and the parser's was empty here, so the label ended at the kind).
+    assert label == "RETRACT_LIGATURE:egi-only:maps"
+    assert detail and "changes nothing" in detail
 
 
 def test_a_ligature_move_that_drops_a_relation_is_a_failure():

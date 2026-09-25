@@ -263,7 +263,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_6ab13130": [
       "c_if_outer_11",
@@ -537,6 +536,5 @@
     "e_semanticRelation_7": "semanticRelation",
     "e_semanticRelation_9": "semanticRelation"
   },
-  "rho": {},
   "sheet": "sheet_722c627d"
 }

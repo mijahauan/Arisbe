@@ -22,7 +22,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_6a2797f2": [
       "e_132d72f1"
@@ -48,6 +47,5 @@
     "e_132d72f1": "Mortal",
     "e_674bc558": "Human"
   },
-  "rho": {},
   "sheet": "sheet_ab665f42"
 }

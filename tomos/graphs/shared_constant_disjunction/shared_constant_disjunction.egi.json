@@ -22,21 +22,6 @@
       "label": "Socrates"
     }
   ],
-  "alphabet": {
-    "C": [
-      "Socrates"
-    ],
-    "F": [],
-    "R": [
-      "Human",
-      "Mortal"
-    ],
-    "ar": {
-      "Human": 1,
-      "Mortal": 1,
-      "Socrates": 1
-    }
-  },
   "area": {
     "c_3583ead5": [
       "e_ec99e888"
@@ -61,9 +46,6 @@
   "rel": {
     "e_a5748591": "Human",
     "e_ec99e888": "Mortal"
-  },
-  "rho": {
-    "v_8564030c": "Socrates"
   },
   "sheet": "sheet_39e0e47a"
 }

@@ -531,7 +531,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_all_inner_1": [
       "e_=_1",
@@ -998,6 +997,5 @@
     "e_sum_7": "sum",
     "e_sum_9": "sum"
   },
-  "rho": {},
   "sheet": "sheet_5804684e"
 }

@@ -23,20 +23,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Cat",
-      "Mat",
-      "On"
-    ],
-    "ar": {
-      "Cat": 1,
-      "Mat": 1,
-      "On": 2
-    }
-  },
   "area": {
     "sheet_0335ea55": [
       "e_2571409c",
@@ -62,10 +48,6 @@
     "e_2571409c": "On",
     "e_9b9fde19": "Mat",
     "e_f29cea6f": "Cat"
-  },
-  "rho": {
-    "v_100c1b7f": null,
-    "v_b16f2085": null
   },
   "sheet": "sheet_0335ea55"
 }

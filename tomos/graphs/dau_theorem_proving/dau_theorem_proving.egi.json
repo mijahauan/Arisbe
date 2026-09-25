@@ -47,22 +47,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "P",
-      "Q",
-      "R",
-      "S"
-    ],
-    "ar": {
-      "P": 1,
-      "Q": 2,
-      "R": 2,
-      "S": 1
-    }
-  },
   "area": {
     "c_2cc617a2": [
       "c_8b47ec99",
@@ -110,11 +94,6 @@
     "e_ad0ac1c8": "Q",
     "e_b7d051ae": "P",
     "e_deaf2299": "R"
-  },
-  "rho": {
-    "v_0990d042": null,
-    "v_32eac115": null,
-    "v_e912b2fb": null
   },
   "sheet": "sheet_e6a33656"
 }

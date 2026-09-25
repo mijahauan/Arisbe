@@ -56,7 +56,6 @@
       "label": "Ben"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_05b9eb57": [
       "e_6aa3ace8"
@@ -115,6 +114,5 @@
     "e_6aa3ace8": "patient",
     "e_b5cb0d91": "insured"
   },
-  "rho": {},
   "sheet": "sheet_47faa670"
 }

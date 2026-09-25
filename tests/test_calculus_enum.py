@@ -91,9 +91,14 @@ def test_the_stress_tier_carries_the_shapes_tier_a_cannot():
     assert all(dominating_nodes(g) for g in graphs.values())
     # every one is beyond the default tier-A bound of 3 elements
     assert all(len(g.V) + len(g.E) + len(g.Cut) > 3 for g in graphs.values())
-    # the one shape no linear form carries: B-min maps, so the maps clause bites
+    # the one shape no linear form carries: B-min maps, so the maps clause bites.
+    # `q.alphabet is not None` is no longer a claim about this graph — since
+    # 2026-09-24 the core derives an alphabet for every graph — so what is
+    # asserted is what maps_carried actually reads on it: a sort and a
+    # quotation. (Its rho is all-∗: the clause's rho half is exercised by the
+    # constant-bearing graphs of tiers A and B.)
     q = graphs["alphabet-and-quotation"]
-    assert q.alphabet is not None and q.sort and q.quotation
+    assert q.sort and q.quotation and all(c is None for c in q.rho.values())
 
 
 def test_the_stress_tier_makes_move_branches_apply_somewhere():

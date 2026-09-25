@@ -431,7 +431,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_216b8e0f": [
       "c_if_outer_0",
@@ -873,6 +872,5 @@
     "e_SpecificallyDependentContinuant_6": "SpecificallyDependentContinuant",
     "e_TemporalRegion_38": "TemporalRegion"
   },
-  "rho": {},
   "sheet": "sheet_d808ee20"
 }

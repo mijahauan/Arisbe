@@ -44,26 +44,6 @@
       "label": null
     }
   ],
-  "alphabet": {
-    "C": [],
-    "F": [],
-    "R": [
-      "Course",
-      "Has",
-      "Person",
-      "Professor",
-      "Student",
-      "Teaches"
-    ],
-    "ar": {
-      "Course": 1,
-      "Has": 2,
-      "Person": 1,
-      "Professor": 1,
-      "Student": 1,
-      "Teaches": 2
-    }
-  },
   "area": {
     "c_8025a30a": [
       "c_b11e7d99",
@@ -112,11 +92,6 @@
     "e_84c67929": "Professor",
     "e_8b4e8c5f": "Has",
     "e_9cff37a9": "Person"
-  },
-  "rho": {
-    "v_3d8db5c7": null,
-    "v_81ae1ad7": null,
-    "v_af4133ba": null
   },
   "sheet": "sheet_5b5485e4"
 }

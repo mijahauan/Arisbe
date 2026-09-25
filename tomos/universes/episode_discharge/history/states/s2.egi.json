@@ -76,7 +76,6 @@
       "label": "Rex"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_e52cc936": [
       "e_34d40c72",
@@ -152,6 +151,5 @@
     "e_a46c3df9": "dog",
     "e_ac12e1aa": "mammal"
   },
-  "rho": {},
   "sheet": "sheet_e63f8d0a"
 }

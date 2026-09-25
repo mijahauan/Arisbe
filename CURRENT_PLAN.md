@@ -1,79 +1,63 @@
 # Current Plan
 
-**Last Updated**: 2026-09-22 (nineteenth arc, **fifth sitting**) — **DOCKET 6l IS SOLVED, AND
-THE ANSWER IS THAT NOTHING WAS EVER MISCOUNTED. THE SUITE HAS NO FIXED SIZE: 66 TESTS EXIST
-ONLY WHEN CHROMIUM DOES. THE HEADLINE IS NOW DERIVED BY AN INSTRUMENT THAT REFUSES RATHER THAN
-REPORTS A ZERO — A DEFECT I FOUND IN MY OWN NEW TOOL, WHICH IS THE SHAPE THIS WHOLE ARC HUNTS.**
+**Last Updated**: 2026-09-25 (**seventh sitting**) — **`alphabet-derived` IS MERGED. THE
+RE-PIN WAS EARNED: ONE BEHAVIOUR CHANGE, 52 MOVES AT DEFAULT AND 244 EXHAUSTIVE, ACCOUNTED
+CELL BY CELL. THE BRANCH'S OWN "266 INSTANCES NO LONGER FAIL" TURNED OUT TO BE A RELABELLING
+ARTIFACT AND NO SHRINK WAS TAKEN. AND THE AUTHOR'S QUESTION OPENED A LARGER ONE: THE DERIVED
+ALPHABET IS NOT DAU'S Σ.**
 
-**State: clean once committed.** Full suite **5,182 passed / 342 skipped / 10 deselected /
-2 xfailed / 0 failed, 44 min, pytest exit 0** — the first run in this arc with no failure at
-all (`test_memory_stability`, the documented warm-process flake, passed). Quality gate green,
-166 core tests. Knowledge graph current. `.core_modification_authorized` absent and not needed:
-this sitting touched no calculus module.
+**State: `main` is green.** Full suite green on the migrated tree; exhaustive calculus pass
+**2 h 44 m, exit 0, all ten layer tests passed**. Quality gate green, 166 core tests.
+`.core_modification_authorized` absent.
 
-**The headline is 5,526 outcomes = 5,513 selected + 13 module-level skips**, and that figure was
-**predicted before the run and matched exactly**. Regenerate it, never retype it:
+**▶ START HERE — the docket is item 10 in `tasks/todo.md`, and its first entry is the
+author's to open.**
 
-```bash
-uv run python tools/suite_census.py                      # ~5 s, names the browser gate
-uv run pytest tests/ -q | tee run.log
-uv run python tools/suite_census.py --against run.log    # exits non-zero if it does not close
-```
+The sixth sitting's alphabet ruling (derive, never store) is landed and proved. Working it
+through surfaced a distinction the ruling did not settle, and the author drew it:
 
-**▶ PICK UP HERE — what is left, in the order I would take it.**
+> *We're not talking about an EGI alone any more but as a view on a UoD that evolves over
+> time. Individuals may come and go.*
 
-1. **Docket 6f's remaining two serve paths** — `GET /api/diagram/session/{id}` and
-   `POST /api/transform/{undo,redo}` serve stored DTOs unre-attested;
-   `generate_overview_layout` attests the quotient and says so itself. Left open by the
-   author's own ruling ("fix the deltas path only"), so reopening it is a fresh decision.
-2. **Docket 6j / 6k** — the recorded defects in `hierarchical_index`'s dead half and in the
-   ligature detector. All pinned as current behaviour; each fix is a behaviour change on code
-   with no live caller, so each wants a ruling more than it wants effort.
-3. **Clause 3 is unfinished.** One time-boxed pass covered the load-bearing claims. `CLAUDE.md`
-   holds hundreds more; the method that worked is in item 1c — parallel read-only audits, every
-   finding reproduced in the main session before acting.
-4. **Consider whether the census belongs in the quality gate.** Deliberately not wired in: it
-   would add ~5 s to every commit and, more to the point, `unaccounted_modules` going non-empty
-   is a *finding* to read, not a commit to block. That trade is the author's.
+**Dau's Σ is a language a graph is *over*, held fixed by all six rules.** The alphabet the
+core now derives is therefore **not** Σ — it is the *minimal* Σ one state satisfies. The
+language belongs to the **UoD**, because a constant leaving the sheet is not a word leaving
+the discourse, and **no UoD-level Σ exists anywhere in `src/`**. Three invariants are unheld
+for want of it (item 10a/10b/10c), and one question is open and explicitly the author's
+(10d: does a name introduced only on an abandoned branch stay in the language?).
 
-**Where to read for each of those — assembled 2026-09-23 so the next session does not re-derive it.**
+**Ruled this sitting, so do not re-litigate:**
+1. **Option A on serialization** — `to_dict`/`from_dict` no longer write or read
+   `alphabet`/`rho`; 245 corpus files migrated (900 deletions, 0 insertions, `same_graph`
+   asserted per file *before* each rewrite). Old files still load; ~99k gitignored `runs/`
+   artifacts depend on that.
+2. **INS-within-Σ is a SEPARATE ARC** and wants the author before it starts. Its point, in
+   the author's words: *"languages do change."* So the arc is not to forbid it but to make a
+   language change a **recorded act** instead of a silent side effect of assertion. Today
+   `INS (Zorblatt *y *z)` is applied and Σ simply grows — a departure older than this arc,
+   which deriving the alphabet made moot at the state level and left untouched where it
+   matters.
+3. **Arity across a chain** resolves by making the adjustment a change of **content**: two
+   names (`Employee₃`, `Employee₄`, so `ar` stays a function) plus a bridging Beta scroll, so
+   the history accounts for it by modus ponens over a law that was written down.
 
-- **6f has a real contract document; 6j and 6k do not.** For 6f:
-  `docs/LINEAR_GRAPHICAL_CORRESPONDENCE.md` — §3.3 "What 'faithful map' requires" (line 177),
-  §7's six property-test shapes (line 272). **§3.3's table was edited under the 6c ruling** and now
-  says identity is **two** checks, not three, recording what the third was. The three code sites:
-  `rebuild_ligature_anchors` re-attests at `src/web_api/services/layout_service.py:568` (fixed);
-  `generate_overview_layout` at the same file, line 701 (attests the quotient, says so itself);
-  the undo/redo pair at `src/web_api/routes/transformations.py:282` and `:314`, plus the
-  session-store `GET /api/diagram/session/{id}` serve path.
-- **6j / 6k have no design doc, and that is the honest answer.** The governing text is Dau:
-  `docs/references/mathematical_logic_with_diagrams.pdf` — **Def 12.4** (polarity is even depth)
-  for the nesting index, **Def 16.8, p.180** for the single-object ligature. The *de facto* specs
-  are the two suites written in the fourth sitting, `tests/test_hierarchical_index.py` and
-  `tests/test_single_object_ligature_detector.py`, where every defect is pinned as **current
-  behaviour** with a note on why it was recorded rather than repaired. `tools/core_protection_system.py`
-  says which modules are on the calculus map; `docs/CAPABILITY_MAP.md` is the what-guards-what index.
-  **Before opening either:** every fix there is a behaviour change on code with **no live caller** —
-  nine public methods of `hierarchical_index` have none in `src/`, and the detector's one caller is
-  an evaluator layer no production path constructs. That is why both want a ruling, not effort.
-- **Docket entries:** 6f at `tasks/todo.md:658`, 6j at `:769`, 6k at `:778`.
-- **Clause 3 restated** (the gate's three clauses: *it can fail* — mechanical, `admission_scan`;
-  *it is reached* — enforced where the parametrization lives; *it measures what it claims* — a
-  **reading** task no scan can do). Its standing lesson: almost every claim that failed clause 3
-  was **true and unmeasured, not false**, so the question is never "is this right?" but
-  **"what would tell me the day it stops being?"** Method that worked: parallel read-only audits,
-  every finding reproduced in the main session before it is acted on.
-- **The alphabet question in one line:** wiring `egif_parser_dau._finalize_alphabet_and_rho` fails
-  **239 items**, and the two decisions are (a) does the EGIF parser refuse a name used at two
-  arities (Def 12.6, p.126 gives each name one arity) and what becomes of the two fixtures that
-  use `P` at arity 1 and 2, and (b) do the core's builders grow the alphabet as the six rules
-  already do — **touching protected `egi_core_dau`** — or is the alphabet **derived rather than
-  stored**? Full text at line 1199 below. The EGIF symmetric-lines tie-break rides with it.
+**One caution carried out of this sitting, because it nearly cost a false shrink.** The
+branch reported 266 instances of `era-also-erases-the-vertex-it-isolates` no longer failing
+and read it as a fix. It was not. The dropped alphabet clause had been firing *alongside* the
+real failure, flipping the kind from `DIFFERS` to `DIFFERS+MAPS:alphabet`, and the ledger
+reports a re-kinded key as "no longer fails". All 285 came back the moment the clause went.
+**A shrink line is not evidence until you have reproduced one instance by hand.**
 
-**Also still open from the eighteenth arc:** the **alphabet question** — which also governs the
-EGIF symmetric-lines tie-break, pinned as a strict xfail so a fix announces itself;
-`discharge_episode` pulling a quoted constant out of its oval; the IT− docstring; defect 8
-(MOVE_BRANCHES tries one direction only).
+**Still open from the earlier docket:** 6f's two remaining serve paths; 6j/6k (recorded
+defects on code with no live caller — each wants a ruling more than effort); clause 3 over
+`CLAUDE.md`'s Architecture module list (9f); whether the census belongs in the quality gate.
+
+**A clause-3 finding worth its own line:** `052b3ec` fixed the EGIF symmetric-lines
+nondeterminism and turned its strict xfail into a passing test, and touched none of the six
+files it would have had to touch to say so — CLAUDE.md still called the defect "entirely
+unfixed" and "the author's, riding with the alphabet question" two commits later. Corrected
+this sitting. The fixing commit is the one least likely to update the record, because by then
+the author knows.
 
 ## What the fifth sitting did — docket 6l
 

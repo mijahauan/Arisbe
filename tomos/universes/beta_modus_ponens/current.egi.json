@@ -15,7 +15,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "sheet_f4fd47d4": [
       "e_935a828c",
@@ -35,6 +34,5 @@
     "e_935a828c": "P",
     "e_d0205920": "Q"
   },
-  "rho": {},
   "sheet": "sheet_f4fd47d4"
 }

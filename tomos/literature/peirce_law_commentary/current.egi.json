@@ -27,7 +27,6 @@
       "label": "peirce_law"
     }
   ],
-  "alphabet": null,
   "area": {
     "c_677a27f4": [
       "e_debe7407",
@@ -52,7 +51,6 @@
   "rel": {
     "e_debe7407": "cites"
   },
-  "rho": {},
   "sheet": "sheet_cb440262",
   "sort": {
     "v_efc3f736": "proposition"

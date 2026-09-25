@@ -116,7 +116,15 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
         kind = "postcondition"
     else:
         kind = "illegal"
-    maps = g.alphabet is not None or bool(g.rho or g.sort or g.quotation)
+    # What the maps clause actually inspects, and nothing else: a constant on a
+    # surviving vertex, a sort, a quotation. It read `g.alphabet is not None or
+    # bool(g.rho or ...)` until 2026-09-24, when the core began DERIVING both
+    # the alphabet and rho — after which `g.alphabet is not None` is true of
+    # every graph ever built and `g.rho` is non-empty whenever V is, so the
+    # suffix would have marked the whole extent and told no one anything. The
+    # alphabet clause is gone (calculus_expected.maps_carried says why) and rho
+    # is checked only where it is a constant, which is what this now asks.
+    maps = any(c is not None for c in g.rho.values()) or bool(g.sort or g.quotation)
     return f"{m.rule}:{kind}" + (":maps" if maps else ""), "; ".join(problems) or None
 
 

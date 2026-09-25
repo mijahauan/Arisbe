@@ -148,7 +148,6 @@
       "label": null
     }
   ],
-  "alphabet": null,
   "area": {
     "c_13301f74": [
       "e_15784d6f"
@@ -291,6 +290,5 @@
     "e_b6422ca4": "cat",
     "e_e6c0692f": "sparrow"
   },
-  "rho": {},
   "sheet": "sheet_24960b45"
 }
