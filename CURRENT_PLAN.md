@@ -1,26 +1,52 @@
 # Current Plan
 
-**Last Updated**: 2026-09-22 (nineteenth arc, **fifth sitting**) — **DOCKET 6l IS SOLVED, AND
-THE ANSWER IS THAT NOTHING WAS EVER MISCOUNTED. THE SUITE HAS NO FIXED SIZE: 66 TESTS EXIST
-ONLY WHEN CHROMIUM DOES. THE HEADLINE IS NOW DERIVED BY AN INSTRUMENT THAT REFUSES RATHER THAN
-REPORTS A ZERO — A DEFECT I FOUND IN MY OWN NEW TOOL, WHICH IS THE SHAPE THIS WHOLE ARC HUNTS.**
+**Last Updated**: 2026-09-24 (nineteenth arc, **sixth sitting**) — **THE RULED DOCKET IS FIVE-
+SIXTHS WORKED, AND THE ALPHABET QUESTION TURNED OUT TO BE A DIFFERENT QUESTION. THE AUTHOR
+RULED: THE ALPHABET IS DERIVED FROM THE INK, NOT STORED. IT IS IMPLEMENTED, IT WORKS, AND IT
+IS PARKED ON A BRANCH BECAUSE IT MOVES ALL THREE CALCULUS EXTENTS.**
 
-**State: clean once committed.** Full suite **5,182 passed / 342 skipped / 10 deselected /
-2 xfailed / 0 failed, 44 min, pytest exit 0** — the first run in this arc with no failure at
-all (`test_memory_stability`, the documented warm-process flake, passed). Quality gate green,
-166 core tests. Knowledge graph current. `.core_modification_authorized` absent and not needed:
-this sitting touched no calculus module.
+**State: `main` is clean and green at `a17c9d3`.** Quality gate ✅, 166 core tests, calculus
+structure/refusal/round-trips all pass. `.core_modification_authorized` absent. Knowledge graph
+current. The parked work is committed on branch **`alphabet-derived`** (`42819a7`) — nothing is
+uncommitted anywhere.
 
-**The headline is 5,526 outcomes = 5,513 selected + 13 module-level skips**, and that figure was
-**predicted before the run and matched exactly**. Regenerate it, never retype it:
+**▶ START HERE — one task, and it should be the first thing this sitting does, not the last.**
 
-```bash
-uv run python tools/suite_census.py                      # ~5 s, names the browser gate
-uv run pytest tests/ -q | tee run.log
-uv run python tools/suite_census.py --against run.log    # exits non-zero if it does not close
-```
+**Land `alphabet-derived` by earning the re-pin.** The branch derives `alphabet` and `rho` in
+`__post_init__` instead of storing them. It is *right* and it is *proved to work* everywhere
+except the calculus instrument, which it moves in all three layers. Re-pinning extents is the
+single most consequential act in this repository — it is also exactly how an unsound move would
+be hidden — so it wants a sitting that **begins** with it and has room for the **2 h 29 m
+exhaustive pass**.
 
-**▶ PICK UP HERE — what is left, in the order I would take it.**
+The protocol, in order:
+
+1. `git checkout alphabet-derived`, re-read `42819a7`'s message: it records the ruling, the
+   measurements behind it, and the three Dau citations that settled the conventions.
+2. **Restate `calculus_expected.maps_carried`'s alphabet clause.** It asserts
+   `g.alphabet.R ⊆ h.alphabet.R` — the alphabet must never lose a name. Under derivation, ERA
+   removes the last use of a relation and the derived alphabet *correctly* shrinks, which is
+   the whole of the **1,205** structure failures. That clause tests the **stored summary**, not
+   the calculus. Decide what replaces it (probably: nothing, or "equals the derived alphabet",
+   which is true by construction and therefore worthless — say so if you drop it).
+3. **Earn the ledger shrink.** `era-also-erases-the-vertex-it-isolates` has **266 instances that
+   no longer fail**. That is a real improvement — deriving ρ made the engine's result and the
+   licensed form agree where a stale partial ρ had made them differ — but a SHRINK is *earned*,
+   never taken. Account for the instances before shrinking the entry.
+4. **Re-pin all three extents deliberately** — refusal, structure, soundness — per standing
+   caution 2. `test_refusal_agreement` and `test_refusal_extent` both moved, which means
+   **which moves the engine applies has changed**; that is the claim the exhaustive pass exists
+   to check. Watch the *passing* keys in the extent diff too: a rule silently switched off looks
+   exactly like a rule fixed.
+5. **Run `-m exhaustive`** (~2 h 29 m) and hold the result against the pins. Only then merge.
+
+**What must not happen:** merging with the extents re-pinned but unproved. The one thing this
+suite must never do is ledger an unsound move as accepted.
+
+**Then, still open:** **9f** — clause 3 over `CLAUDE.md`'s Architecture module list, which is
+where today's false claim (CLAUDE.md:237) came from without anyone looking for it.
+
+**▶▶ The fifth sitting's pick-up list (SUPERSEDED — 9a–9d and 9e-0 are DONE; the alphabet is parked on a branch; only 9f remains from it).**
 
 1. **Docket 6f's remaining two serve paths** — `GET /api/diagram/session/{id}` and
    `POST /api/transform/{undo,redo}` serve stored DTOs unre-attested;

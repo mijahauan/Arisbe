@@ -826,7 +826,7 @@ ascending risk, not by decision number.
       design ("intrinsic ambiguity, not a bug"). Fix = individualize a tied element, re-refine,
       emit the lexicographic minimum, under a budget. **Touches no calculus-map module.**
       Retires the strict xfail `test_egif_generation_is_deterministic_on_symmetric_lines` as XPASS.
-- [ ] **9e-0. PREREQUISITE, found 2026-09-24 while starting 9e: one finaliser, not three,
+- [x] **9e-0. DONE 2026-09-24 (`a17c9d3`). PREREQUISITE, found 2026-09-24 while starting 9e: one finaliser, not three,
       and it must stop dropping fields.** `_finalize_alphabet_and_rho` exists in **three
       copies** — `egif_parser_dau:1050`, `cgif_parser_dau:707`, `clif_parser_dau:787` — the
       same "one rule, three implementations" shape the INS defect taught this project. All
@@ -838,7 +838,28 @@ ascending risk, not by decision number.
       Consolidate into one field-preserving helper in `egi_core_dau` (which owns `AlphabetDAU`),
       beside `_extended_alphabet`, which `formal_transformation_rules` already has and the
       builders will need.
-- [ ] **9e. Decisions 5A + 6A — THE ALPHABET. These are ONE change, not two.** Wiring
+- [~] **9e. PARKED ON BRANCH `alphabet-derived` (`42819a7`) 2026-09-24 — and the question
+      changed under measurement.** The author ruled: **the alphabet is derived from the ink,
+      not stored**, superseding Decision 6A (there is nothing to extend once nothing is
+      stored; the `with_edge` growth written for 6A proved unnecessary and was reverted).
+      The prompt for the re-framing was the author's own question — *the EPG lets the
+      Graphist name new individuals not yet in the model; does that bear on this?* It did.
+      Sources: **Roberts** (*Existential Graphs of Peirce*, ~p.32, citing LN 103r–106r) — the
+      universe "becomes more determinate as the graphist … proceeds with his business";
+      `ENDOPOREUTIC_GAME_GUIDE.md:124`; `DOMAIN_ORACLE_AND_M.md:267` ("skolemization is the
+      contest game's business"). Against which: **Dau fixes the alphabet for the calculus**
+      (Def 12.6/23.1 + "EGIs **over** the alphabet", Def 15.2). The two sit at different
+      layers, and seeing that exposed the real defect — `alphabet` held *a summary of the
+      names used* in a field meaning *the alphabet the graph is over*.
+      **Decisive measurements:** 0 of 15 corpus alphabets declare an unused name; 0 of 11
+      stored rhos disagree with their vertices; nothing in the codebase ever *declares* a
+      vocabulary (all four construction sites derive from ink). So the field has never once
+      held a declaration.
+      **Dau settled two conventions against expectation:** Def 23.2 — constants label
+      **edges**, not vertices; Def 24.1 — `ρ : V → {∗} ∪ C` is **total** on V.
+      **Blocks the merge:** all three calculus extents move (structure 1,205; refusal
+      agreement + extent; soundness extent) and a 266-instance ledger shrink must be earned.
+      See CURRENT_PLAN's ▶ START HERE for the protocol. Original note: **9e. Decisions 5A + 6A — THE ALPHABET. These are ONE change, not two.** Wiring
       `egif_parser_dau._finalize_alphabet_and_rho` is what makes both visible: of the 239 failing
       items, 2 are the two-arity fixtures (5A) and ~237 are builders not growing the alphabet
       (6A). Doing 5 alone is incoherent — nothing fails until the alphabet is wired.
