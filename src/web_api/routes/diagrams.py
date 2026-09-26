@@ -24,6 +24,8 @@ from correspondence_attestation import (
     CorrespondenceViolation,
     attest_correspondence,
 )
+from layout_dto import Point
+from presentation_ops import point_in_cut, resolve_cut_boundaries
 
 router = APIRouter(prefix="/api")
 
@@ -229,16 +231,21 @@ async def area_at_point(request: AreaAtPointRequest):
 
         egi = session.current_egi
         dto = session.current_layout_dto
-        x, y = request.x, request.y
+        point = Point(request.x, request.y)
 
-        # Find deepest cut containing the point
+        # Find the deepest cut whose *drawn* shape contains the point — the same
+        # containment §3.3 uses, not the bounding box (a box corner lies outside
+        # an oval or rounded cut, on the sheet the picture shows). Docket 6m.
+        cut_shape = getattr(dto.style, "cut_shape", "rounded_rectangle")
+        cut_radius = float(getattr(dto.style, "cut_corner_radius", 0) or 0)
+        boundaries = resolve_cut_boundaries(dto)
         best_area_id = egi.sheet
         best_depth = 0
 
         for cut_id, bounds in dto.cut_bounds.items():
             if cut_id == dto.sheet_id:
                 continue
-            if bounds.min_x <= x <= bounds.max_x and bounds.min_y <= y <= bounds.max_y:
+            if point_in_cut(point, bounds, cut_shape, cut_radius, boundaries.get(cut_id)):
                 try:
                     _, depth = egi.area_polarity(cut_id)
                 except Exception:

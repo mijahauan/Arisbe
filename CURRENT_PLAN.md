@@ -48,7 +48,17 @@ real failure, flipping the kind from `DIFFERS` to `DIFFERS+MAPS:alphabet`, and t
 reports a re-kinded key as "no longer fails". All 285 came back the moment the clause went.
 **A shrink line is not evidence until you have reproduced one instance by hand.**
 
-**Still open from the earlier docket:** 6f's two remaining serve paths; 6j/6k (recorded
+**6f is CLOSED (checked against the code 2026-09-25, eighth sitting).** Its "two remaining
+serve paths" were re-attested by 9a (`cf6d8c7`), and this line went on listing them — the same
+shape as the `052b3ec` finding below. Every route that returns a drawing was traced: each
+either re-renders through `generate_layout`, goes through `attest_and_render`, or re-attests a
+stored pair. The one partial check left is `generate_overview_layout`'s quotient, and it
+says so itself. **One new finding came out of the sweep — 6m in `tasks/todo.md`:**
+`POST /api/area/at-point` works out which area a click lands in from the cut's *bounding box*,
+not its drawn curve. **Fixed 2026-09-26** — it now uses `presentation_ops.point_in_cut`, pinned by
+`tests/test_area_at_point.py`.
+
+**Still open from the earlier docket:** 6j/6k (recorded
 defects on code with no live caller — each wants a ruling more than effort); clause 3 over
 `CLAUDE.md`'s Architecture module list (9f); whether the census belongs in the quality gate.
 

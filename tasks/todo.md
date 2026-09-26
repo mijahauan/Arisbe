@@ -664,8 +664,13 @@ currently false as written. The rest need a ruling because they change behaviour
       DTOs by design and are annotation-only). It carries a second, deterministic assertion
       because the geometric one only bites when the rebuild actually moves something —
       which is why the defect survived. **Shown to bite by reverting the fix in the source.**
-      STILL OPEN: `GET /api/diagram/session/{id}` and `POST /api/transform/{undo,redo}`
-      serve stored DTOs unre-attested, and `generate_overview_layout` attests the quotient.
+      ~~STILL OPEN: `GET /api/diagram/session/{id}` and `POST /api/transform/{undo,redo}`
+      serve stored DTOs unre-attested~~ — **CLOSED by 9a (`cf6d8c7`); verified against the
+      code 2026-09-25.** The real routes are `GET /api/session/{id}`, `POST /api/undo`,
+      `POST /api/redo`; all three re-attest, pinned by `tests/test_session_serve_attestation.py`
+      (6 pass). Sweep of every other drawing-returning route: Ergasterion (11 payload sites)
+      and Agon (4) all use a freshly `generate_layout`ed DTO or `attest_and_render`; Organon's
+      chain player re-renders. `generate_overview_layout` attests the quotient, documented.
       Original note follows.
       Three gaps, in descending severity: (i) the **deltas path** calls
       `rebuild_ligature_anchors` — a geometry change — *after* the last attestation, and the
@@ -792,6 +797,31 @@ currently false as written. The rest need a ruling because they change behaviour
       collection, failing with "read why this moved, then re-pin deliberately". **Not built
       on purpose:** it reddens the suite on every added test until the doc is updated, and
       that is a change to the working rhythm, which is the author's call.
+- [x] **6m. DONE 2026-09-26 — the route now asks `point_in_cut`.** `diagrams.area_at_point`
+      tests each cut against its drawn shape (style `cut_shape` + `cut_corner_radius`, the
+      polyline of record from `resolve_cut_boundaries` for a freeform cut), exactly as §3.3 does.
+      `tests/test_area_at_point.py` (9 cases × default/oval styles): a bbox corner reads the
+      sheet, the centre reads the cut, and in a nested pair an inner-box corner inside the outer
+      curve reads the outer cut. Red before the fix (6 failed, the 3 centre cases passing), green
+      after. Original note follows.
+      **Was: `POST /api/area/at-point` works out a click's area from a bounding box, not the drawn
+      curve (found 2026-09-25 while closing 6f).** `diagrams.area_at_point` tests
+      `min_x <= x <= max_x and min_y <= y <= max_y` on `dto.cut_bounds`. The drawn cut is an
+      inscribed ellipse (oval styles) or a rounded rectangle (the default), and
+      `presentation_ops.point_in_cut` — the helper §3.3 itself uses — already tests the drawn
+      shape. **Reproduced through the real route** on `(P "a") ~[ (Q "a") ]`, at a point
+      0.5 px inside the bbox corner: in the default (`rounded_rectangle`, r=8),
+      `peirce-authentic@1.0` (oval) and `sowa-compliant@1.0` (oval) styles alike, the route
+      answers **the cut, negative**, while the drawn curve puts the point **on the sheet**. So
+      the viewer reports a polarity for a place the picture shows as outside the cut
+      (charter principle 4, *the picture never lies*). The engine still checks polarity itself,
+      so this is a wrong *target*, not an unsound move — but INS/DC+ then act on an area the
+      user did not point at. **Blast radius:** its one caller is `main.js:231`
+      (`handleAreaClick`), loaded only by `legacy-viewer.html`, the "scratch viewer (legacy)"
+      linked from `index.html`; `GET /api/areas/{id}` beside it serves bbox bounds as data and
+      makes no containment claim. Fix, if wanted: `point_in_cut(p, bounds, dto.style.cut_shape,
+      dto.style.cut_corner_radius, resolve_cut_boundaries(dto).get(cid))`, plus a test at the
+      bbox corner. Or retire the legacy viewer's area-click; that choice is the author's.
 
 ---
 
