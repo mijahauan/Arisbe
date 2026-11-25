@@ -1,15 +1,17 @@
 """How each Dau rule reaches the engine (spec 2026-09-10 §1a.2).
 
 A refusal is the engine's own rejection; any other exception is a crash, and
-a crash is a defect. Kept apart from calculus_rules so legal() never shares a
-module with the engine.
+a crash is a defect. Kept apart from the kernel (``src/dau_kernel.py``, where
+legal() lives) and from calculus_rules, so neither shares a module with the
+engine.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import FrozenSet, Optional
 
-from calculus_rules import RULES, Move
+from calculus_rules import RULES
+from dau_kernel import Move
 from egi_core_dau import RelationalGraphWithCuts
 from formal_transformation_rules import FormalTransformationEngine
 from ligature_manipulation_rules import LigatureManipulationEngine

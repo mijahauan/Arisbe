@@ -5,7 +5,7 @@ import pytest
 from calculus_apply import Outcome
 from calculus_layers import soundness
 from calculus_ledger import assert_extent, check_ledger
-from calculus_rules import Move
+from dau_kernel import Move
 from calculus_run import MODES, Record, failure_of, on_legal_moves, run
 from egif_parser_dau import parse_egif
 

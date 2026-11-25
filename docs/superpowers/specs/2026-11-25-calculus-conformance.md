@@ -70,6 +70,26 @@ model (`egi_core_dau`), `eg_navigation.same_graph`, and `egif_parser_dau` (for I
 Those four modules are the **trusted base**. The rule engine, the interaction protocol, the closure
 analyser, the ligature engine, the layout and the UI are outside it.
 
+> **Measured in Phase 1 (2026-11-25): the three named modules are not closed under import, so the
+> trusted base is larger than this paragraph says.** Read from the imports by
+> `tests/test_dau_kernel.py`, which pins the result:
+>
+> - *loaded when the kernel is imported:* `presentation_ops` and `layout_dto`, because
+>   `eg_navigation` imports them at its top — so "the layout is outside it" does not hold of the
+>   layout's data types;
+> - *reached by calls the kernel makes:* `hierarchical_index` (every graph builds one) and
+>   `graph_isomorphism_engine` with `canonical_signature` — `same_graph` is that engine's verdict,
+>   so it is where "the result is a licensed one" is decided. `formal_transformation_rules` and
+>   `rule_interaction` import that same isomorphism engine, so the judge and the judged share it;
+> - *reachable through functions the kernel does not call:* `subgraph_closure_validator` (the
+>   closure analyser, from `eg_navigation`) and `render_geometry` (from `presentation_ops`).
+>
+> No rule-engine module is in that closure, and the same test holds that. Whether the kernel should
+> take `same_graph` by a shorter road (from `graph_isomorphism_engine` directly, shedding
+> `eg_navigation`, `presentation_ops`, `layout_dto`, `render_geometry` and the closure analyser) is
+> the author's ruling; Phase 1 moved the oracle unchanged and did not take it. Phase 5's
+> trusted-base document must list what is pinned there, not the three names above.
+
 ### 3.2 The certificate
 
 A certificate is a list of primitive steps `(rule, selection, target, content, hooks)`, each

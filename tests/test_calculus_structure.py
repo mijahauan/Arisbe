@@ -8,10 +8,10 @@ from frozendict import frozendict
 import eg_navigation as nav
 from calculus_apply import Outcome, apply_move
 from calculus_enum import DEFAULT_BOUNDS, tier_a
-from calculus_expected import expected, iterate, maps_carried
+from dau_kernel import expected, iterate, maps_carried
 from calculus_layers import structure
 from calculus_ledger import Failure, assert_extent, check_ledger, ledgered
-from calculus_rules import Move
+from dau_kernel import Move
 from calculus_run import Record, run
 from egif_parser_dau import parse_egif
 from tarski import dominating_nodes
@@ -80,7 +80,7 @@ def test_expected_results_carry_the_maps():
     and this would have tested nothing. A constant vertex now *is* the rho
     entry, which is why the assertion reads the same but is checking that the
     licensed form carried the vertex across rather than a dict alongside it."""
-    from calculus_expected import double_cut
+    from dau_kernel import double_cut
     g = parse_egif('(P "a")')
     v = next(iter(g.V)).id
     assert dict(g.rho) == {v: "a"}, "the source's own ink states rho"
@@ -91,7 +91,7 @@ def test_expected_results_carry_the_maps():
 def test_double_cut_of_a_cut_named_with_its_contents():
     """Task 7 review: naming a cut with some of its contents names the cut
     alone (Def 12.10, p.134); the raw selection built an invalid graph."""
-    from calculus_expected import double_cut
+    from dau_kernel import double_cut
     g = parse_egif("~[ (P *x) ]")
     c = next(iter(g.Cut)).id
     e, v = next(iter(g.nu)), next(iter(g.V)).id

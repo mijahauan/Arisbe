@@ -52,10 +52,10 @@ from calculus_adjudication import P, _entail  # noqa: E402
 from calculus_classifiers import classify as _classify, closed as _closed  # noqa: E402
 from calculus_classifiers import failure_kind, orphans as _orphans  # noqa: E402
 from calculus_enum import DEFAULT_BOUNDS, dominating_violations, tier_a, tier_b_sources  # noqa: E402
-from calculus_expected import _g, iterate, remove  # noqa: E402
+from dau_kernel import _g, iterate, remove  # noqa: E402
 from calculus_layers import structure  # noqa: E402
 from calculus_ledger import LEDGER, refresh_reasons, update_ledger  # noqa: E402
-from calculus_rules import expand, tops  # noqa: E402
+from dau_kernel import expand, tops  # noqa: E402
 from calculus_run import records  # noqa: E402
 from egif_parser_dau import parse_egif  # noqa: E402
 from tarski import dominating_nodes  # noqa: E402

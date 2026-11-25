@@ -23,7 +23,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
-from calculus_rules import LIGATURE_RULES, expand
+from calculus_rules import LIGATURE_RULES
+from dau_kernel import expand
 
 HERE = Path(__file__).resolve().parent
 LEDGER = HERE / "calculus_ledger.json"

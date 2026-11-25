@@ -19,8 +19,8 @@ from typing import Callable, Dict, Tuple
 
 import eg_navigation as nav
 from calculus_enum import edges_on
-from calculus_expected import remove
-from calculus_rules import expand, positive, tops
+from dau_kernel import remove
+from dau_kernel import expand, positive, tops
 from tarski import dominating_nodes
 
 Pred = Callable[[object, str], bool]

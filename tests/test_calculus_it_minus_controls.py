@@ -29,7 +29,7 @@ import pytest
 from calculus_adjudication import IT_MINUS_CONTROLS, control_selection
 from calculus_apply import apply_move
 from calculus_layers import soundness
-from calculus_rules import Move, legal
+from dau_kernel import Move, legal
 from calculus_run import MODES, Record
 from egif_parser_dau import parse_egif
 

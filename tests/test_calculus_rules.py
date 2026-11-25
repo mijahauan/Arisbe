@@ -9,9 +9,8 @@ import inspect
 import pytest
 
 from calculus_apply import Outcome, apply_move, engine_entry_points
-from calculus_rules import (
-    DAU_RULES, INS_CATALOGUE, RULES, UNIMPLEMENTED, Move, moves, units,
-)
+from calculus_rules import DAU_RULES, INS_CATALOGUE, RULES, UNIMPLEMENTED, moves, units
+from dau_kernel import Move
 from egif_parser_dau import parse_egif
 
 

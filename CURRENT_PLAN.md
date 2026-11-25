@@ -1,19 +1,59 @@
 # Current Plan
 
-**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phase 0 is done.**
+**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phases 0 and 1 are done.**
 
-**▶ START HERE — Phase 1 of
+**▶ START HERE — Phase 2 of
 [the calculus-conformance directive](docs/superpowers/plans/2026-11-25-calculus-conformance-directive.md):
-extract the kernel, changing no behaviour.** The specification is
+certify, observing only.** The specification is
 [2026-11-25-calculus-conformance.md](docs/superpowers/specs/2026-11-25-calculus-conformance.md);
 read it in full first. The directive supersedes the September block below — docket item 10 (the
 UoD alphabet) waits behind this arc.
 
-*Phase 1, in the directive's words:* move `legal()` and its helpers, the licensed-result
-constructors and `postconditions` from `tests/calculus_rules.py` and `tests/calculus_expected.py`
-into `src/dau_kernel.py`; the tests import the kernel; add a test that fails if the kernel imports
-anything outside the trusted base. **Gate:** the default calculus suite passes with
-`tests/calculus_extent.json` byte-identical.
+*Phase 2, in the directive's words:* build `certify()` and the certificate (§3.2) and route every
+path from the Phase 0 map (§3.3a) through it, in **observe mode** — certificates computed and
+checked, failures counted, not raised. Type every recorded act by the §3.4 classes. **Gate:** the
+kernel rejects exactly the moves the ledger's SEVERE, DIFFERS and NOT-AN-EQUIVALENCE entries
+describe, and nothing else; any other rejection is a finding — stop and report it. Two things
+Phase 2 already owes, from the notes below: a named ledger entry for the discharge's unrecorded
+normalisation (finding 2), and the knowledge that its gate speaks for the protocol path only
+(finding 1).
+
+**What Phase 1 did (2026-11-25).** A pure move; no behaviour changed.
+- `src/dau_kernel.py` (971 lines) now holds Dau's rule table, `Move`, `legal()` with all its
+  helpers, and the licensed results (`acceptable`, the reference constructors, `maps_carried`,
+  `postconditions`). `tests/calculus_expected.py` is gone; `tests/calculus_rules.py` keeps the
+  suite's own half — which engine entry point performs each rule (`ENGINE`), and `moves()`.
+- **Proved verbatim, not asserted:** every top-level definition of the two old modules was
+  located in its new home and compared by syntax tree — 70 identical; the 2 that differ are the
+  rule table, rebuilt as kernel table + engine map (equal to the old one field for field, 20
+  rules, in order) and the kernel's own `RULES` index over it.
+- **Gate met:** 311 passed, 10 deselected (the exhaustive marks), over the calculus suite and
+  every test file that touches the moved modules; `tests/calculus_extent.json` and
+  `tests/calculus_ledger.json` byte-identical (SHA-256 checked before and after, and
+  `git diff` empty). **The exhaustive mode was not run** — nothing it reads changed but the
+  location of the functions.
+- `tests/test_dau_kernel.py` (14 tests) holds the kernel to its permitted imports, shown to bite
+  on eight planted ones, and holds that the suite judges with the kernel's functions and keeps
+  no copy.
+
+**Four things Phase 1 found or chose, for the author:**
+1. **The trusted base is larger than §3.1 says.** Its three named modules are not closed under
+   import: `eg_navigation` loads `presentation_ops` and `layout_dto`; `same_graph` is decided by
+   `graph_isomorphism_engine` (+ `canonical_signature`), which the rule engine also imports;
+   every graph builds a `hierarchical_index`; `subgraph_closure_validator` and `render_geometry`
+   are reachable through functions the kernel does not call. No rule-engine module is in the
+   closure. The test pins all of it; a measured note sits under §3.1. **Open: should the kernel
+   take `same_graph` from `graph_isomorphism_engine` directly?** Not taken — it is a ruling.
+2. **The engine column stayed in the tests.** The kernel's `Rule` is (name, cite, direction,
+   judged); `calculus_rules.ENGINE` says which code performs each. Phase 3 changes entry points,
+   and the judge should not have to be edited when it does.
+3. **`dominating_nodes` is a copy, not a move** — `tests/tarski.py` keeps its own so the semantic
+   evaluator borrows nothing from the kernel it checks. (Since Def 12.5 is enforced at
+   construction, that branch of `legal()` cannot be reached by a constructed graph either way.)
+4. **Two loose ends, deliberately left:** `src/ligature_manipulation_rules.py:483` has a comment
+   naming `tests/calculus_rules._extend_ligature`, now `dau_kernel._extend_ligature` — a
+   calculus-map module, so not edited without the pause; and the kernel is **not on the calculus
+   map** (`tools/core_protection_system.py`), which is the author's to decide.
 
 **What Phase 0 did (2026-11-25).** No code changed.
 - `main` was level with origin at `655a88c` before anything was committed.

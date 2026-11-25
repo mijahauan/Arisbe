@@ -47,7 +47,7 @@ from calculus_classifiers import classify as _classify, failure_kind  # noqa: E4
 from calculus_enum import edges_on  # noqa: E402
 from calculus_layers import refusal  # noqa: E402
 from calculus_ledger import refresh_reasons, update_ledger  # noqa: E402
-from calculus_rules import Move, expand, legal, tops  # noqa: E402
+from dau_kernel import Move, expand, legal, tops  # noqa: E402
 from calculus_run import records  # noqa: E402
 from tarski import dominating_nodes, satisfies, universe, vocabulary
 import eg_navigation as nav

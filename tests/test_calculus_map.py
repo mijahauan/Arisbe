@@ -296,7 +296,7 @@ def test_each_suite_actually_exercises_the_module_it_attests():
 
     Directly, or through one of its own ``tests/`` adapters — the calculus suite
     deliberately routes every engine call through ``calculus_apply`` so that
-    ``calculus_rules.legal()`` can stay engine-free, and that indirection is the
+    ``dau_kernel.legal()`` can stay engine-free, and that indirection is the
     design, not an accident. What does NOT count is reaching the module because
     some unrelated module happens to import it; that is how a contract goes
     unpinned while its code still runs.

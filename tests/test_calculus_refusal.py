@@ -23,7 +23,7 @@ def test_key_separates_a_target_that_is_selected():
     """Task 6 review: signing the target alone merged an illegal move (IT+ of a
     cut into itself, Def 15.2 p.164: c ∉ Cut₀) with a legal sibling."""
     from calculus_ledger import instance_key
-    from calculus_rules import Move
+    from dau_kernel import Move
     from canonical_signature import compute_canonical_signatures
     from egif_parser_dau import parse_egif
 
@@ -39,7 +39,7 @@ def test_key_separates_a_selection_by_its_incidences():
     (an edge with its own vertex: legal) with ERA{e1,v2} (an edge and a
     stranger's vertex: the stranger's edge would dangle) in (P *x) (P *y)."""
     from calculus_ledger import instance_key
-    from calculus_rules import Move, legal
+    from dau_kernel import Move, legal
     from canonical_signature import compute_canonical_signatures
     from egif_parser_dau import parse_egif
 
@@ -59,7 +59,7 @@ def test_key_separates_a_target_that_encloses_the_selection():
     key while the target was signed only by its relation to the selection."""
     from calculus_enum import build
     from calculus_ledger import instance_key
-    from calculus_rules import Move, legal
+    from dau_kernel import Move, legal
     from canonical_signature import compute_canonical_signatures
 
     # built directly, as tier A builds it: EGIF has no 0-ary relation syntax
@@ -77,7 +77,7 @@ def test_key_separates_a_selection_by_its_common_context():
     key; the pair's lowest common context now separates them."""
     from calculus_enum import build
     from calculus_ledger import instance_key
-    from calculus_rules import Move
+    from dau_kernel import Move
     from canonical_signature import compute_canonical_signatures
 
     g = build({"c1": "S", "c2": "S"}, [], [("r", (), "c1"), ("q", (), "c1"), ("r", (), "c2")])
@@ -93,7 +93,7 @@ def test_key_separates_a_target_within_the_source_context():
     meets each selected element's context."""
     from calculus_enum import build
     from calculus_ledger import instance_key
-    from calculus_rules import Move, legal
+    from dau_kernel import Move, legal
     from canonical_signature import compute_canonical_signatures
 
     g = build({"c1": "S", "c2": "S", "c3": "c1", "c4": "c1", "c5": "c2"}, [], [])
@@ -108,7 +108,7 @@ def test_key_separates_a_target_within_the_source_context():
 def test_an_abstention_is_labelled_by_its_reason():
     from calculus_apply import Outcome
     from calculus_layers import refusal
-    from calculus_rules import Move
+    from dau_kernel import Move
     from calculus_run import Record
     from egif_parser_dau import parse_egif
 
@@ -127,7 +127,7 @@ def test_a_core_refusal_of_a_non_egi_has_its_own_label():
     still fails, so the new label cannot hide an incomplete engine."""
     from calculus_apply import CORE_NON_EGI, Outcome
     from calculus_layers import refusal, soundness, structure
-    from calculus_rules import Move
+    from dau_kernel import Move
     from calculus_run import Record
     from egif_parser_dau import parse_egif
 
@@ -150,7 +150,7 @@ def test_heavy_dot_classifier_requires_a_positive_context():
     its classifier must not claim a refusal in a negative one."""
     from calculus_apply import Outcome
     from calculus_classifiers import REFUSAL
-    from calculus_rules import Move
+    from dau_kernel import Move
     from calculus_run import Record
     from egif_parser_dau import parse_egif
 
@@ -168,7 +168,7 @@ def test_vertex_era_classifier_requires_a_negative_context():
     not claim a refusal in a positive one."""
     from calculus_apply import Outcome
     from calculus_classifiers import REFUSAL
-    from calculus_rules import Move
+    from dau_kernel import Move
     from calculus_run import Record
     from egif_parser_dau import parse_egif
 
@@ -189,7 +189,7 @@ def test_vertex_era_erases_a_line_classifier_requires_edges():
     from calculus_apply import Outcome
     from calculus_classifiers import REFUSAL
     from calculus_enum import edges_on
-    from calculus_rules import Move
+    from dau_kernel import Move
     from calculus_run import Record
     from egif_parser_dau import parse_egif
 

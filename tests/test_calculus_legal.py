@@ -6,7 +6,8 @@ this reading of Dau, never about an unstated assumption.
 """
 import pytest
 
-from calculus_rules import DAU_RULES, UNIMPLEMENTED, Move, legal
+from calculus_rules import DAU_RULES, UNIMPLEMENTED
+from dau_kernel import Move, legal
 from egif_parser_dau import parse_egif
 
 
@@ -309,12 +310,28 @@ def test_it_minus_identity_edge_reaching_outside_the_copy_is_not_judged():
 
 
 def test_legal_never_consults_the_engine():
+    """Read from the imports of the module ``legal`` actually lives in — the
+    kernel since 2026-11-25 — and of ``calculus_rules``, which still enumerates
+    the moves. (This searched ``calculus_rules``'s text; ``legal`` is no longer
+    there, and a text search would have gone on passing over a file that no
+    longer held its subject. ``test_dau_kernel.py`` holds the kernel to its
+    whole permitted import list; this keeps the six names it always named.)"""
+    import ast
+    import inspect
+
     import calculus_rules
-    src = open(calculus_rules.__file__).read()
-    for forbidden in ("formal_transformation_rules", "subgraph_closure_validator",
-                      "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring",
-                      "ligature_manipulation_rules"):
-        assert forbidden not in src, forbidden
+
+    for path in (inspect.getsourcefile(legal), calculus_rules.__file__):
+        imported = set()
+        for node in ast.walk(ast.parse(open(path).read())):
+            if isinstance(node, ast.Import):
+                imported |= {a.name.split(".")[0] for a in node.names}
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                imported.add(node.module.split(".")[0])
+        for forbidden in ("formal_transformation_rules", "subgraph_closure_validator",
+                          "rule_interaction", "vertex_splitting_merging_rules", "proof_authoring",
+                          "ligature_manipulation_rules"):
+            assert forbidden not in imported, (path, forbidden)
 
 
 def test_ins_refuses_a_name_at_another_arity():

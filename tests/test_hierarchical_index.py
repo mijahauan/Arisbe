@@ -19,7 +19,7 @@ ERA and INS licensing invert in silence. A one-level error is a soundness error.
 
 The oracle here is `tests/calculus_enum`'s `ancestors` / `all_areas`, which walk
 `egi.area` directly and never consult the index — the same engine-free discipline
-`calculus_rules.legal()` keeps.
+`dau_kernel.legal()` keeps.
 
 What is deliberately *not* asserted: the module's dead half. `get_polarity`,
 `get_parent`, `get_children`, `get_areas_at_level`, `get_positive_areas`,

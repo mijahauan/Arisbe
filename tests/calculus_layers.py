@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
-from calculus_expected import acceptable, maps_carried, postconditions
+from dau_kernel import acceptable, maps_carried, postconditions
 from calculus_rules import RULES
 from tarski import dominating_nodes, model_set, universe, vocabulary
 
@@ -79,7 +79,7 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     only; ``egi-only`` — a move legal() does not judge. For the six rules in
     POSTCONDITION_RULES (the four ligature rules, split, merge) an ``egi-only``
     move is now checked for EGI-hood, maps, **and** the rule's postconditions
-    (calculus_expected.postconditions) — these rules re-plumb identity, and
+    (dau_kernel.postconditions) — these rules re-plumb identity, and
     the postconditions are the check a built licensed form would otherwise
     provide. Only an abstention on a *judged* rule is checked for EGI-hood and
     maps alone. A record whose source carries a B-min map is labelled with a
@@ -122,7 +122,7 @@ def structure(rec, cache) -> Tuple[str, Optional[str]]:
     # the alphabet and rho — after which `g.alphabet is not None` is true of
     # every graph ever built and `g.rho` is non-empty whenever V is, so the
     # suffix would have marked the whole extent and told no one anything. The
-    # alphabet clause is gone (calculus_expected.maps_carried says why) and rho
+    # alphabet clause is gone (dau_kernel.maps_carried says why) and rho
     # is checked only where it is a constant, which is what this now asks.
     maps = any(c is not None for c in g.rho.values()) or bool(g.sort or g.quotation)
     return f"{m.rule}:{kind}" + (":maps" if maps else ""), "; ".join(problems) or None

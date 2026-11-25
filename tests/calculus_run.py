@@ -15,7 +15,8 @@ from calculus_enum import (
 )
 from calculus_layers import LAYERS
 from calculus_ledger import Failure, instance_key, ledgered
-from calculus_rules import IMPLEMENTED, Move, expand, legal, moves
+from calculus_rules import IMPLEMENTED, moves
+from dau_kernel import Move, expand, legal
 from canonical_signature import compute_canonical_signatures
 
 

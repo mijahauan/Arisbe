@@ -113,7 +113,8 @@ def test_the_stress_tier_makes_move_branches_apply_somewhere():
     judges it legal, and it is an equivalence."""
     from calculus_apply import apply_move
     from calculus_enum import tier_s
-    from calculus_rules import legal, moves
+    from calculus_rules import moves
+    from dau_kernel import legal
     g = dict(tier_s())["theta-in-one-context"]
     applied = [m for m in moves("MOVE_BRANCHES", g, "S") if apply_move(g, m).applied]
     assert applied, "MOVE_BRANCHES applies on no tier-S graph: the rule is unmeasured"

@@ -18,6 +18,7 @@ from frozendict import frozendict
 
 import eg_navigation as nav
 from canonical_signature import compute_canonical_signatures
+from dau_kernel import all_areas, ancestors, edges_on  # noqa: F401  (re-exported)
 from egi_core_dau import Cut, Edge, RelationalGraphWithCuts, Vertex
 
 G = RelationalGraphWithCuts
@@ -53,28 +54,14 @@ REQUIRED_SHAPES = frozenset({
 
 # -- area helpers -------------------------------------------------------------
 
-def all_areas(g: G) -> List[str]:
-    return [g.sheet] + sorted(c.id for c in g.Cut)
-
-
-def ancestors(g: G, area: str) -> List[str]:
-    """``area`` and every context enclosing it, innermost first, ending at the sheet."""
-    out = [area]
-    while area != g.sheet:
-        area = g.get_context(area)
-        out.append(area)
-    return out
-
+# all_areas, ancestors and edges_on are the kernel's since 2026-11-25; they are
+# imported above and re-exported here, where the suite has always found them.
 
 def lca(g: G, areas: Iterable[str]) -> str:
     """The innermost context enclosing every area given."""
     chains = [ancestors(g, a) for a in areas]
     common = set(chains[0]).intersection(*map(set, chains[1:]))
     return next(a for a in chains[0] if a in common)
-
-
-def edges_on(g: G, vid: str) -> List[str]:
-    return sorted(e for e, seq in g.nu.items() if vid in seq)
 
 
 def line_above_uses(g: G, vid: str) -> bool:
