@@ -1,7 +1,8 @@
 """How each Dau rule reaches the engine (spec 2026-09-10 §1a.2).
 
 A refusal is the engine's own rejection; any other exception is a crash, and
-a crash is a defect. Kept apart from the kernel (``src/dau_kernel.py``, where
+a crash is a defect. Every application goes through ``calculus_certify.certify``,
+so the suite measures the engine by the same door production uses. Kept apart from the kernel (``src/dau_kernel.py``, where
 legal() lives) and from calculus_rules, so neither shares a module with the
 engine.
 """
@@ -10,16 +11,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import FrozenSet, Optional
 
+from calculus_certify import Act, Certificate, certify
 from calculus_rules import RULES
 from dau_kernel import Move
 from egi_core_dau import RelationalGraphWithCuts
 from formal_transformation_rules import FormalTransformationEngine
 from ligature_manipulation_rules import LigatureManipulationEngine
-from proof_authoring import apply_rule
 from rule_interaction import RULE_INTERACTIONS
-from vertex_splitting_merging_rules import (
-    VertexMergingRule, VertexSplitSpec, VertexSplittingRule,
-)
 
 G = RelationalGraphWithCuts
 
@@ -39,6 +37,7 @@ class Outcome:
     message: str
     crashed: bool = False
     core_refused_non_egi: bool = False
+    certificate: Optional[Certificate] = None    # the kernel's check of an applied move
 
 
 def engine_entry_points() -> FrozenSet[str]:
@@ -56,40 +55,28 @@ def apply_move(g: G, m: Move) -> Outcome:
     return out
 
 
-def _apply_move(g: G, m: Move) -> Outcome:
+# Each engine entry point the rule table names, as the way into the engine that
+# ``calculus_certify`` knows it by, and the rule's name on that way.
+def _act(m: Move) -> Act:
     engine = RULES[m.rule].engine
+    if engine in ("split", "merge"):
+        way, rule = ("split-unchecked", "SPLIT_VERTEX") if engine == "split" \
+            else ("merge-checked", "MERGE_VERTICES")
+    else:
+        way, rule = engine.split(":", 1)
+    return Act(way, rule, tuple(m.selection), m.target, m.content, tuple(m.hooks), dau_rule=m.rule)
+
+
+def _apply_move(g: G, m: Move) -> Outcome:
+    """Through ``certify`` — the one door to the engine since 2026-11-25. The
+    suite names the Dau rule it means (``dau_rule``), so the certificate judges
+    the engine's result under the same rule the ledger's entries are keyed by."""
+    if RULES[m.rule].engine is None:
+        raise KeyError(f"{m.rule} has no engine entry point")
     try:
-        if engine.startswith("protocol:"):
-            res = apply_rule(engine.split(":", 1)[1], g, selection=list(m.selection),
-                             egif=m.content, target=m.target)
-            return Outcome(True, res, "")
-        if engine.startswith("engine:"):
-            r = FormalTransformationEngine().apply_rule(
-                engine.split(":", 1)[1], g, m.target, frozenset(m.selection))
-            return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
-        if engine.startswith("ligature:"):
-            # A plain frozenset: the engine's choice of vertex within the
-            # selection is a function of the graph (canonical signature), so
-            # the suite no longer has to hand an order over to make a run
-            # deterministic (Task 7 retired calculus_apply.InOrder).
-            r = LigatureManipulationEngine().apply_rule(
-                engine.split(":", 1)[1], g, m.target, frozenset(m.selection))
-            return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
-        if engine == "split":
-            spec = VertexSplitSpec(source_vertex=m.selection[0], target_context=m.target,
-                                   hooks_to_move=list(m.hooks), new_vertex_id="split_new_v")
-            return Outcome(True, VertexSplittingRule()._apply_vertex_split(g, spec), "")
-        if engine == "merge":
-            # Def 16.6 merging names v1 and v2 in order (v2 into v1), which a
-            # frozenset selection cannot carry, so this is the rule's ordered
-            # entry point rather than apply_transformation. It checks the rule's
-            # own preconditions: _apply_vertex_merge, the private operation the
-            # suite used to call, performs the merge and checks nothing.
-            v1, v2, e = m.selection
-            r = VertexMergingRule().merge_vertices(g, v1_id=v1, v2_id=v2, identity_edge_id=e)
-            return Outcome(bool(r.success), r.result_egi if r.success else None, r.error_message or "")
-    except AssertionError as exc:          # the protocol's own rejection
+        result, certificate = certify(g, _act(m))
+        return Outcome(True, result, "", certificate=certificate)
+    except AssertionError as exc:          # the engine's own rejection, by any way in
         return Outcome(False, None, str(exc))
     except Exception as exc:               # anything else is a crash
         return Outcome(False, None, f"{type(exc).__name__}: {exc}", crashed=True)
-    raise KeyError(f"{m.rule} has no engine entry point")

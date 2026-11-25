@@ -985,3 +985,55 @@ def postconditions(g: G, m: Move, h: G) -> List[str]:
     if m.rule == "REARRANGE_LIGATURE":
         problems += _rearrange_ligature_ok(g, m, h)
     return problems
+
+
+# -- checking one step (calculus-conformance specification §3.2) ---------------
+
+# The rules whose licensed result is not built, so ``postconditions`` carries
+# the check instead.
+POSTCONDITION_RULES = frozenset({
+    "MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE",
+    "SPLIT_VERTEX", "MERGE_VERTICES",
+})
+
+ACCEPTED, REJECTED, UNJUDGED = "accepted", "rejected", "unjudged"
+
+
+@dataclass(frozen=True)
+class StepCheck:
+    status: str      # ACCEPTED | REJECTED | UNJUDGED
+    why: str
+
+
+def check_step(g: G, m: Move, h: G) -> StepCheck:
+    """Is ``h`` what Dau's rule ``m`` makes of ``g``?
+
+    ACCEPTED iff ``legal(g, m)`` holds and ``h`` is ``same_graph`` to one of the
+    licensed results — or, for the six rules whose result is not built,
+    ``postconditions(g, m, h)`` finds nothing. REJECTED when the move is not
+    legal or the result is not a licensed one. UNJUDGED when the kernel cannot
+    say: ``legal`` abstains, or no check of the result exists for the rule. An
+    unjudged step is not a certified one.
+    """
+    verdict, why = legal(g, m)
+    if verdict is None:
+        return StepCheck(UNJUDGED, why)
+    if not verdict:
+        return StepCheck(REJECTED, f"not a legal {m.rule}: {why}")
+    problems: List[str] = []
+    if not dominating_nodes(h):
+        problems.append("the result is not an EGI (Def 12.5)")
+    problems += maps_carried(g, h)
+    try:
+        forms = acceptable(g, m)
+    except ValueError as exc:
+        return StepCheck(UNJUDGED, f"not judged: {exc}")
+    if forms is None:
+        if m.rule not in POSTCONDITION_RULES:
+            return StepCheck(UNJUDGED, f"not judged: no licensed result is built for {m.rule}")
+        problems += postconditions(g, m, h)
+    elif not any(same_graph(f, h) for f in forms):
+        problems.append("the result differs from the licensed change")
+    if problems:
+        return StepCheck(REJECTED, "; ".join(problems))
+    return StepCheck(ACCEPTED, why)

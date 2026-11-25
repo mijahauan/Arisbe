@@ -5,18 +5,15 @@ from __future__ import annotations
 from typing import Callable, Dict, Optional, Tuple
 
 import eg_navigation as nav
-from dau_kernel import acceptable, maps_carried, postconditions
+from dau_kernel import POSTCONDITION_RULES, acceptable, maps_carried, postconditions
 from calculus_rules import RULES
 from tarski import dominating_nodes, model_set, universe, vocabulary
 
 Check = Callable[[object, dict], Tuple[str, Optional[str]]]
 
-# The rules whose licensed result is not built, so postconditions carry the
-# check instead (spec 2026-09-12 §3.1).
-POSTCONDITION_RULES = frozenset({
-    "MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARRANGE_LIGATURE",
-    "SPLIT_VERTEX", "MERGE_VERTICES",
-})
+# POSTCONDITION_RULES — the rules whose licensed result is not built, so
+# postconditions carry the check instead (spec 2026-09-12 §3.1) — is the
+# kernel's since 2026-11-25, imported above.
 
 
 # legal()'s abstentions, tagged so the extent shows which reason grew

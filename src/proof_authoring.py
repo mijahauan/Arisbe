@@ -31,13 +31,9 @@ real friction. The *logic* engine was solid; the *ergonomics* were the gap.
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from calculus_certify import Act, certify
 from egif_parser_dau import parse_egif
 from egi_core_dau import RelationalGraphWithCuts
-from rule_interaction import (
-    advance_interaction,
-    apply_interaction,
-    begin_interaction,
-)
 from tomos_service import ChainStep, TransformationChain
 from universe_of_discourse import (
     UniverseOfDiscourse,
@@ -64,6 +60,11 @@ def apply_rule(
     on any rejected step — an unsound move fails loudly rather than silently
     producing a wrong graph.
 
+    Since 2026-11-25 this goes through ``calculus_certify.certify`` (the one
+    door to the engine), which drives the protocol exactly as this function
+    used to and then has the kernel check the result. In observe mode that
+    check is counted and changes nothing here.
+
     Calling conventions (mirroring the protocol):
       * ``INS`` — ``egif`` (content) + ``target`` (a negative area)
       * ``IT+`` — ``selection`` (source) + ``target`` (a nested area)
@@ -72,33 +73,7 @@ def apply_rule(
         double cut there; no ``target`` falls back to the whole/common-area wrap
       * ``DC-`` / ``ERA`` / ``IT-`` — ``selection`` only
     """
-    state = begin_interaction(rule_name, egi)
-    if rule_name == "INS":
-        r1 = advance_interaction(state, egif)
-        assert r1.valid, f"INS content rejected: {r1.message}"
-        r2 = advance_interaction(state, target)
-        assert r2.valid, f"INS target rejected: {r2.message}"
-    elif rule_name == "IT+":
-        r1 = advance_interaction(state, selection)
-        assert r1.valid, f"IT+ source rejected: {r1.message}"
-        r2 = advance_interaction(state, target)
-        assert r2.valid, f"IT+ destination rejected: {r2.message}"
-    elif rule_name == "DC+" and target is not None:
-        # DC+ with an explicit spot (the SELECT_AREA step): an empty subject +
-        # a target area inserts a truly empty double cut there (``enclose_empty``);
-        # a non-empty selection encloses it in that area. Without a target this
-        # falls through to the single-step path (legacy whole-area / common-area
-        # wrap), so existing callers are unaffected.
-        r1 = advance_interaction(state, selection or [])
-        assert r1.valid, f"DC+ subject rejected: {r1.message}"
-        r2 = advance_interaction(state, target)
-        assert r2.valid, f"DC+ spot rejected: {r2.message}"
-    else:  # DC+, DC-, IT-, ERA — single selection step
-        r = advance_interaction(state, selection or [])
-        assert r.valid, f"{rule_name} rejected: {r.message}"
-    result = apply_interaction(state)
-    assert result.success, f"{rule_name} apply failed: {result.message}"
-    return result.result_egi
+    return certify(egi, Act("protocol", rule_name, tuple(selection or ()), target, egif))[0]
 
 
 def replay_step(

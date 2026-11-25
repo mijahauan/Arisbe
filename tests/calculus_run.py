@@ -88,6 +88,12 @@ class Run:
     moves: Counter = field(default_factory=Counter)
     skipped: Counter = field(default_factory=Counter)
     layers: Dict[str, LayerResult] = field(default_factory=dict)
+    # The kernel's check of every applied move, as its certificate reports it
+    # (calculus_certify, observe mode): counted per rule and status, and the
+    # statuses seen per instance key. Not part of extent(): the pinned extent
+    # file predates certificates and Phase 2 leaves it byte-identical.
+    certified: Counter = field(default_factory=Counter)
+    verdicts: Dict[str, Set[str]] = field(default_factory=dict)
 
     def extent(self) -> dict:
         return {"graphs": dict(sorted(self.graphs.items())),
@@ -176,6 +182,10 @@ def run(mode_name: str) -> Run:
     result = Run(mode, layers={name: LayerResult() for name in LAYERS})
     known = {name: ledgered(name) for name in LAYERS}
     for rec, cache in records(mode_name, result):
+        if rec.outcome.applied:
+            status = rec.outcome.certificate.status
+            result.certified[f"{rec.tier}:{rec.move.rule}:{status}"] += 1
+            result.verdicts.setdefault(rec.key, set()).add(status)
         for name, check in LAYERS.items():
             label, detail = check(rec, cache)
             lr = result.layers[name]
