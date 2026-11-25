@@ -114,11 +114,11 @@ from style_loader import load_default_style, load_style
 from eg_reader import assign_order_labels
 from egif_parser_dau import parse_egif
 from subgraph_closure_validator import SubgraphClosureValidator
+from calculus_certify import protocol_apply
 from rule_interaction import (
     RULE_INTERACTIONS,
     StepKind,
     advance_interaction,
-    apply_interaction,
     begin_interaction,
     get_interaction,
 )
@@ -1464,7 +1464,12 @@ async def apply_rule(session_id: str, request: ErgasterionApplyRequest):
                     },
                 )
 
-        apply_result = apply_interaction(state)
+        apply_result, _ = protocol_apply(
+            state,
+            selection=parameters.get("selected_elements") or (),
+            target=parameters.get("target_area"),
+            content=parameters.get("egif_content"),
+        )
         if not apply_result.success:
             return ApiResponse(
                 success=False,
@@ -1588,7 +1593,13 @@ async def rule_check(session_id: str, request: ErgasterionRuleCheckRequest):
                         legal, reason, step_id = False, step_result.message, step.step_id
                         break
                 if legal:
-                    apply_result = apply_interaction(state)
+                    apply_result, _ = protocol_apply(
+                        state,
+                        selection=parameters.get("selected_elements") or (),
+                        target=parameters.get("target_area"),
+                        content=parameters.get("egif_content"),
+                        dry_run=True,
+                    )
                     if not apply_result.success:
                         legal, reason = False, apply_result.message
                     # apply_result.result_egi is deliberately discarded.

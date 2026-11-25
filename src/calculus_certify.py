@@ -29,6 +29,10 @@ request — never from what the engine did with it:
 - ``DC+`` with no spot is read as the engine reads it — around the selection in
   the selection's own context, or around the whole sheet when nothing is
   selected (ruling R4: kept, and recorded);
+- ``DC+`` with a spot and nothing selected means two different things by two
+  ways in, and is named as each means it: through the protocol, an empty double
+  cut at the spot; through the engine or a rule object, a double cut around
+  everything in that area (unless the context says ``enclose_empty``);
 - ``ERA``, ``DC-`` and ``IT-`` take no target in Dau, so none is recorded.
 
 ``CONSTANT_EXISTENCE`` (an isolated *constant* vertex, Def 24.10) is not yet a
@@ -150,8 +154,13 @@ _NO_TARGET = frozenset({"ERA", "DC-", "IT-", "VERTEX_ERA", "MERGE_VERTICES"})
 
 
 def name_move(g: G, rule: str, selection=(), target: Optional[str] = None,
-              content: Optional[str] = None, hooks=()) -> Move:
-    """The Dau move a request amounts to, read from the request alone."""
+              content: Optional[str] = None, hooks=(), *,
+              empty_means_whole_area: bool = False) -> Move:
+    """The Dau move a request amounts to, read from the request alone.
+
+    ``empty_means_whole_area`` is the convention of the ways in that take no
+    protocol step: there a ``DC+`` with nothing selected encloses everything
+    in the target area."""
     sel = tuple(selection or ())
     hooks = tuple(tuple(h) for h in (hooks or ()))
     if rule == "HEAVY_DOT":
@@ -161,6 +170,8 @@ def name_move(g: G, rule: str, selection=(), target: Optional[str] = None,
     if rule == "ERA" and len(sel) == 1 and sel[0] in {v.id for v in g.V} \
             and not dau_kernel.edges_on(g, sel[0]):
         return Move("VERTEX_ERA", sel)
+    if rule == "DC+" and target is not None and not sel and empty_means_whole_area:
+        sel = tuple(sorted(g.area.get(target, ())))
     if rule == "DC+" and target is None:
         known = set(dau_kernel.elements(g))
         if not sel:
@@ -319,7 +330,8 @@ def engine_apply(rule: str, egi: G, target_area, selected, insertion_egif: Optio
         rule, egi, target_area, selected, insertion_egif=insertion_egif)
     if not result.success:
         return result, None
-    move = name_move(egi, rule, sorted(selected), target_area, insertion_egif)
+    move = name_move(egi, rule, sorted(selected), target_area, insertion_egif,
+                     empty_means_whole_area=True)
     return result, _observe("engine", rule, egi, result.result_egi, move)
 
 
@@ -331,7 +343,8 @@ def rule_apply(rule_name: str, rule: Any, context: Any):
     if not result.success:
         return result, None
     move = name_move(context.source_egi, rule_name, sorted(context.selected_subgraph),
-                     context.target_area, getattr(context, "insertion_egif", None))
+                     context.target_area, getattr(context, "insertion_egif", None),
+                     empty_means_whole_area=not getattr(context, "enclose_empty", False))
     return result, _observe("rule", rule_name, context.source_egi, result.result_egi, move)
 
 

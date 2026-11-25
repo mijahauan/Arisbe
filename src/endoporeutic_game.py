@@ -79,7 +79,7 @@ from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 from egi_core_dau import ElementID, RelationalGraphWithCuts
 from egi_transformation_history import EGITransformationHistory
 from frozendict import frozendict
-from rule_interaction import insert_from_egif
+from calculus_certify import insert_apply, rule_apply
 
 from formal_transformation_rules import (
     AreaPolarity,
@@ -330,9 +330,7 @@ class EndoporeuticGame:
         if rule_name == "INS":
             if not insert_egif:
                 return state, "INS requires insert_egif argument."
-            result = insert_from_egif(
-                state.current_egi, target_area, insert_egif
-            )
+            result, _ = insert_apply(state.current_egi, target_area, insert_egif)
         else:
             context = TransformationContext(
                 source_egi=state.current_egi,
@@ -342,7 +340,7 @@ class EndoporeuticGame:
                 nesting_depth=depth,
             )
             rule = self._rules[rule_name]
-            result = rule.apply_transformation(context)
+            result, _ = rule_apply(rule_name, rule, context)
 
         if not result.success:
             return state, f"Rule failed: {result.error_message}"

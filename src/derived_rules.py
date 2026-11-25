@@ -44,12 +44,9 @@ from typing import Callable, Iterable, Optional, Tuple
 
 import eg_navigation as nav
 from egi_core_dau import AreaPolarity, Edge, ElementID, RelationalGraphWithCuts
+from calculus_certify import engine_apply, merge_unchecked, split_unchecked
 from proof_authoring import apply_rule
-from vertex_splitting_merging_rules import (
-    VertexMergingRule,
-    VertexSplitSpec,
-    VertexSplittingRule,
-)
+from vertex_splitting_merging_rules import VertexSplitSpec
 
 
 def universal_instantiation(
@@ -90,9 +87,7 @@ def universal_instantiation(
     # the dominating-nodes condition (join_vertex dominates ctx(z)).
     g = g.with_edge(Edge(id=edge_id), (join_vertex, z), "=", nav.area_of(g, z))
     # Def 16.6 — merge z into join_vertex (ctx(join_vertex) ≥ ctx(e) = ctx(z)).
-    g = VertexMergingRule()._apply_vertex_merge(
-        g, v1_id=join_vertex, v2_id=z, identity_edge_id=edge_id
-    )
+    g, _ = merge_unchecked(g, v1_id=join_vertex, v2_id=z, identity_edge_id=edge_id)
     return g
 
 
@@ -141,9 +136,7 @@ def instantiate_to_lines(
         # 1i — insert the connection (identity edge) in the source line's area.
         g = g.with_edge(Edge(id=edge_id), (target, source), "=", universal_cut)
         # Def 16.6 — merge source into the enclosing target (target survives).
-        g = VertexMergingRule()._apply_vertex_merge(
-            g, v1_id=target, v2_id=source, identity_edge_id=edge_id
-        )
+        g, _ = merge_unchecked(g, v1_id=target, v2_id=source, identity_edge_id=edge_id)
     return g
 
 
@@ -191,7 +184,7 @@ def existential_generalization(
         hooks_to_move=[(edge_id, position)],
         new_vertex_id=new_vertex_id,
     )
-    g = VertexSplittingRule()._apply_vertex_split(egi, spec)
+    g, _ = split_unchecked(egi, spec)
     # _apply_vertex_split rebuilds without rho/variable_names/alphabet — restore
     # them (the split touches neither; the new line is simply absent from both).
     g = replace(
@@ -249,7 +242,6 @@ def universal_generalization(
 
     Returns the EGI with the closed universal on the sheet.
     """
-    from formal_transformation_rules import FormalTransformationEngine
 
     # 1 — DC+ an empty double cut on the sheet (equivalence, any context).
     cuts_before = {c.id for c in egi.Cut}
@@ -262,9 +254,7 @@ def universal_generalization(
     # (Dau Def. 24.10 — equivalence; HeavyDotInsertionRule's negative-context
     # restriction is stricter than Dau's "arbitrary contexts", and sufficient).
     verts_before = {v.id for v in g.V}
-    result = FormalTransformationEngine().apply_rule(
-        "HEAVY_DOT", g, target_area=outer, selected_subgraph=frozenset()
-    )
+    result, _ = engine_apply("HEAVY_DOT", g, outer, frozenset())
     if not result.success:
         raise ValueError(f"isolated-vertex insertion failed: {result.error_message}")
     # The engine rebuilds without rho/variable_names/alphabet — restore them

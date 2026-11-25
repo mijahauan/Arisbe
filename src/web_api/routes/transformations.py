@@ -21,6 +21,7 @@ from web_api.models.api_models import (
 from web_api.services.session_manager import get_session_manager
 from web_api.services.layout_service import generate_layout, layout_dto_to_dict
 
+from calculus_certify import engine_apply
 from formal_transformation_rules import FormalTransformationEngine
 from subgraph_closure_validator import SubgraphClosureValidator
 from egif_parser_dau import parse_egif
@@ -245,9 +246,10 @@ async def apply_transform(request: TransformApplyRequest):
             )
 
         # Apply the rule
-        result = _engine.apply_rule(
+        result, _ = engine_apply(
             rule, egi, target_area, selected,
             insertion_egif=(params.get("egif_content", "") if rule == "INS" else None),
+            engine=_engine,
         )
 
         if not result.success:

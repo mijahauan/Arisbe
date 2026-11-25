@@ -440,7 +440,7 @@ def _join_admitted_individuals(
     line.
     """
     from canonical_signature import compute_canonical_signatures
-    from vertex_splitting_merging_rules import VertexMergingRule
+    from calculus_certify import merge_unchecked
     from vertex_scope import _least_common_area
 
     quoting_names = set(egi.quotation.values())
@@ -491,7 +491,7 @@ def _join_admitted_individuals(
         )
         edge_id = f"e_admit_join_{joined}"
         egi = egi.with_edge(Edge(id=edge_id), (anchor, new_id), "=", new_area)
-        egi = VertexMergingRule()._apply_vertex_merge(
+        egi, _ = merge_unchecked(
             egi, v1_id=anchor, v2_id=new_id, identity_edge_id=edge_id)
         joined += 1
 
