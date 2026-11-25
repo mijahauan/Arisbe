@@ -22,11 +22,12 @@ import dau_kernel
 SRC = Path(dau_kernel.__file__).resolve().parent
 TESTS = Path(__file__).resolve().parent
 
-# The specification's trusted base (§3.1): the data model, same_graph, and the
-# EGIF parser for the content of an insertion.
-TRUSTED = {"egi_core_dau", "eg_navigation", "egif_parser_dau"}
-# From eg_navigation the kernel may take same_graph and nothing else.
-TRUSTED_NAMES = {"eg_navigation": {"same_graph"}}
+# The specification's trusted base (§3.1, as amended 2026-11-25): the data model,
+# the isomorphism engine behind same_graph, and the EGIF parser for the content
+# of an insertion.
+TRUSTED = {"egi_core_dau", "graph_isomorphism_engine", "egif_parser_dau"}
+# From the isomorphism engine the kernel may take the engine class and nothing else.
+TRUSTED_NAMES = {"graph_isomorphism_engine": {"GraphIsomorphismEngine"}}
 OUTSIDE_THE_REPOSITORY = {"__future__", "itertools", "dataclasses", "typing", "frozendict"}
 
 # The modules whose moves the kernel judges. None may be loaded by the kernel,
@@ -74,8 +75,11 @@ def test_the_kernel_imports_only_the_trusted_base():
     ("def f():\n    import rule_interaction\n", "imports rule_interaction"),
     ("from subgraph_closure_validator import SubgraphClosureValidator\n",
      "imports subgraph_closure_validator"),
-    ("import eg_navigation as nav\n", "imports the whole of eg_navigation, not the names it is allowed"),
-    ("from eg_navigation import describe\n", "takes ['describe'] from eg_navigation"),
+    ("from eg_navigation import same_graph\n", "imports eg_navigation"),
+    ("import graph_isomorphism_engine\n",
+     "imports the whole of graph_isomorphism_engine, not the names it is allowed"),
+    ("from graph_isomorphism_engine import IsomorphismValidator\n",
+     "takes ['IsomorphismValidator'] from graph_isomorphism_engine"),
     ("m = __import__('proof_authoring')\n", "uses __import__"),
     ("import importlib\n", "imports importlib"),
     ("from . import sibling\n", "a relative import"),
@@ -120,30 +124,47 @@ def _closure(roots, follow_functions: bool) -> set:
 
 
 def test_what_the_trusted_base_loads_is_pinned():
-    """The specification names three modules. They are not closed under import,
-    and the kernel's soundness argument rests on everything they load.
+    """The three modules the kernel imports are not closed under import, and the
+    kernel's soundness argument rests on everything they load. Two more:
 
-    Loaded the moment the kernel is imported: ``presentation_ops`` and
-    ``layout_dto``, because ``eg_navigation`` imports them at its top.
+    ``hierarchical_index`` — every graph builds one, and ``area_polarity`` reads
+    it; and ``canonical_signature`` — the isomorphism engine colours its nodes
+    with it, so it has a hand in every ``same_graph`` verdict.
 
-    Reached by the calls the kernel makes: ``hierarchical_index`` (every graph
-    builds one; ``area_polarity`` reads it) and ``graph_isomorphism_engine`` with
-    ``canonical_signature`` — ``same_graph`` is that engine's verdict, so it is
-    where "the result is a licensed one" is actually decided.
+    Both are imported inside functions, which is why the module-level closure
+    is the three names alone. Pinned exactly, so that a module added to any of
+    the five is seen here first.
 
-    Reachable from those modules by functions the kernel does not call:
-    ``subgraph_closure_validator`` (``eg_navigation``'s closure helper) and
-    ``render_geometry`` (``presentation_ops``).
-
-    Pinned exactly, so that a module added to any of them is seen here first.
-    Found in Phase 1 and reported to the author; whether the kernel should take
-    ``same_graph`` by a shorter road is his ruling, not this test's.
+    Until the author's ruling of 2026-11-25 the kernel took ``same_graph`` from
+    ``eg_navigation``, and this set was ten: that import also loaded
+    ``presentation_ops`` and ``layout_dto``, and reached
+    ``subgraph_closure_validator`` and ``render_geometry``.
     """
-    assert _closure(TRUSTED, follow_functions=False) == TRUSTED | {"presentation_ops", "layout_dto"}
+    assert _closure(TRUSTED, follow_functions=False) == TRUSTED
     assert _closure(TRUSTED, follow_functions=True) == TRUSTED | {
-        "presentation_ops", "layout_dto", "hierarchical_index", "graph_isomorphism_engine",
-        "canonical_signature", "subgraph_closure_validator", "render_geometry",
-    }
+        "hierarchical_index", "canonical_signature"}
+
+
+def test_same_graph_is_the_one_the_rest_of_the_project_asks():
+    """The kernel asks the isomorphism engine directly. It must be the same
+    question ``eg_navigation.same_graph`` asks, or two parts of the project
+    would mean different things by "the same graph"."""
+    import eg_navigation as nav
+    from egif_parser_dau import parse_egif
+
+    pairs = [
+        ("(P *x) ~[ (Q x) ]", "(P *y) ~[ (Q y) ]"),          # renamed line
+        ("(P *x) ~[ (Q x) ]", "(P *x) ~[ (Q *y) ]"),         # one line against two
+        ('(P "a") (P "a")', '(P "a")'),                      # an edge more
+        ("~[ ~[ ] ]", "~[ ] ~[ ]"),                          # nesting against siblings
+        ("(R *x *y)", "(R *y *x)"),                          # the same up to names
+    ]
+    verdicts = []
+    for a, b in pairs:
+        g, h = parse_egif(a), parse_egif(b)
+        assert dau_kernel.same_graph(g, h) == nav.same_graph(g, h), (a, b)
+        verdicts.append(dau_kernel.same_graph(g, h))
+    assert True in verdicts and False in verdicts      # the cases tell graphs apart
 
 
 def test_nothing_the_kernel_loads_is_the_rule_engine():

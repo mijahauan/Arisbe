@@ -32,18 +32,18 @@ normalisation (finding 2), and the knowledge that its gate speaks for the protoc
   `tests/calculus_ledger.json` byte-identical (SHA-256 checked before and after, and
   `git diff` empty). **The exhaustive mode was not run** — nothing it reads changed but the
   location of the functions.
-- `tests/test_dau_kernel.py` (14 tests) holds the kernel to its permitted imports, shown to bite
-  on eight planted ones, and holds that the suite judges with the kernel's functions and keeps
+- `tests/test_dau_kernel.py` (16 tests after the trusted-base ruling) holds the kernel to its
+  permitted imports, shown to bite on nine planted ones, and holds that the suite judges with the kernel's functions and keeps
   no copy.
 
 **Four things Phase 1 found or chose, for the author:**
-1. **The trusted base is larger than §3.1 says.** Its three named modules are not closed under
-   import: `eg_navigation` loads `presentation_ops` and `layout_dto`; `same_graph` is decided by
-   `graph_isomorphism_engine` (+ `canonical_signature`), which the rule engine also imports;
-   every graph builds a `hierarchical_index`; `subgraph_closure_validator` and `render_geometry`
-   are reachable through functions the kernel does not call. No rule-engine module is in the
-   closure. The test pins all of it; a measured note sits under §3.1. **Open: should the kernel
-   take `same_graph` from `graph_isomorphism_engine` directly?** Not taken — it is a ruling.
+1. **The trusted base was larger than §3.1 said, and is now ruled.** The three named modules
+   were not closed under import: through `eg_navigation` the kernel loaded `presentation_ops`
+   and `layout_dto` and reached the closure analyser — ten modules. **Ruled 2026-11-25: the
+   kernel takes `same_graph` from `graph_isomorphism_engine` directly.** The trusted base is now
+   five: `egi_core_dau`, `graph_isomorphism_engine`, `egif_parser_dau`, `hierarchical_index`,
+   `canonical_signature`. `tests/test_dau_kernel.py` pins it; the note under §3.1 records the
+   ruling. The rule engine imports the same isomorphism engine — shared, and disclosed.
 2. **The engine column stayed in the tests.** The kernel's `Rule` is (name, cite, direction,
    judged); `calculus_rules.ENGINE` says which code performs each. Phase 3 changes entry points,
    and the judge should not have to be edited when it does.

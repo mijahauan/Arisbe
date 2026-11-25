@@ -8,10 +8,17 @@ definition and page.
 
 **This module imports no engine code**, and ``tests/test_dau_kernel.py`` fails
 if it ever does. Its only imports from this repository are the data model
-(``egi_core_dau``), ``eg_navigation.same_graph`` and ``egif_parser_dau`` (for
-the content of an insertion). The rule engine, the interaction protocol, the
-closure analyser and the ligature engine are judged by this module and so may
-not be consulted by it.
+(``egi_core_dau``), the isomorphism engine (``graph_isomorphism_engine``, for
+``same_graph``) and ``egif_parser_dau`` (for the content of an insertion). The
+rule engine, the interaction protocol, the closure analyser and the ligature
+engine are judged by this module and so may not be consulted by it.
+
+``same_graph`` is taken from the isomorphism engine directly (the author's
+ruling, 2026-11-25) rather than through ``eg_navigation``, whose import brings
+the presentation algebra, the layout's data types and a road to the closure
+analyser with it. What the kernel trusts is then five modules of this
+repository: the three named, ``hierarchical_index`` (every graph builds one)
+and ``canonical_signature`` (the isomorphism engine's colouring).
 
 Moved here unchanged on 2026-11-25 (calculus-conformance specification §3.1)
 from the calculus property suite, where it was written as the suite's oracle:
@@ -29,10 +36,10 @@ from typing import List, Optional, Tuple
 
 from frozendict import frozendict
 
-from eg_navigation import same_graph
 from egi_core_dau import Cut as CutEl
 from egi_core_dau import Edge, RelationalGraphWithCuts, Vertex
 from egif_parser_dau import parse_egif
+from graph_isomorphism_engine import GraphIsomorphismEngine
 
 G = RelationalGraphWithCuts
 
@@ -118,6 +125,15 @@ class Move:
 
 def elements(g: G) -> List[str]:
     return sorted([v.id for v in g.V] + [e.id for e in g.E] + [c.id for c in g.Cut])
+
+
+def same_graph(g: G, h: G) -> bool:
+    """Whether two EGIs are one graph up to the names of their elements — full
+    isomorphism over every vertex, edge and cut. The same question, put to the
+    same engine, as ``eg_navigation.same_graph``; asked here without importing
+    that module (see the note at the top)."""
+    return GraphIsomorphismEngine().test_cross_egi_isomorphism(
+        g, frozenset(elements(g)), h, frozenset(elements(h))).is_isomorphic
 
 
 # -- legal -------------------------------------------------------------------

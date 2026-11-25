@@ -87,8 +87,15 @@ analyser, the ligature engine, the layout and the UI are outside it.
 > No rule-engine module is in that closure, and the same test holds that. Whether the kernel should
 > take `same_graph` by a shorter road (from `graph_isomorphism_engine` directly, shedding
 > `eg_navigation`, `presentation_ops`, `layout_dto`, `render_geometry` and the closure analyser) is
-> the author's ruling; Phase 1 moved the oracle unchanged and did not take it. Phase 5's
-> trusted-base document must list what is pinned there, not the three names above.
+> the author's ruling; Phase 1 moved the oracle unchanged and did not take it.
+>
+> **Ruled 2026-11-25: yes.** The kernel asks `graph_isomorphism_engine` directly. Its permitted
+> imports are now `egi_core_dau`, `graph_isomorphism_engine` and `egif_parser_dau`, and the
+> **trusted base is five modules of this repository**: those three, `hierarchical_index` and
+> `canonical_signature` (both imported inside functions), with `networkx` and `frozendict` from
+> outside it. This supersedes the paragraph above the note where the two differ. The judge and
+> the judged still share the isomorphism engine; that is disclosed, not removed. Phase 5's
+> trusted-base document lists these five.
 
 ### 3.2 The certificate
 
