@@ -1,6 +1,58 @@
 # Current Plan
 
-**Last Updated**: 2026-09-25 (**seventh sitting**) — **`alphabet-derived` IS MERGED. THE
+**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phase 0 is done.**
+
+**▶ START HERE — Phase 1 of
+[the calculus-conformance directive](docs/superpowers/plans/2026-11-25-calculus-conformance-directive.md):
+extract the kernel, changing no behaviour.** The specification is
+[2026-11-25-calculus-conformance.md](docs/superpowers/specs/2026-11-25-calculus-conformance.md);
+read it in full first. The directive supersedes the September block below — docket item 10 (the
+UoD alphabet) waits behind this arc.
+
+*Phase 1, in the directive's words:* move `legal()` and its helpers, the licensed-result
+constructors and `postconditions` from `tests/calculus_rules.py` and `tests/calculus_expected.py`
+into `src/dau_kernel.py`; the tests import the kernel; add a test that fails if the kernel imports
+anything outside the trusted base. **Gate:** the default calculus suite passes with
+`tests/calculus_extent.json` byte-identical.
+
+**What Phase 0 did (2026-11-25).** No code changed.
+- `main` was level with origin at `655a88c` before anything was committed.
+- The specification, the directive and the 2026-11-11 reassessment are committed as written
+  (`af3abb5`, the author's commit).
+- `docs/share/LETTER_DAU_DRAFT.md` is marked HELD at its top. (`docs/share/README.md` still lists
+  it without that mark; not touched.)
+- The map of every path by which a graph changes by inference is in the specification as
+  **§3.3a**. Quality gate green before the commit, 166 core tests.
+
+**Five findings in §3.3a are the author's, and two of them bear on phases that may otherwise
+proceed:**
+1. `POST /api/transform/apply` reaches the rules by `FormalTransformationEngine.apply_rule` and
+   the workshop route by the protocol, and the two disagree on the same DC+ move (reproduced).
+   The game engine uses a third way in. The calculus suite measures the protocol only — so
+   **Phase 2's gate, "the kernel rejects exactly what the ledger describes and nothing else", is a
+   statement about the protocol**, and rejections on the other two ways in are to be expected.
+2. **DISCHARGE_TO_M runs `normalize_constants` after its three rules** (reproduced: the result is
+   not `same_graph` to what IT−·IT−·DC− produced). §3.4 wants every step of that act
+   kernel-checked; the step is CONSTANT_IDENTITY plus a collapse that is not Dau's, and §4.4
+   defers CONSTANT_IDENTITY. **This wants a ruling before Phase 2 types DISCHARGE_TO_M.**
+3. ADMIT_TO_M's recorded `["INS"]` is likewise not the whole move (`_join_admitted_individuals`).
+4. `proof_character.py` does not hold all of §3.4's classification; six recordable act names are
+   in neither.
+5. Production merges and splits by the unchecked private operations; the suite measures the
+   checked one.
+
+**Still open and the author's:** R2 (the seven PROVISIONAL readings, against the book) — blocks
+Phase 3 only.
+
+**Not kept:** the two AST scans that produced §3.3a lived in the session scratchpad. Phase 2's
+choke-point test ("no engine entry point is reachable except through `certify`") is their durable
+form; until it exists, §3.3a's line numbers are a snapshot of `655a88c`'s code.
+
+---
+
+*The September state follows, unchanged below this line.*
+
+**Last Updated (previous)**: 2026-09-25 (**seventh sitting**) — **`alphabet-derived` IS MERGED. THE
 RE-PIN WAS EARNED: ONE BEHAVIOUR CHANGE, 52 MOVES AT DEFAULT AND 244 EXHAUSTIVE, ACCOUNTED
 CELL BY CELL. THE BRANCH'S OWN "266 INSTANCES NO LONGER FAIL" TURNED OUT TO BE A RELABELLING
 ARTIFACT AND NO SHRINK WAS TAKEN. AND THE AUTHOR'S QUESTION OPENED A LARGER ONE: THE DERIVED
@@ -10,8 +62,8 @@ ALPHABET IS NOT DAU'S Σ.**
 **2 h 44 m, exit 0, all ten layer tests passed**. Quality gate green, 166 core tests.
 `.core_modification_authorized` absent.
 
-**▶ START HERE — the docket is item 10 in `tasks/todo.md`, and its first entry is the
-author's to open.**
+**(Superseded 2026-11-25 — was "START HERE".) The docket is item 10 in `tasks/todo.md`, and
+its first entry is the author's to open.**
 
 The sixth sitting's alphabet ruling (derive, never store) is landed and proved. Working it
 through surfaced a distinction the ruling did not settle, and the author drew it:

@@ -1,6 +1,12 @@
 # Letter draft — Frithjof Dau
 
-**Status: internal draft in the author's voice (2026-07-28), built from
+**Status: HELD — NOT TO BE SENT (author's ruling, 2026-11-25): no outreach until the
+calculus conforms to Dau and every move carries a kernel-checked certificate. See
+[the calculus-conformance specification](../superpowers/specs/2026-11-25-calculus-conformance.md)
+(§8 defines done).** The text below is unchanged and predates the September 2026 findings;
+its claims are corrected in that arc's Phase 5, not before.
+
+**Earlier status: internal draft in the author's voice (2026-07-28), built from
 [LETTER_DAU_SKELETON](LETTER_DAU_SKELETON.md). Not for sending until the
 author revises and signs.**
 

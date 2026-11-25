@@ -96,6 +96,134 @@ The certificate is stored with the step in the UoD's history. On load, certifica
 by the kernel. Engine replay (`proof_authoring.replay_step`) stays as a reproducibility check; it is
 no longer the soundness evidence, because it trusts the engine it replays.
 
+### 3.3a The map of paths (Phase 0, 2026-11-25)
+
+> **How this was made.** At HEAD `af3abb5`, whose code is `655a88c`'s. The knowledge graph was
+> asked first and gave a thin answer: it holds the `calls` edges for plain function calls and
+> misses method calls such as `_engine.apply_rule(...)`, so `routes/transformations.py` — a
+> production route straight into the engine — was absent from its list. The map below comes from
+> an AST scan of every call in `src/` and `tools/` that names an
+> engine entry point, repeated one level up for the wrappers, then read at each site. Line numbers
+> are from that scan. Three findings were reproduced by hand on small graphs and say so; the rest
+> are read, not run.
+
+**Where a rule's transformation is performed.** Four modules, and nothing else in `src/`
+subclasses `FormalTransformationRule`:
+
+| Module | What it holds |
+|---|---|
+| `formal_transformation_rules.py` | seven rule classes (DC+, DC−, INS, ERA, IT+, IT−, HEAVY_DOT) and `FormalTransformationEngine` |
+| `rule_interaction.py` | six interactions (the protocol), `insert_from_egif`, `apply_interaction` |
+| `ligature_manipulation_rules.py` | four rule classes and `LigatureManipulationEngine` |
+| `vertex_splitting_merging_rules.py` | `VertexSplittingRule`, `VertexMergingRule` |
+
+**The five ways in.** Everything outside those four modules reaches them by one of these:
+
+| # | Way in | Who calls it |
+|---|---|---|
+| 1 | **The protocol** — `apply_interaction` → `RuleInteraction.apply` → the rule's `apply_transformation` (INS → `insert_from_egif`) | `proof_authoring.apply_rule` (`:75–99`); the workshop route `POST /ergasterion/sessions/{id}/apply` (`routes/ergasterion.py:1448–1467`); its dry run `rule-check` (`:1583–1591`) |
+| 2 | **The engine** — `FormalTransformationEngine.apply_rule`, which builds a context and calls the rule with no protocol step | `POST /api/transform/apply` (`routes/transformations.py:248`, the six rules; HEAVY_DOT is not offered); `derived_rules.universal_generalization` (`:265`, HEAVY_DOT only) |
+| 3 | **A rule class directly** — `rule.apply_transformation(context)` | `EndoporeuticGame.apply_move` (`endoporeutic_game.py:345`; INS by `insert_from_egif`, `:333`), behind its own permission check, reached from `POST /agon/games/{id}/move`. Also two evaluators, `chapter17_soundness_evaluation.py:142` and `z3_semantic_validator.py:324`, which nothing imports but each other |
+| 4 | **The unchecked split and merge** — `VertexMergingRule()._apply_vertex_merge`, `VertexSplittingRule()._apply_vertex_split`, the private operations that perform the change and check nothing | `derived_rules.py:93`, `:144` (merge), `:194` (split); `world_scroll.py:494` (merge). The *checked* entry points — `merge_vertices` and the two `apply_transformation`s — have no caller in `src/` |
+| 5 | **The ligature engine** — `LigatureManipulationEngine.apply_rule` | nobody in `src/` or `tools/`. Its four rules run only under `tests/calculus_apply.py` |
+
+**What the calculus suite drives, against that list.** `tests/calculus_apply.py` reaches the six
+rules, INS_EDGE and VERTEX_ERA by way 1, VERTEX_INS by way 2, the ligature rules by way 5, split
+by the unchecked private operation and merge by the checked `merge_vertices`. So ways 2 and 3 for
+the six rules, and the unchecked merge of way 4, are in production and outside the suite. The
+ledger's entries describe way 1.
+
+**The wrappers over `proof_authoring.apply_rule`.** Every one of these goes through way 1:
+
+| Wrapper | Rules it applies | Its own callers |
+|---|---|---|
+| `ProofChain.apply` (`proof_authoring.py:231`) | any of the six, recorded as a `ChainStep` | `agon_evolution.run` (`:662`, `:668`), `revision_episode.exhibit_conflict` (`:151–177`); 23 scripts in `tools/` build chains through `ProofChain` (22 `build_*.py` and `run_vault_v0.py`) |
+| `replay_step` (`:113`) | the step's recorded rule | `composition_ops.verify_chain_replay` only — which no module in `src/` calls |
+| `contest_context` — `open_arena`, `posit`, `carry_in` | DC+, INS, IT+ | `world_scroll.wrap_m`, `wrap_state`, `withdraw_and_resupply`; `deliberate` |
+| `world_scroll` — `enlarge_m`, `retract_from_m`, `entertain_episode`, `discharge_episode`, `abandon_episode`, `withdraw_and_resupply` | INS · ERA · DC+ IT+ INS · IT− IT− DC− · ERA · ERA DC+ INS | `m_steps` (the eight step recorders), `model_revision.revise_with_disposition_recorded`, `live_runner` (`:479`, `:667`), `oracle_notes.bank_answer`, `notion_provenance`, `west_coordinator` |
+| `derived_rules` — `universal_instantiation`, `instantiate_to_lines`, `existential_generalization`, `universal_generalization` | IT+ · (none) · ERA · DC+ IT+, each with way 2 or way 4 beside it | `revision_episode` (`:147`, `:160`); `tools/build_barbara_chain.py`, `tools/build_group_identity_chain.py` |
+| `model_acts` — `relinquish`, `admit_by_discharge` | ERA · IT− DC− | none in `src/` |
+| `mcp_verifier.apply_rule`, `validate_step` | any of the six, on a graph parsed from text; stateless | `mcp_server` (two tools) |
+
+**Where a changed graph is written down.** Four stores, each with its own record shape:
+
+- `ProofChain` → `TransformationChain` → `TomosService.save_uod_with_chain`, called from
+  `live_runner.py:685`, `web_api/services/agonothetes.py:293` and `:474`, and the tools above.
+  `ProofChain.apply_derived` records whatever graph a caller's function returns, under whatever
+  name the caller gives; its callers are `m_steps`, `agon_evolution` (`REVISE_M`,
+  `REVISE_M(sibling)`, `DECAY`), `revision_episode` (`UI`), `quotation_overlay` (`QUOTE`, twice),
+  `oracle_notes` (`BANK_TO_M`), `alternative_trace` and `alternative_survey` (identity steps).
+- The workshop session — `ErgasterionSessionManager.add_step`, from the apply route and from
+  `define-fold`, `define-unfold`, `fix-drawing`, `fix-graph`, `fix-chain` and `compose`.
+- The viewer session — `session_manager.update_session`, from `/api/transform/apply`.
+- `EGITransformationHistory.add_transformation`, from the game engine (`endoporeutic_game.py:358`).
+
+**No stored chain is replayed when it is loaded.** `replay_step` has the one caller named above,
+and nothing in `src/` calls that. Phase 4's "certificates are re-checked on load" is therefore a
+new check, with no existing one to strengthen.
+
+**Graph changes that name no rule.** These build the next graph with the data model's own
+constructors, or by re-parsing text, and no engine entry point sees them:
+
+| Site | What it does | How it is recorded |
+|---|---|---|
+| `derived_rules.py:91`, `:142` | scribes an identity edge with `with_edge(…, "=")`, then the unchecked merge. `instantiate_to_lines` first checks the area is negative; `universal_instantiation` checks nothing about the area | inside a `UI` step, or the caller's name |
+| `world_scroll._join_admitted_individuals` (`:488–495`), run by every `enlarge_m` | moves the standing constant's vertex outward, scribes `=`, collapses the pair with the unchecked merge. The module says of the collapse that it "is *not* a Def 16.6 merge" and is "not a rule of Dau's" | derivation `["INS"]` |
+| `world_scroll.discharge_episode` (`:738`) | `normalize_constants` after the three rule applications | derivation `["IT-", "IT-", "DC-"]` |
+| `world_scroll.wrap_state` (`:364–367`) | re-houses a sheet-level M structurally; says so, and asks callers to record `earned: false` | caller's |
+| `model_revision` — `assert_fact`, `add_rule` (re-parse of the joined text); `retract_subgraph`, `retract_atom`, `retract_relation` (`without_element`) | the sheet-level fallback for a model not resident in the world-scroll | derivation `[]` |
+| `model_acts.assert_into`; `relinquish`'s fallback | juxtaposition onto the sheet; structural removal where ERA's closure refuses | an `Act` with `is_rule=False` |
+| `live_runner.py:479` and `:667` | re-supplies a law and decays stale atoms on the model carried between segments | no chain step; the segment digest |
+| `definitions.fold`, `expand_at`; `reference_node`; `schema` (all through `eg_splice`) | replaces a subgraph by a defined relation's spot, or the reverse | `definition.fold` / `definition.unfold` steps in the workshop |
+| `quotation_overlay` (`:374–500`) | builds and removes the quotation apparatus | `QUOTE` |
+| `composition_ops` | regime-1 drafting — not inference, listed so the choke-point test can exempt it by name | `compose.*` |
+
+Two modules infer without changing any recorded graph — `model_materialization` (the Horn closure)
+and `theory_query` — and are outside Dau's calculus altogether. They are named here so the
+choke-point test does not have to discover them.
+
+**What the corpus records.** 35 chains hold 146 steps (counted from `tomos/**/chain.jsonl`):
+PEEL 27 · ADMIT_TO_M 26 · ERA 17 · DC+ 16 · INS 12 · IT− 8 · DC− 8 · QUOTE 5 · REVISE_M 5 ·
+IT+ 5 · UI 4 · TRACE_ALTERNATIVES 4 · RETRACT_FROM_M 2 · and one each of ENTERTAIN,
+DISCHARGE_TO_M, FOLD_NUMERAL, SURVEY_THIN_SPOTS, SURVEY_BRANCHES, PROPOSE, EXHIBIT. The 80
+steps that are not one of the six all carry `derived: true`. 43 of them also carry a
+`derivation` — a list of rule names, with no selections or targets, so it cannot be re-applied.
+The 4 UI steps carry none.
+
+**Five things this map found that the sections around it do not yet say.** Each is for the author;
+none is resolved here.
+
+1. **Two web routes apply the same rule by different ways in, and they disagree.** Reproduced: on
+   `(P *x) ~[ (Q *y) ]`, DC+ of the `P` edge with the cut as its spot is *applied* by way 1 (the
+   spot ignored — the ledger's `dc-plus-ignores-target`) and *refused* by way 2 ("Selected subgraph
+   contains elements not in target area"). On `(P *x) (Q x)`, ERA of the vertex alone gives the
+   blank sheet by both. Phase 2's gate — the kernel rejects exactly what the ledger describes and
+   nothing else — is a statement about way 1. Ways 2 and 3 have never been measured, so rejections
+   there are to be expected and are not, by themselves, the surprise that gate asks to be told about.
+2. **DISCHARGE_TO_M does a fourth thing its derivation does not name.** Reproduced: discharging
+   `(flies "Rex")` against a cell holding `(bird "Rex")` records `IT-, IT-, DC-`, and then
+   `normalize_constants` turns two `Rex` vertices into one — the result is not `same_graph` to
+   what the three rules produced. §3.4 classes DISCHARGE_TO_M as inferential-derived, "every step
+   kernel-checked". The link between the two vertices is Dau's CONSTANT_IDENTITY, which §4.4
+   schedules after this arc; the collapse is, in the module's own words, not Dau's at all. As
+   written, §3.4 and §4.4 cannot both hold for this act.
+3. **ADMIT_TO_M's `["INS"]` is likewise not the whole move.** Reproduced: admitting
+   `(white "Rex")` beside `(bird "Rex")` by `enlarge_m` yields one `Rex` vertex, moved out of its
+   cell to the residence's area; the bare INS yields two, and the two results are not
+   `same_graph`. §3.4 asks no certificate of an ampliative act, so nothing breaks — but the
+   recorded derivation is one of the things §1's "conform or annotate" covers.
+4. **The classification §3.4 adopts is not all in `proof_character.py`.** That module names the six
+   rules, the ampliative set, `PEEL`, `QUOTE`, `TRACE_ALTERNATIVES`, `ENTERTAIN`,
+   `DISCHARGE_TO_M` and `ABANDON_EPISODE`. It does not mention `UI`, `PROPOSE`, either `SURVEY_*`
+   or `EXHIBIT`, and it puts `QUOTE` among the neutral acts where §3.4 makes it an extension.
+   Names the code can record that §3.4's table does not list: `EXHIBIT`, `REVISE_M(sibling)`,
+   `definition.fold`, `definition.unfold`, `compose.*`, `chain.fix`. Phase 2 has a table to build,
+   not one to inherit.
+5. **Production merges by the operation that checks nothing.** The three production merge sites and
+   the one split use the private `_apply_*` operations; the suite's `MERGE_VERTICES` measures the
+   checked `merge_vertices`, which production never calls. Whatever R2 settles about the IT+ split,
+   `universal_instantiation`'s join is today an unchecked edge plus an unchecked merge.
+
 ### 3.4 Which acts the soundness claim covers
 
 A recorded history is not one derivation: it contains acts that revise the model by choice. The
