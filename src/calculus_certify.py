@@ -43,6 +43,7 @@ from __future__ import annotations
 import atexit
 import json
 import os
+import sys
 import time
 from collections import Counter
 from dataclasses import dataclass
@@ -141,6 +142,22 @@ def _log(record: dict) -> None:
             fh.write(json.dumps(record, sort_keys=True) + "\n")
 
 
+_DOOR_FILES = ("calculus_certify.py", "proof_authoring.py")
+
+
+def _caller() -> str:
+    """Who asked for the move: the nearest frame outside the door and the
+    protocol wrapper, as ``file:function``. Read only when a log is being
+    written, so the observation costs nothing otherwise."""
+    frame = sys._getframe(1)
+    while frame is not None:
+        name = os.path.basename(frame.f_code.co_filename)
+        if name not in _DOOR_FILES:
+            return f"{name}:{frame.f_code.co_name}"
+        frame = frame.f_back
+    return "?"
+
+
 if _LOG:
     @atexit.register
     def _write_summary() -> None:
@@ -196,9 +213,10 @@ def _observe(way: str, rule: str, g: G, h: G, move: Move, may_raise: bool = True
     cert = Certificate(way, rule, (move,), status, why)
     size = len(g.V) + len(g.E) + len(g.Cut)
     OBSERVED.record(cert, time.perf_counter() - started, size)
-    if status != ACCEPTED:
+    if status != ACCEPTED and _LOG:
         _log({"way": way, "engine_rule": rule, "dau_rule": move.rule, "status": status,
-              "why": why, "elements": size, "selection": len(move.selection)})
+              "why": why, "elements": size, "selection": len(move.selection),
+              "caller": _caller(), "test": os.environ.get("PYTEST_CURRENT_TEST", "")})
     if MODE == "enforce" and may_raise and status == REJECTED:
         raise CalculusViolation(cert)
     return cert
