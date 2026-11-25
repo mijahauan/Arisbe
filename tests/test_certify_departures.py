@@ -7,6 +7,12 @@ named. Each departure found there is reproduced here and pinned, by name, so
 that it is neither lost nor fixed without someone noticing: a test below that
 starts failing because its departure is gone is the signal to retire it.
 
+Found by running the whole suite with ``ARISBE_CERTIFY_LOG`` set, which records
+for every certificate the kernel did not accept the caller that asked for the
+move. Outside the calculus suite that run held 11,315 such certificates: 11,101
+from ``_join_admitted_individuals``, 204 from ``retract_from_m``, and 10 from
+test code, the MCP verifier's tests and one dry run.
+
 ``KNOWN_DEPARTURES`` is the register. It is the counterpart, for production
 paths, of ``tests/calculus_ledger.json`` for the suite's moves.
 """
@@ -42,6 +48,12 @@ KNOWN_DEPARTURES = {
         "iteration and the merge are each certified and accepted; the edge between them is "
         "named by no rule and checked by nothing — not even that its area is negative "
         "(specification 3.3a finding 5; Phase 3 item 3). instantiate_to_lines does the same.",
+    "retract-leans-on-era-erasing-the-vertex-it-isolates":
+        "world_scroll.retract_from_m erases an atom by selecting its edge and relies on ERA "
+        "also taking the vertex the erasure isolates. That is the calculus ledger's own "
+        "era-also-erases-the-vertex-it-isolates, met here on a production caller: when "
+        "Phase 3 item 2 makes ERA remove the edge only, retraction must name the vertex's "
+        "erasure as its own step or it will leave the individual standing.",
 }
 
 
@@ -115,6 +127,20 @@ def test_universal_instantiation_adds_an_edge_between_two_certificates(monkeypat
     iterated, merged_from = recorder.seen[0][2], recorder.seen[1][1]
     assert not dau_kernel.same_graph(iterated, merged_from)
     assert len(merged_from.E) == len(iterated.E) + 1          # the identity edge, by no rule
+
+
+def test_retracting_an_atom_leans_on_era_taking_the_isolated_vertex(monkeypatch):
+    """KNOWN_DEPARTURES["retract-leans-on-era-erasing-the-vertex-it-isolates"]."""
+    resident, _scroll = world_scroll.wrap_m(parse_egif('(bird "Rex") (white "Tweety")'))
+    recorder = _Recorder(monkeypatch)
+    retracted, derivation = world_scroll.retract_from_m(
+        resident, relation="white", labels=["Tweety"])
+    assert derivation == ["ERA"]
+    (cert, before, after), = recorder.seen
+    assert (cert.steps[0].rule, cert.status) == ("ERA", REJECTED)
+    assert "differs from the licensed change" in cert.why
+    assert len(cert.steps[0].selection) == 1                   # the edge alone was named
+    assert (len(before.V), len(after.V)) == (2, 1)             # and Tweety's vertex went with it
 
 
 def test_the_register_names_exactly_the_departures_reproduced_here():

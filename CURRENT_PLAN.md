@@ -1,22 +1,84 @@
 # Current Plan
 
-**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phases 0 and 1 are done.**
+**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phases 0, 1 and 2 are
+done. Phase 3 waits on the author's R2.**
 
-**▶ START HERE — Phase 2 of
+**▶ START HERE — Phase 3 of
 [the calculus-conformance directive](docs/superpowers/plans/2026-11-25-calculus-conformance-directive.md):
-certify, observing only.** The specification is
+conform, one family per commit — and it does not start until R2 is ruled.** The specification is
 [2026-11-25-calculus-conformance.md](docs/superpowers/specs/2026-11-25-calculus-conformance.md);
-read it in full first. The directive supersedes the September block below — docket item 10 (the
-UoD alphabet) waits behind this arc.
+read it in full first, §3.3b above all (what observe mode found). The directive supersedes the
+September block below — docket item 10 (the UoD alphabet) waits behind this arc.
 
-*Phase 2, in the directive's words:* build `certify()` and the certificate (§3.2) and route every
-path from the Phase 0 map (§3.3a) through it, in **observe mode** — certificates computed and
-checked, failures counted, not raised. Type every recorded act by the §3.4 classes. **Gate:** the
-kernel rejects exactly the moves the ledger's SEVERE, DIFFERS and NOT-AN-EQUIVALENCE entries
-describe, and nothing else; any other rejection is a finding — stop and report it. Two things
-Phase 2 already owes, from the notes below: a named ledger entry for the discharge's unrecorded
-normalisation (finding 2), and the knowledge that its gate speaks for the protocol path only
-(finding 1).
+*Phase 3's first entry, in the directive's words:* VERTEX_ERA as its own entry point;
+CONSTANT_EXISTENCE and CONSTANT_IDENTITY (a kernel judgement and an entry point each); the
+constant normalisation at discharge becomes a recorded expansion. **Gate for each family:** its
+extent key gone from the pinned diff; refusal, structure and soundness re-pinned together; **its
+`rejected` row in `tests/test_calculus_certify.py`'s `CERTIFIED_DEFAULT` at zero**; the
+correspondence suite green on the affected rules.
+
+**What the author owes before Phase 3 can start, or while it runs:**
+1. **R2** — the seven PROVISIONAL readings against the book, and the two Chapter 24 readings
+   (§4.4). Blocks Phase 3.
+2. **The six unruled act names** (`src/act_classes.py`): `EXHIBIT`, `REVISE_M(sibling)`,
+   `definition.fold`, `definition.unfold`, `chain.fix`, and everything under `compose.`. A history
+   containing an unclassed act cannot be certified. Blocks Phase 4, not Phase 3.
+3. **Chain of custody.** Two of the three departures below are changes made *between* accepted
+   certificates. One certificate per engine call cannot see them. Phase 4's stored certificates
+   need each one issued on the graph the previous one vouched for. A design point to confirm.
+4. **Whether the kernel joins the calculus map**, and the stale comment at
+   `src/ligature_manipulation_rules.py:483` (both from Phase 1).
+
+**What Phase 2 did (2026-11-25).** Observe mode: no caller sees any difference in what the engine
+does. Commits `d5c28d6`, `d7cfc75`, `1414990`, and the one carrying this handoff.
+- `src/calculus_certify.py` is the one door to the rule engine. `certify(g, act)` performs a move
+  by the way in the caller names, then has the kernel check the result (`dau_kernel.check_step`:
+  ACCEPTED / REJECTED / UNJUDGED). A rejection is counted; `MODE = "enforce"` raises
+  `CalculusViolation` and is shown working by a test, not switched on.
+- **Every call site of the Phase 0 map goes through it** — `proof_authoring.apply_rule`, both
+  workshop routes, `POST /api/transform/apply`, the game engine, `derived_rules`, `world_scroll`.
+  `tests/test_certify_paths.py` reads every call in `src/` and `tools/` and fails on one that
+  performs a rule elsewhere; three callers are exempt by name. **No calculus-map module was
+  edited**: the door wraps the engine from outside.
+- **The gate holds over the calculus suite** (`tests/test_calculus_certify.py`). Default run:
+  13,257 applied moves — 9,273 accepted, 3,869 rejected, 115 unjudged. The rejected instances are
+  exactly those the ledger's SEVERE, DIFFERS and NOT AN EQUIVALENCE entries describe: 3,070 SEVERE
+  + 799 DIFFERS, move for move. By rule: DC+ 2,542 · ERA 578 · IT+ 514 · VERTEX_ERA 235. All 115
+  unjudged are the quotation extension. `calculus_extent.json` and `calculus_ledger.json` are
+  byte-identical to Phase 1's.
+- **The corpus's 66 primitive steps all replay to accepted certificates**
+  (`tests/test_certify_departures.py`). §5 expected its ERA and IT+ steps to need a legacy
+  expansion; as recorded they do not. Its six derived inferences carry no checkable expansion.
+- **Every recorded act has a class** (`src/act_classes.py`, `tests/test_act_classes.py`): of 146
+  corpus steps, 66 inferential primitive, 35 ampliative, 33 neutral, 6 inferential derived,
+  5 extension, 1 unruled.
+- **Cost.** The kernel's checks took 138 s inside a 57-minute full suite (36,685 certificates);
+  the slowest single check was 0.50 s, on a 167-element graph. The calculus suite's own set went
+  from 107 s to 146 s — past the two-minute mark its default budgets were tuned to.
+- Full suite with the door in place: 1 failed (`test_memory_stability`, the documented flake),
+  5,270 passed, 348 skipped, 1 xfailed, 10 deselected; `suite_census --against` reconciles at
+  5,620 = 5,607 + 13. The exhaustive calculus mode was not run.
+
+**Four departures on production's own paths — the directive's "any other rejection is a
+finding".** Found by running the whole suite with `ARISBE_CERTIFY_LOG` set, which names the
+caller of every move the kernel did not accept: outside the calculus suite, 11,315 such
+certificates, of which `world_scroll._join_admitted_individuals` issued 11,101 and
+`world_scroll.retract_from_m` 204; the other ten are test code, the MCP verifier's tests and one
+dry run. Each departure is reproduced and pinned in `tests/test_certify_departures.py`
+(`KNOWN_DEPARTURES`):
+1. **`admit-joins-a-named-vertex`** — the one true rejection. Admitting a fact about a known
+   individual merges a named vertex by the unchecked merge; Def 16.6 erases v₂ and Def 24.10
+   erases no name. 11,101 of the full suite's 15,224 rejections are this one move. The licensed
+   road is CONSTANT_IDENTITY then a merge — the R7 amendment already covers it.
+2. **`discharge-normalises-constants-unrecorded`** — IT−, IT−, DC− each accepted; the graph
+   returned is not the one the last certificate vouched for. The entry §4.4 said Phase 2 owed.
+3. **`ui-scribes-its-identity-edge-by-no-rule`** — universal instantiation's IT+ and merge both
+   accepted; the identity edge between them is scribed by `with_edge`, named by no rule, checked
+   by nothing. Phase 3 item 3.
+4. **`retract-leans-on-era-erasing-the-vertex-it-isolates`** — `retract_from_m` names an atom's
+   edge alone and relies on ERA taking the vertex it isolates: the ledger's own entry, met on a
+   production caller. **Phase 3 item 2 will break retraction unless it is changed with it** —
+   once ERA removes the edge only, the vertex's erasure must be its own named step.
 
 **What Phase 1 did (2026-11-25).** A pure move; no behaviour changed.
 - `src/dau_kernel.py` (971 lines) now holds Dau's rule table, `Move`, `legal()` with all its

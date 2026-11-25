@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** specification, nothing built · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4); R2 open (§7)
+**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4); R2 open (§7)
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -254,6 +254,78 @@ none is resolved here.
    the one split use the private `_apply_*` operations; the suite's `MERGE_VERTICES` measures the
    checked `merge_vertices`, which production never calls. Whatever R2 settles about the IT+ split,
    `universal_instantiation`'s join is today an unchecked edge plus an unchecked merge.
+
+### 3.3b What observe mode found (Phase 2, 2026-11-25)
+
+`src/calculus_certify.py` is the door. Every call site in §3.3a's table now goes through it, and
+`tests/test_certify_paths.py` fails on a call that performs a rule from anywhere else. The door
+wraps the engine from outside, so no calculus-map module was edited. Certificates are computed
+and checked; a rejection is counted and nothing is raised.
+
+**The gate holds over the calculus suite.** In the default run 13,257 moves are applied. The
+kernel accepts 9,273, rejects 3,869 and leaves 115 unjudged. The rejected instances are exactly
+those on which a layer records a SEVERE, DIFFERS or NOT AN EQUIVALENCE failure — every one of them
+ledgered — and the 3,869 are the refusal layer's 3,070 SEVERE plus the structure layer's 799
+DIFFERS, move for move (`tests/test_calculus_certify.py`). Four rules carry all of them: DC+ 2,542,
+ERA 578, IT+ 514, VERTEX_ERA 235. Those per-rule counts are pinned, and each Phase 3 family's gate
+is its row falling to zero. All 115 unjudged are the quotation extension (§6): 100 moves that
+touch the apparatus and 15 iterations on a quotation-bearing graph, where `legal()` abstains. An
+unjudged step is not a certified one.
+
+**The corpus's primitive steps are already conformant.** All 66 of them (DC+ 16, DC− 8, ERA 17,
+INS 12, IT+ 5, IT− 8) replay from their recorded source state to their recorded result, and the
+kernel accepts each as the Dau move it is recorded as (`tests/test_certify_departures.py`). None
+is one of the fused moves the ledger describes. §5 expected the 17 ERA and 5 IT+ steps to need a
+legacy expansion; as recorded, they do not. What the kernel cannot check in the corpus is its six
+derived inferences (4 UI, ENTERTAIN, DISCHARGE_TO_M), none of which carries an expansion with
+selections and targets (`tests/test_act_classes.py`).
+
+**What production's own paths produce.** The whole suite was run with the door in place and its
+log on, which records for each certificate the kernel did not accept the caller that asked for the
+move. 36,685 certificates: 21,345 accepted, 15,224 rejected, 115 unjudged, and one kernel crash
+planted by a test. Outside the calculus suite's own moves, 11,315 were not accepted, and two
+callers in `src/` account for all but ten of them: `world_scroll._join_admitted_individuals`
+(11,101) and `world_scroll.retract_from_m` (204). The remaining ten come from test code, the MCP
+verifier's tests and one dry run.
+
+**Four departures on production's own paths.** The directive: "Any other rejection is a finding:
+stop and report it." The ledger describes the suite's moves; these are on roads the suite does
+not take. Each is reproduced and pinned by name in `tests/test_certify_departures.py`
+(`KNOWN_DEPARTURES`), the counterpart for production paths of the calculus ledger. The first is
+a rejection no ledger entry describes; the second and third are gaps no certificate sees; the
+fourth is a ledger entry met on a production caller:
+
+1. **`admit-joins-a-named-vertex`** — the one true rejection. `world_scroll._join_admitted_individuals`
+   merges the newly admitted constant's vertex into the standing one by the unchecked merge.
+   Def 16.6 erases v₂ and Def 24.10 erases no name, so the kernel rejects it — every time a fact
+   about a known individual is admitted. The licensed road is CONSTANT_IDENTITY then a merge (§4.4).
+2. **`discharge-normalises-constants-unrecorded`** — not a rejection but a gap: the discharge's
+   three steps are each certified and accepted, and the graph it returns is not the graph the last
+   certificate vouched for. This is the named entry §4.4 said Phase 2 owed.
+3. **`ui-scribes-its-identity-edge-by-no-rule`** — the same kind of gap.
+   `derived_rules.universal_instantiation` iterates (accepted), adds the joining identity edge with
+   the data model's own `with_edge`, then merges (accepted). The edge between the two certificates
+   is named by no rule and checked by nothing. `instantiate_to_lines` does the same.
+4. **`retract-leans-on-era-erasing-the-vertex-it-isolates`** — `world_scroll.retract_from_m`
+   erases an atom by naming its edge alone and relies on ERA also taking the vertex the erasure
+   isolates. That is the ledger's own `era-also-erases-the-vertex-it-isolates`. It matters for
+   Phase 3 item 2: once ERA removes the edge only, retraction must name the vertex's erasure as
+   its own step, or the individual is left standing in the model.
+
+Departures 2 and 3 show what one certificate per engine call cannot see: a change made *between*
+calls. Phase 4's stored certificates need a chain of custody — each certificate issued on the
+graph the previous one vouched for — or these pass unseen.
+
+**The two ways in still disagree, and now by certificate.** DC+ of nothing at a spot is an empty
+double cut through the protocol and a cut round the whole area through the engine; each is
+certified as the move it is. DC+ of an edge with another area as its spot is applied by the
+protocol and rejected by the kernel, and refused by the engine outright (§3.3a, finding 1).
+
+**Every recorded act has a class** (`src/act_classes.py`, §3.4's table name for name). Of the
+corpus's 146 steps: 66 inferential primitive, 35 ampliative, 33 neutral, 6 inferential derived,
+5 extension, 1 unruled. Six recordable names are in §3.4's table nowhere — `EXHIBIT`,
+`REVISE_M(sibling)`, `definition.fold`, `definition.unfold`, `chain.fix` and everything under
+`compose.` — and are held as unruled rather than guessed at.
 
 ### 3.4 Which acts the soundness claim covers
 
