@@ -61,7 +61,9 @@ rejection is a finding: stop and report it.
 
 In this order, which builds what later fixes need first:
 
-1. VERTEX_ERA as its own entry point, and CONSTANT_EXISTENCE (its kernel judgement and entry point).
+1. VERTEX_ERA as its own entry point; CONSTANT_EXISTENCE and CONSTANT_IDENTITY (a kernel judgement
+   and an entry point each); the constant normalisation at discharge becomes a recorded expansion
+   (the specification's §4.4 — CONSTANT_IDENTITY added by the author's amendment of R7, 2026-11-25).
 2. ERA of an edge removes the edge only (§4.1); the isolated vertex stays.
 3. IT+ copies every vertex; the deeper-context join becomes copy, extend, merge as discrete steps;
    the isolated-vertex defect is fixed; `derived_rules.universal_instantiation` is checked for a

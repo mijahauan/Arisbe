@@ -33,8 +33,13 @@ proceed:**
    statement about the protocol**, and rejections on the other two ways in are to be expected.
 2. **DISCHARGE_TO_M runs `normalize_constants` after its three rules** (reproduced: the result is
    not `same_graph` to what IT−·IT−·DC− produced). §3.4 wants every step of that act
-   kernel-checked; the step is CONSTANT_IDENTITY plus a collapse that is not Dau's, and §4.4
-   defers CONSTANT_IDENTITY. **This wants a ruling before Phase 2 types DISCHARGE_TO_M.**
+   kernel-checked, and §4.4 deferred CONSTANT_IDENTITY. **Ruled 2026-11-25: CONSTANT_IDENTITY is
+   brought into this arc (R7 amended).** §4.4 quotes the rule from the book (Def 24.10, p.271) and
+   gives the expansion it appears to license — CONSTANT_IDENTITY then MERGE_VERTICES per twin, with
+   CONSTANT_EXISTENCE at the least common area first when the twins sit in sibling cuts. That
+   expansion is a reading, **not yet reproduced on a graph; reproduce it before building it.**
+   It lands in Phase 3 item 1. **Phase 2 owes it a named ledger entry**, because the observe-mode
+   kernel will reject the unrecorded normalisation and no entry describes it today.
 3. ADMIT_TO_M's recorded `["INS"]` is likewise not the whole move (`_join_admitted_individuals`).
 4. `proof_character.py` does not hold all of §3.4's classification; six recordable act names are
    in neither.
@@ -42,7 +47,9 @@ proceed:**
    checked one.
 
 **Still open and the author's:** R2 (the seven PROVISIONAL readings, against the book) — blocks
-Phase 3 only.
+Phase 3 only. Two Chapter 24 readings joined it with the R7 amendment (§4.4): the printed
+Constant Identity Rule is corrupt ("(ve, vf)", "into d"), and no Chapter 24 restatement of
+Def 16.6's merge for two constant vertices was found.
 
 **Not kept:** the two AST scans that produced §3.3a lived in the session scratchpad. Phase 2's
 choke-point test ("no engine entry point is reachable except through `certify`") is their durable

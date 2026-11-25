@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** specification, nothing built · **Rulings:** R1, R3–R8 ruled 2026-11-25; R2 open (§7)
+**Date:** 2026-11-25 · **Status:** specification, nothing built · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4); R2 open (§7)
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -207,6 +207,10 @@ none is resolved here.
    kernel-checked". The link between the two vertices is Dau's CONSTANT_IDENTITY, which §4.4
    schedules after this arc; the collapse is, in the module's own words, not Dau's at all. As
    written, §3.4 and §4.4 cannot both hold for this act.
+   **Ruled 2026-11-25: CONSTANT_IDENTITY is brought into this arc (R7 as amended, §4.4), and the
+   normalisation becomes a recorded expansion.** "Not Dau's at all" was this map's reading of the
+   module's docstring before the book was opened; §4.4 now quotes the rule and gives the expansion
+   it appears to license.
 3. **ADMIT_TO_M's `["INS"]` is likewise not the whole move.** Reproduced: admitting
    `(white "Rex")` beside `(bird "Rex")` by `enlarge_m` yields one `Rex` vertex, moved out of its
    cell to the residence's area; the bare INS yields two, and the two results are not
@@ -348,9 +352,55 @@ prescription, which explicitly warns against relaxing the side condition instead
 
 `CONSTANT_EXISTENCE` is **in scope**: §4.1 needs it the moment an isolated constant is erased or
 inserted, and the kernel must be able to name it (`legal()` does not judge it today:
-`judged=False`). `ORIENT_IDENTITY`, `LIGATURE_VERTEX`, `CONSTANT_IDENTITY` and `SEPARATE_CONSTANT`
+`judged=False`). `ORIENT_IDENTITY`, `LIGATURE_VERTEX` and `SEPARATE_CONSTANT`
 are completeness work, scheduled after §8's criteria are met, and disclosed until then. The
 "Beta-complete" claim in `docs/CONTRIBUTION_AND_PRIOR_ART.md` (lines 61 and 459) is withdrawn now.
+
+**`CONSTANT_IDENTITY` is in scope too (R7 as amended, ruled 2026-11-25).** The Phase 0 map found
+that `world_scroll.discharge_episode` runs `vertex_scope.normalize_constants` after its three rules
+(§3.3a, finding 2), so DISCHARGE_TO_M — inferential-derived, "every step kernel-checked" (§3.4) —
+contains a graph change that no rule in scope could name. The alternative, recording the
+normalisation as an act that is not an inference, was declined: the result is not `same_graph` to
+its input, so it could not be certified as content-identity, and it sits inside the act by which a
+fact enters M by inference.
+
+The rule, read from the book on 2026-11-25 (Def 24.10, p.271; `pdftotext` of
+`docs/references/mathematical_logic_with_diagrams.pdf`):
+
+> **Constant Identity Rule.** Let C ∈ C be a constant name. Let v, w be vertices with
+> ρ(v) = ρ(w) = C. Let c be a context with c ≤ ctx(v) and c ≤ ctx(w). Then arbitrary
+> identity-links id with ν(id) = (ve, vf) may be inserted into d or erased from c.
+>
+> **Existence of Constants Rule.** Let C be a constant name. In each context c, we may add a fresh
+> vertex v with ρ(v) = C. Vice versa, if v is an isolated vertex with ρ(v) = C v may be erased
+> from c.
+
+The link goes into a context enclosed by *both* vertices, so two same-name vertices in sibling
+cuts cannot be linked directly. The expansion the normaliser's move appears to have — **a reading,
+not yet reproduced on a graph, and to be reproduced before it is built:**
+
+- the survivor already dominates the twin: CONSTANT_IDENTITY (the link, in the twin's context),
+  then MERGE_VERTICES (Def 16.6, p.176), once per twin;
+- twins in sibling cuts: CONSTANT_EXISTENCE of a fresh vertex at their least common area first,
+  then the same pair per twin.
+
+CONSTANT_IDENTITY is therefore sufficient only together with CONSTANT_EXISTENCE and a checked
+merge — and production's merges are today the unchecked private operation (§3.3a, finding 5).
+ADMIT_TO_M's join (§3.3a, finding 3) is the same move and takes the same recorded expansion,
+though as an ampliative act it owes no certificate.
+
+Two readings ride with this and are the author's (R2):
+
+1. **The printed rule is corrupt.** "ν(id) = (ve, vf)" names vertices of the Functional Property
+   Rule stated just above it, and "inserted into d" names a context the rule never introduces.
+   The reading taken is ν(id) = (v, w) and "into c".
+2. **Merging two constant vertices.** §24.4 (p.275) carries the Chapter 16 results over to
+   vertex-based EGIs "as long as we do not change the set of its labels", which a merge of two
+   C-labelled vertices satisfies. No Chapter 24 restatement of Def 16.6 itself was found.
+
+**Until Phase 3 builds the expansion, the discharge's normalisation is one unrecorded step.**
+Phase 2's observe-mode kernel will reject it, and it is in no ledger entry today. Phase 2 gives it
+a named entry, so that the gate's "and nothing else" stays true.
 
 ## 5. Stored histories
 
@@ -376,19 +426,19 @@ discipline the 2026-09-24 alphabet migration used). Ruling required (§7, R5).
   Arisbe's, not Dau's Beta. Its conservativity argument (ROADMAP thesis iii; Dau Ch. 26's
   reduction) is a separate document. Until it exists, a history containing QUOTE is certified on
   its Beta steps and says so.
-- **Completeness** beyond §4.3 and CONSTANT_EXISTENCE.
+- **Completeness** beyond §4.3, CONSTANT_EXISTENCE and CONSTANT_IDENTITY.
 
 ## 7. Rulings required
 
 | # | Question | Proposed | Status |
 |---|---|---|---|
 | R1 | Fused moves become discrete recorded steps; conveniences become derived rules with recorded expansions | Yes | **Ruled 2026-11-25** |
-| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split | — | **Open: author checking against the book.** Blocks Phase 3 only |
+| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split. Added with the R7 amendment: the two Chapter 24 readings in §4.4 (the corrupt printed text of the Constant Identity Rule; whether Def 16.6's merge covers two constant vertices) | — | **Open: author checking against the book.** Blocks Phase 3 only |
 | R3 | Enlarged selections (ERA, IT+): refuse and offer the closure as an explicit proposal, rather than refuse outright | Refuse + propose | **Ruled 2026-11-25: refuse + propose** |
 | R4 | DC+ with neither subject nor spot: keep the whole-sheet convenience, recording the enclosed selection; or remove it | Keep, recorded | **Ruled 2026-11-25: keep, recorded** |
 | R5 | Stored chains: `rule_version` + legacy expansion; regenerate the corpus exemplars | Yes | **Ruled 2026-11-25: yes** |
 | R6 | Neutral acts (PEEL, TRACE_ALTERNATIVES, SURVEY_*) certified as content-identity; QUOTE as a declared extension | Yes | **Ruled 2026-11-25: yes** |
-| R7 | CONSTANT_EXISTENCE implemented in this arc; the other four missing rules after it | Yes | **Ruled 2026-11-25: yes** |
+| R7 | CONSTANT_EXISTENCE implemented in this arc; the other four missing rules after it | Yes | **Ruled 2026-11-25: yes. Amended the same day, after the Phase 0 map (§3.3a, finding 2): CONSTANT_IDENTITY is implemented in this arc as well; the other three after it** |
 | R8 | The fused iterate-and-join survives as a named derived rule (or is retired in favour of UI) | Keep as derived | **Ruled 2026-11-25: named derived rule (e.g. ITERATE_AND_JOIN), expanding to copy, extend, merge** |
 
 ## 8. Done — the criterion for outreach
