@@ -14,8 +14,8 @@ import pytest
 
 import proof_character
 from act_classes import (
-    ACT_CLASSES, AMPLIATIVE, EXTENSION, INFERENTIAL_DERIVED, INFERENTIAL_PRIMITIVE, NEUTRAL,
-    UNRULED, UNRULED_CLASS, act_class,
+    ACT_CLASSES, AMPLIATIVE, COMPOSITION, EXTENSION, INFERENTIAL_DERIVED,
+    INFERENTIAL_PRIMITIVE, NEUTRAL, act_class,
 )
 from dau_kernel import RULE_TABLE
 
@@ -37,8 +37,8 @@ def test_every_step_the_corpus_records_has_a_class_and_the_counts_are_pinned():
     steps = list(_corpus_steps())
     assert len({path for path, _ in steps}) == 35
     assert Counter(act_class(params["rule"]) for _, params in steps) == {
-        INFERENTIAL_PRIMITIVE: 66, AMPLIATIVE: 35, NEUTRAL: 33, INFERENTIAL_DERIVED: 6,
-        EXTENSION: 5, UNRULED_CLASS: 1,
+        INFERENTIAL_PRIMITIVE: 66, AMPLIATIVE: 35, NEUTRAL: 34, INFERENTIAL_DERIVED: 6,
+        EXTENSION: 5,
     }
 
 
@@ -116,13 +116,27 @@ def test_a_name_nothing_knows_is_refused():
         act_class("SOME_NEW_ACT")
 
 
-def test_the_unruled_names_are_exactly_these():
-    """Recordable, and §3.4's table classes none of them. Pinned so the list is
-    read by the author rather than grown in silence; ``compose.`` is a prefix."""
-    assert UNRULED == {"EXHIBIT", "REVISE_M(sibling)", "definition.fold", "definition.unfold",
-                       "chain.fix"}
-    assert act_class("compose.fix_graph") == UNRULED_CLASS
-    assert not UNRULED & set(ACT_CLASSES)
+def test_the_six_names_the_author_ruled_on_2026_11_25():
+    """R10. They were recordable and in §3.4's table nowhere, and were held as
+    unruled until the author classed them. Pinned as ruled."""
+    assert act_class("REVISE_M(sibling)") == AMPLIATIVE == act_class("REVISE_M")
+    assert act_class("EXHIBIT") == NEUTRAL
+    assert act_class("chain.fix") == NEUTRAL
+    assert act_class("definition.fold") == act_class("definition.unfold") == EXTENSION
+    # Composition is a class of its own and a prefix, not a list of names.
+    assert act_class("compose.fix_graph") == act_class("compose.add_cut") == COMPOSITION
+    assert COMPOSITION not in set(ACT_CLASSES.values())
+
+
+def test_the_gate_step_that_fixes_a_graph_is_composition_and_the_seal_is_neutral():
+    """The two fixings (``composition_ops``): ``compose.fix_graph`` ends the
+    drafting and is the last composition step; ``chain.fix`` seals a chain and
+    changes nothing. A workshop history is certified from the first onward."""
+    import composition_ops
+
+    assert act_class(composition_ops.FIX_GRAPH_STEP) == COMPOSITION
+    assert act_class(composition_ops.FIX_CHAIN_STEP) == NEUTRAL
+    assert composition_ops.FIX_GRAPH_STEP.startswith(composition_ops.COMPOSE_STEP_PREFIX)
 
 
 def test_the_six_rules_and_every_other_dau_rule_are_primitives():

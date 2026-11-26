@@ -65,7 +65,9 @@ In this order, which builds what later fixes need first:
    and an entry point each); the constant normalisation at discharge becomes a recorded expansion
    (the specification's §4.4 — CONSTANT_IDENTITY added by the author's amendment of R7, 2026-11-25).
 2. ERA of an edge removes the edge only (§4.1); the isolated vertex stays.
-3. IT+ copies every vertex; the deeper-context join becomes copy, extend, merge as discrete steps;
+3. IT+ copies every vertex; the deeper-context join becomes copy, extend, merge as discrete steps
+   (ruled 2026-11-25, R2 option A: the second iteration clause is a rule of its own, and the
+   expansion to reproduce is the specification's §7a — extend, iterate with the link, merge, merge);
    the isolated-vertex defect is fixed; `derived_rules.universal_instantiation` is checked for a
    double join.
 4. Enlarged selections (ERA, IT+) refused, with the closure offered per R3.

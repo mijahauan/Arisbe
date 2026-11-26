@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 added (chain of custody); R2 open (§7, with §7a)
+**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 (chain of custody) and R10 (act classes) added; R2 ruled in part — the IT+ expansion and edge erasure — the rest open (§7, §7a)
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -329,10 +329,10 @@ certified as the move it is. DC+ of an edge with another area as its spot is app
 protocol and rejected by the kernel, and refused by the engine outright (§3.3a, finding 1).
 
 **Every recorded act has a class** (`src/act_classes.py`, §3.4's table name for name). Of the
-corpus's 146 steps: 66 inferential primitive, 35 ampliative, 33 neutral, 6 inferential derived,
-5 extension, 1 unruled. Six recordable names are in §3.4's table nowhere — `EXHIBIT`,
-`REVISE_M(sibling)`, `definition.fold`, `definition.unfold`, `chain.fix` and everything under
-`compose.` — and are held as unruled rather than guessed at.
+corpus's 146 steps: 66 inferential primitive, 35 ampliative, 34 neutral, 6 inferential derived,
+5 extension. Six recordable names were in §3.4's table nowhere — `EXHIBIT`, `REVISE_M(sibling)`,
+`definition.fold`, `definition.unfold`, `chain.fix` and everything under `compose.` — and were
+held as unruled until the author classed them the same day (R10; §3.4's table now carries them).
 
 ### 3.4 Which acts the soundness claim covers
 
@@ -344,9 +344,14 @@ classification as a type on every recorded act:
 |---|---|---|
 | **Inferential primitive** | ERA, INS, IT+, IT−, DC+, DC−, the vertex, ligature, split/merge and constant rules | one kernel-checked step |
 | **Inferential derived** | UI, DISCHARGE_TO_M, ABANDON_EPISODE, ENTERTAIN, the fused conveniences of §4 | the recorded expansion, every step kernel-checked |
-| **Ampliative** | REVISE_M, ADMIT_FACT, SCRIBE_AXIOM, SCRIBE_LAW, FOLD_NUMERAL, ADMIT_TO_M, RETRACT_FROM_M, DECAY, BANK_TO_M, PROPOSE | none — typed as a choice, never presented as an inference |
-| **Neutral** | PEEL, TRACE_ALTERNATIVES, SURVEY_* | kernel checks the logical content is unchanged |
-| **Extension** | QUOTE and the B-min quotation apparatus | outside Dau's Beta: its own soundness argument (§6) |
+| **Ampliative** | REVISE_M, REVISE_M(sibling), ADMIT_FACT, SCRIBE_AXIOM, SCRIBE_LAW, FOLD_NUMERAL, ADMIT_TO_M, RETRACT_FROM_M, DECAY, BANK_TO_M, PROPOSE | none — typed as a choice, never presented as an inference |
+| **Neutral** | PEEL, TRACE_ALTERNATIVES, SURVEY_*, EXHIBIT, chain.fix | kernel checks the logical content is unchanged |
+| **Extension** | QUOTE and the B-min quotation apparatus; definition.fold, definition.unfold | outside Dau's Beta: its own soundness argument (§6) |
+| **Composition** | everything named under `compose.` — regime-1 drafting, up to and including `compose.fix_graph` | none — outside the claim: a workshop history is certified from the point its graph is fixed |
+
+The last row and the five names added to the rows above it are the author's ruling of 2026-11-25
+(R10). Composition is a sixth class because drafting is neither an inference nor a revision of a
+model; calling it ampliative would have said it was the second.
 
 Opaque derived steps (`apply_derived` without a recorded expansion) are not admitted to a certified
 history.
@@ -382,6 +387,11 @@ Dau Def 15.2 iteration (p.166) copies every vertex of the subgraph: V′ := V×{
 itself when the target is deeper, extending the line instead — the ledger identifies this as Dau's
 copy, plus a ligature extension (Def 15.2 second clause, p.164), plus a merge (Def 16.6 / Lemma
 16.7, pp.175–178). **Resolution: split** into those three recorded steps, IT+ copying every vertex.
+**Ruled 2026-11-25 (R2, option A):** the second clause of the iteration rule (p.164) is a rule in
+its own right. On that reading the expansion appears to be four steps, not three — extend the line
+into the cut by the second clause; iterate with the copy linked to the new vertex; merge; merge
+(§7a). **Not yet reproduced on a graph; reproduce it before building it,** and count the steps
+then. The kernel needs a judgement for the second clause, which it does not have today.
 **A defect to fix on the way:** where the selection is an isolated vertex (56 of 78 default-mode
 moves) the engine reports success and inserts nothing; Dau inserts a copy. **Interaction to check:**
 `derived_rules.universal_instantiation` composes IT+ → `=` → merge on the assumption that IT+
@@ -539,13 +549,14 @@ discipline the 2026-09-24 alphabet migration used). Ruling required (§7, R5).
 | # | Question | Proposed | Status |
 |---|---|---|---|
 | R1 | Fused moves become discrete recorded steps; conveniences become derived rules with recorded expansions | Yes | **Ruled 2026-11-25** |
-| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split. Added with the R7 amendment: the two Chapter 24 readings in §4.4 (the corrupt printed text of the Constant Identity Rule; whether Def 16.6's merge covers two constant vertices) | — | **Open: author checking against the book.** Blocks Phase 3 only |
+| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split. Added with the R7 amendment: the two Chapter 24 readings in §4.4 (the corrupt printed text of the Constant Identity Rule; whether Def 16.6's merge covers two constant vertices) | — | **Ruled in part, 2026-11-25.** (a) The second iteration clause is a rule in its own right — option A of §7a; this was the question "above all". (b) Edge erasure keeps the vertex: the author confirmed the printed "V^(e) := V; E^(e) := E\{e}" (p.165). **Still open:** the other five PROVISIONAL readings (entries 0, 2, 11, 13, 15) and the two Chapter 24 readings. Blocks Phase 3 only |
 | R3 | Enlarged selections (ERA, IT+): refuse and offer the closure as an explicit proposal, rather than refuse outright | Refuse + propose | **Ruled 2026-11-25: refuse + propose** |
 | R4 | DC+ with neither subject nor spot: keep the whole-sheet convenience, recording the enclosed selection; or remove it | Keep, recorded | **Ruled 2026-11-25: keep, recorded** |
 | R5 | Stored chains: `rule_version` + legacy expansion; regenerate the corpus exemplars | Yes | **Ruled 2026-11-25: yes** |
 | R6 | Neutral acts (PEEL, TRACE_ALTERNATIVES, SURVEY_*) certified as content-identity; QUOTE as a declared extension | Yes | **Ruled 2026-11-25: yes** |
 | R7 | CONSTANT_EXISTENCE implemented in this arc; the other four missing rules after it | Yes | **Ruled 2026-11-25: yes. Amended the same day, after the Phase 0 map (§3.3a, finding 2): CONSTANT_IDENTITY is implemented in this arc as well; the other three after it** |
 | R8 | The fused iterate-and-join survives as a named derived rule (or is retired in favour of UI) | Keep as derived | **Ruled 2026-11-25: named derived rule (e.g. ITERATE_AND_JOIN), expanding to copy, extend, merge** |
+| R10 | The six act names §3.4 did not class | REVISE_M(sibling) ampliative; EXHIBIT and chain.fix neutral; definition.fold/unfold extension; `compose.*` a sixth class | **Ruled 2026-11-25: as proposed, with composition a sixth class** (§3.4) |
 | R9 | Chain of custody: each certificate step is issued on the graph the previous one vouched for (§3.2) | Yes | **Ruled 2026-11-25: confirmed**, after Phase 2 found two changes made between accepted steps |
 
 ### 7a. R2 — what the printed text says (a reading aid, not a ruling)
@@ -587,6 +598,11 @@ pp.164–167 and p.134. The extraction garbles some symbols, so each point wants
   treats it as a case of its own — "if G2 is obtained from G1 by inserting a new vertex w and an
   identity edge between v and w into c with the second clause of the iteration-rule" (p.273) —
   which is how one writes of a rule, not of a gloss.
+  **Ruled 2026-11-25: option A — the second clause is a rule in its own right.**
+- Where to find the oddities, by printed page: "w ∈ V0 with ctx(w) = c" is in the informal list
+  on **p.164** (the formal W_v ⊆ V it should match is on p.166), and is printed again in the
+  Chapter 24 restatement on **p.270**, which also has "ctx(U)" where ctx(G0) is meant;
+  "κ(v) = ⊤" is at the top of **p.166**; the corrupt Constant Identity Rule is on **p.271**.
 - One more oddity for the page: the vertex rule prints "E_v = ∅ and κ(v) = ⊤" (p.166), though κ
   labels edges in this chapter.
 

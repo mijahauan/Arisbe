@@ -1,7 +1,7 @@
 # Current Plan
 
 **Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phases 0, 1 and 2 are
-done. Phase 3 waits on the author's R2.**
+done. Phase 3 waits on the rest of the author's R2** (ruled in part: see item 1 below).
 
 **▶ START HERE — Phase 3 of
 [the calculus-conformance directive](docs/superpowers/plans/2026-11-25-calculus-conformance-directive.md):
@@ -21,11 +21,18 @@ correspondence suite green on the affected rules.
 1. **R2** — the seven PROVISIONAL readings against the book, and the two Chapter 24 readings
    (§4.4). Blocks Phase 3. **§7a of the specification quotes what the printed text says for each**
    (a reading aid, not a ruling): six of the seven read as the ledger reads them; the open part
-   is the expansion of IT+'s reuse into a deeper context, where the informal and formal statements
-   of iteration do not obviously agree.
-2. **The six unruled act names** (`src/act_classes.py`): `EXHIBIT`, `REVISE_M(sibling)`,
-   `definition.fold`, `definition.unfold`, `chain.fix`, and everything under `compose.`. A history
-   containing an unclassed act cannot be certified. Blocks Phase 4, not Phase 3.
+   was the expansion of IT+'s reuse into a deeper context, where the informal and formal
+   statements of iteration do not obviously agree.
+   **Ruled in part, 2026-11-25:** (a) option A — the second iteration clause (p.164) is a rule in
+   its own right, so the expansion to reproduce is extend · iterate-with-link · merge · merge, and
+   the kernel needs a judgement for that clause; (b) edge erasure keeps the vertex, confirmed
+   against p.165. **Still open:** the other five PROVISIONAL readings (ledger entries 0, 2, 11,
+   13, 15) and the two Chapter 24 readings. Phase 3 item 2 (ERA of an edge) is now unblocked on
+   its reading; item 1 needs the vertex-rule reading (entries 11, 13) and the Chapter 24 pair.
+2. ~~The six unruled act names~~ — **ruled 2026-11-25 (R10).** `REVISE_M(sibling)` ampliative;
+   `EXHIBIT` and `chain.fix` neutral; `definition.fold` / `definition.unfold` extension;
+   everything under `compose.` a **sixth class, composition** — so a workshop history is certified
+   from the point its graph is fixed. In `src/act_classes.py` and §3.4's table.
 3. ~~Chain of custody~~ — **ruled 2026-11-25 (R9): confirmed.** Each step of a stored
    certificate is issued on the graph the previous one vouched for (§3.2). Two of the departures
    below are changes made *between* accepted certificates, which is why it had to be said.
@@ -53,8 +60,8 @@ does. Commits `d5c28d6`, `d7cfc75`, `1414990`, and the one carrying this handoff
   (`tests/test_certify_departures.py`). §5 expected its ERA and IT+ steps to need a legacy
   expansion; as recorded they do not. Its six derived inferences carry no checkable expansion.
 - **Every recorded act has a class** (`src/act_classes.py`, `tests/test_act_classes.py`): of 146
-  corpus steps, 66 inferential primitive, 35 ampliative, 33 neutral, 6 inferential derived,
-  5 extension, 1 unruled.
+  corpus steps, 66 inferential primitive, 35 ampliative, 34 neutral, 6 inferential derived,
+  5 extension (after R10 classed the one `EXHIBIT` step as neutral).
 - **Cost.** The kernel's checks took 138 s inside a 57-minute full suite (36,685 certificates);
   the slowest single check was 0.50 s, on a 167-element graph. The calculus suite's own set went
   from 107 s to 146 s — past the two-minute mark its default budgets were tuned to.
