@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4); R2 open (§7)
+**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 added (chain of custody); R2 open (§7, with §7a)
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -106,6 +106,13 @@ for that step (for the four ligature rules, split and merge, where no licensed r
 iff `postconditions(gᵢ, stepᵢ, gᵢ₊₁)` is empty). A primitive move's certificate has one step; a
 derived rule's has its expansion. The rule named in each step is the Dau rule, by its table name —
 so erasing an isolated *constant* vertex names `CONSTANT_EXISTENCE` (Def 24.10), not `VERTEX_ERA`.
+
+**Chain of custody (R9, ruled 2026-11-25).** Each step of a stored certificate is issued on the
+graph the previous step vouched for, and the first on the recorded source state; the last
+vouches for the recorded result. A certificate whose steps are each acceptable but do not join up
+is rejected. Phase 2 found why this has to be said: discharge and universal instantiation each
+change the graph *between* two accepted steps (§3.3b, departures 2 and 3), and a check of one
+engine call at a time cannot see that.
 
 ### 3.3 One choke point
 
@@ -539,6 +546,45 @@ discipline the 2026-09-24 alphabet migration used). Ruling required (§7, R5).
 | R6 | Neutral acts (PEEL, TRACE_ALTERNATIVES, SURVEY_*) certified as content-identity; QUOTE as a declared extension | Yes | **Ruled 2026-11-25: yes** |
 | R7 | CONSTANT_EXISTENCE implemented in this arc; the other four missing rules after it | Yes | **Ruled 2026-11-25: yes. Amended the same day, after the Phase 0 map (§3.3a, finding 2): CONSTANT_IDENTITY is implemented in this arc as well; the other three after it** |
 | R8 | The fused iterate-and-join survives as a named derived rule (or is retired in favour of UI) | Keep as derived | **Ruled 2026-11-25: named derived rule (e.g. ITERATE_AND_JOIN), expanding to copy, extend, merge** |
+| R9 | Chain of custody: each certificate step is issued on the graph the previous one vouched for (§3.2) | Yes | **Ruled 2026-11-25: confirmed**, after Phase 2 found two changes made between accepted steps |
+
+### 7a. R2 — what the printed text says (a reading aid, not a ruling)
+
+Read on 2026-11-25 from `pdftotext` of `docs/references/mathematical_logic_with_diagrams.pdf`,
+pp.164–167 and p.134. The extraction garbles some symbols, so each point wants the page itself.
+
+- **Edge erasure keeps the vertex** (entry 14). The formal definition of G^(e) reads
+  "V^(e) := V; E^(e) := E\{e}" (p.165). As the ledger reads it.
+- **Erasure takes an edge or a closed subgraph** (entries 2, 11, 13). "Let k be an edge or a closed
+  subgraph of G" (p.165); the vertex rule wants "a vertex with E_v = ∅" (p.166), and the closing
+  remark says "the erasure/insertion-rule may only be applied to closed subgraphs" (p.166). As the
+  ledger reads it. Dau adds that a non-closed subgraph can "informally" be erased, and shows how
+  (p.167): split the line, erase the identity edge, erase the now-closed part — which leaves the
+  rest of the line standing. The engine's auto-closure does the opposite: it erases *more* than was
+  named, the other edges on the vertex included. The two are not the same convenience.
+- **Iteration takes any subgraph** (entry 15). "a (not necessarily closed) subgraph" (p.164), and
+  Def 12.10 (p.134) asks of a subgraph only that each edge's vertices be in it, not each vertex's
+  edges. A vertex named alone is a subgraph. As the ledger reads it.
+- **The double cut has no spot** (entry 0). It is defined by its erasure: cuts c1, c2 with
+  area(c1) = {c2}, c0 := ctx(c1), and area′(c0) := area(c0) ∪ area(c2) (p.164). Insertion is the
+  inverse, in c0. A spot other than the enclosed contents' own context names no move.
+- **Iteration copies every vertex** (entry 16). "V′ := V×{1} ∪ V0×{2}" (p.166). As the ledger
+  reads it. What is not settled by a plain reading is the expansion of the engine's reuse, and the
+  text gives three things to look at on the page:
+  1. the formal definition links a copied top-level vertex only to vertices w with "wΘv and
+     w ∈ area(c)" — vertices already *in the target context* — by fresh identity edges F placed in c;
+  2. the informal list's second iteration clause (p.164) — "If v ∈ V is a vertex, and if c ≤ ctx(v)
+     is a cut, then a new vertex w and an identity edge between v and w may be inserted into c" —
+     has no case of its own in the formal definition that follows, and is the only place the text
+     links a vertex *above* c to one in c;
+  3. the informal first clause prints "w ∈ V0 with ctx(w) = c" where the formal definition has
+     W_v ⊆ V.
+  If (2) stands as a rule, the engine's reuse expands to: extend the line into c (2), iterate with
+  the copy linked to the new vertex (1), merge twice (Def 16.6) — four steps where §4.1 counts
+  three. If (2) is only the degenerate case of (1), the first step is not available and the join
+  to a line above c has to come some other way. This is the question R2's row calls "above all".
+- One more oddity for the page: the vertex rule prints "E_v = ∅ and κ(v) = ⊤" (p.166), though κ
+  labels edges in this chapter.
 
 ## 8. Done — the criterion for outreach
 

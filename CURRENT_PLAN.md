@@ -19,13 +19,16 @@ correspondence suite green on the affected rules.
 
 **What the author owes before Phase 3 can start, or while it runs:**
 1. **R2** — the seven PROVISIONAL readings against the book, and the two Chapter 24 readings
-   (§4.4). Blocks Phase 3.
+   (§4.4). Blocks Phase 3. **§7a of the specification quotes what the printed text says for each**
+   (a reading aid, not a ruling): six of the seven read as the ledger reads them; the open part
+   is the expansion of IT+'s reuse into a deeper context, where the informal and formal statements
+   of iteration do not obviously agree.
 2. **The six unruled act names** (`src/act_classes.py`): `EXHIBIT`, `REVISE_M(sibling)`,
    `definition.fold`, `definition.unfold`, `chain.fix`, and everything under `compose.`. A history
    containing an unclassed act cannot be certified. Blocks Phase 4, not Phase 3.
-3. **Chain of custody.** Two of the three departures below are changes made *between* accepted
-   certificates. One certificate per engine call cannot see them. Phase 4's stored certificates
-   need each one issued on the graph the previous one vouched for. A design point to confirm.
+3. ~~Chain of custody~~ — **ruled 2026-11-25 (R9): confirmed.** Each step of a stored
+   certificate is issued on the graph the previous one vouched for (§3.2). Two of the departures
+   below are changes made *between* accepted certificates, which is why it had to be said.
 4. **Whether the kernel joins the calculus map**, and the stale comment at
    `src/ligature_manipulation_rules.py:483` (both from Phase 1).
 
