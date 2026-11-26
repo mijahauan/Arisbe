@@ -17,6 +17,7 @@ import pytest
 
 import eg_navigation as nav
 from contest_context import polarity_of
+from derived_rules import CONSTANT_JOIN_RULES
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from world_scroll import (
@@ -381,10 +382,12 @@ class TestEpisode:
         from world_scroll import discharge_episode
         g, _ = self._entertained()
         g, derivation = discharge_episode(g, self.P)
-        assert derivation[-1] == "DC-"
-        assert all(d == "IT-" for d in derivation[:-1])
-        # P stands at the level of the original M (round-trip unifies the
-        # discharged constant's fresh vertex with the standing one)
+        drawn = derivation[:derivation.index("DC-") + 1]
+        assert all(d == "IT-" for d in drawn[:-1]) and len(drawn) >= 3
+        # what follows the double cut joins P's line for an individual to the
+        # line M already stands on, by rule
+        assert set(derivation[len(drawn):]) <= CONSTANT_JOIN_RULES
+        # P stands at the level of the original M
         view = parse_egif(generate_egif(m_view(g)))
         assert nav.same_graph(view, parse_egif(f'{self.M0} {self.P}'))
 
@@ -443,10 +446,13 @@ class TestDischargeNormalizesConstants:
     says, but no linear form can write it down, so the discharged M could not
     survive its own EGIF.
 
-    The merge happens here, where M's content is constructed, and not in the
-    rules: ``apply_rule`` and the six transformations are exactly as Dau states
-    them. Entertaining is left alone too — the arena's exhibit is the calculus's
-    own working, not part of the record.
+    The join is a derivation: the Constant Identity Rule links the two lines
+    (Def 24.10, p.271) and Def 16.6's merge collapses them (p.176), each step
+    through the door and each in the record. Until 2026-11-26 it was done by
+    ``vertex_scope.normalize_constants`` after the last recorded rule, and the
+    test that stood here required it to stay *out* of the record.
+    Entertaining is left alone — the arena's exhibit is the calculus's own
+    working, not part of the record.
     """
 
     def _episode(self):
@@ -474,12 +480,33 @@ class TestDischargeNormalizesConstants:
         _, discharged, _ = self._episode()
         assert nav.same_graph(discharged, parse_egif(generate_egif(discharged)))
 
-    def test_the_derivation_is_still_the_drawn_modus_ponens(self):
-        """Normalizing chooses a representative; it applies no rule and must
-        not appear in the record of what was done."""
+    def test_the_join_is_in_the_record_of_what_was_done(self):
+        """Drawn modus ponens — the copies of M deiterated, the rider
+        deiterated, the double cut erased — and then the two Rex lines joined."""
         _, _, derivation = self._episode()
-        assert derivation[-1] == "DC-"
-        assert set(derivation) <= {"IT-", "DC-"}
+        assert derivation == ["IT-", "IT-", "IT-", "DC-",
+                              "CONSTANT_IDENTITY", "MERGE_VERTICES"]
+
+    def test_the_graph_is_the_one_the_old_normaliser_reached(self, monkeypatch):
+        """The road changed and the destination did not: the stored histories
+        that replay through this still reproduce their recorded states."""
+        import calculus_certify
+        import dau_kernel
+        from vertex_scope import normalize_constants
+
+        after_the_double_cut = []
+        original = calculus_certify._observe
+
+        def observe(way, rule, g, h, move, may_raise=True):
+            if move.rule == "DC-":
+                after_the_double_cut.append(h)
+            return original(way, rule, g, h, move, may_raise)
+
+        monkeypatch.setattr(calculus_certify, "_observe", observe)
+        _, discharged, _ = self._episode()
+        (unjoined,) = after_the_double_cut
+        assert len([v for v in unjoined.V if v.label == "Rex"]) == 2
+        assert dau_kernel.same_graph(discharged, normalize_constants(unjoined))
 
     def test_the_fact_actually_landed_in_m(self):
         from world_scroll import m_view
@@ -487,6 +514,29 @@ class TestDischargeNormalizesConstants:
 
         _, discharged, _ = self._episode()
         assert '(mammal "Rex")' in generate_egif(m_view(discharged))
+
+    def test_a_quoted_mention_of_the_individual_keeps_its_own_line(self):
+        """A quotation is mention, not use. The old normaliser grouped vertices
+        by name alone, so a discharge beside a banked answer made the quoted
+        ``Ciel`` and the asserted one a single line of identity, running
+        through the oval. The join leaves quoted ink out, as admission does."""
+        from oracle_notes import bank_answer
+        from vertex_scope import normalize_constants
+        from world_scroll import discharge_episode, entertain_episode
+
+        m, scroll = wrap_m(parse_egif('(swan "Ciel")'))
+        (swan_cell,) = scroll.cell_ids
+        m, oval = bank_answer(m, "Ciel", qid="q", note_date="2026-09-17")
+        quoted = next(v for v in m.area[oval] if v in {x.id for x in m.V})
+        entertained, _ = entertain_episode(m, '(white "Ciel")', cell=swan_cell)
+        discharged, derivation = discharge_episode(entertained, '(white "Ciel")', cell=swan_cell)
+        assert derivation[-2:] == ["CONSTANT_IDENTITY", "MERGE_VERTICES"]
+        by_rel = {discharged.rel[e]: discharged.nu[e] for e in discharged.nu}
+        assert by_rel["swan"] == by_rel["white"] != (quoted,)
+        assert discharged.get_context(quoted) == oval
+        assert len([v for v in discharged.V if v.label == "Ciel"]) == 2
+        # and what the old road did with the same graph: one line for both
+        assert len([v for v in normalize_constants(discharged).V if v.label == "Ciel"]) == 1
 
 
 # The probe the seed test runs in a fresh interpreter per PYTHONHASHSEED.
@@ -542,8 +592,13 @@ try:
 except Exception as exc:
     out["two_lines"] = {"raised": f"{type(exc).__name__}: {exc}"}
 else:
+    # Which standing line the mention joined, named by the relation that
+    # line carries — not by a vertex id: where the two mentions sit in sibling
+    # cells the surviving vertex is the fresh one the Existence of Constants
+    # rule put at W, so its id says nothing about the choice.
     white = next(e for e in g2.rel if g2.rel[e] == "white")
-    out["two_lines"] = {"anchor": g2.nu[white][0]}
+    out["two_lines"] = {"anchor": sorted(
+        g2.rel[e] for e in g2.nu if e != white and g2.nu[e] == g2.nu[white])}
 
 # 3. The same, with the ids ordered AGAINST the canonical signatures: the
 #    bird line's id now sorts last, so a choice made by id alone picks the
@@ -564,11 +619,10 @@ except Exception as exc:
     out["signature_beats_id"] = {"raised": f"{type(exc).__name__}: {exc}"}
 else:
     white = next(e for e in g3.rel if g3.rel[e] == "white")
-    anchor = g3.nu[white][0]
-    bird = next(e for e in g3.rel if g3.rel[e] == "bird")
     out["signature_beats_id"] = {
-        "anchor": anchor,
-        "hangs_with_bird": g3.nu[bird] == (anchor,),
+        "anchor": sorted(
+            g3.rel[e] for e in g3.nu if e != white and g3.nu[e] == g3.nu[white]),
+        "the_other_line_still_stands": "v_a_ciel" in {v.id for v in g3.V},
     }
 print(json.dumps(out))
 '''
@@ -576,10 +630,25 @@ print(json.dumps(out))
 
 class TestTheAdmissionJoin:
     """``enlarge_m`` ties an admitted constant to the line already standing:
-    Dau's Constant Identity Rule (p.271) scribes the identity link, and the
-    project's one-constant-one-line normal form collapses the pair. Every
-    intermediate graph must be an EGI (Def 12.5, p.125), the standing line
-    moves only outward, and a quoted or quoting line is never touched."""
+    Dau's Constant Identity Rule (p.271) scribes the identity link and Def
+    16.6's merge (p.176) collapses the pair, after the Existence of Constants
+    rule (p.271) has put a vertex at W where the two mentions sit in sibling
+    cells. Every intermediate graph must be an EGI (Def 12.5, p.125), nothing
+    moves inward, and a quoted or quoting line is never touched."""
+
+    def test_the_join_is_recorded_rule_by_rule(self):
+        from world_scroll import enlarge_m_recorded
+
+        m, _ = wrap_m(parse_egif('(swan "Ciel")'))
+        g, first = enlarge_m_recorded(m, '(white "Ciel")')
+        # sibling cells: neither Ciel encloses the other, so one is added at W
+        assert first == ["INS", "CONSTANT_EXISTENCE", "CONSTANT_IDENTITY", "MERGE_VERTICES",
+                         "CONSTANT_IDENTITY", "MERGE_VERTICES"]
+        # and from then on the line at W encloses every new mention
+        g, second = enlarge_m_recorded(g, '(wild "Ciel")')
+        assert second == ["INS", "CONSTANT_IDENTITY", "MERGE_VERTICES"]
+        _, third = enlarge_m_recorded(g, '(swan "Dover")')
+        assert third == ["INS"]
 
     def test_a_constant_in_two_cells_becomes_one_line_in_w(self):
         m, _ = wrap_m(parse_egif('(swan "Ciel")'))
@@ -635,15 +704,16 @@ class TestTheAdmissionJoin:
             assert "anchor" in result["two_lines"], (
                 f"PYTHONHASHSEED={seed}: {result['two_lines']}")
 
-        anchors = {seed: r["two_lines"]["anchor"] for seed, r in results.items()}
+        anchors = {seed: tuple(r["two_lines"]["anchor"]) for seed, r in results.items()}
         assert len(set(anchors.values())) == 1, anchors
+        assert all(len(a) == 1 for a in anchors.values()), anchors
 
         # And the choice is the signature's, not the id's: with the ids
         # ordered against the signatures, the bird line still wins. Ordering
-        # by id alone would pick "v_a_ciel" here and pass every other
-        # assertion in this test.
+        # by id alone would pick the swan line ("v_a_ciel") here and pass
+        # every other assertion in this test.
         crossed = {seed: r["signature_beats_id"] for seed, r in results.items()}
         for seed, result in crossed.items():
-            assert result == {"anchor": "v_z_ciel", "hangs_with_bird": True}, (
+            assert result == {"anchor": ["bird"], "the_other_line_still_stands": True}, (
                 f"PYTHONHASHSEED={seed}: {result} — the standing line was "
                 f"chosen by id order, not by canonical signature")

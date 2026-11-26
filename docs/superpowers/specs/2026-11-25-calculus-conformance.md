@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 is unblocked — R2 ruled 2026-11-25 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 (chain of custody) and R10 (act classes) added, R2 ruled — every reading confirmed, with option A for the IT+ expansion (§7, §7a). **No ruling is open**
+**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 item 1 built 2026-11-26 (§3.3c); R2 ruled 2026-11-25 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 (chain of custody) and R10 (act classes) added, R2 ruled — every reading confirmed, with option A for the IT+ expansion (§7, §7a). **No ruling is open**
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -334,6 +334,61 @@ corpus's 146 steps: 66 inferential primitive, 35 ampliative, 34 neutral, 6 infer
 `definition.fold`, `definition.unfold`, `chain.fix` and everything under `compose.` — and were
 held as unruled until the author classed them the same day (R10; §3.4's table now carries them).
 
+### 3.3c What Phase 3 item 1 built (2026-11-26)
+
+The directive's first family: VERTEX_ERA as its own entry point, CONSTANT_EXISTENCE and
+CONSTANT_IDENTITY as a kernel judgement and an entry point each, and the constant normalisation
+as a recorded expansion. Figures below are from `tests/calculus_extent.json`,
+`tests/test_calculus_certify.py` and one full-suite run with `ARISBE_CERTIFY_LOG` set.
+
+**The kernel judges both constant rules** (`dau_kernel._constant_existence`,
+`_constant_identity`), and its vertex rule now declines a constant vertex, which belongs to the
+Existence of Constants rule. Its merge accepts a named v₂ only when v₁ carries the same name
+(R2's second Chapter 24 reading). The engine has three new rules — `VertexErasureRule`,
+`ConstantExistenceRule`, `ConstantIdentityRule` in `formal_transformation_rules` — reached by the
+engine way and by `POST /api/transform/apply`. They are not in the `RuleInteraction` protocol.
+
+**Three ledger entries are retired; fourteen remain.** `vertex-era-positive-only`,
+`vertex-era-erases-a-line-with-its-edges` and `vertex-era-erases-a-line-not-an-equivalence`.
+Read from the pinned diff, exhaustive mode: `VERTEX_ERA:applied/illegal` gone in every tier
+(A 2,426, B 205, S 4), `A:VERTEX_ERA:refused/legal` gone (324), and the soundness layer's
+`VERTEX_ERA:failed` gone (A 1,888, B 22, S 2). Neither constant rule has an `applied/illegal`,
+`refused/legal` or `failed` cell in any tier. In the default run the kernel now accepts 10,798 of
+14,546 applied moves, rejects 3,634 and leaves 114 unjudged; VERTEX_ERA's rejected row went from
+235 to none. DC+ 2,542, ERA 578 and IT+ 514 are unchanged and are the next families'.
+
+**Coverage of CONSTANT_IDENTITY is thin in the corpus tier, and the extent says so.** Tier A
+applies it 540 times in exhaustive mode. Tier B applies it once; 161,453 of its candidate moves
+are skipped by budget.
+
+**The normalisation is now the expansion §4.4 describes**, performed by
+`derived_rules.join_constant_lines` with every step certified: the hub is the member standing at
+the least common area of the members' contexts, or a fresh vertex put there by
+CONSTANT_EXISTENCE; each other member is linked to it by CONSTANT_IDENTITY and merged into it by
+the checked merge. `world_scroll.discharge_episode` and the admission join both use it and both
+record its steps in the derivation, so a discharge's derivation now reads
+IT−, …, DC−, then the join's rules. On the fixtures compared, the graph is `same_graph` to the
+one `vertex_scope.normalize_constants` reached, and the corpus's stored chains still replay to
+their recorded states. Their stored derivations keep the short form until Phase 4 regenerates
+them. `normalize_constants` has no caller left in `src/` or `tools/`.
+
+**Two of the four departures are retired** — `admit-joins-a-named-vertex` and
+`discharge-normalises-constants-unrecorded`. Outside the calculus suite the full suite's
+non-accepted certificates fell from 11,315 to 218; `_join_admitted_individuals` issued 11,101 of
+the former and none of the latter. 204 of the 218 are `retract_from_m` (item 2's family).
+
+**Three differences in behaviour, each pinned by a test:**
+1. When the members sit in sibling cells the survivor is the fresh vertex, so no standing
+   vertex id survives the join.
+2. A quoted mention of an individual keeps its own line; the old normaliser merged it with the
+   asserted one.
+3. An admission's derivation is no longer `["INS"]` alone when it joins a known individual.
+
+**Cost.** The kernel's checks took 404 s across 59,397 certificates in the full-suite run; the
+slowest single check was 1.06 s, a CONSTANT_IDENTITY judgement on a 152-element graph. The
+default calculus run takes about 134 s, past the two-minute budget. The exhaustive pass took
+3 h 01 min, sharing the machine with the full suite for its first hour.
+
 ### 3.4 Which acts the soundness claim covers
 
 A recorded history is not one derivation: it contains acts that revise the model by choice. The
@@ -408,6 +463,7 @@ vertex-erasure entry point; ERA auto-expands the vertex to the vertex with all i
 erased first. Erasing a line with its edges becomes discrete steps: ERA of each edge (positive
 context), then VERTEX_ERA — or one ERA of the closed subgraph, *if the user names it*. Vertex
 erasure is an equivalence again. Also resolves `vertex-era-positive-only` (4.3).
+**Built 2026-11-26 (§3.3c); both entries retired.**
 
 ### 4.2 Larger move than named — conform by refusing, with a proposal
 
@@ -448,6 +504,7 @@ any context. `HEAVY_DOT` (`formal_transformation_rules.py:1809`) refuses positiv
 **Resolution: conform.** (Sound because Dau's structures have non-empty universes.)
 
 **`vertex-era-positive-only`** (298) — resolved by the VERTEX_ERA entry point of 4.1.
+**Built 2026-11-26 (§3.3c); retired.**
 
 **`ins-edge-has-no-entry-point`** (8) — inserting an edge onto vertices already present in a
 negative context (the inverse of edge erasure, p.165). **Resolution:** an INS_EDGE entry point that
@@ -517,6 +574,10 @@ Two readings rode with this and were the author's. **Both were confirmed on 2026
 **Until Phase 3 builds the expansion, the discharge's normalisation is one unrecorded step.**
 Phase 2's observe-mode kernel will reject it, and it is in no ledger entry today. Phase 2 gives it
 a named entry, so that the gate's "and nothing else" stays true.
+
+**Built 2026-11-26 (§3.3c).** Both expansions were reproduced by hand first
+(`tests/test_conformance_expansions.py`) and are now what the engine performs; the kernel judges
+CONSTANT_EXISTENCE and CONSTANT_IDENTITY, and the paragraph above describes the state before.
 
 ## 5. Stored histories
 

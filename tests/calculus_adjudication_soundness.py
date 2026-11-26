@@ -72,18 +72,6 @@ LAYER = "soundness"
 # Figures quoted are this script's: default ones in the default mode with MODES["default"].sem,
 # exhaustive ones (--exhaustive) at EXHAUSTIVE_BOUNDS with MODES["exhaustive"].sem.
 REASONS = {
-    "vertex-era-erases-a-line-not-an-equivalence": ("VERTEX_ERA", "vertex-era-erases-a-line-with-its-edges",
-        P + "The soundness half of refusal entry vertex-era-erases-a-line-with-its-edges, the "
-        "same mechanism: Dau Def 15.2 (p.164, 166) erases a vertex with E_v = ∅ only, and that "
-        "rule is an equivalence (it is reversed by inserting a vertex; for a constant, Def 24.10's "
-        "Existence of Constants, p.271). Offered a vertex that has edges, the engine (via ERA, its "
-        "only entry point) erases the vertex with all its edges — an erasure, which is one-way. "
-        "Measured by calculus_adjudication_soundness in the default mode: 111 moves in 111 keys, "
-        "every one illegal and every key an instance of that refusal entry; G ⊨ G′ on all 111 "
-        "(sound) and G′ ⊭ G — e.g. *x (P x) becomes the blank sheet, separating structure "
-        "Structure(1, (), (('P', ()),)). Of the refusal entry's 198 keys, 69 are evaluated here "
-        "and pass, every one with G ≡ G′ over the budget. "
-        "In the exhaustive mode: 1,910 moves in 1,898 keys (1,888 tier A, 22 tier B), all sound, none an equivalence."),
 }
 
 

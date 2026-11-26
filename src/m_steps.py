@@ -15,7 +15,10 @@ what happened, they never merely assert it:
 * :func:`admit_step` — **ADMIT_TO_M**, enlargement. A genuine INS of a closed
   **cell** into the standing residence (``world_scroll.enlarge_m``) — one
   licensed move; each admitted batch is its own cell (verdict D2); the warrant
-  justifies the *choice* and rides on the step, not on the ink.
+  justifies the *choice* and rides on the step, not on the ink. Where the cell
+  names an individual M already knows, the recorded derivation goes on to the
+  licensed steps that join the two lines (the constant rules of Def 24.10 and
+  a merge, since 2026-11-26).
 * :func:`retract_step` — **RETRACT_FROM_M**, retraction. One licensed **ERA**
   inside a cell (``world_scroll.retract_from_m``) — the §9 fallibilist pole:
   the refuted (or merely faded) content dies in one move, the emptied husk
@@ -53,6 +56,7 @@ from world_scroll import (
     abandon_episode,
     discharge_episode,
     enlarge_m,
+    enlarge_m_recorded,
     entertain_episode,
     find_world_scroll,
     retract_from_m,
@@ -122,10 +126,13 @@ def admit_step(
     if scroll is None:
         raise ValueError("admit_step needs a standing world-scroll "
                          "(wrap the initial M first)")
+    # Dry-run to learn the executed derivation (deterministic; see retract_step):
+    # INS, then whatever joins the cell's individuals to M's standing lines.
+    _, expected = enlarge_m_recorded(pc.current, fact_egif)
     params = {
         "act": "m_enlargement",
         "earned": True,
-        "derivation": ["INS"],
+        "derivation": list(expected),
         "target_area": scroll.cut_id,
         "fact_egif": fact_egif,
         "disposition": disposition,
@@ -235,8 +242,8 @@ def challenge_step(
                 labels=labels)
             derivation_seen.extend(derivation)
         if fact_egif:
-            out = enlarge_m(out, fact_egif)
-            derivation_seen.append("INS")
+            out, admitted = enlarge_m_recorded(out, fact_egif)
+            derivation_seen.extend(admitted)
         return out
 
     # Dry-run to learn the executed derivation (deterministic; see retract_step)

@@ -138,8 +138,8 @@ def test_vertex_rules_ignore_polarity():
 # These five were `judged=False` until 2026-09-20, and this test recorded that
 # gap. It now records its closing: every IMPLEMENTED rule is judged, so the
 # refusal layer scores its moves instead of parking them in a `not judged`
-# bucket. Only the five rules with no entry point at all remain unjudged, and
-# they are named exactly.
+# bucket. Only the rules with no entry point at all remain unjudged — five
+# then, three since 2026-11-26 (test_calculus_rules names them exactly).
 
 def test_every_implemented_rule_is_judged():
     """The blind spot MOVE_BRANCHES hid an unsound move in, closed as a class.

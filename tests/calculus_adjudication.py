@@ -18,7 +18,7 @@ ids and reasons come from REASONS below.
 Figures, per entry ("moves" = candidate moves, "keys" = distinct instance keys):
   moves, keys            how much the entry covers
   cell_ok                moves in the refusal cell the entry describes (must = moves)
-  closure_legal          ERA/VERTEX_ERA auto-close: the removed set is legal() as an ERA
+  closure_legal          ERA auto-close: the removed set is legal() as an ERA
   sound                  G ⊨ G′ on every structure of domain size 1-2 (exhaustive where
                          the tuple bits are <= 12, otherwise 256 seeded samples)
   equivalent             G ⊨ G′ and G′ ⊨ G on those structures
@@ -82,20 +82,6 @@ REASONS = {
         "edge's own hook: *x (= x \"a\") (P x) became *x \"a\" (= x x) (P x), which erases the "
         "assertion x = \"a\". So the refusal is the right answer to the wrong question, and the "
         "fix is to try the other direction, not to relax the side condition."),
-    "vertex-era-positive-only": ("VERTEX_ERA", INCOMPLETE,
-        "Dau Def 15.2 (p.164, 166): an isolated vertex may be erased from ARBITRARY contexts; "
-        "for a constant vertex Def 24.10's Existence of Constants rule (p.271) says the same. "
-        "The engine has no vertex-erasure entry point; its only route is ERA, which refuses "
-        "every negative context ('Erasure only allowed in positive (recto) areas')."),
-    "vertex-era-erases-a-line-with-its-edges": ("VERTEX_ERA", SEVERE,
-        P + "Dau Def 15.2 (p.166): the vertex rule erases a vertex with E_v = ∅ only. Offered "
-        "a vertex that has edges, the engine (via ERA, its only entry point) auto-expands the "
-        "selection to the vertex with all its incident edges and erases that (and, where an edge's "
-        "other vertex is left isolated, that vertex too). Measured by calculus_adjudication on "
-        "every move in this entry: the removed set is a Dau-legal ERA of a closed subgraph "
-        "(Def 12.10, p.134) and G ⊨ G′ at domain sizes 1–2 — a protocol convention (the selection "
-        "generates the closed subgraph), not an unsound step; but the engine performs a larger "
-        "move than the one named instead of refusing it."),
     "era-auto-closes-a-vertex-selection": ("ERA", SEVERE,
         P + "Dau Def 15.2 (p.164–165): erasure takes an edge, an isolated vertex, or a CLOSED "
         "subgraph (Def 12.10, p.134: E_v ⊆ E′ for every selected vertex). Named a vertex without "
@@ -229,7 +215,7 @@ def _entail(g, h):
 
 def measure(rec, eid, c: Counter):
     g, m, out = rec.g, rec.move, rec.outcome
-    if eid in ("era-auto-closes-a-vertex-selection", "vertex-era-erases-a-line-with-its-edges"):
+    if eid == "era-auto-closes-a-vertex-selection":
         removed = _ids(g) - _ids(out.result)
         c["closure_legal"] += legal(g, Move("ERA", tuple(sorted(removed))))[0] is True
         vs = {v.id for v in g.V}

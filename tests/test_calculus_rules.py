@@ -19,8 +19,10 @@ def test_every_engine_entry_point_is_a_dau_rule_and_vice_versa():
 
 
 def test_the_unimplemented_dau_rules_are_exactly_these():
-    assert UNIMPLEMENTED == {"ORIENT_IDENTITY", "LIGATURE_VERTEX", "CONSTANT_IDENTITY",
-                             "CONSTANT_EXISTENCE", "SEPARATE_CONSTANT"}
+    # Five until 2026-11-26, when CONSTANT_IDENTITY and CONSTANT_EXISTENCE
+    # each gained a kernel judgement and an entry point (the conformance arc's
+    # Phase 3, item 1).
+    assert UNIMPLEMENTED == {"ORIENT_IDENTITY", "LIGATURE_VERTEX", "SEPARATE_CONSTANT"}
 
 
 def test_the_ins_protocol_cannot_perform_edge_insertion_directly():

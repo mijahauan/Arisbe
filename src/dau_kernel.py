@@ -107,8 +107,8 @@ RULE_TABLE: Tuple[Rule, ...] = (
     Rule("MERGE_VERTICES", "Def 16.6 merging, p.176", "equivalence", True),
     Rule("ORIENT_IDENTITY", "Def 12.14 orientation of an identity edge, p.138", "equivalence", False),
     Rule("LIGATURE_VERTEX", "Def 12.14 adding/removing a vertex, p.138", "equivalence", False),
-    Rule("CONSTANT_IDENTITY", "Def 24.10 constant identity rule, p.271", "equivalence", False),
-    Rule("CONSTANT_EXISTENCE", "Def 24.10 existence of constants, p.271", "equivalence", False),
+    Rule("CONSTANT_IDENTITY", "Def 24.10 constant identity rule, p.271", "equivalence", True),
+    Rule("CONSTANT_EXISTENCE", "Def 24.10 existence of constants, p.271", "equivalence", True),
     Rule("SEPARATE_CONSTANT", "Def 24.6, Def 24.10, p.265-271", "equivalence", False),
 )
 RULES = {r.name: r for r in RULE_TABLE}
@@ -403,14 +403,90 @@ def _vertex_ins(g: G, m: Move) -> Verdict:
 
 def _vertex_era(g: G, m: Move) -> Verdict:
     """Def 15.2 erasing a vertex (p.164, 166): an isolated vertex may be
-    erased from ANY context. Note: this covers a GENERIC isolated vertex;
-    an isolated CONSTANT vertex's erasure is properly Def 24.10's Existence
-    of Constants rule (p.271), which this judge does not separately model."""
+    erased from ANY context. This is the GENERIC vertex's rule. An isolated
+    constant vertex goes by Def 24.10's Existence of Constants rule (p.271),
+    which says so of a vertex "with ρ(v) = C" and is judged by
+    ``_constant_existence``; until 2026-11-26 this judge passed both, and its
+    own docstring said it should not."""
     if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
         return False, "not a single vertex"
+    if _constant_of(g, m.selection[0]) is not None:
+        return False, ("a constant vertex is erased by the Existence of Constants "
+                       "rule (Def 24.10, p.271), not by the vertex rule")
     if edges_on(g, m.selection[0]):
         return False, "the vertex is not isolated"
     return True, "an isolated vertex, any context"
+
+
+def _constant_of(g: G, vid: str) -> Optional[str]:
+    """ρ(v) where it is a constant name, else None (a generic vertex, ρ(v) = ∗)."""
+    v = next((x for x in g.V if x.id == vid), None)
+    return None if v is None or v.is_generic or not v.label else v.label
+
+
+def _constant_existence(g: G, m: Move) -> Verdict:
+    """Def 24.10, Existence of Constants Rule (p.271).
+
+    "Let C be a constant name. In each context c, we may add a fresh vertex v
+    with ρ(v) = C. Vice versa, if v is an isolated vertex with ρ(v) = C v may
+    be erased from c."
+
+    One rule, two directions, told apart by what the move names: a selected
+    vertex is the erasure; a target context and a name (``content``, the bare
+    constant name) is the insertion. No polarity condition either way."""
+    if m.selection:
+        if len(m.selection) != 1 or m.selection[0] not in {v.id for v in g.V}:
+            return False, "the erasure names one vertex (p.271)"
+        v = m.selection[0]
+        if _constant_of(g, v) is None:
+            return False, "ρ(v) is not a constant name; a generic vertex goes by Def 15.2 (p.166)"
+        if edges_on(g, v):
+            return False, "the vertex is not isolated (p.271)"
+        return True, "an isolated vertex with ρ(v) = C, any context (p.271)"
+    if m.target is None:
+        return False, "the insertion names a context (p.271)"
+    if not m.content:
+        return False, "the insertion names a constant C (p.271)"
+    return True, "a fresh vertex with ρ(v) = C, any context (p.271)"
+
+
+def _constant_identity(g: G, m: Move) -> Verdict:
+    """Def 24.10, Constant Identity Rule (p.271), as the author ruled its
+    text on 2026-11-25 (the print has "ν(id) = (ve, vf)" and "into d", carried
+    over from the Functional Property Rule above it):
+
+    "Let C ∈ C be a constant name. Let v, w be vertices with ρ(v) = ρ(w) = C.
+    Let c be a context with c ≤ ctx(v) and c ≤ ctx(w). Then arbitrary
+    identity-links id with ν(id) = (v, w) may be inserted into c or erased
+    from c."
+
+    Two selected vertices and a target context is the insertion; one selected
+    identity link is the erasure. Read with v ≠ w: the rule joins two
+    vertices, and a loop on one vertex is neither offered by the engine nor
+    judged legal here — a limit of this judge, not a claim about the book.
+    For the erasure, c ≤ ctx(v), ctx(w) is what Def 12.5 already gives any
+    edge, so the conditions that bite are the link's kind and its ends' names."""
+    sel = tuple(dict.fromkeys(m.selection))
+    vids = {v.id for v in g.V}
+    if len(sel) == 1 and sel[0] in g.nu:
+        e = sel[0]
+        if g.rel.get(e) != "=" or len(set(g.nu[e])) != 2:
+            return False, "not an identity link between two vertices (p.271)"
+        names = {_constant_of(g, x) for x in g.nu[e]}
+        if None in names or len(names) != 1:
+            return False, "ρ(v) = ρ(w) = C fails for the link's ends (p.271)"
+        return True, "an identity link between two vertices named C (p.271)"
+    if len(sel) == 2 and set(sel) <= vids:
+        v, w = sel
+        if _constant_of(g, v) is None or _constant_of(g, v) != _constant_of(g, w):
+            return False, "ρ(v) = ρ(w) = C fails (p.271)"
+        if m.target is None:
+            return False, "the insertion names a context c (p.271)"
+        if g.get_context(v) not in ancestors(g, m.target) or \
+                g.get_context(w) not in ancestors(g, m.target):
+            return False, "c ≤ ctx(v) and c ≤ ctx(w) fails (p.271)"
+        return True, "ρ(v) = ρ(w) = C and c ≤ ctx(v), ctx(w) (p.271)"
+    return False, "names two vertices and a context, or one identity link (p.271)"
 
 
 def _ins_edge(g: G, m: Move) -> Verdict:
@@ -682,7 +758,13 @@ def _merge_vertices(g: G, m: Move) -> Verdict:
     very context of the vertex being merged away. Collapsing along an edge
     deeper than its vertices is what an earlier arc found the engine doing.
 
-    Def 24.10 (p.270-272) again: v₂ is *erased*, so it may not carry a name.
+    Def 24.10 (p.270-272) again: v₂ is *erased*, so it may not carry a name
+    that would be lost with it. **Where v₁ carries the same constant nothing
+    is lost,** and the merge stands (the author's ruling of 2026-11-25, R2:
+    Def 16.6's merge covers two vertices carrying one constant; §24.4, p.275,
+    carries the Chapter 16 results over "as long as we do not change the set
+    of its labels"). It is the second half of joining two lines of one name,
+    after the Constant Identity Rule has linked them.
     """
     sel = tuple(dict.fromkeys(m.selection))
     if len(sel) != 3:
@@ -697,14 +779,15 @@ def _merge_vertices(g: G, m: Move) -> Verdict:
     if g.get_context(e) not in ancestors(g, g.get_context(e)) or \
             g.get_context(v1) not in ancestors(g, g.get_context(e)):
         return False, "ctx(v₁) ≥ ctx(e) fails (p.176)"
-    if _named(g, v2):
-        return False, "v₂ is erased and carries a name (Def 24.10, p.270)"
+    if _named(g, v2) and _constant_of(g, v1) != _constant_of(g, v2):
+        return False, "v₂ is erased and carries a name v₁ does not (Def 24.10, p.270)"
     return True, "an identity edge with ctx(v₁) ≥ ctx(e) = ctx(v₂) (p.176)"
 
 
 _LEGAL = {"ERA": _era, "INS": _ins, "DC+": _dc_plus, "DC-": _dc_minus, "IT+": _it_plus,
           "IT-": _it_minus, "VERTEX_INS": _vertex_ins, "VERTEX_ERA": _vertex_era,
           "INS_EDGE": _ins_edge, "MOVE_BRANCHES": _move_branches,
+          "CONSTANT_EXISTENCE": _constant_existence, "CONSTANT_IDENTITY": _constant_identity,
           "EXTEND_LIGATURE": _extend_ligature, "RETRACT_LIGATURE": _retract_ligature,
           "REARRANGE_LIGATURE": _rearrange_ligature, "SPLIT_VERTEX": _split_vertex,
           "MERGE_VERTICES": _merge_vertices}
@@ -774,10 +857,20 @@ def erase_double_cut(g: G, c1: str) -> G:
               area=area, rel=g.rel)
 
 
-def add_vertex(g: G, target: str) -> G:
+def add_vertex(g: G, target: str, constant: Optional[str] = None) -> G:
+    """A fresh isolated vertex in ``target``: generic, or named ``constant``."""
     area = {k: set(v) for k, v in g.area.items()}
     area.setdefault(target, set()).add("hd:new")
-    return _g(g, V=[*g.V, Vertex("hd:new")], E=g.E, nu=g.nu, Cut=g.Cut, area=area, rel=g.rel)
+    new = Vertex("hd:new") if constant is None else Vertex("hd:new", label=constant, is_generic=False)
+    return _g(g, V=[*g.V, new], E=g.E, nu=g.nu, Cut=g.Cut, area=area, rel=g.rel)
+
+
+def add_identity_link(g: G, v: str, w: str, target: str) -> G:
+    """A fresh identity link with ν(id) = (v, w) in ``target``."""
+    area = {k: set(x) for k, x in g.area.items()}
+    area.setdefault(target, set()).add("ci:new")
+    return _g(g, V=g.V, E=[*g.E, Edge("ci:new")], nu={**g.nu, "ci:new": (v, w)}, Cut=g.Cut,
+              area=area, rel={**g.rel, "ci:new": "="})
 
 
 def iterate(g: G, S, target: str) -> G:
@@ -807,6 +900,11 @@ def expected(g: G, m: Move) -> Optional[G]:
     split, merge): there the structure layer checks EGI-hood and maps only."""
     if m.rule in ("ERA", "VERTEX_ERA", "IT-"):
         return remove(g, expand(g, m.selection))
+    if m.rule == "CONSTANT_EXISTENCE":
+        return remove(g, m.selection) if m.selection else add_vertex(g, m.target, m.content)
+    if m.rule == "CONSTANT_IDENTITY":
+        sel = tuple(dict.fromkeys(m.selection))
+        return remove(g, sel) if len(sel) == 1 else add_identity_link(g, *sel, m.target)
     if m.rule == "INS":
         return insert(g, m.target, m.content)
     if m.rule == "DC+":
@@ -852,6 +950,11 @@ def acceptable(g: G, m: Move) -> Optional[List[G]]:
             raise ValueError(f"{len(extra)} completion vertices: too many per-vertex forms")
         return [iterate(g, tuple(m.selection) + fresh, m.target)
                 for k in range(len(extra) + 1) for fresh in itertools.combinations(extra, k)]
+    if m.rule == "CONSTANT_IDENTITY" and len(set(m.selection)) == 2:
+        # The rule's hypothesis is symmetric in v and w, so the link may be
+        # scribed either way round.
+        v, w = dict.fromkeys(m.selection)
+        return [exp, add_identity_link(g, w, v, m.target)]
     return [exp]
 
 

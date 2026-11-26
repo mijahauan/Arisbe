@@ -39,7 +39,9 @@ ENGINE = {
     "DC+": "protocol:DC+",
     "DC-": "protocol:DC-",
     "VERTEX_INS": "engine:HEAVY_DOT",
-    "VERTEX_ERA": "protocol:ERA",
+    "VERTEX_ERA": "engine:VERTEX_ERA",
+    "CONSTANT_EXISTENCE": "engine:CONSTANT_EXISTENCE",
+    "CONSTANT_IDENTITY": "engine:CONSTANT_IDENTITY",
     "MOVE_BRANCHES": "ligature:MOVE_BRANCHES",
     "EXTEND_LIGATURE": "ligature:EXTEND_LIGATURE",
     "RETRACT_LIGATURE": "ligature:RETRACT_LIGATURE",
@@ -61,6 +63,11 @@ LIGATURE_RULES = ("MOVE_BRANCHES", "EXTEND_LIGATURE", "RETRACT_LIGATURE", "REARR
 INS_CATALOGUE: Tuple[str, ...] = (
     "~[ ]", "[*x]", "(P *x)", '(P "a")', "(R *x *y)", "~[ (P *x) ]", '(R "a" *x)',
 )
+
+
+# Bare constant names for CONSTANT_EXISTENCE's insertion: "a" is the constant
+# tier A builds its graphs from, "k" is one no enumerated graph uses.
+CONSTANT_CATALOGUE: Tuple[str, ...] = ("a", "k")
 
 
 def _subsets(xs, lo=0, hi=None):
@@ -132,10 +139,33 @@ def moves(rule: str, g: G, tier: str, units_only: bool = False) -> Iterator[Move
         for a in areas:
             yield Move(rule, (), a)
     elif rule == "VERTEX_ERA":
-        # Dau's vertex rule is about vertices; an edge offered here would be
-        # performed by the ERA entry point and read as applied-but-illegal.
+        # Dau's vertex rule is about vertices, so only vertices are offered:
+        # isolated or not, generic or carrying a constant.
         for x in sorted(v.id for v in g.V):
             yield Move(rule, (x,))
+    elif rule == "CONSTANT_EXISTENCE":
+        # Def 24.10 (p.271), both directions: every vertex offered for erasure
+        # (generic, constant, isolated or not), and into every context a
+        # constant the graph may already use and one it cannot.
+        for x in sorted(v.id for v in g.V):
+            yield Move(rule, (x,))
+        for a in areas:
+            for name in CONSTANT_CATALOGUE:
+                yield Move(rule, (), a, name)
+    elif rule == "CONSTANT_IDENTITY":
+        # Def 24.10 (p.271): every identity link offered for erasure; every
+        # pair of vertices offered for linking, in every context. Pairs sharing
+        # a constant come first, so a budgeted tier reaches the moves the rule
+        # is about before the ones it must refuse.
+        for e in sorted(g.nu):
+            if g.rel[e] == "=":
+                yield Move(rule, (e,))
+        label = {v.id: (None if v.is_generic else v.label) for v in g.V}
+        pairs = sorted(itertools.combinations(sorted(label), 2),
+                       key=lambda p: not (label[p[0]] is not None and label[p[0]] == label[p[1]]))
+        for v, w in pairs:
+            for a in areas:
+                yield Move(rule, (v, w), a)
     elif rule in LIGATURE_RULES:
         # Task 7: the engine's choice of vertex within the selection (the one
         # kept, or moved from) is now a function of the graph — its canonical

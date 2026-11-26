@@ -11,7 +11,9 @@ ratified 2026-07-16: M's elements in cells at even depth), as a standing test:
   (the hold / any scars; vacuity) — ligature-closed at W (so the withdrawal
   ERA stays available for the rare full replacement);
 * its chain records M-changes as **explicit, rule-licensed steps** — an
-  enlargement carries ``derivation: ["INS"]`` (a closed cell), a retraction
+  enlargement carries a ``derivation`` that opens with ``"INS"`` (a closed
+  cell) and may go on to the licensed steps joining a shared individual's
+  lines (the constant rules and a merge, since 2026-11-26), a retraction
   one-or-more executed ``"ERA"``s (inside a cell — the fallibilist pole), the
   challenge composite its executed ERA/INS list, a world-withdrawal the
   executed ``["ERA", "DC+", "INS"]`` triple;
@@ -37,6 +39,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 import eg_navigation as nav
 from canonical_signature import compute_canonical_signatures
+from derived_rules import CONSTANT_JOIN_RULES
 from domain_oracle import CorpusOracle
 from eg_navigation import same_graph
 from egif_parser_dau import parse_egif
@@ -214,8 +217,10 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
     for step in chain.steps:
         p = step.parameters or {}
         if p.get("act") == "m_enlargement":
-            assert p.get("derivation") == ["INS"], (
-                f"{uod_id}/{step.step_id}: enlargement without its INS derivation")
+            d = p.get("derivation")
+            assert d and d[0] == "INS" and set(d[1:]) <= CONSTANT_JOIN_RULES, (
+                f"{uod_id}/{step.step_id}: enlargement without its INS derivation "
+                f"— got {d!r}")
         if p.get("act") == "m_retraction":
             d = p.get("derivation")
             assert d and set(d) == {"ERA"}, (
@@ -223,7 +228,7 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
                 f"licensed ERA(s) — got {d!r}")
         if p.get("act") == "m_revision":
             d = p.get("derivation")
-            assert d and set(d) <= {"ERA", "INS"}, (
+            assert d and set(d) <= {"ERA", "INS"} | CONSTANT_JOIN_RULES, (
                 f"{uod_id}/{step.step_id}: challenge composite without its "
                 f"executed ERA/INS list — got {d!r}")
         if p.get("act") == "world_withdrawal":
@@ -235,8 +240,10 @@ def test_m_changes_are_explicit_rule_licensed_steps(tomos, uod_id):
                 f"{uod_id}/{step.step_id}: entertain without its executed "
                 f"DC+·IT+·INS derivation — got {d!r}")
         if p.get("act") == "m_discharge":
-            d = p.get("derivation")
-            assert d and d[-1] == "DC-" and set(d[:-1]) == {"IT-"}, (
+            d = p.get("derivation") or []
+            drawn = d[:d.index("DC-") + 1] if "DC-" in d else []
+            assert drawn and set(drawn[:-1]) == {"IT-"} \
+                and set(d[len(drawn):]) <= CONSTANT_JOIN_RULES, (
                 f"{uod_id}/{step.step_id}: discharge without its executed "
                 f"IT-·…·DC- derivation — got {d!r}")
         if step.rule_name in M_RULES and not _acknowledged(p.get("act"), p):

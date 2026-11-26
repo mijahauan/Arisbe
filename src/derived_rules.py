@@ -36,15 +36,21 @@ functionality axiom's four lines instantiate to two constants in a single move
 caller discharges the result (a double cut for a single-line universal, the
 instantiated scroll for an implication) with the primitive rules.
 
+**`join_constant_lines`** — several vertices carrying one constant become one
+line, as a recorded sequence of Dau's own rules (Def 24.10, p.271, and Def
+16.6, p.176): the Existence of Constants rule where no vertex yet stands at
+their least common area, then the Constant Identity Rule and a merge per
+vertex.  Every step goes through the door and is certified.
+
 Composes existing public operations only; touches no protected module.
 """
 
 from dataclasses import replace
-from typing import Callable, Iterable, Optional, Tuple
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 
 import eg_navigation as nav
 from egi_core_dau import AreaPolarity, Edge, ElementID, RelationalGraphWithCuts
-from calculus_certify import engine_apply, merge_unchecked, split_unchecked
+from calculus_certify import Act, certify, engine_apply, merge_unchecked, split_unchecked
 from proof_authoring import apply_rule
 from vertex_splitting_merging_rules import VertexSplitSpec
 
@@ -282,3 +288,72 @@ __all__ = [
     "existential_generalization",
     "universal_generalization",
 ]
+
+
+# The rules ``join_constant_lines`` applies, for a record that must say what a
+# derivation's tail may hold.
+CONSTANT_JOIN_RULES = frozenset({"CONSTANT_EXISTENCE", "CONSTANT_IDENTITY", "MERGE_VERTICES"})
+
+
+def join_constant_lines(
+    egi: RelationalGraphWithCuts,
+    members: Sequence[ElementID],
+    *,
+    prefer: Optional[ElementID] = None,
+) -> Tuple[RelationalGraphWithCuts, List[str], ElementID]:
+    """Make one line of identity of ``members``, vertices carrying one constant.
+
+    A constant mentioned in several spots is one individual, so the lines may
+    be joined — and the join is a derivation, not a rewrite. The expansion
+    (calculus-conformance specification §4.4; reproduced by hand in
+    ``tests/test_conformance_expansions.py`` before it was built):
+
+    1. the *hub* is a member standing at the least common area of all the
+       members' contexts — ``prefer`` if it stands there, else the first by
+       canonical signature and then id. Where no member stands there (two
+       mentions in sibling cuts), **CONSTANT_EXISTENCE** adds a fresh vertex of
+       that name at that area (Def 24.10, p.271: "In each context c, we may
+       add a fresh vertex v with ρ(v) = C");
+    2. each other member w is linked to the hub by **CONSTANT_IDENTITY**, the
+       link scribed in ctx(w), which both vertices enclose (p.271:
+       c ≤ ctx(v) and c ≤ ctx(w));
+    3. w is merged into the hub by **MERGE_VERTICES** (Def 16.6, p.176:
+       ctx(v₁) ≥ ctx(e) = ctx(v₂)), the hub inheriting w's hooks — all inside
+       ctx(w), which the hub encloses.
+
+    Nothing moves inward, and every graph on the way is an EGI. Returns the
+    graph, the rules applied in order, and the surviving vertex's id."""
+    from vertex_scope import _least_common_area
+
+    members = list(dict.fromkeys(members))
+    by_id = {v.id: v for v in egi.V}
+    labels = {by_id[m].label for m in members if m in by_id and not by_id[m].is_generic}
+    if len(members) < 2 or len(labels) != 1 or any(
+            m not in by_id or by_id[m].is_generic for m in members):
+        raise ValueError("join_constant_lines takes two or more vertices carrying one constant")
+    (label,) = labels
+
+    target = _least_common_area(egi, {egi.get_context(m) for m in members})
+    standing = [m for m in members if egi.get_context(m) == target]
+    derivation: List[str] = []
+    if prefer in standing:
+        hub = prefer
+    elif len(standing) == 1:
+        hub = standing[0]
+    elif standing:
+        from canonical_signature import compute_canonical_signatures
+        signatures, _, _ = compute_canonical_signatures(egi)
+        hub = min(standing, key=lambda m: (repr(signatures.get(m)), m))
+    else:
+        before = set(by_id)
+        egi, _ = certify(egi, Act("engine", "CONSTANT_EXISTENCE", (), target, label))
+        (hub,) = {v.id for v in egi.V} - before
+        derivation.append("CONSTANT_EXISTENCE")
+
+    for w in sorted(m for m in members if m != hub):
+        links = set(egi.nu)
+        egi, _ = certify(egi, Act("engine", "CONSTANT_IDENTITY", (hub, w), egi.get_context(w)))
+        (link,) = set(egi.nu) - links
+        egi, _ = certify(egi, Act("merge-checked", "MERGE_VERTICES", (hub, w, link)))
+        derivation += ["CONSTANT_IDENTITY", "MERGE_VERTICES"]
+    return egi, derivation, hub

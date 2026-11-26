@@ -186,7 +186,12 @@ def test_dialogue_chain_records_revisions():
     admits = [s for s in chain.steps if s.rule_name == "ADMIT_TO_M"]
     assert len(admits) == 3
     assert all(s.parameters.get("disposition") == "new_fact" for s in admits)
-    assert all(s.parameters.get("derivation") == ["INS"] for s in admits)
+    # INS into the arena, then — where an inning names an individual M
+    # already stands on — the licensed steps that join the two lines.
+    from derived_rules import CONSTANT_JOIN_RULES
+    derivations = [s.parameters.get("derivation") for s in admits]
+    assert all(d[:1] == ["INS"] and set(d[1:]) <= CONSTANT_JOIN_RULES for d in derivations)
+    assert any(len(d) > 1 for d in derivations)
     assert find_world_scroll(uod.current_egi) is not None
 
 

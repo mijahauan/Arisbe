@@ -218,7 +218,10 @@ def test_loop_chain_is_rule_licensed_from_the_first_move():
             assert s.parameters.get("act") in {
                 "m_enlargement", "m_retraction", "m_revision"}
             derivation = s.parameters.get("derivation")
-            assert derivation and set(derivation) <= {"ERA", "INS"}
+            # An admission is INS, then the licensed steps that join an
+            # individual the new cell shares with M to its standing line.
+            from derived_rules import CONSTANT_JOIN_RULES
+            assert derivation and set(derivation) <= {"ERA", "INS"} | CONSTANT_JOIN_RULES
     # every state after the residence steps carries the standing scroll
     for sid, egi in res.chain.states.items():
         if sid in ("s0", "s1"):

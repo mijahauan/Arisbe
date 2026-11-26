@@ -117,12 +117,13 @@ REFUSAL: Dict[str, Pred] = {
     "heavy-dot-negative-only":
         lambda r, d: _rule(r, "VERTEX_INS") and not r.outcome.applied
         and positive(r.g, r.move.target),
-    "vertex-era-positive-only":
-        lambda r, d: _rule(r, "VERTEX_ERA") and not r.outcome.applied
-        and not positive(r.g, r.g.get_context(r.move.selection[0])),
-    "vertex-era-erases-a-line-with-its-edges":
-        lambda r, d: _rule(r, "VERTEX_ERA") and r.outcome.applied
-        and bool(edges_on(r.g, r.move.selection[0])),
+    # Retired 2026-11-26 (the conformance arc's Phase 3, item 1), with the
+    # soundness half below: vertex-era-positive-only and
+    # vertex-era-erases-a-line-with-its-edges. Both described an engine with no
+    # vertex-erasure entry point, where ERA stood in for it — refusing negative
+    # contexts and erasing a vertex's edges along with it. VERTEX_ERA is now a
+    # rule of its own (formal_transformation_rules.VertexErasureRule): any
+    # context, an isolated vertex only.
     "era-auto-closes-a-vertex-selection":
         lambda r, d: _rule(r, "ERA") and r.outcome.applied and "leave an edge behind" in r.why,
     "era-refuses-a-cut-named-with-its-contents":
@@ -203,8 +204,8 @@ STRUCTURE: Dict[str, Pred] = {
 # -- soundness ----------------------------------------------------------------
 
 SOUNDNESS: Dict[str, Pred] = {
-    "vertex-era-erases-a-line-not-an-equivalence":
-        lambda r, d: _rule(r, "VERTEX_ERA") and r.verdict is False and "not isolated" in r.why,
+    # vertex-era-erases-a-line-not-an-equivalence retired 2026-11-26 with its
+    # refusal half (see REFUSAL): a vertex with edges is no longer erased.
     # Task 7 retired four ligature entries — merge-vertices-erases-a-constant-vertex,
     # retract-ligature-erases-a-constant-vertex,
     # move-branches-moves-the-identity-edge-it-moves-along and

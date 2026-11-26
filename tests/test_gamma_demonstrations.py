@@ -106,10 +106,13 @@ def test_courses_are_the_experiential_register():
     chain, _ = gd.build_would_be_courses()
     admits = [s for s in chain.steps
               if (s.parameters or {}).get("act") == "m_enlargement"]
+    from derived_rules import CONSTANT_JOIN_RULES
     assert admits and all(
         s.rule_name == "ADMIT_TO_M"
         and s.parameters.get("disposition") == "new_fact"
-        and s.parameters.get("derivation") == ["INS"]     # rule-licensed now
+        # rule-licensed: INS, then the steps joining a shared individual's lines
+        and s.parameters.get("derivation")[:1] == ["INS"]
+        and set(s.parameters.get("derivation")[1:]) <= CONSTANT_JOIN_RULES
         for s in admits)
     from collections import Counter
     frm = Counter(s.from_state_id for s in chain.steps)

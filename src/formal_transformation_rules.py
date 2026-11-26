@@ -1870,6 +1870,318 @@ class HeavyDotInsertionRule(FormalTransformationRule):
             return TransformationResult(False, None, str(e), {})
 
 
+def _fresh_id(egi: RelationalGraphWithCuts, stem: str) -> ElementID:
+    """An element id not yet in ``egi``, chosen by the graph and nothing else:
+    ``stem_0``, ``stem_1``, … — so one move on one graph always mints one id."""
+    taken = {v.id for v in egi.V} | {e.id for e in egi.E} | {c.id for c in egi.Cut}
+    n = 0
+    while f"{stem}_{n}" in taken:
+        n += 1
+    return ElementID(f"{stem}_{n}")
+
+
+def _selected_vertex(
+    egi: RelationalGraphWithCuts, selection: FrozenSet[ElementID]
+) -> Optional[Vertex]:
+    """The one vertex a selection names, or None when it names anything else."""
+    if len(selection) != 1:
+        return None
+    (only,) = selection
+    return next((v for v in egi.V if v.id == only), None)
+
+
+def _edges_on(egi: RelationalGraphWithCuts, vertex_id: ElementID) -> List[ElementID]:
+    return sorted(e for e, ends in egi.nu.items() if vertex_id in ends)
+
+
+def _is_constant(vertex: Vertex) -> bool:
+    return not vertex.is_generic and bool(vertex.label)
+
+
+def _without_isolated_vertex(
+    egi: RelationalGraphWithCuts, vertex: Vertex
+) -> RelationalGraphWithCuts:
+    return _rebuild_graph(
+        egi,
+        V=frozenset(v for v in egi.V if v.id != vertex.id),
+        area=frozendict(
+            {k: frozenset(x for x in contents if x != vertex.id)
+             for k, contents in egi.area.items()}
+        ),
+    )
+
+
+class VertexErasureRule(FormalTransformationRule):
+    """Dau Def 15.2, erasing a vertex (p.164, 166): "An isolated vertex may be
+    erased from arbitrary contexts." An equivalence, with no polarity
+    condition — unlike ERA, which is the positive-context rule and was this
+    engine's only way to erase a vertex until 2026-11-26.
+
+    The vertex named is the whole move. One with edges is refused, and the
+    refusal says which edges stand in the way: erasing them is ERA's business
+    (a positive context) and is a separate step. A constant vertex is refused
+    too and sent to CONSTANT_EXISTENCE, the rule Def 24.10 (p.271) gives for
+    a vertex "with ρ(v) = C"."""
+
+    def get_rule_name(self) -> str:
+        return "VERTEX_ERA (Erasing an isolated vertex)"
+
+    def check_preconditions(
+        self, context: TransformationContext
+    ) -> Tuple[bool, Optional[str]]:
+        egi = context.source_egi
+        vertex = _selected_vertex(egi, context.selected_subgraph)
+        if vertex is None:
+            return False, "Vertex erasure names exactly one vertex"
+        if _is_constant(vertex):
+            return False, (
+                f"{vertex.id} carries the constant {vertex.label!r}: it is erased "
+                "by CONSTANT_EXISTENCE (Def 24.10, p.271), not by the vertex rule"
+            )
+        edges = _edges_on(egi, vertex.id)
+        if edges:
+            return False, (
+                f"{vertex.id} is not isolated: erase its edges first "
+                f"({', '.join(edges)})"
+            )
+        refusal = _refuse_quotation_boundary(
+            egi, egi.get_context(vertex.id), context.selected_subgraph
+        )
+        if refusal:
+            return False, refusal
+        return True, None
+
+    def apply_transformation(
+        self, context: TransformationContext
+    ) -> TransformationResult:
+        ok, error_msg = self.check_preconditions(context)
+        if not ok:
+            return TransformationResult(False, None, error_msg, {})
+        try:
+            vertex = _selected_vertex(context.source_egi, context.selected_subgraph)
+            return TransformationResult(
+                True,
+                _without_isolated_vertex(context.source_egi, vertex),
+                None,
+                {"rule": "VERTEX_ERA", "erased_vertex": str(vertex.id)},
+            )
+        except Exception as e:
+            return TransformationResult(False, None, str(e), {})
+
+
+class ConstantExistenceRule(FormalTransformationRule):
+    """Dau Def 24.10, Existence of Constants Rule (p.271): "Let C be a
+    constant name. In each context c, we may add a fresh vertex v with
+    ρ(v) = C. Vice versa, if v is an isolated vertex with ρ(v) = C v may be
+    erased from c." An equivalence in any context: a name always denotes.
+
+    One rule, two directions, told apart by what is named. A selected vertex
+    is the erasure. Nothing selected is the insertion, into ``target_area``,
+    of the constant whose bare name arrives as ``insertion_egif`` — the
+    engine's one channel for a rule's content; EGIF itself cannot write an
+    isolated constant."""
+
+    def get_rule_name(self) -> str:
+        return "CONSTANT_EXISTENCE (Existence of Constants)"
+
+    def check_preconditions(
+        self, context: TransformationContext
+    ) -> Tuple[bool, Optional[str]]:
+        egi = context.source_egi
+        if context.selected_subgraph:
+            vertex = _selected_vertex(egi, context.selected_subgraph)
+            if vertex is None:
+                return False, "Erasing a constant names exactly one vertex"
+            if not _is_constant(vertex):
+                return False, (
+                    f"{vertex.id} carries no constant: a generic vertex is "
+                    "erased by VERTEX_ERA (Def 15.2, p.166)"
+                )
+            edges = _edges_on(egi, vertex.id)
+            if edges:
+                return False, (
+                    f"{vertex.id} is not isolated: erase its edges first "
+                    f"({', '.join(edges)})"
+                )
+            area = egi.get_context(vertex.id)
+        else:
+            if not context.insertion_egif or not context.insertion_egif.strip():
+                return False, "Inserting a constant names the constant"
+            area = context.target_area
+            if area != egi.sheet and area not in {c.id for c in egi.Cut}:
+                return False, f"Target area {area} does not exist"
+        refusal = _refuse_quotation_boundary(egi, area, context.selected_subgraph)
+        if refusal:
+            return False, refusal
+        return True, None
+
+    def apply_transformation(
+        self, context: TransformationContext
+    ) -> TransformationResult:
+        ok, error_msg = self.check_preconditions(context)
+        if not ok:
+            return TransformationResult(False, None, error_msg, {})
+        try:
+            egi = context.source_egi
+            if context.selected_subgraph:
+                vertex = _selected_vertex(egi, context.selected_subgraph)
+                return TransformationResult(
+                    True,
+                    _without_isolated_vertex(egi, vertex),
+                    None,
+                    {"rule": "CONSTANT_EXISTENCE", "erased_vertex": str(vertex.id)},
+                )
+            name = context.insertion_egif.strip()
+            new_id = _fresh_id(egi, "constant_vertex")
+            area = dict(egi.area)
+            area[context.target_area] = area.get(
+                context.target_area, frozenset()
+            ) | frozenset([new_id])
+            result = _rebuild_graph(
+                egi,
+                V=egi.V | {Vertex(new_id, label=name, is_generic=False)},
+                area=frozendict(area),
+            )
+            return TransformationResult(
+                True,
+                result,
+                None,
+                {
+                    "rule": "CONSTANT_EXISTENCE",
+                    "inserted_vertex": str(new_id),
+                    "target_area": str(context.target_area),
+                },
+            )
+        except Exception as e:
+            return TransformationResult(False, None, str(e), {})
+
+
+class ConstantIdentityRule(FormalTransformationRule):
+    """Dau Def 24.10, Constant Identity Rule (p.271), with the text the
+    author ruled on 2026-11-25 (the print carries "(ve, vf)" and "into d"
+    over from the rule above it): "Let C ∈ C be a constant name. Let v, w be
+    vertices with ρ(v) = ρ(w) = C. Let c be a context with c ≤ ctx(v) and
+    c ≤ ctx(w). Then arbitrary identity-links id with ν(id) = (v, w) may be
+    inserted into c or erased from c." An equivalence in any context.
+
+    Two selected vertices and ``target_area`` (c) is the insertion; one
+    selected identity link is the erasure. The link is scribed from the
+    vertex whose id sorts first — the rule is symmetric in v and w, and the
+    choice must be the graph's, not a set's iteration order."""
+
+    def get_rule_name(self) -> str:
+        return "CONSTANT_IDENTITY (Constant Identity)"
+
+    def _link(self, context: TransformationContext) -> Optional[ElementID]:
+        egi = context.source_egi
+        if len(context.selected_subgraph) != 1:
+            return None
+        (only,) = context.selected_subgraph
+        return only if only in egi.nu else None
+
+    def check_preconditions(
+        self, context: TransformationContext
+    ) -> Tuple[bool, Optional[str]]:
+        egi = context.source_egi
+        by_id = {v.id: v for v in egi.V}
+        link = self._link(context)
+        if link is not None:
+            ends = egi.nu[link]
+            if egi.rel.get(link) != "=" or len(set(ends)) != 2:
+                return False, f"{link} is not an identity link between two vertices"
+            area = egi.get_context(link)
+        elif len(context.selected_subgraph) == 2 and all(
+            x in by_id for x in context.selected_subgraph
+        ):
+            ends = tuple(sorted(context.selected_subgraph))
+            area = context.target_area
+            if area != egi.sheet and area not in {c.id for c in egi.Cut}:
+                return False, f"Target area {area} does not exist"
+        else:
+            return False, (
+                "The constant identity rule names two vertices and a context, "
+                "or one identity link"
+            )
+        names = {by_id[x].label if _is_constant(by_id[x]) else None for x in ends}
+        if None in names or len(names) != 1:
+            return False, (
+                "Both vertices must carry the same constant name "
+                "(Def 24.10, p.271: ρ(v) = ρ(w) = C)"
+            )
+        if link is None:
+            for x in ends:
+                if not self._encloses(egi, egi.get_context(x), area):
+                    return False, (
+                        f"Target area {area} is not enclosed by the context of "
+                        f"{x} (Def 24.10, p.271: c ≤ ctx(v) and c ≤ ctx(w))"
+                    )
+        refusal = _refuse_quotation_boundary(egi, area, context.selected_subgraph)
+        if refusal:
+            return False, refusal
+        return True, None
+
+    @staticmethod
+    def _encloses(
+        egi: RelationalGraphWithCuts, outer: ElementID, inner: ElementID
+    ) -> bool:
+        """``inner ≤ outer``: ``outer`` is ``inner`` or an area enclosing it."""
+        current = inner
+        while True:
+            if current == outer:
+                return True
+            if current == egi.sheet:
+                return False
+            current = egi.get_context(current)
+
+    def apply_transformation(
+        self, context: TransformationContext
+    ) -> TransformationResult:
+        ok, error_msg = self.check_preconditions(context)
+        if not ok:
+            return TransformationResult(False, None, error_msg, {})
+        try:
+            egi = context.source_egi
+            link = self._link(context)
+            if link is not None:
+                result = _rebuild_graph(
+                    egi,
+                    E=frozenset(e for e in egi.E if e.id != link),
+                    nu=frozendict({k: v for k, v in egi.nu.items() if k != link}),
+                    rel=frozendict({k: v for k, v in egi.rel.items() if k != link}),
+                    area=frozendict(
+                        {k: frozenset(x for x in contents if x != link)
+                         for k, contents in egi.area.items()}
+                    ),
+                )
+                return TransformationResult(
+                    True, result, None,
+                    {"rule": "CONSTANT_IDENTITY", "erased_link": str(link)},
+                )
+            v, w = sorted(context.selected_subgraph)
+            new_id = _fresh_id(egi, "constant_identity")
+            area = dict(egi.area)
+            area[context.target_area] = area.get(
+                context.target_area, frozenset()
+            ) | frozenset([new_id])
+            result = _rebuild_graph(
+                egi,
+                E=egi.E | {Edge(new_id)},
+                nu=frozendict({**egi.nu, new_id: (v, w)}),
+                rel=frozendict({**egi.rel, new_id: "="}),
+                area=frozendict(area),
+            )
+            return TransformationResult(
+                True, result, None,
+                {
+                    "rule": "CONSTANT_IDENTITY",
+                    "inserted_link": str(new_id),
+                    "target_area": str(context.target_area),
+                },
+            )
+        except Exception as e:
+            return TransformationResult(False, None, str(e), {})
+
+
 class FormalTransformationEngine:
     """Engine for applying formal EG transformation rules."""
 
@@ -1882,6 +2194,9 @@ class FormalTransformationEngine:
             "IT+": IterationRule(),
             "IT-": DeiterationRule(),
             "HEAVY_DOT": HeavyDotInsertionRule(),
+            "VERTEX_ERA": VertexErasureRule(),
+            "CONSTANT_EXISTENCE": ConstantExistenceRule(),
+            "CONSTANT_IDENTITY": ConstantIdentityRule(),
         }
 
     def apply_rule(
@@ -1897,7 +2212,11 @@ class FormalTransformationEngine:
         ``insertion_egif`` is INS's content — what to insert. INS adds *new*
         ink, so it cannot be named by ``selected_subgraph``, which holds ids of
         elements already in ``source_egi``. Without it INS now refuses rather
-        than reporting success on an unchanged graph.
+        than reporting success on an unchanged graph. For CONSTANT_EXISTENCE
+        it carries the bare name of the constant to insert.
+
+        VERTEX_ERA, and the erasing direction of the two constant rules, take
+        no target: the element named has its own context.
         """
 
         if rule_name not in self.rules:

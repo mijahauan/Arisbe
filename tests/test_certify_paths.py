@@ -214,16 +214,22 @@ def test_the_workshop_s_dry_run_is_tallied_apart_and_never_raises(monkeypatch):
 
 def test_production_s_unchecked_merge_and_split_are_observed():
     """Finding 5 of the map: production merges and splits by the operations that
-    check nothing. They now come through the door, so the kernel sees each one."""
+    check nothing. They now come through the door, so the kernel sees each one.
+
+    ``derived_rules`` still does (universal instantiation, until Phase 3 item
+    3). ``world_scroll`` stopped on 2026-11-26: admission joins a shared
+    individual's lines by the constant rules and the *checked* merge."""
     import derived_rules
 
     source = Path(derived_rules.__file__).read_text()
     assert "merge_unchecked(" in source and "split_unchecked(" in source
     import world_scroll
-    assert "merge_unchecked(" in Path(world_scroll.__file__).read_text()
+    assert "merge_unchecked" not in Path(world_scroll.__file__).read_text()
 
     g = parse_egif('(bird "Rex")')
-    before = _count("merge-unchecked")
+    unchecked, checked = _count("merge-unchecked"), _count("merge-checked")
     resident, _scroll = world_scroll.wrap_m(g)
     world_scroll.enlarge_m(resident, '(white "Rex")')
-    assert _count("merge-unchecked") == before + 1
+    # two Rex lines in sibling cells: each is merged into the vertex at W
+    assert _count("merge-unchecked") == unchecked
+    assert _count("merge-checked") == checked + 2

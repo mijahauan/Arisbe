@@ -46,7 +46,10 @@ residence** ``~[ ~[ ] ]`` (W + hold, zero cells) — the arena of
 INS-of-cell. Construction is fully rule-licensed.
 
 Additive, geometry-free, unprotected; every licensed move is an ordinary Dau rule
-applied through ``proof_authoring.apply_rule``.
+applied through ``proof_authoring.apply_rule`` — or, for the join of an
+individual's two lines after an admission or a discharge, through
+``derived_rules.join_constant_lines``, whose steps are Dau's constant rules
+and the checked merge.
 """
 
 from __future__ import annotations
@@ -68,7 +71,6 @@ from egi_core_dau import (
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
 from proof_authoring import apply_rule
-from vertex_scope import normalize_constants
 
 
 @dataclass(frozen=True)
@@ -377,7 +379,19 @@ def enlarge_m(egi: RelationalGraphWithCuts, egif: str
     unconditionally sound): to add to M is to admit another batch of agreed
     content, landing at even depth where retraction will be a licensed ERA.
     The warrant justifies the *choice* (recorded on the chain step, not
-    carried by the ink)."""
+    carried by the ink).
+
+    Where the content names an individual M already knows, the new mention is
+    joined to the standing line by further licensed steps;
+    ``enlarge_m_recorded`` returns them."""
+    return enlarge_m_recorded(egi, egif)[0]
+
+
+def enlarge_m_recorded(egi: RelationalGraphWithCuts, egif: str
+                       ) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """``enlarge_m``, with the rules it applied in order: ``INS``, then for
+    each individual the content shares with M the steps that join the two
+    lines (``_join_admitted_individuals``)."""
     scroll = find_world_scroll(egi)
     if scroll is None:
         raise ValueError(
@@ -386,63 +400,15 @@ def enlarge_m(egi: RelationalGraphWithCuts, egif: str
     before = {v.id for v in egi.V}
     grown = apply_rule("INS", egi, egif=f"~[ {egif.strip()} ]",
                        target=scroll.cut_id)
-    return _join_admitted_individuals(grown, scroll.cut_id, before)
+    joined, steps = _join_admitted_individuals(grown, before)
+    return joined, ["INS", *steps]
 
 
-def _join_admitted_individuals(
-    egi: RelationalGraphWithCuts,
-    w_id: ElementID,
-    pre_existing: set,
-) -> RelationalGraphWithCuts:
-    """Tie a newly admitted mention of an individual to the line already standing.
+def _touchable_constants(egi: RelationalGraphWithCuts) -> Dict[str, List[ElementID]]:
+    """Every constant vertex the calculus may join to another, by its name.
 
-    INS inserts the cell from text, so a constant already known to M arrives as
-    a *fresh* vertex: admitting ``(white "Rex")`` beside a standing
-    ``(bird "Rex")`` left two Rex lines, one per cell. That is not what the
-    ink means — a constant mentioned in several spots is one line of identity —
-    and the two-line form does not survive a text round trip, because reading it
-    back yields the one line it should have been.
-
-    **What licenses the join.** Two vertices carrying the same constant name
-    may be joined by an identity link in any context c with c ≤ ctx(v) and
-    c ≤ ctx(w): Dau's *Constant Identity Rule* (Def 24.10, p.271), which has
-    no polarity condition. Collapsing the linked pair into one vertex is the
-    project's own ruled "one constant, one line" normal form (``vertex_scope``'s
-    module docstring), not a rule of Dau's. What Dau supplies under it is the
-    semantics of constants in a vertex-based EGI (Def 24.10, p.270-272): ρ
-    gives both vertices the same name, and a name denotes one individual, which
-    is why the Constant Identity Rule may link them from any context at all.
-    Dau's calculus has no rule that removes a constant vertex — his ligature
-    rules move generic vertices only (Def 24.10, p.270, and the remark on
-    p.271-272) — which is exactly what the checked ``merge_vertices`` refuses,
-    so the collapse calls the unchecked
-    ``_apply_vertex_merge`` deliberately. It is *not* a Def 16.6 merge, and it
-    does not follow ``derived_rules.universal_instantiation``, whose removed
-    vertex is a generic line.
-
-    **The order, so every intermediate graph is an EGI** (Def 12.5, p.125):
-
-    1. the standing line moves outward only, to the least common area of its
-       own area and the new mention's — its standing edges stay dominated, a
-       line already enclosing the new cell (on the sheet, say) stays put, and
-       where a constant is drawn is inert under the same normal form;
-    2. the identity link is scribed in the new vertex's own area, which both
-       vertices now dominate;
-    3. the pair collapses onto the standing line; every edge on the new vertex
-       sits inside the new vertex's area, so the survivor dominates what it
-       inherits.
-
-    **Which standing line.** A quotation is mention, not use (B-min): a
-    quoting name, or any vertex inside a quotation oval, is never chosen and
-    never moved. Among the remaining lines of that name the choice is a
-    function of the graph — canonical signature, then id — never of the
-    iteration order of a set. With none left, the new mention stays its own
-    line.
-    """
-    from canonical_signature import compute_canonical_signatures
-    from calculus_certify import merge_unchecked
-    from vertex_scope import _least_common_area
-
+    A quotation is mention, not use (B-min): a quoting name, or any vertex
+    inside a quotation oval, is left out — never chosen, never joined."""
     quoting_names = set(egi.quotation.values())
 
     def untouchable(vertex_id: ElementID) -> bool:
@@ -456,15 +422,61 @@ def _join_admitted_individuals(
                 return False
             area = egi.get_context(area)
 
-    standing_by_label: Dict[str, List[ElementID]] = {}
-    fresh: List[Tuple[str, ElementID]] = []
+    by_label: Dict[str, List[ElementID]] = {}
     for v in egi.V:
         if v.is_generic or v.label is None or untouchable(v.id):
             continue
-        if v.id in pre_existing:
-            standing_by_label.setdefault(v.label, []).append(v.id)
-        else:
-            fresh.append((v.label, v.id))
+        by_label.setdefault(v.label, []).append(v.id)
+    return by_label
+
+
+def _join_admitted_individuals(
+    egi: RelationalGraphWithCuts,
+    pre_existing: set,
+) -> Tuple[RelationalGraphWithCuts, List[str]]:
+    """Tie a newly admitted mention of an individual to the line already standing.
+
+    INS inserts the cell from text, so a constant already known to M arrives as
+    a *fresh* vertex: admitting ``(white "Rex")`` beside a standing
+    ``(bird "Rex")`` left two Rex lines, one per cell. That is not what the
+    ink means — a constant mentioned in several spots is one line of identity —
+    and the two-line form does not survive a text round trip, because reading it
+    back yields the one line it should have been.
+
+    **What licenses the join.** Each step is one of Dau's rules, applied
+    through the door and certified (``derived_rules.join_constant_lines``):
+    the *Constant Identity Rule* links two vertices of one name in any context
+    both enclose (Def 24.10, p.271), and Def 16.6's merge (p.176) collapses the
+    linked pair — the author ruled on 2026-11-25 that it covers two vertices
+    carrying one constant. Where the standing line and the new mention sit in
+    sibling cells, neither encloses the other, so the *Existence of Constants*
+    rule (p.271) first puts a vertex of that name at their least common area
+    — W — and both are joined to it.
+
+    Until 2026-11-26 this moved the standing vertex with the data model's own
+    constructor, scribed the link the same way, and collapsed the pair with the
+    merge that checks nothing: the kernel rejected every one. The graph that
+    comes out is the same; the road to it is now Dau's.
+
+    **Which standing line.** A quotation is mention, not use (B-min): a
+    quoting name, or any vertex inside a quotation oval, is never chosen and
+    never moved. Among the remaining lines of that name the choice is a
+    function of the graph — canonical signature, then id — never of the
+    iteration order of a set. With none left, the new mention stays its own
+    line.
+
+    Returns the graph and the rules applied, in order."""
+    from canonical_signature import compute_canonical_signatures
+    from derived_rules import join_constant_lines
+
+    standing_by_label: Dict[str, List[ElementID]] = {}
+    fresh: List[Tuple[str, ElementID]] = []
+    for label, ids in _touchable_constants(egi).items():
+        for v_id in ids:
+            if v_id in pre_existing:
+                standing_by_label.setdefault(label, []).append(v_id)
+            else:
+                fresh.append((label, v_id))
     fresh.sort()
 
     standing: Dict[str, ElementID] = {}
@@ -479,23 +491,16 @@ def _join_admitted_individuals(
                 key=lambda v_id: (repr((signatures or {}).get(v_id)), v_id),
             )
 
-    joined = 0
+    derivation: List[str] = []
     for label, new_id in fresh:
         anchor = standing.get(label)
         if anchor is None or anchor == new_id:
             continue
-        new_area = egi.get_context(new_id)
-        egi = egi.with_vertex_moved_to_context(
-            anchor,
-            _least_common_area(egi, {egi.get_context(anchor), new_area}),
-        )
-        edge_id = f"e_admit_join_{joined}"
-        egi = egi.with_edge(Edge(id=edge_id), (anchor, new_id), "=", new_area)
-        egi, _ = merge_unchecked(
-            egi, v1_id=anchor, v2_id=new_id, identity_edge_id=edge_id)
-        joined += 1
+        egi, steps, survivor = join_constant_lines(egi, [anchor, new_id], prefer=anchor)
+        standing[label] = survivor
+        derivation += steps
 
-    return egi
+    return egi, derivation
 
 
 def retract_from_m(
@@ -731,11 +736,17 @@ def discharge_episode(
     # P was scribed as fresh ink by INS, so it arrives carrying its own line
     # for every individual it names. Landing in the cell beside M's standing
     # ink, that leaves two lines of identity for one constant — which says
-    # exactly what one line says, and which no linear form can write down. M's
-    # content is *constructed* here, so the representative is chosen here. The
-    # rules themselves are untouched, and the derivation records the four moves
-    # actually applied: normalizing applies none.
-    g = normalize_constants(g)
+    # exactly what one line says, and which no linear form can write down. So
+    # the lines are joined, and since 2026-11-26 the join is part of the
+    # derivation: Dau's own rules, each certified, each recorded
+    # (``derived_rules.join_constant_lines``). Before that this called
+    # ``vertex_scope.normalize_constants``, which reached the same graph by no
+    # rule at all, inside an act recorded as an inference.
+    from derived_rules import join_constant_lines
+    for label, members in sorted(_touchable_constants(g).items()):
+        if len(members) > 1:
+            g, steps, _ = join_constant_lines(g, members)
+            derivation += steps
     assert find_world_scroll(g) is not None
     return g, derivation
 
@@ -788,7 +799,7 @@ def withdraw_and_resupply(
 __all__ = [
     "WorldScroll", "find_world_scroll", "is_ligature_closed",
     "m_area", "m_element_ids", "m_view",
-    "wrap_m", "wrap_state", "enlarge_m", "retract_from_m",
+    "wrap_m", "wrap_state", "enlarge_m", "enlarge_m_recorded", "retract_from_m",
     "entertain_episode", "discharge_episode", "abandon_episode",
     "withdraw_and_resupply",
 ]

@@ -26,6 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from egif_parser_dau import parse_egif
 from model_materialization import materialize_egi
+from derived_rules import CONSTANT_JOIN_RULES
 from world_scroll import m_view, wrap_m
 
 from notion_provenance import (affirm_provenance, notion_key,
@@ -235,7 +236,9 @@ class TestChainRecording:
         for step in steps:
             assert step.parameters["act"] == "m_enlargement"
             assert step.parameters["earned"] is True
-            assert step.parameters["derivation"] == ["INS"]
+            derivation = step.parameters["derivation"]
+            assert derivation[:1] == ["INS"]
+            assert set(derivation[1:]) <= CONSTANT_JOIN_RULES
         assert _derives(pc.current, "white", "s1")
 
 

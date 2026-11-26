@@ -35,7 +35,7 @@ from typing import Dict, List, Optional, Tuple
 from egi_core_dau import RelationalGraphWithCuts
 from egif_generator_dau import generate_egif
 from egif_parser_dau import parse_egif
-from world_scroll import enlarge_m, find_world_scroll, retract_from_m
+from world_scroll import enlarge_m, enlarge_m_recorded, find_world_scroll, retract_from_m
 
 # --------------------------------------------------------------------------- #
 # The inning-outcome taxonomy, scoped to the dispositions that *revise M*       #
@@ -326,8 +326,10 @@ def revise_with_disposition_recorded(
     labels: Optional[List[Optional[str]]] = None,
 ) -> Tuple[RelationalGraphWithCuts, List[str]]:
     """:func:`revise_with_disposition` returning also the **executed licensed
-    derivation** — ``["INS"]`` for an enlargement (a fresh cell), one ``"ERA"``
-    per erasure for a retraction, their concatenation for the challenge
+    derivation** — ``"INS"`` for an enlargement (a fresh cell), followed by the
+    steps that join any individual the cell shares with M to its standing
+    line (``world_scroll.enlarge_m_recorded``); one ``"ERA"``
+    per erasure for a retraction; their concatenation for the challenge
     composite — when M is resident in the standing world-scroll (sweep #2:
     every move a genuine Dau rule). For a bare sheet-level M (the legacy
     fallback regime: inline fixtures, proposals) the structural sheet
@@ -349,7 +351,7 @@ def revise_with_disposition_recorded(
                 payload = fact_egif
                 if not payload:
                     raise ValueError(f"{disposition} disposition requires fact_egif")
-            return enlarge_m(model, payload), ["INS"]
+            return enlarge_m_recorded(model, payload)
 
         if disposition == DISPOSITION_RETRACT:
             if not relation:
@@ -367,8 +369,8 @@ def revise_with_disposition_recorded(
                     revised, subgraph_egif=subgraph_egif, relation=relation,
                     labels=labels)
             if fact_egif:
-                revised = enlarge_m(revised, fact_egif)
-                derivation = derivation + ["INS"]
+                revised, admitted = enlarge_m_recorded(revised, fact_egif)
+                derivation = derivation + admitted
             return revised, derivation
 
         raise ValueError(f"disposition {disposition!r} does not revise M")

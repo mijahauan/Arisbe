@@ -13,6 +13,11 @@ move. Outside the calculus suite that run held 11,315 such certificates: 11,101
 from ``_join_admitted_individuals``, 204 from ``retract_from_m``, and 10 from
 test code, the MCP verifier's tests and one dry run.
 
+Two of the four found then were retired on 2026-11-26 (Phase 3, item 1), and
+their tests below now hold the repaired behaviour instead: admission and
+discharge join a shared individual's lines by Dau's constant rules and the
+checked merge, every step certified and recorded.
+
 ``KNOWN_DEPARTURES`` is the register. It is the counterpart, for production
 paths, of ``tests/calculus_ledger.json`` for the suite's moves.
 """
@@ -32,16 +37,6 @@ from egif_parser_dau import parse_egif
 ROOT = Path(__file__).resolve().parent.parent
 
 KNOWN_DEPARTURES = {
-    "admit-joins-a-named-vertex":
-        "world_scroll._join_admitted_individuals merges the newly admitted constant vertex "
-        "into the standing one. Def 16.6's merge erases v2, and Def 24.10 erases no name, so "
-        "the kernel rejects the merge. The licensed road is CONSTANT_IDENTITY then a merge "
-        "(specification 4.4; R7 as amended). ADMIT_TO_M is ampliative and owes no certificate, "
-        "but the step is recorded as INS alone.",
-    "discharge-normalises-constants-unrecorded":
-        "world_scroll.discharge_episode runs normalize_constants after IT-, IT-, DC-. No rule "
-        "is named for it and no certificate covers it, inside an act classed as an inference "
-        "(specification 3.3a finding 2; ruled into Phase 3 item 1).",
     "ui-scribes-its-identity-edge-by-no-rule":
         "derived_rules.universal_instantiation iterates, then adds the identity edge that "
         "joins the copy to the line with the data model's own with_edge, then merges. The "
@@ -73,35 +68,49 @@ class _Recorder:
         monkeypatch.setattr(calculus_certify, "_observe", observe)
 
 
-def test_admitting_a_fact_merges_a_named_vertex_and_the_kernel_rejects_it(monkeypatch):
-    """KNOWN_DEPARTURES["admit-joins-a-named-vertex"]."""
+def _in_custody(seen, first, last) -> bool:
+    """R9: each certificate is issued on the graph the one before vouched
+    for, from ``first`` to ``last`` — nothing changed a graph in between."""
+    graphs = [first] + [h for _c, _g, h in seen]
+    return all(g is before for (_c, g, _h), before in zip(seen, graphs)) and graphs[-1] is last
+
+
+def test_admitting_a_fact_joins_the_named_vertex_by_rules_the_kernel_accepts(monkeypatch):
+    """Was KNOWN_DEPARTURES["admit-joins-a-named-vertex"], retired 2026-11-26:
+    the join was one unchecked merge of a named vertex, which the kernel
+    rejected, inside a step recorded as INS alone. It is now Dau's own road —
+    a vertex of that name at W, then each mention linked to it and merged
+    into it — and the record says so."""
     resident, scroll = world_scroll.wrap_m(parse_egif('(bird "Rex")'))
     recorder = _Recorder(monkeypatch)
-    admitted = world_scroll.enlarge_m(resident, '(white "Rex")')
+    admitted, derivation = world_scroll.enlarge_m_recorded(resident, '(white "Rex")')
     certs = [(c.way, c.steps[0].rule, c.status) for c, _g, _h in recorder.seen]
     assert certs == [("protocol", "INS", ACCEPTED),
-                     ("merge-unchecked", "MERGE_VERTICES", REJECTED)]
-    assert "carries a name (Def 24.10" in recorder.seen[-1][0].why
-    # And the move is more than the INS it is recorded as: one Rex, not two.
+                     ("engine", "CONSTANT_EXISTENCE", ACCEPTED),
+                     ("engine", "CONSTANT_IDENTITY", ACCEPTED),
+                     ("merge-checked", "MERGE_VERTICES", ACCEPTED),
+                     ("engine", "CONSTANT_IDENTITY", ACCEPTED),
+                     ("merge-checked", "MERGE_VERTICES", ACCEPTED)]
+    assert derivation == [rule for _way, rule, _status in certs]
+    assert _in_custody(recorder.seen, resident, admitted)
     assert sum(1 for v in admitted.V if v.label == "Rex") == 1
     assert sum(1 for v in recorder.seen[0][2].V if v.label == "Rex") == 2
 
 
-def test_discharge_changes_the_graph_after_its_last_certificate(monkeypatch):
-    """KNOWN_DEPARTURES["discharge-normalises-constants-unrecorded"]. Every step
-    the discharge names is certified and accepted; the graph it returns is not
-    the graph the last certificate vouched for."""
+def test_discharge_returns_the_graph_its_last_certificate_vouched_for(monkeypatch):
+    """Was KNOWN_DEPARTURES["discharge-normalises-constants-unrecorded"],
+    retired 2026-11-26: the discharge ran a normaliser after its last rule, so
+    the graph it returned was not the graph any certificate covered. The join
+    is now two more certified steps, and the chain of custody holds end to end."""
     resident, _scroll = world_scroll.wrap_m(parse_egif('(bird "Rex")'))
     entertained, _ = world_scroll.entertain_episode(resident, '(flies "Rex")')
     recorder = _Recorder(monkeypatch)
     discharged, derivation = world_scroll.discharge_episode(entertained, '(flies "Rex")')
-    assert derivation == ["IT-", "IT-", "DC-"]
+    assert derivation == ["IT-", "IT-", "DC-", "CONSTANT_IDENTITY", "MERGE_VERTICES"]
     assert [(c.steps[0].rule, c.status) for c, _g, _h in recorder.seen] == [
-        ("IT-", ACCEPTED), ("IT-", ACCEPTED), ("DC-", ACCEPTED)]
-    last_certified = recorder.seen[-1][2]
-    assert not dau_kernel.same_graph(last_certified, discharged)
-    assert (sum(1 for v in last_certified.V if v.label == "Rex"),
-            sum(1 for v in discharged.V if v.label == "Rex")) == (2, 1)
+        (rule, ACCEPTED) for rule in derivation]
+    assert _in_custody(recorder.seen, entertained, discharged)
+    assert sum(1 for v in discharged.V if v.label == "Rex") == 1
 
 
 def test_universal_instantiation_adds_an_edge_between_two_certificates(monkeypatch):

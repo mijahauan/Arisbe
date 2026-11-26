@@ -1,21 +1,62 @@
 # Current Plan
 
-**Last Updated**: 2026-11-25 — **the calculus-conformance arc is open; Phases 0, 1 and 2 are
-done. Phase 3 is unblocked: R2 is ruled and no ruling is open.**
+**Last Updated**: 2026-11-26 — **the calculus-conformance arc: Phases 0, 1 and 2 are done, and
+Phase 3's first family (item 1) is built and measured. No ruling is open.**
 
-**▶ START HERE — Phase 3 of
+**▶ START HERE — Phase 3, item 2 of
 [the calculus-conformance directive](docs/superpowers/plans/2026-11-25-calculus-conformance-directive.md):
-conform, one family per commit. R2 was ruled on 2026-11-25, so nothing blocks it.** The specification is
+"ERA of an edge removes the edge only (§4.1); the isolated vertex stays."** The specification is
 [2026-11-25-calculus-conformance.md](docs/superpowers/specs/2026-11-25-calculus-conformance.md);
-read it in full first, §3.3b above all (what observe mode found). The directive supersedes the
-September block below — docket item 10 (the UoD alphabet) waits behind this arc.
+read §3.3b and §3.3c first. The directive supersedes the September block below — docket item 10
+(the UoD alphabet) waits behind this arc.
 
-*Phase 3's first entry, in the directive's words:* VERTEX_ERA as its own entry point;
-CONSTANT_EXISTENCE and CONSTANT_IDENTITY (a kernel judgement and an entry point each); the
-constant normalisation at discharge becomes a recorded expansion. **Gate for each family:** its
-extent key gone from the pinned diff; refusal, structure and soundness re-pinned together; **its
-`rejected` row in `tests/test_calculus_certify.py`'s `CERTIFIED_DEFAULT` at zero**; the
-correspondence suite green on the affected rules.
+*Two things to know before starting item 2.*
+- **It will break retraction unless retraction changes with it.** `world_scroll.retract_from_m`
+  names an atom's edge alone and relies on ERA taking the vertex it isolates (the departure
+  `retract-leans-on-era-erasing-the-vertex-it-isolates`, 204 non-accepted certificates in the
+  full suite). Once ERA removes the edge only, the vertex's erasure is its own step — VERTEX_ERA
+  for a generic vertex, CONSTANT_EXISTENCE for a constant. Both entry points exist since item 1.
+- **The gate has a correspondence clause written for this item:** "an isolated vertex left by
+  edge erasure must draw and re-read."
+
+**Gate for each family:** its extent key gone from the pinned diff; refusal, structure and
+soundness re-pinned together; **its `rejected` row in `tests/test_calculus_certify.py`'s
+`CERTIFIED_DEFAULT` at zero** (remaining: DC+ 2,542 · ERA 578 · IT+ 514); the correspondence
+suite green on the affected rules. The author chose **one exhaustive run per family**
+(2026-11-26); raise `.core_modification_authorized` for the family and remove it after its commit.
+
+**What Phase 3 item 1 did (2026-11-26).** Full account in the specification's §3.3c.
+- **Three rules gained an entry point and two a kernel judgement.** `VERTEX_ERA`,
+  `CONSTANT_EXISTENCE`, `CONSTANT_IDENTITY` in `formal_transformation_rules`; the kernel judges
+  both constant rules, declines a constant vertex under the vertex rule, and lets a named vertex
+  merge into its namesake only. Reached by the engine way and `POST /api/transform/apply`, not by
+  the `RuleInteraction` protocol.
+- **Three ledger entries retired; 14 remain.** Exhaustive pinned diff: `VERTEX_ERA:applied/illegal`
+  gone (A 2,426 · B 205 · S 4), `A:VERTEX_ERA:refused/legal` gone (324), soundness
+  `VERTEX_ERA:failed` gone (A 1,888 · B 22 · S 2); no such cell for either constant rule.
+- **Certificates, default run:** 14,546 applied — 10,798 accepted, 3,634 rejected, 114 unjudged.
+  VERTEX_ERA's rejected row is gone.
+- **The constant normalisation is a recorded expansion** (`derived_rules.join_constant_lines`),
+  used by discharge and by admission; both record its steps. Two of the four production
+  departures are retired; `KNOWN_DEPARTURES` holds two.
+- **Measured on the frozen tree.** Full suite: 1 failed (`test_memory_stability`, the documented
+  flake; passes alone), 5,299 passed, 348 skipped, 1 xfailed, 10 deselected; census reconciles at
+  5,649 = 5,636 + 13. Exhaustive calculus: green, 3 h 01 min, the first hour shared with the full
+  suite. Outside the calculus suite, non-accepted certificates fell from 11,315 to 218.
+
+**Left by item 1, for the author or a later item:**
+1. **Stored corpus chains keep their short derivations** (`["INS"]`, IT−·IT−·DC−). They replay
+   to their recorded states; Phase 4 regenerates them, after asking.
+2. **`vertex_scope.normalize_constants` has no caller in `src/` or `tools/`.** Tests still
+   compare the certified join against it. Whether it stays is the author's.
+3. **A survivor's id is not preserved** when the joined mentions sit in sibling cells: the
+   survivor is the fresh vertex at W. The full suite found one dependent, a test.
+4. **`HeavyDotInsertionRule` mints the fixed id `"heavy_dot_vertex"`.** Applied twice to
+   `~[ ]`, the second application reports success and the graph still holds one vertex
+   (reproduced 2026-11-26). Item 8's.
+5. **Tier B barely reaches CONSTANT_IDENTITY**: one applied move in exhaustive mode, 161,453
+   candidates skipped by budget. Tier A applies it 540 times.
+6. **The default calculus run is about 134 s**, past the two-minute budget its bounds were tuned to.
 
 **What was the author's, and where each now stands:**
 1. ~~R2~~ — the seven PROVISIONAL readings against the book, and the two Chapter 24 readings
@@ -71,7 +112,8 @@ does. Commits `d5c28d6`, `d7cfc75`, `1414990`, and the one carrying this handoff
   5,620 = 5,607 + 13. The exhaustive calculus mode was not run.
 
 **Four departures on production's own paths — the directive's "any other rejection is a
-finding".** Found by running the whole suite with `ARISBE_CERTIFY_LOG` set, which names the
+finding".** *(Departures 1 and 2 were retired by Phase 3 item 1 on 2026-11-26; 3 and 4 stand.
+The figures in this block are Phase 2's.)* Found by running the whole suite with `ARISBE_CERTIFY_LOG` set, which names the
 caller of every move the kernel did not accept: outside the calculus suite, 11,315 such
 certificates, of which `world_scroll._join_admitted_individuals` issued 11,101 and
 `world_scroll.retract_from_m` 204; the other ten are test code, the MCP verifier's tests and one

@@ -164,6 +164,8 @@ def test_a_kernel_crash_is_counted_and_never_reaches_the_caller(monkeypatch):
 # Generated, not narrated: `run("default").certified`, summed over the tiers.
 # Phase 3's gate for each family is its `rejected` row falling to zero.
 CERTIFIED_DEFAULT = {
+    "CONSTANT_EXISTENCE:accepted": 1554,
+    "CONSTANT_IDENTITY:accepted": 30,
     "DC+:accepted": 2117, "DC+:rejected": 2542, "DC+:unjudged": 79,
     "DC-:accepted": 29,
     "ERA:accepted": 1141, "ERA:rejected": 578, "ERA:unjudged": 3,
@@ -171,20 +173,26 @@ CERTIFIED_DEFAULT = {
     "INS:accepted": 1447,
     "IT+:accepted": 1661, "IT+:rejected": 514, "IT+:unjudged": 15,
     "IT-:accepted": 6,
-    "MERGE_VERTICES:accepted": 29,
+    "MERGE_VERTICES:accepted": 33,
     "MOVE_BRANCHES:accepted": 1,
     "REARRANGE_LIGATURE:accepted": 10,
     "RETRACT_LIGATURE:accepted": 6,
     "SPLIT_VERTEX:accepted": 1837, "SPLIT_VERTEX:unjudged": 13,
-    "VERTEX_ERA:accepted": 98, "VERTEX_ERA:rejected": 235, "VERTEX_ERA:unjudged": 1,
+    # Phase 3, item 1 (2026-11-26): VERTEX_ERA's rejected row was 235, every one
+    # a vertex erased with its edges by ERA standing in for a rule the engine
+    # did not have. Its 98 accepted became 35 when the isolated constants went
+    # to the rule Dau gives them, CONSTANT_EXISTENCE.
+    "VERTEX_ERA:accepted": 35,
     "VERTEX_INS:accepted": 302,
 }
 
 
 def test_the_certificate_counts_are_pinned():
-    """13,257 applied moves: 9,273 accepted, 3,869 rejected, 115 unjudged. The
-    rejections are the refusal layer's 3,070 SEVERE and the structure layer's
-    799 DIFFERS, move for move; four rules carry all of them."""
+    """14,546 applied moves: 10,798 accepted, 3,634 rejected, 114 unjudged. The
+    rejections are the refusal layer's 2,835 SEVERE and the structure layer's
+    799 DIFFERS, move for move; three rules carry all of them (DC+, ERA, IT+).
+    Before Phase 3's first family it was 13,257 / 9,273 / 3,869 / 115, with
+    VERTEX_ERA the fourth."""
     counted = Counter()
     for key, n in run("default").certified.items():
         _tier, rule, status = key.split(":")
@@ -193,7 +201,7 @@ def test_the_certificate_counts_are_pinned():
     by_status = Counter()
     for key, n in counted.items():
         by_status[key.split(":")[1]] += n
-    assert by_status == {ACCEPTED: 9273, REJECTED: 3869, UNJUDGED: 115}
+    assert by_status == {ACCEPTED: 10798, REJECTED: 3634, UNJUDGED: 114}
 
 
 def test_the_rejections_are_the_two_layers_failures_move_for_move():

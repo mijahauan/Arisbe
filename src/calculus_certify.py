@@ -24,8 +24,9 @@ caller does not say which Dau rule it means, ``name_move`` decides from the
 request — never from what the engine did with it:
 
 - ``HEAVY_DOT`` is Dau's inserting a vertex, ``VERTEX_INS``;
-- ``ERA`` of a single vertex with no edge on it is erasing a vertex,
-  ``VERTEX_ERA``; every other erasure is ``ERA``;
+- ``ERA`` of a single vertex with no edge on it is erasing a vertex:
+  ``VERTEX_ERA`` for a generic one, ``CONSTANT_EXISTENCE`` for one carrying a
+  constant (Def 24.10, p.271). Every other erasure is ``ERA``;
 - ``DC+`` with no spot is read as the engine reads it — around the selection in
   the selection's own context, or around the whole sheet when nothing is
   selected (ruling R4: kept, and recorded);
@@ -33,10 +34,9 @@ request — never from what the engine did with it:
   ways in, and is named as each means it: through the protocol, an empty double
   cut at the spot; through the engine or a rule object, a double cut around
   everything in that area (unless the context says ``enclose_empty``);
-- ``ERA``, ``DC-`` and ``IT-`` take no target in Dau, so none is recorded.
-
-``CONSTANT_EXISTENCE`` (an isolated *constant* vertex, Def 24.10) is not yet a
-name this module gives: the kernel has no judgement for it until Phase 3.
+- ``ERA``, ``DC-``, ``IT-`` and ``VERTEX_ERA`` take no target in Dau, so none
+  is recorded; nor does the erasing direction of ``CONSTANT_EXISTENCE`` (a
+  vertex selected) or of ``CONSTANT_IDENTITY`` (an identity link selected).
 """
 from __future__ import annotations
 
@@ -186,7 +186,12 @@ def name_move(g: G, rule: str, selection=(), target: Optional[str] = None,
         return Move("INS", (), target, content)
     if rule == "ERA" and len(sel) == 1 and sel[0] in {v.id for v in g.V} \
             and not dau_kernel.edges_on(g, sel[0]):
-        return Move("VERTEX_ERA", sel)
+        generic = next(v for v in g.V if v.id == sel[0]).is_generic
+        return Move("VERTEX_ERA" if generic else "CONSTANT_EXISTENCE", sel)
+    if rule == "CONSTANT_EXISTENCE":
+        return Move(rule, sel) if sel else Move(rule, (), target, content)
+    if rule == "CONSTANT_IDENTITY":
+        return Move(rule, sel) if len(sel) == 1 else Move(rule, sel, target)
     if rule == "DC+" and target is not None and not sel and empty_means_whole_area:
         sel = tuple(sorted(g.area.get(target, ())))
     if rule == "DC+" and target is None:

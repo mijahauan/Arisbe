@@ -1,6 +1,6 @@
 # Arisbe Core API Reference
 
-**Last Generated**: 2026-07-19T14:43:52-05:00  
+**Last Generated**: 2026-09-25T07:25:33-05:00  
 **Source of truth**: `tools/core_protection_system.py` (`protected_modules`)  
 **Module count**: 14
 
@@ -367,6 +367,44 @@ Create empty graph (Dau's G_∅).
 
 Create new vertex with unique ID.
 
+#### `derive_alphabet(graph: 'RelationalGraphWithCuts') -> egi_core_dau.AlphabetDAU`
+
+Read the alphabet Σ = (C, F, R, ar) a graph's own ink implies.
+
+Dau's Def 12.6-12.7 (p.126) gives each name **one** arity, so a graph using
+one name at two arities has no alphabet and this refuses rather than
+inventing one. It used to take the *maximum* of the arities seen, which
+produced an alphabet no graph satisfied and surfaced later, in validation,
+as an "Arity mismatch" pointing at an edge rather than at the real fault.
+
+Measured before that refusal was adopted (2026-09-24): **0 of 133 corpus
+graphs** use one name at two arities, so it costs the corpus nothing. Seven
+names are used at different arities in *different* graphs, which violates
+nothing at all — an alphabet is per-graph.
+
+F is always empty: none of the three linear forms has function-symbol syntax.
+
+#### `derive_rho(graph: 'RelationalGraphWithCuts') -> frozendict.frozendict`
+
+Read ρ — each vertex to its constant label, or None if it is a line.
+
+#### `with_alphabet_and_rho(graph: 'RelationalGraphWithCuts') -> 'RelationalGraphWithCuts'`
+
+Return ``graph`` carrying the alphabet and ρ its own ink implies.
+
+One implementation, replacing three. ``_finalize_alphabet_and_rho`` lived in
+each of the three parsers, and all three rebuilt the graph from an
+**explicit field list** — so each silently dropped every field the list
+forgot: ``variable_names``, ``sort``, ``quotation``. That was harmless only
+because CGIF and CLIF never set them, and it would have stopped being
+harmless the moment the EGIF parser was wired up.
+
+``replace`` is used deliberately: it preserves every field, including the
+ones a future field-addition brings. It carries the existing
+``hierarchical_index`` across, which is correct **here** because nothing
+about the area structure changes — see ``test_hierarchical_index``'s
+staleness invariant for when that would not be safe.
+
 ---
 
 ## egi_io.py
@@ -378,8 +416,32 @@ Create new vertex with unique ID.
 
 EGI JSON serialization utilities.
 
-Schema produced/consumed matches tools/migrate_corpus_to_egi.py 
-egi_to_dict.
+Schema produced/consumed matches tools/migrate_corpus_to_egi.py
+egi_to_dict, less ``alphabet`` and ``rho``.
+
+**Those two keys were removed from the schema on 2026-09-25**, as the IO half of
+the ruling that made them derived rather than stored (egi_core_dau, 2026-09-24).
+The argument is the same one, applied one level out: a file is a store, and a
+stored copy of a derivable fact is two records of one fact. Keeping the keys
+would have been harmless only because load throws them away — which is another
+way of saying a hand-edited or hand-written file could carry an alphabet that
+disagrees with its own ink and nothing would ever say so.
+
+It loses nothing, and that was measured rather than assumed before the keys
+went: of 245 corpus ``.egi.json`` files, 27 carried a stored alphabet, **none**
+declared a relation or a constant it did not use, and no stored rho disagreed
+with its ink.
+
+What it does NOT settle, and what the keys were never able to settle either: a
+UoD's alphabet — the *language* a diachronic discourse is conducted in, which
+persists across states where a per-state alphabet cannot (an individual leaving
+the sheet is not a word leaving the discourse; Dau's Σ is something a graph is
+*over*, Def 12.7/23.1, and his rules hold it fixed). That belongs to the UoD,
+not to a snapshot, and no such field exists yet. Emptying this slot is what
+keeps it from being mistaken for one. See CLAUDE.md, ``egi_core_dau``.
+
+A file that still carries either key loads correctly and the key is ignored —
+required, since ~99k run artifacts under the gitignored ``runs/`` carry them.
 
 ### Functions
 
@@ -536,6 +598,59 @@ Each rule has clear preconditions, transformations, and postconditions.
 
 ### Classes
 
+#### `ConstantExistenceRule`
+
+Dau Def 24.10, Existence of Constants Rule (p.271): "Let C be a
+constant name. In each context c, we may add a fresh vertex v with
+ρ(v) = C. Vice versa, if v is an isolated vertex with ρ(v) = C v may be
+erased from c." An equivalence in any context: a name always denotes.
+
+One rule, two directions, told apart by what is named. A selected vertex
+is the erasure. Nothing selected is the insertion, into ``target_area``,
+of the constant whose bare name arrives as ``insertion_egif`` — the
+engine's one channel for a rule's content; EGIF itself cannot write an
+isolated constant.
+
+**Methods**:
+
+- `apply_transformation(self, context: formal_transformation_rules.TransformationContext) -> formal_transformation_rules.TransformationResult`
+  Apply the transformation rule to create a new EGI.
+- `calculate_area_polarity(self, egi: egi_core_dau.RelationalGraphWithCuts, area_id: str) -> Tuple[egi_core_dau.AreaPolarity, int]`
+  Calculate the polarity and nesting depth of an area.
+- `check_preconditions(self, context: formal_transformation_rules.TransformationContext) -> Tuple[bool, Optional[str]]`
+  Check if the rule can be applied in the given context.
+- `get_rule_name(self) -> str`
+  Get the name of this transformation rule.
+- `is_closed_subgraph(self, egi: egi_core_dau.RelationalGraphWithCuts, subgraph: FrozenSet[str]) -> bool`
+  Check if subgraph is closed per Dau's Definition (no external connections).
+
+#### `ConstantIdentityRule`
+
+Dau Def 24.10, Constant Identity Rule (p.271), with the text the
+author ruled on 2026-11-25 (the print carries "(ve, vf)" and "into d"
+over from the rule above it): "Let C ∈ C be a constant name. Let v, w be
+vertices with ρ(v) = ρ(w) = C. Let c be a context with c ≤ ctx(v) and
+c ≤ ctx(w). Then arbitrary identity-links id with ν(id) = (v, w) may be
+inserted into c or erased from c." An equivalence in any context.
+
+Two selected vertices and ``target_area`` (c) is the insertion; one
+selected identity link is the erasure. The link is scribed from the
+vertex whose id sorts first — the rule is symmetric in v and w, and the
+choice must be the graph's, not a set's iteration order.
+
+**Methods**:
+
+- `apply_transformation(self, context: formal_transformation_rules.TransformationContext) -> formal_transformation_rules.TransformationResult`
+  Apply the transformation rule to create a new EGI.
+- `calculate_area_polarity(self, egi: egi_core_dau.RelationalGraphWithCuts, area_id: str) -> Tuple[egi_core_dau.AreaPolarity, int]`
+  Calculate the polarity and nesting depth of an area.
+- `check_preconditions(self, context: formal_transformation_rules.TransformationContext) -> Tuple[bool, Optional[str]]`
+  Check if the rule can be applied in the given context.
+- `get_rule_name(self) -> str`
+  Get the name of this transformation rule.
+- `is_closed_subgraph(self, egi: egi_core_dau.RelationalGraphWithCuts, subgraph: FrozenSet[str]) -> bool`
+  Check if subgraph is closed per Dau's Definition (no external connections).
+
 #### `DeiterationRule`
 
 IT- (Dau §14.4): Deiteration Rule.
@@ -615,6 +730,10 @@ Preconditions (Dau §14.3):
     - The target area must exist in the EGI.
     - Every element of the selected subgraph must live directly in the
       target area (not inside a nested cut within that area).
+    - The result must be an EGI (Def 15.2, p.164), so dominating nodes
+      (Def 12.5, p.125) must survive: a vertex may move inside the double
+      cut only together with all of its edges, each one selected or
+      inside a selected cut.
 
 Result: a new outer cut O and inner cut I are created; O lives in
 target_area, I lives inside O, and the selected subgraph moves inside I.
@@ -626,7 +745,7 @@ target_area, I lives inside O, and the selected subgraph moves inside I.
 - `calculate_area_polarity(self, egi: egi_core_dau.RelationalGraphWithCuts, area_id: str) -> Tuple[egi_core_dau.AreaPolarity, int]`
   Calculate the polarity and nesting depth of an area.
 - `check_preconditions(self, context: formal_transformation_rules.TransformationContext) -> Tuple[bool, Optional[str]]`
-  DC+ can be applied in any area to enclose any subgraph (including empty).
+  DC+ can be applied in any area to enclose a subgraph (including empty),
 - `get_rule_name(self) -> str`
   Get the name of this transformation rule.
 - `is_closed_subgraph(self, egi: egi_core_dau.RelationalGraphWithCuts, subgraph: FrozenSet[str]) -> bool`
@@ -671,7 +790,7 @@ Engine for applying formal EG transformation rules.
 
 - `__init__(self)`
   Initialize self.  See help(type(self)) for accurate signature.
-- `apply_rule(self, rule_name: str, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str]) -> formal_transformation_rules.TransformationResult`
+- `apply_rule(self, rule_name: str, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str], insertion_egif: Optional[str] = None) -> formal_transformation_rules.TransformationResult`
   Apply a transformation rule to an EGI.
 - `describe_rule(self, rule_name: str) -> str`
   Get description of a transformation rule.
@@ -779,7 +898,7 @@ Context information for applying a transformation.
 
 **Methods**:
 
-- `__init__(self, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str], area_polarity: egi_core_dau.AreaPolarity, nesting_depth: int, enclose_empty: bool = False) -> None`
+- `__init__(self, source_egi: egi_core_dau.RelationalGraphWithCuts, target_area: str, selected_subgraph: FrozenSet[str], area_polarity: egi_core_dau.AreaPolarity, nesting_depth: int, enclose_empty: bool = False, insertion_egif: Optional[str] = None) -> None`
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).
@@ -794,6 +913,32 @@ Result of applying a transformation rule.
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).
+
+#### `VertexErasureRule`
+
+Dau Def 15.2, erasing a vertex (p.164, 166): "An isolated vertex may be
+erased from arbitrary contexts." An equivalence, with no polarity
+condition — unlike ERA, which is the positive-context rule and was this
+engine's only way to erase a vertex until 2026-11-26.
+
+The vertex named is the whole move. One with edges is refused, and the
+refusal says which edges stand in the way: erasing them is ERA's business
+(a positive context) and is a separate step. A constant vertex is refused
+too and sent to CONSTANT_EXISTENCE, the rule Def 24.10 (p.271) gives for
+a vertex "with ρ(v) = C".
+
+**Methods**:
+
+- `apply_transformation(self, context: formal_transformation_rules.TransformationContext) -> formal_transformation_rules.TransformationResult`
+  Apply the transformation rule to create a new EGI.
+- `calculate_area_polarity(self, egi: egi_core_dau.RelationalGraphWithCuts, area_id: str) -> Tuple[egi_core_dau.AreaPolarity, int]`
+  Calculate the polarity and nesting depth of an area.
+- `check_preconditions(self, context: formal_transformation_rules.TransformationContext) -> Tuple[bool, Optional[str]]`
+  Check if the rule can be applied in the given context.
+- `get_rule_name(self) -> str`
+  Get the name of this transformation rule.
+- `is_closed_subgraph(self, egi: egi_core_dau.RelationalGraphWithCuts, subgraph: FrozenSet[str]) -> bool`
+  Check if subgraph is closed per Dau's Definition (no external connections).
 
 ### Functions
 
@@ -953,8 +1098,9 @@ Information about an area's position in the nesting hierarchy.
 
 **Methods**:
 
-- `__init__(self, area_id: str, nesting_level: int, parent_area: Optional[str], child_areas: Set[str]) -> None`
+- `__init__(self, area_id: str, nesting_level: int, parent_area: Optional[str], child_areas: FrozenSet[str]) -> None`
   Initialize self.  See help(type(self)) for accurate signature.
+- `__post_init__(self) -> None`
 - `__repr__(self)`
   Return repr(self).
 
@@ -1977,7 +2123,7 @@ for both static and dynamic UoDs.
 
 **Methods**:
 
-- `__init__(self, uod_id: str, uod_type: universe_of_discourse.UoDType, name: str, description: str, category: universe_of_discourse.UoDCategory, created: datetime.datetime, last_modified: datetime.datetime, current_state_id: Optional[str] = None, total_states: int = 1, total_transformations: int = 0, authors: List[str] = <factory>, tags: Set[str] = <factory>, corpus_path: Optional[pathlib._local.Path] = None, source_citation: Optional[str] = None, related_uods: List[str] = <factory>, domain_contexts: Set[str] = <factory>, natural_language_summary: Optional[str] = None, style_name: str = 'dau-compliant@1.0') -> None`
+- `__init__(self, uod_id: str, uod_type: universe_of_discourse.UoDType, name: str, description: str, category: universe_of_discourse.UoDCategory, created: datetime.datetime, last_modified: datetime.datetime, current_state_id: Optional[str] = None, total_states: int = 1, total_transformations: int = 0, authors: List[str] = <factory>, tags: Set[str] = <factory>, corpus_path: Optional[pathlib.Path] = None, source_citation: Optional[str] = None, related_uods: List[str] = <factory>, domain_contexts: Set[str] = <factory>, natural_language_summary: Optional[str] = None, style_name: str = 'dau-compliant@1.0') -> None`
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).
@@ -2116,7 +2262,7 @@ for both static and dynamic UoDs.
 
 **Methods**:
 
-- `__init__(self, uod_id: str, uod_type: universe_of_discourse.UoDType, name: str, description: str, category: universe_of_discourse.UoDCategory, created: datetime.datetime, last_modified: datetime.datetime, current_state_id: Optional[str] = None, total_states: int = 1, total_transformations: int = 0, authors: List[str] = <factory>, tags: Set[str] = <factory>, corpus_path: Optional[pathlib._local.Path] = None, source_citation: Optional[str] = None, related_uods: List[str] = <factory>, domain_contexts: Set[str] = <factory>, natural_language_summary: Optional[str] = None, style_name: str = 'dau-compliant@1.0') -> None`
+- `__init__(self, uod_id: str, uod_type: universe_of_discourse.UoDType, name: str, description: str, category: universe_of_discourse.UoDCategory, created: datetime.datetime, last_modified: datetime.datetime, current_state_id: Optional[str] = None, total_states: int = 1, total_transformations: int = 0, authors: List[str] = <factory>, tags: Set[str] = <factory>, corpus_path: Optional[pathlib.Path] = None, source_citation: Optional[str] = None, related_uods: List[str] = <factory>, domain_contexts: Set[str] = <factory>, natural_language_summary: Optional[str] = None, style_name: str = 'dau-compliant@1.0') -> None`
   Initialize self.  See help(type(self)) for accurate signature.
 - `__repr__(self)`
   Return repr(self).

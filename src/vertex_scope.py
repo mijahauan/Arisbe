@@ -184,10 +184,17 @@ def normalize_constants(
     apply this at a boundary without churning graphs that do not need it.
 
     The merge is meaning-preserving (see the module docstring), so this is a
-    choice of representative rather than a repair. It is applied where graphs
-    are *constructed* — the drawing reader, the episode primitives that splice
-    freshly parsed ink beside standing ink — and never inside the transformation
-    rules, which are left exactly as Dau states them.
+    choice of representative rather than a repair. It belongs where a graph is
+    *constructed*, never inside the transformation rules, which are left
+    exactly as Dau states them.
+
+    It is not a step of any derivation, and since 2026-11-26 nothing in
+    ``src/`` or ``tools/`` calls it. The episode primitives did, after their
+    last recorded rule; they now join the lines by Dau's constant rules
+    (``derived_rules.join_constant_lines``), which reaches the same graph with
+    every step certified. What remains is the corpus boundary's refusal
+    (``tomos_service`` names this function as the remedy) and the tests that
+    compare the certified join against it.
     """
     twins = _constant_twins(egi)
     if not twins:

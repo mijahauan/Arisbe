@@ -258,7 +258,10 @@ class TestEpisodeSteps:
         assert step.rule_name == "DISCHARGE_TO_M"
         assert step.parameters["act"] == "m_discharge"
         assert step.parameters["confirmed_by"] == peel_id
-        assert step.parameters["derivation"][-1] == "DC-"
+        # drawn modus ponens, then P's own line for its individual joined to
+        # the one M stands on — every step a rule, every step in the record
+        assert step.parameters["derivation"] == [
+            "IT-", "IT-", "IT-", "DC-", "CONSTANT_IDENTITY", "MERGE_VERTICES"]
         view = parse_egif(generate_egif(m_view(pc.current)))
         assert nav.same_graph(view, parse_egif(f'{self.M0} {self.P}'))
         # the discharged fact STANDS: an unmaterialized peel now reads true

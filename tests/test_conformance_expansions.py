@@ -71,17 +71,58 @@ def test_normalising_a_constant_whose_twins_sit_in_sibling_cuts():
     assert _every_step_is_an_equivalence([g, s0, s1, s2, s3, s4])
 
 
-def test_the_kernel_does_not_yet_let_a_named_vertex_be_merged_into_its_namesake():
-    """What Phase 3 item 1 changes. The author ruled on 2026-11-25 that Def
-    16.6's merge covers two vertices carrying the same constant; the kernel's
-    judge still refuses any named v₂. Pinned as it stands, so that the change is
-    made on purpose: this test is the one to turn over."""
+def test_the_kernel_lets_a_named_vertex_be_merged_into_its_namesake_and_no_other():
+    """What Phase 3 item 1 changed. The author ruled on 2026-11-25 that Def
+    16.6's merge covers two vertices carrying the same constant. Until
+    2026-11-26 the kernel's judge refused any named v₂, and this test pinned
+    that refusal so the change would be made on purpose. Turned over: the
+    namesake is accepted; a name that would be lost is still refused."""
     g = parse_egif("~[ ]")
     cut = next(iter(g.Cut)).id
     g = g.with_vertex_in_context(_constant("a1"), g.sheet).with_vertex_in_context(_constant("a2"), cut)
     g = g.with_edge(Edge("id"), ("a1", "a2"), "=", cut)
-    verdict, why = dau_kernel.legal(g, Move("MERGE_VERTICES", ("a1", "a2", "id")))
-    assert verdict is False and "carries a name" in why
+    assert dau_kernel.legal(g, Move("MERGE_VERTICES", ("a1", "a2", "id")))[0] is True
+
+    other = parse_egif("~[ ]")
+    other = (other.with_vertex_in_context(Vertex("b1", label="b", is_generic=False), other.sheet)
+             .with_vertex_in_context(_constant("a2"), cut_of(other)))
+    other = other.with_edge(Edge("id"), ("b1", "a2"), "=", cut_of(other))
+    verdict, why = dau_kernel.legal(other, Move("MERGE_VERTICES", ("b1", "a2", "id")))
+    assert verdict is False and "carries a name v₁ does not" in why
+    line = parse_egif("~[ ]")
+    line = (line.with_vertex_in_context(Vertex("x"), line.sheet)
+            .with_vertex_in_context(_constant("a2"), cut_of(line)))
+    line = line.with_edge(Edge("id"), ("x", "a2"), "=", cut_of(line))
+    assert dau_kernel.legal(line, Move("MERGE_VERTICES", ("x", "a2", "id")))[0] is False
+
+
+def cut_of(g):
+    return next(iter(g.Cut)).id
+
+
+def test_the_engine_reaches_both_normalisations_by_the_rules_reproduced_above():
+    """The two hand-built expansions, now performed: ``join_constant_lines``
+    applies the same rules in the same order, every step certified, and
+    reaches the graph the old normaliser did."""
+    from derived_rules import join_constant_lines
+
+    g = parse_egif("~[ ]")
+    cut = cut_of(g)
+    g = g.with_vertex_in_context(_constant("a1"), g.sheet).with_edge(Edge("p"), ("a1",), "P", g.sheet)
+    g = g.with_vertex_in_context(_constant("a2"), cut).with_edge(Edge("q"), ("a2",), "Q", cut)
+    joined, steps, survivor = join_constant_lines(g, ["a1", "a2"])
+    assert steps == ["CONSTANT_IDENTITY", "MERGE_VERTICES"] and survivor == "a1"
+    assert dau_kernel.same_graph(joined, normalize_constants(g))
+
+    g = parse_egif("~[ ] ~[ ]")
+    c1, c2 = sorted(c.id for c in g.Cut)
+    g = g.with_vertex_in_context(_constant("a1"), c1).with_edge(Edge("p"), ("a1",), "P", c1)
+    g = g.with_vertex_in_context(_constant("a2"), c2).with_edge(Edge("q"), ("a2",), "Q", c2)
+    joined, steps, survivor = join_constant_lines(g, ["a1", "a2"])
+    assert steps == ["CONSTANT_EXISTENCE", "CONSTANT_IDENTITY", "MERGE_VERTICES",
+                     "CONSTANT_IDENTITY", "MERGE_VERTICES"]
+    assert survivor not in ("a1", "a2") and joined.get_context(survivor) == joined.sheet
+    assert dau_kernel.same_graph(joined, normalize_constants(g))
 
 
 def test_iterating_with_a_reused_vertex_is_four_of_dau_s_steps():

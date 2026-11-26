@@ -344,7 +344,7 @@ class VertexMergingRule(FormalTransformationRule):
         # constant keeps the name and is an equivalence; merging the constant
         # away loses it. v2 is the vertex this rule's apply_transformation
         # erases (both take it from the same list of the same selection).
-        refusal = self._refuse_constant_vertices(egi, (v2_id,))
+        refusal = self._refuse_losing_a_name(egi, v1_id, v2_id)
         if refusal:
             return False, refusal
 
@@ -418,8 +418,9 @@ class VertexMergingRule(FormalTransformationRule):
         constant stays, which is also the merge that keeps what the graph says
         by name. Where the pair is symmetric in that respect — both generic —
         the canonical-signature order the Chapter 16 ligature rules use decides,
-        for the reason given there. Both constant: the order is canonical too,
-        and the merge is refused on Def 24.10 whichever way it faces.
+        for the reason given there. Both constant: the order is canonical too;
+        the merge stands when the two carry one name and is refused on Def 24.10
+        whichever way it faces when they do not.
 
         Without this, ``list(selected_subgraph)[1]`` picked v2 by the
         per-process string hash, so on one and the same mixed pair this rule
@@ -448,6 +449,27 @@ class VertexMergingRule(FormalTransformationRule):
 
         return _refuse_constant_vertices(egi, vertex_ids)
 
+    def _refuse_losing_a_name(
+        self, egi: RelationalGraphWithCuts, v1_id: ElementID, v2_id: ElementID
+    ) -> Optional[str]:
+        """v2 is the vertex merging erases, so its name must not be lost with
+        it. A generic v2 has none. A constant v2 loses nothing when v1 carries
+        the *same* constant: the merge is then the second half of joining two
+        lines of one name, after the Constant Identity Rule has linked them
+        (Def 24.10, p.271; the author's ruling of 2026-11-25 that Def 16.6's
+        merge covers two vertices carrying one constant — §24.4, p.275, carries
+        Chapter 16 over "as long as we do not change the set of its labels").
+        Any other constant v2 is refused as before."""
+        by_id = {v.id: v for v in egi.V}
+        v1, v2 = by_id.get(v1_id), by_id.get(v2_id)
+        if (
+            v1 is not None and v2 is not None
+            and not v1.is_generic and not v2.is_generic
+            and v1.label and v1.label == v2.label
+        ):
+            return None
+        return self._refuse_constant_vertices(egi, (v2_id,))
+
     def merge_vertices(
         self,
         egi: RelationalGraphWithCuts,
@@ -460,9 +482,10 @@ class VertexMergingRule(FormalTransformationRule):
         the iteration order of a set.
 
         The conditions checked are Dau's own: e = (v1, v2) is an identity edge
-        with ctx(v1) ≥ ctx(e) = ctx(v2) (p.176), and both vertices are generic
+        with ctx(v1) ≥ ctx(e) = ctx(v2) (p.176), and v2's name is not lost
         (Def 24.10, p.270-272 — merging a constant vertex away erases its name,
-        which is part of what the graph says).
+        which is part of what the graph says, unless v1 carries the same one:
+        ``_refuse_losing_a_name``).
 
         ``apply_transformation`` takes its two vertices from an unordered
         selection and cannot express this; ``_apply_vertex_merge`` performs the
@@ -470,7 +493,7 @@ class VertexMergingRule(FormalTransformationRule):
         """
         # Only v2 — the vertex merging erases (Def 16.6, p.176; Def 24.10,
         # p.270). v1 survives with whatever name it carries.
-        refusal = self._refuse_constant_vertices(egi, (v2_id,))
+        refusal = self._refuse_losing_a_name(egi, v1_id, v2_id)
         if refusal:
             return TransformationResult(False, None, refusal, {})
 
