@@ -57,11 +57,16 @@ jobs:
           uid=$(curl -sf http://127.0.0.1:8000/organon/uods \
                 | python3 -c "import json,sys; d=json.load(sys.stdin)['data']; print((d['uods'] if isinstance(d,dict) else d)[0]['uod_id'])")
           echo "rendering UoD: $uid"
-          body=$(curl -sf "http://127.0.0.1:8000/organon/uods/$uid")
-          echo "$body" | python3 - "$uid" <<'PY'
+          # The reply goes to a file, not down a pipe: `python3 -` reads its
+          # PROGRAM from stdin, and the here-document below is that stdin, so a
+          # piped body never reached json.load — which then read the end of the
+          # script and failed with "Expecting value" on every run.
+          curl -sf "http://127.0.0.1:8000/organon/uods/$uid" -o "$RUNNER_TEMP/uod.json"
+          python3 - "$uid" "$RUNNER_TEMP/uod.json" <<'PY'
           import json, sys
           uid = sys.argv[1]
-          payload = json.load(sys.stdin)
+          with open(sys.argv[2]) as fh:
+              payload = json.load(fh)
           if not payload.get("success"):
               sys.exit(f"detail route refused for {uid}: {payload.get('error')}")
           svg = (payload.get("data") or {}).get("svg") or ""
