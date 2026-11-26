@@ -81,3 +81,11 @@ jobs:
 
       - name: The mathematical core passes on a greenfield clone
         run: uv run python tools/quality_gate_system.py
+
+      # The server was started in the background and still holds uv's cache
+      # lock. setup-uv's own post-step waits 300 s on that lock and then fails
+      # the job — after every step above has passed. This was invisible while
+      # the render check failed first.
+      - name: Stop the server
+        if: always()
+        run: pkill -f uvicorn || true
