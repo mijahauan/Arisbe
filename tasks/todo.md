@@ -1013,6 +1013,25 @@ always a role you could not yet name; `E₄ → E₃` says the richer fact carri
 poorer. Silent arity drift lets you have neither and behave as though you had
 both.
 
+### 10e — rationale and sequencing (the author's ruling, 2026-11-26)
+
+Handed over from the vault's Arisbe Decision Queue as Q2 and ruled into this file.
+
+**Rationale, in the author's terms.** A world is the setting in which structures persist while
+individuals come and go: societies reproduce and educate new members, and the language of a
+discourse outlives any one graph scribed in it ("individuals may come and go", September). So the
+Universe of Discourse gets its own Σ, and a change of language becomes a recorded act rather than
+a side effect of insertion.
+
+**What the conformance arc already says about it.** The specification's §6
+(`docs/superpowers/specs/2026-11-25-calculus-conformance.md`) declares Σ out of scope and says the
+certificate "records it as a language act once item 10 lands". That is an anticipation only: no
+such act type exists yet in the specification or in `src/calculus_certify.py`.
+
+**Sequencing.** After the conformance arc's §8 criteria are met. It is the first
+calculus-adjacent arc after that, ahead of any program-layer work. The `CURRENT_PLAN.md` handoff
+names it when the arc closes.
+
 ### 10d — open, and the author's: vocabulary on a branching DAG
 
 Does a name introduced only on a path later abandoned stay in the language? That
@@ -1027,3 +1046,41 @@ them; 245 corpus files were migrated (900 deletions, 0 insertions, `same_graph`
 asserted per file before each rewrite). Old files still load — required, since
 ~99k run artifacts under the gitignored `runs/` carry the keys. Emptying the
 slot is what keeps it from being mistaken for the UoD's Σ.
+
+## Item 11 — A DEPTH MEASURE OVER CERTIFIED HISTORIES (queued 2026-11-26)
+
+Handed over from the vault's Arisbe Decision Queue as Q3 and ruled into this file by the author on
+2026-11-26. **Queued after item 10. Not to start before the conformance arc closes.** A design
+note goes under `docs/superpowers/specs/` when it starts. The exchange behind it is in the vault
+thread `wiki/threads/Arisbe — Code and Chat 2026-11.md`.
+
+**The task.** For every state in every certified chain of the corpus, compute a measure of
+Hintikka's kind and record its change at each primitive step. Compare with
+`src/proof_character.py`'s verdict (theorematic iff INS) and report every chain where the two
+disagree about which steps are theorematic.
+
+**What it needs first.**
+- **Certified, discrete steps.** Under the ruling on R2 (option A) the fused IT+ becomes four
+  steps. The step that carries a line into a deeper cut is the **second iteration clause**
+  (Dau p.164), not iteration proper; that is the step the comparison must watch.
+- **Phase 4 as well as the split.** The corpus holds 66 primitive steps and six derived steps
+  whose expansions the kernel cannot yet check (`tests/test_act_classes.py`,
+  `tests/test_certify_departures.py`).
+- **A statement about constants.** Since Phase 3 item 1 the engine adds and removes identity links
+  between same-named constant vertices (`derived_rules.join_constant_lines`), so the measure must
+  say whether constant vertices count.
+
+**Open — the measure itself. Not ruled; the author's word is wanted when this starts.**
+- Dau's Φ assigns a fresh variable to every *vertex*, not to every line (pp.209–210). A measure
+  read off Φ(G) literally therefore moves under the Chapter 16 ligature rules and under the
+  second iteration clause, and under separating a constant (Def 24.6).
+- Claude Chat's reading of Hintikka, taken from quotations of the 1973 text in Larese,
+  *Synthese* 201:207 (2023), with neither primary text seen: depth and degree are both
+  properties of a formula as written, and Hintikka defines synthetic reasoning on **degree**
+  (free singular terms plus depth), not on depth. Its recommendation is to compare on degree and
+  to compute two designs: *literal* (the degree of Φ(G) at each step) and *invariant* (degree on a
+  one-vertex-per-line-per-context normal form, a labelled departure from his definition).
+- An earlier proposal, depth over generic vertices only, is superseded.
+- Still unchecked: the 1970 wording, the 1973 text itself, and how each design treats constants.
+
+Rationale: the vault note "Depth Information and the Scandal of Deduction".

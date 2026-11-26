@@ -98,3 +98,18 @@ document (modules, line counts, what each is trusted for). Correct README, VISIO
 SOUNDNESS_BOUNDARY, CAPABILITY_MAP and CONTRIBUTION_AND_PRIOR_ART to say only what the certificates
 support, and list what is still incomplete. Check the result against the specification's §8,
 criterion by criterion, and report each as met or not.
+
+**A criterion for every sentence the sweep touches** (the author's ruling, 2026-11-26; drafted in
+the vault's Arisbe Decision Queue as Q1). Two tests.
+
+1. **Each claim names its test.** A claim about the calculus, the correspondence check or the
+   corpus cites the test, ledger entry or certificate that supports it, or it is withdrawn.
+2. **Locative, not agentive.** A sentence may locate something within a whole — the commens, a
+   Universe of Discourse, "the world" — and may not attribute intention, choice or a character to
+   the whole. "Within the commens, a habit becomes shared" passes; "the commens decides" does not.
+
+The second test stands beside the first-order non-locution settled in
+`docs/ADVERSARIAL_EXAMINATION.md` (Departure I: "no mark may bear its own distance-to-the-real as a
+terminus"). That principle governs what a mark may say of its distance to the real; this one
+governs what a sentence may say of a whole. ROADMAP Workstream B's sweep takes the same criterion
+when Phase 5 reaches it; ROADMAP is not edited before then.
