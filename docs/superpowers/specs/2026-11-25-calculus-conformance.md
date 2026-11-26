@@ -1,6 +1,6 @@
 # Calculus conformance and certified soundness
 
-**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 waits on R2 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 (chain of custody) and R10 (act classes) added; R2 ruled in part — the IT+ expansion and edge erasure — the rest open (§7, §7a)
+**Date:** 2026-11-25 · **Status:** Phases 0–2 built 2026-11-25 (§3.1 note, §3.3a, §3.3b); Phase 3 is unblocked — R2 ruled 2026-11-25 · **Rulings:** R1, R3–R8 ruled 2026-11-25, R7 amended the same day (CONSTANT_IDENTITY in scope, §4.4), R9 (chain of custody) and R10 (act classes) added, R2 ruled — every reading confirmed, with option A for the IT+ expansion (§7, §7a). **No ruling is open**
 **Companions:** [2026-11-11-reassessment.md](2026-11-11-reassessment.md) ·
 [2026-09-10-calculus-property-suite-design.md](2026-09-10-calculus-property-suite-design.md) ·
 `tests/calculus_ledger.json` · `tests/calculus_rules.py` · `tests/calculus_expected.py`
@@ -505,7 +505,7 @@ merge — and production's merges are today the unchecked private operation (§3
 ADMIT_TO_M's join (§3.3a, finding 3) is the same move and takes the same recorded expansion,
 though as an ampliative act it owes no certificate.
 
-Two readings ride with this and are the author's (R2):
+Two readings rode with this and were the author's. **Both were confirmed on 2026-11-25 (R2):** the rule's intended text is ν(id) = (v, w), inserted into c; and Def 16.6's merge covers two vertices carrying the same constant.
 
 1. **The printed rule is corrupt.** "ν(id) = (ve, vf)" names vertices of the Functional Property
    Rule stated just above it, and "inserted into d" names a context the rule never introduces.
@@ -549,7 +549,7 @@ discipline the 2026-09-24 alphabet migration used). Ruling required (§7, R5).
 | # | Question | Proposed | Status |
 |---|---|---|---|
 | R1 | Fused moves become discrete recorded steps; conveniences become derived rules with recorded expansions | Yes | **Ruled 2026-11-25** |
-| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split. Added with the R7 amendment: the two Chapter 24 readings in §4.4 (the corrupt printed text of the Constant Identity Rule; whether Def 16.6's merge covers two constant vertices) | — | **Ruled in part, 2026-11-25.** (a) The second iteration clause is a rule in its own right — option A of §7a; this was the question "above all". (b) Edge erasure keeps the vertex: the author confirmed the printed "V^(e) := V; E^(e) := E\{e}" (p.165). **Still open:** the other five PROVISIONAL readings (entries 0, 2, 11, 13, 15) and the two Chapter 24 readings. Blocks Phase 3 only |
+| R2 | Confirm the seven PROVISIONAL readings of Def 15.2 / Def 12.10 (ledger entries 0, 2, 11, 13, 14, 15, 16) against the book — above all, what Def 15.2's second clause (p.164) licenses, which fixes the discrete steps of the IT+ split. Added with the R7 amendment: the two Chapter 24 readings in §4.4 (the corrupt printed text of the Constant Identity Rule; whether Def 16.6's merge covers two constant vertices) | — | **Ruled 2026-11-25: every reading confirmed.** The seven PROVISIONAL readings stand as the ledger states them, with the author's confirmation against the book; the second iteration clause (p.164) is a rule in its own right (option A of §7a); the two Chapter 24 readings of §4.4 are confirmed. The print oddities listed in §7a are read as that section reads them. The ledger's seven entries still carry their "PROVISIONAL — for the author" prefix, which `tests/calculus_adjudication.py` generates; each entry is retired by its Phase 3 family rather than re-worded |
 | R3 | Enlarged selections (ERA, IT+): refuse and offer the closure as an explicit proposal, rather than refuse outright | Refuse + propose | **Ruled 2026-11-25: refuse + propose** |
 | R4 | DC+ with neither subject nor spot: keep the whole-sheet convenience, recording the enclosed selection; or remove it | Keep, recorded | **Ruled 2026-11-25: keep, recorded** |
 | R5 | Stored chains: `rule_version` + legacy expansion; regenerate the corpus exemplars | Yes | **Ruled 2026-11-25: yes** |
@@ -559,7 +559,7 @@ discipline the 2026-09-24 alphabet migration used). Ruling required (§7, R5).
 | R10 | The six act names §3.4 did not class | REVISE_M(sibling) ampliative; EXHIBIT and chain.fix neutral; definition.fold/unfold extension; `compose.*` a sixth class | **Ruled 2026-11-25: as proposed, with composition a sixth class** (§3.4) |
 | R9 | Chain of custody: each certificate step is issued on the graph the previous one vouched for (§3.2) | Yes | **Ruled 2026-11-25: confirmed**, after Phase 2 found two changes made between accepted steps |
 
-### 7a. R2 — what the printed text says (a reading aid, not a ruling)
+### 7a. R2 — what the printed text says (the reading aid the ruling was made on)
 
 Read on 2026-11-25 from `pdftotext` of `docs/references/mathematical_logic_with_diagrams.pdf`,
 pp.164–167 and p.134. The extraction garbles some symbols, so each point wants the page itself.
