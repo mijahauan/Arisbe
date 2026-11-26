@@ -583,6 +583,10 @@ pp.164–167 and p.134. The extraction garbles some symbols, so each point wants
   the copy linked to the new vertex (1), merge twice (Def 16.6) — four steps where §4.1 counts
   three. If (2) is only the degenerate case of (1), the first step is not available and the join
   to a line above c has to come some other way. This is the question R2's row calls "above all".
+  One piece of evidence from the book itself: the soundness proof for the Chapter 24 calculus
+  treats it as a case of its own — "if G2 is obtained from G1 by inserting a new vertex w and an
+  identity edge between v and w into c with the second clause of the iteration-rule" (p.273) —
+  which is how one writes of a rule, not of a gloss.
 - One more oddity for the page: the vertex rule prints "E_v = ∅ and κ(v) = ⊤" (p.166), though κ
   labels edges in this chapter.
 
